@@ -1,0 +1,100 @@
+[
+  {
+    "id": "courier_flashbot",
+    "category": "service_delivery",
+    "type_label": "Роботы доставки",
+    "object_types": ["clinic", "other"],
+    "name": "Робот-курьер премиум",
+    "description": "Межэтажная доставка: 2-4 изолированных отсека, интеграция с лифтами KONE/OTIS. Класс PUDU FlashBot Max.",
+    "purpose": ["Межэтажная доставка", "Клиники и офисы", "Интеграция с лифтами"],
+    "specs": {
+      "payload_kg": 10,
+      "max_speed_m_s": 1.2,
+      "min_aisle_width_m": 0.7,
+      "autonomy_hours": 9,
+      "navigation_type": "VSLAM+LiDAR"
+    },
+    "compatible_cargo": ["deliveries"],
+    "transport_profile": {
+      "units_per_trip": 1,
+      "exchange_time_s": 120,
+      "requires_elevator": true
+    },
+    "economics": {
+      "robot_capex_rub": 1980000,
+      "charger_cost_rub": 250000,
+      "chargers_per_robot": 0.34,
+      "integration_per_robot_rub": 500000,
+      "site_fixed_warehouse_rub": 2000000,
+      "site_fixed_zone_rub": 500000,
+      "annual_service_rub": 120000,
+      "annual_software_rub": 60000,
+      "avg_power_w": 150,
+      "battery_cost_rub": 200000,
+      "battery_cycles": 2500,
+      "runtime_h": 9,
+      "fte_replace_per_shift": 1.0,
+      "residual_share": 0.45
+    },
+    "price": {
+      "usd_anchor": 20000,
+      "usd_basis": "reseller_public: FlashBot Max от $20k",
+      "usd_confidence": 0.86,
+      "rfx_rate": 90,
+      "delivery_mult": 1.10,
+      "rub_derived": 1980000,
+      "basis": "reseller_public + пересчёт",
+      "confidence": 0.65,
+      "note": "$20k × 90 ₽ × 1.10 = 1.98 млн ₽; лифты в site_fixed_warehouse"
+    }
+  },
+  {
+    "id": "bella_bot",
+    "category": "service_delivery",
+    "type_label": "Роботы доставки",
+    "object_types": ["clinic", "other"],
+    "name": "Курьерский робот",
+    "description": "Курьер без интеграции с лифтами, длинная автономность, узкие коридоры. Класс PUDU BellaBot.",
+    "purpose": ["Доставка внутри этажа", "Рестораны и кафе", "Простая логистика"],
+    "specs": {
+      "payload_kg": 15,
+      "max_speed_m_s": 0.9,
+      "min_aisle_width_m": 0.7,
+      "autonomy_hours": 8,
+      "navigation_type": "LiDAR"
+    },
+    "compatible_cargo": ["deliveries"],
+    "transport_profile": {
+      "units_per_trip": 1,
+      "exchange_time_s": 150,
+      "requires_elevator": false
+    },
+    "economics": {
+      "robot_capex_rub": 1440000,
+      "charger_cost_rub": 150000,
+      "chargers_per_robot": 0.34,
+      "integration_per_robot_rub": 200000,
+      "site_fixed_warehouse_rub": 400000,
+      "site_fixed_zone_rub": 100000,
+      "annual_service_rub": 80000,
+      "annual_software_rub": 40000,
+      "avg_power_w": 120,
+      "battery_cost_rub": 150000,
+      "battery_cycles": 2000,
+      "runtime_h": 12,
+      "fte_replace_per_shift": 0.8,
+      "residual_share": 0.45
+    },
+    "price": {
+      "usd_anchor": 14500,
+      "usd_basis": "reseller_public: BellaBot от $14.5k",
+      "usd_confidence": 0.85,
+      "rfx_rate": 90,
+      "delivery_mult": 1.10,
+      "rub_derived": 1440000,
+      "basis": "reseller_public + пересчёт",
+      "confidence": 0.60,
+      "note": "$14.5k × 90 ₽ × 1.10 = 1.44 млн ₽; без интеграции лифтов"
+    }
+  }
+]

@@ -1,0 +1,35 @@
+{
+  "equipment_model": {
+    "id": "RU-RONAVI-H1500",
+    "manufacturer": "Ronavi Robotics",
+    "model": "H1500",
+    "equipment_class": "AMR_PALLET_TRANSPORT",
+    "catalog_tier": "DEMO_CURATED",
+    "technical_specs": {
+      "transport_payload_kg": 1500,
+      "minimum_aisle_mm": 750,
+      "max_speed_m_s": 1.5,
+      "runtime_h": 10
+    }
+  },
+  "procurement_option": {
+    "market": "RU",
+    "procurement_status_russia": "CONFIRMED_AVAILABLE",
+    "procurement_confidence": 0.96,
+    "procurement_modes": [
+      "CAPEX_PURCHASE"
+    ],
+    "supply_risk": "MEDIUM",
+    "service_coverage": "NATIONWIDE_FLY_IN",
+    "price": {
+      "status": "PUBLIC_RANGE",
+      "currency": "RUB",
+      "min": 2160000,
+      "max": 2700000,
+      "boundary": "BARE_ROBOT",
+      "tax_status": "NOT_STATED",
+      "confidence": 0.9
+    }
+  },
+  "disclaimer": "Example contract based on research structure; production seed must preserve exact field evidence/source ids."
+}

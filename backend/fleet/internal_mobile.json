@@ -1,0 +1,182 @@
+[
+  {
+    "id": "agv_pallet_qr",
+    "category": "internal_mobile",
+    "type_label": "Мобильные транспортные роботы",
+    "object_types": ["retail", "other"],
+    "name": "AGV паллетный",
+    "description": "Паллетный AGV по QR-сетке, класс AGV $40-70k. Дешевле AMR, требует разметки пола.",
+    "purpose": ["Транспортировка паллет", "Подача на линию", "Отгрузка"],
+    "specs": {
+      "payload_kg": 1500,
+      "max_speed_m_s": 0.8,
+      "min_aisle_width_m": 1.2,
+      "autonomy_hours": 10,
+      "navigation_type": "QR"
+    },
+    "compatible_cargo": ["pallets", "boxes"],
+    "economics": {
+      "robot_capex_rub": 3591000,
+      "charger_cost_rub": 300000,
+      "chargers_per_robot": 0.34,
+      "integration_per_robot_rub": 600000,
+      "site_fixed_warehouse_rub": 1800000,
+      "site_fixed_zone_rub": 400000,
+      "annual_service_rub": 200000,
+      "annual_software_rub": 80000,
+      "avg_power_w": 300,
+      "battery_cost_rub": 300000,
+      "battery_cycles": 3000,
+      "runtime_h": 10,
+      "fte_replace_per_shift": 1.2,
+      "residual_share": 0.30
+    },
+    "price": {
+      "usd_anchor": 38000,
+      "usd_basis": "низ класса AGV $40-70k",
+      "usd_confidence": 0.35,
+      "rfx_rate": 90,
+      "delivery_mult": 1.05,
+      "rub_derived": 3591000,
+      "basis": "sourced_estimate",
+      "confidence": 0.35,
+      "note": "$38k × 90 ₽ × 1.05 = 3.591 млн ₽; запросите КП"
+    }
+  },
+  {
+    "id": "amr_light_250",
+    "category": "internal_mobile",
+    "type_label": "Мобильные транспортные роботы",
+    "object_types": ["retail", "other"],
+    "name": "Легкий AMR",
+    "description": "AMR для коробок и мелких поддонов, SLAM, без инфраструктуры. Класс MiR250.",
+    "purpose": ["Коробки и мелкие поддоны", "Гибкие маршруты", "Узкие проходы"],
+    "specs": {
+      "payload_kg": 250,
+      "max_speed_m_s": 1.2,
+      "min_aisle_width_m": 0.8,
+      "autonomy_hours": 10,
+      "navigation_type": "SLAM"
+    },
+    "compatible_cargo": ["pallets", "boxes"],
+    "economics": {
+      "robot_capex_rub": 5445000,
+      "charger_cost_rub": 350000,
+      "chargers_per_robot": 0.34,
+      "integration_per_robot_rub": 700000,
+      "site_fixed_warehouse_rub": 1200000,
+      "site_fixed_zone_rub": 300000,
+      "annual_service_rub": 250000,
+      "annual_software_rub": 120000,
+      "avg_power_w": 200,
+      "battery_cost_rub": 350000,
+      "battery_cycles": 3000,
+      "runtime_h": 10,
+      "fte_replace_per_shift": 1.0,
+      "residual_share": 0.35
+    },
+    "price": {
+      "usd_anchor": 55000,
+      "usd_basis": "оценка рынка MiR250 $50-70k",
+      "usd_confidence": 0.40,
+      "rfx_rate": 90,
+      "delivery_mult": 1.10,
+      "rub_derived": 5445000,
+      "basis": "sourced_estimate",
+      "confidence": 0.40,
+      "note": "$55k × 90 ₽ × 1.10 = 5.445 млн ₽; оценка, не оффер"
+    }
+  },
+  {
+    "id": "amr_heavy_1350",
+    "category": "internal_mobile",
+    "type_label": "Мобильные транспортные роботы",
+    "object_types": ["retail", "other"],
+    "name": "Тяжелый AMR",
+    "description": "AMR для европаллет до 1.35 т, гибкие маршруты, работа рядом с людьми. Класс MiR1350.",
+    "purpose": ["Тяжёлые паллеты до 1.35 т", "Погрузка/разгрузка", "Гибкая логистика"],
+    "specs": {
+      "payload_kg": 1350,
+      "max_speed_m_s": 1.0,
+      "min_aisle_width_m": 1.5,
+      "autonomy_hours": 8,
+      "navigation_type": "SLAM"
+    },
+    "compatible_cargo": ["pallets", "boxes"],
+    "economics": {
+      "robot_capex_rub": 8415000,
+      "charger_cost_rub": 500000,
+      "chargers_per_robot": 0.40,
+      "integration_per_robot_rub": 1200000,
+      "site_fixed_warehouse_rub": 1200000,
+      "site_fixed_zone_rub": 300000,
+      "annual_service_rub": 450000,
+      "annual_software_rub": 150000,
+      "avg_power_w": 350,
+      "battery_cost_rub": 600000,
+      "battery_cycles": 3000,
+      "runtime_h": 8,
+      "fte_replace_per_shift": 1.2,
+      "residual_share": 0.35
+    },
+    "price": {
+      "usd_anchor": 85000,
+      "usd_basis": "класс AMR $40-150k, ~1.5x MiR250",
+      "usd_confidence": 0.35,
+      "rfx_rate": 90,
+      "delivery_mult": 1.10,
+      "rub_derived": 8415000,
+      "basis": "derived_estimate",
+      "confidence": 0.35,
+      "note": "$85k × 90 ₽ × 1.10 = 8.415 млн ₽; публичной цены нет"
+    }
+  },
+  {
+    "id": "agv_tug_k05",
+    "category": "internal_mobile",
+    "type_label": "Мобильные транспортные роботы",
+    "object_types": ["airport", "retail", "other"],
+    "name": "AGV-тягач",
+    "description": "Тягач для поездов тележек (багаж, грузы): магнитная лента/QR, буксировка до 1000 кг. Класс Kivnon K05 Twister.",
+    "purpose": ["Поезда тележек", "Багаж", "Крупногабаритные грузы"],
+    "specs": {
+      "payload_kg": 1000,
+      "max_speed_m_s": 0.7,
+      "min_aisle_width_m": 1.5,
+      "autonomy_hours": 8,
+      "navigation_type": "Magnetic/QR"
+    },
+    "compatible_cargo": ["carts"],
+    "transport_profile": {
+      "units_per_trip": 4,
+      "exchange_time_s": 90
+    },
+    "economics": {
+      "robot_capex_rub": 3307500,
+      "charger_cost_rub": 300000,
+      "chargers_per_robot": 0.34,
+      "integration_per_robot_rub": 500000,
+      "site_fixed_warehouse_rub": 2400000,
+      "site_fixed_zone_rub": 600000,
+      "annual_service_rub": 200000,
+      "annual_software_rub": 80000,
+      "avg_power_w": 400,
+      "battery_cost_rub": 300000,
+      "battery_cycles": 3000,
+      "runtime_h": 10,
+      "fte_replace_per_shift": 1.0,
+      "residual_share": 0.30
+    },
+    "price": {
+      "usd_anchor": 35000,
+      "usd_basis": "низ класса tugger $20-120k",
+      "usd_confidence": 0.35,
+      "rfx_rate": 90,
+      "delivery_mult": 1.05,
+      "rub_derived": 3307500,
+      "basis": "sourced_estimate",
+      "confidence": 0.35,
+      "note": "$35k × 90 ₽ × 1.05 = 3.3 млн ₽; состав 4-5 тележек"
+    }
+  }
+]

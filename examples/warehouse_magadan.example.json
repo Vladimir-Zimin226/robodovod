@@ -1,0 +1,29 @@
+{
+  "project": {
+    "name": "Склад Север — demo",
+    "site_location": {
+      "country": "RU",
+      "federal_subject": "MAGADAN_OBLAST",
+      "city": "Магадан"
+    },
+    "process": {
+      "process_family": "PALLET_INTERNAL_TRANSPORT",
+      "volume_per_day": 800,
+      "average_route_m": 180,
+      "max_load_kg": 650,
+      "shifts_per_day": 2
+    }
+  },
+  "regional_context": {
+    "remote_location": true,
+    "far_north": true,
+    "logistics_class": "COMPLEX_REMOTE",
+    "mobilization_class": "EXTENDED",
+    "note": "Illustrative class labels only; money adjustments require sourced benchmark or explicit assumption."
+  },
+  "analysis_policy": {
+    "market": "RU",
+    "unknown_critical_constraint": "DO_NOT_AUTO_PASS",
+    "price_quote_only": "DO_NOT_INVENT_BASE_PRICE"
+  }
+}

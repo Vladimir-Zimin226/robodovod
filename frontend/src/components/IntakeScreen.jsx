@@ -1,0 +1,198 @@
+import { useState } from 'react';
+import ParamsPanel from './ParamsPanel';
+import ZonalPanel from './ZonalPanel';
+
+const API = import.meta.env.VITE_API_URL || '';
+
+const WELCOME = {
+  retail: 'Вы выбрали «Торговля: склад». Опишите процесс внутрискладской логистики.\n\nНапример: «800 паллет в сутки, 3 смены, плечо 180 м, зарплата 90 тысяч, 12 человек».',
+  airport: 'Вы выбрали «Логистика: аэропорт». Опишите процесс — багажные тележки, уборка.\n\nНапример: «480 тележко-рейсов в сутки, плечо 600 м, 3 смены, 12 водителей по 70 тысяч».',
+  clinic: 'Вы выбрали «Соц. сфера: медучреждение». Опишите доставку или уборку.\n\nНапример: «300 доставок в сутки, дальность 300 м, 2 смены, 10 курьеров по 70 тысяч».',
+  other: 'Опишите ваш объект и процесс роботизации своими словами.',
+};
+
+const PROCESS_DEFAULTS = {
+  retail: ['transport', 'pallets'],
+  airport: ['transport', 'carts'],
+  clinic: ['delivery', 'deliveries'],
+  other: ['transport', 'pallets'],
+};
+
+export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', onReady }) {
+  const [messages, setMessages] = useState([
+    { role: 'assistant', text: WELCOME[objectType] || WELCOME.other },
+  ]);
+  const [input, setInput] = useState(initialPrompt);
+  const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState(initialCollected?.mode || 'whole');
+  const [zones, setZones] = useState(initialCollected?.zones || []);
+  const [collected, setCollected] = useState(
+    initialCollected || {
+      object_type: objectType,
+      process_type: PROCESS_DEFAULTS[objectType][0],
+      cargo_type: PROCESS_DEFAULTS[objectType][1],
+    }
+  );
+  const [sources, setSources] = useState(
+    initialCollected
+      ? Object.fromEntries(Object.keys(initialCollected).map((k) => [k, 'preset']))
+      : {}
+  );
+
+  const setManual = (field, value) => {
+    setCollected((c) => ({ ...c, [field]: value }));
+    setSources((s) => ({ ...s, [field]: 'manual' }));
+  };
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text || busy) return;
+    setInput('');
+    setMessages((m) => [...m, { role: 'user', text }]);
+    setBusy(true);
+    try {
+      const res = await fetch(`${API}/api/audit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          history: messages.slice(-6).map(({ role, text }) => ({
+            role,
+            content: text,
+          })),
+          collected,
+        }),
+      });
+      const data = await res.json();
+      setMessages((m) => [...m, { role: 'assistant', text: data.reply }]);
+      if (data.collected) {
+        const merged = { ...collected, ...data.collected };
+        setCollected(merged);
+        setSources((s) => {
+          const ns = { ...s };
+          Object.keys(data.collected).forEach((k) => {
+            if (k !== '_hv_asked') ns[k] = 'ai';
+          });
+          return ns;
+        });
+        if (data.ready) setTimeout(() => handleReady(merged), 900);
+      }
+    } catch {
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', text: '⚠️ Нет связи с сервером' },
+      ]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleReady = (clean) => {
+    const base = { ...clean };
+    delete base._hv_asked;
+    base.mode = mode;
+    if (mode === 'zonal') {
+      base.zones = zones;
+    }
+    onReady(base);
+  };
+
+  const setShared = (k, v) => setCollected((c) => ({ ...c, [k]: v }));
+
+  return (
+    <div className="intake-screen flex min-h-full">
+      <div className="flex-1 flex flex-col max-w-3xl mx-auto p-6">
+        <header className="mb-3">
+          <h1 className="text-xl font-bold">РобоМера — AI-аудитор</h1>
+          <p className="text-slate-500 text-sm">
+            Опишите процесс или введите параметры справа
+          </p>
+        </header>
+
+        {/* ─── Переключатель режима ─── */}
+        <div className="flex gap-1 mb-4 bg-slate-100 rounded-xl p-1 w-fit">
+          <button
+            onClick={() => setMode('whole')}
+            className={`px-4 py-1.5 text-sm rounded-lg transition ${
+              mode === 'whole'
+                ? 'bg-white shadow font-semibold text-slate-800'
+                : 'text-slate-600 hover:text-slate-800'
+            }`}
+          >
+            🏭 Весь объект
+          </button>
+          <button
+            onClick={() => setMode('zonal')}
+            className={`px-4 py-1.5 text-sm rounded-lg transition ${
+              mode === 'zonal'
+                ? 'bg-white shadow font-semibold text-slate-800'
+                : 'text-slate-600 hover:text-slate-800'
+            }`}
+          >
+            🗂 По зонам
+          </button>
+        </div>
+
+        {mode === 'zonal' && (
+          <div className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mb-3">
+            <b>Зональный режим:</b> каждая зона рассчитывается независимо.
+            Парк роботов суммируется, складские интеграции (Wi-Fi, WMS,
+            контроллеры) учитываются один раз на весь склад.
+          </div>
+        )}
+
+        <div className="flex-1 overflow-auto space-y-3">
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
+                m.role === 'user'
+                  ? 'ml-auto bg-blue-600 text-white'
+                  : 'bg-white border'
+              }`}
+            >
+              {m.text}
+            </div>
+          ))}
+          {busy && <div className="text-xs text-slate-400">аудитор печатает…</div>}
+        </div>
+
+        <div className="flex gap-2 mt-3">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && send()}
+            placeholder="Опишите процесс…"
+            disabled={busy}
+            className="flex-1 border rounded-xl px-4 py-2 text-sm"
+          />
+          <button
+            onClick={send}
+            className="bg-blue-600 text-white px-5 rounded-xl text-sm"
+          >
+            Отправить
+          </button>
+        </div>
+      </div>
+
+      {mode === 'whole' ? (
+        <ParamsPanel
+          collected={collected}
+          setManual={setManual}
+          sources={sources}
+          objectType={objectType}
+          onReady={() => handleReady(collected)}
+        />
+      ) : (
+        <ZonalPanel
+          zones={zones}
+          setZones={setZones}
+          shared={collected}
+          setShared={setShared}
+          objectType={objectType}
+          onReady={() => handleReady(collected)}
+        />
+      )}
+    </div>
+  );
+}

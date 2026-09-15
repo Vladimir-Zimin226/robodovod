@@ -1,0 +1,47 @@
+[
+  {
+    "id": "palletizer_cell_21",
+    "category": "fixed_cell",
+    "type_label": "Стационарные ячейки паллетизации",
+    "object_types": ["retail", "other"],
+    "name": "Ячейка паллетизации",
+    "description": "Стационарная ячейка укладки коробов на паллеты, до 13 захватов/мин. Класс Robotiq Lean Palletizing.",
+    "purpose": ["Укладка коробов", "Паллетизация", "Конец линии"],
+    "specs": {
+      "payload_kg": 21,
+      "max_speed_m_s": 0,
+      "min_aisle_width_m": 0,
+      "autonomy_hours": 0,
+      "navigation_type": "fixed",
+      "picks_per_min_max": 13
+    },
+    "compatible_cargo": ["cases"],
+    "economics": {
+      "robot_capex_rub": 10710000,
+      "charger_cost_rub": 0,
+      "chargers_per_robot": 0,
+      "integration_per_robot_rub": 2500000,
+      "site_fixed_warehouse_rub": 1000000,
+      "site_fixed_zone_rub": 200000,
+      "annual_service_rub": 400000,
+      "annual_software_rub": 200000,
+      "avg_power_w": 1500,
+      "battery_cost_rub": 0,
+      "battery_cycles": null,
+      "runtime_h": null,
+      "fte_replace_per_shift": 1.5,
+      "residual_share": 0.50
+    },
+    "price": {
+      "usd_anchor": 85000,
+      "usd_basis": "manufacturer_public_starting_price",
+      "usd_confidence": 0.96,
+      "rfx_rate": 90,
+      "delivery_mult": 1.40,
+      "rub_derived": 10710000,
+      "basis": "manufacturer_public + пересчёт",
+      "confidence": 0.65,
+      "note": "$85k × 90 ₽ × 1.40 = 10.71 млн ₽; старт производителя"
+    }
+  }
+]

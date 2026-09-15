@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07110f" />
+    <title>РобКрафт — симулятор роботизации</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="world" tabindex="0" aria-label="Трёхмерный мир РобКрафта"></canvas>
+    <div id="world-labels" class="world-labels hidden"></div>
+
+    <div id="hud" class="hidden">
+      <div class="brand"><span class="brand-mark">R</span><span>РОБКРАФТ</span><small id="hud-mode">WAREHOUSE // LIVE</small></div>
+      <div class="metrics">
+        <div><small>СЦЕНАРИЙ</small><strong id="hud-seed">—</strong></div>
+        <div><small>РОБОТЫ</small><strong id="hud-robots">—</strong></div>
+        <div><small>РЕЙСЫ</small><strong id="hud-trips">0</strong></div>
+        <div><small>ВЫГРУЖЕНО</small><strong id="hud-cargo">0</strong></div>
+        <div><small>ВРЕМЯ</small><strong id="hud-time">08:00</strong></div>
+      </div>
+      <div id="crosshair"><i></i><i></i></div>
+      <div id="target-card" class="target-card hidden"></div>
+      <div id="prompt" class="prompt hidden">E · ОСМОТРЕТЬ</div>
+      <div id="camera-mode" class="camera-mode flying">◉ РЕЖИМ: АВТОПОКАЗ</div>
+      <div id="scene-modified-status" class="scene-modified-status hidden"><b>ИЗМЕНЁННАЯ СЦЕНА</b><span>Экономика не пересчитана</span></div>
+      <div id="zone-control" class="zone-control hidden"><label for="zone-select">АКТИВНАЯ ЗОНА</label><select id="zone-select"></select><small id="zone-note">Концептуальная сцена</small></div>
+      <div id="director-caption" class="director-caption hidden"></div>
+      <button id="manual-toggle" class="manual-toggle" type="button">Осмотреть вручную</button>
+      <div id="analytics-panel" class="analytics-panel hidden">
+        <small>АНАЛИТИЧЕСКОЕ ЗРЕНИЕ</small>
+        <strong>ПОТОКИ И БЕЗОПАСНОСТЬ</strong>
+        <dl><dt>Агенты</dt><dd id="analytics-agents">—</dd><dt>Состав парка</dt><dd id="analytics-fleet-mix">—</dd><dt>Активные задания</dt><dd id="analytics-active-tasks">—</dd><dt>Лимит в рабочей зоне</dt><dd id="analytics-traffic-limit">—</dd><dt>Перестроения лидара</dt><dd id="analytics-replans">—</dd><dt>Очередь заданий</dt><dd id="analytics-task-queue">—</dd><dt>Среднее ожидание</dt><dd id="analytics-task-wait">—</dd><dt>Ожидают путь</dt><dd id="analytics-waiting">—</dd><dt>Физические блокировки</dt><dd id="analytics-physical-stops">—</dd><dt>Резервирования зон</dt><dd id="analytics-reservations">—</dd><dt>Конфликты потоков</dt><dd id="analytics-traffic-conflicts">—</dd><dt>Ожидание разрешений</dt><dd id="analytics-reservation-wait">—</dd><dt>Манёвры объезда</dt><dd id="analytics-detours">—</dd><dt>Защитные остановки</dt><dd id="analytics-safety-stops">—</dd><dt>Потери времени</dt><dd id="analytics-wait-loss">—</dd><dt>Отказы / восстановлено</dt><dd id="analytics-faults">—</dd><dt>Простой оборудования</dt><dd id="analytics-downtime">—</dd><dt>На зарядке</dt><dd id="analytics-charging">—</dd><dt>Грузов доставлено</dt><dd id="analytics-delivered">—</dd></dl>
+        <div class="dispatch-feed"><small>ПОСЛЕДНЕЕ ВЫПОЛНЕНО</small><span id="analytics-last-task">пока нет</span></div>
+        <div class="dispatch-feed event"><small>ЖУРНАЛ СОБЫТИЙ</small><span id="analytics-last-event">сценарий запущен</span></div>
+        <p><i class="low"></i> низкая <i class="medium"></i> средняя <i class="high"></i> высокая нагрузка</p>
+      </div>
+      <div id="report-panel" class="report-panel hidden">
+        <small>ОПЕРАЦИОННЫЙ ОТЧЁТ</small><strong>ЭФФЕКТИВНОСТЬ СЦЕНАРИЯ</strong>
+        <div class="report-kpis"><div><span>Производительность</span><b id="report-throughput">—</b><em>заданий/час</em></div><div><span>Средний цикл</span><b id="report-cycle">—</b><em>секунд</em></div><div><span>Доступность</span><b id="report-availability">—</b><em>парка</em></div><div><span>Энергия / рейс</span><b id="report-energy">—</b><em>условных ед.</em></div></div>
+        <div class="report-bar"><label>Полезное движение <span id="report-utilization-label">—</span></label><i><b id="report-utilization-bar"></b></i></div>
+        <div class="report-bar"><label>Доступность парка <span id="report-availability-label">—</span></label><i><b id="report-availability-bar"></b></i></div>
+        <div class="report-breakdown"><span>Завершено <b id="report-completed">—</b></span><span>В очереди <b id="report-queued">—</b></span><span>Простой <b id="report-downtime">—</b></span></div>
+        <div class="report-insight"><small>ВЫВОД СИМУЛЯЦИИ</small><p id="report-insight">Собираем телеметрию…</p></div>
+        <button id="report-export" type="button">↓ ЭКСПОРТИРОВАТЬ JSON</button>
+      </div>
+      <div id="pause-note" class="pause-note hidden">ПАУЗА<br><small>кликните по миру, чтобы продолжить · G — генератор</small></div>
+      <div id="event-toast" class="event-toast hidden"></div>
+      <div class="scenario-control"><span>СОБЫТИЯ</span><button type="button" data-event="demand-wave">⚡ ПИК СПРОСА</button><button type="button" data-event="robot-fault">⚠ СБОЙ AMR</button></div>
+      <div class="controls-hint">Клик — ручная камера · Esc — автопоказ · WASD — движение · F — полёт · Tab — аналитика · E — инспектор · G — генератор</div>
+      <div class="speed-control" role="group" aria-label="Скорость симуляции">СКОРОСТЬ <button type="button" data-speed="1" class="active" aria-pressed="true">×1</button><button type="button" data-speed="2" aria-pressed="false">×2</button><button type="button" data-speed="4" aria-pressed="false">×4</button></div>
+      <button id="sound-toggle" class="sound-toggle" type="button">🔊 ЗВУК</button>
+      <button id="analytics-toggle" class="analytics-toggle" type="button">◈ АНАЛИТИКА</button>
+      <button id="report-toggle" class="report-toggle" type="button">▤ ОТЧЁТ</button>
+      <button id="editor-toggle" class="editor-toggle" type="button">▦ РЕДАКТОР · B</button>
+      <aside id="editor-panel" class="editor-panel hidden">
+        <header><div><small>ТВОРЧЕСКИЙ РЕЖИМ</small><strong id="editor-tool-label">ВЫБОР</strong></div><button type="button" data-editor-action="close">×</button></header>
+        <div class="editor-section"><label>СТРОИТЕЛЬСТВО</label><div id="build-catalog" class="build-catalog"></div></div>
+        <div id="editor-selection" class="editor-selection"><span>Наведите прицел и нажмите ЛКМ</span></div>
+        <div class="editor-actions"><button type="button" data-editor-action="move">G · Двигать</button><button type="button" data-editor-action="rotate">R · Повернуть</button><button type="button" data-editor-action="duplicate">Ctrl+D</button><button type="button" data-editor-action="delete">Delete</button></div>
+        <div class="grid-row"><label><input id="grid-enabled" type="checkbox" checked /> Сетка</label><select id="grid-step"><option value="0.25">0,25 м</option><option value="0.5" selected>0,5 м</option><option value="1">1 м</option><option value="2">2 м</option></select></div>
+        <div class="editor-history"><button type="button" data-editor-action="undo">↶ Undo</button><button type="button" data-editor-action="redo">↷ Redo</button><button type="button" data-editor-action="reset">Сброс</button></div>
+        <div class="editor-files"><button type="button" data-editor-action="export">↓ JSON</button><button type="button" data-editor-action="import">↑ JSON</button><input id="scene-import" type="file" accept="application/json,.json" hidden /></div>
+        <p id="editor-message">Редактор ставит симуляцию на паузу.</p>
+      </aside>
+      <div id="editor-status" class="editor-status hidden"><b>РЕДАКТОР · ПАУЗА</b><span id="editor-status-tool">Выбор</span><span id="editor-status-grid">Сетка 0,5 м</span><em>ЛКМ подтвердить · G + X/Y/Z + ↑↓ · R поворот · [ ] размер · Alt без сетки</em></div>
+    </div>
+
+    <section id="launcher" class="launcher">
+      <div class="launcher-copy">
+        <div class="eyebrow">ROBOTIZATION SCENARIO ENGINE // EDITOR MVP 0.2</div>
+        <h1>Роб<span>Крафт</span></h1>
+        <p>Процедурный объект, в котором расчёт роботизации становится живым миром. Один и тот же seed всегда создаёт одну и ту же сцену.</p>
+        <div class="feature-row"><span>FIRST PERSON</span><span>SEEDED WORLD</span><span>NO DEPENDENCIES</span></div>
+      </div>
+
+      <form id="world-form" class="world-form">
+        <label class="wide description-field">Опишите объект обычным языком
+          <textarea id="world-description" rows="4" placeholder="Например: паллетный склад 60 × 45 метров, 6 рядов стеллажей, парк из 5 роботов, заполнение 80%"></textarea>
+          <div class="description-actions"><button id="parse-description" type="button">✦ РАСПОЗНАТЬ ОПИСАНИЕ</button><small>Работает локально, без интернета</small></div>
+        </label>
+        <div id="parse-result" class="parse-result wide hidden"></div>
+        <label class="wide">Тип объекта
+          <select id="template" name="template">
+            <option value="warehouse">Паллетный склад</option>
+            <option value="airport">Аэропорт · терминал</option>
+            <option value="hospital">Больница · внутренняя логистика</option>
+          </select>
+        </label>
+        <label class="wide">Seed сценария
+          <div class="seed-row"><input id="seed" name="seed" value="PRISM-2026" maxlength="40" /><button id="random-seed" type="button" title="Новый seed">↻</button></div>
+        </label>
+        <label>Ширина объекта, м<input id="width" name="width" type="number" min="32" max="80" value="48" /></label>
+        <label>Глубина объекта, м<input id="depth" name="depth" type="number" min="26" max="70" value="38" /></label>
+        <label><span id="layout-units-label">Рядов стеллажей</span><input id="rackRows" name="rackRows" type="number" min="3" max="8" value="5" /></label>
+        <label>Роботов<input id="robotCount" name="robotCount" type="number" min="1" max="8" value="4" /></label>
+        <label class="wide"><span id="occupancy-label">Заполнение стеллажей</span> <input id="occupancy" name="occupancy" type="range" min="20" max="95" value="72" /><output id="occupancy-value">72%</output></label>
+        <button class="launch-button wide" type="submit"><span>СГЕНЕРИРОВАТЬ МИР</span><small>войти внутрь сценария роботизации</small></button>
+        <p class="form-note wide">После запуска кликните по миру, чтобы захватить мышь. Параметры сохраняются в адресной строке.</p>
+      </form>
+    </section>
+
+    <div id="error" class="error hidden"></div>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

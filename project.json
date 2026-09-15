@@ -1,0 +1,108 @@
+{
+  "name": "robodovod",
+  "display_name": "РОБОДОВОД",
+  "former_names": ["RobCo", "РобоМера", "Prism"],
+  "version": "0.3",
+  "market": "RU",
+  "status": "working-hackathon-prototype",
+  "prototype": {
+    "backend": "backend",
+    "frontend": "frontend",
+    "backend_framework": "FastAPI",
+    "frontend_framework": "React + Vite",
+    "default_api_url": "http://localhost:8000"
+  },
+  "robcraft": {
+    "status": "integrated-same-origin-mvp",
+    "path": "robcraft",
+    "runtime": "Node.js static server + native WebGL browser client",
+    "default_url": "http://127.0.0.1:4174",
+    "templates": ["warehouse", "airport", "hospital"],
+    "integration": "scenario-spec-v1-two-phase-embedded",
+    "automated_tests": 77
+  },
+  "team": {
+    "vladimir": "technical_lead",
+    "zhenya": "product_logic_and_experience_lead"
+  },
+  "core_flow": [
+    "object",
+    "process",
+    "readiness",
+    "automation_architecture",
+    "technical_fit",
+    "procurement_fit_ru",
+    "capacity",
+    "economics",
+    "scenarios",
+    "visualization",
+    "preliminary_teo"
+  ],
+  "calculation_profiles": [
+    "MOBILE_TRANSPORT",
+    "MOBILE_SERVICE",
+    "FIXED_MANIPULATION",
+    "AERIAL_INSPECTION"
+  ],
+  "catalog_tiers": [
+    "DISCOVERY",
+    "SELECTABLE",
+    "DEMO_CURATED"
+  ],
+  "procurement_modes": [
+    "CAPEX_PURCHASE",
+    "LEASE",
+    "RENTAL",
+    "RAAS",
+    "MANAGED_SERVICE"
+  ],
+  "procurement_statuses": [
+    "CONFIRMED_AVAILABLE",
+    "LIKELY_AVAILABLE",
+    "QUOTE_REQUIRED",
+    "SUPPLY_RISK",
+    "UNVERIFIED",
+    "DISCONTINUED"
+  ],
+  "research": {
+    "R1_global_robots": "DONE",
+    "R2_economics": "DONE",
+    "R3_competitors": "DONE",
+    "R4_visualization": "DONE",
+    "R5_official_case": "WATCH",
+    "R6_readiness": "DONE",
+    "R7_russian_robots": "DONE",
+    "R8_chinese_robots_ru": "DONE",
+    "R9_wordstat": "NEEDS_REMEASUREMENT",
+    "R10_regional_ru": "DONE_WITH_CAVEATS"
+  },
+  "golden_path": "warehouse",
+  "country_question_in_ux": false,
+  "regional_location_policy": "ask_subject_only_when_material_or_extract_from_text",
+  "documents": [
+    "docs/PROJECT_CONTEXT.md",
+    "docs/00_CHANGELOG_V0.3.md",
+    "docs/00_CHANGELOG_V0.2.md",
+    "docs/01_PROJECT_OVERVIEW.md",
+    "docs/02_PRODUCT_SPEC.md",
+    "docs/03_ROLES_AND_OWNERSHIP.md",
+    "docs/04B_RESEARCH_PROMPTS.md",
+    "docs/04_RESEARCH_REGISTER_AND_GAPS.md",
+    "docs/05_TECHNICAL_ARCHITECTURE.md",
+    "docs/06_API_AND_DATA_CONTRACTS.md",
+    "docs/07_BACKLOG.md",
+    "docs/08_DEMO_AND_ACCEPTANCE.md",
+    "docs/09_CATALOG_PROCUREMENT_POLICY.md",
+    "docs/10_REGIONAL_CONTEXT_RU.md",
+    "docs/11_DECISIONS_AND_OPEN_QUESTIONS.md",
+    "docs/12_IMPLEMENTATION_PLAN.md",
+    "docs/13_ROBCRAFT_ENGINE.md",
+    "docs/14_ECONOMICS_AND_ZONES.md",
+    "docs/15_ROBCRAFT_INTEGRATION_PLAN.md",
+    "research/README.md",
+    "README.md",
+    "project.json",
+    "examples/catalog_record.example.json",
+    "examples/warehouse_magadan.example.json"
+  ]
+}

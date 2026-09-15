@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+coverage.xml
+*.egg-info/
+build/
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+.nyc_output/
+playwright-report/
+test-results/
+robcraft/.chrome-*/
+robcraft/*-smoke.png
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.envrc
+.npmrc
+.pypirc
+*.pem
+*.key
+*.p12
+*.pfx
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and local artifacts
+*.log
+*.tmp
+*.bak
+coverage/
+htmlcov/
+*.sqlite
+*.sqlite3
+*.db
+
+# Local inbox / unsorted materials
+/Разобрать/

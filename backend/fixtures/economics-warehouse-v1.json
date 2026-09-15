@@ -1,0 +1,42 @@
+{
+  "fixture_version": "economics-warehouse-v1",
+  "policy": "immutable; create a new version instead of updating expected values",
+  "input": {
+    "object_type": "retail",
+    "mode": "whole",
+    "process_type": "transport",
+    "cargo_type": "pallets",
+    "pallets_per_day": 800,
+    "area_m2": 12000,
+    "avg_distance_m": 180,
+    "shifts_count": 3,
+    "shift_hours": 8,
+    "fte_cost_rub": 1674000,
+    "aisle_width_m": 2.4,
+    "payload_kg": 700,
+    "staff_headcount": 12,
+    "horizon_years": 5
+  },
+  "expected": {
+    "best_robot_id": "agv_pallet_qr",
+    "economic_status": "ACCEPTABLE",
+    "quantity": 11,
+    "fleet_utilization": 0.88,
+    "fte_displaced": 12.0,
+    "fte_retained": 3.0,
+    "fte_released": 9.0,
+    "capex": 52470000.0,
+    "opex": 3240000.0,
+    "savings_per_year": 16470000.0,
+    "payback_years": 3.6,
+    "npv": 2170000.0,
+    "tco": 73680000.0,
+    "cost_per_move": 50.5,
+    "scenario_quantities": {
+      "pessimistic": 14,
+      "base": 11,
+      "optimistic": 10
+    },
+    "revision_id": "calc_fdfc2129d660dea1"
+  }
+}
