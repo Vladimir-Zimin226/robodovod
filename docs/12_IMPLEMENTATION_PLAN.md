@@ -200,8 +200,10 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 ### Этап 5 — catalog activation, официальные profiles и file intake
 
 Статус: первая малая итерация `data/catalog-activation-official-presets`
-реализована; `intake/xlsx-csv-project-files` остаётся следующим отдельным
-срезом. Публикация проверяет imports/checksums/counts, activation history
+реализована. После уточнения кейсодателя следующим становится корректирующий
+срез `data/catalog-positions-media`; `intake/xlsx-csv-project-files` выполняется
+после него и визуального среза каталога. Публикация проверяет
+imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
 runtime models. Legacy остаётся default и rollback feature flag. Официальные
 42/39/57 profiles и их PRESET/CALCULATED/ASSUMED provenance доступны через API;
@@ -221,7 +223,35 @@ Gate: официальный warehouse файл даёт тот же норма�
 
 Для завершённой малой итерации пройдены atomic publication/activation,
 profile-count/provenance и legacy rollback gates. Эквивалентность официального
-warehouse файла preset проверяется в следующей intake-итерации.
+warehouse файла preset проверяется в отложенной вслед за catalog UX
+intake-итерации.
+
+#### Уточнение кейсодателя от 2026-09-17: 223 позиции и catalog UX
+
+После демонстрации активированного discovery-каталога подтверждено, что
+одинаковые `organizer_id` нельзя схлопывать на пользовательском и расчётном
+уровне: повторные строки могут отличаться ценой, отраслью, сценарием применения,
+регионом и кейсом. Поэтому 187 канонических `EquipmentModel` остаются слоем
+идентичности и общих доказанных ТТХ, но единицей каталога, сравнения, подбора и
+последующего расчёта становится каждая из 223 исходных catalog positions.
+
+- Публичная проекция позиции фиксирует `source_row_id`, `model_id`, конкретные
+  applicability и procurement option; ranking/AnalysisRun сохраняют все эти ID.
+- Ни UI, ни matching не дедуплицируют 223 позиции по `organizer_id`, названию или
+  одинаковой цене. Тесты отдельно покрывают повторные модели с разными ценами и
+  областями применения.
+- Изображения извлекаются из исходного официального каталога в локальное
+  content-addressed media storage; БД хранит checksum, MIME, размер, provenance,
+  source page/row и связь с позицией. Remote hotlink и выдуманные изображения не
+  используются; для отсутствующего/непригодного изображения есть явный fallback.
+- Экран каталога приводится к общей тёмной теме: контрастные cards/search/select,
+  видимые focus/hover/disabled states, читаемые заголовки групп и адаптивная
+  сетка. Контраст проверяется минимум на целевом 1366×768.
+
+Gate корректирующего среза: API и UI возвращают ровно 223 позиции, при этом 187
+канонических моделей не клонируются; различия duplicate rows сохраняются в
+сравнении и расчётном snapshot; изображения имеют проверяемый source provenance;
+поиск и фильтры читаемы на тёмном фоне и работают с клавиатуры.
 
 ### Этап 6 — readiness, architecture, constraints и capacity
 
@@ -318,14 +348,16 @@ Gate: golden path проходит пять раз подряд локально
 4. `data/catalog-repository-dual-run`
 5. `persistence/projects-analysis-runs`
 6. `data/catalog-activation-official-presets`
-7. `intake/xlsx-csv-project-files`
-8. `engine/readiness-architecture-constraints`
-9. `engine/capacity-formula-trace`
-10. `economics/commercial-scenarios-sensitivity`
-11. `visualization/2d-simulation-report`
-12. `report/pdf-xlsx-csv`
-13. `admin/catalog-draft-publish`
-14. `qa/security-performance-deploy`
+7. `data/catalog-positions-media`
+8. `frontend/catalog-theme-media`
+9. `intake/xlsx-csv-project-files`
+10. `engine/readiness-architecture-constraints`
+11. `engine/capacity-formula-trace`
+12. `economics/commercial-scenarios-sensitivity`
+13. `visualization/2d-simulation-report`
+14. `report/pdf-xlsx-csv`
+15. `admin/catalog-draft-publish`
+16. `qa/security-performance-deploy`
 
 Каждый пункт выполняется отдельной малой итерацией. Нельзя объединять importer
 или перенос endpoint с соседним пунктом: это уничтожает диагностическую

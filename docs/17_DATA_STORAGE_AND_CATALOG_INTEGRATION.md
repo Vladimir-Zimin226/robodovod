@@ -106,6 +106,12 @@ DOCX/CSV-исходники организаторов и внутренний a
   source-row key уникален в своей таблице. Одинаковые суммы не дедуплицируются.
   Выбранная `SolutionConfiguration` фиксирует не только model ID, но и
   applicability/offer ID, использованные в расчёте.
+- По уточнению кейсодателя от 2026-09-17 все 223 исходные строки являются
+  самостоятельными catalog positions для discovery, comparison, matching и
+  расчёта. 187 `EquipmentModel` остаются нормализованным слоем идентичности и
+  общих ТТХ; это не разрешает API или UI схлопывать связанные с одной моделью
+  позиции. Расчётный snapshot обязан сохранять identity конкретной source row,
+  applicability и procurement option наряду с model ID.
 - SHA-256 хранится lowercase hex и проверяется `CHECK`; `source_artifacts.sha256`
   уникален по содержимому.
 
@@ -401,7 +407,35 @@ AnalysisRun разрешает snapshot до запуска расчёта и с
 проекцию в совместимый `UserInput`. Каждое поле проекции имеет
 `PRESET|CALCULATED|ASSUMED` и ссылки на parameter/source; flat legacy preset
 генерируется из той же проекции. XLSX/CSV parsing, preview и project file
-storage относятся к следующей итерации `intake/xlsx-csv-project-files`.
+storage относятся к отдельной итерации `intake/xlsx-csv-project-files`, которая
+после уточнения кейсодателя следует за корректирующими catalog data/UX срезами.
+
+### Корректирующий срез: catalog positions, media и визуальный контракт
+
+После первого просмотра активированного discovery-каталога зафиксированы три
+обязательных изменения до развития расчётного matching:
+
+1. Публичной единицей каталога становится не дедуплицированная модель, а одна из
+   223 исходных позиций. Проекция содержит стабильный position/source-row ID,
+   model ID, row-specific applicability, procurement option, цену и provenance.
+   Поиск, фильтры, сравнение и будущий selection engine работают по позициям.
+2. Изображения из официального исходного каталога включаются отдельным
+   воспроизводимым media pipeline: извлечение, checksum, MIME/dimensions,
+   provenance до страницы/позиции, локальное content-addressed хранение и связь
+   с catalog position. Текущий text bundle изображений не содержит. Неясное
+   сопоставление не угадывается, а помечается и показывает fallback.
+3. Catalog UI следует общей тёмной визуальной системе приложения. Светлые
+   cards/filter container и почти белый текст полей на белом фоне считаются
+   дефектом. Нужны theme tokens, достаточный контраст текста/границ/placeholders,
+   focus-visible и disabled states, адаптивная сетка, media aspect ratio и
+   skeleton/fallback без layout shift.
+
+Работа делится на две малые итерации: `data/catalog-positions-media` меняет
+read-model/API/media contract без переключения расчётного runtime;
+`frontend/catalog-theme-media` использует этот контракт и закрывает визуальные и
+accessibility regression tests. DoD: API/UI показывают 223 позиции, 187 model
+identity не клонируются, duplicate-row differences доказательно сохраняются,
+media имеет provenance, а каталог читаем и управляем с клавиатуры на 1366×768.
 
 ## 10. Файлы, backup, rollback и demo reset
 
@@ -483,12 +517,14 @@ APPLY_REVISION → APPLIED`.
 3. Catalog domain 0002, import contract, validate-only и транзакционный importer.
 4. Repository boundary и dual-run; legacy runtime остаётся default.
 5. Project/scenario/AnalysisRun/file metadata 0003 и минимальные роли.
-6. Atomic catalog activation/switch, официальные presets и XLSX/CSV intake.
-7. Readiness, architecture и hard constraints с evidence gate.
-8. Baseline/purchase/RaaS и отдельная uncertainty/sensitivity ось.
-9. Обязательная 2D-визуализация и SimulationReport reconciliation.
-10. PDF + Excel/CSV, сохранение визуализации и минимальная admin update/publish.
-11. Security, deletion, performance, backup/reset и deployment acceptance.
+6. Atomic catalog activation/switch и официальные presets.
+7. Catalog-position projection для всех 223 строк, media pipeline и catalog UX.
+8. XLSX/CSV intake с привязкой файлов к проекту.
+9. Readiness, architecture и hard constraints с evidence gate.
+10. Baseline/purchase/RaaS и отдельная uncertainty/sensitivity ось.
+11. Обязательная 2D-визуализация и SimulationReport reconciliation.
+12. PDF + Excel/CSV, сохранение визуализации и минимальная admin update/publish.
+13. Security, deletion, performance, backup/reset и deployment acceptance.
 
 Этот порядок минимизирует повторную работу: версии каталога существуют до
 catalog rows; runs ссылаются на версии до runtime switch; file intake сразу
@@ -497,10 +533,11 @@ catalog rows; runs ссылаются на версии до runtime switch; fil
 
 ## 14. Неблокирующее открытое решение
 
-- Точная семантика отдельных duplicate rows сверх требования сохранить каждую
-  source row и рассматривать дубли как альтернативные предложения. Она не
-  блокирует 0002: модель уникальна по organizer ID внутри версии, а applicability
-  и procurement offer имеют identity конкретной исходной строки.
+- Требование по duplicate rows закрыто уточнением кейсодателя 2026-09-17: все
+  223 source rows — отдельные позиции показа и расчёта, даже когда они ссылаются
+  на одну из 187 канонических моделей. Открытым остаётся только продуктовый вид
+  обозначения таких связанных позиций в UI; identity и snapshot semantics уже
+  определены и не зависят от визуального решения.
 
 Закрыто: v4 актуален; его цены обрабатываются как RUB по продуктовому решению;
 НДС считается включённым только как organizer assumption без известной ставки;
