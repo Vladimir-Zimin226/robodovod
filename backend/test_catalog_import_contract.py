@@ -1,0 +1,95 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import shutil
+from pathlib import Path
+
+import pytest
+from catalog_import_contract import CatalogBundleError, load_catalog_bundle
+
+BUNDLE = (
+    Path(__file__).resolve().parents[1] / "data" / "import" / "organizer-catalog-v4"
+)
+
+
+def _copy_bundle(tmp_path: Path) -> Path:
+    target = tmp_path / "bundle"
+    shutil.copytree(BUNDLE, target)
+    return target
+
+
+def _update_file_contract(bundle: Path, file_name: str) -> None:
+    manifest_path = bundle / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload = (bundle / file_name).read_bytes()
+    for entry in manifest["files"]:
+        if entry["path"] == file_name:
+            entry["sha256"] = hashlib.sha256(payload).hexdigest()
+            entry["size_bytes"] = len(payload)
+            break
+    for artifact in manifest["source_artifacts"]:
+        if artifact["artifact_key"] == f"bundle:{file_name}":
+            artifact["sha256"] = hashlib.sha256(payload).hexdigest()
+            artifact["size_bytes"] = len(payload)
+            break
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def test_committed_bundle_matches_contract():
+    bundle = load_catalog_bundle(BUNDLE)
+    assert len(bundle.products) == 187
+    assert len(bundle.applicability) == 223
+    assert len(bundle.prices) == 223
+    assert len(bundle.base_evidence) == 3635
+    assert sum(len(product["fields"]) for product in bundle.enrichment) == 140
+    assert len(bundle.external_evidence) == 156
+
+
+def test_checksum_mismatch_is_rejected(tmp_path):
+    bundle = _copy_bundle(tmp_path)
+    with (bundle / "catalog_prices.csv").open("ab") as handle:
+        handle.write(b"tampered")
+    with pytest.raises(CatalogBundleError, match="size mismatch"):
+        load_catalog_bundle(bundle)
+
+
+def test_dangling_product_reference_is_rejected(tmp_path):
+    bundle = _copy_bundle(tmp_path)
+    path = bundle / "catalog_applicability.csv"
+    content = path.read_text(encoding="utf-8-sig")
+    content = content.replace(
+        "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+        "00000000-0000-0000-0000-000000000000",
+        1,
+    )
+    path.write_text(content, encoding="utf-8-sig", newline="")
+    _update_file_contract(bundle, path.name)
+    with pytest.raises(CatalogBundleError, match="dangling applicability"):
+        load_catalog_bundle(bundle)
+
+
+def test_duplicate_natural_key_is_rejected(tmp_path):
+    bundle = _copy_bundle(tmp_path)
+    path = bundle / "catalog_prices.csv"
+    lines = path.read_text(encoding="utf-8-sig").splitlines(keepends=True)
+    lines[2] = lines[1].replace("price-v4-row-0002", "price-v4-row-0003", 1)
+    path.write_text("".join(lines), encoding="utf-8-sig", newline="")
+    _update_file_contract(bundle, path.name)
+    with pytest.raises(CatalogBundleError, match="duplicate price identity"):
+        load_catalog_bundle(bundle)
+
+
+def test_unknown_evidence_status_is_rejected(tmp_path):
+    bundle = _copy_bundle(tmp_path)
+    path = bundle / "catalog_external_evidence.csv"
+    content = path.read_text(encoding="utf-8-sig").replace(
+        ";NOT_FOUND;", ";UNSAFE_FAKE_STATUS;", 1
+    )
+    path.write_text(content, encoding="utf-8-sig", newline="")
+    _update_file_contract(bundle, path.name)
+    with pytest.raises(CatalogBundleError, match="unknown external evidence status"):
+        load_catalog_bundle(bundle)

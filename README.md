@@ -143,9 +143,47 @@ unsafe evidence не допускается в `matching_spec_facts`, а дан�
 перехода из `DRAFT` неизменяемы. Цена и её provenance хранятся отдельно от
 модели оборудования.
 
-Эта итерация создаёт только схему. Importer и catalog rows отсутствуют,
-автоматического чтения `data/staging` нет, а runtime-каталог и расчётные
-endpoint продолжают использовать `backend/fleet`.
+Runtime-каталог и расчётные endpoint продолжают использовать `backend/fleet`.
+
+## Catalog validator/importer
+
+Коммитнутый текстовый bundle находится в
+`data/import/organizer-catalog-v4/`. Исходные PDF/XLSX/DOCX/CSV в него не
+входят: `manifest.json` хранит их metadata, SHA-256 и размеры. Импортёр всегда
+проверяет schema, hashes, sizes, counts, natural keys, ссылки и evidence policy
+до записи domain rows.
+
+Импорт выполняется явно и только в `DRAFT`. Обычный `docker compose up` его не
+запускает. Сначала выполните validate-only, затем BASE и ENRICHMENT:
+
+```bash
+docker compose --profile tools run --rm catalog-import --phase BASE --mode VALIDATE_ONLY
+docker compose --profile tools run --rm catalog-import --phase BASE --mode COMMIT
+docker compose --profile tools run --rm catalog-import --phase ENRICHMENT --mode VALIDATE_ONLY
+docker compose --profile tools run --rm catalog-import --phase ENRICHMENT --mode COMMIT
+```
+
+Повтор успешного `COMMIT` идемпотентен и возвращает существующий `ImportRun`.
+Ошибка откатывает всю фазу, а отдельная запись `ImportRun` остаётся со
+санитизированной диагностикой. Импорт не публикует и не активирует версию.
+
+Для локального Python с внешним PostgreSQL:
+
+```bash
+export DATABASE_URL='postgresql+psycopg://<application-role>:<url-encoded-password>@localhost:5432/<database-name>'
+PYTHONPATH=backend ./.venv/Scripts/python.exe -m catalog_importer --bundle data/import/organizer-catalog-v4 --phase BASE --mode VALIDATE_ONLY
+PYTHONPATH=backend ./.venv/Scripts/python.exe -m catalog_importer --bundle data/import/organizer-catalog-v4 --phase BASE --mode COMMIT
+PYTHONPATH=backend ./.venv/Scripts/python.exe -m catalog_importer --bundle data/import/organizer-catalog-v4 --phase ENRICHMENT --mode VALIDATE_ONLY
+PYTHONPATH=backend ./.venv/Scripts/python.exe -m catalog_importer --bundle data/import/organizer-catalog-v4 --phase ENRICHMENT --mode COMMIT
+```
+
+Maintainer может детерминированно пересобрать bundle только из локального
+ignored staging и проверить отсутствие расхождений:
+
+```bash
+python scripts/build_catalog_bundle.py
+python scripts/build_catalog_bundle.py --check
+```
 
 ## Автономный запуск RobCraft
 
@@ -222,10 +260,10 @@ project.json   машиночитаемый манифест концепции
 Описание интегрированной экономической и зональной логики, включая её текущие
 ограничения, находится в [отдельной технической записке](docs/14_ECONOMICS_AND_ZONES.md).
 
-Нормализованные материалы организаторов и внешний P0 enrichment подготовлены и
-прошли структурную проверку, но ещё не подключены к рабочему backend. Они
-остаются в исключённом из Git `data/staging/` до появления PostgreSQL,
-версионированной схемы и транзакционного импортёра. Следующий этап описан в
+Нормализованный organizer v4 bundle и внешний P0 enrichment проходят строгий
+validate/import в PostgreSQL, но runtime всё ещё использует legacy
+`backend/fleet`. Следующий этап — repository boundary и контролируемый dual-run;
+его границы описаны в
 [решении о хранении данных](docs/17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md).
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

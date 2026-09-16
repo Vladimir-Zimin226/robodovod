@@ -72,6 +72,8 @@ jobs:
           python -m pytest
           backend/test_storage_integration.py
           backend/test_catalog_schema_integration.py
+          backend/test_catalog_import_contract.py
+          backend/test_catalog_importer_integration.py
           -q
 
       - name: Backend regression tests
@@ -79,6 +81,7 @@ jobs:
           python -m pytest backend
           --ignore=backend/test_storage_integration.py
           --ignore=backend/test_catalog_schema_integration.py
+          --ignore=backend/test_catalog_importer_integration.py
           -q
 
       - name: ScenarioSpec JavaScript contract tests

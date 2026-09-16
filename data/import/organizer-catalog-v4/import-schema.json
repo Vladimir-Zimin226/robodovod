@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://robodovod.local/schemas/catalog-import-bundle-v1.json",
+  "title": "ROBODOVOD catalog import bundle manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog",
+    "pricing_policy",
+    "expected_counts",
+    "files",
+    "source_artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "robodovod-catalog-import-bundle-v1"
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "schema_version",
+        "source_namespace"
+      ],
+      "properties": {
+        "code": {
+          "const": "organizer-catalog-v4"
+        },
+        "schema_version": {
+          "const": "2"
+        },
+        "source_namespace": {
+          "const": "organizer-v4"
+        }
+      }
+    },
+    "pricing_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currency",
+        "currency_provenance",
+        "vat_status",
+        "vat_rate",
+        "vat_provenance",
+        "excluded_costs"
+      ],
+      "properties": {
+        "currency": {
+          "const": "RUB"
+        },
+        "currency_provenance": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vat_status": {
+          "const": "ORGANIZER_ASSUMPTION_INCLUDED"
+        },
+        "vat_rate": {
+          "type": "null"
+        },
+        "vat_provenance": {
+          "type": "string",
+          "minLength": 1
+        },
+        "excluded_costs": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "expected_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "phase",
+          "sha256",
+          "size_bytes"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "phase": {
+            "enum": [
+              "BASE",
+              "ENRICHMENT",
+              "REFERENCE"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "record_kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "records": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "source_artifacts": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifact_key",
+          "original_name",
+          "sha256",
+          "size_bytes",
+          "media_type",
+          "provenance_status",
+          "license_status",
+          "role",
+          "ordinal",
+          "observed_at"
+        ],
+        "properties": {
+          "artifact_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "original_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "provenance_status": {
+            "const": "VERIFIED"
+          },
+          "license_status": {
+            "enum": [
+              "PERMITTED",
+              "RESTRICTED"
+            ]
+          },
+          "role": {
+            "enum": [
+              "BASE",
+              "ENRICHMENT",
+              "REFERENCE",
+              "IMPORT_BUNDLE"
+            ]
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

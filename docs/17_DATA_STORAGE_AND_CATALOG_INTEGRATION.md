@@ -294,6 +294,12 @@ subject string. Это избегает преждевременной auth-сх
 `data/catalog-validator-importer`. Наличие таблиц 0002 само по себе не включает
 import и не переключает runtime repository.
 
+Implementation status: обе малые итерации реализованы. Importer читает только
+явно указанный committed bundle, сохраняет отдельные `ImportRun`, выполняет
+BASE/ENRICHMENT одной транзакцией на фазу и не публикует/не активирует каталог.
+Следующая граница — `data/catalog-repository-dual-run`; legacy `backend/fleet`
+до неё остаётся единственным runtime-источником.
+
 `manufacturers`, `catalog_source_rows`, `equipment_models`,
 `equipment_applicability`, `spec_observations`, `field_evidence`,
 `resolved_spec_facts`, `procurement_options` и при необходимости link-таблицы

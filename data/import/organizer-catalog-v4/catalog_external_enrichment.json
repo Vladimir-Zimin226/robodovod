@@ -1,0 +1,2039 @@
+{
+  "schema_version": "robodovod-external-enrichment-overlay-v1",
+  "base_schema_version": "organizer-catalog-products-v1",
+  "base_qa_revision": "correction-pass-1-no-web-enrichment",
+  "generated_at": "2026-09-15T08:14:00+00:00",
+  "scope": {
+    "priority": "P0",
+    "source_file": "05_ENRICHMENT_BACKLOG.md",
+    "p0_product_count": 11,
+    "organizer_ids": [
+      "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+      "6f3da854-41da-4363-8496-5487f37c845a",
+      "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "5ec66969-8fcc-47b3-b517-a9c29372fffe",
+      "f7634ef8-0034-4c5b-b2f0-e44a14f05a76",
+      "5a36611d-033e-4893-bd49-5d4f776f57dd",
+      "2ffc706d-fe43-4c2b-baad-a624a95ad3ce",
+      "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "0ece582a-084c-4a8b-99f4-576f0e01b7c8",
+      "446c5207-a099-45e0-b615-afd60de08589",
+      "eff2586c-892d-4e44-a407-1ec7f06c8f76"
+    ],
+    "target_missing_mandatory_fields": 125,
+    "additional_fields_policy": "Only directly found official P0 technical fields that were absent from the canonical product specs were added; existing canonical spec values were never overwritten.",
+    "excluded_priorities": [
+      "P1",
+      "P2",
+      "P3"
+    ],
+    "new_products_added": false,
+    "external_prices_researched": false,
+    "organizer_currency_inferred": false,
+    "correction_revision": "enrichment-run-1-small-correction-1",
+    "correction_scope": "Representation-only correction: AK-2000-2 slope normalization and raw/evidence synchronization; no new research, no scope expansion."
+  },
+  "products": [
+    {
+      "organizer_id": "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+      "organizer_name": "Ronavi H1500 (грузоподъемность до 1 500 кг)",
+      "match_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Ronavi Robotics / ООО «Ронави Роботикс»",
+      "matched_model": "Ronavi H1500",
+      "fields": {
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ronavi-h1500-page"
+          ],
+          "notes": "No explicit floor/surface specification found on the exact current model page; canonical organizer/DOCX values were not copied into the overlay."
+        },
+        "aisle_requirements": {
+          "raw_value": "Минимальная ширина проезда — 750 мм",
+          "normalized_value": 750,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h1500-page"
+          ],
+          "notes": "Exact model page. Previous run-1 composite/paraphrased raw representation moved to notes: \"Минимальная ширина проезда; 750 мм\""
+        },
+        "charging_requirements": {
+          "raw_value": "Автоматическая стыковка со всеми роботами Ronavi",
+          "normalized_value": {
+            "charger": "Ronavi Charger",
+            "mode": "automatic_docking",
+            "output_voltage_max_V": 54,
+            "output_current_max_A": 25
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-ronavi-charger-page"
+          ],
+          "notes": "Official Ronavi Charger page states automatic docking with all Ronavi robots; H1500 is listed in the same product line. This does not assert a model-specific charging time. Previous run-1 composite/paraphrased raw representation moved to notes: \"Автоматическая стыковка со всеми роботами Ronavi; выход до 54 В, до 25 А\""
+        },
+        "connectivity": {
+          "raw_value": "Wi‑Fi 5 ГГц 802.11 a/c/n",
+          "normalized_value": "Wi-Fi 5 GHz 802.11 a/c/n",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h1500-page"
+          ],
+          "notes": ""
+        },
+        "integrations": {
+          "raw_value": "Интеграция с WMS и MES; открытое API",
+          "normalized_value": [
+            "WMS",
+            "MES",
+            "open API"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h1500-page"
+          ],
+          "notes": ""
+        },
+        "service_requirements": {
+          "raw_value": "Сервисная поддержка и запасные части доступны локально",
+          "normalized_value": {
+            "service": "local_full_support",
+            "spare_parts": "local",
+            "warranty_years": 1
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h1500-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Полная сервисная поддержка, запасные части и техподдержка доступны локально; гарантия 1 год\""
+        }
+      },
+      "source_ids": [
+        "src-ronavi-charger-page",
+        "src-ronavi-h1500-page"
+      ],
+      "unresolved_issues": [
+        "Current official page states up to 10 h autonomy while the immutable canonical layer contains an older 6 h cross-document value; no canonical field was overwritten. This may indicate a revision/configuration change."
+      ]
+    },
+    {
+      "organizer_id": "6f3da854-41da-4363-8496-5487f37c845a",
+      "organizer_name": "Ronavi H2000 (грузоподъемность до 2 000 кг)",
+      "match_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Ronavi Robotics / ООО «Ронави Роботикс»",
+      "matched_model": "Ronavi H2000",
+      "fields": {
+        "dimensions": {
+          "raw_value": "1540х990х250 мм",
+          "normalized_value": [
+            1540,
+            990,
+            250
+          ],
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": ""
+        },
+        "max_speed": {
+          "raw_value": "1 м/с",
+          "normalized_value": 1.0,
+          "normalized_unit": "m/s",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": ""
+        },
+        "autonomy": {
+          "raw_value": "Время автономной работы — до 10 часов",
+          "normalized_value": 10.0,
+          "normalized_unit": "h",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"до 10 часов (с 80% до 20%)\""
+        },
+        "positioning_accuracy": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "No explicit model-specific value found."
+        },
+        "navigation": {
+          "raw_value": "Тип навигации — QR-метки и SLAM",
+          "normalized_value": [
+            "QR markers",
+            "SLAM"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"QR-метки и SLAM (локализация и построение карты)\""
+        },
+        "throughput": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "No explicit model-specific value found on the exact official page."
+        },
+        "operating_conditions": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "No explicit model-specific value found on the exact official page."
+        },
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "No explicit model-specific value found on the exact official page."
+        },
+        "aisle_requirements": {
+          "raw_value": "Минимальная ширина проезда — 1190 мм",
+          "normalized_value": 1190,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": ""
+        },
+        "charging_requirements": {
+          "raw_value": "Автоматическая стыковка со всеми роботами Ronavi",
+          "normalized_value": {
+            "charger": "Ronavi Charger",
+            "mode": "automatic_docking",
+            "output_voltage_max_V": 54,
+            "output_current_max_A": 25
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-ronavi-charger-page"
+          ],
+          "notes": "Official charger page states compatibility with all Ronavi robots; no model-specific charging duration inferred. Previous run-1 composite/paraphrased raw representation moved to notes: \"Автоматическая стыковка со всеми роботами Ronavi; выход до 54 В, до 25 А\""
+        },
+        "connectivity": {
+          "raw_value": "Wi‑Fi 5 ГГц 802.11 a/c/n",
+          "normalized_value": "Wi-Fi 5 GHz 802.11 a/c/n",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": ""
+        },
+        "integrations": {
+          "raw_value": "Открытое API для подключения к системам управления предприятием",
+          "normalized_value": [
+            "open API",
+            "WMS",
+            "MES/enterprise management systems"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Открытое API; совместимость с системами управления складом и производством\""
+        },
+        "service_requirements": {
+          "raw_value": "Полная сервисная поддержка, запасные части и обновления",
+          "normalized_value": {
+            "service": "full_support",
+            "spare_parts": true,
+            "updates": true,
+            "authorized_support": true,
+            "warranty_years": 1
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ronavi-h2000-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Полная сервисная поддержка, запасные части и обновления; авторизованная техническая поддержка; гарантия 1 год\""
+        }
+      },
+      "source_ids": [
+        "src-ronavi-charger-page",
+        "src-ronavi-h2000-page"
+      ],
+      "unresolved_issues": []
+    },
+    {
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "organizer_name": "AMR 100 (грузоподъемность до 100 кг)",
+      "match_status": "AMBIGUOUS_MODEL_MATCH",
+      "matched_manufacturer": "МОРОС",
+      "matched_model": "AMR100 (current official page, payload up to 150 kg)",
+      "fields": {
+        "dimensions": {
+          "raw_value": "600 × 400 × 220 мм",
+          "normalized_value": [
+            600,
+            400,
+            220
+          ],
+          "normalized_unit": "mm",
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "confidence": 0.55,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "Candidate value from the current AMR100 page; not accepted as verified for the organizer's 100 kg variant because payload discriminator differs."
+        },
+        "max_speed": {
+          "raw_value": "3 м/с",
+          "normalized_value": 3.0,
+          "normalized_unit": "m/s",
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "confidence": 0.55,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "Candidate value from the current AMR100 page; not accepted as verified for the organizer's 100 kg variant because payload discriminator differs."
+        },
+        "autonomy": {
+          "raw_value": "Время работы — 20 часов / 10 часов",
+          "normalized_value": {
+            "average_load": 20,
+            "maximum_load": 10
+          },
+          "normalized_unit": "h",
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "confidence": 0.55,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "Candidate value from the current AMR100 page; not accepted as verified for the organizer's 100 kg variant because payload discriminator differs. Previous run-1 composite/paraphrased raw representation moved to notes: \"20 часов (при средних нагрузках); 10 часов (при максимальных нагрузках)\""
+        },
+        "positioning_accuracy": {
+          "raw_value": "±10 мм",
+          "normalized_value": 10.0,
+          "normalized_unit": "mm",
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "confidence": 0.55,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "Candidate value from the current AMR100 page; not accepted as verified for the organizer's 100 kg variant because payload discriminator differs."
+        },
+        "operating_conditions": {
+          "raw_value": "Рабочая температура: +5°C…+40°C",
+          "normalized_value": {
+            "temperature_degC": [
+              5,
+              40
+            ],
+            "optional_ip_rating": "IP54+"
+          },
+          "normalized_unit": null,
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "confidence": 0.55,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "Candidate value from the current AMR100 page; not accepted as verified for the organizer's 100 kg variant because payload discriminator differs. Previous run-1 composite/paraphrased raw representation moved to notes: \"Рабочая температура: от +5°C до +40°C; по желанию IP54 и выше\""
+        },
+        "charging_requirements": {
+          "raw_value": "Способ зарядки — автоматическая док-станция / ручная",
+          "normalized_value": [
+            "automatic_dock",
+            "manual charging"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "confidence": 0.55,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "Candidate value from the current AMR100 page; not accepted as verified for the organizer's 100 kg variant because payload discriminator differs. Previous run-1 composite/paraphrased raw representation moved to notes: \"Автоматическая док-станция / ручная зарядка\""
+        },
+        "integrations": {
+          "raw_value": "Интеграция с MES; поддержка API",
+          "normalized_value": [
+            "MES",
+            "API"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "confidence": 0.55,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "Candidate value from the current AMR100 page; not accepted as verified for the organizer's 100 kg variant because payload discriminator differs."
+        },
+        "throughput": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "No explicit qualifying value found on the inspected current page; model revision remains ambiguous."
+        },
+        "navigation": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "No explicit qualifying value found on the inspected current page; model revision remains ambiguous."
+        },
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "No explicit qualifying value found on the inspected current page; model revision remains ambiguous."
+        },
+        "aisle_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "No explicit qualifying value found on the inspected current page; model revision remains ambiguous."
+        },
+        "connectivity": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "No explicit qualifying value found on the inspected current page; model revision remains ambiguous."
+        },
+        "service_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr100-page"
+          ],
+          "notes": "No explicit qualifying value found on the inspected current page; model revision remains ambiguous."
+        }
+      },
+      "source_ids": [
+        "src-moros-amr100-page"
+      ],
+      "unresolved_issues": [
+        "Organizer label identifies AMR 100 with payload up to 100 kg; current official AMR100 page states up to 150 kg. Determine whether this is a newer revision, renamed configuration, or a changed specification before merging any candidate values."
+      ]
+    },
+    {
+      "organizer_id": "5ec66969-8fcc-47b3-b517-a9c29372fffe",
+      "organizer_name": "AMR 800 (грузоподъемность до 800 кг)",
+      "match_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "МОРОС",
+      "matched_model": "AMR800",
+      "fields": {
+        "dimensions": {
+          "raw_value": "940 × 640 × 230 мм",
+          "normalized_value": [
+            940,
+            640,
+            230
+          ],
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": ""
+        },
+        "max_speed": {
+          "raw_value": "2 м/с",
+          "normalized_value": 2.0,
+          "normalized_unit": "m/s",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": ""
+        },
+        "autonomy": {
+          "raw_value": "Время работы — 24 часа / 14 часов",
+          "normalized_value": {
+            "average_load": 24,
+            "maximum_load": 14
+          },
+          "normalized_unit": "h",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"24 часа (при средних нагрузках); 14 часов (при максимальных нагрузках)\""
+        },
+        "positioning_accuracy": {
+          "raw_value": "±10 мм",
+          "normalized_value": 10.0,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": ""
+        },
+        "navigation": {
+          "raw_value": "QR-метки, SLAM",
+          "normalized_value": [
+            "QR markers",
+            "SLAM"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": ""
+        },
+        "operating_conditions": {
+          "raw_value": "Рабочая температура: +5°C…+40°C",
+          "normalized_value": {
+            "temperature_degC": [
+              5,
+              40
+            ],
+            "optional_ip_rating": "IP54+"
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Рабочая температура: от +5°C до +40°C; по желанию IP54 и выше\""
+        },
+        "charging_requirements": {
+          "raw_value": "Способ зарядки — док-станция / ручная; 220В, 10A",
+          "normalized_value": {
+            "modes": [
+              "automatic dock",
+              "manual"
+            ],
+            "manual_supply": {
+              "phase": 1,
+              "voltage_V": 220,
+              "current_A": 10
+            }
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Автоматическая док-станция / ручная зарядка; ручная 1-ф 220В, 10A\""
+        },
+        "integrations": {
+          "raw_value": "Интеграция с MES и WMS; поддержка API",
+          "normalized_value": [
+            "MES",
+            "WMS",
+            "API"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": ""
+        },
+        "throughput": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "The page reports a 312 boxes/h result for a 12-robot pilot/system; it was not treated as single-model throughput."
+        },
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "No explicit model-specific value found."
+        },
+        "aisle_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "No explicit model-specific value found."
+        },
+        "connectivity": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "No explicit model-specific value found."
+        },
+        "service_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "No explicit model-specific value found."
+        },
+        "battery_type": {
+          "raw_value": "LiFePo",
+          "normalized_value": "LiFePO4",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.95,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "Normalized chemistry spelling; source writes LiFePo."
+        },
+        "functional_safety": {
+          "raw_value": "Сканеры, компьютерное зрение, аварийная остановка",
+          "normalized_value": [
+            "collision scanners",
+            "computer vision",
+            "emergency stop"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-moros-amr800-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Система предотвращения столкновений — сканеры, компьютерное зрение, аварийная остановка\""
+        }
+      },
+      "source_ids": [
+        "src-moros-amr800-page"
+      ],
+      "unresolved_issues": []
+    },
+    {
+      "organizer_id": "f7634ef8-0034-4c5b-b2f0-e44a14f05a76",
+      "organizer_name": "DMR Carrier P",
+      "match_status": "EXACT_MODEL_MATCH_LIMITED_PRIMARY_SPECS",
+      "matched_manufacturer": "ДиКом / ООО «Диком-Сервис»",
+      "matched_model": "ДиКом DMR Carrier P",
+      "fields": {
+        "positioning_accuracy": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-dikom-dmr-carrier-p-blog-2025"
+          ],
+          "notes": "Exact official model mention found, but no qualifying primary technical specification for this missing field was located."
+        },
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-dikom-dmr-carrier-p-blog-2025"
+          ],
+          "notes": "Exact official model mention found, but no qualifying primary technical specification for this missing field was located."
+        },
+        "aisle_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-dikom-dmr-carrier-p-blog-2025"
+          ],
+          "notes": "Exact official model mention found, but no qualifying primary technical specification for this missing field was located."
+        },
+        "charging_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-dikom-dmr-carrier-p-blog-2025"
+          ],
+          "notes": "Exact official model mention found, but no qualifying primary technical specification for this missing field was located."
+        },
+        "connectivity": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-dikom-dmr-carrier-p-blog-2025"
+          ],
+          "notes": "Exact official model mention found, but no qualifying primary technical specification for this missing field was located."
+        },
+        "integrations": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-dikom-dmr-carrier-p-blog-2025"
+          ],
+          "notes": "Exact official model mention found, but no qualifying primary technical specification for this missing field was located."
+        },
+        "service_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-dikom-dmr-carrier-p-blog-2025"
+          ],
+          "notes": "Exact official model mention found, but no qualifying primary technical specification for this missing field was located."
+        }
+      },
+      "source_ids": [
+        "src-dikom-dmr-carrier-p-blog-2025"
+      ],
+      "unresolved_issues": [
+        "Exact model is confirmed by official DiKom publications, but the inspected official sources do not publish the missing hard-constraint specifications. Third-party product pages were not used because authorized-partner status was not established."
+      ]
+    },
+    {
+      "organizer_id": "5a36611d-033e-4893-bd49-5d4f776f57dd",
+      "organizer_name": "AK-2000-2",
+      "match_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ГК «Автомакон»",
+      "matched_model": "AK-2000-2",
+      "fields": {
+        "payload": {
+          "raw_value": "2000 кг",
+          "normalized_value": 2000,
+          "normalized_unit": "kg",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "dimensions": {
+          "raw_value": "1980 мм*1065 мм*2285 мм (Д*Ш*В)",
+          "normalized_value": [
+            1980,
+            1065,
+            2285
+          ],
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "max_speed": {
+          "raw_value": "2.6 м/c",
+          "normalized_value": 2.6,
+          "normalized_unit": "m/s",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "autonomy": {
+          "raw_value": "6-8 часов",
+          "normalized_value": [
+            6,
+            8
+          ],
+          "normalized_unit": "h",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "positioning_accuracy": {
+          "raw_value": "±30 мм",
+          "normalized_value": 30,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "navigation": {
+          "raw_value": "3D Laser SLAM",
+          "normalized_value": "3D Laser SLAM",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "charging_requirements": {
+          "raw_value": "ручной режим/замена батареи, автоматический режим; 2 часа",
+          "normalized_value": {
+            "modes": [
+              "manual",
+              "battery replacement",
+              "automatic"
+            ],
+            "charging_time_h": 2
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "throughput": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "No explicit exact-model value found in the inspected official product section."
+        },
+        "operating_conditions": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "No explicit exact-model value found in the inspected official product section."
+        },
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "No explicit exact-model value found in the inspected official product section."
+        },
+        "aisle_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "No explicit exact-model value found in the inspected official product section."
+        },
+        "connectivity": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "No explicit exact-model value found in the inspected official product section."
+        },
+        "integrations": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "No explicit exact-model value found in the inspected official product section."
+        },
+        "service_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "No explicit exact-model value found in the inspected official product section."
+        },
+        "battery_type": {
+          "raw_value": "LiFePO4",
+          "normalized_value": "LiFePO4",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "battery_voltage": {
+          "raw_value": "24 В",
+          "normalized_value": 24,
+          "normalized_unit": "V",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "battery_capacity": {
+          "raw_value": "225 Ач",
+          "normalized_value": 225,
+          "normalized_unit": "Ah",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "turning_radius": {
+          "raw_value": "1555 мм",
+          "normalized_value": 1555,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        },
+        "slope": {
+          "raw_value": "±8%",
+          "normalized_value": {
+            "max_abs_slope_percent": 8
+          },
+          "normalized_unit": "%",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": "±8% is normalized as maximum absolute slope magnitude: max_abs_slope_percent=8; it is not represented as [-8, 8]."
+        },
+        "functional_safety": {
+          "raw_value": "Фронтальные лидары. Лидар кругового обзора. Датчики столкновения",
+          "normalized_value": [
+            "front LiDARs",
+            "360-degree LiDAR",
+            "collision sensors"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-automacon-ak2000-2-page"
+          ],
+          "notes": ""
+        }
+      },
+      "source_ids": [
+        "src-automacon-ak2000-2-page"
+      ],
+      "unresolved_issues": []
+    },
+    {
+      "organizer_id": "2ffc706d-fe43-4c2b-baad-a624a95ad3ce",
+      "organizer_name": "Робот-штабелёр RoboCV",
+      "match_status": "EXACT_MODEL_MATCH_WITH_OFFICIAL_CONFLICTS",
+      "matched_manufacturer": "ООО «РобоСиВи»",
+      "matched_model": "Робот-штабелёр RoboCV / X-MOTION NG-P",
+      "fields": {
+        "payload": {
+          "raw_value": [
+            "Грузоподъемность, кг: 1400",
+            "Грузоподъемность 1400 кг"
+          ],
+          "normalized_value": 1400,
+          "normalized_unit": "kg",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.97,
+          "source_ids": [
+            "src-robocv-stacker-html",
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"1400 кг\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "dimensions": {
+          "raw_value": [
+            "2,1 * 1,1 * 3 м",
+            "2100 х 1100 х 3000 мм"
+          ],
+          "normalized_value": [
+            2100,
+            1100,
+            3000
+          ],
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.97,
+          "source_ids": [
+            "src-robocv-stacker-html",
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "Dimensions converted from metres to millimetres: m × 1000. Previous run-1 composite/paraphrased raw representation moved to notes: \"2,1 * 1,1 * 3 м\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "positioning_accuracy": {
+          "raw_value": [
+            "Точность навигации, см: 3",
+            "Точность позиционирования 30 мм"
+          ],
+          "normalized_value": 30,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.97,
+          "source_ids": [
+            "src-robocv-stacker-html",
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "HTML 3 cm converted to 30 mm: cm × 10; datasheet independently states 30 mm. Previous run-1 composite/paraphrased raw representation moved to notes: \"3 см / 30 мм\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "navigation": {
+          "raw_value": "Лидары, одометрия, безынфраструктурная навигация",
+          "normalized_value": [
+            "LiDAR",
+            "odometry",
+            "infrastructure-free navigation"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.97,
+          "source_ids": [
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": ""
+        },
+        "charging_requirements": {
+          "raw_value": [
+            "Способ заряда АКБ: замена / подзарядка",
+            "Подзарядка, замена батареи"
+          ],
+          "normalized_value": [
+            "battery replacement",
+            "top-up charging"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.97,
+          "source_ids": [
+            "src-robocv-stacker-html",
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"замена / подзарядка\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "integrations": {
+          "raw_value": [
+            "API легко интегрируется с WMS/ERP системой",
+            "Простое документированное API для интеграции с WMS"
+          ],
+          "normalized_value": [
+            "API",
+            "WMS",
+            "ERP"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.97,
+          "source_ids": [
+            "src-robocv-stacker-html",
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"API для интеграции с WMS/ERP\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "max_speed": {
+          "raw_value": [
+            "2 м/с",
+            "1,67 м/с"
+          ],
+          "normalized_value": [
+            2.0,
+            1.67
+          ],
+          "normalized_unit": "m/s",
+          "evidence_status": "CONFLICT",
+          "confidence": 0.7,
+          "source_ids": [
+            "src-robocv-stacker-html",
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "Two official RoboCV sources publish different speeds; do not choose a value without version/revision decision. Previous run-1 composite/paraphrased raw representation moved to notes: [\"2 м/с (HTML)\", \"1,67 м/с (PDF)\"]"
+        },
+        "aisle_requirements": {
+          "raw_value": [
+            "разворот 2,9 м; max. скорость 1,9 м",
+            "разворот 2900 мм; полная скорость 1800 мм"
+          ],
+          "normalized_value": {
+            "turning_aisle_mm": 2900,
+            "full_speed_aisle_mm": [
+              1900,
+              1800
+            ]
+          },
+          "normalized_unit": "mm",
+          "evidence_status": "CONFLICT",
+          "confidence": 0.7,
+          "source_ids": [
+            "src-robocv-stacker-html",
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "Turning aisle is corroborated at 2900 mm; full-speed aisle differs (1900 vs 1800 mm). Field remains CONFLICT. Previous run-1 composite/paraphrased raw representation moved to notes: [\"HTML: разворот 2,9 м; max. скорость 1,9 м\", \"PDF: разворот 2900 мм; полная скорость 1800 мм\"]"
+        },
+        "throughput": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "autonomy": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": "No explicit exact-model value found. The published '24/7' is an operating regime and was not parsed as autonomy hours."
+        },
+        "operating_conditions": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "connectivity": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "service_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "battery_type": {
+          "raw_value": "АКБ Li-Ion / Pb",
+          "normalized_value": [
+            "Li-ion",
+            "lead-acid"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": ""
+        },
+        "functional_safety": {
+          "raw_value": "2 программируемых лидара; 3D-камера низких объектов; датчик под вилами; световые/звуковые сигналы; контроль груза",
+          "normalized_value": [
+            "2 programmable safety LiDARs",
+            "3D low-object detection",
+            "fork safety sensor",
+            "turn indicators",
+            "beacon",
+            "audible signals",
+            "load monitoring"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-stacker-pdf"
+          ],
+          "notes": "PDF p.1 visually checked."
+        },
+        "fork_lift_height": {
+          "raw_value": "до 7 м",
+          "normalized_value": 7000,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-stacker-html"
+          ],
+          "notes": "m × 1000."
+        }
+      },
+      "source_ids": [
+        "src-robocv-stacker-html",
+        "src-robocv-stacker-pdf"
+      ],
+      "unresolved_issues": [
+        "Official HTML and official datasheet disagree on max speed (2.0 vs 1.67 m/s).",
+        "Official HTML and official datasheet disagree on minimum full-speed aisle (1900 vs 1800 mm); turning aisle is 2900 mm in both."
+      ]
+    },
+    {
+      "organizer_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "organizer_name": "Робот-тягач RoboCV",
+      "match_status": "EXACT_MODEL_MATCH_WITH_OFFICIAL_CONFLICTS",
+      "matched_manufacturer": "ООО «РобоСиВи»",
+      "matched_model": "Робот-тягач RoboCV / X-MOTION NG-T",
+      "fields": {
+        "payload": {
+          "raw_value": [
+            "до 5000 кг",
+            "4000 кг (сила тяги)"
+          ],
+          "normalized_value": [
+            5000,
+            4000
+          ],
+          "normalized_unit": "kg",
+          "evidence_status": "CONFLICT",
+          "confidence": 0.6,
+          "source_ids": [
+            "src-robocv-tug-html",
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "The official sources use different metric labels ('грузоподъемность' vs 'сила тяги'); they were not treated as interchangeable. Previous run-1 composite/paraphrased raw representation moved to notes: [\"HTML: грузоподъемность до 5000 кг\", \"PDF: сила тяги 4000 кг\"]"
+        },
+        "dimensions": {
+          "raw_value": [
+            "1,6 * 0,8 * 2,2 м",
+            "1600 x 800 x 2200 мм"
+          ],
+          "normalized_value": [
+            1600,
+            800,
+            2200
+          ],
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-robocv-tug-html",
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "m × 1000. Previous run-1 composite/paraphrased raw representation moved to notes: \"1,6 * 0,8 * 2,2 м\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "max_speed": {
+          "raw_value": [
+            "2,2 м/с",
+            "7,5 км/ч; 12 км/ч"
+          ],
+          "normalized_value": {
+            "html_unspecified_load_m_s": 2.2,
+            "pdf_loaded_m_s": 2.0833,
+            "pdf_unloaded_m_s": 3.3333
+          },
+          "normalized_unit": "m/s",
+          "evidence_status": "CONFLICT",
+          "confidence": 0.65,
+          "source_ids": [
+            "src-robocv-tug-html",
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "PDF conversions: km/h ÷ 3.6. Official sources differ and conditions are not equivalent. Previous run-1 composite/paraphrased raw representation moved to notes: [\"HTML: 2,2 м/с\", \"PDF: 7,5 км/ч с грузом; 12 км/ч без груза\"]"
+        },
+        "positioning_accuracy": {
+          "raw_value": [
+            "5 см",
+            "70 мм"
+          ],
+          "normalized_value": [
+            50,
+            70
+          ],
+          "normalized_unit": "mm",
+          "evidence_status": "CONFLICT",
+          "confidence": 0.65,
+          "source_ids": [
+            "src-robocv-tug-html",
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "HTML 5 cm converted to 50 mm (cm × 10). Previous run-1 composite/paraphrased raw representation moved to notes: [\"HTML: 5 см\", \"PDF: 70 мм\"]"
+        },
+        "navigation": {
+          "raw_value": "Лидары, одометрия, безынфраструктурная навигация",
+          "normalized_value": [
+            "LiDAR",
+            "odometry",
+            "infrastructure-free navigation"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-tug-pdf"
+          ],
+          "notes": ""
+        },
+        "aisle_requirements": {
+          "raw_value": [
+            "Разворот 2,9 м; дорога для max. скорости 2,9 м",
+            "2900 мм для полной скорости; 2900 мм для разворота"
+          ],
+          "normalized_value": {
+            "turning_aisle_mm": 2900,
+            "full_speed_aisle_mm": 2900
+          },
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-tug-html",
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "m × 1000. Previous run-1 composite/paraphrased raw representation moved to notes: \"Разворот 2,9 м; полная скорость 2,9 м\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "charging_requirements": {
+          "raw_value": [
+            "Способ заряда АКБ: замена / подзарядка",
+            "Подзарядка, замена батареи"
+          ],
+          "normalized_value": [
+            "battery replacement",
+            "top-up charging"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-tug-html",
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"замена / подзарядка\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "connectivity": {
+          "raw_value": "ожидает сигнала по Wi‑Fi от IT-системы управления производством",
+          "normalized_value": "Wi-Fi",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-tug-html"
+          ],
+          "notes": ""
+        },
+        "integrations": {
+          "raw_value": "API для интеграции с WMS",
+          "normalized_value": [
+            "API",
+            "WMS"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Документированное API для интеграции с WMS\""
+        },
+        "throughput": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-tug-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "autonomy": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-tug-html"
+          ],
+          "notes": "The published '24/7' is an operating regime and was not parsed as autonomy hours."
+        },
+        "operating_conditions": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-tug-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "surface_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-tug-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "service_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-robocv-tug-html"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "battery_type": {
+          "raw_value": "АКБ Li-Ion / Pb",
+          "normalized_value": [
+            "Li-ion",
+            "lead-acid"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-tug-html"
+          ],
+          "notes": ""
+        },
+        "functional_safety": {
+          "raw_value": "1 программируемый лидар; 3D-камера низких объектов; проблесковый маячок; звуковые сигналы",
+          "normalized_value": [
+            "1 programmable safety LiDAR",
+            "3D low-object detection",
+            "beacon",
+            "audible signals"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-robocv-tug-pdf"
+          ],
+          "notes": "PDF p.1 visually checked."
+        }
+      },
+      "source_ids": [
+        "src-robocv-tug-html",
+        "src-robocv-tug-pdf"
+      ],
+      "unresolved_issues": [
+        "Official sources use different load metric/value: HTML 'грузоподъемность до 5000 кг' versus datasheet 'сила тяги 4000 кг'.",
+        "Official speed specifications differ: 2.2 m/s HTML versus 7.5 km/h loaded and 12 km/h unloaded in PDF.",
+        "Official positioning accuracy differs: 50 mm (HTML 5 cm) versus 70 mm (PDF)."
+      ]
+    },
+    {
+      "organizer_id": "0ece582a-084c-4a8b-99f4-576f0e01b7c8",
+      "organizer_name": "SmartCube",
+      "match_status": "EXACT_SYSTEM_MATCH_WITH_OFFICIAL_CONFLICT",
+      "matched_manufacturer": "ООО «АРС» / ARS Smart Robotics",
+      "matched_model": "ARS SmartCube™ (robot CR-02 + station UC-01)",
+      "fields": {
+        "payload": {
+          "raw_value": "Максимальный вес ящика — 30 кг",
+          "normalized_value": 30,
+          "normalized_unit": "kg",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "System-level payload is normalized as the maximum box weight handled by the SmartCube robot module."
+        },
+        "dimensions": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "No robot dimensions are published on the inspected current module page."
+        },
+        "max_speed": {
+          "raw_value": [
+            "2,1 м/с",
+            "2,7 м/с"
+          ],
+          "normalized_value": [
+            2.1,
+            2.7
+          ],
+          "normalized_unit": "m/s",
+          "evidence_status": "CONFLICT",
+          "confidence": 0.7,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "The same current official page publishes two different speed values. Previous run-1 composite/paraphrased raw representation moved to notes: [\"Принцип работы: максимальная скорость 2,1 м/с\", \"Технические характеристики: линейная скорость 2,7 м/с\"]"
+        },
+        "throughput": {
+          "raw_value": "200 ящиков в час",
+          "normalized_value": 200,
+          "normalized_unit": "box/h",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.95,
+          "source_ids": [
+            "src-ars-smartcube-station"
+          ],
+          "notes": "System/station throughput, not per-robot throughput; official page states 3–5 robots per station for maximum throughput. Previous run-1 composite/paraphrased raw representation moved to notes: \"Производительность рабочей станции — 200 ящиков в час (18 секунд на ящик с учетом пикинга)\""
+        },
+        "autonomy": {
+          "raw_value": "8 часов",
+          "normalized_value": 8,
+          "normalized_unit": "h",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Время автономной работы — 8 часов\""
+        },
+        "positioning_accuracy": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "No positioning tolerance is published."
+        },
+        "navigation": {
+          "raw_value": "По рельсам 2D-сетки; для навигации используются датчики",
+          "normalized_value": {
+            "guidance": "rail grid",
+            "localization": "onboard sensors",
+            "grid": "2D"
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Робот перемещается по рельсам над шахтами, образующим 2D координатную сетку; для навигации используются датчики на роботе\""
+        },
+        "operating_conditions": {
+          "raw_value": "0°C до 40°C",
+          "normalized_value": [
+            0,
+            40
+          ],
+          "normalized_unit": "degC",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Рабочая температура — 0°C до 40°C\""
+        },
+        "surface_requirements": {
+          "raw_value": "Робот перемещается по рельсам над шахтами",
+          "normalized_value": "Dedicated SmartCube rail grid above shafts",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "For this cubic-storage robot, the relevant movement surface is dedicated rail infrastructure rather than a warehouse floor. Previous run-1 composite/paraphrased raw representation moved to notes: \"Робот перемещается по рельсам над шахтами, которые образуют 2D координатную сетку\""
+        },
+        "aisle_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-ars-smartcube-about"
+          ],
+          "notes": "Conventional aisle width is not published and is not directly applicable to the rail-grid architecture; no numeric minimum was inferred."
+        },
+        "charging_requirements": {
+          "raw_value": "Время зарядки — 4 часа; подключение без участия человека",
+          "normalized_value": {
+            "charging_time_h": 4,
+            "mode": "automatic_station_docking"
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Время зарядки — 4 часа; робот автоматически подъезжает к зарядной станции при заданном пороге\""
+        },
+        "connectivity": {
+          "raw_value": "не менее 100 Мб/сек",
+          "normalized_value": 100,
+          "normalized_unit": "Mbit/s",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.95,
+          "source_ids": [
+            "src-ars-smartcube-software"
+          ],
+          "notes": "System software infrastructure requirement. Previous run-1 composite/paraphrased raw representation moved to notes: \"Скорость сетевого соединения не менее 100 Мб/сек\""
+        },
+        "integrations": {
+          "raw_value": "Взаимодействие с WMS системой заказчика",
+          "normalized_value": [
+            "WMS"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-ars-smartcube-software"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"ARS Order Management System взаимодействует с WMS системой заказчика\""
+        },
+        "service_requirements": {
+          "raw_value": [
+            "Полугодичные и годичные интервалы ТО",
+            "Служба технической поддержки: support@arobosys.com"
+          ],
+          "normalized_value": {
+            "maintenance_intervals": [
+              "6 months",
+              "12 months"
+            ],
+            "remote_support": true,
+            "support_email": "support@arobosys.com"
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-ars-smartcube-robot",
+            "src-ars-smartcube-software"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"ТО по полугодичным и годичным интервалам; удалённое управление для устранения проблем; support@arobosys.com\" raw_value preserves separate verbatim source variants; normalized_value is the merged normalization."
+        },
+        "mass": {
+          "raw_value": "130 кг (без ящика)",
+          "normalized_value": 130,
+          "normalized_unit": "kg",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-ars-smartcube-robot"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Вес робота — 130 кг (без ящика)\""
+        }
+      },
+      "source_ids": [
+        "src-ars-smartcube-about",
+        "src-ars-smartcube-robot",
+        "src-ars-smartcube-software",
+        "src-ars-smartcube-station"
+      ],
+      "unresolved_issues": [
+        "The current official CR-02 robot page states both 2.1 m/s maximum speed in the operating-principle section and 2.7 m/s linear speed in technical characteristics. Clarify which value is the applicable maximum for matching."
+      ]
+    },
+    {
+      "organizer_id": "446c5207-a099-45e0-b615-afd60de08589",
+      "organizer_name": "MARK 2 SE",
+      "match_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "R2B / ООО «Р2Б»",
+      "matched_model": "MARK 2 SE",
+      "fields": {
+        "payload": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-r2b-mark2se-page"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "positioning_accuracy": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-r2b-mark2se-page"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "operating_conditions": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-r2b-mark2se-page"
+          ],
+          "notes": "No explicit quantitative value suitable for this field was found on the inspected exact-model page."
+        },
+        "connectivity": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-r2b-mark2se-page"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "integrations": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-r2b-mark2se-page"
+          ],
+          "notes": "No explicit exact-model value found."
+        },
+        "surface_requirements": {
+          "raw_value": "Только ровный пол: плитка, ламинат, гладкий бетон, искусственный камень, керамогранит; не подходят ковролин и ворсовые покрытия",
+          "normalized_value": {
+            "required": "flat hard floor",
+            "supported": [
+              "tile",
+              "laminate",
+              "smooth concrete",
+              "artificial stone",
+              "porcelain stoneware"
+            ],
+            "unsupported": [
+              "carpet",
+              "pile coverings"
+            ]
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-r2b-mark2se-rent"
+          ],
+          "notes": ""
+        },
+        "aisle_requirements": {
+          "raw_value": "1,3 м",
+          "normalized_value": 1300,
+          "normalized_unit": "mm",
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-r2b-mark2se-rent"
+          ],
+          "notes": "1.3 m × 1000 = 1300 mm. Previous run-1 composite/paraphrased raw representation moved to notes: \"Минимальная ширина для проезда — 1,3 метра\""
+        },
+        "charging_requirements": {
+          "raw_value": "Розетка 220 В; сам возвращается на подзарядку; 2 часа",
+          "normalized_value": {
+            "base_supply_voltage_V": 220,
+            "automatic_return_to_charge": true,
+            "full_charge_time_h": 2
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-r2b-mark2se-page"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Базовая станция: обычная розетка 220 В; робот сам возвращается на подзарядку; полная зарядка 2 часа\""
+        },
+        "service_requirements": {
+          "raw_value": "95% вопросов удалённо решает диспетчерская; закреплённый сотрудник; собственный склад запчастей",
+          "normalized_value": {
+            "remote_resolution_share": 0.95,
+            "dedicated_support_contact": true,
+            "spare_parts_stock": true
+          },
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-r2b-mark2se-page"
+          ],
+          "notes": ""
+        }
+      },
+      "source_ids": [
+        "src-r2b-mark2se-page",
+        "src-r2b-mark2se-rent"
+      ],
+      "unresolved_issues": []
+    },
+    {
+      "organizer_id": "eff2586c-892d-4e44-a407-1ec7f06c8f76",
+      "organizer_name": "Pallet Shuttle",
+      "match_status": "EXACT_SYSTEM_MATCH",
+      "matched_manufacturer": "Завод Стелкон",
+      "matched_model": "Pallet Shuttle",
+      "fields": {
+        "positioning_accuracy": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "No positioning tolerance published."
+        },
+        "navigation": {
+          "raw_value": "По нижней паре рельсов перемещается радиошаттл",
+          "normalized_value": "rail-guided within rack channel",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.98,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Радиошаттл перемещается по нижней паре рельсов стеллажной системы\""
+        },
+        "surface_requirements": {
+          "raw_value": "Стеллаж Pallet Shuttle имеет дополнительную пару рельсов на 20–25 см ниже основных",
+          "normalized_value": "modified drive-in rack with lower rail pair 200–250 mm below pallet rails",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "This is the relevant movement infrastructure; no warehouse-floor coating requirement is published."
+        },
+        "aisle_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "No minimum aisle width is published for this rack-channel system."
+        },
+        "charging_requirements": {
+          "raw_value": null,
+          "normalized_value": null,
+          "normalized_unit": null,
+          "evidence_status": "NOT_FOUND",
+          "confidence": 0.8,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "No charging method/time is published on the inspected Stelkon product page."
+        },
+        "connectivity": {
+          "raw_value": "Радиоуправляемая тележка Pallet Shuttle",
+          "normalized_value": "radio control (protocol and frequency not published)",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.92,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "Protocol/frequency not stated. Previous run-1 composite/paraphrased raw representation moved to notes: \"радиоуправляемая тележка / радиошаттл\""
+        },
+        "integrations": {
+          "raw_value": "Команды от WMS или EPR заказчика",
+          "normalized_value": [
+            "WMS",
+            "EPR (as published)",
+            "manual GUI"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.96,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "Source writes 'EPR'; this was preserved and not silently corrected to ERP. Previous run-1 composite/paraphrased raw representation moved to notes: \"Команды могут поступать автоматически от WMS или EPR заказчика либо вручную через графический интерфейс\""
+        },
+        "service_requirements": {
+          "raw_value": "Ввод в эксплуатацию, настройка, обучение, гарантийный/постгарантийный ремонт, диагностика, плановое ТО, техподдержка, склад запчастей",
+          "normalized_value": [
+            "commissioning",
+            "configuration",
+            "training",
+            "warranty service",
+            "post-warranty service",
+            "diagnostics",
+            "preventive maintenance",
+            "phone support",
+            "spare parts stock"
+          ],
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle-service"
+          ],
+          "notes": ""
+        },
+        "availability_rf": {
+          "raw_value": "Производитель и поставщик Pallet Shuttle на территории России",
+          "normalized_value": "available from official manufacturer/supplier in Russia",
+          "normalized_unit": null,
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "confidence": 0.99,
+          "source_ids": [
+            "src-stelkon-pallet-shuttle"
+          ],
+          "notes": "Previous run-1 composite/paraphrased raw representation moved to notes: \"Эксклюзивный производитель и поставщик ... Pallet Shuttle на территории России\""
+        }
+      },
+      "source_ids": [
+        "src-stelkon-pallet-shuttle",
+        "src-stelkon-pallet-shuttle-service"
+      ],
+      "unresolved_issues": []
+    }
+  ]
+}

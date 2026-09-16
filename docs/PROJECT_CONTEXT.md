@@ -163,8 +163,8 @@ stub с фиктивными характеристиками отвергнут
 Встроенный warehouse golden path и результатный dashboard являются рабочей
 базой. Ближайший приоритет изменён после публикации ТЗ: повторный архитектурный
 аудит, ADR хранения и малая migration 0001 для PostgreSQL/SQLAlchemy/Alembic.
-Затем создаются catalog domain/importer и repository dual-run со старым
-`fleet`. До runtime-switch реализуются проекты и immutable AnalysisRun; только
+Catalog domain и транзакционный importer уже реализованы; следующим создаётся
+repository dual-run со старым `fleet`. До runtime-switch реализуются проекты и immutable AnalysisRun; только
 после этого активируется официальный каталог и подключается XLSX/CSV intake.
 
 Следом приоритетны readiness/hard constraints, baseline/purchase/RaaS,

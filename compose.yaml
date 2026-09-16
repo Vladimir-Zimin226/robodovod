@@ -54,6 +54,21 @@ services:
       start_period: 5s
     init: true
 
+  catalog-import:
+    profiles: ["tools"]
+    build:
+      context: ./backend
+    entrypoint: ["python", "-m", "catalog_importer"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+    volumes:
+      - ./data/import:/data/import:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    init: true
+
   frontend:
     build:
       context: .

@@ -130,6 +130,9 @@ Gate: чистая БД мигрирует до head; повторный upgrade
 
 ### Этап 2 — catalog domain и транзакционный importer, migration 0002
 
+Статус: выполнен двумя малыми итерациями `data/catalog-domain-schema` и
+`data/catalog-validator-importer`; runtime switch намеренно не выполнен.
+
 - `manufacturers`, `catalog_source_rows`, `equipment_models`,
   applicability, observations, evidence, resolved facts и procurement options;
 - committed text bundle `data/import/organizer-catalog-v4/` с manifest,
@@ -304,9 +307,9 @@ Gate: golden path проходит пять раз подряд локально
 13. `admin/catalog-draft-publish`
 14. `qa/security-performance-deploy`
 
-Первой следующей сессии разрешён только пункт 1. Нельзя объединять его с
-catalog importer или переносом endpoint: это уничтожит диагностическую ценность
-малой итерации.
+Каждый пункт выполняется отдельной малой итерацией. Нельзя объединять importer
+или перенос endpoint с соседним пунктом: это уничтожает диагностическую
+ценность и усложняет rollback.
 
 ## 7. Тестовая стратегия
 

@@ -1,0 +1,269 @@
+{
+  "schema_version": "robodovod-catalog-import-bundle-v1",
+  "catalog": {
+    "code": "organizer-catalog-v4",
+    "schema_version": "2",
+    "source_namespace": "organizer-v4"
+  },
+  "pricing_policy": {
+    "currency": "RUB",
+    "currency_provenance": "product-decision:organizer-catalog-v4-rub-v1",
+    "vat_status": "ORGANIZER_ASSUMPTION_INCLUDED",
+    "vat_rate": null,
+    "vat_provenance": "official-addendum-page-4:included-unless-qa;rate-unspecified",
+    "excluded_costs": [
+      "delivery",
+      "commissioning/start-up",
+      "deep IT integration"
+    ]
+  },
+  "expected_counts": {
+    "products": 187,
+    "catalog_source_rows": 223,
+    "applicability_rows": 223,
+    "price_rows": 223,
+    "base_evidence_rows": 3635,
+    "base_spec_fields": 65,
+    "object_profiles": 3,
+    "object_profile_parameters": 138,
+    "enrichment_products": 11,
+    "overlay_fields": 140,
+    "external_evidence_rows": 156
+  },
+  "files": [
+    {
+      "path": "catalog_products.json",
+      "phase": "BASE",
+      "sha256": "dac8460a8c7aaccc82c9dc8eba3a74c41c9d9b4bd50af58584d86ef983b19235",
+      "size_bytes": 547932,
+      "record_kind": "products",
+      "records": 187
+    },
+    {
+      "path": "catalog_applicability.csv",
+      "phase": "BASE",
+      "sha256": "85501030ce65c20c449eb050baa2c73e0fdf44bd507bbe1272dc2c17114efa6f",
+      "size_bytes": 119228,
+      "record_kind": "rows",
+      "records": 223
+    },
+    {
+      "path": "catalog_prices.csv",
+      "phase": "BASE",
+      "sha256": "e6a9101af90ca2974a0cc15d7d93012e5ef368a2d8bfe9140e93190c8e0135db",
+      "size_bytes": 98678,
+      "record_kind": "rows",
+      "records": 223
+    },
+    {
+      "path": "catalog_field_evidence.csv",
+      "phase": "BASE",
+      "sha256": "43cd81bfd9222c29122a2972f5709e394a0664f610fabadf7790b55858040262",
+      "size_bytes": 826253,
+      "record_kind": "rows",
+      "records": 3635
+    },
+    {
+      "path": "object_profiles.json",
+      "phase": "REFERENCE",
+      "sha256": "5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401",
+      "size_bytes": 126923,
+      "record_kind": "parameters",
+      "records": 138
+    },
+    {
+      "path": "catalog_external_enrichment.json",
+      "phase": "ENRICHMENT",
+      "sha256": "56cf2db3d3d9076be04ae4f4a30f09bd6261c3f5d05675c23185ec01708104a0",
+      "size_bytes": 80396,
+      "record_kind": "fields",
+      "records": 140
+    },
+    {
+      "path": "catalog_external_evidence.csv",
+      "phase": "ENRICHMENT",
+      "sha256": "4f82d38288abaf832748a3231a1a9d4748d9988918f1de687dd805a0012db016",
+      "size_bytes": 112739,
+      "record_kind": "rows",
+      "records": 156
+    },
+    {
+      "path": "import-schema.json",
+      "phase": "REFERENCE",
+      "sha256": "5720f286da55e4a5123d8fe0431d40e3a696dd423b9cdeeb8ae3c345b3480e37",
+      "size_bytes": 4676,
+      "record_kind": null,
+      "records": null
+    }
+  ],
+  "source_artifacts": [
+    {
+      "artifact_key": "official-main-requirements",
+      "original_name": "1. ФЦ БАС.pdf",
+      "sha256": "acc5feed8f8686ee9928839a56c9b084e1bd577db55ef1e63b5c5b42278d4713",
+      "size_bytes": 565739,
+      "media_type": "application/pdf",
+      "provenance_status": "VERIFIED",
+      "license_status": "RESTRICTED",
+      "role": "REFERENCE",
+      "ordinal": 0,
+      "observed_at": "2026-09-15T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "official-addendum",
+      "original_name": "Дополнения для участников.pdf",
+      "sha256": "64eac97cc4c985035286ebbedfcd5b356c4aba4af1d1d69f2ac0ca1f20adc456",
+      "size_bytes": 172735,
+      "media_type": "application/pdf",
+      "provenance_status": "VERIFIED",
+      "license_status": "RESTRICTED",
+      "role": "BASE",
+      "ordinal": 2,
+      "observed_at": "2026-09-15T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "official-object-profiles",
+      "original_name": "Датасеты_хакатон.xlsx",
+      "sha256": "6649c501464135e6c0b43809e4461b4a74b63d2b211f5b6aaf3a33ced0fed2a0",
+      "size_bytes": 29823,
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "provenance_status": "VERIFIED",
+      "license_status": "RESTRICTED",
+      "role": "REFERENCE",
+      "ordinal": 1,
+      "observed_at": "2026-09-15T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "organizer-catalog-v4-csv",
+      "original_name": "catalog_export_v4.csv",
+      "sha256": "1521b9c886a706eda3a65cd697ec78018ad41d501713333e834266879dedb5d9",
+      "size_bytes": 170058,
+      "media_type": "text/csv",
+      "provenance_status": "VERIFIED",
+      "license_status": "RESTRICTED",
+      "role": "BASE",
+      "ordinal": 0,
+      "observed_at": "2026-09-15T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "official-solution-examples",
+      "original_name": "Примеры_решений_типы_объектов.docx",
+      "sha256": "2ced71f9d0c633d8f0baecd53413bfe6e5595599279349bcad7812e87d8c3d95",
+      "size_bytes": 890297,
+      "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "provenance_status": "VERIFIED",
+      "license_status": "RESTRICTED",
+      "role": "BASE",
+      "ordinal": 1,
+      "observed_at": "2026-09-15T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "official-visual-catalog-91-pages",
+      "original_name": "ФЦ БАС — Каталог внедрения 2008 1247.pdf",
+      "sha256": "9567641d3a3a7bed9d2e470240b17cefacba047257b5f0b4a5311c159c580369",
+      "size_bytes": 84906007,
+      "media_type": "application/pdf",
+      "provenance_status": "VERIFIED",
+      "license_status": "RESTRICTED",
+      "role": "REFERENCE",
+      "ordinal": 2,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_products.json",
+      "original_name": "catalog_products.json",
+      "sha256": "dac8460a8c7aaccc82c9dc8eba3a74c41c9d9b4bd50af58584d86ef983b19235",
+      "size_bytes": 547932,
+      "media_type": "application/json",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 0,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_applicability.csv",
+      "original_name": "catalog_applicability.csv",
+      "sha256": "85501030ce65c20c449eb050baa2c73e0fdf44bd507bbe1272dc2c17114efa6f",
+      "size_bytes": 119228,
+      "media_type": "text/csv",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 1,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_prices.csv",
+      "original_name": "catalog_prices.csv",
+      "sha256": "e6a9101af90ca2974a0cc15d7d93012e5ef368a2d8bfe9140e93190c8e0135db",
+      "size_bytes": 98678,
+      "media_type": "text/csv",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 2,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_field_evidence.csv",
+      "original_name": "catalog_field_evidence.csv",
+      "sha256": "43cd81bfd9222c29122a2972f5709e394a0664f610fabadf7790b55858040262",
+      "size_bytes": 826253,
+      "media_type": "text/csv",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 3,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:object_profiles.json",
+      "original_name": "object_profiles.json",
+      "sha256": "5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401",
+      "size_bytes": 126923,
+      "media_type": "application/json",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 4,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_external_enrichment.json",
+      "original_name": "catalog_external_enrichment.json",
+      "sha256": "56cf2db3d3d9076be04ae4f4a30f09bd6261c3f5d05675c23185ec01708104a0",
+      "size_bytes": 80396,
+      "media_type": "application/json",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 5,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_external_evidence.csv",
+      "original_name": "catalog_external_evidence.csv",
+      "sha256": "4f82d38288abaf832748a3231a1a9d4748d9988918f1de687dd805a0012db016",
+      "size_bytes": 112739,
+      "media_type": "text/csv",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 6,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:import-schema.json",
+      "original_name": "import-schema.json",
+      "sha256": "5720f286da55e4a5123d8fe0431d40e3a696dd423b9cdeeb8ae3c345b3480e37",
+      "size_bytes": 4676,
+      "media_type": "application/json",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 7,
+      "observed_at": "2026-09-16T00:00:00+00:00"
+    }
+  ]
+}
