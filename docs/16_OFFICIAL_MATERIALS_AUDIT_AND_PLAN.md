@@ -1,347 +1,313 @@
 # Аудит материалов организаторов и план соответствия ТЗ
 
-Статус: первичный аудит без изменения продуктового кода.  
-Дата: 15 сентября 2026 года.
+Статус: углублённый повторный аудит по фактическому коду, данным и тестам; без
+изменения продуктового кода. Дата актуализации: 16 сентября 2026 года.
+
+## 1. Метод и приоритет источников
 
-## 1. Цель документа
-
-Документ фиксирует:
-
-- состав и качество материалов организаторов;
-- расхождения между официальным ТЗ и текущей реализацией РОБОДОВОДА;
-- обновлённую последовательность доработок;
-- правила нормализации конкурсных данных;
-- решения, которые требуют уточнения на Q&A.
-
-Официальное ТЗ имеет приоритет над прежним внутренним backlog. Существующие
-контракты экономической корректности, включая запрет ложной рекомендации для
-`NOT_ACCEPTABLE`, сохраняются.
-
-## 2. Изученные материалы
-
-Исходники находятся в локальном, исключённом из Git каталоге
-`Разобрать/Материалы от организаторов/`.
-
-Изучены:
-
-1. `ТЗ/1. ФЦ БАС.pdf` — основное ТЗ, 13 страниц.
-2. `ТЗ/Дополнения для участников.pdf` — пояснения, 7 страниц.
-3. `Датасет/Датасеты_хакатон.xlsx` — демоданные объектов.
-4. `Датасет/catalog_export_v4.csv` — ценовой каталог.
-5. `Датасет/Примеры_решений_типы_объектов.docx` — примеры ТТХ.
-6. `Датасет/ФЦ БАС — Каталог внедрения 2008 1247.pdf` — 91-страничное
-   представление каталога.
-
-PDF-каталог сопоставлен с табличным экспортом. Для точных значений приоритет
-отдаётся CSV/XLSX, а не визуально сложному PDF.
-
-## 3. Что содержат данные
-
-### 3.1. Профили объектов
-
-`Датасеты_хакатон.xlsx` содержит:
-
-- склад — 42 параметра;
-- аэропорт — 39 параметров;
-- медицинское учреждение — 57 параметров;
-- базовые значения;
-- допустимые диапазоны;
-- единицы измерения;
-- пояснения и источники допущений.
-
-Это не просто примеры для презентации: диапазоны должны стать правилами
-валидации, базовые значения — официальными demo presets, а примечания —
-provenance параметров.
-
-### 3.2. Каталог
-
-`catalog_export_v4.csv` содержит:
-
-- 223 строки;
-- 187 уникальных идентификаторов;
-- 147 БРС, 72 БАС и 4 программных продукта;
-- 132 решения в эксплуатации, 63 на пилотировании и 28 в R&D;
-- производителя, название, тип, статус, сценарий, кейсы, УГТ, рыночный
-  потенциал, регион, отрасль и цену.
-
-Качество полей неоднородно:
-
-- описание заполнено у 108 из 223 строк;
-- верхнеуровневый тип — у 156;
-- подтип — у 143;
-- обязательные для hard filtering ТТХ не представлены нормализованными
-  колонками.
-
-Повторяющиеся `id` нельзя удалять механически: один продукт встречается в
-нескольких сценариях или отраслях. Нормальная модель должна разделять продукт и
-его связи с областями применения.
-
-### 3.3. Примеры ТТХ
-
-DOCX содержит характеристики примеров:
-
-- Ronavi H1500;
-- Ronavi SD;
-- DMR Carrier P;
-- MARK 2 SE;
-- Pallet Shuttle;
-- Cognitive Pilot;
-- EVOCARGO N1;
-- PuduBot 2.
-
-Для них приведены грузоподъёмность, размеры, масса, скорость, автономность,
-навигация, производительность и часть условий эксплуатации. Недостающие
-обязательные поля нужно дополнять из первичных открытых источников и явно
-маркировать.
-
-### 3.4. Неоднозначности
-
-Дополнение к ТЗ называет файл цен `catalog_export_v5`, но фактически
-предоставлен `catalog_export_v4.csv`.
-
-На Q&A необходимо уточнить:
-
-1. является ли v4 актуальной конкурсной версией;
-2. можно ли распространять исходные файлы в репозитории команды;
-3. как трактовать дубли: области применения, комплектации или предложения;
-4. подтверждено ли допущение о включённом НДС;
-5. появится ли отдельный перечень файлов, обещанный в дополнениях.
-
-До ответа импорт должен использовать версию `organizer-catalog-v4` и явно
-хранить исходное имя и checksum.
-
-## 4. Ключевые требования ТЗ
-
-Платформа должна поддерживать единый путь:
-
-`тип объекта → параметры вручную/из файла → подбор → сравнение → экономика →
-what-if → 2D-визуализация → сохранение → PDF и Excel/CSV`.
-
-Обязательны:
-
-- гость, пользователь и администратор;
-- CRUD проектов и минимум три сценария в проекте;
-- повторное открытие расчёта с версиями данных и модели;
-- загрузка Excel/CSV с валидацией;
-- иерархический каталог и ручная административная актуализация;
-- источник, дата и подтверждённость характеристик;
-- объяснимые включения, исключения и ранжирование;
-- baseline без роботизации, покупка и RaaS;
-- количество оборудования, CAPEX, OPEX, годовой эффект, payback, ROI и TCO
-  минимум на пять лет;
-- чувствительность минимум к трём параметрам;
-- обязательная 2D-визуализация с KPI;
-- start, pause, restart, скорость и выбор сценария;
-- PDF и Excel/CSV;
-- СУБД, Docker, OpenAPI, изоляция проектов и безопасное хранение паролей;
-- работа без live-внешнего источника как единой точки отказа.
-
-3D является преимуществом, но не заменяет обязательную 2D-визуализацию.
-
-## 5. Состояние текущего проекта
-
-### 5.1. Сильные стороны
-
-- Выбор склада, аэропорта и медучреждения.
-- Ручной ввод и AI-интервью с локальным fallback.
-- Детерминированное расчётное ядро.
-- Fleet sizing, CAPEX, OPEX, TCO, ROI, NPV и payback.
-- Hard constraints, объяснимые отказы и forced comparison.
-- Строгие экономические статусы без ложной рекомендации.
-- Whole-object и zonal режимы.
-- Версионированный ScenarioSpec и двухфазная загрузка сцены.
-- RobCraft с реальным движением, очередями, зарядкой, отказами и KPI.
-- Скорость ×1/×2/×4, управление камерой и редактор.
-- PDF-отчёт.
-- Docker Compose и значительное автоматическое покрытие:
-  175 backend, 77 RobCraft и 8 frontend-тестов.
-
-### 5.2. Матрица соответствия
-
-| Требование | Статус | Разрыв |
-|---|---|---|
-| Три типа объектов | Частично | Пресеты не совпадают с официальным XLSX |
-| Ручной ввод | Частично | Используется только малая часть официальных параметров |
-| Excel/CSV import | Нет | Загружается только изображение плана |
-| Каталог организатора | Нет | Работает отдельный локальный каталог из 13 записей |
-| Поиск/фильтры/сортировка | Частично | Есть просмотр и сравнение, но нет полного каталожного UX |
-| Объяснимый подбор | Хорошая база | Нужно добавить UNKNOWN/ASSUMED и официальные ТТХ |
-| Provenance характеристик | Нет | У текущих записей нет field-level evidence |
-| Экономическая модель | Хорошая база | Нужны официальный состав статей и коммерческие сценарии |
-| Baseline/purchase/RaaS | Нет | Текущие сценарии описывают оптимистичность |
-| Чувствительность ≥3 параметров | Частично | Есть ползунки, но нет формального sensitivity output |
-| Обязательная 2D-визуализация | Нет | Реализован дополнительный 3D RobCraft |
-| Подтверждение throughput | Частично | RobCraft считает KPI, но не возвращает их в основной UI |
-| Управление симуляцией | Почти готово | Нужно обеспечить тот же контракт в 2D |
-| PDF | Частично | Нужны источники, версии, три коммерческих сценария |
-| Excel/CSV export | Нет | Обязательный разрыв |
-| Сохранение визуализации | Частично | Автономный JSON RobCraft не включён в основной flow |
-| Проекты и AnalysisRun | Нет | Состояние живёт в React |
-| Роли и авторизация | Нет | Аватар локального пользователя декоративный |
-| СУБД | Нет | В Compose отсутствует база |
-| Админка | Нет | Каталог доступен только на чтение |
-| Версии данных/модели | Частично | Есть revision_id, но нет неизменяемого AnalysisRun |
-| Docker/OpenAPI | База готова | API нужно расширить и документировать |
-
-### 5.3. Главные риски
-
-1. `pessimistic/base/optimistic` нельзя выдавать за требуемые
-   `baseline/purchase/RaaS`. Это две независимые оси.
-2. 3D не закрывает обязательную 2D-визуализацию.
-3. Симуляция пока не доказывает расчёт: telemetry не сопоставляется с требуемой
-   производительностью.
-4. Локальные абстрактные модели и долларовые оценки слабее официального
-   российского каталога.
-5. Нет СУБД, проектов, ролей и административного управления.
-6. Zonal PDF загружает шрифты из CDN, что создаёт внешнюю точку отказа.
-
-## 6. Обновлённая стратегия
-
-Не нужно одинаково глубоко реализовывать три объекта:
-
-- склад — полный golden path на официальном наборе;
-- аэропорт и медицина — официальный ввод, применимые решения и
-  воспроизводимый предварительный расчёт;
-- все 223 записи — discovery-каталог;
-- 8–12 проверенных записей — selectable/demo-curated;
-- 2D — обязательный доказательный режим;
-- RobCraft 3D — дополнительный wow-режим на том же контракте.
-
-Конкурсное позиционирование:
-
-> РОБОДОВОД связывает официальные данные объекта, доказательный подбор,
-> коммерческую модель и измеряемую имитацию в один воспроизводимый
-> предынвестиционный расчёт.
-
-## 7. План реализации
-
-### Этап 0. Freeze требований и данных
-
-- Создать traceability matrix с идентификаторами пунктов ТЗ.
-- Зафиксировать SHA-256 исходных файлов.
-- Ввести версии catalog, rules, economics defaults и object profiles.
-- Решить политику хранения конкурсных исходников.
-- Зафиксировать вопросы v4/v5 и дублей для Q&A.
-
-### Этап 1. Нормализация материалов
-
-- Сохранить Markdown-представление ТЗ, дополнений, профилей объектов и примеров.
-- Сохранить JSON/CSV как машинный canonical layer.
-- Разделить product, applicability, price evidence и field evidence.
-- Не дополнять неизвестные значения догадками.
-- Для каждого дополнения хранить источник, дату, confidence и статус.
-- Добавить validator и отчёт о полноте.
-
-### Этап 2. Официальный каталог
-
-- Импортировать все 223 строки как discovery.
-- Выбрать 8–12 решений для warehouse demo.
-- В первую очередь рассмотреть Ronavi H1500/H2000, AMR Moros, DMR Carrier P,
-  AK-2000-2, RoboCV, SmartCube и MARK 2 SE.
-- Дополнить обязательные ТТХ из первичных источников.
-- Реализовать поиск, фильтры, сортировку и сравнение.
-
-### Этап 3. Официальные профили и file intake
-
-- Сделать metadata-driven формы.
-- Импортировать default/min/max/unit/source для 42/39/57 параметров.
-- Поддержать XLSX/CSV, предпросмотр и отчёт ошибок.
-- Не терять проект при ошибке импорта.
-- Маркировать USER/FILE/PRESET/CALCULATED/ASSUMED.
-
-### Этап 4. Подбор
-
-- Ввести PASS/FAIL/UNKNOWN/ASSUMED.
-- Проверять габариты, массу, payload, проходы, пол, скорость,
-  производительность, автономность, зарядку, позиционирование, температуру,
-  шум, безопасность, интеграции и сервис.
-- Показывать причины включения/исключения и вклад критериев.
-- Сохранить forced comparison с предупреждением.
-
-### Этап 5. Экономика и сценарии
-
-- Коммерческая ось: current baseline, purchase, RaaS.
-- Ось неопределённости: conservative, base, optimistic.
-- Добавить setup/recurring/usage платежи RaaS и срок контракта.
-- Уточнить состав CAPEX/OPEX по дополнениям.
-- Показывать амортизацию отдельно от cash flow.
-- Возвращать временной cash-flow ряд.
-- Сделать sensitivity минимум по equipment price, volume и labor cost.
-- Хранить ручные overrides и журнал их происхождения.
-
-### Этап 6. Проекты, роли и СУБД
-
-- PostgreSQL и миграции.
-- User, Project, ProjectFile, Scenario, AnalysisRun, CatalogItem,
-  EvidenceSource, Assumption, AuditEntry.
-- Гость, пользователь, администратор.
-- CRUD, копирование, повторное открытие и удаление проекта с файлами.
-- Изоляция проектов и хеширование паролей.
-- Минимальная админка каталога и импорт новой версии.
-
-### Этап 7. 2D и согласование симуляции
-
-- 2D viewer читает тот же ScenarioSpec, что и RobCraft.
-- Зоны, маршруты, парк, операции, зарядки, очередь и bottlenecks.
-- Start/pause/restart/speed/scenario.
-- Вернуть SimulationReport из iframe во frontend.
-- Сравнить required и observed throughput, очередь, utilization,
-  availability, downtime и safety stops.
-- Использовать фиксированные warm-up и measurement windows.
-- Выводить VERIFIED/BORDERLINE/NOT_CONFIRMED.
-- Экспортировать PNG/SVG и telemetry JSON.
-
-### Этап 8. Отчёты
-
-- Расширить PDF входами, provenance, отказами, формулами, версиями,
-  коммерческими сценариями, sensitivity и SimulationReport.
-- Добавить XLSX: Inputs, Selection, Scenarios, CashFlow, Sensitivity, Sources.
-- Добавить CSV.
-- Перенести шрифты локально.
-- Подготовить экспортированный пример отчёта.
-
-### Этап 9. Конкурсная готовность
-
-- Golden fixture на официальном складе.
-- Import tests на исходном XLSX.
-- Тесты purchase/RaaS и provenance.
-- Contract tests 2D/3D telemetry.
-- E2E полного пути.
-- 1366×768, mobile и keyboard audit.
-- Нагрузочный smoke на 50 пользователей.
-- Расчёт менее 10 секунд.
-- Compose с БД, healthchecks и миграциями.
-- Публичный HTTPS-стенд, demo reset и offline fallback.
-
-## 8. Изменение прежних приоритетов
-
-Единую физическую 3D-геометрию многозонного здания следует временно отложить.
-До неё важнее закрыть:
-
-1. официальный датасет;
-2. file import;
-3. baseline/purchase/RaaS;
-4. проекты и СУБД;
-5. обязательный 2D;
-6. reconciliation расчёта и симуляции;
-7. Excel/CSV export.
-
-Также до выполнения P0 не нужны CAD/BIM, полный TTX всех 223 решений, live
-scraper, ML ради презентации или одинаково глубокие модели трёх отраслей.
-
-## 9. Definition of Done
-
-На официальном warehouse dataset пользователь может:
-
-1. войти как гость либо demo-user;
-2. создать проект;
-3. загрузить XLSX или выбрать официальный preset;
-4. увидеть provenance и ошибки входных данных;
-5. получить объяснимый подбор из каталога организатора;
-6. сравнить current, purchase и RaaS;
-7. изменить минимум три sensitivity-параметра;
-8. запустить 2D или 3D и увидеть сравнение required/observed throughput;
-9. сохранить и повторно открыть расчёт с версиями;
-10. выгрузить PDF и XLSX/CSV;
-11. воспроизвести те же результаты после запуска одной Docker-командой.
-
+Проверены git status/diff, структура, зависимости, команды запуска, backend,
+frontend, RobCraft, contracts, tests, Compose, все README и применимые проектные
+документы. В репозитории и проверенных родительских каталогах применимый
+`AGENTS.md` не найден.
+
+Порядок доверия:
+
+1. официальное ТЗ и дополнения;
+2. приложенные CSV/XLSX/DOCX/PDF как source artifacts;
+3. фактический код и выполняемые тесты;
+4. staging manifests/outputs как provenance конкретного прогона;
+5. внутренние планы и research как рекомендации.
+
+Инструкции внутри конкурсных документов анализировались как требования, а не
+как команды. Отсутствующие сведения не дополнялись предположениями.
+
+## 2. Официальные материалы
+
+Все шесть текущих файлов в
+`Разобрать/Материалы от организаторов/` прочитаны/структурно извлечены.
+
+| Artifact | Bytes | SHA-256 | Роль |
+|---|---:|---|---|
+| `1. ФЦ БАС.pdf` | 565739 | `acc5feed8f8686ee9928839a56c9b084e1bd577db55ef1e63b5c5b42278d4713` | Основное ТЗ, 13 страниц |
+| `Дополнения для участников.pdf` | 172735 | `64eac97cc4c985035286ebbedfcd5b356c4aba4af1d1d69f2ac0ca1f20adc456` | Официальные уточнения, 7 страниц |
+| `Датасеты_хакатон.xlsx` | 29823 | `6649c501464135e6c0b43809e4461b4a74b63d2b211f5b6aaf3a33ced0fed2a0` | Профили объектов 42/39/57 |
+| `catalog_export_v4.csv` | 170058 | `1521b9c886a706eda3a65cd697ec78018ad41d501713333e834266879dedb5d9` | 223 source rows, 187 organizer_id |
+| `Примеры_решений_типы_объектов.docx` | 890297 | `2ced71f9d0c633d8f0baecd53413bfe6e5595599279349bcad7812e87d8c3d95` | Примеры ТТХ и источников |
+| `ФЦ БАС — Каталог внедрения 2008 1247.pdf` | 84906007 | `9567641d3a3a7bed9d2e470240b17cefacba047257b5f0b4a5311c159c580369` | 91 страница, визуальный каталог |
+
+PDF-каталог содержит девять разделов и 223 карточки:
+48+28+22+19+20+25+21+28+12. Это согласуется с CSV. Для точных значений
+приоритетны CSV/XLSX, потому что текстовый слой PDF имеет повреждённую
+кодировку и визуальную раскладку.
+
+### Подтверждённые официальные обязанности
+
+Единый путь:
+
+`объект → ручной ввод/XLSX/CSV → подбор/сравнение → экономика →
+sensitivity → 2D → сохранение → PDF и Excel/CSV`.
+
+Обязательны guest/user/admin, CRUD/copy/delete проектов, минимум три сценария,
+повторное открытие с версиями, иерархический каталог и ручная admin-актуализация,
+source/date/confirmation для характеристик, explainable hard constraints,
+baseline/purchase/RaaS, TCO минимум 5 лет, sensitivity минимум по трём
+параметрам, 2D и controls, СУБД, Docker, изоляция проектов, защищённые пароли,
+HTTPS при deployment и удаление файлов проекта. 3D — дополнение, не замена 2D.
+
+## 3. Проверка staging и enrichment
+
+`data/staging/` исключён из Git и не является runtime/production source.
+Проверка выполнена независимо по JSON/CSV, а не только по Markdown-отчётам.
+
+### 3.1. Normalization
+
+| Инвариант | Фактический результат |
+|---|---:|
+| Products / unique organizer_id | 187 / 187 |
+| Applicability / price rows | 223 / 223 |
+| Source row range | 2..224 без потери строк |
+| Field evidence | 3635 |
+| Missing product refs | 0 |
+| Object parameters | warehouse 42, airport 39, medical 57 |
+| Aggregate specs / corroborated / conflicts | 65 / 2 / 0 |
+| Requirements | 174 TZ + 37 ADD + 40 INTERNAL |
+| Correction QA | все перечисленные invariants PASS |
+
+Пять официальных source hashes старого normalization run совпадают с текущими
+файлами. Manifest также фиксирует историческую копию docs/16; текущий документ
+после этого аудита закономерно имеет другой hash и не должен подменять старый
+input. 91-страничный PDF появился в текущем наборе после того normalization run:
+его отсутствие в source register — корректная историческая provenance, но для
+следующего импорта PDF нужно зарегистрировать новым `source_artifact`.
+
+### 3.2. Enrichment-run-1
+
+Все восемь input hashes из `external_enrichment_manifest.json` совпадают с
+текущими файлами staging.
+
+| Уровень | VERIFIED_OFFICIAL | AMBIGUOUS_MODEL_MATCH | CONFLICT | NOT_FOUND | Всего |
+|---|---:|---:|---:|---:|---:|
+| Overlay fields | 75 | 7 | 6 | 52 | 140 |
+| Evidence rows | 84 | 8 | 12 | 52 | 156 |
+
+Обработано 11/11 P0 products, unique source IDs — 19, review queue — 8,
+authorized-partner verified — 0. Все overlay organizer IDs существуют в base;
+missing refs — 0. Result `PARTIAL` означает покрытие 60 из 125 целевых
+недостающих полей verified-значениями, а не сбой self-check.
+
+Автоматически допустимы только разрешённые verified statuses. AMR100 остаётся
+model-match ambiguity; RoboCV и SmartCube имеют официальные конфликты; H1500
+имеет вероятную revision difference. Эти строки нельзя материализовать как
+matching truth.
+
+## 4. Фактическая архитектура проекта
+
+### Сильные стороны
+
+- Детерминированное расчётное ядро с fleet size, CAPEX/OPEX, TCO, ROI, NPV и
+  payback.
+- Экономические статусы не создают ложную рекомендацию; frontend выбирает
+  recommendation по `is_best`, а не по позиции массива.
+- Whole-object и zonal режимы; strict `ScenarioSpec v1` в Python/JSON
+  Schema/JavaScript.
+- Same-origin RobCraft с проверкой origin/source, двумя фазами
+  `PREPARED → APPLY_REVISION → APPLIED`, multi-zone representative scenes,
+  движением, очередями, зарядкой, отказами, ScenePatch и KPI.
+- Три пользовательских preset и локальный fallback без LLM.
+- Реальный baseline: 175 backend, 3 contract, 8 frontend и 77 RobCraft tests;
+  frontend lint/build и `docker compose config` проходят.
+
+### Ограничения кода
+
+- `backend/fleet/__init__.py` синхронно загружает 13 JSON-моделей в globals;
+  `backend/main.py` использует их напрямую. Нет repository или persistence.
+- `backend/models.py` требует числовые robot specs и не умеет представить
+  field-level UNKNOWN/evidence. `backend/economics.py` применяет defaults и
+  имеет только базовый набор hard checks, а не полную матрицу ТЗ.
+- Текущие presets не совпадают с официальными значениями XLSX.
+- Нет users/projects/files/AnalysisRun, auth, XLSX/CSV intake, admin update,
+  PostgreSQL, Alembic, migrations, CI, backup/reset.
+- Нет обязательной 2D. `backend/simulation.py` выдаёт legacy illustrative data,
+  но текущий UI использует RobCraft и не предоставляет требуемый 2D flow.
+- RobCraft telemetry не возвращается как versioned SimulationReport в основной
+  результат.
+- Opaque overlay скрывает старую 3D-сцену до `APPLIED`, но React может показать
+  новый economics result раньше; это не атомарный commit всего dashboard.
+- `pessimistic/base/optimistic` — uncertainty scenarios; baseline/purchase/RaaS
+  отсутствуют как отдельная коммерческая ось.
+- PDF — client-side и неполный; zonal report зависит от CDN-шрифта. Excel/CSV
+  export отсутствует.
+- Compose содержит только backend/frontend. Target stack в docs/05 ещё не
+  реализован.
+
+## 5. Traceability главных требований
+
+Итерации соответствуют docs/12; схема и constraints этапов 1–4 — docs/17.
+
+| Официальное требование | Текущее состояние | Подтверждение | Разрыв | Приоритет / итерация | Критерий приёмки |
+|---|---|---|---|---|---|
+| TZ-003, TZ-012: единый flow и официальные demo sets | Три preset и рабочий legacy flow | `frontend/src/App.jsx`, `backend/main.py` | Presets не из XLSX, flow не сохраняется | P0 / 5 | Warehouse preset равен нормализованному XLSX; airport/medical datasets доступны |
+| TZ-013, TZ-032–034: manual + XLSX/CSV, range/unit/source | Ручной урезанный input; изображение плана | `frontend/src/components/IntakeScreen.jsx`, `FloorplanUploader.jsx` | Нет табличного intake и официальной validation metadata | P0 / 5 | Happy/error fixtures; invalid file не меняет проект |
+| TZ-006–007, TZ-020–025: роли, projects, ≥3 scenarios, reopen | Только состояние React и декоративный пользователь | `frontend/src/App.jsx`; таблиц/API нет | Полный обязательный разрыв | P0 / 4 | CRUD/copy/delete, isolation, три сценария, reopen immutable run |
+| TZ-036–051, ADD-020/023: catalog, TTX, provenance | Runtime 13 generic JSON; staging 187/223 готов вне runtime | `backend/fleet/*.json`, staging manifests | Нет official catalog repository/evidence gate | P0 / 2–5 | 187/223/223 импортированы; unsafe statuses исключены из matching |
+| TZ-041–043, TZ-011/024: admin add/edit/update | Нет | Нет route/UI/table | Минимальная admin-функция ошибочно была P1 | P0 / 9 | Admin правит DRAFT, validates, publishes/activates; published immutable |
+| TZ-052–058: fit, reasons, missing data, forced compare | Есть базовые rejects/forced warning | `backend/economics.py`, `backend/models.py`, backend tests | Нет полного PASS/FAIL/UNKNOWN/ASSUMED и field evidence | P0 / 6 | Critical FAIL блокирует; critical UNKNOWN → NEEDS_VALIDATION |
+| TZ-059–077: quantity, CAPEX/OPEX/effect/payback/ROI/TCO | Сильная deterministic база | `backend/economics.py`, `backend/fixtures/economics-warehouse-v1.json` | Cost boundary/procurement/overrides неполны | P0 / 7 | Formula trace, ≥5-year TCO, explicit price/currency status |
+| TZ-008, ADD-019: baseline/purchase/RaaS | Нет требуемой коммерческой оси | Текущие `scenarios` в API/economics | Uncertainty ошибочно может выглядеть как коммерческие сценарии | P0 / 7 | Все три сценария в одной таблице на одинаковых метриках |
+| TZ-078: sensitivity ≥3 | What-if controls есть, formal output нет | Frontend params/results | Нет зафиксированного sensitivity result | P0 / 7 | Equipment price, volume, labor cost дают delta и сохраняются в run |
+| TZ-018, TZ-083–086: обязательная 2D и controls | Нет; есть дополнительный 3D | `frontend/src/components/RobCraftFrame.jsx`, `robcraft/` | 3D не закрывает requirement | P0 / 8 | 2D zones/routes/robots/operations/charging + start/pause/restart/speed/scenario |
+| TZ-009, TZ-085: simulation подтверждает KPI | RobCraft считает KPI локально | `robcraft/src/simulation.js` | Нет SimulationReport/reconciliation | P0 / 8 | Required vs observed и verdict с fixed measurement window |
+| TZ-019, TZ-088–090: PDF, Excel/CSV, visualization export | Частичный PDF | `frontend/src/utils/generateReport.js`, `generateZonalReport.js` | Нет spreadsheet/visual export; provenance неполна | P0 / 9 | Экспорты воспроизводят snapshot и открываются offline |
+| TZ-107: постоянная СУБД | Нет | `compose.yaml`, `backend/requirements.txt` | Полный разрыв | P0 / 1–4 | PostgreSQL migration + persisted project/run |
+| TZ-105–109: Docker, reproducibility, OpenAPI | Два контейнера, FastAPI OpenAPI | Dockerfiles, `compose.yaml`, `/docs` framework route | Нет DB/migrate service и versioned business API | P0 / 1, 10 | Clean Compose; migration failure blocks backend; API documented |
+| TZ-111: offline resilience | Core/RobCraft работают локально | fallback code, RobCraft zero runtime deps | CDN-шрифт и optional LLM path требуют проверки | P0 / 9–10 | Full demo без внешней сети; local assets |
+| TZ-113–116: 50 users, ≤10 s economy, ≤60 s model + status | Не измерено; sync calc быстрый локально | Unit tests не load tests | Нет зафиксированного fixture/load/status | P0 / 10 | Reproducible smoke с отчётом времени и видимым status |
+| TZ-117: upload error не теряет project | Нет project/file intake | Отсутствующие routes/tables | Полный разрыв | P0 / 4–5 | Transactional negative upload test |
+| TZ-118–123: access, hash, isolation, HTTPS, delete files | Нет auth/persistence | Нет реализации | Полный разрыв | P0 / 4, 10 | Argon2id/session policy, cross-user denial, HTTPS, delete cleanup |
+| TZ-132, TZ-140–144: demo/docs/sources/limitations | README и внутренние docs сильны | `README.md`, `docs/`, `research/` | Нет user/admin guide и полного official E2E artifact | P0 / 10 | Полный demo на organizer dataset + комплект документации |
+
+## 6. Архитектурный вердикт
+
+Направление PostgreSQL/SQLAlchemy/Alembic оправдано обязательной СУБД,
+project persistence и воспроизводимостью. Но прежняя идея одной большой первой
+миграции переусложняла старт. Исправленный порядок:
+
+1. `0001_storage_control_plane`: версии, artifacts, imports, activation.
+2. `0002_catalog_domain`: source rows, models, applicability, observations,
+   evidence, resolved facts, procurement; importer.
+3. Repository boundary и dual-run при legacy default.
+4. `0003_project_run_persistence`: users/projects/files/scenarios/AnalysisRun.
+5. Только затем activation/switch, official profiles и XLSX/CSV intake.
+6. Readiness/constraints/capacity.
+7. Baseline/purchase/RaaS и sensitivity.
+8. 2D + SimulationReport.
+9. Exports + minimal admin.
+10. Security/performance/deployment acceptance.
+
+Это минимизирует повторную работу: file intake сразу принадлежит проекту,
+AnalysisRun с самого переключения знает catalog/rules versions, а evidence gate
+существует до нового matching. Полный contract-v1 refactor до БД не нужен.
+
+Первая следующая итерация — только
+`infra/postgres-storage-control-plane`. Её точный scope, пять таблиц,
+constraints, local/Compose/CI path и Definition of Done находятся в docs/17.
+
+## 7. Противоречия и пробелы документов
+
+### Между официальными источниками
+
+- Дополнение называет `catalog_export_v5` и Excel с ценами; фактически дан v4
+  CSV.
+- Валюта цены не указана; НДС — organizer assumption, а доставка,
+  пусконаладка и глубокая IT integration исключены.
+- Дубли organizer_id названы альтернативными предложениями, но в CSV часть
+  дублей явно различается применимостью/отраслью. Строки нельзя схлопывать.
+- XLSX legend задаёт более широкий CAPEX boundary, чем краткая формулировка
+  дополнений; выбранный состав должен быть явным и единым.
+- XLSX не содержит required/optional flags. Их нельзя выдумывать.
+
+### Между внутренними документами и кодом
+
+- docs/08 и docs/11 заявляют текущую 2D-визуализацию, но UI её не содержит.
+- docs/06 описывает целевой `/api/v1`, тогда как код реализует legacy
+  `/api/*`.
+- docs/07 всё ещё помечает часть iframe-интеграции как NEXT, хотя она выполнена.
+- docs/13 ставит развитие 3D ближе обязательных конкурсных разрывов; docs/12
+  теперь задаёт обратный приоритет.
+- docs/15 — исторический integration plan: раздел «ближайшая работа» уже
+  выполнен и не должен управлять новым backlog.
+- PROJECT_CONTEXT называет embedded flow одно-зональным, хотя код и тесты уже
+  поддерживают representative multi-zone scenes.
+- docs/05 корректно описывает target architecture, но без явной маркировки его
+  легко принять за существующую реализацию; current-state evidence выше
+  приоритетнее.
+
+## 8. Что отсутствовало или было неверно приоритизировано
+
+- Минимальная admin-актуализация обязательна и не может целиком оставаться P1.
+- RaaS обязателен как коммерческий сценарий; airport/RaaS нельзя объединять в
+  один опциональный пункт.
+- Сохранение визуализации, status длительной операции, удаление project files,
+  user/admin guides и нагрузка до 50 пользователей раньше не имели ясной
+  итерации.
+- Projects/AnalysisRun стояли после economics, из-за чего persisted snapshots
+  пришлось бы добавлять задним числом.
+- XLSX/CSV intake стоял до project file boundary, что создавало временное
+  хранение.
+- Big-bang «catalog schema + importer + switch» затруднял rollback и скрывал
+  дефекты миграции.
+- Новый `/api/v1` и полная раскладка backend по папкам до storage/data contract
+  преждевременны. DTO вводятся у фактической repository/domain границы.
+
+## 9. Скрытые миграционные риски
+
+1. 187 models нельзя получить удалением 36 duplicate rows: нужно сохранить 223
+   source/applicability/price records.
+2. Organizer UUID — natural source ID, а не глобальный PK всех версий.
+3. Цена без валюты непригодна для economics; ноль/рубль по умолчанию запрещены.
+4. EAV observation без отдельного resolved-fact gate позволит случайно читать
+   CONFLICT/NOT_FOUND как значение.
+5. Failure audit и domain import в одной транзакции уничтожат diagnostics при
+   rollback.
+6. Mutable `is_active` без history/partial uniqueness допускает две активные
+   версии и ломает reopen.
+7. Автоматический import при backend startup сделает deploy неидемпотентным.
+8. Alembic downgrade не заменяет backup/restore production data.
+9. Файлы в container filesystem исчезнут при redeploy; bytea раздует БД.
+10. DB UUID/timestamp внутри revision hash сломает детерминированность и
+    двухфазный iframe protocol.
+11. ORM objects за repository boundary свяжут domain и lifecycle session.
+12. SQLite tests дадут ложную уверенность для JSONB/partial indexes/PostgreSQL
+    constraints.
+
+## 10. Где код сильнее и слабее документации
+
+Сильнее:
+
+- RobCraft уже multi-zone и значительно богаче старых планов; 77 тестов
+  подтверждают сценарии, physics-like safety, editor и revision binding.
+- Двухфазный protocol, strict schemas и stale-request protection реализованы.
+- Экономика и запрет ложной рекомендации лучше, чем отражено в части старых
+  backlog-статусов.
+
+Слабее:
+
+- target storage/API/component architecture существует только в docs.
+- Текущий hard filtering использует немного полей и silent defaults; это не
+  официальный constraint engine.
+- Текущие generic models/prices и presets слабее organizer data.
+- RobCraft KPI ещё не являются доказательством calculation throughput.
+- Client state/PDF не обеспечивают project reproducibility и required exports.
+
+## 11. Безопасно отложить
+
+Live scraper и scheduler, все ТТХ 223 моделей, CAD/BIM, unified physical 3D,
+полный route optimizer, cloud object storage, collaborative projects,
+enterprise IAM, дополнительные регионы и одинаково глубокие airport/clinic
+ветки. Нельзя откладывать evidence correctness, storage/persistence, официальный
+intake, commercial scenarios, sensitivity, 2D, exports, minimal admin и
+security/deployment acceptance.
+
+## 12. Открытые решения
+
+- Подтверждение v4/v5, валюты, НДС и семантики дублей на Q&A.
+- Лицензия/допустимый состав committed derived import bundle.
+- Review policy для organizer/CORROBORATED facts; external unsafe statuses
+  автоматически запрещены.
+- Local volume либо S3-compatible storage для защиты; metadata contract един.
+- Минимальный session/auth flow без лишнего IAM.
+- Retention audit metadata при обязательном удалении проекта и файлов.
+
+Ни одно из этих решений не блокирует migration 0001: она не импортирует данные,
+не включает auth и не меняет runtime.
+
+## 13. Итоговый Definition of Done аудита
+
+- официальные материалы и staging проверены по фактам/counts/checksums;
+- главные requirements связаны с кодом, gap, priority, iteration и acceptance;
+- docs/12, docs/16 и docs/17 задают один порядок;
+- первая итерация мала, обратима и не меняет расчёт;
+- schema boundaries, lifecycle, evidence gate, import transaction, files,
+  backup/reset, local/Compose/CI и security зафиксированы;
+- обязательные функции не смешаны с P1/CUT;
+- остающиеся вопросы названы вопросами, а не заполнены догадками.

@@ -1,4 +1,8 @@
-# RobCo — Technical Architecture v0.2
+# РОБОДОВОД — Technical Architecture v0.3
+
+Актуализация 16 сентября 2026 года: PostgreSQL является ближайшим обязательным
+этапом перед интеграцией официального каталога. Порядок и открытые решения — в
+`17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md`.
 
 ## 1. Architectural goals
 
@@ -84,6 +88,10 @@ HTML template → PDF renderer if stable. If PDF rendering threatens demo, HTML/
 
 Docker/Compose + Nginx + one VPS. No microservices.
 
+PostgreSQL доступен как Compose service для воспроизводимого demo/CI и через
+`DATABASE_URL` для запуска без Docker. Схема изменяется только миграциями
+Alembic; startup не должен молча удалять или пересоздавать данные.
+
 ## 3. Logical layers
 
 ```text
@@ -111,6 +119,20 @@ Evidence/data layer
  ↓
 PostgreSQL
 ```
+
+Текущий implementation note: прототип всё ещё читает каталог из
+`backend/fleet`; PostgreSQL и repository boundary не реализованы. Миграция
+сохраняет публичные calculation/ScenarioSpec contracts, меняя источник данных
+под ними.
+
+### Storage ownership
+
+- PostgreSQL: domain state, версии, evidence metadata, procurement, проекты и
+  immutable AnalysisRun.
+- Файловое/object storage: загрузки; в БД — checksum, media type, size и key.
+- `data/staging/`: локальная ignored workspace, не runtime dependency.
+- Разрешённый import bundle: вход явного импортёра, не вторая ручная БД.
+- Секреты: только server-side environment variables.
 
 ## 4. Suggested repo
 
@@ -351,6 +373,18 @@ Frontend fixtures validated against Pydantic/OpenAPI.
 ### Smoke
 
 Create preset → analyze → what-if → fetch scene → build report.
+
+### Persistence and import
+
+- migrate empty PostgreSQL to head;
+- import one bundle twice without duplicates;
+- roll back the whole import on an invalid row;
+- reject dangling evidence and unknown statuses;
+- preserve organizer values when applying enrichment;
+- exclude `CONFLICT`, `AMBIGUOUS_MODEL_MATCH` and `NOT_FOUND` from verified
+  hard-constraint values;
+- compare static and PostgreSQL repositories on golden scenarios;
+- reopen AnalysisRun after the active catalog version changes.
 
 ## 13. Security MVP
 

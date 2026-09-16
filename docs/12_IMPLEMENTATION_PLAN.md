@@ -1,522 +1,363 @@
-# План доработки RobCo / «РобоМера» до финала хакатона
+# План доработки «РОБОДОВОДА» до финала хакатона
 
-Статус: рабочий план команды. Версия: 1.1 от 13 сентября 2026 года.
+Статус: проверенный операционный план команды. Версия: 1.3 от 16 сентября
+2026 года.
 
-Обновление 13 сентября: автономный 3D-движок RobCraft реализован отдельным модулем. Пункты первоначального плана про отсутствие simulation/collision больше не описывают фактическое состояние; актуальная граница проходит между демонстрационной сценарной симуляцией и инженерно валидированным digital twin.
-
-Этот документ переводит продуктовую спецификацию и исследовательские выводы в последовательность реализации. Исходный backlog в `07_BACKLOG.md` сохраняется как полный перечень идей, но порядок и приоритеты ниже считаются операционными.
+План повторно сопоставлен с фактическим кодом, официальными материалами,
+нормализованным staging и текущими тестами. Официальное ТЗ имеет приоритет.
+`16_OFFICIAL_MATERIALS_AUDIT_AND_PLAN.md` содержит traceability, а
+`17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md` — обязательный storage contract,
+схему первой миграции и правила импорта. `13_ROBCRAFT_ENGINE.md` и
+`15_ROBCRAFT_INTEGRATION_PLAN.md` описывают реализованную 3D-подсистему, но не
+задают порядок оставшихся конкурсных работ.
 
 ## 1. Цель финальной версии
 
 За 3–5 минут пользователь и жюри должны увидеть доказуемую цепочку:
 
-`описание процесса → качество входных данных → readiness → архитектура роботизации → технические ограничения → реальные варианты получения решения в РФ → требуемая мощность → экономика → what-if → визуализация → предварительное ТЭО`
+`официальные данные/файл → качество входа → readiness → архитектура →
+hard constraints → конфигурация → procurement → экономика →
+sensitivity → 2D/3D → сохранённый расчёт → PDF и Excel/CSV`.
 
-Финальная версия не обязана быть промышленной SaaS-системой. Она обязана:
+Warehouse — полный golden path. Аэропорт и медучреждение подтверждают
+расширяемость на официальных preset и более узком расчёте. Продукт является
+экспресс-предынвестиционной оценкой, а не инженерным digital twin.
 
-- воспроизводимо выполнять warehouse golden path;
-- давать объяснимый отрицательный результат, когда роботизация пока не готова;
-- не выдавать неизвестные параметры за подтверждённые;
-- отделять техническую пригодность, procurement в РФ, экономику и доказательность;
-- показывать формулы, источники и допущения;
-- работать без внешнего LLM и live-сайтов;
-- запускаться одной командой через Docker Compose.
+## 2. Непереговорные инварианты
 
-## 2. Правила разработки
+1. Критический `UNKNOWN` не становится `PASS` через default.
+2. `CONFLICT`, `AMBIGUOUS_MODEL_MATCH`, `NOT_FOUND` и `UNKNOWN` не
+   становятся достоверным ТТХ.
+3. Техническая пригодность, procurement, экономика и доказательность — разные
+   измерения. Нельзя рекомендовать только по payback.
+4. Формулы остаются в domain, не в ORM, API handler или frontend.
+5. Опубликованные версии каталога и успешные AnalysisRun неизменяемы.
+6. Любое число имеет USER/FILE/PRESET/CALCULATED/ASSUMED либо source/evidence.
+7. Текущий `ScenarioSpec v1`, same-origin `/robcraft/` и двухфазный
+   revision protocol сохраняются до отдельной совместимой версии.
+8. 2D обязательно; RobCraft 3D — дополнительный доказательный/wow-режим.
+9. Runtime не читает `data/staging/`; live vendor/LLM не является точкой отказа.
+10. После каждой итерации текущий demo path и regression suite работают.
 
-1. После каждого этапа сохраняется работающий demo path.
-2. Не проводится big-bang rewrite: существующие расчёты переносятся в новые модули постепенно.
-3. LLM извлекает и объясняет данные, но не принимает численные решения.
-4. Architecture before SKU: сначала способ автоматизации, затем оборудование.
-5. Критический `UNKNOWN` не становится `PASS` через скрытый default.
-6. Любое число в результате имеет `USER_INPUT`, формулу, источник или маркированное `ASSUMPTION`.
-7. Достоверность важнее количества моделей и экранов.
-8. 2D-визуализация называется сценарием работы; RobCraft можно называть сценарной симуляцией, но не инженерным цифровым двойником.
-9. Числовое ядро должно давать одинаковый результат для одинакового input и версий данных.
-10. Новая функция не считается готовой без теста или зафиксированного golden fixture.
+## 3. Проверенная исходная точка
 
-## 3. Приоритеты
+- Backend — FastAPI и Pydantic, без SQLAlchemy/Alembic; каталог из 13 JSON
+  загружается `backend/fleet` в память при импорте модуля.
+- API реализует legacy `/api/*`; документированный будущий `/api/v1` пока
+  отсутствует. FastAPI генерирует базовый OpenAPI автоматически.
+- Frontend — React/Vite, состояние не сохраняется. Есть client-side PDF, но нет
+  Excel/CSV export и обязательной 2D-визуализации.
+- RobCraft встроен same-origin, поддерживает multi-zone representative scenes,
+  движение, редактор, KPI и строгий двухфазный обмен. Telemetry/SimulationReport
+  не возвращается в основной расчёт.
+- Экономическое ядро уже защищает от ложной рекомендации и считает CAPEX/OPEX,
+  TCO, ROI, NPV и payback, но его pessimistic/base/optimistic — uncertainty, а
+  не обязательные baseline/purchase/RaaS.
+- Compose содержит backend/frontend, но не БД, migrations, backup/reset или CI.
+- Проверенный baseline: 175 backend, 3 contract, 8 frontend и 77 RobCraft
+  тестов; frontend lint/build и `docker compose config` проходят.
+- Staging QA согласован по counts/checksums, но исключён из Git и ещё не
+  production-источник.
 
-### P0 — необходимо к защите
+## 4. Приоритеты
 
-- warehouse golden path;
-- process-level readiness;
-- выбор 1–3 automation architectures;
-- `PASS / FAIL / UNKNOWN / ASSUMED` для hard constraints;
-- 8–10 вручную проверенных demo-curated записей;
-- минимум две правдоподобные procurement alternatives для склада;
-- traceable capacity и economics;
-- пессимистичный, базовый и оптимистичный сценарии;
-- корректная работа плана помещения;
-- автономный запуск RobCraft и версионированный контракт будущей интеграции;
-- evidence/confidence в UI и PDF;
-- отрицательный сценарий;
-- автоматические unit/golden/API smoke тесты;
-- Docker, demo reset и публичный HTTPS-стенд.
+### P0 — обязательно к защите
 
-### P1 — после стабильного P0
+- официальный warehouse preset и XLSX/CSV intake с валидацией;
+- PostgreSQL/Alembic, воспроизводимые migrations и versioned import;
+- официальный discovery-каталог и 8–12 demo-curated моделей с provenance;
+- guest/user/admin, CRUD проектов, минимум три сценария и immutable AnalysisRun;
+- readiness, architecture и `PASS/FAIL/UNKNOWN/ASSUMED` для hard constraints;
+- traceable fleet sizing/capacity без скрытых critical defaults;
+- baseline/purchase/RaaS и отдельная uncertainty axis;
+- sensitivity минимум по equipment price, volume и labor cost;
+- обязательная 2D-схема с zones/routes/robots/operations/charging и controls;
+- SimulationReport и честная сверка required/observed KPI;
+- PDF + Excel/CSV и сохранение визуализации;
+- минимальная ручная admin-актуализация/публикация каталога;
+- security, deletion, backup/demo reset, performance smoke, Docker и HTTPS.
 
-- отдельный airport/RaaS сценарий;
-- clinic cleaning/delivery сценарий;
-- сохранение проектов и AnalysisRun в БД;
-- PostgreSQL/Alembic;
-- расширенный evidence inspector;
-- более красивый searchable PDF;
+### P1 после стабильного P0
+
+- более глубокие airport/clinic calculation profiles;
+- расширенные evidence inspector и admin workflow;
 - дополнительные региональные профили;
-- админка каталога.
+- searchable/server-side PDF при надёжном текущем варианте;
+- object storage/cloud adapter вместо локального volume;
+- автоматическое плановое обновление каталога.
 
 ### CUT до защиты
 
-- ROS/Gazebo/Isaac и инженерно точная физика;
-- калибровка по CAD/BIM, паспортной кинематике или реальной телеметрии;
-- произвольный CAD/BIM import;
-- полноценный route optimizer;
-- live scraper цен;
-- все субъекты РФ;
-- управление реальными роботами;
-- ERP/WMS-интеграция;
-- billing, multitenancy и enterprise IAM.
-
-## 4. Этап 0 — зафиксировать текущую точку
-
-Оценка: 0,5–1 человеко-день. Владелец: V, продуктовая проверка: Z.
-
-### Работы
-
-- Зафиксировать warehouse fixture, на котором был создан текущий PDF.
-- Сохранить ожидаемые входы, рекомендации, CAPEX, TCO, NPV и список отказов.
-- Добавить минимальный pytest-контур и API smoke test.
-- Зафиксировать текущий PDF и несколько скриншотов как baseline.
-- Создать одну команду проверки: backend tests + frontend lint/build.
-- Проверить, что Docker Compose стартует на чистой машине.
-- Зафиксировать версии `rules`, `catalog`, `economics_defaults`, `regional_defaults` и приложения.
-
-### Критерий завершения
-
-Текущий warehouse demo защищён тестом, а последующий рефакторинг не может незаметно изменить его числа.
-
-## 5. Этап 1 — новый контракт анализа и модульное ядро
-
-Оценка: 1–2 человеко-дня. Владелец: V.
-
-### Целевая структура
-
-```text
-backend/
-  app/
-    api/
-    domain/
-      models.py
-      assumptions.py
-      readiness.py
-      architectures.py
-      constraints.py
-      capacity.py
-      economics.py
-      procurement.py
-      confidence.py
-      scenarios.py
-    services/
-      analysis.py
-      intake.py
-      reports.py
-    data/
-      catalog.json
-      procurement.json
-      sources.json
-      regional_profiles.json
-  tests/
-    unit/
-    golden/
-    smoke/
-```
-
-Структура является ориентиром: дробить файлы нужно только там, где уже появилась отдельная ответственность.
-
-### Работы
-
-- Ввести `AnalysisInput`, `AnalysisResult` и отдельные DTO для этапов pipeline.
-- Добавить `ParameterValue`: value, unit, source type, confidence, assumption/evidence ID.
-- Добавить `Assumption`, `ConstraintResult`, `CapacityResult`, `EconomicsResult`, `ConfidenceResult`.
-- Добавить `AutomationArchitecture`, `EquipmentModel`, `SolutionConfiguration`, `ProcurementOption`, `PriceEvidence`.
-- Создать единый `AnalysisEngine`, оркестрирующий этапы в фиксированном порядке.
-- Сохранить старый `/api/calculate` как временный adapter для существующего frontend.
-- Добавить новый versioned endpoint `/api/v1/analysis`.
-- Возвращать версии правил и данных в каждом результате.
-
-### Критерий завершения
-
-Один warehouse input проходит новый pipeline; существующий UI продолжает работать через adapter; formulas не находятся в API handler.
-
-## 6. Этап 2 — freeze каталога, evidence и procurement
-
-Оценка: 2–3 человеко-дня. Владельцы: Z — данные, V — схема и загрузка, EXT — sanity review.
-
-### Работы с данными
-
-- Выбрать 8–10 demo-curated решений, а не расширять каталог до десятков моделей.
-- Для warehouse иметь 2–4 сопоставимых варианта: российский, китайский с каналом в РФ, global reference и при наличии service/RaaS.
-- Разделить Manufacturer, EquipmentModel, SolutionConfiguration и ProcurementOption.
-- Указать происхождение, OEM/rebrand/localization только там, где это подтверждено.
-- Для каждого критического поля записать источник, дату наблюдения и confidence.
-- Для цены зафиксировать currency, boundary, tax status, includes/excludes и status.
-- Для РФ зафиксировать supplier/channel, service, spares, commissioning, supply risk и last verified date.
-- Старые обобщённые записи вида «аналог MiR» оставить только как `DISCOVERY/REFERENCE_ONLY` либо заменить реальными моделями.
-- Не использовать бюджетную заглушку как базовую цену рекомендации.
-
-### Проверка источников
-
-Research-отчёты используются для поиска кандидатов и правил, но citation token вида `turn...` сам по себе не является продуктовой ссылкой. Для demo-visible данных нужно повторно открыть первичный источник и сохранить настоящий URL.
-
-### Критерий завершения
-
-Для каждой модели, видимой в warehouse demo, можно ответить: что это, почему технически подходит, откуда взяты характеристики, что означает цена и как решение предполагается получить/обслуживать в России.
-
-## 7. Этап 3 — readiness, architecture и hard constraints
-
-Оценка: 3–4 человеко-дня. V — реализация, Z — правила и тексты.
-
-### 3.1 Readiness Engine
-
-Измерения:
-
-- повторяемость и стандартизация процесса;
-- физическая среда и инфраструктура;
-- данные и интеграции;
-- безопасность и взаимодействие с людьми;
-- операционная готовность;
-- экономический потенциал;
-- качество доказательств и входных данных.
-
-Hard stop хранится отдельно от score. Результат содержит dimension breakdown, blockers, preconditions, confidence и вопросы для проверки.
-
-### 3.2 Architecture Selector
-
-Для warehouse P0 достаточно небольшой taxonomy:
-
-- `PALLET_TRANSPORT_AMR`;
-- `GUIDED_AGV`;
-- `AUTONOMOUS_FORKLIFT`;
-- `TUGGER_TRAIN`;
-- `PARTIAL_AUTOMATION`;
-- `NOT_RECOMMENDED_YET`.
-
-Selector возвращает 1–3 архитектуры, причины и preconditions до обращения к каталогу SKU.
-
-### 3.3 Constraint Engine
-
-Минимальные проверки warehouse:
-
-- payload и геометрия груза;
-- проход, doorway и turning envelope;
-- pickup/drop interface;
-- поверхность и уклон;
-- indoor/outdoor и temperature range;
-- рабочее время, charging opportunity и runtime;
-- human traffic/safety;
-- WMS/Wi-Fi/integration requirement.
-
-Каждая проверка возвращает required, available, status, evidence/assumption и reason code. Критический `FAIL` блокирует рекомендацию. Критический `UNKNOWN` переводит решение в `NEEDS_VALIDATION`, а не в PASS.
-
-### Критерий завершения
-
-Golden warehouse даёт объяснимую архитектуру и кандидатов; узкий проход или неподходящий payload создаёт hard reject; отсутствие критической геометрии создаёт UNKNOWN с вопросом, а не скрытый успех.
-
-## 8. Этап 4 — capacity engine
-
-Оценка: 2–3 человеко-дня. V — реализация, Z/EXT — проверка assumptions.
-
-### Работы
-
-- Выделить strategy interface по calculation profile.
-- Сначала довести `MOBILE_TRANSPORT`; остальные профили не должны усложнять его.
-- Перестать использовать паспортную максимальную скорость как рабочую.
-- Ввести mission cycle:
-
-```text
-loaded travel
-+ empty travel
-+ pickup
-+ drop
-+ station waiting
-+ traffic allowance
-+ charging allowance
-```
-
-- Учитывать operating window, peak shift share, availability/utilization и reserve units.
-- Возвращать low/base/high cycle time и fleet size.
-- Добавить formula trace с промежуточными значениями и единицами.
-- Проверять результат sanity range из vendor data, но не подменять им формулу.
-- Добавить тесты на монотонность: рост объёма/маршрута не уменьшает парк; рост производительности не увеличивает его.
-
-### Критерий завершения
-
-Пользователь может открыть расчёт и понять, почему требуется именно N роботов; эксперт может заменить допущение и получить предсказуемое изменение.
-
-## 9. Этап 5 — economics, scenarios, procurement и region
-
-Оценка: 2–3 человеко-дня. V+Z.
-
-### Economics
-
-- Сохранить существующие CAPEX/OPEX/TCO/NPV/payback формулы как основу.
-- Расширить cost stack: logistics, mobilization, training, commissioning, safety, infrastructure и consumables.
-- Отделить gross avoided cost, annual OPEX и net annual benefit.
-- Передавать диапазоны цены и неопределённость в low/base/high.
-- Не рассчитывать достоверный NPV, если цена `QUOTE_REQUIRED` и нет разрешённого allowance.
-- Не монетизировать рост throughput без введённой пользователем маржинальной ценности.
-
-### Scenarios
-
-- Разделить architecture scenarios и procurement alternatives.
-- Пессимистичный/base/оптимистичный сценарий не должен быть одним непрозрачным набором множителей.
-- Возвращать delta к base и список изменённых assumptions.
-- Ranking: hard gates → procurement eligibility → confidence → economics; не сортировать только по payback.
-
-### Recurring mode
-
-- Добавить один реальный `RAAS` или `MANAGED_SERVICE` сценарий после стабильного purchase path.
-- Отдельно учитывать setup fee, recurring fee и retained internal costs.
-
-### Region
-
-- Добавить три минимальных профиля: Московская область, Магаданская область, Мурманская область.
-- Регион влияет на labor fallback, logistics, mobilization, service и confidence.
-- Фактическая среда эксплуатации имеет приоритет над климатическим hint.
-- Не применять универсальные коэффициенты вида «Дальний Восток × 1,5».
-
-### Критерий завершения
-
-Система показывает технически подходящее решение, реалистичный способ получения в РФ и экономику с понятной границей цены. Смена procurement option или material assumption объяснимо меняет результат.
-
-## 10. Этап 6 — frontend и работа с планом
-
-Оценка: 3–4 человеко-дня. Z — UX/copy, V — реализация.
-
-### Результаты анализа
-
-Над fold:
-
-- объект и процесс;
-- readiness band и blockers;
-- рекомендуемая архитектура;
-- главный scenario outcome;
-- installed CAPEX / recurring fee;
-- net annual benefit, payback и NPV;
-- overall confidence и procurement status.
-
-Далее:
-
-1. почему выбрана архитектура;
-2. technical candidates;
-3. procurement alternatives;
-4. constraint matrix;
-5. capacity trace;
-6. economics breakdown;
-7. assumptions/confidence;
-8. what-if;
-9. visualization;
-10. evidence и next steps.
-
-### Работа с планом
-
-- Исправить передачу `mPerPx`, dimensions, zones и routes из uploader в analysis input.
-- Не ожидать `avg_distance_m`, которого uploader не возвращает.
-- Дать пользователю отметить pickup/drop или маршрут, а не только площадь зон.
-- Рассчитать route distance из масштаба и точек.
-- Передавать полученное расстояние в capacity engine.
-- Строить visual route из тех же данных, которые использованы в расчёте.
-- Если маршрут не размечен, явно показывать `illustrative route`.
-- Не обещать распознавание CAD/BIM и автоматическую инженерную трассировку.
-
-### What-if P0
-
-- объём;
-- число смен;
-- длина маршрута;
-- labor cost;
-- operating speed/allowance;
-- integration cost;
-- equipment/system price;
-- utilization/availability;
-- procurement option.
-
-### Критерий завершения
-
-UI отображает все этапы causal chain, а загруженный план действительно изменяет входы расчёта. Пользователь отличает подтверждённое значение от assumption и UNKNOWN.
-
-## 11. Этап 7 — предварительное ТЭО
-
-Оценка: 1–2 человеко-дня. V — генерация, Z — содержание и язык.
-
-### Структура отчёта
-
-1. Цель и исходный процесс.
-2. Входные данные и их происхождение.
-3. Readiness, blockers и preconditions.
-4. Рассмотренные архитектуры.
-5. Constraint matrix выбранного решения.
-6. Equipment/configuration.
-7. Procurement alternatives в РФ.
-8. Capacity formula trace.
-9. CAPEX/OPEX/TCO/payback/NPV.
-10. Пессимистичный/base/оптимистичный сценарии.
-11. Региональные assumptions.
-12. Риски и открытые вопросы.
-13. План пилота, замеров и получения КП.
-14. Sources appendix с URL и датами.
-
-### Улучшения текущего PDF
-
-- заменить `Readiness 95` на обоснованный process readiness;
-- показать gross savings, OPEX и net benefit отдельно;
-- убрать смешение русского и английского из пользовательских формулировок;
-- не называть generic analog закупочной рекомендацией;
-- по возможности перейти от image-only PDF к searchable HTML/print PDF;
-- включить project/run ID и версии правил/каталога.
-
-### Критерий завершения
-
-Каждый demo-visible вывод отчёта трассируется до input, формулы, assumption или source. PDF не создаёт более сильных обещаний, чем сам движок.
-
-## 12. Этап 8 — качество, deployment и защита
-
-Оценка: 2–3 человеко-дня. V+Z.
-
-### Автоматические проверки
-
-- unit tests readiness rules;
-- unit tests constraints;
-- unit tests capacity/economics;
-- evidence conflict test;
-- regional fallback test;
-- API contract/smoke;
-- frontend happy-path E2E;
-- deterministic repeat test;
-- Docker healthcheck.
-
-### Golden fixtures
-
-1. Отапливаемый склад, стандартная логистика.
-2. Тот же склад после изменения смен/объёма.
-3. Узкий проход или недостаточный payload — hard reject.
-4. Критический параметр отсутствует — NEEDS_VALIDATION.
-5. Удалённый регион — меняются logistics/service/confidence, но не indoor payload fit.
-6. Airport RaaS — P1, если P0 стабилен.
-7. Clinic cleaning/delivery — P1, если P0 стабилен.
-
-### Demo readiness
-
-- публичный HTTPS URL;
-- demo seed/reset;
-- warm-up перед защитой;
-- отсутствие зависимости от live vendor/Wordstat/weather API;
-- backup screenshots;
-- backup screen recording;
-- заранее созданный PDF;
-- локальный Docker fallback;
-- прогон выступления на 3–5 минут;
-- ответы на вопросы о точности ROI, источниках, simulation и отличии от ChatGPT.
-
-### Критерий завершения
-
-Golden path проходит минимум пять раз подряд на публичном стенде и локально. Отказ LLM не ломает расчёт. Команда может объяснить происхождение любого числа на главном экране.
-
-## 13. Рекомендуемый порядок Pull Request / рабочих итераций
-
-1. `tests/current-baseline`
-2. `domain/analysis-contract-v1`
-3. `data/demo-curated-catalog`
-4. `engine/readiness-and-architecture`
-5. `engine/constraint-statuses`
-6. `engine/mobile-transport-capacity`
-7. `engine/economics-confidence`
-8. `engine/procurement-and-region`
-9. `frontend/analysis-results`
-10. `frontend/floorplan-data-flow`
-11. `report/evidence-teo`
-12. `qa/golden-e2e-deploy`
-
-Каждая итерация должна быть небольшой, проверяемой и сохранять возможность запустить демо.
-
-## 14. Распределение ответственности
+- ROS/Gazebo/Isaac, инженерная калибровка и управление реальными роботами;
+- CAD/BIM import и полноценный route optimizer;
+- единая физическая 3D-геометрия всех зон;
+- live scraper, RAG/ML ради презентации и полный TTX всех 223 моделей;
+- ERP/WMS integration, billing, совместная работа и enterprise IAM;
+- одинаковая глубина трёх отраслей.
+
+## 5. Подтверждённая последовательность
+
+### Этап 0 — baseline и traceability
+
+Статус: аудит завершён; перед первым merge остаётся прогнать полный Compose на
+чистой машине/volume.
+
+- Зафиксировать warehouse golden fixtures, API responses, economy и ScenarioSpec.
+- Сохранить список официальных requirements и фактические evidence files/tests.
+- Не коммитить staging и исходники организаторов.
+
+Gate: regression baseline воспроизводим, dirty user changes сохранены, а
+изменения плана не объявляют отсутствующие функции реализованными.
+
+### Этап 1 — storage control-plane, migration 0001
+
+Scope строго ограничен:
+
+- PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic и `DATABASE_URL`;
+- Compose `db → migrate → backend`, named volume, readiness и `.env.example`;
+- таблицы версий, source artifacts, version-source links, import runs и
+  activation history;
+- PostgreSQL integration tests и минимальный CI;
+- локальный backend с внешней PostgreSQL.
+
+Не входят catalog rows, staging import, repository switch, projects, auth,
+новый API или frontend. Поля/constraints и DoD — в docs/17.
+
+Gate: чистая БД мигрирует до head; повторный upgrade безопасен; текущий API и
+все baseline tests не меняют результат.
+
+### Этап 2 — catalog domain и транзакционный importer, migration 0002
+
+- `manufacturers`, `catalog_source_rows`, `equipment_models`,
+  applicability, observations, evidence, resolved facts и procurement options;
+- import schema, validate-only и отчёт counts/checksums;
+- BASE и ENRICHMENT как раздельные phase;
+- evidence gate: matching читает только разрешённые resolved facts;
+- 187 products, 223 applicability, 223 prices, 3635 base evidence, 140 overlay
+  fields и 156 external evidence сверяются независимо;
+- новый 91-страничный PDF регистрируется source artifact; старый manifest не
+  переписывается;
+- ошибочный импорт полностью откатывается, повтор committed bundle не создаёт
+  дублей.
+
+Gate: DRAFT version проходит validation и reconciliation; publish/activation и
+runtime switch ещё не выполняются.
+
+### Этап 3 — repository boundary и dual-run
+
+- Domain DTO не зависит от SQLAlchemy.
+- Legacy `backend/fleet` остаётся reference adapter и default runtime.
+- PostgreSQL adapter включается feature flag только для dual-run.
+- Для пересечения моделей сравниваются identity, rejection reasons, fleet,
+  economics и canonical ScenarioSpec.
+- Различия от официальных данных классифицируются как ожидаемые/дефект/blocked
+  by evidence; их нельзя замаскировать под равенство.
+
+Gate: warehouse golden fixtures не регрессируют; PostgreSQL adapter не
+использует unsafe statuses; отчёт dual-run объясняет каждое различие.
+
+### Этап 4 — проекты, роли и AnalysisRun, migration 0003
+
+- Минимальные `users`, `projects`, `project_files`, `scenarios`,
+  `analysis_runs`, `audit_entries`;
+- guest/user/admin без enterprise IAM; owner-based project isolation;
+- CRUD/copy/delete проектов и минимум три scenario slots;
+- immutable input/result/ScenarioSpec snapshots и version references;
+- file metadata/checksum/storage key; физические файлы вне БД;
+- повторное открытие читает snapshot, rerun создаёт новую запись;
+- password hashing, protected cookies/token flow и negative authorization tests.
+
+Gate: старый run воспроизводимо открывается после появления новой CatalogVersion;
+удаление проекта делает недоступными проект и связанные файлы.
+
+### Этап 5 — catalog activation, официальные profiles и file intake
+
+- Atomic activation проверенной CatalogVersion и controlled runtime switch.
+- Официальные 42/39/57 параметров становятся metadata-driven presets с
+  default/min/max/unit/source.
+- XLSX/CSV upload: preview, type/unit/range validation и понятный report;
+  невалидный файл не повреждает сохранённый проект.
+- Значения получают provenance USER/FILE/PRESET/CALCULATED/ASSUMED.
+- Discovery UX: hierarchy, search, filters, sort, compare; selectable только
+  curated модели с достаточными facts.
+
+Gate: официальный warehouse файл даёт тот же нормализованный input, что preset;
+ошибки атомарны; legacy catalog можно вернуть activation/feature flag.
+
+### Этап 6 — readiness, architecture, constraints и capacity
+
+- Process readiness: dimensions, blockers, preconditions и confidence; hard stop
+  отдельно от score.
+- Architecture selector до SKU: для warehouse достаточно AMR/AGV/autonomous
+  forklift/tugger/partial automation/not-ready taxonomy.
+- Constraint result содержит required, available, status, evidence/assumption и
+  reason code.
+- Critical FAIL блокирует; critical UNKNOWN даёт NEEDS_VALIDATION.
+- Capacity использует mission cycle, operating window, utilization,
+  availability, charging и reserve; паспортная max speed не является рабочей.
+- Formula trace и monotonicity tests обязательны.
+- Legacy `/api/calculate` остаётся adapter; versioned endpoint добавляется
+  только когда DTO стабилизированы.
+
+Gate: payload/aisle создают hard reject, missing critical geometry — UNKNOWN,
+а fleet size объясняется промежуточными величинами.
+
+### Этап 7 — procurement, economics и две оси сценариев
+
+- Коммерческая ось: current baseline, purchase, RaaS.
+- Uncertainty: conservative/base/optimistic — независимо от коммерческой оси.
+- Purchase учитывает equipment/software/integration/commissioning/training и
+  явно описанный reserve; RaaS — setup/recurring/usage fee и срок договора.
+- Currency UNKNOWN/QUOTE_REQUIRED не превращается в достоверный CAPEX.
+- Gross avoided cost, OPEX и net effect показываются отдельно; TCO ≥5 лет,
+  payback, ROI и cash flow сохраняются.
+- Амортизация отображается отдельно от cash flow.
+- Sensitivity минимум по equipment price, operation volume и labor cost;
+  manual overrides журналируются.
+- Ranking: hard gates → procurement eligibility → evidence/confidence →
+  economics, но не payback alone.
+
+Gate: все три коммерческих сценария сравнимы по одинаковым метрикам; изменение
+одного sensitivity-параметра имеет объяснимый delta.
+
+### Этап 8 — обязательная 2D и SimulationReport
+
+- 2D читает тот же ScenarioSpec: zones, routes, fleet, operations и charging.
+- Controls: start/stop или pause, restart, speed и scenario selection.
+- Фиксированные seed, warm-up и measurement window.
+- 2D и RobCraft возвращают versioned SimulationReport во frontend.
+- Сопоставляются required/observed throughput, queue, utilization,
+  availability, downtime и safety stops.
+- Verdict только VERIFIED/BORDERLINE/NOT_CONFIRMED; симуляция не меняет
+  экономическую рекомендацию без нового AnalysisRun.
+- Сохраняются PNG/SVG и telemetry JSON; ScenePatch остаётся revision-bound.
+
+Gate: визуализация не декоративна, но и не называется инженерной верификацией;
+расхождение KPI явно видно и не скрывается.
+
+### Этап 9 — отчёты и минимальная admin-актуализация
+
+- PDF: inputs/provenance, selection/rejections, configuration, formulas,
+  commercial scenarios, sensitivity, SimulationReport, versions и limitations.
+- Excel: Inputs, Selection, Scenarios, CashFlow, Sensitivity, Sources; либо
+  эквивалентный CSV bundle.
+- Локальные assets/fonts, без CDN как точки отказа.
+- Admin может вручную создать/изменить DRAFT, проверить, опубликовать и
+  активировать новую версию; опубликованная версия не редактируется.
+- Автоматический scraper/scheduler остаётся P1.
+
+Gate: PDF и таблицы восстанавливают ключевые числа run; старый run не меняется
+после новой публикации каталога.
+
+### Этап 10 — security, operations и конкурсная приёмка
+
+- Compose на чистой машине, migrations, health/readiness, backup/restore и
+  allowlisted demo reset.
+- HTTPS, secrets, upload limits/type checks, project isolation и deletion tests.
+- Нагрузка до 50 пользователей; economy ≤10 s; model/recalc ≤60 s со статусом.
+- 1366×768, keyboard/basic accessibility и русский пользовательский flow.
+- E2E официального warehouse: project → file/preset → selection → scenarios →
+  2D/3D → reopen → exports.
+- Demo accounts, user/admin guide, sources/libraries, backup PDF/video.
+
+Gate: golden path проходит пять раз подряд локально и на публичном стенде;
+отказ LLM/live sources не ломает demo.
+
+## 6. Порядок небольших PR/итераций
+
+1. `infra/postgres-storage-control-plane`
+2. `data/catalog-domain-schema`
+3. `data/catalog-validator-importer`
+4. `data/catalog-repository-dual-run`
+5. `persistence/projects-analysis-runs`
+6. `data/catalog-activation-official-presets`
+7. `intake/xlsx-csv-project-files`
+8. `engine/readiness-architecture-constraints`
+9. `engine/capacity-formula-trace`
+10. `economics/commercial-scenarios-sensitivity`
+11. `visualization/2d-simulation-report`
+12. `report/pdf-xlsx-csv`
+13. `admin/catalog-draft-publish`
+14. `qa/security-performance-deploy`
+
+Первой следующей сессии разрешён только пункт 1. Нельзя объединять его с
+catalog importer или переносом endpoint: это уничтожит диагностическую ценность
+малой итерации.
+
+## 7. Тестовая стратегия
+
+| Слой | Обязательные проверки |
+|---|---|
+| Migration | upgrade head, repeat upgrade, disposable downgrade/upgrade, CHECK/FK/partial unique |
+| Import | schema, checksum, exact counts, dangling refs, duplicate natural key, rollback, idempotency, base/overlay isolation |
+| Evidence | запрещённые статусы не появляются в matching view; UNKNOWN не получает value/default |
+| Repository | contract tests обоих adapters и dual-run fixtures |
+| Persistence | immutable run, version refs, reopen, copy/delete, cross-user denial, file cleanup |
+| Domain | hard FAIL/UNKNOWN, forced warning, monotonicity, purchase/RaaS, sensitivity |
+| Contracts | Python/JS ScenarioSpec, unknown fields/version, two-phase revision and stale request |
+| Visualization | deterministic 2D/3D, controls, SimulationReport schema and revision binding |
+| Export | PDF/XLSX/CSV content against AnalysisRun snapshot; offline assets |
+| E2E/ops | official XLSX happy/error paths, Compose, reset/restore, 50-user smoke and timing |
+
+Golden fixtures минимум:
+
+1. официальный warehouse base;
+2. тот же warehouse с изменённым объёмом/сменами;
+3. hard reject по payload/aisle;
+4. critical UNKNOWN → NEEDS_VALIDATION;
+5. purchase vs RaaS;
+6. SimulationReport below required throughput;
+7. старый AnalysisRun после новой catalog activation;
+8. invalid XLSX не повреждает проект.
+
+## 8. Реалистичная оценка и безопасные сокращения
+
+Прежние 15–20 человеко-дней не подтверждаются полным ТЗ: только persistence,
+intake, auth, 2D, commercial scenarios, exports, admin и deployment образуют
+несколько независимых вертикальных срезов. До завершения первой итерации
+разумный диапазон полного P0 — 25–40 человеко-дней с повторной оценкой после
+каждого gate.
+
+При нехватке времени сокращаются глубина airport/clinic, число curated моделей,
+региональные профили, технология PDF, облачный storage и красота admin UI.
+Нельзя сокращать correctness/evidence gate, СУБД и AnalysisRun, официальный
+intake, baseline/purchase/RaaS, sensitivity ≥3, обязательную 2D, exports,
+минимальные роли/admin, security и воспроизводимую сдачу.
+
+## 9. Ответственность и research routing
 
 | Область | Владимир | Женя | Внешний reviewer |
 |---|---|---|---|
-| Contracts/engine/API | Responsible | Consulted | — |
+| Contracts/engine/API/storage | Responsible | Consulted | — |
 | Readiness/architecture rules | Implementation | Product owner | Sanity check |
-| Catalog schema/loader | Responsible | Data owner | Review |
-| Procurement evidence | Support | Responsible | Review |
+| Catalog schema/import | Responsible | Data owner | Review |
+| Procurement/evidence | Support | Responsible | Review |
 | Economics | Implementation | Assumptions/copy | Domain check |
-| Frontend | Implementation | UX/copy | — |
-| PDF/pitch | Technical | Content owner | Review |
+| Frontend/visualization | Implementation | UX/copy | — |
+| Reports/pitch | Technical | Content owner | Review |
 | Tests/deployment | Responsible | Acceptance | — |
 
-## 15. Research routing
+Research-файлы остаются справочным слоем. Ни один research вывод не заменяет
+официальное ТЗ или первичный source artifact; demo-visible факт повторно
+проверяется по исходной ссылке.
 
-При сомнениях использовать локальные материалы так:
+## 10. Финальный Definition of Done
 
-- `research/01_market_catalog.md` — характеристики, hard constraints и catalog records;
-- `research/02_economics.md` — cost stack, labor benefit, NPV/TCO и uncertainty;
-- `research/03_competitors.md` — позиционирование и отличие от существующих решений;
-- `research/04_visualization.md` — граница между visualizer и simulation;
-- `research/05_official_case.md` — соответствие официальному кейсу;
-- `research/06_readiness.md` — dimensions, weights, hard stops и confidence;
-- `research/07_russian_solutions.md` — российские решения, сервис и procurement;
-- `research/08_chinese_solutions_ru.md` — китайские кандидаты и доступность в РФ;
-- `research/09_search_demand.md` — только качественная терминология; частотности перепроверять;
-- `research/10_regional_context_ru.md` — региональные факторы без псевдоточных коэффициентов.
+Проект готов к сдаче, когда официальный warehouse flow позволяет:
 
-## 16. Сомнительные пункты исходного плана
+1. войти как guest либо demo user и создать проект;
+2. выбрать официальный preset или загрузить XLSX/CSV с валидацией;
+3. получить объяснимый подбор из published catalog без unsafe ТТХ;
+4. сравнить минимум три сценария: baseline, purchase и RaaS;
+5. изменить минимум три sensitivity-параметра;
+6. запустить обязательную 2D и дополнительную 3D и увидеть
+   required/observed KPI;
+7. сохранить и повторно открыть immutable AnalysisRun с версиями;
+8. выгрузить PDF и Excel/CSV и сохранить визуализацию;
+9. выполнить минимальную admin-актуализацию новой catalog version;
+10. удалить проект и связанные файлы;
+11. воспроизвести результат через Compose без LLM/live vendor dependency.
 
-### Полная БД как P0
-
-PostgreSQL/Alembic полезны, но не усиливают решение жюри сами по себе. До стабильного analysis pipeline достаточно versioned JSON и fixture-based runs. БД переносится в P1, если официальный критерий не требует сохранения проектов.
-
-### Большой каталог
-
-30–40 поверхностных записей слабее 8–10 доказательных. До защиты расширение discovery-каталога не является приоритетом.
-
-### Одинаковая глубина трёх объектов
-
-Warehouse должен быть полноценным. Airport и clinic могут показывать расширяемость на более узких сценариях. Нельзя жертвовать достоверностью склада ради трёх одинаково неглубоких веток.
-
-### Продвинутый AI
-
-Улучшение промпта не важнее deterministic core. Текущий fallback сохраняется; дополнительные LLM-возможности делаются после readiness/constraints/capacity.
-
-### Полная замена генератора PDF
-
-Сначала исправляется содержание отчёта. Технологию генерации можно заменить позже, если текущий image-based PDF остаётся надёжным на защите.
-
-## 17. Общая оценка трудоёмкости
-
-P0 составляет ориентировочно 15–20 человеко-дней. При работе двух участников и разумном параллелизме это примерно 8–12 рабочих дней, но фактический календарь зависит от доступности команды и внешней проверки данных.
-
-Если времени меньше, сокращать в таком порядке:
-
-1. не делать БД;
-2. не углублять airport/clinic;
-3. не расширять каталог;
-4. оставить текущую технологию PDF;
-5. сократить регион до двух профилей;
-6. не сокращать correctness warehouse engine, evidence и golden tests.
-
-## 18. Финальный Definition of Done
-
-Проект готов к сдаче, когда:
-
-- Docker поднимает систему одной командой;
-- warehouse path работает без LLM;
-- readiness относится к процессу, а не к выбранному роботу;
-- архитектура выбирается раньше SKU;
-- hard constraint имеет PASS/FAIL/UNKNOWN/ASSUMED и reason;
-- рекомендация не определяется одной окупаемостью;
-- fleet size имеет formula trace и не использует max speed как рабочую без allowance;
-- минимум две warehouse procurement alternatives подтверждены для РФ;
-- assumptions, evidence и confidence видны в UI и PDF;
-- план помещения влияет на расстояние/сцену либо честно маркируется illustrative;
-- отрицательный сценарий работает;
-- golden tests проходят;
-- публичный стенд и локальный fallback проверены;
-- команда способна защитить каждое главное число и честно назвать границы результата.
+Команда при этом может показать источник, формулу, unit, status и limitation
+каждого главного числа и не обещает инженерную точность, которой продукт не
+доказывает.

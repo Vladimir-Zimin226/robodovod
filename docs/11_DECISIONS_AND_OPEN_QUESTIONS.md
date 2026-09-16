@@ -16,6 +16,11 @@
 - LLM outside numeric truth path;
 - versioned deterministic engines;
 - technical catalog / evidence / procurement separated;
+- PostgreSQL foundation and storage ADR precede organizer catalog integration;
+- organizer data and external enrichment are separate immutable layers;
+- only approved verified evidence may become an automatic matching input;
+- catalog import is versioned, transactional and idempotent;
+- current `backend/fleet` remains a comparison adapter until DB dual-run passes;
 - AutomationArchitecture introduced;
 - EquipmentModel != SolutionConfiguration != ProcurementOption;
 - ServiceOffering supported.
@@ -38,9 +43,11 @@
 
 ### Visualization
 
-- основной интерфейс пока сохраняет 2D scenario visualization;
+- обязательной 2D scenario visualization в основном интерфейсе пока нет;
 - автономный 3D-движок называется «РобКрафт» и живёт в `robcraft/`;
-- RobCraft запускается независимо и встраивается только через будущий версионированный контракт;
+- RobCraft запускается независимо и уже встроен same-origin iframe через
+  `ScenarioSpec v1` и двухфазный revision protocol;
+- 2D реализуется отдельным consumer того же ScenarioSpec и остаётся P0;
 - допустим термин «сценарная симуляция», но не claims инженерного цифрового двойника или подтверждённой производительности.
 
 ## 2. Decisions to freeze before coding contracts
@@ -117,6 +124,18 @@ Recommendation: P1 depth unless official criteria make it essential.
 - source-backed regional labor/logistics seeds;
 - current procurement freshness for DEMO_CURATED records;
 - domain reviewer sanity check.
+
+## 3.1. Storage decisions before the first migration
+
+- normalized columns versus JSONB for heterogeneous equipment specs;
+- UUID/natural-key and uniqueness policy for organizer rows/catalog versions;
+- local volume versus object storage for uploaded files;
+- whether organizer-derived import bundles may be committed;
+- migration/seed policy for local, CI and Compose environments;
+- minimum authorization model for the official guest/user/admin roles.
+
+The working direction is recorded in
+`17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md`.
 
 ## 4. Naming
 

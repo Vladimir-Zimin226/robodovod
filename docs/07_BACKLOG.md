@@ -184,14 +184,16 @@ Owner V implementation / Z UX.
 - [DONE] версионированный `ScenarioSpec` между RobCo и RobCraft;
 - [DONE/STANDALONE] строгий warehouse transport-адаптер, полный рассчитанный парк и задания из спроса;
 - [DONE/STANDALONE] непрерывный событийный режиссёр камеры этапа C;
-- [NEXT] same-origin iframe и атомарная загрузка ревизии этапа D;
+- [DONE] same-origin iframe и двухфазная атомарная загрузка ревизии;
 - [DONE/STANDALONE] процедурные warehouse, airport и hospital layouts;
 - [DONE/STANDALONE] маршруты, роботы, люди и грузовые операции;
 - [DONE/STANDALONE] first-person/free-camera 3D-анимация;
 - before/after;
 - basic KPI overlay.
 
-P1: встраивание RobCraft в основной React flow и связь KPI с расчётным ядром.  
+P1 исторического RobCraft-трека: возврат versioned SimulationReport и связь KPI
+с расчётным ядром. Встраивание в основной React flow уже выполнено. Общий
+конкурсный порядок задаёт docs/12.
 CUT: claims инженерного digital twin, ROS/Gazebo/Isaac и калибровка по реальной телеметрии.
 
 ## 16. P0 — Report

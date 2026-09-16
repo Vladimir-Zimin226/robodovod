@@ -111,7 +111,9 @@ Optional wow-case: switch object profile from standard Moscow-region assumptions
 
 ### Step 11 — visualization
 
-В основном интерфейсе доступен 2D top-down. Автономный RobCraft показывает тот же класс сценария в 3D от первого лица и со свободной камерой:
+Текущее состояние: обязательного 2D top-down в основном интерфейсе нет.
+Встроенный same-origin RobCraft показывает поддержанные representative-сценарии
+в 3D от первого лица и со свободной камерой:
 
 - racks/zones;
 - pickup/drop;
@@ -124,6 +126,10 @@ Optional wow-case: switch object profile from standard Moscow-region assumptions
 - KPI/report overlay.
 
 Label it `Интерактивный сценарий работы` или `сценарная симуляция`, not `инженерный цифровой двойник`.
+
+К конкурсной приёмке отдельный 2D-viewer должен читать тот же ScenarioSpec,
+показывать зоны/маршруты/роботов/операции/зарядку и иметь
+start/pause/restart/speed/scenario controls. RobCraft 3D не заменяет этот пункт.
 
 ### Step 12 — report
 
