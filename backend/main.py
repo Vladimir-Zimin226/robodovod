@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from database import get_database
+
 from models import UserInput, CalculationResponse, RejectedRobot
 from economics import (
     calc_recommendation, check_constraints, manual_baseline,
@@ -118,6 +120,21 @@ class AuditRequest(BaseModel):
 @app.get("/")
 def root():
     return {"service": "РобоМера", "version": "3.4.0", "status": "ok"}
+
+
+@app.get("/ready")
+def readiness():
+    try:
+        get_database().check_connection()
+    except Exception as exc:
+        # Database exceptions can include connection details. Log only the
+        # exception class and expose a stable, non-sensitive response.
+        logger.warning(
+            "Database readiness check failed (error_type=%s)",
+            type(exc).__name__,
+        )
+        raise HTTPException(status_code=503, detail="database unavailable") from None
+    return {"status": "ready", "database": "available"}
 
 
 # ═══════════════════════════════════════════════════════════════

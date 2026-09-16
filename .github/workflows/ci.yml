@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql+psycopg://robodovod_ci@127.0.0.1:5432/robodovod_ci
+      TEST_DATABASE_URL: postgresql+psycopg://robodovod_ci@127.0.0.1:5432/robodovod_ci
+      POSTGRES_DB: robodovod_ci
+      POSTGRES_ADMIN_USER: postgres
+      POSTGRES_ADMIN_PASSWORD: "<ci-compose-placeholder>"
+      APP_DB_USER: robodovod_ci
+      APP_DB_PASSWORD: "<ci-compose-placeholder>"
+      POSTGRES_PORT: "5432"
+    services:
+      postgres:
+        image: postgres:16-bookworm
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.14.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+          npm ci --prefix frontend
+
+      - name: Create non-superuser test database owner
+        env:
+          PGHOST: 127.0.0.1
+          PGUSER: postgres
+          PGDATABASE: postgres
+        run: |
+          psql --set=ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE robodovod_ci LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
+          CREATE DATABASE robodovod_ci OWNER robodovod_ci;
+          SQL
+
+      - name: Migrate PostgreSQL twice
+        run: |
+          python -m alembic -c backend/alembic.ini upgrade head
+          python -m alembic -c backend/alembic.ini upgrade head
+
+      - name: PostgreSQL migration and constraint tests
+        run: python -m pytest backend/test_storage_integration.py -q
+
+      - name: Backend regression tests
+        run: python -m pytest backend --ignore=backend/test_storage_integration.py -q
+
+      - name: ScenarioSpec JavaScript contract tests
+        run: node --test contracts/scenario-spec-v1.test.mjs
+
+      - name: Frontend tests, lint, and build
+        run: |
+          npm test --prefix frontend
+          npm run lint --prefix frontend
+          npm run build --prefix frontend
+
+      - name: RobCraft tests
+        run: node --test robcraft/tests/*.test.mjs
+
+      - name: Validate Compose model without exposing environment
+        run: docker compose config --quiet

@@ -10,20 +10,36 @@
 
 Требование: запущенный Docker Desktop.
 
-Из корня репозитория выполните в Git Bash, PowerShell или обычном терминале:
+Один раз создайте локальный файл окружения из безопасного шаблона и замените
+каждый `<...>` placeholder. Для полного Compose `DATABASE_URL` должен содержать
+host `db`; пароль внутри URL должен быть URL-encoded. Роли
+`POSTGRES_ADMIN_USER` и `APP_DB_USER` обязаны различаться: backend и миграции
+используют только вторую, не-superuser роль.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Реальный `.env` игнорируется Git. После его заполнения из корня репозитория:
 
 ```bash
 docker compose up --build
 ```
 
 После запуска откройте <http://localhost:5173>. API доступен на <http://localhost:8000>, документация API — на <http://localhost:8000/docs>.
+Лёгкая liveness-проверка — <http://localhost:8000/>, readiness PostgreSQL —
+<http://localhost:8000/ready>. Compose ждёт `db healthy`, затем успешного
+`alembic upgrade head` в одноразовом сервисе `migrate` и только после этого
+запускает backend. Неуспешная миграция блокирует его старт.
 
-Остановка и последующий запуск без пересборки:
+Остановка и последующий запуск без пересборки сохраняют named volume PostgreSQL:
 
 ```bash
 docker compose down
 docker compose up
 ```
+
+Не используйте `docker compose down -v`, если данные должны сохраниться.
 
 ## Локальный запуск без Docker
 
@@ -37,9 +53,19 @@ python -m venv .venv
 npm.cmd install --prefix frontend
 ```
 
-Backend в первом терминале:
+Для локального backend нужен внешний PostgreSQL 16. Можно запустить только БД
+из Compose (сначала заполните `.env`, как выше):
+
+```powershell
+docker compose up -d db
+```
+
+В локальном терминале задайте тот же application DSN, но с host `localhost`,
+выполните миграцию и запустите backend:
 
 ```bash
+export DATABASE_URL='postgresql+psycopg://<application-role>:<url-encoded-password>@localhost:5432/<database-name>'
+./.venv/Scripts/python.exe -m alembic -c backend/alembic.ini upgrade head
 ./.venv/Scripts/python.exe -m uvicorn main:app --app-dir backend --reload --port 8000
 ```
 
@@ -57,9 +83,11 @@ python -m venv .venv
 npm.cmd install --prefix frontend
 ```
 
-Backend в первом терминале:
+Миграция и backend в первом терминале:
 
 ```powershell
+$env:DATABASE_URL = 'postgresql+psycopg://<application-role>:<url-encoded-password>@localhost:5432/<database-name>'
+.\.venv\Scripts\python.exe -m alembic -c backend\alembic.ini upgrade head
 .\.venv\Scripts\python.exe -m uvicorn main:app --app-dir backend --reload --port 8000
 ```
 
@@ -70,6 +98,41 @@ npm.cmd run dev --prefix frontend
 ```
 
 Vite проксирует `/api` на локальный backend. PowerShell иногда блокирует `npm.ps1`, поэтому используется `npm.cmd`.
+
+Проверка обоих health-маршрутов:
+
+```powershell
+Invoke-RestMethod http://localhost:8000/
+Invoke-RestMethod http://localhost:8000/ready
+```
+
+PostgreSQL migration/constraint tests требуют отдельную одноразовую БД; команда
+сознательно выполняет downgrade до `base` и не должна указывать на рабочую БД:
+
+```powershell
+$env:TEST_DATABASE_URL = 'postgresql+psycopg://<application-role>:<url-encoded-password>@localhost:5432/<disposable-database-name>'
+.\.venv\Scripts\python.exe -m pytest backend\test_storage_integration.py -q
+```
+
+Downgrade нужен только для одноразовой development/test БД, не вместо backup:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic -c backend\alembic.ini downgrade base
+.\.venv\Scripts\python.exe -m alembic -c backend\alembic.ini upgrade head
+```
+
+## Storage control-plane 0001
+
+Миграция `0001_storage_control_plane` создаёт только `catalog_versions`,
+`source_artifacts`, `catalog_version_sources`, `import_runs` и
+`catalog_activations`. UUID создаёт приложение, бинарные source-файлы в БД не
+хранятся. PostgreSQL CHECK/FK/partial indexes и constraint triggers защищают
+lifecycle, идемпотентность успешного импорта, единственную активную версию в
+slot и неизменяемую историю активаций.
+
+Текущие расчётные endpoint по-прежнему читают 13 JSON-записей из
+`backend/fleet`; пустая мигрированная БД не меняет каталог, экономику или
+ScenarioSpec. Автоматического импорта при startup нет.
 
 ## Автономный запуск RobCraft
 

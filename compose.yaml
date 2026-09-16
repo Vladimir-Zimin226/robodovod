@@ -1,16 +1,53 @@
 name: robodovod
 
 services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:?Set POSTGRES_DB in .env}"
+      POSTGRES_USER: "${POSTGRES_ADMIN_USER:?Set POSTGRES_ADMIN_USER in .env}"
+      POSTGRES_PASSWORD: "${POSTGRES_ADMIN_PASSWORD:?Set POSTGRES_ADMIN_PASSWORD in .env}"
+      APP_DB_USER: "${APP_DB_USER:?Set APP_DB_USER in .env}"
+      APP_DB_PASSWORD: "${APP_DB_PASSWORD:?Set APP_DB_PASSWORD in .env}"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init-app-user.sh:/docker-entrypoint-initdb.d/10-init-app-user.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  migrate:
+    build:
+      context: ./backend
+    command: ["python", "-m", "alembic", "-c", "alembic.ini", "upgrade", "head"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    init: true
+
   backend:
     build:
       context: ./backend
     ports:
       - "8000:8000"
     environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
       YC_FOLDER_ID: "${YC_FOLDER_ID:-}"
       YC_API_KEY: "${YC_API_KEY:-}"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready').read()"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -32,3 +69,6 @@ services:
       timeout: 3s
       retries: 10
     init: true
+
+volumes:
+  postgres_data:

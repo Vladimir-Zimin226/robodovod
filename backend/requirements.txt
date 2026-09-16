@@ -3,3 +3,7 @@ uvicorn[standard]
 pydantic>=2
 requests
 pytest
+httpx2==2.13.0
+SQLAlchemy==2.0.43
+alembic==1.16.5
+psycopg[binary]==3.2.10
