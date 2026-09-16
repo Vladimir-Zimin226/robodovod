@@ -13,8 +13,10 @@ from models import ScenarioSpec, UserInput, Zone
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ECONOMICS_FIXTURE_SHA256 = "ad53b21e400893837c50970d94faa7e67b4e009c2934a55124ac27d3bc9a37ee"
-SCENARIO_FIXTURE_SHA256 = "3df6a7047149d714f61731df75cdcdf7f5bb5a4e8e16e51e06a744f65ae7e850"
+ECONOMICS_FIXTURE_V1_SHA256 = "ad53b21e400893837c50970d94faa7e67b4e009c2934a55124ac27d3bc9a37ee"
+SCENARIO_FIXTURE_V1_SHA256 = "3df6a7047149d714f61731df75cdcdf7f5bb5a4e8e16e51e06a744f65ae7e850"
+ECONOMICS_FIXTURE_V2_SHA256 = "39fd5206bd7c1ca3c118b6579535c4e0b4e8db79e52b9dba3024e058fe338485"
+SCENARIO_FIXTURE_ECONOMICS_V2_SHA256 = "f5066adea4a678a00d28211f67d5b391ccb944faf80c0336ff6947124f397623"
 
 
 def _semantic_fixture_hash(path: Path) -> str:
@@ -138,11 +140,24 @@ def test_unacceptable_economics_is_not_marked_best():
     )
 
 
-def test_golden_economics_and_scenario_spec_are_immutable():
+def test_legacy_golden_fixtures_remain_immutable():
     economics_path = ROOT / "backend" / "fixtures" / "economics-warehouse-v1.json"
     scenario_path = ROOT / "contracts" / "fixtures" / "scenario-spec-v1.golden.json"
-    assert _semantic_fixture_hash(economics_path) == ECONOMICS_FIXTURE_SHA256
-    assert _semantic_fixture_hash(scenario_path) == SCENARIO_FIXTURE_SHA256
+    assert _semantic_fixture_hash(economics_path) == ECONOMICS_FIXTURE_V1_SHA256
+    assert _semantic_fixture_hash(scenario_path) == SCENARIO_FIXTURE_V1_SHA256
+
+
+def test_current_golden_economics_and_scenario_spec_are_immutable():
+    economics_path = ROOT / "backend" / "fixtures" / "economics-warehouse-v2.json"
+    scenario_path = (
+        ROOT / "contracts" / "fixtures"
+        / "scenario-spec-v1.economics-v2.golden.json"
+    )
+    assert _semantic_fixture_hash(economics_path) == ECONOMICS_FIXTURE_V2_SHA256
+    assert (
+        _semantic_fixture_hash(scenario_path)
+        == SCENARIO_FIXTURE_ECONOMICS_V2_SHA256
+    )
 
     fixture = json.loads(economics_path.read_text(encoding="utf-8"))
     response = calculate(UserInput(**fixture["input"]))

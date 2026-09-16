@@ -54,7 +54,7 @@ Warehouse — полный golden path. Аэропорт и медучрежде
   TCO, ROI, NPV и payback, но его pessimistic/base/optimistic — uncertainty, а
   не обязательные baseline/purchase/RaaS.
 - Compose содержит backend/frontend, но не БД, migrations, backup/reset или CI.
-- Проверенный baseline: 175 backend, 3 contract, 8 frontend и 77 RobCraft
+- Проверенный baseline: 179 backend, 4 contract, 8 frontend и 77 RobCraft
   тестов; frontend lint/build и `docker compose config` проходят.
 - Staging QA согласован по counts/checksums, но исключён из Git и ещё не
   production-источник.
@@ -66,7 +66,8 @@ Warehouse — полный golden path. Аэропорт и медучрежде
 - официальный warehouse preset и XLSX/CSV intake с валидацией;
 - PostgreSQL/Alembic, воспроизводимые migrations и versioned import;
 - официальный discovery-каталог и 8–12 demo-curated моделей с provenance;
-- guest/user/admin, CRUD проектов, минимум три сценария и immutable AnalysisRun;
+- guest demo-flow; регистрация user по email/password с optional name; admin
+  CRUD пользователей; CRUD проектов, минимум три сценария и immutable AnalysisRun;
 - readiness, architecture и `PASS/FAIL/UNKNOWN/ASSUMED` для hard constraints;
 - traceable fleet sizing/capacity без скрытых critical defaults;
 - baseline/purchase/RaaS и отдельная uncertainty axis;
@@ -75,7 +76,8 @@ Warehouse — полный golden path. Аэропорт и медучрежде
 - SimulationReport и честная сверка required/observed KPI;
 - PDF + Excel/CSV и сохранение визуализации;
 - минимальная ручная admin-актуализация/публикация каталога;
-- security, deletion, backup/demo reset, performance smoke, Docker и HTTPS.
+- локальные uploads/backup volumes, admin diagnostic bundle, security, deletion,
+  demo reset, performance smoke, Docker и HTTPS.
 
 ### P1 после стабильного P0
 
@@ -83,7 +85,7 @@ Warehouse — полный golden path. Аэропорт и медучрежде
 - расширенные evidence inspector и admin workflow;
 - дополнительные региональные профили;
 - searchable/server-side PDF при надёжном текущем варианте;
-- object storage/cloud adapter вместо локального volume;
+- S3/object-storage adapter вместо локального volume;
 - автоматическое плановое обновление каталога.
 
 ### CUT до защиты
@@ -130,6 +132,8 @@ Gate: чистая БД мигрирует до head; повторный upgrade
 
 - `manufacturers`, `catalog_source_rows`, `equipment_models`,
   applicability, observations, evidence, resolved facts и procurement options;
+- committed text bundle `data/import/organizer-catalog-v4/` с manifest,
+  schema, normalized JSON/CSV и enrichment; source binaries остаются вне Git;
 - import schema, validate-only и отчёт counts/checksums;
 - BASE и ENRICHMENT как раздельные phase;
 - evidence gate: matching читает только разрешённые resolved facts;
@@ -160,15 +164,27 @@ Gate: warehouse golden fixtures не регрессируют; PostgreSQL adapte
 
 - Минимальные `users`, `projects`, `project_files`, `scenarios`,
   `analysis_runs`, `audit_entries`;
-- guest/user/admin без enterprise IAM; owner-based project isolation;
+- guest не хранится и работает только с demo; self-registration создаёт USER
+  по email/password с optional name;
+- ADMIN создаёт/редактирует/отключает/удаляет пользователей и сбрасывает
+  пароль; нельзя создать admin через public registration, удалить или понизить
+  последнего активного admin;
+- первый ADMIN создаётся одноразовым идемпотентным bootstrap из
+  `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` и optional
+  `BOOTSTRAP_ADMIN_NAME` в локальном `.env`; `.env.example` содержит только
+  placeholders, существующая учётная запись bootstrap не перезаписывается;
+- owner-based project isolation без project sharing;
 - CRUD/copy/delete проектов и минимум три scenario slots;
 - immutable input/result/ScenarioSpec snapshots и version references;
-- file metadata/checksum/storage key; физические файлы вне БД;
+- file metadata/checksum/storage key в БД; физические файлы в локальном named
+  volume, S3 в P0 не используется;
 - повторное открытие читает snapshot, rerun создаёт новую запись;
 - password hashing, protected cookies/token flow и negative authorization tests.
 
 Gate: старый run воспроизводимо открывается после появления новой CatalogVersion;
-удаление проекта делает недоступными проект и связанные файлы.
+admin user CRUD и cross-user denial проходят integration tests; удаление проекта
+делает недоступными project payload и локальные файлы, оставляя только
+минимальный deletion tombstone на 30 дней с последующим purge.
 
 ### Этап 5 — catalog activation, официальные profiles и file intake
 
@@ -208,7 +224,11 @@ Gate: payload/aisle создают hard reject, missing critical geometry — UN
 - Uncertainty: conservative/base/optimistic — независимо от коммерческой оси.
 - Purchase учитывает equipment/software/integration/commissioning/training и
   явно описанный reserve; RaaS — setup/recurring/usage fee и срок договора.
-- Currency UNKNOWN/QUOTE_REQUIRED не превращается в достоверный CAPEX.
+- Для organizer v4 валюта цен — RUB по продуктовому решению. Raw value и
+  provenance сохраняются; НДС считается включённым только как допущение
+  организаторов без выдуманной ставки. Доставка, пусконаладка и глубокая
+  ИТ-интеграция считаются отдельно. Для иных источников
+  UNKNOWN/QUOTE_REQUIRED не превращается в достоверный CAPEX.
 - Gross avoided cost, OPEX и net effect показываются отдельно; TCO ≥5 лет,
   payback, ROI и cash flow сохраняются.
 - Амортизация отображается отдельно от cash flow.
@@ -253,6 +273,10 @@ Gate: PDF и таблицы восстанавливают ключевые чи
 
 - Compose на чистой машине, migrations, health/readiness, backup/restore и
   allowlisted demo reset.
+- Operational `pg_dump` и backup uploads остаются server/CLI operation.
+- Admin скачивает отдельный sanitized diagnostic bundle с версиями, manifests,
+  import/integrity results, redacted errors и агрегированными counts, но без
+  паролей, секретов, email/name, uploaded content и полных snapshots.
 - HTTPS, secrets, upload limits/type checks, project isolation и deletion tests.
 - Нагрузка до 50 пользователей; economy ≤10 s; model/recalc ≤60 s со статусом.
 - 1366×768, keyboard/basic accessibility и русский пользовательский flow.
@@ -319,7 +343,7 @@ intake, auth, 2D, commercial scenarios, exports, admin и deployment образ�
 каждого gate.
 
 При нехватке времени сокращаются глубина airport/clinic, число curated моделей,
-региональные профили, технология PDF, облачный storage и красота admin UI.
+региональные профили, технология PDF, S3 и красота admin UI.
 Нельзя сокращать correctness/evidence gate, СУБД и AnalysisRun, официальный
 intake, baseline/purchase/RaaS, sensitivity ≥3, обязательную 2D, exports,
 минимальные роли/admin, security и воспроизводимую сдачу.
@@ -345,7 +369,8 @@ Research-файлы остаются справочным слоем. Ни од�
 
 Проект готов к сдаче, когда официальный warehouse flow позволяет:
 
-1. войти как guest либо demo user и создать проект;
+1. пройти несохраняемый demo как guest либо зарегистрироваться по email/password
+   и создать private project;
 2. выбрать официальный preset или загрузить XLSX/CSV с валидацией;
 3. получить объяснимый подбор из published catalog без unsafe ТТХ;
 4. сравнить минимум три сценария: baseline, purchase и RaaS;
@@ -354,9 +379,11 @@ Research-файлы остаются справочным слоем. Ни од�
    required/observed KPI;
 7. сохранить и повторно открыть immutable AnalysisRun с версиями;
 8. выгрузить PDF и Excel/CSV и сохранить визуализацию;
-9. выполнить минимальную admin-актуализацию новой catalog version;
-10. удалить проект и связанные файлы;
-11. воспроизвести результат через Compose без LLM/live vendor dependency.
+9. под admin создать/редактировать/удалить пользователя и выполнить минимальную
+   актуализацию новой catalog version;
+10. скачать sanitized diagnostic bundle;
+11. удалить проект и связанные файлы;
+12. воспроизвести результат через Compose без LLM/live vendor dependency.
 
 Команда при этом может показать источник, формулу, unit, status и limitation
 каждого главного числа и не обещает инженерную точность, которой продукт не

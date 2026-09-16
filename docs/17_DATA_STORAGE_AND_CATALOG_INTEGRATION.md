@@ -40,6 +40,13 @@ frontend одновременно с инфраструктурой БД не с
 - 91-страничный официальный PDF-каталог присутствует сейчас и содержит девять
   разделов и 223 карточки. Он не входил в старый normalization run, поэтому его
   нужно зарегистрировать новым artifact, а не переписывать старый manifest.
+- Организаторы подтвердили, что `catalog_export_v4.csv` — актуальная версия.
+  Для проекта принято продуктовое решение обрабатывать его цены в RUB, хотя
+  валюта не написана в исходном CSV; это решение должно иметь собственный
+  provenance и не маскироваться под source fact. Неопределённым остаётся смысл
+  отдельных duplicate rows.
+- Коммит derived organizer bundle разрешён. Девять выбранных машинных файлов
+  staging занимают суммарно около 1,84 MiB, максимальный — около 0,79 MiB.
 - Staging исключён из Git и не является production-источником или runtime
   fallback.
 
@@ -50,8 +57,8 @@ frontend одновременно с инфраструктурой БД не с
 | Каталог, применимость, typed facts, procurement и evidence | PostgreSQL, только через версионированный repository |
 | Raw source rows и неоднородные snapshots | JSONB рядом с нормализованной записью, но не как единственный источник для фильтрации |
 | Пользователи, проекты, сценарии, AnalysisRun и audit | PostgreSQL |
-| XLSX/CSV/PDF/планы | Файловое/object storage; в БД — имя, media type, размер, SHA-256, storage key и владелец |
-| Миграции, import schema, validators и разрешённый derived bundle | Git после отдельного решения о лицензии и составе |
+| XLSX/CSV/PDF/планы пользователей | Локальный filesystem в named volume; в БД — имя, media type, размер, SHA-256, storage key и владелец |
+| Миграции, import schema, validators и разрешённый derived bundle | Git; bundle состоит из текстовых JSON/CSV, schema, manifest и README |
 | Исходники организаторов и текущий staging | Локально, вне Git; импорт только явной командой |
 | Секреты | Серверное окружение/secret store; никогда не frontend bundle и не Git |
 
@@ -60,18 +67,45 @@ indexes, ограничения и транзакционные сценарии
 СУБД. Локальный запуск без Docker использует внешний PostgreSQL через
 `DATABASE_URL`; допустим Compose-профиль, поднимающий только БД.
 
+### 3.1. Состав committed derived bundle
+
+Целевой каталог: `data/import/organizer-catalog-v4/`. Bundle генерируется
+детерминированно и коммитится только после validate-only. В него входят:
+
+- `manifest.json` с schema/catalog version, hashes, sizes, counts и source
+  artifact metadata;
+- `catalog_products.json`, `catalog_applicability.csv`,
+  `catalog_prices.csv`, `catalog_field_evidence.csv`;
+- `object_profiles.json`;
+- `catalog_external_enrichment.json` и
+  `catalog_external_evidence.csv`;
+- import JSON Schema, `README.md` с provenance/status policy и при
+  необходимости machine-readable review decisions.
+
+Исторические Markdown-отчёты, staging manifests как runtime truth, PDF/XLSX/
+DOCX/CSV-исходники организаторов и внутренний audit document в bundle не
+копируются. Их имена, размеры и SHA-256 находятся в manifest. Bundle хранится
+как текст, не ZIP: это даёт нормальный Git diff и не требует Git LFS.
+
 ## 4. Модель данных и границы сущностей
 
 ### 4.1. Идентификаторы и natural keys
 
 - Внутренние PK — UUID, генерируемые приложением; импорт не зависит от
   расширений PostgreSQL и последовательностей.
-- `organizer_id` сохраняется отдельным nullable UUID и уникален внутри версии
-  каталога, но не является PK и не переиспользуется между версиями.
+- `organizer_id` сохраняется отдельным nullable UUID; для `equipment_models` он
+  уникален внутри версии каталога, но не является PK и не переиспользуется между
+  версиями. Это ограничение не применяется к source/applicability/price rows.
 - Для записи без organizer ID natural key — `(catalog_version_id,
   source_namespace, source_record_key)`.
 - Исходная строка имеет ключ `(source_artifact_id, source_row_number)` и не
   схлопывается. Это сохраняет все 223 строки при 187 моделях.
+- В v4 повторяются 23 `organizer_id`, охватывая 59 строк; как минимум три
+  группы имеют разные цены. Поэтому `equipment_applicability` и
+  `procurement_options` ссылаются на конкретную `catalog_source_row`, а их
+  source-row key уникален в своей таблице. Одинаковые суммы не дедуплицируются.
+  Выбранная `SolutionConfiguration` фиксирует не только model ID, но и
+  applicability/offer ID, использованные в расчёте.
 - SHA-256 хранится lowercase hex и проверяется `CHECK`; `source_artifacts.sha256`
   уникален по содержимому.
 
@@ -105,6 +139,17 @@ constraint. Часто фильтруемые `spec_code + numeric_value` инд
   либо позднее для конфигурации: purchase, RaaS, managed service или quote.
   Цена не является полем `EquipmentModel`.
 
+Для organizer v4 `ProcurementOption` хранит исходное текстовое значение цены,
+нормализованный amount, `currency=RUB`, source row/evidence и
+`vat_status=ORGANIZER_ASSUMPTION_INCLUDED`. RUB — подтверждённая владельцем
+продукта политика этого набора, но не утверждение исходного CSV; manifest
+derived bundle обязан это различие зафиксировать. Официальное дополнение (стр.
+4) рекомендует считать цены указанными с учётом НДС до иного ответа Q&A, однако
+не задаёт ставку: `vat_rate` и рассчитанная сумма НДС остаются `NULL`, а UI и
+отчёт явно маркируют допущение. Доставка, пусконаладка и глубокая интеграция в
+ИТ-ландшафт не включены в цену и учитываются отдельными статьями. Для других
+источников валюта и VAT status не наследуются автоматически.
+
 Полиморфная пара `target_type/target_id` не вводится. Каталожное предложение
 ссылается на модель, а системное — через явную link-таблицу на конфигурацию.
 
@@ -118,18 +163,26 @@ constraint. Часто фильтруемые `spec_code + numeric_value` инд
    repository вообще имеет право передать matching engine.
 
 Для resolved fact обязательны ровно одно typed value, canonical unit, источник,
-дата/версия evidence, `resolution_status` и `usable_for_matching`. Ограничение
-БД запрещает `usable_for_matching = true` для `CONFLICT`,
-`AMBIGUOUS_MODEL_MATCH`, `NOT_FOUND`, `UNKNOWN` и `ASSUMED`. Для внешнего
-overlay автоматическое разрешение допустимо только для
-`VERIFIED_OFFICIAL`/`VERIFIED_AUTHORIZED_PARTNER`; ручное решение требует
-отдельного reviewer, времени и причины. `NOT_FOUND` не содержит factual value.
+дата/версия evidence, `resolution_status` и `usable_for_matching`.
 
-Организаторский и DOCX-derived канонический слой использует собственные
-статусы (`ORGANIZER_PROVIDED`, `CORROBORATED`) и не перезаписывается overlay.
-Repository читает представление `matching_spec_facts`, а не observations. При
-отсутствии разрешённого critical fact constraint engine обязан вернуть
-`UNKNOWN/NEEDS_VALIDATION`, не скрытый default.
+«Допустить к hard matching» означает разрешить числу участвовать в проверке и
+дать результат `PASS` или `FAIL`. Политика фиксируется данными:
+
+| Evidence status | Автоматический hard matching | Условие |
+|---|---|---|
+| `CORROBORATED` | Да | Два официальных artifact дают одно значение |
+| `CROSS_DOCUMENT_ENRICHED` | Да | Exact model mapping и прямое поле официального DOCX |
+| `ORGANIZER_NAME` | Да, только для literal field | Значение и unit явно написаны в имени; без вывода новых ТТХ |
+| `VERIFIED_OFFICIAL` | Да | Exact model/revision match, URL/source/date сохранены |
+| `VERIFIED_AUTHORIZED_PARTNER` | После review | Reviewer, reason и timestamp обязательны |
+| `MANUALLY_APPROVED` | После review | Выбран конкретный variant/evidence, сохранено решение |
+| `CONFLICT`, `AMBIGUOUS_MODEL_MATCH`, `NOT_FOUND`, `UNKNOWN` | Никогда | Observation остаётся видимой, но не попадает в matching view |
+| `ASSUMED` | Не как catalog fact | Хранится в проекте и даёт constraint status `ASSUMED`, не evidence `PASS` |
+
+БД запрещает unsafe status при `usable_for_matching = true`. Организаторский
+слой не перезаписывается overlay. Repository читает
+`matching_spec_facts`, а не observations. При отсутствии разрешённого
+critical fact constraint engine возвращает `UNKNOWN/NEEDS_VALIDATION`.
 
 ## 6. Lifecycle и immutable snapshots
 
@@ -228,7 +281,7 @@ subject string. Это избегает преждевременной auth-сх
 - авария миграции не запускает backend;
 - локальный запуск с внешним PostgreSQL и Compose-путь проверены;
 - в логах/образах/frontend нет пароля или полного DSN;
-- текущие 175 backend, 3 contract, 8 frontend и 77 RobCraft тестов, lint и build
+- текущие 179 backend, 4 contract, 8 frontend и 77 RobCraft тестов, lint и build
   остаются зелёными;
 - `git diff` не содержит staging или исходников организаторов.
 
@@ -246,6 +299,12 @@ boolean_value, json_value) = 1`, unique model/spec/scope и safe-status policy.
 Пользовательские допущения хранятся отдельно от catalog facts и дают
 `ASSUMED`, а не `PASS`.
 
+Importer tests отдельно проверяют, что v4 price сохраняет raw value, получает
+RUB только с decision provenance, имеет
+`ORGANIZER_ASSUMPTION_INCLUDED`, но `vat_rate=NULL`, и не включает delivery,
+commissioning или deep integration в catalog price. Ни RUB, ни VAT policy не
+применяются к другому source dataset без явного versioned decision.
+
 ### Repository и dual-run
 
 - Ввести domain DTO и `CatalogRepository` без ORM-объектов за границей data
@@ -261,9 +320,29 @@ boolean_value, json_value) = 1`, unique model/spec/scope и safe-status policy.
 ### 0003 — project/run persistence
 
 Минимум: `users`, `projects`, `project_files`, `scenarios`, `analysis_runs` и
-`audit_entries`; роли guest/user/admin без enterprise IAM. Затем сохраняются
-run snapshots и version references. Только после этого выполняются catalog
-activation/switch и официальный XLSX/CSV intake.
+`audit_entries`. Guest — неперсистентный demo-flow без сохранения
+коммерчески чувствительных данных. У зарегистрированной учётной записи:
+`email_normalized` unique, Argon2id password hash, optional `name`, роль
+`USER|ADMIN` и status `ACTIVE|DISABLED`.
+
+Self-registration всегда создаёт `USER`; роль нельзя выбрать в публичном API.
+Admin создаёт, редактирует, отключает/удаляет пользователей и выполняет password
+reset, но никогда не видит пароль/hash. Нельзя удалить/понизить последнего
+активного admin. Project sharing отсутствует; каждый project имеет одного owner.
+Первый ADMIN создаётся отдельным one-shot bootstrap после migration 0003 из
+`BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` и optional
+`BOOTSTRAP_ADMIN_NAME`. Команда идемпотентна: создаёт account только при
+отсутствии ADMIN и никогда не меняет пароль существующего пользователя. Пароль
+не передаётся аргументом процесса и не логируется, сохраняется только Argon2id
+hash. Реальные значения находятся в локальном игнорируемом `.env`/deployment
+secret; tracked `.env.example` содержит placeholders. Bootstrap без обязательных
+переменных завершается ошибкой; совпадение email с существующим USER не повышает
+его роль автоматически и также завершается безопасной ошибкой. Integration
+tests покрывают первый запуск, повторный no-op, параллельный запуск, collision и
+отсутствие секрета в логах.
+Удаление пользователя сначала запускает тот же проверяемый процесс удаления его
+projects/files. Затем сохраняются run snapshots и version references. Только
+после этого выполняются catalog activation/switch и официальный XLSX/CSV intake.
 
 ## 10. Файлы, backup, rollback и demo reset
 
@@ -271,22 +350,42 @@ activation/switch и официальный XLSX/CSV intake.
   size/extension/MIME/magic-byte validation; metadata коммитится атомарно,
   затем объект становится видимым. Сироты удаляет безопасный cleanup job.
 - Имя пользователя не используется как путь; storage key генерируется сервером.
-- Удаление проекта создаёт transactional deletion/outbox record; физическое
-  удаление файла идемпотентно. Проверяется отсутствие доступа после удаления.
+- Удаление проекта немедленно переводит его в `DELETING` и закрывает чтение,
+  создаёт transactional deletion/outbox record, затем идемпотентно удаляет
+  локальные файлы и hard-deletes scenarios, runs, file metadata и project.
+  Неуспех остаётся `DELETE_FAILED` без доступа пользователя и допускает retry.
+- Full project payload, snapshots, filename, storage key и file hash из audit
+  удаляются. Остаётся минимальный tombstone `PROJECT_DELETED`: opaque project
+  UUID, actor UUID, timestamp и агрегированные counts без email/name/content.
+  Для прототипа retention — 30 дней, затем purge; значение конфигурируется.
+  Тест с управляемым временем проверяет сохранение до границы, purge после неё и
+  отсутствие восстановления связи с удалённым payload/file metadata.
 - Перед production/demo migration и activation выполняется `pg_dump` и backup
-  каталога файлов. Alembic downgrade — проверка разработки, не основная
+  локального uploads volume. Alembic downgrade — проверка разработки, не основная
   production rollback-стратегия.
 - Rollback релиза: вернуть приложение, атомарно активировать предыдущую
   опубликованную CatalogVersion; при несовместимой schema восстановить backup.
 - Demo reset — allowlisted идемпотентная команда только для demo tenant/seed;
   она не делает `dropdb` и не трогает каталожные версии.
 
+Operational recovery backup создаётся серверной/CLI-командой в локальный backup
+volume и не скачивается из браузера. Отдельно admin может скачать
+`diagnostic-bundle.zip`: migration head, версии приложения/rules/catalog,
+manifest активного bundle, import counts/status/diagnostics, integrity-check
+results, redacted errors и агрегированные user/project/run/file counts.
+Диагностический пакет не содержит password hashes, secret values, email/name,
+uploaded binaries, filenames/storage keys или полные пользовательские snapshots;
+это проверочный artifact, а не restore backup.
+
 ## 11. Секреты и пользовательские данные
 
 - Пароли БД и приложения только в environment/secret store; production CORS и
   trusted hosts ограничены фактическим origin.
-- Пароли пользователей хешируются Argon2id; сессии используют secure/HttpOnly/
-  SameSite cookies и CSRF либо явно спроектированный bearer flow.
+- Регистрация: обязательные email/password, optional name. Email trim/lowercase
+  нормализуется и уникален; исходный пароль нигде не логируется.
+- Пароли пользователей хешируются Argon2id; browser session использует
+  secure/HttpOnly/SameSite cookie и CSRF. Admin/user authorization проверяется
+  в service/repository, не только UI.
 - Изоляция проекта обеспечивается owner predicate в каждом repository query и
   негативными integration tests; одного скрытия кнопки недостаточно.
 - Upload имеет лимиты размера/типа, безопасный parser и нейтральные сообщения
@@ -337,23 +436,21 @@ catalog rows; runs ссылаются на версии до runtime switch; fil
 принадлежит проекту; подбор не может обойти evidence gate; 2D строится после
 стабилизации расчётного и persisted ScenarioSpec.
 
-## 14. Открытые решения перед 0002/0003
+## 14. Неблокирующее открытое решение
 
-- Разрешено ли коммитить derived organizer bundle и в каком составе; до ответа
-  исходники и staging остаются вне Git.
-- Является ли v4 актуальной версией, какова валюта и точная семантика дублей;
-  импорт обязан сохранить неопределённость.
-- Какие organizer/CORROBORATED статусы допускаются к hard matching после
-  reviewer approval; policy должна быть таблицей, а не условием в handler.
-- Локальный filesystem volume достаточен для защиты или нужен S3-compatible
-  adapter; DB contract от выбора не зависит.
-- Какой минимальный auth flow показывается на защите. Роли обязательны, но
-  совместный project sharing и enterprise RBAC можно отложить.
-- Точные правила удаления audit metadata после удаления пользовательского
-  проекта с учётом требования удалить связанные файлы.
+- Точная семантика отдельных duplicate rows сверх требования сохранить каждую
+  source row и рассматривать дубли как альтернативные предложения. Она не
+  блокирует 0002: модель уникальна по organizer ID внутри версии, а applicability
+  и procurement offer имеют identity конкретной исходной строки.
+
+Закрыто: v4 актуален; его цены обрабатываются как RUB по продуктовому решению;
+НДС считается включённым только как organizer assumption без известной ставки;
+первый ADMIN создаётся one-shot bootstrap из локального `.env`; deletion
+tombstone без PII/content хранится 30 дней. Ни одно из этих решений не расширяет
+scope migration 0001.
 
 Безопасно отложить: live scraper, scheduler автообновления, temporal history
-каждого mutable user field, full IAM, object storage в облаке, все ТТХ 223
+каждого mutable user field, full IAM, S3/object storage, все ТТХ 223
 моделей, CAD/BIM и единое физическое 3D-здание. Нельзя откладывать СУБД,
 project/run persistence, evidence gate, официальный intake, обязательную 2D,
 commercial scenarios, exports и минимальную административную актуализацию.

@@ -617,7 +617,14 @@ def _calc_scenario(inp, robot, key, sc, is_zone: bool = False):
         factor = sc["ramp"] if t == 1 else 1.0
         labor_infl = (1 + LABOR_INFLATION) ** (t - 1)
         opex_infl = (1 + OPEX_INFLATION) ** (t - 1)
-        flows.append(gross * factor * labor_infl - opex * factor * opex_infl)
+        # ФОТ и эксплуатационные расходы индексируются раздельно. Стоимость
+        # ричтраков — эксплуатационная, поэтому LABOR_INFLATION к ней не
+        # применяется.
+        flows.append(
+            labor * factor * labor_infl
+            + equip * factor * opex_infl
+            - opex * factor * opex_infl
+        )
 
     rep = _battery_replacement(inp, e, sc["utilization"])
     battery_cash = 0.0
@@ -633,7 +640,14 @@ def _calc_scenario(inp, robot, key, sc, is_zone: bool = False):
     npv = -capex + sum(f / ((1 + r) ** t) for t, f in enumerate(flows, 1))
     payback, final_cum = _payback(capex, flows)
 
-    opex_cum = sum(opex * (1 + OPEX_INFLATION) ** t for t in range(h))
+    # TCO и cash flow используют один ramp первого года. Раньше NPV уменьшал
+    # OPEX первого года, а TCO учитывал его полностью.
+    opex_cum = sum(
+        opex
+        * (sc["ramp"] if t == 0 else 1.0)
+        * (1 + OPEX_INFLATION) ** t
+        for t in range(h)
+    )
     tco = capex + opex_cum + battery_cash
 
     benefits = gross * (sc["ramp"] + h - 1) + residual
@@ -660,6 +674,7 @@ def _calc_scenario(inp, robot, key, sc, is_zone: bool = False):
                retained_min=lm["retained_min"],
                min_pult_per_shift=lm["min_pult_per_shift"],
                catalog_replacement_capacity=lm["catalog_replacement_capacity"],
+               labor=labor, equip=equip, opex=opex, flows=flows,
                residual_share=residual_share,
                residual=residual,
                horizon_years=h,
@@ -685,7 +700,12 @@ def _build_staff_breakdown(inp, det) -> StaffBreakdown:
     is_clamped = (requested is not None and requested > replaceable + 1e-6)
     is_below_pult = (applied > 0) and (applied <= on_pult + 1e-6)
     pult_shortage = max(0.0, on_pult - applied)
-    pult_source = "from_staff" if pult_shortage > 0 else "from_released"
+    if applied <= 0:
+        pult_source = "from_staff"
+    elif pult_shortage > 0:
+        pult_source = "mixed"
+    else:
+        pult_source = "from_released"
 
     return StaffBreakdown(
         staff_total=total,

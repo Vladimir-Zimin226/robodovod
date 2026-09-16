@@ -40,6 +40,11 @@ PDF-каталог содержит девять разделов и 223 кар�
 приоритетны CSV/XLSX, потому что текстовый слой PDF имеет повреждённую
 кодировку и визуальную раскладку.
 
+Организаторы отдельно подтвердили, что `catalog_export_v4.csv` — актуальная
+конкурсная версия. Коммит derived organizer bundle разрешён. Планируемый
+текстовый JSON/CSV bundle занимает около 1,84 MiB, крупнейший файл — около
+0,79 MiB; source binaries в него не входят.
+
 ### Подтверждённые официальные обязанности
 
 Единый путь:
@@ -114,7 +119,7 @@ matching truth.
   `PREPARED → APPLY_REVISION → APPLIED`, multi-zone representative scenes,
   движением, очередями, зарядкой, отказами, ScenePatch и KPI.
 - Три пользовательских preset и локальный fallback без LLM.
-- Реальный baseline: 175 backend, 3 contract, 8 frontend и 77 RobCraft tests;
+- Реальный baseline: 179 backend, 4 contract, 8 frontend и 77 RobCraft tests;
   frontend lint/build и `docker compose config` проходят.
 
 ### Ограничения кода
@@ -148,11 +153,11 @@ matching truth.
 |---|---|---|---|---|---|
 | TZ-003, TZ-012: единый flow и официальные demo sets | Три preset и рабочий legacy flow | `frontend/src/App.jsx`, `backend/main.py` | Presets не из XLSX, flow не сохраняется | P0 / 5 | Warehouse preset равен нормализованному XLSX; airport/medical datasets доступны |
 | TZ-013, TZ-032–034: manual + XLSX/CSV, range/unit/source | Ручной урезанный input; изображение плана | `frontend/src/components/IntakeScreen.jsx`, `FloorplanUploader.jsx` | Нет табличного intake и официальной validation metadata | P0 / 5 | Happy/error fixtures; invalid file не меняет проект |
-| TZ-006–007, TZ-020–025: роли, projects, ≥3 scenarios, reopen | Только состояние React и декоративный пользователь | `frontend/src/App.jsx`; таблиц/API нет | Полный обязательный разрыв | P0 / 4 | CRUD/copy/delete, isolation, три сценария, reopen immutable run |
+| TZ-006–007, TZ-020–025: роли, projects, ≥3 scenarios, reopen | Только состояние React и декоративный пользователь | `frontend/src/App.jsx`; таблиц/API нет | Полный обязательный разрыв | P0 / 4 | Guest demo без хранения; USER registration email/password + optional name; project isolation, три сценария, reopen immutable run |
 | TZ-036–051, ADD-020/023: catalog, TTX, provenance | Runtime 13 generic JSON; staging 187/223 готов вне runtime | `backend/fleet/*.json`, staging manifests | Нет official catalog repository/evidence gate | P0 / 2–5 | 187/223/223 импортированы; unsafe statuses исключены из matching |
 | TZ-041–043, TZ-011/024: admin add/edit/update | Нет | Нет route/UI/table | Минимальная admin-функция ошибочно была P1 | P0 / 9 | Admin правит DRAFT, validates, publishes/activates; published immutable |
 | TZ-052–058: fit, reasons, missing data, forced compare | Есть базовые rejects/forced warning | `backend/economics.py`, `backend/models.py`, backend tests | Нет полного PASS/FAIL/UNKNOWN/ASSUMED и field evidence | P0 / 6 | Critical FAIL блокирует; critical UNKNOWN → NEEDS_VALIDATION |
-| TZ-059–077: quantity, CAPEX/OPEX/effect/payback/ROI/TCO | Сильная deterministic база | `backend/economics.py`, `backend/fixtures/economics-warehouse-v1.json` | Cost boundary/procurement/overrides неполны | P0 / 7 | Formula trace, ≥5-year TCO, explicit price/currency status |
+| TZ-059–077, ADD-026–027: quantity, CAPEX/OPEX/effect/payback/ROI/TCO | Сильная deterministic база | `backend/economics.py`, immutable fixtures v1/v2; официальное дополнение, стр. 4 | Cost boundary/procurement/overrides неполны | P0 / 7 | Formula trace, ≥5-year TCO; v4 price в RUB с decision provenance; НДС included-assumption без ставки; доставка/пусконаладка/deep integration отдельно |
 | TZ-008, ADD-019: baseline/purchase/RaaS | Нет требуемой коммерческой оси | Текущие `scenarios` в API/economics | Uncertainty ошибочно может выглядеть как коммерческие сценарии | P0 / 7 | Все три сценария в одной таблице на одинаковых метриках |
 | TZ-078: sensitivity ≥3 | What-if controls есть, formal output нет | Frontend params/results | Нет зафиксированного sensitivity result | P0 / 7 | Equipment price, volume, labor cost дают delta и сохраняются в run |
 | TZ-018, TZ-083–086: обязательная 2D и controls | Нет; есть дополнительный 3D | `frontend/src/components/RobCraftFrame.jsx`, `robcraft/` | 3D не закрывает requirement | P0 / 8 | 2D zones/routes/robots/operations/charging + start/pause/restart/speed/scenario |
@@ -163,7 +168,8 @@ matching truth.
 | TZ-111: offline resilience | Core/RobCraft работают локально | fallback code, RobCraft zero runtime deps | CDN-шрифт и optional LLM path требуют проверки | P0 / 9–10 | Full demo без внешней сети; local assets |
 | TZ-113–116: 50 users, ≤10 s economy, ≤60 s model + status | Не измерено; sync calc быстрый локально | Unit tests не load tests | Нет зафиксированного fixture/load/status | P0 / 10 | Reproducible smoke с отчётом времени и видимым status |
 | TZ-117: upload error не теряет project | Нет project/file intake | Отсутствующие routes/tables | Полный разрыв | P0 / 4–5 | Transactional negative upload test |
-| TZ-118–123: access, hash, isolation, HTTPS, delete files | Нет auth/persistence | Нет реализации | Полный разрыв | P0 / 4, 10 | Argon2id/session policy, cross-user denial, HTTPS, delete cleanup |
+| TZ-118–123: access, hash, isolation, HTTPS, delete files | Нет auth/persistence | Нет реализации | Полный разрыв | P0 / 4, 10 | Argon2id/cookie+CSRF, cross-user denial, HTTPS, deletion state/outbox, hard delete payload/files; tombstone без PII/content удаляется через 30 дней |
+| OWNER-001: admin user CRUD, bootstrap и diagnostic download | Нет | Подтверждённое продуктовое решение | Нужны admin API/UI, one-shot bootstrap и безопасный формат export | P0 / 4, 10 | Первый admin идемпотентно создаётся из `.env`; admin управляет USER, не может удалить последнего admin; скачивает sanitized diagnostic bundle без secrets/PII/password hashes |
 | TZ-132, TZ-140–144: demo/docs/sources/limitations | README и внутренние docs сильны | `README.md`, `docs/`, `research/` | Нет user/admin guide и полного official E2E artifact | P0 / 10 | Полный demo на organizer dataset + комплект документации |
 
 ## 6. Архитектурный вердикт
@@ -197,27 +203,36 @@ constraints, local/Compose/CI path и Definition of Done находятся в d
 ### Между официальными источниками
 
 - Дополнение называет `catalog_export_v5` и Excel с ценами; фактически дан v4
-  CSV.
-- Валюта цены не указана; НДС — organizer assumption, а доставка,
-  пусконаладка и глубокая IT integration исключены.
+  CSV. Организаторы подтвердили актуальность v4, поэтому version question закрыт,
+  но расхождение имён сохраняется в provenance.
+- Валюта в исходном файле не указана; для проекта принято отдельное продуктовое
+  решение трактовать цены v4 в RUB, не приписывая это источнику. Официальное
+  дополнение (стр. 4) рекомендует считать цены указанными с учётом НДС, если Q&A
+  не уточнит иное; ставка не задана, поэтому это organizer assumption, а не
+  проверенный атрибут каждой строки. Доставка, пусконаладка и глубокая IT
+  integration из цены исключены.
 - Дубли organizer_id названы альтернативными предложениями, но в CSV часть
-  дублей явно различается применимостью/отраслью. Строки нельзя схлопывать.
+  дублей явно различается применимостью/отраслью. Фактически 23 identifier
+  повторяются в 59 из 223 строк; как минимум три группы содержат разные цены.
+  Строки нельзя схлопывать, а расчёт должен ссылаться на конкретные
+  applicability и price offer.
 - XLSX legend задаёт более широкий CAPEX boundary, чем краткая формулировка
   дополнений; выбранный состав должен быть явным и единым.
 - XLSX не содержит required/optional flags. Их нельзя выдумывать.
 
 ### Между внутренними документами и кодом
 
-- docs/08 и docs/11 заявляют текущую 2D-визуализацию, но UI её не содержит.
+- docs/08 и docs/11 заявляли текущую 2D-визуализацию, но UI её не содержит;
+  формулировки исправлены этим аудитом.
 - docs/06 описывает целевой `/api/v1`, тогда как код реализует legacy
   `/api/*`.
-- docs/07 всё ещё помечает часть iframe-интеграции как NEXT, хотя она выполнена.
+- docs/07 помечал часть iframe-интеграции как NEXT; статус исправлен.
 - docs/13 ставит развитие 3D ближе обязательных конкурсных разрывов; docs/12
   теперь задаёт обратный приоритет.
 - docs/15 — исторический integration plan: раздел «ближайшая работа» уже
   выполнен и не должен управлять новым backlog.
-- PROJECT_CONTEXT называет embedded flow одно-зональным, хотя код и тесты уже
-  поддерживают representative multi-zone scenes.
+- PROJECT_CONTEXT называл embedded flow одно-зональным; контекст исправлен по
+  коду и multi-zone tests.
 - docs/05 корректно описывает target architecture, но без явной маркировки его
   легко принять за существующую реализацию; current-state evidence выше
   приоритетнее.
@@ -244,7 +259,9 @@ constraints, local/Compose/CI path и Definition of Done находятся в d
 1. 187 models нельзя получить удалением 36 duplicate rows: нужно сохранить 223
    source/applicability/price records.
 2. Organizer UUID — natural source ID, а не глобальный PK всех версий.
-3. Цена без валюты непригодна для economics; ноль/рубль по умолчанию запрещены.
+3. Цена без валюты непригодна для economics; RUB разрешён для organizer v4
+   только по зафиксированному продуктовому решению, а не как неявный default для
+   любого источника. Ставку и сумму НДС выводить из допущения запрещено.
 4. EAV observation без отдельного resolved-fact gate позволит случайно читать
    CONFLICT/NOT_FOUND как значение.
 5. Failure audit и domain import в одной транзакции уничтожат diagnostics при
@@ -282,21 +299,26 @@ constraints, local/Compose/CI path и Definition of Done находятся в d
 ## 11. Безопасно отложить
 
 Live scraper и scheduler, все ТТХ 223 моделей, CAD/BIM, unified physical 3D,
-полный route optimizer, cloud object storage, collaborative projects,
+полный route optimizer, S3/object storage, collaborative projects,
 enterprise IAM, дополнительные регионы и одинаково глубокие airport/clinic
 ветки. Нельзя откладывать evidence correctness, storage/persistence, официальный
 intake, commercial scenarios, sensitivity, 2D, exports, minimal admin и
 security/deployment acceptance.
 
-## 12. Открытые решения
+## 12. Неблокирующие открытые решения
 
-- Подтверждение v4/v5, валюты, НДС и семантики дублей на Q&A.
-- Лицензия/допустимый состав committed derived import bundle.
-- Review policy для organizer/CORROBORATED facts; external unsafe statuses
-  автоматически запрещены.
-- Local volume либо S3-compatible storage для защиты; metadata contract един.
-- Минимальный session/auth flow без лишнего IAM.
-- Retention audit metadata при обязательном удалении проекта и файлов.
+- Точная семантика отдельных duplicate rows сверх обязательного сохранения
+  каждой source row и трактовки дублей как альтернативных предложений. Она не
+  блокирует schema/import: identity модели и конкретное предложение разделены.
+
+Закрыты решения: v4 актуален; derived text bundle разрешён; цены v4
+обрабатываются в RUB по продуктовому решению; НДС включён как допущение
+организаторов без известной ставки; P0 использует PostgreSQL + local named
+volumes без S3; guest не персистентен, USER регистрируется по email/password с
+optional name, ADMIN управляет пользователями; первый ADMIN создаётся
+идемпотентным one-shot bootstrap из локального `.env`; retention минимального
+deletion tombstone — 30 дней; project sharing отсутствует. Evidence policy
+приведена таблицей в docs/17.
 
 Ни одно из этих решений не блокирует migration 0001: она не импортирует данные,
 не включает auth и не меняет runtime.

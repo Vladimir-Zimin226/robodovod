@@ -1,0 +1,76 @@
+{
+  "schema_version": "scenario-spec-v1",
+  "revision_id": "calc_daf6c09af03cdc40",
+  "source": "calculation",
+  "template": "warehouse",
+  "seed": "scenario-2ec44b95853c15b3",
+  "presentation": {
+    "autoplay": true,
+    "default_camera_mode": "AUTOPILOT",
+    "manual_control_available": true,
+    "editor_available": true
+  },
+  "facility": {
+    "area_m2": 12000.0,
+    "width_m": null,
+    "depth_m": null,
+    "geometry_status": "ASSUMED",
+    "occupancy_percent": null
+  },
+  "zones": [
+    {
+      "id": "whole-object",
+      "name": "Весь объект",
+      "process_type": "transport",
+      "cargo_type": "pallets",
+      "status": "RECOMMENDED",
+      "demand_per_day": 800.0,
+      "avg_distance_m": 180.0,
+      "aisle_width_m": 2.4,
+      "polygon": null
+    }
+  ],
+  "fleet": [
+    {
+      "zone_id": "whole-object",
+      "equipment_model_id": "agv_pallet_qr",
+      "visual_profile": "pallet-amr",
+      "quantity": 11,
+      "max_speed_m_s": 0.8,
+      "payload_kg": 1500.0
+    }
+  ],
+  "task_profiles": [
+    {
+      "zone_id": "whole-object",
+      "kind": "pallet_move",
+      "demand_per_day": 800.0,
+      "units_per_trip": 1,
+      "exchange_time_s": 45.0
+    }
+  ],
+  "economics": {
+    "scenario": "base",
+    "horizon_years": 5,
+    "capex_rub": 52470000.0,
+    "annual_opex_rub": 3240000.0,
+    "annual_savings_rub": 16470000.0,
+    "payback_years": 3.6,
+    "npv_rub": 1900000.0,
+    "tco_rub": 73360000.0,
+    "fte_released": 9.0,
+    "confidence": 0.35,
+    "status": "ACCEPTABLE"
+  },
+  "assumptions": [
+    {
+      "code": "CONCEPTUAL_GEOMETRY",
+      "message": "Геометрия не передана; RobCraft должен использовать концептуальный шаблон"
+    },
+    {
+      "code": "ECONOMICS_BACKEND_OWNED",
+      "message": "Экономический snapshot рассчитан backend и не пересчитывается в renderer"
+    }
+  ],
+  "warnings": []
+}

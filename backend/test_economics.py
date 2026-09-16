@@ -10,7 +10,7 @@ from economics import (
     _residual_share, _requested_headcount, _min_pult_per_shift,
     _horizon, DEFAULT_HORIZON_YEARS, MIN_HORIZON_YEARS, MAX_HORIZON_YEARS,
     manual_baseline, validate_mandatory,
-    zone_to_input, calc_zone, calc_combined,
+    zone_to_input, calc_zone, calc_combined, _calc_scenario, SCENARIOS,
 )
 from auditor import _parse_money, _num, _fallback_extract
 from fleet import as_dicts
@@ -257,6 +257,40 @@ class TestInflationInFlows:
         undiscounted = (base.savings_annual * 4 - base.opex_annual * 4) - base.capex
         assert base.npv >= undiscounted * 0.5
 
+    def test_labor_and_equipment_use_separate_inflation(self):
+        inp = UserInput(object_type="retail", process_type="transport",
+                        cargo_type="pallets", pallets_per_day=800,
+                        area_m2=12000, avg_distance_m=180, shifts_count=3,
+                        shift_hours=8, staff_headcount=12,
+                        fte_cost_rub=1_400_000, aisle_width_m=2.4,
+                        payload_kg=700)
+        _, details = _calc_scenario(
+            inp, _robot_dict("amr_heavy_1350"), "base", SCENARIOS["base"])
+        expected_year_2 = (
+            details["labor"] * (1 + LABOR_INFLATION)
+            + details["equip"] * (1 + OPEX_INFLATION)
+            - details["opex"] * (1 + OPEX_INFLATION)
+        )
+        assert details["flows"][1] == pytest.approx(expected_year_2)
+
+    def test_tco_opex_uses_first_year_ramp(self):
+        inp = UserInput(object_type="retail", process_type="transport",
+                        cargo_type="pallets", pallets_per_day=800,
+                        area_m2=12000, avg_distance_m=180, shifts_count=3,
+                        shift_hours=8, staff_headcount=12,
+                        fte_cost_rub=1_400_000, aisle_width_m=2.4,
+                        payload_kg=700)
+        scenario = SCENARIOS["base"]
+        _, details = _calc_scenario(
+            inp, _robot_dict("amr_heavy_1350"), "base", scenario)
+        expected = sum(
+            details["opex"]
+            * (scenario["ramp"] if year == 0 else 1.0)
+            * (1 + OPEX_INFLATION) ** year
+            for year in range(_horizon(inp))
+        )
+        assert details["opex_cum"] == pytest.approx(expected)
+
 
 # ═══════════════════════════════════════════════════════════════
 # Горизонт расчёта
@@ -431,6 +465,12 @@ class TestStaffBreakdown:
         rec = calc_recommendation(self._inp(n=2), _robot_dict("amr_heavy_1350"))
         sb = rec.staff_breakdown
         assert sb.pult_shortage == pytest.approx(1.0)
+        assert sb.pult_source == "mixed"
+
+    def test_pult_source_from_staff_when_nobody_replaced(self):
+        rec = calc_recommendation(self._inp(n=0), _robot_dict("amr_heavy_1350"))
+        sb = rec.staff_breakdown
+        assert sb.staff_applied == 0.0
         assert sb.pult_source == "from_staff"
 
     def test_no_shortage_when_enough_released(self):

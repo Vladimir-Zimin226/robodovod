@@ -129,7 +129,9 @@ PostgreSQL
 
 - PostgreSQL: domain state, версии, evidence metadata, procurement, проекты и
   immutable AnalysisRun.
-- Файловое/object storage: загрузки; в БД — checksum, media type, size и key.
+- P0 local filesystem в named volume: пользовательские загрузки и backup
+  artifacts; в БД — checksum, media type, size и storage key. S3-compatible
+  adapter отложен и не нужен для защиты.
 - `data/staging/`: локальная ignored workspace, не runtime dependency.
 - Разрешённый import bundle: вход явного импортёра, не вторая ручная БД.
 - Секреты: только server-side environment variables.

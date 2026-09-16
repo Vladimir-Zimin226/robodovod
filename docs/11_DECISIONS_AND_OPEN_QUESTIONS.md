@@ -21,6 +21,10 @@
 - only approved verified evidence may become an automatic matching input;
 - catalog import is versioned, transactional and idempotent;
 - current `backend/fleet` remains a comparison adapter until DB dual-run passes;
+- `organizer-catalog-v4` is the confirmed current organizer version;
+- deterministic derived organizer JSON/CSV bundle may be committed to Git;
+  source binaries and working staging remain outside Git;
+- P0 uses PostgreSQL plus local named volumes for uploads/backups; S3 is deferred;
 - AutomationArchitecture introduced;
 - EquipmentModel != SolutionConfiguration != ProcurementOption;
 - ServiceOffering supported.
@@ -49,6 +53,33 @@
   `ScenarioSpec v1` и двухфазный revision protocol;
 - 2D реализуется отдельным consumer того же ScenarioSpec и остаётся P0;
 - допустим термин «сценарная симуляция», но не claims инженерного цифрового двойника или подтверждённой производительности.
+
+### Authentication and administration
+
+- guest is an unauthenticated, non-persistent demo flow;
+- self-registration requires email/password and optional name, always creates
+  role USER;
+- roles stored for accounts are USER and ADMIN; project sharing is not planned;
+- ADMIN creates, edits, disables/deletes users and performs password reset;
+- the last active ADMIN cannot be deleted or demoted;
+- ADMIN may download a sanitized diagnostic bundle, not a raw database dump;
+- operational `pg_dump` and uploads backup remain server/CLI operations;
+- the first ADMIN is created by an idempotent one-shot bootstrap from
+  `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` and optional
+  `BOOTSTRAP_ADMIN_NAME`; the local `.env` is ignored by Git, while
+  `.env.example` contains placeholders only, and bootstrap never overwrites an
+  existing administrator;
+- passwords use Argon2id; browser auth uses secure HttpOnly/SameSite cookie and
+  CSRF protection.
+
+### Deletion and diagnostics
+
+- project deletion hard-deletes project payload, runs, metadata and local files;
+- only a minimal deletion tombstone remains without filenames, content, email or
+  name; retention is 30 days, then the tombstone is purged;
+- diagnostic bundle contains versions, manifests, import/integrity results,
+  redacted errors and aggregate counts, but no secrets, password hashes, PII,
+  uploaded binaries or full user snapshots.
 
 ## 2. Decisions to freeze before coding contracts
 
@@ -127,12 +158,12 @@ Recommendation: P1 depth unless official criteria make it essential.
 
 ## 3.1. Storage decisions before the first migration
 
-- normalized columns versus JSONB for heterogeneous equipment specs;
-- UUID/natural-key and uniqueness policy for organizer rows/catalog versions;
-- local volume versus object storage for uploaded files;
-- whether organizer-derived import bundles may be committed;
-- migration/seed policy for local, CI and Compose environments;
-- minimum authorization model for the official guest/user/admin roles.
+Closed decisions are recorded above and in docs/17. Remaining product/research
+questions do not block 0001–0003 because the import contract preserves every
+source row:
+
+- exact duplicate-row semantics beyond preserving every source row;
+- exact readiness weights and demo-curated equipment set.
 
 The working direction is recorded in
 `17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md`.

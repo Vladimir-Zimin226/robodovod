@@ -47,6 +47,13 @@ error, `zone.id` должны быть уникальны, а `units_per_trip` �
 - дисконтированные денежные потоки, NPV, TCO, ROI и окупаемость;
 - горизонт проекта от 5 до 10 лет.
 
+ФОТ индексируется по `LABOR_INFLATION`, а стоимость эксплуатации ричтраков и
+роботизированного решения — по `OPEX_INFLATION`. First-year `ramp` одинаково
+применяется к OPEX в годовом cash flow и накопленном TCO; это устраняет прежнее
+расхождение NPV/TCO. При частичном покрытии минимального персонала пульта
+`pult_source=mixed`, а не `from_staff`: часть людей берётся из заменяемого
+персонала, нехватка — из остающегося штата.
+
 Поле каталога `economics.fte_replace_per_shift` используется как верхняя граница
 заменяемого труда: `robots × shifts × fte_replace_per_shift × rotation_factor`.
 Итог дополнительно ограничен покрываемым спросом и фактическим штатом. Это явное
@@ -153,8 +160,8 @@ npm.cmd run build --prefix frontend
 docker compose config --quiet
 ```
 
-Результат актуальной локальной проверки после redesign: 175 backend-тестов,
-75 тестов RobCraft, 3 ScenarioSpec contract-теста и 8 frontend-тестов пройдены;
+Результат актуальной локальной проверки: 179 backend-тестов,
+77 тестов RobCraft, 4 ScenarioSpec contract-теста и 8 frontend-тестов пройдены;
 ESLint не сообщает ошибок, production bundle и frontend Docker image собираются,
 Compose-файл валиден. Дополнительно реальный локальный Uvicorn вернул HTTP 200 для корневого
 endpoint, каталога, категорий, whole-расчёта и zonal-расчёта. После smoke-проверки
@@ -166,11 +173,15 @@ endpoint, каталога, категорий, whole-расчёта и zonal-р
 build context расположен в корне репозитория; в `frontend/Dockerfile` путь к
 Nginx-конфигурации должен оставаться `frontend/nginx.conf`.
 
-Golden экономика этапа A зафиксирована в
-`backend/fixtures/economics-warehouse-v1.json`. Файл объявлен неизменяемым: при
-сознательном изменении модели создаётся новая версия fixture, существующие
-ожидания не переписываются. Межъязыковой fixture находится в
-`contracts/fixtures/scenario-spec-v1.golden.json`.
+Golden экономика этапа A сохранена в неизменяемом
+`backend/fixtures/economics-warehouse-v1.json`. После исправления раздельной
+индексации и first-year ramp текущий snapshot создан отдельно как
+`backend/fixtures/economics-warehouse-v2.json`; v1 не переписан. Соответствующий
+ScenarioSpec сохранён в
+`contracts/fixtures/scenario-spec-v1.economics-v2.golden.json`, а прежний
+межъязыковой `contracts/fixtures/scenario-spec-v1.golden.json` остаётся
+регрессионным fixture RobCraft. При следующем сознательном изменении формулы
+создаётся новая версия, существующие ожидания не переписываются.
 
 ### Совместимость и миграция этапа A
 

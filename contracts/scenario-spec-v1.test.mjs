@@ -4,6 +4,10 @@ import test from 'node:test';
 
 const schema = JSON.parse(readFileSync(new URL('./scenario-spec-v1.schema.json', import.meta.url), 'utf8'));
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/scenario-spec-v1.golden.json', import.meta.url), 'utf8'));
+const economicsV2Fixture = JSON.parse(readFileSync(
+  new URL('./fixtures/scenario-spec-v1.economics-v2.golden.json', import.meta.url),
+  'utf8',
+));
 
 function dereference(rule) {
   if (!rule.$ref) return rule;
@@ -65,6 +69,10 @@ function validate(value, sourceRule, path = '$') {
 
 test('JavaScript accepts the canonical ScenarioSpec v1 fixture', () => {
   validate(fixture, schema);
+});
+
+test('JavaScript accepts the current economics-v2 ScenarioSpec snapshot', () => {
+  validate(economicsV2Fixture, schema);
 });
 
 test('JavaScript rejects an unknown major version', () => {
