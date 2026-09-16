@@ -185,6 +185,39 @@ python scripts/build_catalog_bundle.py
 python scripts/build_catalog_bundle.py --check
 ```
 
+## Catalog repository и dual-run
+
+Расчётные endpoint по-прежнему используют только reference adapter над
+`backend/fleet`; переменная окружения и catalog activation не могут незаметно
+переключить публичный runtime на PostgreSQL. PostgreSQL adapter требует явный
+`catalog_version.code`, возвращает DTO без ORM-объектов и читает ТТХ только из
+evidence-gated view `matching_spec_facts`.
+
+После явного BASE/ENRICHMENT import служебное сравнение запускается отдельным
+Compose tools-service:
+
+```bash
+docker compose --profile tools run --rm catalog-dual-run
+```
+
+Локальный эквивалент:
+
+```powershell
+$env:CATALOG_DUAL_RUN_ENABLED = 'true'
+$env:DATABASE_URL = 'postgresql+psycopg://<application-role>:<url-encoded-password>@localhost:5432/<database-name>'
+$env:PYTHONPATH = 'backend'
+.\.venv\Scripts\python.exe -m catalog_dual_run --catalog-code organizer-catalog-v4 --fixture backend\fixtures\catalog-dual-run-warehouse-v1.json
+```
+
+JSON-отчёт сравнивает только явно сопоставленные модели по identity, hard
+rejection, fleet, economics и canonical ScenarioSpec. Каждое несовпадение
+получает `EXPECTED_DIFFERENCE`, `DEFECT` или `BLOCKED_BY_EVIDENCE`; имена моделей
+автоматически не склеиваются. Текущий официальный каталог ожидаемо блокируется
+до evidence-backed runtime projection: dual-run не подставляет отсутствующие
+операционные и экономические поля из legacy. Код завершения `2` означает
+необъяснённый `DEFECT`, `3` — ошибку конфигурации; expected/blocked без дефектов
+завершаются кодом `0`.
+
 ## Автономный запуск RobCraft
 
 RobCraft не требует запуска backend, frontend, Docker или загрузки зависимостей:
@@ -261,9 +294,9 @@ project.json   машиночитаемый манифест концепции
 ограничения, находится в [отдельной технической записке](docs/14_ECONOMICS_AND_ZONES.md).
 
 Нормализованный organizer v4 bundle и внешний P0 enrichment проходят строгий
-validate/import в PostgreSQL, но runtime всё ещё использует legacy
-`backend/fleet`. Следующий этап — repository boundary и контролируемый dual-run;
-его границы описаны в
+validate/import в PostgreSQL; repository boundary и контролируемый dual-run
+реализованы, но runtime всё ещё использует legacy `backend/fleet`. Следующий
+этап — `persistence/projects-analysis-runs`; его границы описаны в
 [решении о хранении данных](docs/17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md).
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

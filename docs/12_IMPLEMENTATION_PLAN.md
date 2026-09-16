@@ -152,6 +152,10 @@ runtime switch ещё не выполняются.
 
 ### Этап 3 — repository boundary и dual-run
 
+Статус: выполнен итерацией `data/catalog-repository-dual-run`; публичный
+runtime остаётся на legacy adapter, а PostgreSQL доступен только явной
+служебной командой с feature flag и версией каталога.
+
 - Domain DTO не зависит от SQLAlchemy.
 - Legacy `backend/fleet` остаётся reference adapter и default runtime.
 - PostgreSQL adapter включается feature flag только для dual-run.

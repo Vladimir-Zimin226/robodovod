@@ -121,10 +121,11 @@ PostgreSQL
 ```
 
 Текущий implementation note: PostgreSQL storage control-plane, catalog-domain
-schema и явный транзакционный importer реализованы. Прототип всё ещё читает
-runtime-каталог из `backend/fleet`; repository boundary и dual-run пока не
-реализованы. Публичные calculation/ScenarioSpec contracts и источник данных
-под ними не менялись.
+schema, явный транзакционный importer и repository dual-run реализованы.
+Прототип всё ещё читает runtime-каталог только из legacy adapter над
+`backend/fleet`; PostgreSQL adapter доступен служебному dual-run под feature
+flag. Публичные calculation/ScenarioSpec contracts и источник данных под ними
+не менялись.
 
 ### Storage ownership
 

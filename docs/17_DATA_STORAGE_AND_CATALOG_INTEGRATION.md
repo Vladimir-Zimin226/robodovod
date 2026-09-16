@@ -297,8 +297,9 @@ import и не переключает runtime repository.
 Implementation status: обе малые итерации реализованы. Importer читает только
 явно указанный committed bundle, сохраняет отдельные `ImportRun`, выполняет
 BASE/ENRICHMENT одной транзакцией на фазу и не публикует/не активирует каталог.
-Следующая граница — `data/catalog-repository-dual-run`; legacy `backend/fleet`
-до неё остаётся единственным runtime-источником.
+Следующая repository-итерация также реализована; legacy `backend/fleet`
+намеренно остаётся единственным runtime-источником до project/AnalysisRun и
+отдельной atomic activation итерации.
 
 `manufacturers`, `catalog_source_rows`, `equipment_models`,
 `equipment_applicability`, `spec_observations`, `field_evidence`,
@@ -317,6 +318,16 @@ commissioning или deep integration в catalog price. Ни RUB, ни VAT polic
 применяются к другому source dataset без явного versioned decision.
 
 ### Repository и dual-run
+
+Implementation status: итерация `data/catalog-repository-dual-run` реализована.
+Legacy `backend/fleet` обёрнут reference adapter и остаётся единственным
+публичным runtime; PostgreSQL adapter требует явный version code и доступен
+только служебной dual-run команде под feature flag. DTO не экспортируют ORM,
+а adapter читает matching-поля исключительно из `matching_spec_facts`.
+Warehouse fixture сравнивает identity, rejection, fleet, economics и canonical
+ScenarioSpec, классифицирует каждое отличие и не угадывает соответствие моделей
+по имени. Для текущей официальной пары отсутствие evidence-backed runtime
+projection фиксируется как `BLOCKED_BY_EVIDENCE`, без legacy-defaults.
 
 - Ввести domain DTO и `CatalogRepository` без ORM-объектов за границей data
   layer.

@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from catalog_repository import LegacyFleetCatalogRepository
 from database import get_database
 
 from models import UserInput, CalculationResponse, RejectedRobot
@@ -19,14 +20,7 @@ from simulation import generate_simulation
 from auditor import conduct_interview
 from scenario_spec import build_scenario_spec
 
-from fleet import (
-    ROBOTS as _ROBOTS_PYDANTIC,
-    ROBOT_BY_ID as _ROBOT_BY_ID_PYDANTIC,
-    CATEGORY_ORDER,
-    CATEGORY_LABELS,
-    as_dicts,
-    by_category_dicts,
-)
+from fleet import CATEGORY_ORDER, CATEGORY_LABELS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,11 +30,23 @@ logger = logging.getLogger("robomera.api")
 
 
 # ═══════════════════════════════════════════════════════════════
-# Парк роботов — сериализованные словари.
-# economics.py работает с robot["specs"], поэтому оставляем dict-представление.
+# Парк роботов — сериализованные словари из reference adapter.
+# PostgreSQL здесь намеренно не выбирается ни переменной окружения, ни activation:
+# он доступен только отдельной служебной dual-run команде.
 # ═══════════════════════════════════════════════════════════════
-ROBOTS = as_dicts()
+_RUNTIME_CATALOG = LegacyFleetCatalogRepository().load()
+ROBOTS = _RUNTIME_CATALOG.runtime_robots()
 ROBOT_BY_ID = {r["id"]: r for r in ROBOTS}
+
+
+def _robots_by_category():
+    return {
+        category: {
+            "label": CATEGORY_LABELS[category],
+            "robots": [robot for robot in ROBOTS if robot["category"] == category],
+        }
+        for category in CATEGORY_ORDER
+    }
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -149,7 +155,7 @@ def list_robots():
 @app.get("/api/robots/by-category")
 def list_robots_by_category():
     """Парк, сгруппированный по категориям с человекочитаемыми заголовками."""
-    return by_category_dicts()
+    return _robots_by_category()
 
 
 @app.get("/api/robots/categories")

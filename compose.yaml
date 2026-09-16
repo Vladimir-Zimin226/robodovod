@@ -69,6 +69,25 @@ services:
     restart: "no"
     init: true
 
+  catalog-dual-run:
+    profiles: ["tools"]
+    build:
+      context: ./backend
+    entrypoint: ["python", "-m", "catalog_dual_run"]
+    command:
+      - "--catalog-code"
+      - "organizer-catalog-v4"
+      - "--fixture"
+      - "fixtures/catalog-dual-run-warehouse-v1.json"
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+      CATALOG_DUAL_RUN_ENABLED: "true"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    init: true
+
   frontend:
     build:
       context: .
