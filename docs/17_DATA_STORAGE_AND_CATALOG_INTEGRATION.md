@@ -412,6 +412,15 @@ storage относятся к отдельной итерации `intake/xlsx-c
 
 ### Корректирующий срез: catalog positions, media и визуальный контракт
 
+Implementation status: `data/catalog-positions-media` и
+`frontend/catalog-theme-media` реализованы; следующий срез —
+`intake/xlsx-csv-project-files`. Migration `0004_catalog_position_media`
+добавляет append-only `catalog_media_assets` и `catalog_position_media`.
+Официальный PDF проверяется по зарегистрированному source SHA-256, 223 карточки
+сопоставляются с source rows строго в document order, одинаковые bytes
+дедуплицируются content hash (текущий результат — 189 assets), а API сохраняет
+разделение 223 positions / 187 model identities. Runtime activation не изменена.
+
 После первого просмотра активированного discovery-каталога зафиксированы три
 обязательных изменения до развития расчётного matching:
 
@@ -436,6 +445,13 @@ read-model/API/media contract без переключения расчётног
 accessibility regression tests. DoD: API/UI показывают 223 позиции, 187 model
 identity не клонируются, duplicate-row differences доказательно сохраняются,
 media имеет provenance, а каталог читаем и управляем с клавиатуры на 1366×768.
+
+Frontend реализует этот контракт без собственной domain-логики: React key и
+compare selection основаны на `position_id`, `selectable` и media URL приходят
+из read-model, изображения имеют intrinsic dimensions, lazy loading и fallback.
+Первичная выдача ограничена 12 карточками на семейство с явным раскрытием, чтобы
+223 позиции не создавали тяжёлый начальный DOM; поиск и счётчики работают по
+полной выборке. Расчётный runtime и публичные calculation endpoints не менялись.
 
 ## 10. Файлы, backup, rollback и demo reset
 

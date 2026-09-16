@@ -8,3 +8,5 @@ SQLAlchemy==2.0.43
 alembic==1.16.5
 psycopg[binary]==3.2.10
 argon2-cffi==23.1.0
+pypdf==6.18.0
+Pillow==12.3.0

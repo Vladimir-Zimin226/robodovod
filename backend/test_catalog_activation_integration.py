@@ -141,6 +141,7 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
     snapshot = ActivatedCatalogRepository(activation_database, "discovery").load()
     assert snapshot.version.status == "PUBLISHED"
     assert len(snapshot.models) == 187
+    assert len(snapshot.positions) == 223
     assert snapshot.runtime_robots() == []
     assert catalog_activation_status(activation_database)["history_count"] == 2
 
@@ -155,6 +156,7 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
             "catalog_code": "organizer-catalog-v4",
             "catalog_status": "PUBLISHED",
             "model_count": 187,
+            "position_count": 223,
             "selectable_count": 0,
         }
         search = client.get(
@@ -163,10 +165,13 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
         )
         assert search.status_code == 200
         payload = search.json()
-        assert 0 < payload["total"] < 187
+        assert 0 < payload["total"] < 223
+        assert payload["model_count"] == 187
+        assert payload["position_count"] == 223
         assert payload["catalog"]["source"] == "activated"
         assert all(item["system_family"] == "BRS" for item in payload["items"])
         assert all(item["selectable"] is False for item in payload["items"])
+        assert all(item["position_id"] != item["model_id"] for item in payload["items"])
 
     with pytest.raises(CatalogActivationError, match="evidence-backed"):
         activate_catalog_version(

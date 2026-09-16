@@ -14,6 +14,9 @@ from decimal import Decimal
 from typing import Any, Protocol
 
 from catalog_models import (
+    CatalogMediaAsset,
+    CatalogPositionMedia,
+    CatalogSourceRow,
     EquipmentApplicability,
     EquipmentModel,
     Manufacturer,
@@ -56,6 +59,8 @@ class CatalogApplicabilityDTO:
     scenario: str | None
     region: str | None
     case_text: str | None
+    id: str | None = None
+    source_row_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -68,6 +73,9 @@ class ProcurementOptionDTO:
     included_costs: tuple[Any, ...]
     excluded_costs: tuple[Any, ...]
     evidence_id: str | None
+    id: str | None = None
+    source_row_id: str | None = None
+    raw_price: str | None = None
 
 
 @dataclass(frozen=True)
@@ -98,17 +106,49 @@ class CatalogModelDTO:
 
 
 @dataclass(frozen=True)
+class CatalogMediaDTO:
+    id: str
+    sha256: str
+    media_type: str
+    byte_size: int
+    width_px: int
+    height_px: int
+    storage_key: str
+    source_page: int
+    source_slot: int
+
+
+@dataclass(frozen=True)
+class CatalogPositionDTO:
+    id: str
+    source_record_key: str
+    source_row_number: int
+    model: CatalogModelDTO
+    applicability: CatalogApplicabilityDTO
+    procurement_option: ProcurementOptionDTO
+    media: CatalogMediaDTO | None
+    runtime_robot: dict[str, Any] | None
+    runtime_blockers: tuple[str, ...]
+
+    def runtime_dict(self) -> dict[str, Any] | None:
+        return copy.deepcopy(self.runtime_robot)
+
+
+@dataclass(frozen=True)
 class CatalogSnapshotDTO:
     version: CatalogVersionDTO
     models: tuple[CatalogModelDTO, ...]
+    positions: tuple[CatalogPositionDTO, ...] = ()
 
     def by_source_key(self) -> dict[str, CatalogModelDTO]:
         return {model.source_record_key: model for model in self.models}
 
     def runtime_robots(self) -> list[dict[str, Any]]:
         robots: list[dict[str, Any]] = []
-        for model in self.models:
-            runtime_robot = model.runtime_dict()
+        candidates: tuple[CatalogPositionDTO | CatalogModelDTO, ...]
+        candidates = self.positions or self.models
+        for candidate in candidates:
+            runtime_robot = candidate.runtime_dict()
             if runtime_robot is not None:
                 robots.append(runtime_robot)
         return robots
@@ -135,6 +175,7 @@ class LegacyFleetCatalogRepository:
 
     def load(self) -> CatalogSnapshotDTO:
         models: list[CatalogModelDTO] = []
+        positions: list[CatalogPositionDTO] = []
         for robot in LEGACY_ROBOTS:
             payload = robot.model_dump(mode="json")
             specs = payload["specs"]
@@ -145,24 +186,45 @@ class LegacyFleetCatalogRepository:
                 _legacy_fact("autonomy", specs["autonomy_hours"], "h"),
                 _legacy_fact("navigation", specs["navigation_type"], "1"),
             )
-            models.append(
-                CatalogModelDTO(
+            model = CatalogModelDTO(
+                id=payload["id"],
+                source_namespace="legacy-fleet",
+                source_record_key=payload["id"],
+                organizer_id=None,
+                manufacturer=None,
+                name=payload["name"],
+                system_family=payload["category"],
+                type_code=payload["type_label"],
+                subtype_code=None,
+                maturity_status=None,
+                trl=None,
+                description=payload["description"],
+                attributes={},
+                facts=facts,
+                applicability=(),
+                procurement_options=(),
+                runtime_robot=copy.deepcopy(payload),
+                runtime_blockers=(),
+            )
+            models.append(model)
+            positions.append(
+                CatalogPositionDTO(
                     id=payload["id"],
-                    source_namespace="legacy-fleet",
                     source_record_key=payload["id"],
-                    organizer_id=None,
-                    manufacturer=None,
-                    name=payload["name"],
-                    system_family=payload["category"],
-                    type_code=payload["type_label"],
-                    subtype_code=None,
-                    maturity_status=None,
-                    trl=None,
-                    description=payload["description"],
-                    attributes={},
-                    facts=facts,
-                    applicability=(),
-                    procurement_options=(),
+                    source_row_number=len(positions) + 1,
+                    model=model,
+                    applicability=CatalogApplicabilityDTO(None, None, None, None),
+                    procurement_option=ProcurementOptionDTO(
+                        mode="REFERENCE",
+                        amount=None,
+                        currency=None,
+                        price_status="LEGACY_REFERENCE",
+                        vat_status="UNKNOWN",
+                        included_costs=(),
+                        excluded_costs=(),
+                        evidence_id=None,
+                    ),
+                    media=None,
                     runtime_robot=copy.deepcopy(payload),
                     runtime_blockers=(),
                 )
@@ -175,6 +237,7 @@ class LegacyFleetCatalogRepository:
                 schema_version="legacy-json-v1",
             ),
             models=tuple(models),
+            positions=tuple(positions),
         )
 
 
@@ -219,6 +282,8 @@ def _project_runtime_robot(
     model: EquipmentModel,
     facts: tuple[CatalogFactDTO, ...],
     procurement: tuple[ProcurementOptionDTO, ...],
+    *,
+    runtime_id: str | None = None,
 ) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
     """Build an engine payload only from an explicit projection plus safe facts."""
 
@@ -228,7 +293,7 @@ def _project_runtime_robot(
         return None, ("runtime_projection",)
 
     payload = copy.deepcopy(projection)
-    payload.setdefault("id", model.source_record_key)
+    payload.setdefault("id", runtime_id or model.source_record_key)
     payload.setdefault("name", model.name)
     payload.setdefault("description", model.description or "")
     specs = payload.get("specs")
@@ -244,7 +309,9 @@ def _project_runtime_robot(
     for target, defaults in _DEFAULT_FACT_BINDINGS.items():
         configured = custom_bindings.get(target)
         codes = (configured,) if isinstance(configured, str) else defaults
-        fact = next((facts_by_code[code] for code in codes if code in facts_by_code), None)
+        fact = next(
+            (facts_by_code[code] for code in codes if code in facts_by_code), None
+        )
         if fact is None:
             blockers.append(f"matching_fact:{target}")
             continue
@@ -319,6 +386,11 @@ class PostgresCatalogRepository:
                 .where(EquipmentModel.catalog_version_id == version.id)
                 .order_by(EquipmentModel.source_record_key)
             ).all()
+            source_rows = session.scalars(
+                select(CatalogSourceRow)
+                .where(CatalogSourceRow.catalog_version_id == version.id)
+                .order_by(CatalogSourceRow.source_row_number)
+            ).all()
             applicability_rows = session.scalars(
                 select(EquipmentApplicability)
                 .where(EquipmentApplicability.catalog_version_id == version.id)
@@ -335,9 +407,10 @@ class PostgresCatalogRepository:
                     ProcurementOption.id,
                 )
             ).all()
-            matching_rows = session.execute(
-                text(
-                    """
+            matching_rows = (
+                session.execute(
+                    text(
+                        """
                     SELECT id, equipment_model_id, spec_code, scope_code,
                            numeric_value, text_value, boolean_value, json_value,
                            canonical_unit, resolution_status, primary_evidence_id
@@ -345,40 +418,92 @@ class PostgresCatalogRepository:
                     WHERE catalog_version_id = :version_id
                     ORDER BY equipment_model_id, spec_code, scope_code, id
                     """
-                ),
-                {"version_id": version.id},
-            ).mappings().all()
+                    ),
+                    {"version_id": version.id},
+                )
+                .mappings()
+                .all()
+            )
+            media_rows = session.execute(
+                select(CatalogPositionMedia, CatalogMediaAsset)
+                .join(
+                    CatalogMediaAsset,
+                    (CatalogMediaAsset.id == CatalogPositionMedia.media_asset_id)
+                    & (
+                        CatalogMediaAsset.catalog_version_id
+                        == CatalogPositionMedia.catalog_version_id
+                    ),
+                )
+                .where(CatalogPositionMedia.catalog_version_id == version.id)
+            ).all()
 
-            applicability_by_model: dict[
-                uuid.UUID, list[CatalogApplicabilityDTO]
-            ] = {}
+            applicability_by_model: dict[uuid.UUID, list[CatalogApplicabilityDTO]] = {}
+            applicability_by_source: dict[uuid.UUID, CatalogApplicabilityDTO] = {}
+            applicability_model_by_source: dict[uuid.UUID, uuid.UUID] = {}
             for row in applicability_rows:
+                item = CatalogApplicabilityDTO(
+                    industry=row.industry,
+                    scenario=row.scenario,
+                    region=row.region,
+                    case_text=row.case_text,
+                    id=str(row.id),
+                    source_row_id=str(row.catalog_source_row_id),
+                )
                 applicability_by_model.setdefault(row.equipment_model_id, []).append(
-                    CatalogApplicabilityDTO(
-                        industry=row.industry,
-                        scenario=row.scenario,
-                        region=row.region,
-                        case_text=row.case_text,
+                    item
+                )
+                if row.catalog_source_row_id in applicability_by_source:
+                    raise CatalogRepositoryError(
+                        "source row has duplicate applicability"
                     )
+                applicability_by_source[row.catalog_source_row_id] = item
+                applicability_model_by_source[row.catalog_source_row_id] = (
+                    row.equipment_model_id
                 )
 
             procurement_by_model: dict[uuid.UUID, list[ProcurementOptionDTO]] = {}
+            procurement_by_source: dict[uuid.UUID, ProcurementOptionDTO] = {}
+            procurement_model_by_source: dict[uuid.UUID, uuid.UUID] = {}
             for row in procurement_rows:
-                procurement_by_model.setdefault(row.equipment_model_id, []).append(
-                    ProcurementOptionDTO(
-                        mode=row.procurement_mode,
-                        amount=row.amount,
-                        currency=row.currency,
-                        price_status=row.price_status,
-                        vat_status=row.vat_status,
-                        included_costs=tuple(copy.deepcopy(row.included_costs)),
-                        excluded_costs=tuple(copy.deepcopy(row.excluded_costs)),
-                        evidence_id=(
-                            str(row.field_evidence_id)
-                            if row.field_evidence_id is not None
-                            else None
-                        ),
+                item = ProcurementOptionDTO(
+                    mode=row.procurement_mode,
+                    amount=row.amount,
+                    currency=row.currency,
+                    price_status=row.price_status,
+                    vat_status=row.vat_status,
+                    included_costs=tuple(copy.deepcopy(row.included_costs)),
+                    excluded_costs=tuple(copy.deepcopy(row.excluded_costs)),
+                    evidence_id=(
+                        str(row.field_evidence_id)
+                        if row.field_evidence_id is not None
+                        else None
+                    ),
+                    id=str(row.id),
+                    source_row_id=str(row.catalog_source_row_id),
+                    raw_price=row.raw_price,
+                )
+                procurement_by_model.setdefault(row.equipment_model_id, []).append(item)
+                if row.catalog_source_row_id in procurement_by_source:
+                    raise CatalogRepositoryError(
+                        "source row has duplicate procurement option"
                     )
+                procurement_by_source[row.catalog_source_row_id] = item
+                procurement_model_by_source[row.catalog_source_row_id] = (
+                    row.equipment_model_id
+                )
+
+            media_by_source: dict[uuid.UUID, CatalogMediaDTO] = {}
+            for link, asset in media_rows:
+                media_by_source[link.catalog_source_row_id] = CatalogMediaDTO(
+                    id=str(asset.id),
+                    sha256=asset.sha256,
+                    media_type=asset.media_type,
+                    byte_size=asset.byte_size,
+                    width_px=asset.width_px,
+                    height_px=asset.height_px,
+                    storage_key=asset.storage_key,
+                    source_page=link.source_page,
+                    source_slot=link.source_slot,
                 )
 
             facts_by_model: dict[uuid.UUID, list[CatalogFactDTO]] = {}
@@ -396,6 +521,8 @@ class PostgresCatalogRepository:
                 )
 
             models: list[CatalogModelDTO] = []
+            model_entities: dict[uuid.UUID, EquipmentModel] = {}
+            model_dtos: dict[uuid.UUID, CatalogModelDTO] = {}
             for model, manufacturer_name in model_rows:
                 facts = tuple(facts_by_model.get(model.id, ()))
                 applicability = tuple(applicability_by_model.get(model.id, ()))
@@ -403,28 +530,62 @@ class PostgresCatalogRepository:
                 runtime_robot, blockers = _project_runtime_robot(
                     model, facts, procurement
                 )
-                models.append(
-                    CatalogModelDTO(
-                        id=str(model.id),
-                        source_namespace=model.source_namespace,
-                        source_record_key=model.source_record_key,
-                        organizer_id=(
-                            str(model.organizer_id)
-                            if model.organizer_id is not None
-                            else None
-                        ),
-                        manufacturer=manufacturer_name,
-                        name=model.name,
-                        system_family=model.system_family,
-                        type_code=model.type_code,
-                        subtype_code=model.subtype_code,
-                        maturity_status=model.maturity_status,
-                        trl=model.trl,
-                        description=model.description,
-                        attributes=copy.deepcopy(model.attributes),
-                        facts=facts,
+                item = CatalogModelDTO(
+                    id=str(model.id),
+                    source_namespace=model.source_namespace,
+                    source_record_key=model.source_record_key,
+                    organizer_id=(
+                        str(model.organizer_id)
+                        if model.organizer_id is not None
+                        else None
+                    ),
+                    manufacturer=manufacturer_name,
+                    name=model.name,
+                    system_family=model.system_family,
+                    type_code=model.type_code,
+                    subtype_code=model.subtype_code,
+                    maturity_status=model.maturity_status,
+                    trl=model.trl,
+                    description=model.description,
+                    attributes=copy.deepcopy(model.attributes),
+                    facts=facts,
+                    applicability=applicability,
+                    procurement_options=procurement,
+                    runtime_robot=runtime_robot,
+                    runtime_blockers=blockers,
+                )
+                models.append(item)
+                model_entities[model.id] = model
+                model_dtos[model.id] = item
+
+            positions: list[CatalogPositionDTO] = []
+            for source_row in source_rows:
+                applicability = applicability_by_source.get(source_row.id)
+                procurement = procurement_by_source.get(source_row.id)
+                if applicability is None or procurement is None:
+                    raise CatalogRepositoryError(
+                        "source row must have one applicability and procurement option"
+                    )
+                model_id = applicability_model_by_source[source_row.id]
+                if model_id != procurement_model_by_source[source_row.id]:
+                    raise CatalogRepositoryError("source row model links disagree")
+                model_entity = model_entities[model_id]
+                model_dto = model_dtos[model_id]
+                runtime_robot, blockers = _project_runtime_robot(
+                    model_entity,
+                    model_dto.facts,
+                    (procurement,),
+                    runtime_id=source_row.source_record_key,
+                )
+                positions.append(
+                    CatalogPositionDTO(
+                        id=str(source_row.id),
+                        source_record_key=source_row.source_record_key,
+                        source_row_number=source_row.source_row_number,
+                        model=model_dto,
                         applicability=applicability,
-                        procurement_options=procurement,
+                        procurement_option=procurement,
+                        media=media_by_source.get(source_row.id),
                         runtime_robot=runtime_robot,
                         runtime_blockers=blockers,
                     )
@@ -438,6 +599,7 @@ class PostgresCatalogRepository:
                     schema_version=version.schema_version,
                 ),
                 models=tuple(models),
+                positions=tuple(positions),
             )
 
 

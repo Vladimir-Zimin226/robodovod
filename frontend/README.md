@@ -31,3 +31,10 @@ Vite также публикует соседний автономный дви�
 
 Основные команды: `npm.cmd test`, `npm.cmd run lint`, `npm.cmd run build`,
 `npm.cmd run preview`.
+
+Экран библиотеки использует discovery read-model `/api/catalog/models`:
+публичной единицей является catalog position, поэтому 223 исходные позиции не
+схлопываются в 187 общих model identities. Официальные изображения загружаются
+лениво через same-origin media URL; при отсутствии или ошибке asset показывается
+стабильный fallback. До evidence-backed runtime projection такие позиции
+остаются discovery-only и не подмешиваются в расчёт.

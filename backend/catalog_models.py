@@ -13,6 +13,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     Date,
@@ -29,9 +30,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
-
 from storage_models import Base
-
 
 EVIDENCE_STATUSES = (
     "NORMALIZED_FROM_ORGANIZER",
@@ -232,7 +231,9 @@ class EquipmentModel(Base):
             "subtype_code IS NULL OR length(btrim(subtype_code)) > 0",
             name="ck_equipment_models_subtype_code_nonempty",
         ),
-        CheckConstraint("trl IS NULL OR trl BETWEEN 1 AND 9", name="ck_equipment_models_trl"),
+        CheckConstraint(
+            "trl IS NULL OR trl BETWEEN 1 AND 9", name="ck_equipment_models_trl"
+        ),
         CheckConstraint(
             "jsonb_typeof(attributes) = 'object'",
             name="ck_equipment_models_attributes_object",
@@ -271,6 +272,125 @@ class EquipmentModel(Base):
     attributes: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb")
     )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class CatalogMediaAsset(Base):
+    __tablename__ = "catalog_media_assets"
+    __table_args__ = (
+        UniqueConstraint(
+            "id", "catalog_version_id", name="uq_catalog_media_assets_id_version"
+        ),
+        UniqueConstraint(
+            "catalog_version_id",
+            "sha256",
+            name="uq_catalog_media_assets_version_sha256",
+        ),
+        UniqueConstraint("storage_key", name="uq_catalog_media_assets_storage_key"),
+        CheckConstraint(
+            "sha256 ~ '^[0-9a-f]{64}$'", name="ck_catalog_media_assets_sha256"
+        ),
+        CheckConstraint(
+            "media_type IN ('image/png', 'image/jpeg', 'image/webp')",
+            name="ck_catalog_media_assets_media_type",
+        ),
+        CheckConstraint("byte_size > 0", name="ck_catalog_media_assets_byte_size"),
+        CheckConstraint(
+            "width_px > 0 AND height_px > 0",
+            name="ck_catalog_media_assets_dimensions",
+        ),
+        CheckConstraint(
+            "storage_key = btrim(storage_key) AND length(storage_key) > 0",
+            name="ck_catalog_media_assets_storage_key",
+        ),
+        ForeignKeyConstraint(
+            ["catalog_version_id", "source_artifact_id"],
+            [
+                "catalog_version_sources.catalog_version_id",
+                "catalog_version_sources.source_artifact_id",
+            ],
+            name="fk_catalog_media_assets_version_artifact",
+            ondelete="RESTRICT",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    catalog_version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False
+    )
+    source_artifact_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False
+    )
+    sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    media_type: Mapped[str] = mapped_column(Text, nullable=False)
+    byte_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    width_px: Mapped[int] = mapped_column(Integer, nullable=False)
+    height_px: Mapped[int] = mapped_column(Integer, nullable=False)
+    storage_key: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class CatalogPositionMedia(Base):
+    __tablename__ = "catalog_position_media"
+    __table_args__ = (
+        UniqueConstraint(
+            "catalog_source_row_id",
+            "role",
+            name="uq_catalog_position_media_source_row_role",
+        ),
+        UniqueConstraint(
+            "catalog_version_id",
+            "source_page",
+            "source_slot",
+            name="uq_catalog_position_media_source_locator",
+        ),
+        CheckConstraint("role IN ('PRIMARY')", name="ck_catalog_position_media_role"),
+        CheckConstraint(
+            "source_page > 0 AND source_slot > 0",
+            name="ck_catalog_position_media_source_locator",
+        ),
+        ForeignKeyConstraint(
+            ["catalog_source_row_id", "catalog_version_id"],
+            ["catalog_source_rows.id", "catalog_source_rows.catalog_version_id"],
+            name="fk_catalog_position_media_source_row_version",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["media_asset_id", "catalog_version_id"],
+            ["catalog_media_assets.id", "catalog_media_assets.catalog_version_id"],
+            name="fk_catalog_position_media_asset_version",
+            ondelete="RESTRICT",
+        ),
+        Index(
+            "ix_catalog_position_media_version",
+            "catalog_version_id",
+            "catalog_source_row_id",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    catalog_version_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False
+    )
+    catalog_source_row_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False
+    )
+    media_asset_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False
+    )
+    role: Mapped[str] = mapped_column(
+        Text, nullable=False, default="PRIMARY", server_default=text("'PRIMARY'")
+    )
+    source_page: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_slot: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -443,7 +563,9 @@ class FieldEvidence(Base):
     confidence_label: Mapped[str | None] = mapped_column(Text)
     confidence_score: Mapped[Decimal | None] = mapped_column(Numeric(4, 3))
     publication_or_update_date: Mapped[date | None] = mapped_column(Date)
-    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    observed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -528,7 +650,9 @@ class SpecObservation(Base):
     json_value: Mapped[Any | None] = mapped_column(JSONB(none_as_null=True))
     canonical_unit: Mapped[str | None] = mapped_column(Text)
     observation_status: Mapped[str] = mapped_column(Text, nullable=False)
-    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    observed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -635,7 +759,9 @@ class ResolvedSpecFact(Base):
     reviewed_by_subject: Mapped[str | None] = mapped_column(Text)
     review_reason: Mapped[str | None] = mapped_column(Text)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    resolved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    resolved_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

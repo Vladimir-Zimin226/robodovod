@@ -199,15 +199,14 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 
 ### Этап 5 — catalog activation, официальные profiles и file intake
 
-Статус: первая малая итерация `data/catalog-activation-official-presets`
-реализована. После уточнения кейсодателя следующим становится корректирующий
-срез `data/catalog-positions-media`; `intake/xlsx-csv-project-files` выполняется
-после него и визуального среза каталога. Публикация проверяет
+Статус: `data/catalog-activation-official-presets`, корректирующий data-срез
+`data/catalog-positions-media` и `frontend/catalog-theme-media` реализованы.
+Следующим становится `intake/xlsx-csv-project-files`. Публикация проверяет
 imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
 runtime models. Legacy остаётся default и rollback feature flag. Официальные
 42/39/57 profiles и их PRESET/CALCULATED/ASSUMED provenance доступны через API;
-discovery показывает все модели, но selectable только доказательно готовые.
+discovery показывает все 223 позиции, но selectable только доказательно готовые.
 
 - Atomic activation проверенной CatalogVersion и controlled runtime switch.
 - Официальные 42/39/57 параметров становятся metadata-driven presets с
@@ -227,6 +226,20 @@ warehouse файла preset проверяется в отложенной вс�
 intake-итерации.
 
 #### Уточнение кейсодателя от 2026-09-17: 223 позиции и catalog UX
+
+Статус: data-срез `data/catalog-positions-media` и следующий UI-срез
+`frontend/catalog-theme-media` реализованы; далее идёт
+`intake/xlsx-csv-project-files`. Migration 0004 хранит append-only media metadata,
+extractor проверяет SHA-256 restricted PDF и связывает 223 позиции со 189
+уникальными content-addressed assets. Discovery API возвращает 223 позиции при
+187 канонических моделях, row-specific applicability/price и media provenance.
+Расчётный runtime не переключён.
+
+Catalog UI использует position ID как key/selection identity, показывает
+официальные assets лениво с устойчивым fallback, ограничивает сравнение тремя
+позициями и не создаёт selectable-state на клиенте. Тёмные controls/cards,
+читаемые placeholders, keyboard focus, loading/empty/error states и сетка
+3→2→1 закрывают визуальный контракт desktop/mobile.
 
 После демонстрации активированного discovery-каталога подтверждено, что
 одинаковые `organizer_id` нельзя схлопывать на пользовательском и расчётном
@@ -248,10 +261,13 @@ intake-итерации.
   видимые focus/hover/disabled states, читаемые заголовки групп и адаптивная
   сетка. Контраст проверяется минимум на целевом 1366×768.
 
-Gate корректирующего среза: API и UI возвращают ровно 223 позиции, при этом 187
+Gate полного корректирующего среза: API и UI возвращают ровно 223 позиции, при этом 187
 канонических моделей не клонируются; различия duplicate rows сохраняются в
 сравнении и расчётном snapshot; изображения имеют проверяемый source provenance;
 поиск и фильтры читаемы на тёмном фоне и работают с клавиатуры.
+
+Data-часть gate закрыта integration-тестами; визуальная/keyboard/contrast часть
+закрывается следующей frontend-итерацией.
 
 ### Этап 6 — readiness, architecture, constraints и capacity
 

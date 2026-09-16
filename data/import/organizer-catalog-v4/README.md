@@ -4,6 +4,11 @@ This directory is the committed, text-only derived bundle for the explicit
 catalog importer. It is not read by backend startup and it contains no original
 PDF, XLSX, DOCX, or organizer CSV binaries.
 
+Images from the restricted 91-page visual catalog are handled separately by
+`python -m catalog_media`: the source PDF and extracted bytes remain local,
+while PostgreSQL stores append-only checksums, dimensions, source page/slot and
+the exact relation to each of the 223 catalog positions.
+
 `manifest.json` is the authority for file hashes, byte sizes, record counts,
 source-artifact metadata, and the versioned RUB/VAT product decision. The
 importer verifies every entry before creating an `ImportRun`.

@@ -55,7 +55,7 @@ CATALOG_VERSION_CODE = "legacy-fleet-v1"
 RULES_VERSION = "legacy-rules-v1"
 ECONOMICS_VERSION = "legacy-economics-v1"
 OBJECT_PROFILE_VERSION = "user-input-v1"
-APPLICATION_VERSION = "3.6.0"
+APPLICATION_VERSION = "3.7.0"
 
 
 class ApiModel(BaseModel):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -11,10 +12,11 @@ from alembic import command
 from alembic.config import Config
 from catalog_dual_run import load_dual_run_fixture, run_dual_run
 from catalog_importer import run_catalog_import
+from catalog_media import import_catalog_media
 from catalog_models import (
     SAFE_AUTOMATIC_STATUSES,
-    FieldEvidence,
     EquipmentModel,
+    FieldEvidence,
     ResolvedSpecFact,
 )
 from catalog_repository import (
@@ -25,7 +27,6 @@ from database import Database, DatabaseSettings
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from storage_models import CatalogVersion, CatalogVersionSource, SourceArtifact
-
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(
@@ -38,6 +39,13 @@ BUNDLE = (
 )
 DUAL_RUN_FIXTURE = (
     Path(__file__).with_name("fixtures") / "catalog-dual-run-warehouse-v1.json"
+)
+OFFICIAL_PDF = (
+    Path(__file__).resolve().parents[1]
+    / "Разобрать"
+    / "Материалы от организаторов"
+    / "Датасет"
+    / "ФЦ БАС — Каталог внедрения 2008 1247.pdf"
 )
 DOMAIN_TABLES = (
     "resolved_spec_fact_evidence",
@@ -217,9 +225,7 @@ def test_postgres_adapter_and_dual_run_match_safe_runtime_mirror(
     assert candidate.runtime_robot is not None
     assert candidate.runtime_blockers == ()
     assert not hasattr(candidate, "_sa_instance_state")
-    assert {fact.resolution_status for fact in candidate.facts} == {
-        "VERIFIED_OFFICIAL"
-    }
+    assert {fact.resolution_status for fact in candidate.facts} == {"VERIFIED_OFFICIAL"}
 
     loaded_fixture = load_dual_run_fixture(DUAL_RUN_FIXTURE)
     fixture_payload = loaded_fixture.model_dump(mode="json")
@@ -232,9 +238,7 @@ def test_postgres_adapter_and_dual_run_match_safe_runtime_mirror(
     fixture_payload["expected_differences"] = []
     fixture = type(loaded_fixture).model_validate(fixture_payload)
     monkeypatch.setenv("CATALOG_DUAL_RUN_ENABLED", "true")
-    report = run_dual_run(
-        LegacyFleetCatalogRepository(), repository, fixture
-    )
+    report = run_dual_run(LegacyFleetCatalogRepository(), repository, fixture)
 
     assert report["summary"]["DEFECT"] == 0
     assert report["summary"]["BLOCKED_BY_EVIDENCE"] == 0
@@ -242,34 +246,71 @@ def test_postgres_adapter_and_dual_run_match_safe_runtime_mirror(
 
 
 def test_official_catalog_exposes_only_safe_facts_and_reports_blockers(
-    repository_database, monkeypatch
+    repository_database, monkeypatch, tmp_path
 ):
     run_catalog_import(repository_database, BUNDLE, phase="BASE", mode="COMMIT")
-    run_catalog_import(
-        repository_database, BUNDLE, phase="ENRICHMENT", mode="COMMIT"
-    )
-    repository = PostgresCatalogRepository(
-        repository_database, "organizer-catalog-v4"
-    )
+    run_catalog_import(repository_database, BUNDLE, phase="ENRICHMENT", mode="COMMIT")
+    repository = PostgresCatalogRepository(repository_database, "organizer-catalog-v4")
+    if OFFICIAL_PDF.is_file():
+        imported_media = import_catalog_media(
+            repository_database,
+            catalog_code="organizer-catalog-v4",
+            pdf_path=OFFICIAL_PDF,
+            storage_root=tmp_path,
+        )
+        assert imported_media["changed"] is True
+        assert imported_media["positions"] == 223
+        assert 0 < imported_media["assets"] <= 223
+        assert (
+            import_catalog_media(
+                repository_database,
+                catalog_code="organizer-catalog-v4",
+                pdf_path=OFFICIAL_PDF,
+                storage_root=tmp_path,
+            )["changed"]
+            is False
+        )
     snapshot = repository.load()
 
     assert len(snapshot.models) == 187
+    assert len(snapshot.positions) == 223
+    assert [position.source_row_number for position in snapshot.positions] == list(
+        range(2, 225)
+    )
+    assert len({position.id for position in snapshot.positions}) == 223
+    if OFFICIAL_PDF.is_file():
+        assert all(position.media is not None for position in snapshot.positions)
+    organizer_counts = Counter(
+        position.model.organizer_id for position in snapshot.positions
+    )
+    repeated = {key: count for key, count in organizer_counts.items() if count > 1}
+    assert len(repeated) == 23
+    assert sum(repeated.values()) == 59
+    prices_by_model: dict[str | None, set[Decimal | None]] = defaultdict(set)
+    industries_by_model: dict[str | None, set[str | None]] = defaultdict(set)
+    for position in snapshot.positions:
+        prices_by_model[position.model.organizer_id].add(
+            position.procurement_option.amount
+        )
+        industries_by_model[position.model.organizer_id].add(
+            position.applicability.industry
+        )
+        assert position.applicability.source_row_id == position.id
+        assert position.procurement_option.source_row_id == position.id
+    assert any(len(prices_by_model[key]) > 1 for key in repeated)
+    assert any(len(industries_by_model[key]) > 1 for key in repeated)
     assert all(
         fact.resolution_status in SAFE_AUTOMATIC_STATUSES
         for model in snapshot.models
         for fact in model.facts
     )
-    candidate = snapshot.by_source_key()[
-        "org-5760e938-9a43-45a7-b8e8-f4f2e6383930"
-    ]
+    candidate = snapshot.by_source_key()["org-5760e938-9a43-45a7-b8e8-f4f2e6383930"]
     assert candidate.runtime_robot is None
     assert candidate.runtime_blockers == ("runtime_projection",)
 
     fixture = load_dual_run_fixture(DUAL_RUN_FIXTURE)
     monkeypatch.setenv("CATALOG_DUAL_RUN_ENABLED", "true")
-    report = run_dual_run(
-        LegacyFleetCatalogRepository(), repository, fixture
-    )
+    report = run_dual_run(LegacyFleetCatalogRepository(), repository, fixture)
 
     assert report["summary"] == {
         "MATCH": 0,

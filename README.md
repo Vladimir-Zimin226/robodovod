@@ -233,9 +233,11 @@ docker compose --profile tools run --rm catalog-activation status
 ```
 
 `/api/catalog/models` использует активный `discovery` slot и возвращает
-иерархию, поиск/фильтры/сортировку, provenance facts и `selectable`. После
-активации discovery-слота 187 официальных моделей доступны для просмотра, но
-не для расчётного выбора: bundle
+иерархию, поиск/фильтры/сортировку, provenance facts и `selectable`. Публичной
+единицей являются все 223 исходные catalog positions; они ссылаются на 187
+канонических моделей, но не схлопывают различающиеся цену, отрасль, сценарий,
+регион и кейс. После активации discovery-слота позиции доступны для просмотра,
+но не для расчётного выбора: bundle
 пока не содержит evidence-backed `runtime_projection`. Поэтому команда
 `activate --slot runtime` завершается безопасной ошибкой, а не дополняет ТТХ из
 legacy. Мгновенный rollback расчётов — `CATALOG_RUNTIME_SOURCE=legacy`
@@ -248,6 +250,25 @@ legacy. Мгновенный rollback расчётов — `CATALOG_RUNTIME_SOUR
 default/min/max/unit/source. Проекция в текущий `UserInput` возвращает
 field-level `PRESET/CALCULATED/ASSUMED` provenance; совместимый
 `/api/presets/{type}` возвращает только `normalized_input`.
+
+## Изображения официального каталога
+
+Migration `0004_catalog_position_media` добавляет append-only metadata assets и
+связи с catalog positions. Сам restricted PDF и извлечённые бинарные файлы в Git
+не входят. Tools-команда сверяет PDF с зарегистрированным SHA-256, извлекает 223
+карточки, дедуплицирует одинаковые изображения по содержимому и сохраняет их в
+именованный `catalog_media` volume:
+
+```bash
+docker compose --profile tools run --rm catalog-media
+```
+
+По умолчанию PDF читается из локальной игнорируемой папки
+`Разобрать/Материалы от организаторов/Датасет`. Другой каталог задаётся через
+`OFFICIAL_CATALOG_SOURCE_DIR`. Повторный запуск проверяет metadata и
+восстанавливает отсутствующие файлы volume, не изменяя append-only связи. API
+возвращает media provenance до страницы/слота PDF и отдаёт content-addressed
+изображения через `/api/catalog/media/{catalog_code}/{sha256}`.
 
 ## Пользователи, проекты и AnalysisRun (migration 0003)
 
@@ -356,6 +377,9 @@ project.json   машиночитаемый манифест концепции
   остаётся доступен для сравнения, но не получает звезду, recommendation state,
   или ложный PDF; переданный в ScenarioSpec технический парк маркируется только
   как визуализация, а не рекомендация.
+- discovery-каталог в общей тёмной visual system показывает все 223 позиции
+  организатора без схлопывания повторных моделей, локальные официальные
+  изображения, row-specific цену/применимость, поиск, фильтры и сравнение.
 
 Описание интегрированной экономической и зональной логики, включая её текущие
 ограничения, находится в [отдельной технической записке](docs/14_ECONOMICS_AND_ZONES.md).

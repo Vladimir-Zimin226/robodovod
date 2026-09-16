@@ -5,6 +5,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import catalog_models  # noqa: F401
 import pytest
 from alembic import command
 from alembic.autogenerate import compare_metadata
@@ -12,10 +13,7 @@ from alembic.config import Config
 from alembic.migration import MigrationContext
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.exc import IntegrityError
-
-import catalog_models  # noqa: F401
 from storage_models import Base
-
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(
@@ -25,6 +23,8 @@ pytestmark = pytest.mark.skipif(
 
 ALEMBIC_CONFIG = Path(__file__).with_name("alembic.ini")
 CATALOG_TABLES = {
+    "catalog_media_assets",
+    "catalog_position_media",
     "manufacturers",
     "catalog_source_rows",
     "equipment_models",
@@ -35,6 +35,8 @@ CATALOG_TABLES = {
     "resolved_spec_fact_evidence",
     "procurement_options",
 }
+MEDIA_TABLES = {"catalog_media_assets", "catalog_position_media"}
+MUTABLE_DRAFT_DOMAIN_TABLES = CATALOG_TABLES - MEDIA_TABLES
 
 
 def _alembic_config() -> Config:
@@ -273,7 +275,22 @@ def test_domain_tables_all_have_draft_only_trigger(connection):
             )
         ).scalars()
     )
-    assert trigger_tables == CATALOG_TABLES
+    assert trigger_tables == MUTABLE_DRAFT_DOMAIN_TABLES
+
+
+def test_media_tables_have_append_only_trigger(connection):
+    trigger_tables = set(
+        connection.execute(
+            text(
+                """
+                SELECT event_object_table
+                FROM information_schema.triggers
+                WHERE trigger_name LIKE 'trg_%_append_only'
+                """
+            )
+        ).scalars()
+    )
+    assert trigger_tables == MEDIA_TABLES
 
 
 def test_source_rows_preserve_artifact_row_identity(connection):
@@ -374,10 +391,10 @@ def test_applicability_and_offer_keep_distinct_source_row_identity(connection, g
             f"""
             INSERT INTO {table_name} (
                 id, catalog_version_id, equipment_model_id, catalog_source_row_id
-                {', procurement_mode, price_status' if table_name == 'procurement_options' else ''}
+                {", procurement_mode, price_status" if table_name == "procurement_options" else ""}
             ) VALUES (
                 :id, :version_id, :model_id, :source_row_id
-                {", 'PURCHASE', 'UNKNOWN'" if table_name == 'procurement_options' else ''}
+                {", 'PURCHASE', 'UNKNOWN'" if table_name == "procurement_options" else ""}
             )
             """,
             {"id": uuid.uuid4(), **graph},
@@ -557,7 +574,10 @@ def test_procurement_policy_requires_explicit_provenance(connection, graph):
 
 
 def test_equipment_model_has_no_price_columns(catalog_engine):
-    columns = {column["name"] for column in inspect(catalog_engine).get_columns("equipment_models")}
+    columns = {
+        column["name"]
+        for column in inspect(catalog_engine).get_columns("equipment_models")
+    }
     assert {"price", "amount", "currency", "vat_status"}.isdisjoint(columns)
 
 

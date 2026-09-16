@@ -48,11 +48,13 @@ services:
       APP_ALLOWED_ORIGINS: "${APP_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}"
       CATALOG_RUNTIME_SOURCE: "${CATALOG_RUNTIME_SOURCE:-legacy}"
       OFFICIAL_CATALOG_BUNDLE_PATH: "/data/import/organizer-catalog-v4"
+      CATALOG_MEDIA_ROOT: "/data/catalog-media"
       PROJECT_FILE_STORAGE_ROOT: "/data/uploads"
       DELETION_TOMBSTONE_DAYS: "${DELETION_TOMBSTONE_DAYS:-30}"
     volumes:
       - project_uploads:/data/uploads
       - ./data/import:/data/import:ro
+      - catalog_media:/data/catalog-media:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -114,6 +116,29 @@ services:
     restart: "no"
     init: true
 
+  catalog-media:
+    profiles: ["tools"]
+    build:
+      context: ./backend
+    entrypoint: ["python", "-m", "catalog_media"]
+    command:
+      - "--catalog-code"
+      - "organizer-catalog-v4"
+      - "--pdf"
+      - "/data/source/ФЦ БАС — Каталог внедрения 2008 1247.pdf"
+      - "--storage-root"
+      - "/data/catalog-media"
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+    volumes:
+      - "${OFFICIAL_CATALOG_SOURCE_DIR:-./Разобрать/Материалы от организаторов/Датасет}:/data/source:ro"
+      - catalog_media:/data/catalog-media
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    init: true
+
   admin-bootstrap:
     profiles: ["tools"]
     build:
@@ -162,3 +187,4 @@ services:
 volumes:
   postgres_data:
   project_uploads:
+  catalog_media:

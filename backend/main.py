@@ -1,11 +1,15 @@
 import logging
 import os
+import re
 from decimal import Decimal
+from pathlib import Path
 from typing import Any
 
 from auditor import conduct_interview
+from catalog_media import CatalogMediaError, resolve_media_path
+from catalog_models import CatalogMediaAsset
 from catalog_repository import (
-    CatalogModelDTO,
+    CatalogPositionDTO,
     CatalogSnapshotDTO,
     LegacyFleetCatalogRepository,
 )
@@ -27,6 +31,7 @@ from economics import (
 )
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fleet import CATEGORY_LABELS, CATEGORY_ORDER
 from models import CalculationResponse, RejectedRobot, UserInput
 from object_profiles import (
@@ -40,6 +45,8 @@ from object_profiles import (
 from pydantic import BaseModel
 from scenario_spec import build_scenario_spec
 from simulation import generate_simulation
+from sqlalchemy import select
+from storage_models import CatalogVersion
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,7 +83,7 @@ def _robots_by_category(robots: list[dict[str, Any]]):
     }
 
 
-app = FastAPI(title="РобоМера API", version="3.6.0")
+app = FastAPI(title="РобоМера API", version="3.7.0")
 allowed_origins = [
     origin.strip()
     for origin in os.getenv(
@@ -105,7 +112,7 @@ class AuditRequest(BaseModel):
 # ═══════════════════════════════════════════════════════════════
 @app.get("/")
 def root():
-    return {"service": "РобоМера", "version": "3.6.0", "status": "ok"}
+    return {"service": "РобоМера", "version": "3.7.0", "status": "ok"}
 
 
 @app.get("/ready")
@@ -147,9 +154,9 @@ def list_categories():
 @app.get("/api/robots/{robot_id}")
 def get_robot(robot_id: str):
     """Карточка одного робота по id."""
-    robot = {
-        item["id"]: item for item in _runtime_snapshot().runtime_robots()
-    }.get(robot_id)
+    robot = {item["id"]: item for item in _runtime_snapshot().runtime_robots()}.get(
+        robot_id
+    )
     if not robot:
         raise HTTPException(404, f"Робот '{robot_id}' не найден")
     return robot
@@ -165,18 +172,19 @@ def _json_value(value: Any) -> Any:
     return value
 
 
-def _discovery_model(model: CatalogModelDTO) -> dict[str, Any]:
-    purchase = next(
-        (
-            option
-            for option in model.procurement_options
-            if option.mode == "PURCHASE" and option.amount is not None
-        ),
-        None,
-    )
+def _discovery_position(
+    position: CatalogPositionDTO, catalog_code: str
+) -> dict[str, Any]:
+    model = position.model
+    purchase = position.procurement_option
+    applicability = position.applicability
+    media = position.media
     return {
-        "id": model.id,
-        "source_record_key": model.source_record_key,
+        "id": position.id,
+        "position_id": position.id,
+        "model_id": model.id,
+        "source_record_key": position.source_record_key,
+        "source_row_number": position.source_row_number,
         "organizer_id": model.organizer_id,
         "manufacturer": model.manufacturer,
         "name": model.name,
@@ -186,9 +194,9 @@ def _discovery_model(model: CatalogModelDTO) -> dict[str, Any]:
         "maturity_status": model.maturity_status,
         "trl": model.trl,
         "description": model.description,
-        "industries": list(model.attributes.get("industries") or []),
-        "use_cases": list(model.attributes.get("use_cases") or []),
-        "regions": list(model.attributes.get("regions") or []),
+        "industries": [applicability.industry] if applicability.industry else [],
+        "use_cases": [applicability.scenario] if applicability.scenario else [],
+        "regions": [applicability.region] if applicability.region else [],
         "facts": [
             {
                 "code": fact.code,
@@ -201,26 +209,42 @@ def _discovery_model(model: CatalogModelDTO) -> dict[str, Any]:
         ],
         "applicability": [
             {
-                "industry": item.industry,
-                "scenario": item.scenario,
-                "region": item.region,
-                "case": item.case_text,
+                "id": applicability.id,
+                "industry": applicability.industry,
+                "scenario": applicability.scenario,
+                "region": applicability.region,
+                "case": applicability.case_text,
             }
-            for item in model.applicability
         ],
         "purchase": (
             {
+                "id": purchase.id,
+                "raw_price": purchase.raw_price,
                 "amount": float(purchase.amount),
                 "currency": purchase.currency,
                 "price_status": purchase.price_status,
                 "vat_status": purchase.vat_status,
                 "evidence_id": purchase.evidence_id,
             }
-            if purchase is not None
+            if purchase.amount is not None
             else None
         ),
-        "selectable": model.runtime_robot is not None,
-        "runtime_blockers": list(model.runtime_blockers),
+        "media": (
+            {
+                "id": media.id,
+                "url": f"/api/catalog/media/{catalog_code}/{media.sha256}",
+                "sha256": media.sha256,
+                "media_type": media.media_type,
+                "width_px": media.width_px,
+                "height_px": media.height_px,
+                "source_page": media.source_page,
+                "source_slot": media.source_slot,
+            }
+            if media is not None
+            else None
+        ),
+        "selectable": position.runtime_robot is not None,
+        "runtime_blockers": list(position.runtime_blockers),
     }
 
 
@@ -244,6 +268,7 @@ def catalog_status():
             "catalog_code": discovery.version.code,
             "catalog_status": discovery.version.status,
             "model_count": len(discovery.models),
+            "position_count": len(discovery.positions),
             "selectable_count": len(discovery.runtime_robots()),
         },
     }
@@ -261,43 +286,67 @@ def discover_catalog_models(
     """Search/filter the activated discovery catalog without making it selectable."""
 
     snapshot, source = _CATALOG_RUNTIME.load_discovery()
-    models = list(snapshot.models)
+    positions = list(snapshot.positions)
     if q and q.strip():
         needle = q.casefold().strip()
 
-        def matches(model: CatalogModelDTO) -> bool:
+        def matches(position: CatalogPositionDTO) -> bool:
+            model = position.model
+            applicability = position.applicability
             values = (
                 model.name,
                 model.manufacturer or "",
                 model.type_code,
                 model.subtype_code or "",
                 model.description or "",
-                " ".join(model.attributes.get("industries") or []),
-                " ".join(model.attributes.get("use_cases") or []),
+                applicability.industry or "",
+                applicability.scenario or "",
+                applicability.region or "",
+                applicability.case_text or "",
             )
             return any(needle in value.casefold() for value in values)
 
-        models = [model for model in models if matches(model)]
+        positions = [position for position in positions if matches(position)]
     if system_family:
-        models = [model for model in models if model.system_family == system_family]
+        positions = [
+            position
+            for position in positions
+            if position.model.system_family == system_family
+        ]
     if type_code:
-        models = [model for model in models if model.type_code == type_code]
+        positions = [
+            position for position in positions if position.model.type_code == type_code
+        ]
     if manufacturer:
-        models = [model for model in models if model.manufacturer == manufacturer]
+        positions = [
+            position
+            for position in positions
+            if position.model.manufacturer == manufacturer
+        ]
     if selectable is not None:
-        models = [
-            model for model in models if (model.runtime_robot is not None) == selectable
+        positions = [
+            position
+            for position in positions
+            if (position.runtime_robot is not None) == selectable
         ]
     sort_keys = {
-        "name": lambda model: (model.name.casefold(), model.source_record_key),
-        "manufacturer": lambda model: (
-            (model.manufacturer or "").casefold(),
-            model.name.casefold(),
+        "name": lambda position: (
+            position.model.name.casefold(),
+            position.source_row_number,
         ),
-        "type": lambda model: (model.type_code.casefold(), model.name.casefold()),
+        "manufacturer": lambda position: (
+            (position.model.manufacturer or "").casefold(),
+            position.model.name.casefold(),
+            position.source_row_number,
+        ),
+        "type": lambda position: (
+            position.model.type_code.casefold(),
+            position.model.name.casefold(),
+            position.source_row_number,
+        ),
     }
-    models.sort(key=sort_keys[sort])
-    all_models = snapshot.models
+    positions.sort(key=sort_keys[sort])
+    all_positions = snapshot.positions
     return {
         "catalog": {
             "id": snapshot.version.id,
@@ -305,8 +354,12 @@ def discover_catalog_models(
             "status": snapshot.version.status,
             "source": source,
         },
-        "total": len(models),
-        "selectable_count": sum(model.runtime_robot is not None for model in all_models),
+        "total": len(positions),
+        "model_count": len(snapshot.models),
+        "position_count": len(all_positions),
+        "selectable_count": sum(
+            position.runtime_robot is not None for position in all_positions
+        ),
         "hierarchy": [
             {
                 "system_family": family,
@@ -314,26 +367,73 @@ def discover_catalog_models(
                     {
                         "type_code": item_type,
                         "count": sum(
-                            model.system_family == family and model.type_code == item_type
-                            for model in all_models
+                            position.model.system_family == family
+                            and position.model.type_code == item_type
+                            for position in all_positions
                         ),
                     }
                     for item_type in sorted(
                         {
-                            model.type_code
-                            for model in all_models
-                            if model.system_family == family
+                            position.model.type_code
+                            for position in all_positions
+                            if position.model.system_family == family
                         }
                     )
                 ],
             }
-            for family in sorted({model.system_family for model in all_models})
+            for family in sorted(
+                {position.model.system_family for position in all_positions}
+            )
         ],
         "manufacturers": sorted(
-            {model.manufacturer for model in all_models if model.manufacturer}
+            {
+                position.model.manufacturer
+                for position in all_positions
+                if position.model.manufacturer
+            }
         ),
-        "items": [_discovery_model(model) for model in models],
+        "items": [
+            _discovery_position(position, snapshot.version.code)
+            for position in positions
+        ],
     }
+
+
+@app.get("/api/catalog/media/{catalog_code}/{sha256}")
+def catalog_media(catalog_code: str, sha256: str):
+    if not re.fullmatch(r"[0-9a-f]{64}", sha256):
+        raise HTTPException(404, "catalog media not found")
+    with get_database().session() as session:
+        asset = session.scalar(
+            select(CatalogMediaAsset)
+            .join(
+                CatalogVersion,
+                CatalogVersion.id == CatalogMediaAsset.catalog_version_id,
+            )
+            .where(
+                CatalogVersion.code == catalog_code,
+                CatalogVersion.status == "PUBLISHED",
+                CatalogMediaAsset.sha256 == sha256,
+            )
+        )
+        if asset is None:
+            raise HTTPException(404, "catalog media not found")
+        try:
+            path = resolve_media_path(
+                Path(os.getenv("CATALOG_MEDIA_ROOT", "data/catalog-media")),
+                asset.storage_key,
+                asset.byte_size,
+            )
+        except CatalogMediaError:
+            raise HTTPException(404, "catalog media not found") from None
+        return FileResponse(
+            path,
+            media_type=asset.media_type,
+            headers={
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "ETag": f'"{asset.sha256}"',
+            },
+        )
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -387,9 +487,12 @@ def get_object_profile(object_type: str):
 def sources():
     robots = _runtime_snapshot().runtime_robots()
     prices = [
-        {"group": "Цены решений", "parameter": r["name"],
-         "value": r.get("price", {}).get("note", ""),
-         "type": r.get("price", {}).get("basis", "")}
+        {
+            "group": "Цены решений",
+            "parameter": r["name"],
+            "value": r.get("price", {}).get("note", ""),
+            "type": r.get("price", {}).get("basis", ""),
+        }
         for r in robots
     ]
     return {"usd_rub_rate": 90.0, "sources": SOURCES + prices}
@@ -433,7 +536,11 @@ def calculate_with_catalog(
             raise HTTPException(500, f"Ошибка расчёта по зонам: {e}")
 
         revision_id, scenario_spec, response_warnings = build_scenario_spec(
-            inp, [], zone_results, combined, robot_by_id,
+            inp,
+            [],
+            zone_results,
+            combined,
+            robot_by_id,
         )
         return CalculationResponse(
             revision_id=revision_id,
@@ -452,28 +559,39 @@ def calculate_with_catalog(
         reason = check_constraints(inp, robot)
         selected = robot["id"] in (inp.selected_robot_ids or [])
         if reason and not selected:
-            rejected.append(RejectedRobot(robot_id=robot["id"],
-                                          robot_name=robot["name"], reason=reason))
+            rejected.append(
+                RejectedRobot(
+                    robot_id=robot["id"], robot_name=robot["name"], reason=reason
+                )
+            )
             continue
         rec = calc_recommendation(inp, robot, is_zone=False)
         if selected:
             rec.forced = True
             if reason:
                 rec.technical_status = "FORCED_UNSUPPORTED"
-                rec.warnings.insert(0, f"⚠ Выбор клиента — не проходит фильтр: {reason}")
+                rec.warnings.insert(
+                    0, f"⚠ Выбор клиента — не проходит фильтр: {reason}"
+                )
         recommendations.append(rec)
 
     if not recommendations:
-        raise HTTPException(400, "Ни одно решение не проходит: " +
-                            "; ".join(r.reason for r in rejected))
+        raise HTTPException(
+            400, "Ни одно решение не проходит: " + "; ".join(r.reason for r in rejected)
+        )
 
     # Экономически неприемлемый вариант остаётся доступен для сравнения, но не
     # получает семантику "лучшего" и не становится основой сцены.
     recommendations.sort(key=recommendation_sort_key)
-    best = next((
-        rec for rec in recommendations
-        if rec.technical_status == "ELIGIBLE" and rec.economic_status != "NOT_ACCEPTABLE"
-    ), None)
+    best = next(
+        (
+            rec
+            for rec in recommendations
+            if rec.technical_status == "ELIGIBLE"
+            and rec.economic_status != "NOT_ACCEPTABLE"
+        ),
+        None,
+    )
     if best:
         best.is_best = True
     response_warnings = []
@@ -487,16 +605,27 @@ def calculate_with_catalog(
     sim = None
     if best and inp.process_type == "palletizing":
         from models import SimulationData, SimulationUnit
-        sim = SimulationData(width_m=22.0, height_m=14.0, robots_count=best.quantity,
-                             corridors_x=[8.0, 12.0, 16.0], main_aisle_y=2.0,
-                             units=[SimulationUnit(id=0, speed=0.5,
-                                                   route=[[2, 2], [9, 2], [16, 2], [9, 2]])])
+
+        sim = SimulationData(
+            width_m=22.0,
+            height_m=14.0,
+            robots_count=best.quantity,
+            corridors_x=[8.0, 12.0, 16.0],
+            main_aisle_y=2.0,
+            units=[
+                SimulationUnit(id=0, speed=0.5, route=[[2, 2], [9, 2], [16, 2], [9, 2]])
+            ],
+        )
     elif best and inp.process_type == "transport":
         sim_inp = inp.model_copy(update={"area_m2": inp.area_m2 or DEFAULT_AREA_M2})
         sim = generate_simulation(sim_inp, robot_by_id[best.robot_id], best.quantity)
 
     revision_id, scenario_spec, contract_warnings = build_scenario_spec(
-        inp, recommendations, [], None, robot_by_id,
+        inp,
+        recommendations,
+        [],
+        None,
+        robot_by_id,
     )
     return CalculationResponse(
         revision_id=revision_id,
