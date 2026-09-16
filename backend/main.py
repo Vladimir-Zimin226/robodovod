@@ -1,27 +1,45 @@
 import logging
 import os
+from decimal import Decimal
+from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-
-from catalog_repository import LegacyFleetCatalogRepository
-from database import get_database
-
-from models import UserInput, CalculationResponse, RejectedRobot
-from economics import (
-    calc_recommendation, check_constraints, manual_baseline,
-    assess_data_quality, validate_mandatory,
-    calc_zone, calc_combined,
-    recommendation_sort_key,
-    ASSUMPTIONS, SOURCES,
-    DEFAULT_AREA_M2, DEFAULT_HORIZON_YEARS,
-)
-from simulation import generate_simulation
 from auditor import conduct_interview
+from catalog_repository import (
+    CatalogModelDTO,
+    CatalogSnapshotDTO,
+    LegacyFleetCatalogRepository,
+)
+from catalog_runtime import CatalogRuntime, CatalogRuntimeConfigurationError
+from database import get_database
+from economics import (
+    ASSUMPTIONS,
+    DEFAULT_AREA_M2,
+    DEFAULT_HORIZON_YEARS,
+    SOURCES,
+    assess_data_quality,
+    calc_combined,
+    calc_recommendation,
+    calc_zone,
+    check_constraints,
+    manual_baseline,
+    recommendation_sort_key,
+    validate_mandatory,
+)
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fleet import CATEGORY_LABELS, CATEGORY_ORDER
+from models import CalculationResponse, RejectedRobot, UserInput
+from object_profiles import (
+    ObjectProfileError,
+    build_official_preset,
+    get_official_profile,
+    load_official_profiles,
+    official_profile_version,
+    profile_api_dict,
+)
+from pydantic import BaseModel
 from scenario_spec import build_scenario_spec
-
-from fleet import CATEGORY_ORDER, CATEGORY_LABELS
+from simulation import generate_simulation
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,85 +49,34 @@ logger = logging.getLogger("robomera.api")
 
 
 # ═══════════════════════════════════════════════════════════════
-# Парк роботов — сериализованные словари из reference adapter.
-# PostgreSQL здесь намеренно не выбирается ни переменной окружения, ни activation:
-# он доступен только отдельной служебной dual-run команде.
+# Парк роботов — legacy snapshot остаётся совместимым default и мгновенным
+# rollback. Активированный runtime разрешается отдельно через feature flag.
 # ═══════════════════════════════════════════════════════════════
 _RUNTIME_CATALOG = LegacyFleetCatalogRepository().load()
 ROBOTS = _RUNTIME_CATALOG.runtime_robots()
 ROBOT_BY_ID = {r["id"]: r for r in ROBOTS}
+_CATALOG_RUNTIME = CatalogRuntime()
 
 
-def _robots_by_category():
+def _runtime_snapshot() -> CatalogSnapshotDTO:
+    try:
+        return _CATALOG_RUNTIME.load_runtime()
+    except CatalogRuntimeConfigurationError:
+        logger.error("Configured runtime catalog is unavailable")
+        raise HTTPException(503, "runtime catalog unavailable") from None
+
+
+def _robots_by_category(robots: list[dict[str, Any]]):
     return {
         category: {
             "label": CATEGORY_LABELS[category],
-            "robots": [robot for robot in ROBOTS if robot["category"] == category],
+            "robots": [robot for robot in robots if robot["category"] == category],
         }
         for category in CATEGORY_ORDER
     }
 
 
-# ═══════════════════════════════════════════════════════════════
-# Пресеты. fte_cost_rub считается от месячного оклада через
-# economics.FULLY_LOADED_MULT (1.55), чтобы совпадать с auditor._parse_money.
-# ═══════════════════════════════════════════════════════════════
-def _fte(monthly_rub: int) -> float:
-    """Месячный оклад -> годовая полная стоимость FTE (с overhead и текучкой)."""
-    return round(monthly_rub * 12 * 1.55, -3)
-
-
-PRESETS = {
-    "retail": {
-        "object_type": "retail",
-        "mode": "whole",
-        "process_type": "transport",
-        "cargo_type": "pallets",
-        "area_m2": 12000,
-        "avg_distance_m": 180,
-        "pallets_per_day": 800,
-        "shifts_count": 3,
-        "shift_hours": 8,
-        "fte_cost_rub": _fte(90_000),
-        "aisle_width_m": 2.4,
-        "payload_kg": 700,
-        "staff_headcount": 12,
-        "horizon_years": 5,
-    },
-    "airport": {
-        "object_type": "airport",
-        "mode": "whole",
-        "process_type": "transport",
-        "cargo_type": "carts",
-        "area_m2": 80000,
-        "avg_distance_m": 600,
-        "pallets_per_day": 480,
-        "shifts_count": 3,
-        "shift_hours": 8,
-        "fte_cost_rub": _fte(70_000),
-        "aisle_width_m": 2.5,
-        "staff_headcount": 12,
-        "horizon_years": 5,
-    },
-    "clinic": {
-        "object_type": "clinic",
-        "mode": "whole",
-        "process_type": "delivery",
-        "cargo_type": "deliveries",
-        "area_m2": 6000,
-        "avg_distance_m": 300,
-        "pallets_per_day": 300,
-        "shifts_count": 2,
-        "shift_hours": 8,
-        "fte_cost_rub": _fte(70_000),
-        "aisle_width_m": 1.2,
-        "staff_headcount": 10,
-        "horizon_years": 5,
-    },
-}
-
-
-app = FastAPI(title="РобоМера API", version="3.5.0")
+app = FastAPI(title="РобоМера API", version="3.6.0")
 allowed_origins = [
     origin.strip()
     for origin in os.getenv(
@@ -138,7 +105,7 @@ class AuditRequest(BaseModel):
 # ═══════════════════════════════════════════════════════════════
 @app.get("/")
 def root():
-    return {"service": "РобоМера", "version": "3.5.0", "status": "ok"}
+    return {"service": "РобоМера", "version": "3.6.0", "status": "ok"}
 
 
 @app.get("/ready")
@@ -162,13 +129,13 @@ def readiness():
 @app.get("/api/robots")
 def list_robots():
     """Плоский список всего парка."""
-    return ROBOTS
+    return _runtime_snapshot().runtime_robots()
 
 
 @app.get("/api/robots/by-category")
 def list_robots_by_category():
     """Парк, сгруппированный по категориям с человекочитаемыми заголовками."""
-    return _robots_by_category()
+    return _robots_by_category(_runtime_snapshot().runtime_robots())
 
 
 @app.get("/api/robots/categories")
@@ -180,10 +147,193 @@ def list_categories():
 @app.get("/api/robots/{robot_id}")
 def get_robot(robot_id: str):
     """Карточка одного робота по id."""
-    robot = ROBOT_BY_ID.get(robot_id)
+    robot = {
+        item["id"]: item for item in _runtime_snapshot().runtime_robots()
+    }.get(robot_id)
     if not robot:
         raise HTTPException(404, f"Робот '{robot_id}' не найден")
     return robot
+
+
+def _json_value(value: Any) -> Any:
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, tuple):
+        return [_json_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _json_value(item) for key, item in value.items()}
+    return value
+
+
+def _discovery_model(model: CatalogModelDTO) -> dict[str, Any]:
+    purchase = next(
+        (
+            option
+            for option in model.procurement_options
+            if option.mode == "PURCHASE" and option.amount is not None
+        ),
+        None,
+    )
+    return {
+        "id": model.id,
+        "source_record_key": model.source_record_key,
+        "organizer_id": model.organizer_id,
+        "manufacturer": model.manufacturer,
+        "name": model.name,
+        "system_family": model.system_family,
+        "type_code": model.type_code,
+        "subtype_code": model.subtype_code,
+        "maturity_status": model.maturity_status,
+        "trl": model.trl,
+        "description": model.description,
+        "industries": list(model.attributes.get("industries") or []),
+        "use_cases": list(model.attributes.get("use_cases") or []),
+        "regions": list(model.attributes.get("regions") or []),
+        "facts": [
+            {
+                "code": fact.code,
+                "value": _json_value(fact.value),
+                "unit": fact.canonical_unit,
+                "status": fact.resolution_status,
+                "evidence_id": fact.evidence_id,
+            }
+            for fact in model.facts
+        ],
+        "applicability": [
+            {
+                "industry": item.industry,
+                "scenario": item.scenario,
+                "region": item.region,
+                "case": item.case_text,
+            }
+            for item in model.applicability
+        ],
+        "purchase": (
+            {
+                "amount": float(purchase.amount),
+                "currency": purchase.currency,
+                "price_status": purchase.price_status,
+                "vat_status": purchase.vat_status,
+                "evidence_id": purchase.evidence_id,
+            }
+            if purchase is not None
+            else None
+        ),
+        "selectable": model.runtime_robot is not None,
+        "runtime_blockers": list(model.runtime_blockers),
+    }
+
+
+@app.get("/api/catalog/status")
+def catalog_status():
+    runtime = _runtime_snapshot()
+    try:
+        discovery, discovery_source = _CATALOG_RUNTIME.load_discovery()
+    except Exception:
+        logger.warning("Discovery catalog status is unavailable")
+        raise HTTPException(503, "discovery catalog unavailable") from None
+    return {
+        "runtime": {
+            "configured_source": _CATALOG_RUNTIME.configured_source(),
+            "catalog_code": runtime.version.code,
+            "catalog_status": runtime.version.status,
+            "selectable_count": len(runtime.runtime_robots()),
+        },
+        "discovery": {
+            "source": discovery_source,
+            "catalog_code": discovery.version.code,
+            "catalog_status": discovery.version.status,
+            "model_count": len(discovery.models),
+            "selectable_count": len(discovery.runtime_robots()),
+        },
+    }
+
+
+@app.get("/api/catalog/models")
+def discover_catalog_models(
+    q: str | None = Query(None, max_length=200),
+    system_family: str | None = Query(None, max_length=100),
+    type_code: str | None = Query(None, max_length=200),
+    manufacturer: str | None = Query(None, max_length=200),
+    selectable: bool | None = None,
+    sort: str = Query("name", pattern="^(name|manufacturer|type)$"),
+):
+    """Search/filter the activated discovery catalog without making it selectable."""
+
+    snapshot, source = _CATALOG_RUNTIME.load_discovery()
+    models = list(snapshot.models)
+    if q and q.strip():
+        needle = q.casefold().strip()
+
+        def matches(model: CatalogModelDTO) -> bool:
+            values = (
+                model.name,
+                model.manufacturer or "",
+                model.type_code,
+                model.subtype_code or "",
+                model.description or "",
+                " ".join(model.attributes.get("industries") or []),
+                " ".join(model.attributes.get("use_cases") or []),
+            )
+            return any(needle in value.casefold() for value in values)
+
+        models = [model for model in models if matches(model)]
+    if system_family:
+        models = [model for model in models if model.system_family == system_family]
+    if type_code:
+        models = [model for model in models if model.type_code == type_code]
+    if manufacturer:
+        models = [model for model in models if model.manufacturer == manufacturer]
+    if selectable is not None:
+        models = [
+            model for model in models if (model.runtime_robot is not None) == selectable
+        ]
+    sort_keys = {
+        "name": lambda model: (model.name.casefold(), model.source_record_key),
+        "manufacturer": lambda model: (
+            (model.manufacturer or "").casefold(),
+            model.name.casefold(),
+        ),
+        "type": lambda model: (model.type_code.casefold(), model.name.casefold()),
+    }
+    models.sort(key=sort_keys[sort])
+    all_models = snapshot.models
+    return {
+        "catalog": {
+            "id": snapshot.version.id,
+            "code": snapshot.version.code,
+            "status": snapshot.version.status,
+            "source": source,
+        },
+        "total": len(models),
+        "selectable_count": sum(model.runtime_robot is not None for model in all_models),
+        "hierarchy": [
+            {
+                "system_family": family,
+                "types": [
+                    {
+                        "type_code": item_type,
+                        "count": sum(
+                            model.system_family == family and model.type_code == item_type
+                            for model in all_models
+                        ),
+                    }
+                    for item_type in sorted(
+                        {
+                            model.type_code
+                            for model in all_models
+                            if model.system_family == family
+                        }
+                    )
+                ],
+            }
+            for family in sorted({model.system_family for model in all_models})
+        ],
+        "manufacturers": sorted(
+            {model.manufacturer for model in all_models if model.manufacturer}
+        ),
+        "items": [_discovery_model(model) for model in models],
+    }
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -191,18 +341,56 @@ def get_robot(robot_id: str):
 # ═══════════════════════════════════════════════════════════════
 @app.get("/api/presets/{object_type}")
 def get_preset(object_type: str):
-    if object_type not in PRESETS:
-        raise HTTPException(404, "Пресет не найден")
-    return PRESETS[object_type]
+    try:
+        return build_official_preset(object_type)["normalized_input"]
+    except ObjectProfileError:
+        raise HTTPException(404, "Пресет не найден") from None
+
+
+@app.get("/api/object-profiles")
+def list_object_profiles():
+    try:
+        profiles = load_official_profiles()
+        return {
+            "schema_version": profiles.schema_version,
+            "source_version": profiles.source_version,
+            "items": [
+                {
+                    "code": profile.code,
+                    "name": profile.name_ru,
+                    "parameter_count": len(profile.parameters()),
+                }
+                for profile in profiles.object_types
+            ],
+        }
+    except ObjectProfileError:
+        raise HTTPException(503, "official object profiles unavailable") from None
+
+
+@app.get("/api/object-profiles/{object_type}/preset")
+def get_structured_preset(object_type: str):
+    try:
+        return build_official_preset(object_type)
+    except ObjectProfileError:
+        raise HTTPException(404, "Пресет не найден") from None
+
+
+@app.get("/api/object-profiles/{object_type}")
+def get_object_profile(object_type: str):
+    try:
+        return profile_api_dict(get_official_profile(object_type))
+    except ObjectProfileError:
+        raise HTTPException(404, "Профиль не найден") from None
 
 
 @app.get("/api/sources")
 def sources():
+    robots = _runtime_snapshot().runtime_robots()
     prices = [
         {"group": "Цены решений", "parameter": r["name"],
          "value": r.get("price", {}).get("note", ""),
          "type": r.get("price", {}).get("basis", "")}
-        for r in ROBOTS
+        for r in robots
     ]
     return {"usd_rub_rate": 90.0, "sources": SOURCES + prices}
 
@@ -220,6 +408,14 @@ def audit(req: AuditRequest):
 # ═══════════════════════════════════════════════════════════════
 @app.post("/api/calculate")
 def calculate(inp: UserInput) -> CalculationResponse:
+    return calculate_with_catalog(inp, _runtime_snapshot())
+
+
+def calculate_with_catalog(
+    inp: UserInput, catalog: CatalogSnapshotDTO
+) -> CalculationResponse:
+    robots = catalog.runtime_robots()
+    robot_by_id = {robot["id"]: robot for robot in robots}
     err = validate_mandatory(inp)
     if err:
         raise HTTPException(400, err)
@@ -230,14 +426,14 @@ def calculate(inp: UserInput) -> CalculationResponse:
     # ─── Zonal-режим ───
     if inp.mode == "zonal":
         try:
-            zone_results = [calc_zone(inp, z, ROBOTS) for z in inp.zones]
-            combined = calc_combined(zone_results, inp, ROBOTS)
+            zone_results = [calc_zone(inp, z, robots) for z in inp.zones]
+            combined = calc_combined(zone_results, inp, robots)
         except Exception as e:
             logger.exception("Zonal calculation failed")
             raise HTTPException(500, f"Ошибка расчёта по зонам: {e}")
 
         revision_id, scenario_spec, response_warnings = build_scenario_spec(
-            inp, [], zone_results, combined, ROBOT_BY_ID,
+            inp, [], zone_results, combined, robot_by_id,
         )
         return CalculationResponse(
             revision_id=revision_id,
@@ -252,7 +448,7 @@ def calculate(inp: UserInput) -> CalculationResponse:
 
     # ─── Whole-режим ───
     recommendations, rejected = [], []
-    for robot in ROBOTS:
+    for robot in robots:
         reason = check_constraints(inp, robot)
         selected = robot["id"] in (inp.selected_robot_ids or [])
         if reason and not selected:
@@ -297,10 +493,10 @@ def calculate(inp: UserInput) -> CalculationResponse:
                                                    route=[[2, 2], [9, 2], [16, 2], [9, 2]])])
     elif best and inp.process_type == "transport":
         sim_inp = inp.model_copy(update={"area_m2": inp.area_m2 or DEFAULT_AREA_M2})
-        sim = generate_simulation(sim_inp, ROBOT_BY_ID[best.robot_id], best.quantity)
+        sim = generate_simulation(sim_inp, robot_by_id[best.robot_id], best.quantity)
 
     revision_id, scenario_spec, contract_warnings = build_scenario_spec(
-        inp, recommendations, [], None, ROBOT_BY_ID,
+        inp, recommendations, [], None, robot_by_id,
     )
     return CalculationResponse(
         revision_id=revision_id,
@@ -316,9 +512,15 @@ def calculate(inp: UserInput) -> CalculationResponse:
     )
 
 
-# Persistence routes are registered after the legacy calculator definition so
-# persisted runs can call exactly the same reference runtime without switching
-# catalog adapters or changing the public guest endpoint.
+# Persistence resolves the snapshot before creating the run and reuses that
+# exact immutable value for calculation and version references.
 from persistence_api import create_persistence_router  # noqa: E402
 
-app.include_router(create_persistence_router(calculate))
+app.include_router(
+    create_persistence_router(
+        calculate,
+        resolve_catalog=_runtime_snapshot,
+        calculate_for_catalog=calculate_with_catalog,
+        resolve_object_profile_version=official_profile_version,
+    )
+)

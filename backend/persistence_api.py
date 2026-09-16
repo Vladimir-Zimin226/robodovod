@@ -12,12 +12,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import delete, func, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-
 from auth import (
     AuthContext,
     clear_session_cookies,
@@ -34,6 +28,7 @@ from auth import (
     verify_password,
 )
 from database import database_session
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from models import CalculationResponse, UserInput
 from persistence_models import (
     AnalysisRun,
@@ -45,7 +40,10 @@ from persistence_models import (
     User,
     UserSession,
 )
-
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger("robomera.persistence")
 SCENARIO_SLOTS = (
@@ -53,11 +51,11 @@ SCENARIO_SLOTS = (
     ("OPTIMISTIC", "Оптимистичный"),
     ("PESSIMISTIC", "Пессимистичный"),
 )
-CATALOG_VERSION_CODE = "legacy-fleet-reference-v1"
+CATALOG_VERSION_CODE = "legacy-fleet-v1"
 RULES_VERSION = "legacy-rules-v1"
 ECONOMICS_VERSION = "legacy-economics-v1"
 OBJECT_PROFILE_VERSION = "user-input-v1"
-APPLICATION_VERSION = "3.5.0"
+APPLICATION_VERSION = "3.6.0"
 
 
 class ApiModel(BaseModel):
@@ -446,6 +444,10 @@ def _require_admin_csrf(context: AuthContext = Depends(require_csrf)) -> AuthCon
 
 def create_persistence_router(
     calculate: Callable[[UserInput], CalculationResponse],
+    *,
+    resolve_catalog: Callable[[], Any] | None = None,
+    calculate_for_catalog: Callable[[UserInput, Any], CalculationResponse] | None = None,
+    resolve_object_profile_version: Callable[[], str] | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
@@ -815,6 +817,25 @@ def create_persistence_router(
         parent_run_id: uuid.UUID | None = None,
     ) -> AnalysisRun:
         input_snapshot = input_model.model_dump(mode="json")
+        catalog_snapshot = resolve_catalog() if resolve_catalog is not None else None
+        catalog_version = (
+            catalog_snapshot.version if catalog_snapshot is not None else None
+        )
+        catalog_version_code = (
+            catalog_version.code if catalog_version is not None else CATALOG_VERSION_CODE
+        )
+        catalog_version_id = None
+        if catalog_version is not None:
+            try:
+                catalog_version_id = uuid.UUID(catalog_version.id)
+            except ValueError:
+                # The committed legacy adapter intentionally has a non-UUID id.
+                catalog_version_id = None
+        object_profile_version = (
+            resolve_object_profile_version()
+            if resolve_object_profile_version is not None
+            else OBJECT_PROFILE_VERSION
+        )
         run = AnalysisRun(
             id=uuid.uuid4(),
             project_id=project.id,
@@ -823,11 +844,11 @@ def create_persistence_router(
             status="PENDING",
             input_snapshot=input_snapshot,
             input_sha256=_canonical_sha256(input_snapshot),
-            catalog_version_id=None,
-            catalog_version_code=CATALOG_VERSION_CODE,
+            catalog_version_id=catalog_version_id,
+            catalog_version_code=catalog_version_code,
             rules_version=RULES_VERSION,
             economics_version=ECONOMICS_VERSION,
-            object_profile_version=OBJECT_PROFILE_VERSION,
+            object_profile_version=object_profile_version,
             application_version=APPLICATION_VERSION,
             diagnostics={},
         )
@@ -837,7 +858,11 @@ def create_persistence_router(
         run.started_at = utcnow()
         db.commit()
         try:
-            calculation = calculate(input_model)
+            calculation = (
+                calculate_for_catalog(input_model, catalog_snapshot)
+                if catalog_snapshot is not None and calculate_for_catalog is not None
+                else calculate(input_model)
+            )
         except HTTPException as exc:
             run.status = "FAILED"
             run.finished_at = utcnow()

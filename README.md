@@ -130,9 +130,9 @@ Downgrade нужен только для одноразовой development/test
 lifecycle, идемпотентность успешного импорта, единственную активную версию в
 slot и неизменяемую историю активаций.
 
-Текущие расчётные endpoint по-прежнему читают 13 JSON-записей из
-`backend/fleet`; пустая мигрированная БД не меняет каталог, экономику или
-ScenarioSpec. Автоматического импорта при startup нет.
+По умолчанию расчётные endpoint читают 13 JSON-записей из `backend/fleet`;
+пустая мигрированная БД не меняет каталог, экономику или ScenarioSpec.
+Автоматического импорта, публикации или активации при startup нет.
 
 ## Catalog domain schema 0002
 
@@ -143,7 +143,7 @@ unsafe evidence не допускается в `matching_spec_facts`, а дан�
 перехода из `DRAFT` неизменяемы. Цена и её provenance хранятся отдельно от
 модели оборудования.
 
-Runtime-каталог и расчётные endpoint продолжают использовать `backend/fleet`.
+Runtime-каталог по безопасному default продолжает использовать `backend/fleet`.
 
 ## Catalog validator/importer
 
@@ -187,11 +187,11 @@ python scripts/build_catalog_bundle.py --check
 
 ## Catalog repository и dual-run
 
-Расчётные endpoint по-прежнему используют только reference adapter над
-`backend/fleet`; переменная окружения и catalog activation не могут незаметно
-переключить публичный runtime на PostgreSQL. PostgreSQL adapter требует явный
-`catalog_version.code`, возвращает DTO без ORM-объектов и читает ТТХ только из
-evidence-gated view `matching_spec_facts`.
+PostgreSQL adapter требует явный `catalog_version.code`, возвращает DTO без
+ORM-объектов и читает ТТХ только из evidence-gated view
+`matching_spec_facts`. Расчётные endpoint используют reference adapter над
+`backend/fleet`, пока явно не заданы одновременно активный `runtime` slot и
+`CATALOG_RUNTIME_SOURCE=activated`.
 
 После явного BASE/ENRICHMENT import служебное сравнение запускается отдельным
 Compose tools-service:
@@ -218,13 +218,46 @@ rejection, fleet, economics и canonical ScenarioSpec. Каждое несовп
 необъяснённый `DEFECT`, `3` — ошибку конфигурации; expected/blocked без дефектов
 завершаются кодом `0`.
 
+## Catalog activation и официальные profiles
+
+Lifecycle выполняется только явной tools-командой. `publish` повторно проверяет
+checksums, успешные BASE/ENRICHMENT, фактические counts в БД и официальный
+profile bundle, затем проводит разрешённые переходы `DRAFT → VALIDATED →
+PUBLISHED`. Активация slot сериализована advisory lock, в одной транзакции
+закрывает старую history row и создаёт новую:
+
+```bash
+docker compose --profile tools run --rm catalog-activation publish --catalog-code organizer-catalog-v4
+docker compose --profile tools run --rm catalog-activation activate --catalog-code organizer-catalog-v4 --slot discovery
+docker compose --profile tools run --rm catalog-activation status
+```
+
+`/api/catalog/models` использует активный `discovery` slot и возвращает
+иерархию, поиск/фильтры/сортировку, provenance facts и `selectable`. После
+активации discovery-слота 187 официальных моделей доступны для просмотра, но
+не для расчётного выбора: bundle
+пока не содержит evidence-backed `runtime_projection`. Поэтому команда
+`activate --slot runtime` завершается безопасной ошибкой, а не дополняет ТТХ из
+legacy. Мгновенный rollback расчётов — `CATALOG_RUNTIME_SOURCE=legacy`
+(значение по умолчанию); отсутствие/ошибка активированного runtime в режиме
+`activated` даёт 503 без скрытого fallback.
+
+Официальные профили доступны через `/api/object-profiles`,
+`/api/object-profiles/{type}` и `/api/object-profiles/{type}/preset`. Они
+сохраняют 42/39/57 параметров склада/аэропорта/медучреждения с
+default/min/max/unit/source. Проекция в текущий `UserInput` возвращает
+field-level `PRESET/CALCULATED/ASSUMED` provenance; совместимый
+`/api/presets/{type}` возвращает только `normalized_input`.
+
 ## Пользователи, проекты и AnalysisRun (migration 0003)
 
 Гостевой `/api/calculate` по-прежнему работает без регистрации и ничего не
 сохраняет. После регистрации пользователь получает изолированные проекты,
 три сценарных слота (`BASE`, `OPTIMISTIC`, `PESSIMISTIC`) и immutable snapshots
 расчётов. Повторное открытие читает сохранённый snapshot, а rerun создаёт новую
-запись. Публичный runtime всё ещё использует `backend/fleet`.
+запись. Default runtime использует `backend/fleet`; каждый новый AnalysisRun
+фиксирует code и, для PostgreSQL-каталога, UUID реально разрешённого request
+snapshot. Переключение версии после расчёта не меняет сохранённый результат.
 
 Первый ADMIN создаётся только явной one-shot командой после миграции. Реальные
 значения должны находиться в игнорируемом `.env`, а не в Git:
@@ -327,10 +360,10 @@ project.json   машиночитаемый манифест концепции
 Описание интегрированной экономической и зональной логики, включая её текущие
 ограничения, находится в [отдельной технической записке](docs/14_ECONOMICS_AND_ZONES.md).
 
-Нормализованный organizer v4 bundle, repository dual-run и project/run
-persistence реализованы, но runtime всё ещё использует legacy `backend/fleet`.
-Следующий этап — `data/catalog-activation-official-presets`: атомарная активация
-проверенной CatalogVersion и официальный metadata-driven preset. XLSX/CSV intake
-остаётся следующей отдельной малой итерацией.
+Нормализованный organizer v4 bundle, repository dual-run, project/run
+persistence, атомарная catalog activation и официальные metadata-driven
+profiles реализованы. Расчётный runtime безопасно остаётся на legacy
+`backend/fleet`, пока официальный каталог не получит достаточные runtime facts.
+Следующий этап — `intake/xlsx-csv-project-files`.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

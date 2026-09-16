@@ -1,8 +1,8 @@
-"""Catalog repository boundary and adapters used by controlled dual-run checks.
+"""Catalog repository boundary for legacy, versioned and activated snapshots.
 
-The public runtime deliberately uses :class:`LegacyFleetCatalogRepository`.
-The PostgreSQL adapter requires an explicit catalog version code and reads
-matching facts only from the evidence-gated ``matching_spec_facts`` view.
+The PostgreSQL adapter requires an explicit immutable version and reads matching
+facts only from the evidence-gated ``matching_spec_facts`` view.  Slot lookup is
+separate so one request always calculates against one resolved snapshot.
 """
 
 from __future__ import annotations
@@ -13,8 +13,6 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Protocol
 
-from sqlalchemy import select, text
-
 from catalog_models import (
     EquipmentApplicability,
     EquipmentModel,
@@ -24,8 +22,8 @@ from catalog_models import (
 from database import Database
 from fleet import ROBOTS as LEGACY_ROBOTS
 from models import Robot
-from storage_models import CatalogVersion
-
+from sqlalchemy import select, text
+from storage_models import CatalogActivation, CatalogVersion
 
 LEGACY_CATALOG_VERSION = "legacy-fleet-v1"
 
@@ -289,7 +287,7 @@ def _project_runtime_robot(
 
 
 class PostgresCatalogRepository:
-    """Read one explicit PostgreSQL catalog version for service dual-runs only."""
+    """Read one explicit PostgreSQL catalog version."""
 
     def __init__(self, database: Database, catalog_version_code: str) -> None:
         code = catalog_version_code.strip()
@@ -441,3 +439,37 @@ class PostgresCatalogRepository:
                 ),
                 models=tuple(models),
             )
+
+
+class ActivatedCatalogRepository:
+    """Resolve the current atomic activation, then load that immutable version."""
+
+    def __init__(self, database: Database, slot: str) -> None:
+        normalized = slot.strip()
+        if normalized not in {"discovery", "runtime"}:
+            raise CatalogRepositoryError("catalog activation slot is unsupported")
+        self._database = database
+        self._slot = normalized
+
+    def load(self) -> CatalogSnapshotDTO:
+        with self._database.session() as session:
+            row = session.execute(
+                select(CatalogActivation, CatalogVersion)
+                .join(
+                    CatalogVersion,
+                    CatalogVersion.id == CatalogActivation.catalog_version_id,
+                )
+                .where(
+                    CatalogActivation.slot == self._slot,
+                    CatalogActivation.deactivated_at.is_(None),
+                )
+            ).one_or_none()
+            if row is None:
+                raise CatalogRepositoryError("catalog activation was not found")
+            _, version = row
+            if version.status != "PUBLISHED":
+                raise CatalogRepositoryError("active catalog is not published")
+            version_code = version.code
+        # Published domain rows are immutable.  Loading outside the short slot
+        # lookup transaction cannot produce a mixed-version snapshot.
+        return PostgresCatalogRepository(self._database, version_code).load()

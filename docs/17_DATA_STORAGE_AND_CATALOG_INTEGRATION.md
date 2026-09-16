@@ -321,10 +321,10 @@ commissioning или deep integration в catalog price. Ни RUB, ни VAT polic
 ### Repository и dual-run
 
 Implementation status: итерация `data/catalog-repository-dual-run` реализована.
-Legacy `backend/fleet` обёрнут reference adapter и остаётся единственным
-публичным runtime; PostgreSQL adapter требует явный version code и доступен
-только служебной dual-run команде под feature flag. DTO не экспортируют ORM,
-а adapter читает matching-поля исключительно из `matching_spec_facts`.
+Legacy `backend/fleet` обёрнут reference adapter и остаётся default runtime;
+PostgreSQL adapter требует явный version code. DTO не экспортируют ORM, а
+adapter читает matching-поля исключительно из `matching_spec_facts`. Его
+последующее подключение через activation описано ниже.
 Warehouse fixture сравнивает identity, rejection, fleet, economics и canonical
 ScenarioSpec, классифицирует каждое отличие и не угадывает соответствие моделей
 по имени. Для текущей официальной пары отсутствие evidence-backed runtime
@@ -332,8 +332,8 @@ projection фиксируется как `BLOCKED_BY_EVIDENCE`, без legacy-de
 
 - Ввести domain DTO и `CatalogRepository` без ORM-объектов за границей data
   layer.
-- Оставить `backend/fleet` reference adapter; PostgreSQL adapter включать feature
-  flag только в тесте/служебном dual-run.
+- Оставить `backend/fleet` reference adapter и safe-default feature flag;
+  PostgreSQL adapter до activation использовать в тесте/служебном dual-run.
 - Сравнивать пересечение моделей, причины hard rejection, fleet/economics и
   canonical ScenarioSpec. Ожидаемые различия из официальных данных фиксировать,
   а не принудительно добиваться побайтового равенства разных каталогов.
@@ -345,7 +345,7 @@ projection фиксируется как `BLOCKED_BY_EVIDENCE`, без legacy-de
 Implementation status: итерация `persistence/projects-analysis-runs`
 реализована. Миграция, API, one-shot bootstrap, UI, owner isolation,
 immutable snapshots и deletion/tombstone gate покрыты PostgreSQL integration
-tests; catalog activation и file intake намеренно не включены.
+tests; file intake намеренно не включён.
 
 Минимум: `users`, `projects`, `project_files`, `scenarios`, `analysis_runs` и
 `audit_entries`. Guest — неперсистентный demo-flow без сохранения
@@ -369,8 +369,39 @@ secret; tracked `.env.example` содержит placeholders. Bootstrap без �
 tests покрывают первый запуск, повторный no-op, параллельный запуск, collision и
 отсутствие секрета в логах.
 Удаление пользователя сначала запускает тот же проверяемый процесс удаления его
-projects/files. Затем сохраняются run snapshots и version references. Только
-после этого выполняются catalog activation/switch и официальный XLSX/CSV intake.
+projects/files. Затем сохраняются run snapshots и version references.
+
+### Catalog activation и official profiles
+
+Implementation status: итерация `data/catalog-activation-official-presets`
+реализована. Явная publish-команда повторно валидирует committed bundle,
+успешные BASE/ENRICHMENT одной версии, content checksum, import counts,
+фактические domain counts и 42/39/57 profile parameters. Переходы lifecycle
+остаются прямыми и необратимыми; published domain rows не изменяются.
+
+Slot activation использует transaction-level advisory lock, row lock, один
+timestamp для закрытия прежней activation и открытия новой. История не
+перезаписывается. Разрешены раздельные `discovery` и `runtime` slots:
+
+- discovery публикует все 187 моделей, hierarchy, search/filter/sort/compare,
+  safe facts, price provenance и явный `selectable`;
+- runtime activation требует хотя бы одну модель, полностью проходящую
+  evidence-backed projection в строгий `Robot` contract;
+- `CATALOG_RUNTIME_SOURCE=legacy` — default и быстрый rollback;
+- режим `activated` без безопасного runtime snapshot fail-closed с 503, без
+  смешивания официальных и legacy facts.
+
+Текущий organizer bundle не содержит `runtime_projection`, поэтому его
+discovery activation допустима, а runtime activation ожидаемо блокируется.
+AnalysisRun разрешает snapshot до запуска расчёта и сохраняет его code/UUID;
+весь расчёт использует тот же immutable DTO.
+
+Официальный `object_profiles.json` проверяется по manifest checksum и строгому
+контракту. API отдаёт полную metadata (default/min/max/unit/source) и отдельную
+проекцию в совместимый `UserInput`. Каждое поле проекции имеет
+`PRESET|CALCULATED|ASSUMED` и ссылки на parameter/source; flat legacy preset
+генерируется из той же проекции. XLSX/CSV parsing, preview и project file
+storage относятся к следующей итерации `intake/xlsx-csv-project-files`.
 
 ## 10. Файлы, backup, rollback и demo reset
 

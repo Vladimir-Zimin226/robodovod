@@ -46,10 +46,13 @@ services:
       SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
       SESSION_TTL_SECONDS: "${SESSION_TTL_SECONDS:-43200}"
       APP_ALLOWED_ORIGINS: "${APP_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}"
+      CATALOG_RUNTIME_SOURCE: "${CATALOG_RUNTIME_SOURCE:-legacy}"
+      OFFICIAL_CATALOG_BUNDLE_PATH: "/data/import/organizer-catalog-v4"
       PROJECT_FILE_STORAGE_ROOT: "/data/uploads"
       DELETION_TOMBSTONE_DAYS: "${DELETION_TOMBSTONE_DAYS:-30}"
     volumes:
       - project_uploads:/data/uploads
+      - ./data/import:/data/import:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -89,6 +92,22 @@ services:
     environment:
       DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
       CATALOG_DUAL_RUN_ENABLED: "true"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    init: true
+
+  catalog-activation:
+    profiles: ["tools"]
+    build:
+      context: ./backend
+    entrypoint: ["python", "-m", "catalog_activation"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+      OFFICIAL_CATALOG_BUNDLE_PATH: "/data/import/organizer-catalog-v4"
+    volumes:
+      - ./data/import:/data/import:ro
     depends_on:
       migrate:
         condition: service_completed_successfully

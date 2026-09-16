@@ -199,6 +199,14 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 
 ### Этап 5 — catalog activation, официальные profiles и file intake
 
+Статус: первая малая итерация `data/catalog-activation-official-presets`
+реализована; `intake/xlsx-csv-project-files` остаётся следующим отдельным
+срезом. Публикация проверяет imports/checksums/counts, activation history
+переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
+runtime models. Legacy остаётся default и rollback feature flag. Официальные
+42/39/57 profiles и их PRESET/CALCULATED/ASSUMED provenance доступны через API;
+discovery показывает все модели, но selectable только доказательно готовые.
+
 - Atomic activation проверенной CatalogVersion и controlled runtime switch.
 - Официальные 42/39/57 параметров становятся metadata-driven presets с
   default/min/max/unit/source.
@@ -210,6 +218,10 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 
 Gate: официальный warehouse файл даёт тот же нормализованный input, что preset;
 ошибки атомарны; legacy catalog можно вернуть activation/feature flag.
+
+Для завершённой малой итерации пройдены atomic publication/activation,
+profile-count/provenance и legacy rollback gates. Эквивалентность официального
+warehouse файла preset проверяется в следующей intake-итерации.
 
 ### Этап 6 — readiness, architecture, constraints и capacity
 

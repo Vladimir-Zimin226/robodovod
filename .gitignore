@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+.test-*/
 .ruff_cache/
 .mypy_cache/
 .coverage
@@ -48,6 +49,7 @@ Desktop.ini
 *.bak
 coverage/
 htmlcov/
+.test-*/
 *.sqlite
 *.sqlite3
 *.db

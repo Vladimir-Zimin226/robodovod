@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AppIcon from './components/AppIcon';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -12,16 +12,27 @@ const CARDS = [
 
 export default function OnboardingScreen({ onChoose, onPreset }) {
   const [busy, setBusy] = useState(false);
+  const [profileCounts, setProfileCounts] = useState({});
+
+  useEffect(() => {
+    fetch(`${API}/api/object-profiles`)
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((payload) => setProfileCounts(Object.fromEntries(
+        payload.items.map((item) => [item.code, item.parameter_count]),
+      )))
+      .catch(() => {});
+  }, []);
 
   const applyPreset = async (type) => {
     setBusy(true);
     try {
-      const res = await fetch(`${API}/api/presets/${type}`);
+      const res = await fetch(`${API}/api/object-profiles/${type}/preset`);
       if (!res.ok) {
         alert('Не удалось загрузить пример. Проверьте, что бэкенд запущен.');
         return;
       }
-      onPreset(type, await res.json());
+      const preset = await res.json();
+      onPreset(type, preset.normalized_input);
     } catch {
       alert('Бэкенд недоступен. Запустите uvicorn main:app на порту 8000.');
     } finally {
@@ -51,13 +62,20 @@ export default function OnboardingScreen({ onChoose, onPreset }) {
               Выбрать
             </button>
             {c.preset && (
-              <button
-                disabled={busy}
-                onClick={() => applyPreset(c.type)}
-                className="w-full text-xs text-slate-500 underline disabled:opacity-50"
-              >
-                {busy ? 'Загрузка…' : 'Заполнить примером данных'}
-              </button>
+              <>
+                <button
+                  disabled={busy}
+                  onClick={() => applyPreset(c.type)}
+                  className="w-full text-xs text-slate-500 underline disabled:opacity-50"
+                >
+                  {busy ? 'Загрузка…' : 'Заполнить официальным профилем'}
+                </button>
+                {profileCounts[c.type === 'retail' ? 'warehouse' : c.type === 'clinic' ? 'medical_facility' : c.type] && (
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    {profileCounts[c.type === 'retail' ? 'warehouse' : c.type === 'clinic' ? 'medical_facility' : c.type]} параметров · с источниками
+                  </div>
+                )}
+              </>
             )}
           </div>
         ))}

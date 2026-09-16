@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -95,21 +95,84 @@ const COLOR_CLASSES = {
   purple: { bg: 'from-purple-50 to-blue-50', border: 'border-purple-200', badge: 'bg-purple-100 text-purple-700', btn: 'bg-purple-600 hover:bg-purple-700' },
 };
 
+const FAMILY_META = {
+  BRS: { label: 'Наземные робототехнические системы', icon: '🤖', subtitle: 'Официальный каталог БРС', color: 'blue' },
+  BAS: { label: 'Беспилотные авиационные системы', icon: '🛩', subtitle: 'Официальный каталог БАС', color: 'purple' },
+  SOFTWARE: { label: 'Программные решения', icon: '▦', subtitle: 'ПО для робототехнических систем', color: 'emerald' },
+};
+
+function normalizeOfficialModel(model) {
+  const specs = Object.fromEntries((model.facts || []).map((fact) => [fact.code, fact.value]));
+  return {
+    ...model,
+    category: model.system_family,
+    type_label: model.type_code,
+    purpose: model.use_cases,
+    specs,
+    fact_list: model.facts || [],
+    economics: model.purchase ? { robot_capex_rub: model.purchase.amount } : {},
+    price: {
+      basis: model.purchase ? 'official_catalog' : 'quote_required',
+      note: model.purchase?.evidence_id ? `Evidence: ${model.purchase.evidence_id}` : 'Цена отсутствует',
+    },
+  };
+}
+
 export default function CatalogScreen({ objectType, onContinue }) {
   const [robots, setRobots] = useState([]);
+  const [catalog, setCatalog] = useState(null);
+  const [hierarchy, setHierarchy] = useState([]);
+  const [query, setQuery] = useState('');
+  const [family, setFamily] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [sort, setSort] = useState('name');
   const [selected, setSelected] = useState([]);   // для сравнения
   const [showCompare, setShowCompare] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/api/robots`)
+    fetch(`${API}/api/catalog/models`)
       .then((r) => r.json())
-      .then(setRobots)
-      .catch(() => {});
+      .then((payload) => {
+        setCatalog({ ...payload.catalog, selectable_count: payload.selectable_count });
+        setHierarchy(payload.hierarchy || []);
+        setRobots((payload.items || []).map(normalizeOfficialModel));
+      })
+      .catch(() => {
+        fetch(`${API}/api/robots`).then((r) => r.json()).then(setRobots).catch(() => {});
+      });
   }, []);
 
-  const visible = robots.filter((r) =>
-    (r.object_types || ['retail', 'other']).includes(objectType)
-  );
+  const visible = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase('ru-RU');
+    const filtered = robots.filter((robot) => {
+      if (!catalog && !(robot.object_types || ['retail', 'other']).includes(objectType)) return false;
+      if (family && robot.system_family !== family) return false;
+      if (typeFilter && robot.type_code !== typeFilter) return false;
+      if (!needle) return true;
+      return [robot.name, robot.manufacturer, robot.type_code, robot.description, ...(robot.industries || []), ...(robot.use_cases || [])]
+        .filter(Boolean)
+        .some((value) => String(value).toLocaleLowerCase('ru-RU').includes(needle));
+    });
+    const key = sort === 'manufacturer' ? (robot) => robot.manufacturer || '' : sort === 'type' ? (robot) => robot.type_code || '' : (robot) => robot.name;
+    return [...filtered].sort((left, right) => key(left).localeCompare(key(right), 'ru'));
+  }, [robots, catalog, objectType, family, typeFilter, query, sort]);
+
+  const categories = catalog
+    ? hierarchy.map((item, index) => ({
+        key: item.system_family,
+        ...(FAMILY_META[item.system_family] || {
+          label: item.system_family,
+          icon: '▪',
+          subtitle: 'Официальный каталог',
+          color: ['blue', 'violet', 'emerald'][index % 3],
+        }),
+        metrics: [],
+      }))
+    : CATEGORIES;
+
+  const types = family
+    ? hierarchy.find((item) => item.system_family === family)?.types || []
+    : hierarchy.flatMap((item) => item.types || []);
 
   const toggle = (id) => {
     setSelected((prev) =>
@@ -141,12 +204,36 @@ export default function CatalogScreen({ objectType, onContinue }) {
         <header className="mb-6">
           <h1 className="text-2xl font-bold">Доступные решения</h1>
           <p className="text-slate-500 text-sm mt-1">
-            {totalVisible} роботов · для объекта: <b>{OBJ_LABEL}</b>
+            {totalVisible} решений · для объекта: <b>{OBJ_LABEL}</b>
           </p>
+          {catalog && (
+            <p className="text-xs text-slate-400 mt-1">
+              Версия {catalog.code} · {catalog.source === 'activated' ? 'активированный официальный каталог' : 'резервный каталог'} · для расчёта: {catalog.selectable_count}
+            </p>
+          )}
         </header>
 
+        {catalog && (
+          <div className="grid grid-cols-4 gap-3 mb-6 bg-white border rounded-xl p-3">
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Поиск по названию, отрасли, сценарию" className="border rounded-lg px-3 py-2 text-sm" />
+            <select value={family} onChange={(event) => { setFamily(event.target.value); setTypeFilter(''); }} className="border rounded-lg px-3 py-2 text-sm">
+              <option value="">Все семейства</option>
+              {hierarchy.map((item) => <option key={item.system_family} value={item.system_family}>{FAMILY_META[item.system_family]?.label || item.system_family}</option>)}
+            </select>
+            <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+              <option value="">Все типы</option>
+              {Array.from(new Map(types.map((item) => [item.type_code, item])).values()).map((item) => <option key={item.type_code} value={item.type_code}>{item.type_code} ({item.count})</option>)}
+            </select>
+            <select value={sort} onChange={(event) => setSort(event.target.value)} className="border rounded-lg px-3 py-2 text-sm">
+              <option value="name">По названию</option>
+              <option value="manufacturer">По производителю</option>
+              <option value="type">По типу</option>
+            </select>
+          </div>
+        )}
+
         {/* ─── Секции по категориям ─── */}
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const items = visible.filter((r) => r.category === cat.key);
           if (items.length === 0) return null;
           const colors = COLOR_CLASSES[cat.color];
@@ -203,7 +290,7 @@ export default function CatalogScreen({ objectType, onContinue }) {
         {/* ─── CTA ─── */}
         <div className="mt-8 flex items-center justify-between">
           <p className="text-xs text-slate-400">
-            Отметьте 2–3 решения для сравнения характеристик
+            Отметьте 2–3 решения для сравнения. Выбор для расчёта доступен только моделям с полным evidence-backed runtime-профилем.
           </p>
           <button
             onClick={onContinue}
@@ -227,13 +314,21 @@ function RobotCard({ robot, category, colors, isSelected, onToggle, fmtPrice }) 
   const purposesCount = purposes.length;
 
   // Собираем метрики: только те, у которых есть значения
-  const metrics = category.metrics
-    .map(([key, label, unit, ic]) => {
-      const val = specs[key];
-      if (val == null || val === 0) return null;
-      return { key, label, unit, ic, val };
-    })
-    .filter(Boolean);
+  const metrics = robot.fact_list
+    ? robot.fact_list.slice(0, 4).map((fact) => ({
+        key: fact.code,
+        label: fact.code.replaceAll('_', ' '),
+        unit: fact.unit,
+        ic: '•',
+        val: typeof fact.value === 'object' ? JSON.stringify(fact.value) : fact.value,
+      }))
+    : category.metrics
+        .map(([key, label, unit, ic]) => {
+          const val = specs[key];
+          if (val == null || val === 0) return null;
+          return { key, label, unit, ic, val };
+        })
+        .filter(Boolean);
 
   return (
     <div
@@ -249,9 +344,14 @@ function RobotCard({ robot, category, colors, isSelected, onToggle, fmtPrice }) 
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-slate-800 leading-tight">{robot.name}</h3>
           <div className="text-[11px] text-slate-500 mt-0.5 truncate">
-            {robot.type_label || category.label}
+            {robot.manufacturer && `${robot.manufacturer} · `}{robot.type_label || category.label}
             {specs.navigation_type && ` · ${specs.navigation_type}`}
           </div>
+          {robot.fact_list && (
+            <span className={`inline-block mt-1 text-[9px] px-2 py-0.5 rounded-full ${robot.selectable ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+              {robot.selectable ? 'Доступно для расчёта' : 'Только discovery'}
+            </span>
+          )}
         </div>
         {/* Чекбокс сравнения */}
         <button
@@ -361,7 +461,7 @@ function RobotCard({ robot, category, colors, isSelected, onToggle, fmtPrice }) 
 // ═══════════════════════════════════════════════════════════════
 function CompareTable({ robots, fmtPrice, onClose }) {
   // Собираем union всех ключей specs, которые есть у кого-то из сравнимых
-  const fieldsToShow = [
+  const legacyFields = [
     ['payload_kg', 'Грузоподъёмность', 'кг'],
     ['max_speed_m_s', 'Скорость', 'м/с'],
     ['autonomy_hours', 'Автономность', 'ч'],
@@ -373,6 +473,13 @@ function CompareTable({ robots, fmtPrice, onClose }) {
     ['max_scan_height_m', 'Высота', 'м'],
     ['position_accuracy_cm', 'Точность', 'см'],
   ];
+  const officialFacts = new Map();
+  robots.forEach((robot) => (robot.fact_list || []).forEach((fact) => {
+    if (!officialFacts.has(fact.code)) officialFacts.set(fact.code, fact);
+  }));
+  const fieldsToShow = officialFacts.size
+    ? Array.from(officialFacts.values()).map((fact) => [fact.code, fact.code.replaceAll('_', ' '), fact.unit])
+    : legacyFields;
 
   return (
     <div className="mt-4 bg-white rounded-xl border p-4 overflow-auto">
@@ -408,7 +515,8 @@ function CompareTable({ robots, fmtPrice, onClose }) {
                 <td className="py-2 pr-4 text-slate-500">{label}</td>
                 {robots.map((rb) => {
                   const v = rb.specs[key];
-                  const display = v == null || v === 0 ? '—' : `${v}${unit ? ' ' + unit : ''}`;
+                  const safeValue = typeof v === 'object' ? JSON.stringify(v) : v;
+                  const display = v == null || v === 0 ? '—' : `${safeValue}${unit ? ' ' + unit : ''}`;
                   return (
                     <td key={rb.id} className="py-2 px-4 font-semibold">
                       {display}
