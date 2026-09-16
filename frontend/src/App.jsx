@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import OnboardingScreen from './OnboardingScreen';
 import IntakeScreen from './components/IntakeScreen';
 import ResultsPanel from './components/ResultsPanel';
 import CatalogScreen from './components/CatalogScreen';
 import { AppShell } from './components/AppShell';
+import { AdminUsersScreen, AuthScreen, ProjectsScreen } from './components/PersistenceScreens';
+import { readCsrfCookie } from './persistenceApi';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -21,7 +23,17 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [command, setCommand] = useState('');
   const [intakePrompt, setIntakePrompt] = useState('');
+  const [user, setUser] = useState(null);
+  const [activeProject, setActiveProject] = useState(null);
+  const [saveState, setSaveState] = useState('');
   const calculationSequence = useRef(0);
+
+  useEffect(() => {
+    fetch(`${API}/api/auth/me`, { credentials: 'include' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => payload && setUser(payload.user))
+      .catch(() => {});
+  }, []);
 
   const recalc = async (inp) => {
     calculationSequence.current += 1;
@@ -32,6 +44,7 @@ export default function App() {
     try {
       const res = await fetch(`${API}/api/calculate`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apiInput),
       });
@@ -63,6 +76,7 @@ export default function App() {
     setObjectType(null);
     setPreset(null);
     setResult(null);
+    setSaveState('');
   };
 
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
@@ -79,6 +93,18 @@ export default function App() {
     }
     if (id === 'library') {
       setPhase('catalog');
+      return;
+    }
+    if (id === 'projects') {
+      setPhase(user ? 'projects' : 'account');
+      return;
+    }
+    if (id === 'admin') {
+      setPhase(user?.role === 'ADMIN' ? 'admin' : 'account');
+      return;
+    }
+    if (id === 'account') {
+      setPhase('account');
       return;
     }
     if (phase !== 'results') {
@@ -99,9 +125,31 @@ export default function App() {
     setPhase('intake');
   };
 
+  const saveAnalysis = async () => {
+    if (!user || !activeProject || !userInput || !result) return;
+    const scenario = activeProject.scenarios.find((item) => item.slot === 'BASE');
+    if (!scenario) return;
+    const apiInput = Object.fromEntries(
+      Object.entries(userInput).filter(([key]) => !key.startsWith('_'))
+    );
+    setSaveState('saving');
+    try {
+      const response = await fetch(`${API}/api/projects/${activeProject.id}/analysis-runs`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
+        body: JSON.stringify({ scenario_id: scenario.id, input: apiInput }),
+      });
+      if (!response.ok) throw new Error('Не удалось сохранить расчёт');
+      setSaveState('saved');
+    } catch (error) {
+      setSaveState(error.message);
+    }
+  };
+
   return (
-    <AppShell phase={phase} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
-      {phase !== 'results' && phase !== 'catalog' && <Stepper current={currentStep} />}
+    <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
+      {!['results', 'catalog', 'account', 'projects', 'admin'].includes(phase) && <Stepper current={currentStep} />}
       <div className="phase-content">
         {phase === 'onboarding' ? (
           <OnboardingScreen
@@ -125,13 +173,44 @@ export default function App() {
           />
         ) : phase === 'catalog' ? (
           <CatalogScreen objectType={objectType || 'other'} onContinue={() => setPhase(result ? 'results' : 'onboarding')} />
-        ) : (
-          <ResultsPanel
-            result={result}
-            userInput={userInput}
-            onRecalc={recalc}
-            onRestart={restart}
+        ) : phase === 'account' ? (
+          <AuthScreen
+            user={user}
+            onAuthenticated={(nextUser) => { setUser(nextUser); setPhase('account'); }}
+            onLoggedOut={() => { setUser(null); setActiveProject(null); restart(); }}
+            onNavigate={(target) => setPhase(target)}
           />
+        ) : phase === 'projects' ? (
+          <ProjectsScreen
+            onOpenProject={(project) => { setActiveProject(project); setPhase('onboarding'); }}
+            onOpenRun={(run, project) => {
+              setActiveProject(project);
+              setUserInput(run.input_snapshot);
+              setResult(run.result_snapshot);
+              setPhase('results');
+              setSaveState('saved');
+            }}
+          />
+        ) : phase === 'admin' && user?.role === 'ADMIN' ? (
+          <AdminUsersScreen />
+        ) : (
+          <>
+            {user && activeProject && result && (
+              <div className="save-run-bar">
+                <span>Проект: <strong>{activeProject.name}</strong> · базовый сценарий</span>
+                <button className="primary-action" disabled={saveState === 'saving' || saveState === 'saved'} onClick={saveAnalysis}>
+                  {saveState === 'saving' ? 'Сохраняем…' : saveState === 'saved' ? 'Расчёт сохранён' : 'Сохранить AnalysisRun'}
+                </button>
+                {saveState && !['saving', 'saved'].includes(saveState) && <small>{saveState}</small>}
+              </div>
+            )}
+            <ResultsPanel
+              result={result}
+              userInput={userInput}
+              onRecalc={(input) => { setSaveState(''); recalc(input); }}
+              onRestart={restart}
+            />
+          </>
         )}
       </div>
     </AppShell>

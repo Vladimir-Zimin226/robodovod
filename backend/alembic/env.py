@@ -13,6 +13,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 from database import DatabaseSettings  # noqa: E402
 import catalog_models  # noqa: E402, F401
+import persistence_models  # noqa: E402, F401
 from storage_models import Base  # noqa: E402
 
 

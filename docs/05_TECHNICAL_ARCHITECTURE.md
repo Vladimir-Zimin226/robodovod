@@ -88,7 +88,7 @@ HTML template → PDF renderer if stable. If PDF rendering threatens demo, HTML/
 
 Docker/Compose + Nginx + one VPS. No microservices.
 
-PostgreSQL доступен как Compose service для воспроизводимого demo/CI и через
+PostgreSQL доступен как Compose service для воспроизводимого demo и локальной проверки, а также через
 `DATABASE_URL` для запуска без Docker. Схема изменяется только миграциями
 Alembic; startup не должен молча удалять или пересоздавать данные.
 

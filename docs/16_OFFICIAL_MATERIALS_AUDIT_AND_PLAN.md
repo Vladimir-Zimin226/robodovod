@@ -131,7 +131,7 @@ matching truth.
   имеет только базовый набор hard checks, а не полную матрицу ТЗ.
 - Текущие presets не совпадают с официальными значениями XLSX.
 - Нет users/projects/files/AnalysisRun, auth, XLSX/CSV intake, admin update,
-  PostgreSQL, Alembic, migrations, CI, backup/reset.
+  PostgreSQL, Alembic, migrations, локальные проверки, backup/reset.
 - Нет обязательной 2D. `backend/simulation.py` выдаёт legacy illustrative data,
   но текущий UI использует RobCraft и не предоставляет требуемый 2D flow.
 - RobCraft telemetry не возвращается как versioned SimulationReport в основной
@@ -196,7 +196,7 @@ AnalysisRun с самого переключения знает catalog/rules ve
 
 Первая следующая итерация — только
 `infra/postgres-storage-control-plane`. Её точный scope, пять таблиц,
-constraints, local/Compose/CI path и Definition of Done находятся в docs/17.
+constraints, local/Compose validation path и Definition of Done находятся в docs/17.
 
 ## 7. Противоречия и пробелы документов
 
@@ -330,6 +330,6 @@ deletion tombstone — 30 дней; project sharing отсутствует. Evid
 - docs/12, docs/16 и docs/17 задают один порядок;
 - первая итерация мала, обратима и не меняет расчёт;
 - schema boundaries, lifecycle, evidence gate, import transaction, files,
-  backup/reset, local/Compose/CI и security зафиксированы;
+  backup/reset, local/Compose-проверки и security зафиксированы;
 - обязательные функции не смешаны с P1/CUT;
 - остающиеся вопросы названы вопросами, а не заполнены догадками.

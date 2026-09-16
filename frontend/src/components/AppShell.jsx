@@ -10,10 +10,16 @@ const NAVIGATION = [
   { id: 'report', label: 'Отчёт', icon: 'report', target: 'report' },
 ];
 
-export function AppShell({ phase, onNavigate, command, setCommand, onCommand, children }) {
+export function AppShell({ phase, user, activeProject, onNavigate, command, setCommand, onCommand, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isResult = phase === 'results';
-  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'process' : phase === 'catalog' ? 'library' : 'home';
+  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'process' : phase === 'catalog' ? 'library' : phase;
+  const initials = (user?.name || user?.email || 'Г')
+    .split(/[\s@]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
 
   const navigate = (item) => {
     onNavigate(item);
@@ -41,6 +47,8 @@ export function AppShell({ phase, onNavigate, command, setCommand, onCommand, ch
         </nav>
         <div className="nav-secondary">
           <button className={activeNav === 'library' ? 'active' : ''} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>
+          {user && <button className={activeNav === 'projects' ? 'active' : ''} onClick={() => navigate({ id: 'projects' })}><AppIcon name="report" /><span>Мои проекты</span></button>}
+          {user?.role === 'ADMIN' && <button className={activeNav === 'admin' ? 'active' : ''} onClick={() => navigate({ id: 'admin' })}><AppIcon name="process" /><span>Пользователи</span></button>}
         </div>
         <div className="sidebar-footer">
           <div>СЕГОДНЯ<br /><strong>АНАЛИЗ.</strong><br />ЗАВТРА<br /><strong>ЭФФЕКТ.</strong></div>
@@ -57,9 +65,9 @@ export function AppShell({ phase, onNavigate, command, setCommand, onCommand, ch
           </form>
           <div className="project-context">
             <AppIcon name="cube" />
-            <div><strong>{isResult ? 'Текущий расчёт' : 'Новый проект'}</strong><span>{isResult ? 'Предварительное ТЭО' : 'Россия'}</span></div>
+            <div><strong>{activeProject?.name || (isResult ? 'Текущий расчёт' : 'Гостевой расчёт')}</strong><span>{activeProject ? 'Сохраняемый проект' : isResult ? 'Предварительное ТЭО' : 'Россия'}</span></div>
           </div>
-          <div className="user-avatar" aria-label="Локальный пользователь">ВК</div>
+          <button className={`user-avatar ${activeNav === 'account' ? 'active' : ''}`} onClick={() => navigate({ id: 'account' })} aria-label={user ? `Аккаунт ${user.email}` : 'Войти или зарегистрироваться'} title={user ? user.email : 'Войти'}>{initials}</button>
           <p className="command-examples">Например: «Перемещение паллет на складе», «Упаковка готовой продукции», «Подача материалов на линию»</p>
         </header>
         <div className="app-content">{children}</div>

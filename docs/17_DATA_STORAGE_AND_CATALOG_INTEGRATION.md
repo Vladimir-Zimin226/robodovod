@@ -26,7 +26,7 @@ frontend одновременно с инфраструктурой БД не с
 
 - Runtime-каталог сейчас загружается при импорте `backend/fleet` из 13 локальных
   JSON-записей и хранится в process-global структурах; repository boundary нет.
-- PostgreSQL, SQLAlchemy, Alembic, `DATABASE_URL`, миграционный service, CI и
+- PostgreSQL, SQLAlchemy, Alembic, `DATABASE_URL`, миграционный service и
   `.env.example` отсутствуют. Compose поднимает только backend и frontend.
 - Проекты, пользователи, файлы и расчёты не сохраняются; состояние находится в
   React. PDF создаётся на клиенте.
@@ -248,7 +248,8 @@ object profiles и приложения. Failed run хранит diagnostics, н
   DSN/секретов.
 - `.env.example` только с placeholders, документированные команды полного
   Compose и локального backend с внешним PostgreSQL.
-- Минимальный CI workflow: поднять PostgreSQL, `alembic upgrade head`, тест
+- Воспроизводимая локальная/Compose-проверка: поднять PostgreSQL, выполнить
+  `alembic upgrade head`, затем тест
   schema constraints, downgrade/upgrade только на disposable DB, затем текущий
   regression suite.
 
@@ -340,6 +341,11 @@ projection фиксируется как `BLOCKED_BY_EVIDENCE`, без legacy-de
   fixtures.
 
 ### 0003 — project/run persistence
+
+Implementation status: итерация `persistence/projects-analysis-runs`
+реализована. Миграция, API, one-shot bootstrap, UI, owner isolation,
+immutable snapshots и deletion/tombstone gate покрыты PostgreSQL integration
+tests; catalog activation и file intake намеренно не включены.
 
 Минимум: `users`, `projects`, `project_files`, `scenarios`, `analysis_runs` и
 `audit_entries`. Guest — неперсистентный demo-flow без сохранения

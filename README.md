@@ -218,6 +218,40 @@ rejection, fleet, economics и canonical ScenarioSpec. Каждое несовп
 необъяснённый `DEFECT`, `3` — ошибку конфигурации; expected/blocked без дефектов
 завершаются кодом `0`.
 
+## Пользователи, проекты и AnalysisRun (migration 0003)
+
+Гостевой `/api/calculate` по-прежнему работает без регистрации и ничего не
+сохраняет. После регистрации пользователь получает изолированные проекты,
+три сценарных слота (`BASE`, `OPTIMISTIC`, `PESSIMISTIC`) и immutable snapshots
+расчётов. Повторное открытие читает сохранённый snapshot, а rerun создаёт новую
+запись. Публичный runtime всё ещё использует `backend/fleet`.
+
+Первый ADMIN создаётся только явной one-shot командой после миграции. Реальные
+значения должны находиться в игнорируемом `.env`, а не в Git:
+
+```bash
+docker compose --profile tools run --rm admin-bootstrap
+```
+
+Команда идемпотентна, не меняет существующий пароль и не повышает USER при
+совпадении email. В интерфейсе аватар открывает вход/регистрацию; после входа
+доступны «Мои проекты», а для ADMIN — экран «Пользователи» с созданием,
+изменением роли/статуса, сбросом пароля и удалением. Последнего активного ADMIN
+нельзя удалить, отключить или понизить.
+
+Удаление проекта закрывает доступ, удаляет локальные файлы из named volume и
+hard-deletes payload/scenarios/runs. Минимальный tombstone без PII и имён/ключей
+файлов хранится 30 дней. Плановая очистка запускается явно:
+
+```bash
+docker compose --profile tools run --rm persistence-maintenance purge-deletion-tombstones
+```
+
+Для локального HTTP `SESSION_COOKIE_SECURE=false`; за HTTPS-прокси значение
+обязательно переключается на `true`. Изменяющие запросы защищены CSRF-токеном,
+пароли хешируются Argon2id, а owner predicate применяется в каждом project/run
+query.
+
 ## Автономный запуск RobCraft
 
 RobCraft не требует запуска backend, frontend, Docker или загрузки зависимостей:
@@ -293,10 +327,10 @@ project.json   машиночитаемый манифест концепции
 Описание интегрированной экономической и зональной логики, включая её текущие
 ограничения, находится в [отдельной технической записке](docs/14_ECONOMICS_AND_ZONES.md).
 
-Нормализованный organizer v4 bundle и внешний P0 enrichment проходят строгий
-validate/import в PostgreSQL; repository boundary и контролируемый dual-run
-реализованы, но runtime всё ещё использует legacy `backend/fleet`. Следующий
-этап — `persistence/projects-analysis-runs`; его границы описаны в
-[решении о хранении данных](docs/17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md).
+Нормализованный organizer v4 bundle, repository dual-run и project/run
+persistence реализованы, но runtime всё ещё использует legacy `backend/fleet`.
+Следующий этап — `data/catalog-activation-official-presets`: атомарная активация
+проверенной CatalogVersion и официальный metadata-driven preset. XLSX/CSV intake
+остаётся следующей отдельной малой итерацией.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

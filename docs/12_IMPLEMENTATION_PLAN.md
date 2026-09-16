@@ -53,7 +53,8 @@ Warehouse — полный golden path. Аэропорт и медучрежде
 - Экономическое ядро уже защищает от ложной рекомендации и считает CAPEX/OPEX,
   TCO, ROI, NPV и payback, но его pessimistic/base/optimistic — uncertainty, а
   не обязательные baseline/purchase/RaaS.
-- Compose содержит backend/frontend, но не БД, migrations, backup/reset или CI.
+- На исходной точке Compose содержал backend/frontend, но не БД, migrations,
+  backup/reset или воспроизводимый автоматизированный прогон проверок.
 - Проверенный baseline: 179 backend, 4 contract, 8 frontend и 77 RobCraft
   тестов; frontend lint/build и `docker compose config` проходят.
 - Staging QA согласован по counts/checksums, но исключён из Git и ещё не
@@ -119,7 +120,7 @@ Scope строго ограничен:
 - Compose `db → migrate → backend`, named volume, readiness и `.env.example`;
 - таблицы версий, source artifacts, version-source links, import runs и
   activation history;
-- PostgreSQL integration tests и минимальный CI;
+- PostgreSQL integration tests и воспроизводимый локальный/Compose-прогон;
 - локальный backend с внешней PostgreSQL.
 
 Не входят catalog rows, staging import, repository switch, projects, auth,
@@ -168,6 +169,9 @@ Gate: warehouse golden fixtures не регрессируют; PostgreSQL adapte
 использует unsafe statuses; отчёт dual-run объясняет каждое различие.
 
 ### Этап 4 — проекты, роли и AnalysisRun, migration 0003
+
+Статус: выполнен итерацией `persistence/projects-analysis-runs`; гостевой
+расчёт остаётся неперсистентным, а runtime-каталог остаётся legacy.
 
 - Минимальные `users`, `projects`, `project_files`, `scenarios`,
   `analysis_runs`, `audit_entries`;

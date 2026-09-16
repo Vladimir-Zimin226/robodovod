@@ -1,4 +1,5 @@
 import logging
+import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -108,9 +109,21 @@ PRESETS = {
 }
 
 
-app = FastAPI(title="РобоМера API", version="3.4.0")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False,
-                   allow_methods=["*"], allow_headers=["*"])
+app = FastAPI(title="РобоМера API", version="3.5.0")
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "APP_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+    ).split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class AuditRequest(BaseModel):
@@ -125,7 +138,7 @@ class AuditRequest(BaseModel):
 # ═══════════════════════════════════════════════════════════════
 @app.get("/")
 def root():
-    return {"service": "РобоМера", "version": "3.4.0", "status": "ok"}
+    return {"service": "РобоМера", "version": "3.5.0", "status": "ok"}
 
 
 @app.get("/ready")
@@ -301,3 +314,11 @@ def calculate(inp: UserInput) -> CalculationResponse:
         warnings=response_warnings + contract_warnings,
         scenario_spec=scenario_spec,
     )
+
+
+# Persistence routes are registered after the legacy calculator definition so
+# persisted runs can call exactly the same reference runtime without switching
+# catalog adapters or changing the public guest endpoint.
+from persistence_api import create_persistence_router  # noqa: E402
+
+app.include_router(create_persistence_router(calculate))

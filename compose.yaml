@@ -43,6 +43,13 @@ services:
       DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
       YC_FOLDER_ID: "${YC_FOLDER_ID:-}"
       YC_API_KEY: "${YC_API_KEY:-}"
+      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
+      SESSION_TTL_SECONDS: "${SESSION_TTL_SECONDS:-43200}"
+      APP_ALLOWED_ORIGINS: "${APP_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}"
+      PROJECT_FILE_STORAGE_ROOT: "/data/uploads"
+      DELETION_TOMBSTONE_DAYS: "${DELETION_TOMBSTONE_DAYS:-30}"
+    volumes:
+      - project_uploads:/data/uploads
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -88,6 +95,35 @@ services:
     restart: "no"
     init: true
 
+  admin-bootstrap:
+    profiles: ["tools"]
+    build:
+      context: ./backend
+    entrypoint: ["python", "-m", "bootstrap_admin"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+      BOOTSTRAP_ADMIN_EMAIL: "${BOOTSTRAP_ADMIN_EMAIL:-}"
+      BOOTSTRAP_ADMIN_PASSWORD: "${BOOTSTRAP_ADMIN_PASSWORD:-}"
+      BOOTSTRAP_ADMIN_NAME: "${BOOTSTRAP_ADMIN_NAME:-}"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    init: true
+
+  persistence-maintenance:
+    profiles: ["tools"]
+    build:
+      context: ./backend
+    entrypoint: ["python", "-m", "persistence_maintenance"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    init: true
+
   frontend:
     build:
       context: .
@@ -106,3 +142,4 @@ services:
 
 volumes:
   postgres_data:
+  project_uploads:
