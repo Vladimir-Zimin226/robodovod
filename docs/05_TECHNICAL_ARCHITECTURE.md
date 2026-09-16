@@ -120,10 +120,11 @@ Evidence/data layer
 PostgreSQL
 ```
 
-Текущий implementation note: прототип всё ещё читает каталог из
-`backend/fleet`; PostgreSQL и repository boundary не реализованы. Миграция
-сохраняет публичные calculation/ScenarioSpec contracts, меняя источник данных
-под ними.
+Текущий implementation note: PostgreSQL storage control-plane и catalog-domain
+schema реализованы миграциями `0001` и `0002`, но прототип всё ещё читает
+runtime-каталог из `backend/fleet`. Importer и repository boundary пока не
+реализованы; публичные calculation/ScenarioSpec contracts и источник данных
+под ними не менялись.
 
 ### Storage ownership
 

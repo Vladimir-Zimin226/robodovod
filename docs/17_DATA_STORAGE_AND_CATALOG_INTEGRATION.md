@@ -289,6 +289,11 @@ subject string. Это избегает преждевременной auth-сх
 
 ### 0002 — catalog domain и importer
 
+Практическая реализация разделена на две малые итерации: сначала только
+`data/catalog-domain-schema` (migration/ORM/constraints), затем отдельно
+`data/catalog-validator-importer`. Наличие таблиц 0002 само по себе не включает
+import и не переключает runtime repository.
+
 `manufacturers`, `catalog_source_rows`, `equipment_models`,
 `equipment_applicability`, `spec_observations`, `field_evidence`,
 `resolved_spec_facts`, `procurement_options` и при необходимости link-таблицы

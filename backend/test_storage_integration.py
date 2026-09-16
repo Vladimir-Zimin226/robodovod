@@ -17,6 +17,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.exc import IntegrityError
 
 import main
+import catalog_models  # noqa: F401
 from database import dispose_database, get_database
 from storage_models import Base
 

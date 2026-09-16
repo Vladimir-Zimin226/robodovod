@@ -12,6 +12,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from database import DatabaseSettings  # noqa: E402
+import catalog_models  # noqa: E402, F401
 from storage_models import Base  # noqa: E402
 
 

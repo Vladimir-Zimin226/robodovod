@@ -107,11 +107,11 @@ Invoke-RestMethod http://localhost:8000/ready
 ```
 
 PostgreSQL migration/constraint tests требуют отдельную одноразовую БД; команда
-сознательно выполняет downgrade до `base` и не должна указывать на рабочую БД:
+сознательно выполняет downgrade и не должна указывать на рабочую БД:
 
 ```powershell
 $env:TEST_DATABASE_URL = 'postgresql+psycopg://<application-role>:<url-encoded-password>@localhost:5432/<disposable-database-name>'
-.\.venv\Scripts\python.exe -m pytest backend\test_storage_integration.py -q
+.\.venv\Scripts\python.exe -m pytest backend\test_storage_integration.py backend\test_catalog_schema_integration.py -q
 ```
 
 Downgrade нужен только для одноразовой development/test БД, не вместо backup:
@@ -133,6 +133,19 @@ slot и неизменяемую историю активаций.
 Текущие расчётные endpoint по-прежнему читают 13 JSON-записей из
 `backend/fleet`; пустая мигрированная БД не меняет каталог, экономику или
 ScenarioSpec. Автоматического импорта при startup нет.
+
+## Catalog domain schema 0002
+
+Миграция `0002_catalog_domain` добавляет версионированную схему каталога:
+производителей, исходные строки, модели оборудования, применимость, наблюдения
+ТТХ, evidence, resolved facts и procurement options. Значения ТТХ типизированы,
+unsafe evidence не допускается в `matching_spec_facts`, а данные версии после
+перехода из `DRAFT` неизменяемы. Цена и её provenance хранятся отдельно от
+модели оборудования.
+
+Эта итерация создаёт только схему. Importer и catalog rows отсутствуют,
+автоматического чтения `data/staging` нет, а runtime-каталог и расчётные
+endpoint продолжают использовать `backend/fleet`.
 
 ## Автономный запуск RobCraft
 

@@ -68,10 +68,18 @@ jobs:
           python -m alembic -c backend/alembic.ini upgrade head
 
       - name: PostgreSQL migration and constraint tests
-        run: python -m pytest backend/test_storage_integration.py -q
+        run: >-
+          python -m pytest
+          backend/test_storage_integration.py
+          backend/test_catalog_schema_integration.py
+          -q
 
       - name: Backend regression tests
-        run: python -m pytest backend --ignore=backend/test_storage_integration.py -q
+        run: >-
+          python -m pytest backend
+          --ignore=backend/test_storage_integration.py
+          --ignore=backend/test_catalog_schema_integration.py
+          -q
 
       - name: ScenarioSpec JavaScript contract tests
         run: node --test contracts/scenario-spec-v1.test.mjs
