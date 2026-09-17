@@ -415,9 +415,16 @@ storage реализованы итерацией `intake/xlsx-csv-project-files
 
 Implementation status: `data/catalog-positions-media`,
 `frontend/catalog-theme-media`, `data/catalog-description-enrichment`,
-`frontend/catalog-position-details`, `intake/xlsx-csv-project-files` и
-`engine/readiness-architecture-constraints` реализованы; точный
-следующий срез — `catalog/runtime-eligibility-contract-gap-audit-223`.
+`frontend/catalog-position-details`, `intake/xlsx-csv-project-files`,
+`engine/readiness-architecture-constraints` и
+`catalog/runtime-eligibility-contract-gap-audit-223` реализованы; точный
+следующий срез — `catalog/official-source-enrichment`.
+
+Runtime eligibility contract v1 фиксирует четыре поддержанных capacity
+profile без формул. Детерминированный локальный отчёт покрывает 187 model
+identities / 223 positions и даёт статусы моделей 0 ready, 36 needs facts, 5
+conflict review, 142 unsupported profile, 4 not equipment. Description overlay
+остаётся presentation-only; runtime не переключён.
 
 Readiness принимает происхождение projected input и полные
 `parameter_values/parameter_provenance` из project-file intake. `FILE`,

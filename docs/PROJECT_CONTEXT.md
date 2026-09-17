@@ -168,15 +168,17 @@ architecture selection и hard constraints являются рабочей ба�
 Расчётный runtime пока остаётся на 13 legacy models; 223 official
 positions не становятся selectable без evidence-backed runtime facts.
 
-Ближайший приоритет — `catalog/runtime-eligibility-contract-gap-audit-223`.
-Итерация определяет runtime eligibility по классам оборудования,
-аудирует все 223 positions и 187 model identities по уже имеющимся
-локальным данным и выдаёт машиночитаемый gap/coverage report. Только
-после этого отчёта принимается решение, нужны ли source-specific
-parsers/adapters, отдельный deep research в web-версии или комбинация.
-В сам gap-audit web research, scraper implementation, runtime switch, capacity и
-economics не входят. Затем идут evidence enrichment, capacity formula trace,
-commercial scenarios, обязательная 2D/SimulationReport и exports.
+`catalog/runtime-eligibility-contract-gap-audit-223` реализован только по
+локальным данным. Contract v1 фиксирует четыре поддержанных equipment class и
+capacity profile без формул; отчёт детерминированно покрывает 223 positions и
+187 model identities. Распределение моделей: 0 `RUNTIME_READY`, 36
+`NEEDS_FACTS`, 5 `CONFLICT_REVIEW`, 142 `UNSUPPORTED_CAPACITY_PROFILE`, 4
+`NOT_EQUIPMENT`. Runtime остаётся на 13 legacy models.
+
+Ближайший приоритет — `catalog/official-source-enrichment`: deep research для
+36 моделей, hybrid для 5 конфликтных моделей, без local-adapter-only ветки по
+текущему evidence. Затем идут capacity formula trace, commercial scenarios,
+обязательная 2D/SimulationReport и exports.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

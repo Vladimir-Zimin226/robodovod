@@ -1,0 +1,169 @@
+{
+  "schema_version": "runtime-eligibility-contract-v1",
+  "catalog_code": "organizer-catalog-v4",
+  "policy": {
+    "safe_evidence_statuses": [
+      "CORROBORATED",
+      "CROSS_DOCUMENT_ENRICHED",
+      "ORGANIZER_NAME",
+      "VERIFIED_OFFICIAL",
+      "VERIFIED_AUTHORIZED_PARTNER",
+      "MANUALLY_APPROVED"
+    ],
+    "conflict_evidence_statuses": [
+      "CONFLICT",
+      "AMBIGUOUS_MODEL_MATCH"
+    ],
+    "non_equipment_system_families": [
+      "SOFTWARE"
+    ],
+    "status_precedence": [
+      "NOT_EQUIPMENT",
+      "CONFLICT_REVIEW",
+      "UNSUPPORTED_CAPACITY_PROFILE",
+      "NEEDS_FACTS",
+      "RUNTIME_READY"
+    ],
+    "description_overlay_runtime_eligible": false,
+    "runtime_switch_allowed": false,
+    "capacity_formulas_in_scope": false
+  },
+  "equipment_classes": [
+    {
+      "code": "MOBILE_TRANSPORT",
+      "runtime_category": "internal_mobile",
+      "selectors": [
+        {
+          "type": "Мобильные роботы",
+          "subtypes": [
+            "AMR",
+            "FMR",
+            "Беспилотный погрузчик",
+            "Мобильный робот-комплектовщик",
+            "Робот-штабелер",
+            "Роботизированная тележка"
+          ]
+        },
+        {
+          "type": "Автономные наземные транспортные средства",
+          "subtypes": [
+            "FMR",
+            "Беспилотный тягач"
+          ]
+        }
+      ],
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "capacity_profile": {
+        "code": "TRANSPORT_CYCLE_V1",
+        "required_fields": [
+          "capacity.units_per_trip",
+          "capacity.exchange_time_s"
+        ]
+      }
+    },
+    {
+      "code": "SERVICE_DELIVERY",
+      "runtime_category": "service_delivery",
+      "selectors": [
+        {
+          "type": "Мобильные роботы",
+          "subtypes": [
+            "Робот-курьер"
+          ]
+        }
+      ],
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "capacity_profile": {
+        "code": "DELIVERY_CYCLE_V1",
+        "required_fields": [
+          "capacity.units_per_trip",
+          "capacity.exchange_time_s",
+          "capacity.elevator_compatibility"
+        ]
+      }
+    },
+    {
+      "code": "CLEANING",
+      "runtime_category": "cleaning_robot",
+      "selectors": [
+        {
+          "type": "Мобильные роботы",
+          "subtypes": [
+            "Робот уборщик",
+            "Робот-уборщик"
+          ]
+        }
+      ],
+      "required_runtime_fields": [
+        "specs.dimensions",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "capacity_profile": {
+        "code": "CLEANING_AREA_V1",
+        "required_fields": [
+          "capacity.cleaning_rate_m2_h",
+          "capacity.cleaning_width_m"
+        ]
+      }
+    },
+    {
+      "code": "FIXED_PALLETIZING",
+      "runtime_category": "fixed_cell",
+      "selectors": [
+        {
+          "type": "Роботы-манипуляторы",
+          "subtypes": [
+            "Робот-укладчик"
+          ]
+        }
+      ],
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.dimensions",
+        "specs.positioning_accuracy",
+        "specs.operating_conditions",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "capacity_profile": {
+        "code": "PALLETIZING_THROUGHPUT_V1",
+        "required_fields": [
+          "specs.throughput"
+        ]
+      }
+    }
+  ]
+}

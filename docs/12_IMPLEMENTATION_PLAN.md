@@ -202,11 +202,11 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 Статус: `data/catalog-activation-official-presets`, корректирующие срезы
 `data/catalog-positions-media`, `frontend/catalog-theme-media` и
 `data/catalog-description-enrichment`, `frontend/catalog-position-details` и
-`intake/xlsx-csv-project-files` и `engine/readiness-architecture-constraints`
-реализованы. Точный следующий этап —
-`catalog/runtime-eligibility-contract-gap-audit-223`. Он изучает только
-уже имеющиеся в repository данные и не начинает web research или scraper
-implementation до coverage/gap decision gate.
+`intake/xlsx-csv-project-files`, `engine/readiness-architecture-constraints` и
+`catalog/runtime-eligibility-contract-gap-audit-223` реализованы. Точный
+следующий этап — `catalog/official-source-enrichment`: 36 model identities
+направлены в deep research, 5 конфликтных — в hybrid review/research; чистых
+local-adapter-only случаев текущий evidence не выявил.
 Публикация проверяет
 imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
@@ -235,9 +235,9 @@ contract/integration tests.
 
 Статус: срезы `data/catalog-positions-media`, `frontend/catalog-theme-media` и
 `data/catalog-description-enrichment`, `frontend/catalog-position-details` и
-`intake/xlsx-csv-project-files` и `engine/readiness-architecture-constraints`
-реализованы; далее идёт
-`catalog/runtime-eligibility-contract-gap-audit-223`.
+`intake/xlsx-csv-project-files`, `engine/readiness-architecture-constraints` и
+`catalog/runtime-eligibility-contract-gap-audit-223` реализованы; далее идёт
+`catalog/official-source-enrichment`.
 Migration 0004 хранит append-only media metadata,
 extractor проверяет SHA-256 restricted PDF и связывает 223 позиции со 189
 уникальными content-addressed assets. Discovery API возвращает 223 позиции при
@@ -456,9 +456,9 @@ Gate: golden path проходит пять раз подряд локально
 10. `frontend/catalog-position-details` — реализован
 11. `intake/xlsx-csv-project-files` — реализован
 12. `engine/readiness-architecture-constraints` — реализован
-13. `catalog/runtime-eligibility-contract-gap-audit-223` — следующий
-14. `catalog/official-source-enrichment` — точный способ выбирается по
-    отчёту пункта 13: local adapters, deep research или hybrid
+13. `catalog/runtime-eligibility-contract-gap-audit-223` — реализован
+14. `catalog/official-source-enrichment` — следующий; по отчёту пункта 13:
+    deep research для 36 моделей, hybrid для 5 конфликтных моделей
 15. `engine/capacity-formula-trace`
 16. `catalog/runtime-dual-run-activation`
 17. `economics/commercial-scenarios-sensitivity`

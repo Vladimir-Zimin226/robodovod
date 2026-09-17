@@ -312,12 +312,12 @@ security/deployment acceptance.
 - Точная семантика отдельных duplicate rows сверх обязательного сохранения
   каждой source row и трактовки дублей как альтернативных предложений. Она не
   блокирует schema/import: identity модели и конкретное предложение разделены.
-- Способ внешнего обогащения runtime facts намеренно не выбран
-  заранее. Сначала итерация `catalog/runtime-eligibility-contract-gap-audit-223`
-  проверяет все локальные base/overlay/evidence/provenance данные и строит
-  coverage/gap report. По нему отдельно выбирается: source-specific
-  parsers/adapters, deep research в web-версии, hybrid или no action. Сам
-  gap-audit не выходит в интернет и не создаёт parsers.
+- Способ внешнего обогащения runtime facts выбран отчётом реализованной
+  итерации `catalog/runtime-eligibility-contract-gap-audit-223`: 36 model
+  identities требуют `DEEP_RESEARCH`, 5 конфликтных — `HYBRID`, 146 —
+  `NO_ACTION`; чистых `LOCAL_ADAPTER` случаев нет. Сам gap-audit использовал
+  только локальные base/overlay/evidence/provenance данные, не выходил в
+  интернет и не создавал parsers.
 
 Закрыты решения: v4 актуален; derived text bundle разрешён; цены v4
 обрабатываются в RUB по продуктовому решению; НДС включён как допущение
