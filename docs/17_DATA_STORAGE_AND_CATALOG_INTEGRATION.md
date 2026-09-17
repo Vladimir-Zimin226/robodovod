@@ -407,16 +407,25 @@ AnalysisRun разрешает snapshot до запуска расчёта и с
 проекцию в совместимый `UserInput`. Каждое поле проекции имеет
 `PRESET|CALCULATED|ASSUMED` и ссылки на parameter/source; flat legacy preset
 генерируется из той же проекции. XLSX/CSV parsing, preview и project file
-storage относятся к отдельной итерации `intake/xlsx-csv-project-files`, которая
-после уточнения кейсодателя следует за корректирующими catalog data/UX срезами и
-итерациями enrichment/detail-view.
+storage реализованы итерацией `intake/xlsx-csv-project-files`: preview не
+изменяет проект, apply повторно валидирует bytes и атомарно сохраняет файл,
+нормализованный snapshot и field-level provenance.
 
 ### Корректирующий срез: catalog positions, media и визуальный контракт
 
 Implementation status: `data/catalog-positions-media`,
-`frontend/catalog-theme-media`, `data/catalog-description-enrichment` и
-`frontend/catalog-position-details` реализованы; точный следующий срез —
-`intake/xlsx-csv-project-files`. Migration `0004_catalog_position_media`
+`frontend/catalog-theme-media`, `data/catalog-description-enrichment`,
+`frontend/catalog-position-details`, `intake/xlsx-csv-project-files` и
+`engine/readiness-architecture-constraints` реализованы; точный
+следующий срез — `engine/capacity-formula-trace`.
+
+Readiness принимает происхождение projected input и полные
+`parameter_values/parameter_provenance` из project-file intake. `FILE`,
+`PRESET`, `USER`, `CATALOG` и `ASSUMPTION` не смешиваются: допущение
+остаётся `ASSUMED`, а отсутствующая критическая геометрия —
+`UNKNOWN`. Discovery facts не стали runtime facts, active runtime не
+переключался.
+Migration `0004_catalog_position_media`
 добавляет append-only `catalog_media_assets` и `catalog_position_media`.
 Официальный PDF проверяется по зарегистрированному source SHA-256, 223 карточки
 сопоставляются с source rows строго в document order, одинаковые bytes

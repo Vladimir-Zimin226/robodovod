@@ -310,7 +310,39 @@ def build_official_preset(
     """Return normalized input plus field-level provenance and full profile identity."""
 
     profile = get_official_profile(object_type, bundle_path)
+    values = {
+        parameter.parameter_code: parameter.default_value
+        for parameter in profile.parameters()
+    }
+    result = build_profile_projection(
+        profile,
+        values,
+        value_provenance_kind="PRESET",
+        bundle_path=bundle_path,
+    )
+    result["parameter_count"] = len(profile.parameters())
+    return result
+
+
+def build_profile_projection(
+    profile: ObjectProfile,
+    values: dict[str, Any],
+    *,
+    value_provenance_kind: Literal["PRESET", "FILE"],
+    file_source: dict[str, Any] | None = None,
+    bundle_path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Project a complete validated profile value set into ``UserInput``.
+
+    Validation of file values belongs to the intake adapter.  This function is
+    deliberately shared by presets and file intake so equivalence cannot drift.
+    """
+
     parameters = profile.parameters_by_code()
+    missing = sorted(set(parameters) - set(values))
+    extra = sorted(set(values) - set(parameters))
+    if missing or extra:
+        raise ObjectProfileError("profile projection value set differs")
     normalized_input: dict[str, Any] = {
         "object_type": APPLICATION_OBJECT_TYPES[profile.code]
     }
@@ -323,24 +355,35 @@ def build_official_preset(
     }
     for field, parameter_code in _DIRECT_MAPPINGS[profile.code].items():
         parameter = parameters[parameter_code]
-        normalized_input[field] = parameter.default_value
-        provenance[field] = _parameter_provenance(parameter)
+        normalized_input[field] = values[parameter_code]
+        if value_provenance_kind == "PRESET":
+            provenance[field] = _parameter_provenance(parameter)
+        else:
+            provenance[field] = {
+                "kind": "FILE",
+                "parameter_codes": [parameter_code],
+                "source": file_source or {},
+            }
 
     salary_code, multiplier_code = _SALARY_MAPPINGS[profile.code]
     salary = parameters[salary_code]
     multiplier = parameters[multiplier_code]
     normalized_input["fte_cost_rub"] = round(
-        float(salary.default_value) * 12 * float(multiplier.default_value), 2
+        float(values[salary_code]) * 12 * float(values[multiplier_code]), 2
     )
     provenance["fte_cost_rub"] = {
         "kind": "CALCULATED",
         "parameter_codes": [salary_code, multiplier_code],
         "expression": "monthly_gross_rub * 12 * payroll_multiplier",
-        "source": {
-            "file": salary.source_file,
-            "sheet": salary.source_sheet,
-            "rows": [salary.source_row, multiplier.source_row],
-        },
+        "source": (
+            {
+                "file": salary.source_file,
+                "sheet": salary.source_sheet,
+                "rows": [salary.source_row, multiplier.source_row],
+            }
+            if value_provenance_kind == "PRESET"
+            else (file_source or {})
+        ),
     }
 
     for field, value in _ASSUMED_FIELDS[profile.code].items():
@@ -355,7 +398,6 @@ def build_official_preset(
         "profile_code": profile.code,
         "profile_name": profile.name_ru,
         "profile_version": official_profile_version(bundle_path),
-        "parameter_count": len(profile.parameters()),
         "normalized_input": normalized_input,
         "provenance": provenance,
     }

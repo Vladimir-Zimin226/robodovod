@@ -43,6 +43,7 @@ from object_profiles import (
     profile_api_dict,
 )
 from pydantic import BaseModel
+from readiness import ReadinessReport, ReadinessRequest, evaluate_readiness
 from scenario_spec import build_scenario_spec
 from simulation import generate_simulation
 from sqlalchemy import select
@@ -83,7 +84,7 @@ def _robots_by_category(robots: list[dict[str, Any]]):
     }
 
 
-app = FastAPI(title="РобоМера API", version="3.7.0")
+app = FastAPI(title="РобоМера API", version="3.9.0")
 allowed_origins = [
     origin.strip()
     for origin in os.getenv(
@@ -112,7 +113,7 @@ class AuditRequest(BaseModel):
 # ═══════════════════════════════════════════════════════════════
 @app.get("/")
 def root():
-    return {"service": "РобоМера", "version": "3.7.0", "status": "ok"}
+    return {"service": "РобоМера", "version": "3.9.0", "status": "ok"}
 
 
 @app.get("/ready")
@@ -160,6 +161,23 @@ def get_robot(robot_id: str):
     if not robot:
         raise HTTPException(404, f"Робот '{robot_id}' не найден")
     return robot
+
+
+@app.post("/api/readiness", response_model=ReadinessReport)
+def process_readiness(request: ReadinessRequest) -> ReadinessReport:
+    """Evaluate process readiness before capacity and economics.
+
+    The catalog is resolved from the same immutable runtime snapshot as the
+    legacy calculation, but this endpoint does not activate discovery records.
+    """
+
+    return evaluate_readiness(
+        request.input,
+        _runtime_snapshot().runtime_robots(),
+        provenance=request.provenance,
+        parameter_values=request.parameter_values,
+        parameter_provenance=request.parameter_provenance,
+    )
 
 
 def _json_value(value: Any) -> Any:
@@ -699,6 +717,11 @@ app.include_router(
         calculate,
         resolve_catalog=_runtime_snapshot,
         calculate_for_catalog=calculate_with_catalog,
+        readiness_for_catalog=lambda inp, catalog, **context: evaluate_readiness(
+            inp,
+            (catalog or _runtime_snapshot()).runtime_robots(),
+            **context,
+        ),
         resolve_object_profile_version=official_profile_version,
     )
 )

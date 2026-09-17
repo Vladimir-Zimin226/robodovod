@@ -174,6 +174,8 @@ export default function ParamsPanel({
             ? 'border-green-400'
             : sources[k] === 'manual'
               ? 'border-blue-400'
+              : sources[k] === 'file'
+                ? 'border-amber-400'
               : ''
         }`}
       />

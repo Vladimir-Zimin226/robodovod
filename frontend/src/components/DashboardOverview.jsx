@@ -18,7 +18,8 @@ export default function DashboardOverview({ result, userInput }) {
   const [viewMode, setViewMode] = useState('target');
   const model = useMemo(() => getDashboardModel(result, userInput, scenario), [result, userInput, scenario]);
   const horizon = model.economics?.horizon_years || userInput?.horizon_years || 5;
-  const readiness = model.readiness;
+  const readinessReport = result.readiness_report;
+  const readiness = readinessReport?.score ?? model.readiness;
   const readinessTone = readiness == null ? 'muted' : readiness >= 75 ? 'good' : readiness >= 50 ? 'caution' : 'danger';
   const scenarioChoices = model.recommended?.scenarios || [];
   const visualizedFleet = result.scenario_spec?.fleet?.[0];
@@ -72,10 +73,15 @@ export default function DashboardOverview({ result, userInput }) {
             <div className="readiness-content">
               <div className={`readiness-ring ${readinessTone}`} style={{ '--score': readiness || 0 }}><strong>{readiness ?? '—'}</strong><span>из 100</span></div>
               <ul>
-                <Check ok={technicalOption?.technical_status === 'ELIGIBLE'}>Технически реализуемо</Check>
-                <Check ok={model.hasAcceptableRecommendation}>{model.hasAcceptableRecommendation ? 'Экономически целесообразно' : 'Экономика неприемлема'}</Check>
-                <Check ok={(model.dataCompleteness || 0) >= 75}>Данные достаточны: {model.dataCompleteness ?? '—'}%</Check>
-                <Check ok={false} warning>Требуется инженерное обследование</Check>
+                {readinessReport ? <>
+                  <Check ok={readinessReport.overall_status === 'READY'} warning={readinessReport.overall_status === 'NEEDS_VALIDATION'}>{readinessStatus(readinessReport.overall_status)}</Check>
+                  <Check ok={!readinessReport.blockers.length}>{readinessReport.blockers.length ? `Блокеров: ${readinessReport.blockers.length}` : 'Критических FAIL нет'}</Check>
+                  <Check ok={readinessReport.confidence === 'HIGH'} warning>{`Доверие: ${confidenceLabel(readinessReport.confidence)}`}</Check>
+                  <Check ok={false} warning>{architectureLabel(readinessReport.architecture_candidates?.[0]?.architecture_id)}</Check>
+                </> : <>
+                  <Check ok={technicalOption?.technical_status === 'ELIGIBLE'}>Технически реализуемо</Check>
+                  <Check ok={(model.dataCompleteness || 0) >= 75}>Данные достаточны: {model.dataCompleteness ?? '—'}%</Check>
+                </>}
               </ul>
             </div>
           </article>
@@ -94,6 +100,8 @@ export default function DashboardOverview({ result, userInput }) {
           </article>
         </aside>
       </div>
+
+      {readinessReport && <ReadinessDetails report={readinessReport} />}
 
       <div className="analytics-grid">
         <article className="scenario-card panel" id="scenarios">
@@ -149,5 +157,19 @@ function Check({ ok, warning = false, children }) { return <li className={ok ? '
 function Kpi({ tone, label, value, wide = false }) { return <div className={`kpi ${tone} ${wide ? 'wide' : ''}`}><span>{label}</span><strong>{value}</strong></div>; }
 function EconomicBar({ label, value, max, tone }) { const width = max > 0 ? Math.max(3, Math.min(100, value / max * 100)) : 0; return <div className="economic-bar"><div><span>{label}</span><b>{money(value)}</b></div><div className="bar-track"><span className={tone} style={{ width: `${width}%` }} /></div></div>; }
 function ResourceRow({ label, current, after, text, ratio }) { const resolved = ratio ?? (current ? Math.max(0, Math.min(1, after / current)) : 0); return <div className="resource-row"><div><span>{label}</span><b>{text || (current == null || after == null ? '—' : `${current} → ${after} FTE`)}</b></div><div className="bar-track"><span style={{ width: `${Math.max(4, Math.min(100, resolved * 100))}%` }} /></div></div>; }
+function ReadinessDetails({ report }) {
+  return <section className="readiness-details panel" aria-label="Детали готовности">
+    <div className="panel-heading"><h2>Готовность и архитектура</h2><span>{readinessStatus(report.overall_status)} · {report.rules_version}</span></div>
+    <div className="readiness-dimensions">{report.dimensions.map((dimension) => <div key={dimension.code} className={`readiness-dimension ${dimension.status.toLowerCase()}`}><span>{dimension.label}</span><strong>{dimension.score}/100</strong><small>{statusLabel(dimension.status)}</small></div>)}</div>
+    <div className="readiness-detail-grid">
+      <div><h3>Предлагаемая архитектура</h3><strong>{architectureLabel(report.architecture_candidates?.[0]?.architecture_id)}</strong><p>Выбор класса решения выполнен до выбора конкретной модели.</p></div>
+      <div><h3>Что нужно подтвердить</h3>{report.preconditions.length ? <ul>{report.preconditions.slice(0, 5).map((item) => <li key={item}>{item}</li>)}</ul> : <p>Критических предусловий нет.</p>}</div>
+    </div>
+  </section>;
+}
+function readinessStatus(value) { return ({ READY: 'Готов к подбору', NEEDS_VALIDATION: 'Нужна проверка', NOT_READY: 'Не готов' })[value] || 'Не определено'; }
+function confidenceLabel(value) { return ({ HIGH: 'высокое', MEDIUM: 'среднее', LOW: 'низкое' })[value] || 'не опредено'; }
+function statusLabel(value) { return ({ PASS: 'подтверждено', FAIL: 'блокер', UNKNOWN: 'нет данных', ASSUMED: 'допущение' })[value] || value; }
+function architectureLabel(value) { return ({ PALLET_TRANSPORT_AMR: 'AMR для паллетной логистики', FIXED_PATH_AGV: 'AGV с фиксированными маршрутами', AUTONOMOUS_FORKLIFT: 'Автономный погрузчик', TUGGER_TRAIN: 'Автономный тягач', PARTIAL_AUTOMATION: 'Частичная автоматизация', AUTONOMOUS_CLEANING: 'Автономная уборка', INDOOR_DELIVERY_AMR: 'AMR для внутренней доставки', NOT_READY: 'Архитектура не определена' })[value] || 'Архитектура не определена'; }
 function processName(value) { return ({ transport: 'Внутренняя логистика', palletizing: 'Паллетизация', cleaning: 'Автономная уборка', delivery: 'Сервисная доставка' })[value] || 'Сценарий роботизации'; }
 function formatNumber(value) { return new Intl.NumberFormat('ru-RU').format(value); }

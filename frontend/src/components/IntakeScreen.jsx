@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ParamsPanel from './ParamsPanel';
 import ZonalPanel from './ZonalPanel';
+import ProjectFileIntake from './ProjectFileIntake';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -18,7 +19,7 @@ const PROCESS_DEFAULTS = {
   other: ['transport', 'pallets'],
 };
 
-export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', onReady }) {
+export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, onFileApplied, onReady }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', text: WELCOME[objectType] || WELCOME.other },
   ]);
@@ -38,6 +39,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
       ? Object.fromEntries(Object.keys(initialCollected).map((k) => [k, 'preset']))
       : {}
   );
+  const [fileContext, setFileContext] = useState(null);
 
   const setManual = (field, value) => {
     setCollected((c) => ({ ...c, [field]: value }));
@@ -94,10 +96,21 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
     if (mode === 'zonal') {
       base.zones = zones;
     }
-    onReady(base);
+    onReady(base, sources, fileContext);
   };
 
   const setShared = (k, v) => setCollected((c) => ({ ...c, [k]: v }));
+
+  const applyFile = (normalized, provenance, imported) => {
+    setCollected(normalized);
+    setMode(normalized.mode || 'whole');
+    setZones(normalized.zones || []);
+    setSources(Object.fromEntries(
+      Object.entries(provenance || {}).map(([field, item]) => [field, item.kind.toLowerCase()]),
+    ));
+    setFileContext(imported || null);
+    onFileApplied?.(normalized);
+  };
 
   return (
     <div className="intake-screen flex min-h-full">
@@ -108,6 +121,13 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
             Опишите процесс или введите параметры справа
           </p>
         </header>
+
+        <ProjectFileIntake
+          objectType={objectType}
+          project={activeProject}
+          scenario={activeProject?.scenarios?.find((item) => item.slot === 'BASE')}
+          onApplied={applyFile}
+        />
 
         {/* ─── Переключатель режима ─── */}
         <div className="flex gap-1 mb-4 bg-slate-100 rounded-xl p-1 w-fit">

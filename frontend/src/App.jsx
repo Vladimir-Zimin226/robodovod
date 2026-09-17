@@ -26,6 +26,8 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
   const [saveState, setSaveState] = useState('');
+  const [inputProvenance, setInputProvenance] = useState({});
+  const [projectFileContext, setProjectFileContext] = useState(null);
   const calculationSequence = useRef(0);
 
   useEffect(() => {
@@ -35,28 +37,42 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  const recalc = async (inp) => {
+  const recalc = async (inp, provenance = inputProvenance, fileContext = projectFileContext) => {
     calculationSequence.current += 1;
     const sequence = calculationSequence.current;
     const apiInput = Object.fromEntries(
       Object.entries(inp).filter(([key]) => !key.startsWith('_'))
     );
     try {
-      const res = await fetch(`${API}/api/calculate`, {
-        method: 'POST',
-        credentials: 'include',
+      const requestOptions = {
+        method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(apiInput),
-      });
+      };
+      const [res, readinessRes] = await Promise.all([
+        fetch(`${API}/api/calculate`, { ...requestOptions, body: JSON.stringify(apiInput) }),
+        fetch(`${API}/api/readiness`, {
+          ...requestOptions,
+          body: JSON.stringify({
+            input: apiInput,
+            provenance: Object.fromEntries(Object.entries(provenance || {}).map(([field, kind]) => [
+              field,
+              { kind: ({ file: 'FILE', preset: 'PRESET', assumed: 'ASSUMPTION', calculated: 'CALCULATED' }[kind] || 'USER') },
+            ])),
+            parameter_values: fileContext?.parameter_values || {},
+            parameter_provenance: fileContext?.parameter_provenance || {},
+          }),
+        }).catch(() => null),
+      ]);
       if (!res.ok) {
         const e = await res.json().catch(() => ({}));
         if (sequence === calculationSequence.current) alert(e.detail || 'Ошибка расчёта');
         return;
       }
       const nextResult = await res.json();
+      const readinessReport = readinessRes?.ok ? await readinessRes.json() : null;
       if (sequence !== calculationSequence.current) return;
       setUserInput(inp);
-      setResult(nextResult);
+      setResult({ ...nextResult, readiness_report: readinessReport });
     } catch {
       if (sequence === calculationSequence.current) {
         alert('Бэкенд недоступен. Запустите uvicorn main:app на порту 8000.');
@@ -64,11 +80,13 @@ export default function App() {
     }
   };
 
-  const handleReady = (collected) => {
+  const handleReady = (collected, provenance = {}, fileContext = null) => {
     const inp = { object_type: objectType, ...collected };
+    setInputProvenance(provenance);
+    setProjectFileContext(fileContext);
     setUserInput(inp);
     setPhase('results');
-    recalc(inp);
+    recalc(inp, provenance, fileContext);
   };
 
   const restart = () => {
@@ -77,6 +95,8 @@ export default function App() {
     setPreset(null);
     setResult(null);
     setSaveState('');
+    setInputProvenance({});
+    setProjectFileContext(null);
   };
 
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
@@ -155,7 +175,8 @@ export default function App() {
           <OnboardingScreen
             onChoose={(t) => {
               setObjectType(t);
-              setPreset(null);
+              const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
+              setPreset(savedInput?.object_type === t ? savedInput : null);
               setPhase('intake');
             }}
             onPreset={(t, d) => {
@@ -169,6 +190,16 @@ export default function App() {
             objectType={objectType}
             initialCollected={preset}
             initialPrompt={intakePrompt}
+            activeProject={activeProject}
+            onFileApplied={(normalized) => {
+              setPreset(normalized);
+              setActiveProject((project) => project ? ({
+                ...project,
+                scenarios: project.scenarios.map((scenario) => (
+                  scenario.slot === 'BASE' ? { ...scenario, inputs: normalized } : scenario
+                )),
+              }) : project);
+            }}
             onReady={handleReady}
           />
         ) : phase === 'catalog' ? (
@@ -207,7 +238,7 @@ export default function App() {
             <ResultsPanel
               result={result}
               userInput={userInput}
-              onRecalc={(input) => { setSaveState(''); recalc(input); }}
+              onRecalc={(input) => { setSaveState(''); recalc(input, inputProvenance, projectFileContext); }}
               onRestart={restart}
             />
           </>

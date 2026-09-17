@@ -288,6 +288,22 @@ docker compose --profile tools run --rm catalog-description --mode COMMIT
 Повторный `COMMIT` идемпотентен. API каталога возвращает выбранное описание,
 полный overlay и provenance; расчётный runtime остаётся на `backend/fleet`.
 
+## XLSX/CSV-файлы проекта
+
+Авторизованный пользователь может открыть сохранённый проект, выбрать профиль
+объекта и загрузить `.xlsx` или `.csv`. Preview проверяет формат, полный набор
+параметров, типы, единицы и диапазоны, не изменяя проект. Apply повторно
+проверяет те же bytes, сохраняет файл в `project_uploads`, фиксирует SHA-256 и
+field-level `FILE/CALCULATED/ASSUMED` provenance и обновляет выбранный сценарий
+одной транзакцией. Невалидный файл не создаёт `project_files` и не меняет
+scenario inputs.
+
+CSV-шаблон для каждого официального профиля доступен по
+`/api/project-file-templates/{warehouse|airport|medical_facility}.csv`.
+Официальный `Датасеты_хакатон.xlsx` остаётся локальным и не добавляется в Git;
+его warehouse-лист детерминированно даёт тот же нормализованный `UserInput`,
+что и официальный preset.
+
 ## Пользователи, проекты и AnalysisRun (migration 0003)
 
 Гостевой `/api/calculate` по-прежнему работает без регистрации и ничего не
@@ -398,18 +414,19 @@ project.json   машиночитаемый манифест концепции
 - discovery-каталог в общей тёмной visual system показывает все 223 позиции
   организатора без схлопывания повторных моделей, локальные официальные
   изображения, row-specific цену/применимость, поиск, фильтры и сравнение.
+- детерминированный readiness до сайзинга: разрезы готовности,
+  confidence, blockers/preconditions, выбор архитектуры до SKU и
+  помодельные `PASS/FAIL/UNKNOWN/ASSUMED` с reason/evidence.
 
 Описание интегрированной экономической и зональной логики, включая её текущие
 ограничения, находится в [отдельной технической записке](docs/14_ECONOMICS_AND_ZONES.md).
 
 Нормализованный organizer v4 bundle, repository dual-run, project/run
-persistence, атомарная catalog activation и официальные metadata-driven
-profiles реализованы. Расчётный runtime безопасно остаётся на legacy
-`backend/fleet`, пока официальный каталог не получит достаточные runtime facts.
-Следующие этапы — `data/catalog-description-enrichment`, затем
-`frontend/catalog-position-details`; после них —
-`intake/xlsx-csv-project-files`. Для description enrichment уже подготовлены
-две локальные полные текстовые версии официального PDF (110 + 113 карточек);
-повторный OCR в проекте не планируется, нужен проверяемый parser/import.
+persistence, атомарная catalog activation, официальные metadata-driven
+profiles, description/detail UX, XLSX/CSV project intake и readiness/architecture/
+hard constraints реализованы.
+Расчётный runtime безопасно остаётся на legacy `backend/fleet`, пока
+официальный каталог не получит достаточные runtime facts. Точный следующий
+этап — `engine/capacity-formula-trace`.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

@@ -174,6 +174,68 @@ class ProjectFile(Base):
     )
 
 
+class ProjectFileImport(Base):
+    __tablename__ = "project_file_imports"
+    __table_args__ = (
+        UniqueConstraint("project_file_id", name="uq_project_file_imports_file"),
+        CheckConstraint(
+            "profile_code IN ('warehouse', 'airport', 'medical_facility')",
+            name="ck_project_file_imports_profile",
+        ),
+        CheckConstraint(
+            "file_format IN ('XLSX', 'CSV')", name="ck_project_file_imports_format"
+        ),
+        CheckConstraint(
+            "length(btrim(profile_version)) > 0",
+            name="ck_project_file_imports_profile_version",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(normalized_input) = 'object'",
+            name="ck_project_file_imports_input_object",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(parameter_values) = 'object'",
+            name="ck_project_file_imports_values_object",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(parameter_provenance) = 'object'",
+            name="ck_project_file_imports_parameter_provenance_object",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(provenance) = 'object'",
+            name="ck_project_file_imports_provenance_object",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(validation_report) = 'object'",
+            name="ck_project_file_imports_report_object",
+        ),
+        Index("ix_project_file_imports_scenario", "scenario_id", "applied_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_file_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("project_files.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    scenario_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("scenarios.id", ondelete="CASCADE"), nullable=False
+    )
+    profile_code: Mapped[str] = mapped_column(Text, nullable=False)
+    file_format: Mapped[str] = mapped_column(Text, nullable=False)
+    profile_version: Mapped[str] = mapped_column(Text, nullable=False)
+    parameter_values: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    parameter_provenance: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    normalized_input: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    provenance: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    validation_report: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    applied_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
 class Scenario(Base):
     __tablename__ = "scenarios"
     __table_args__ = (

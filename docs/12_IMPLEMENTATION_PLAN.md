@@ -201,8 +201,10 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 
 Статус: `data/catalog-activation-official-presets`, корректирующие срезы
 `data/catalog-positions-media`, `frontend/catalog-theme-media` и
-`data/catalog-description-enrichment`, `frontend/catalog-position-details`
-реализованы. Точный следующий этап — `intake/xlsx-csv-project-files`.
+`data/catalog-description-enrichment`, `frontend/catalog-position-details` и
+`intake/xlsx-csv-project-files` и `engine/readiness-architecture-constraints`
+реализованы. Точный следующий этап —
+`engine/capacity-formula-trace`.
 Публикация проверяет
 imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
@@ -224,14 +226,16 @@ Gate: официальный warehouse файл даёт тот же норма�
 
 Для завершённой малой итерации пройдены atomic publication/activation,
 profile-count/provenance и legacy rollback gates. Эквивалентность официального
-warehouse файла preset проверяется в отложенной вслед за catalog UX
-intake-итерации.
+warehouse файла и preset подтверждена строгими XLSX/CSV adapters и
+contract/integration tests.
 
 #### Уточнение кейсодателя от 2026-09-17: 223 позиции и catalog UX
 
 Статус: срезы `data/catalog-positions-media`, `frontend/catalog-theme-media` и
-`data/catalog-description-enrichment`, `frontend/catalog-position-details`
-реализованы; далее идёт `intake/xlsx-csv-project-files`. Migration 0004 хранит append-only media metadata,
+`data/catalog-description-enrichment`, `frontend/catalog-position-details` и
+`intake/xlsx-csv-project-files` и `engine/readiness-architecture-constraints`
+реализованы; далее идёт `engine/capacity-formula-trace`.
+Migration 0004 хранит append-only media metadata,
 extractor проверяет SHA-256 restricted PDF и связывает 223 позиции со 189
 уникальными content-addressed assets. Discovery API возвращает 223 позиции при
 187 канонических моделях, row-specific applicability/price и media provenance.
@@ -355,6 +359,17 @@ OCR всего PDF в scope не входит и допускается толь
 Gate: payload/aisle создают hard reject, missing critical geometry — UNKNOWN,
 а fleet size объясняется промежуточными величинами.
 
+Статус малой итерации: `engine/readiness-architecture-constraints`
+реализована отдельным детерминированным `POST /api/readiness`.
+Ответ `readiness-report-v1` содержит score отдельно от hard stop,
+разрезы, blockers, preconditions, confidence, architecture candidates до
+SKU и помодельные constraint results с required/available,
+evidence, reason code и `PASS/FAIL/UNKNOWN/ASSUMED`. Неизвестные
+payload/aisle не получают default и дают `NEEDS_VALIDATION`; превышение
+даёт hard reject. Runtime остаётся `legacy-fleet-v1`, capacity и
+economics не менялись. Оставшаяся часть этапа вынесена в
+`engine/capacity-formula-trace`.
+
 ### Этап 7 — procurement, economics и две оси сценариев
 
 - Коммерческая ось: current baseline, purchase, RaaS.
@@ -436,9 +451,9 @@ Gate: golden path проходит пять раз подряд локально
 8. `frontend/catalog-theme-media`
 9. `data/catalog-description-enrichment` — реализован
 10. `frontend/catalog-position-details` — реализован
-11. `intake/xlsx-csv-project-files`
-12. `engine/readiness-architecture-constraints`
-13. `engine/capacity-formula-trace`
+11. `intake/xlsx-csv-project-files` — реализован
+12. `engine/readiness-architecture-constraints` — реализован
+13. `engine/capacity-formula-trace` — следующий
 14. `economics/commercial-scenarios-sensitivity`
 15. `visualization/2d-simulation-report`
 16. `report/pdf-xlsx-csv`

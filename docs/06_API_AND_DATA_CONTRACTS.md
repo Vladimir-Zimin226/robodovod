@@ -116,6 +116,23 @@ Important: illustrative enums; numeric benchmark remains null until sourced data
 
 ## 6. Run analysis
 
+### POST `/api/readiness`
+
+Детерминированный предварительный gate до capacity/economics. Request
+содержит `input`, необязательный field-level `provenance` и полные
+`parameter_values/parameter_provenance` из XLSX/CSV intake. Response
+`readiness-report-v1` возвращает:
+
+- `overall_status: READY | NEEDS_VALIDATION | NOT_READY`, score и confidence;
+- dimensions, blockers и preconditions;
+- architecture candidates до выбора SKU;
+- technical candidates с `required`, `available`, `evidence`, `reason_code` и
+  `PASS | FAIL | UNKNOWN | ASSUMED` по каждому constraint.
+
+Critical `FAIL` блокирует, critical `UNKNOWN/ASSUMED` даёт
+`NEEDS_VALIDATION`. Score не отменяе hard stop. Контракт не сайзит
+парк и не считает экономику.
+
 ### POST `/projects/{project_id}/analysis`
 
 ```json

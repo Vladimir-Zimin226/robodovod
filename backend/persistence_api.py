@@ -28,7 +28,7 @@ from auth import (
     verify_password,
 )
 from database import database_session
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from models import CalculationResponse, UserInput
 from persistence_models import (
     AnalysisRun,
@@ -36,9 +36,16 @@ from persistence_models import (
     Project,
     ProjectDeletionJob,
     ProjectFile,
+    ProjectFileImport,
     Scenario,
     User,
     UserSession,
+)
+from project_file_intake import (
+    MAX_FILE_BYTES,
+    IntakeError,
+    build_csv_template,
+    inspect_project_file,
 )
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete, func, select
@@ -52,10 +59,10 @@ SCENARIO_SLOTS = (
     ("PESSIMISTIC", "Пессимистичный"),
 )
 CATALOG_VERSION_CODE = "legacy-fleet-v1"
-RULES_VERSION = "legacy-rules-v1"
+RULES_VERSION = "legacy-calculation-rules-v1+readiness-rules-v1"
 ECONOMICS_VERSION = "legacy-economics-v1"
 OBJECT_PROFILE_VERSION = "user-input-v1"
-APPLICATION_VERSION = "3.7.0"
+APPLICATION_VERSION = "3.9.0"
 
 
 class ApiModel(BaseModel):
@@ -219,6 +226,38 @@ def _project_dict(db: Session, project: Project) -> dict[str, Any]:
     }
 
 
+def _file_dict(db: Session, item: ProjectFile) -> dict[str, Any]:
+    imported = db.scalar(
+        select(ProjectFileImport).where(ProjectFileImport.project_file_id == item.id)
+    )
+    return {
+        "id": item.id,
+        "project_id": item.project_id,
+        "original_name": item.original_name,
+        "media_type": item.media_type,
+        "byte_size": item.byte_size,
+        "sha256": item.sha256,
+        "created_at": item.created_at,
+        "import": (
+            {
+                "id": imported.id,
+                "scenario_id": imported.scenario_id,
+                "profile_code": imported.profile_code,
+                "file_format": imported.file_format,
+                "profile_version": imported.profile_version,
+                "parameter_values": imported.parameter_values,
+                "parameter_provenance": imported.parameter_provenance,
+                "normalized_input": imported.normalized_input,
+                "provenance": imported.provenance,
+                "validation_report": imported.validation_report,
+                "applied_at": imported.applied_at,
+            }
+            if imported is not None
+            else None
+        ),
+    }
+
+
 def _run_dict(run: AnalysisRun, *, include_snapshots: bool) -> dict[str, Any]:
     value = {
         "id": run.id,
@@ -315,6 +354,20 @@ def _storage_path(storage_key: str) -> Path:
     if not candidate.is_relative_to(root):
         raise ValueError("unsafe storage key")
     return candidate
+
+
+async def _read_project_upload(upload: UploadFile) -> bytes:
+    payload = await upload.read(MAX_FILE_BYTES + 1)
+    if len(payload) > MAX_FILE_BYTES:
+        raise HTTPException(status_code=413, detail="FILE_TOO_LARGE")
+    return payload
+
+
+def _inspect_upload(filename: str | None, payload: bytes, profile_code: str):
+    try:
+        return inspect_project_file(filename or "", payload, profile_code)
+    except IntakeError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
 
 
 def delete_project(
@@ -447,6 +500,7 @@ def create_persistence_router(
     *,
     resolve_catalog: Callable[[], Any] | None = None,
     calculate_for_catalog: Callable[[UserInput, Any], CalculationResponse] | None = None,
+    readiness_for_catalog: Callable[..., Any] | None = None,
     resolve_object_profile_version: Callable[[], str] | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
@@ -707,6 +761,168 @@ def create_persistence_router(
     ):
         return _project_dict(db, _owned_project(db, project_id, context.user.id))
 
+    @router.get("/project-file-templates/{profile_code}.csv")
+    def download_project_file_template(profile_code: str):
+        try:
+            filename, payload = build_csv_template(profile_code)
+        except IntakeError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from None
+        return Response(
+            content=payload,
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+    @router.post("/projects/{project_id}/files/preview")
+    async def preview_project_file(
+        project_id: uuid.UUID,
+        profile_code: str = Form(...),
+        file: UploadFile = File(...),
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        _owned_project(db, project_id, context.user.id)
+        payload = await _read_project_upload(file)
+        return _inspect_upload(file.filename, payload, profile_code).public_dict()
+
+    @router.post(
+        "/projects/{project_id}/files/apply", status_code=status.HTTP_201_CREATED
+    )
+    async def apply_project_file(
+        project_id: uuid.UUID,
+        scenario_id: uuid.UUID = Form(...),
+        profile_code: str = Form(...),
+        file: UploadFile = File(...),
+        context: AuthContext = Depends(require_csrf),
+        db: Session = Depends(database_session),
+    ):
+        project = _owned_project(db, project_id, context.user.id)
+        scenario = db.scalar(
+            select(Scenario)
+            .where(Scenario.id == scenario_id, Scenario.project_id == project.id)
+            .with_for_update()
+        )
+        if scenario is None:
+            raise HTTPException(status_code=404, detail="scenario not found")
+        payload = await _read_project_upload(file)
+        result = _inspect_upload(file.filename, payload, profile_code)
+        if not result.valid:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "FILE_VALIDATION_FAILED", "report": result.report},
+            )
+
+        file_id = uuid.uuid4()
+        suffix = ".xlsx" if result.file_format == "XLSX" else ".csv"
+        storage_key = f"{project.id}/{file_id}/{result.sha256}{suffix}"
+        path = _storage_path(storage_key)
+        path.parent.mkdir(parents=True, exist_ok=False)
+        try:
+            path.write_bytes(payload)
+            project_file = ProjectFile(
+                id=file_id,
+                project_id=project.id,
+                original_name=result.original_name,
+                media_type=(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    if result.file_format == "XLSX"
+                    else "text/csv"
+                ),
+                byte_size=result.byte_size,
+                sha256=result.sha256,
+                storage_key=storage_key,
+            )
+            imported = ProjectFileImport(
+                id=uuid.uuid4(),
+                project_file_id=file_id,
+                scenario_id=scenario.id,
+                profile_code=result.profile_code,
+                file_format=result.file_format,
+                profile_version=result.profile_version,
+                parameter_values=result.parameter_values,
+                parameter_provenance=result.parameter_provenance,
+                normalized_input=result.normalized_input,
+                provenance=result.provenance,
+                validation_report=result.report,
+            )
+            db.add(project_file)
+            db.add(imported)
+            scenario.inputs = result.normalized_input or {}
+            scenario.updated_at = utcnow()
+            project.profile = {
+                **project.profile,
+                "object_profile_code": result.profile_code,
+                "object_profile_version": result.profile_version,
+                "input_provenance": result.provenance,
+                "project_file_import_id": str(imported.id),
+            }
+            project.updated_at = utcnow()
+            _audit(
+                db,
+                "PROJECT_FILE_APPLIED",
+                actor_id=context.user.id,
+                project_id=project.id,
+                aggregate={
+                    "file_id": str(file_id),
+                    "scenario_id": str(scenario.id),
+                    "profile_code": result.profile_code,
+                    "sha256": result.sha256,
+                },
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+            path.unlink(missing_ok=True)
+            try:
+                path.parent.rmdir()
+            except OSError:
+                pass
+            raise
+        return _file_dict(db, project_file)
+
+    @router.get("/projects/{project_id}/files")
+    def list_project_files(
+        project_id: uuid.UUID,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        _owned_project(db, project_id, context.user.id)
+        items = db.scalars(
+            select(ProjectFile)
+            .where(ProjectFile.project_id == project_id)
+            .order_by(ProjectFile.created_at.desc(), ProjectFile.id)
+        ).all()
+        return {"items": [_file_dict(db, item) for item in items]}
+
+    @router.get("/projects/{project_id}/files/{file_id}")
+    def download_project_file(
+        project_id: uuid.UUID,
+        file_id: uuid.UUID,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        _owned_project(db, project_id, context.user.id)
+        item = db.scalar(
+            select(ProjectFile).where(
+                ProjectFile.id == file_id, ProjectFile.project_id == project_id
+            )
+        )
+        if item is None:
+            raise HTTPException(status_code=404, detail="file not found")
+        try:
+            path = _storage_path(item.storage_key)
+            payload = path.read_bytes()
+        except (OSError, ValueError):
+            raise HTTPException(status_code=404, detail="file content unavailable") from None
+        if hashlib.sha256(payload).hexdigest() != item.sha256:
+            raise HTTPException(status_code=409, detail="file checksum mismatch")
+        ascii_name = "project-input.xlsx" if item.original_name.lower().endswith(".xlsx") else "project-input.csv"
+        return Response(
+            content=payload,
+            media_type=item.media_type,
+            headers={"Content-Disposition": f'attachment; filename="{ascii_name}"'},
+        )
+
     @router.patch("/projects/{project_id}")
     def update_project(
         project_id: uuid.UUID,
@@ -880,6 +1096,34 @@ def create_persistence_router(
             raise HTTPException(status_code=500, detail="calculation failed") from None
 
         result_snapshot = calculation.model_dump(mode="json")
+        if readiness_for_catalog is not None:
+            imported = db.scalar(
+                select(ProjectFileImport)
+                .where(ProjectFileImport.scenario_id == scenario.id)
+                .order_by(ProjectFileImport.applied_at.desc())
+                .limit(1)
+            )
+            use_import = (
+                imported is not None
+                and UserInput.model_validate(imported.normalized_input).model_dump(
+                    mode="json"
+                )
+                == input_snapshot
+            )
+            readiness = readiness_for_catalog(
+                input_model,
+                catalog_snapshot,
+                provenance=imported.provenance if use_import else {},
+                parameter_values=imported.parameter_values if use_import else {},
+                parameter_provenance=(
+                    imported.parameter_provenance if use_import else {}
+                ),
+            )
+            result_snapshot["readiness_report"] = (
+                readiness.model_dump(mode="json")
+                if hasattr(readiness, "model_dump")
+                else readiness
+            )
         scenario_spec = result_snapshot.get("scenario_spec")
         if not isinstance(scenario_spec, dict):
             run.status = "FAILED"

@@ -13,7 +13,7 @@ from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, inspect, select, text
+from sqlalchemy import create_engine, func, inspect, select, text
 from sqlalchemy.exc import IntegrityError
 
 import catalog_models  # noqa: F401
@@ -23,7 +23,8 @@ from auth import SESSION_COOKIE
 from bootstrap_admin import BootstrapError, bootstrap_admin
 from database import dispose_database, get_database
 from persistence_api import purge_expired_tombstones
-from persistence_models import AuditEntry, ProjectFile, User
+from persistence_models import AuditEntry, ProjectFile, ProjectFileImport, Scenario, User
+from project_file_intake import build_csv_template
 from storage_models import Base
 
 
@@ -43,6 +44,7 @@ TABLES_0003 = {
     "audit_entries",
     "project_deletion_jobs",
 }
+TABLES_0006 = {"project_file_imports"}
 PASSWORD_A = "correct horse battery staple"
 PASSWORD_B = "another secure passphrase"
 
@@ -61,7 +63,7 @@ def migrated_database():
     try:
         command.downgrade(_config(), "base")
         command.upgrade(_config(), "head")
-        assert TABLES_0003 <= set(inspect(engine).get_table_names())
+        assert TABLES_0003 | TABLES_0006 <= set(inspect(engine).get_table_names())
         command.upgrade(_config(), "head")
         yield engine
     finally:
@@ -113,7 +115,7 @@ def _analysis_input() -> dict:
 
 
 def test_0003_upgrade_and_orm_metadata_match(migrated_database):
-    assert TABLES_0003 <= set(inspect(migrated_database).get_table_names())
+    assert TABLES_0003 | TABLES_0006 <= set(inspect(migrated_database).get_table_names())
     with migrated_database.connect() as connection:
         context = MigrationContext.configure(connection)
         assert compare_metadata(context, Base.metadata) == []
@@ -202,6 +204,12 @@ def test_run_snapshot_is_immutable_and_survives_new_catalog_version(migrated_dat
         )
         assert created.status_code == 201, created.text
         snapshot = created.json()
+        readiness = snapshot["result_snapshot"]["readiness_report"]
+        assert readiness["schema_version"] == "readiness-report-v1"
+        assert readiness["rules_version"] == "readiness-rules-v1"
+        assert snapshot["versions"]["rules"] == (
+            "legacy-calculation-rules-v1+readiness-rules-v1"
+        )
 
         with migrated_database.begin() as connection:
             connection.execute(
@@ -437,3 +445,83 @@ def test_project_delete_removes_files_and_payload_then_purges_tombstone(tmp_path
         boundary = tombstone.retention_until
         assert purge_expired_tombstones(db, now=boundary - timedelta(microseconds=1)) == 0
         assert purge_expired_tombstones(db, now=boundary) == 1
+
+
+def test_project_file_preview_apply_download_and_invalid_atomicity():
+    filename, valid_csv = build_csv_template("warehouse")
+    invalid_csv = (
+        "profile_code,parameter_code,value,unit\n"
+        "warehouse,obschaya_ploschad_sklada,-1,wrong\n"
+    ).encode()
+    with TestClient(main.app) as client:
+        _, headers = _register(client, "intake@example.com")
+        project = _create_project(client, headers)
+        scenario = next(item for item in project["scenarios"] if item["slot"] == "BASE")
+        endpoint = f"/api/projects/{project['id']}/files"
+
+        preview = client.post(
+            f"{endpoint}/preview",
+            data={"profile_code": "warehouse"},
+            files={"file": ("invalid.csv", invalid_csv, "text/csv")},
+        )
+        assert preview.status_code == 200
+        assert preview.json()["valid"] is False
+
+        rejected = client.post(
+            f"{endpoint}/apply",
+            headers=headers,
+            data={"profile_code": "warehouse", "scenario_id": scenario["id"]},
+            files={"file": ("invalid.csv", invalid_csv, "text/csv")},
+        )
+        assert rejected.status_code == 422
+        unchanged = client.get(f"/api/projects/{project['id']}").json()
+        unchanged_scenario = next(item for item in unchanged["scenarios"] if item["slot"] == "BASE")
+        assert unchanged_scenario["inputs"] == {}
+        assert client.get(endpoint).json()["items"] == []
+
+        valid_preview = client.post(
+            f"{endpoint}/preview",
+            data={"profile_code": "warehouse"},
+            files={"file": (filename, valid_csv, "text/csv")},
+        )
+        assert valid_preview.status_code == 200
+        assert valid_preview.json()["valid"] is True
+        applied = client.post(
+            f"{endpoint}/apply",
+            headers=headers,
+            data={"profile_code": "warehouse", "scenario_id": scenario["id"]},
+            files={"file": (filename, valid_csv, "text/csv")},
+        )
+        assert applied.status_code == 201, applied.text
+        item = applied.json()
+        assert item["sha256"] == valid_preview.json()["file"]["sha256"]
+        assert item["import"]["validation_report"]["accepted_count"] == 42
+        assert len(item["import"]["parameter_values"]) == 42
+        assert len(item["import"]["parameter_provenance"]) == 42
+        assert item["import"]["normalized_input"] == valid_preview.json()["normalized_input"]
+        assert item["import"]["provenance"]["area_m2"]["kind"] == "FILE"
+        assert client.get(endpoint).json()["items"][0]["id"] == item["id"]
+        downloaded = client.get(f"{endpoint}/{item['id']}")
+        assert downloaded.status_code == 200
+        assert downloaded.content == valid_csv
+
+    with get_database().session() as db:
+        assert db.scalar(select(func.count()).select_from(ProjectFile)) == 1
+        assert db.scalar(select(func.count()).select_from(ProjectFileImport)) == 1
+        saved = db.scalar(select(Scenario).where(Scenario.id == uuid.UUID(scenario["id"])))
+        assert saved.inputs == item["import"]["normalized_input"]
+
+
+def test_project_file_routes_hide_other_users_project():
+    filename, payload = build_csv_template("warehouse")
+    with TestClient(main.app) as owner:
+        _, owner_headers = _register(owner, "file-owner@example.com")
+        project = _create_project(owner, owner_headers)
+    with TestClient(main.app) as stranger:
+        _register(stranger, "file-stranger@example.com")
+        response = stranger.post(
+            f"/api/projects/{project['id']}/files/preview",
+            data={"profile_code": "warehouse"},
+            files={"file": (filename, payload, "text/csv")},
+        )
+        assert response.status_code == 404
