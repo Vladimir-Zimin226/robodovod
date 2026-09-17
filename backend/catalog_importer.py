@@ -450,7 +450,7 @@ def _import_base(
                 source_record_key=str(product["product_id"]),
                 name=str(product["name"]),
                 system_family=str(product["system_family"]),
-                type_code=str(product["type"]),
+                type_code=product.get("type") or "UNSPECIFIED",
                 subtype_code=product.get("subtype") or None,
                 maturity_status=product.get("maturity_status") or None,
                 trl=product.get("trl"),

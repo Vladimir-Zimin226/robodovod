@@ -172,6 +172,12 @@ def _json_value(value: Any) -> Any:
     return value
 
 
+def _public_type_code(value: str) -> str | None:
+    """Hide internal sentinels used for a required storage column."""
+
+    return None if value in {"None", "UNSPECIFIED"} else value
+
+
 def _discovery_position(
     position: CatalogPositionDTO, catalog_code: str
 ) -> dict[str, Any]:
@@ -195,7 +201,7 @@ def _discovery_position(
         "manufacturer": model.manufacturer,
         "name": model.name,
         "system_family": model.system_family,
-        "type_code": model.type_code,
+        "type_code": _public_type_code(model.type_code),
         "subtype_code": model.subtype_code,
         "maturity_status": model.maturity_status,
         "trl": model.trl,
@@ -405,9 +411,10 @@ def discover_catalog_models(
                     }
                     for item_type in sorted(
                         {
-                            position.model.type_code
+                            _public_type_code(position.model.type_code)
                             for position in all_positions
                             if position.model.system_family == family
+                            and _public_type_code(position.model.type_code) is not None
                         }
                     )
                 ],

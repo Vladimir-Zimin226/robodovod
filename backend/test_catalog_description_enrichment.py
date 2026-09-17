@@ -117,3 +117,11 @@ def test_api_uses_enrichment_only_for_previously_empty_description():
     })
     conflict_position = position.__class__(**{**position.__dict__, "model": conflict_model, "enrichment": conflict})
     assert _discovery_position(conflict_position, "catalog")["description"] == "Existing"
+
+    missing_type_model = model.__class__(
+        **{**model.__dict__, "type_code": "UNSPECIFIED"}
+    )
+    missing_type_position = position.__class__(
+        **{**position.__dict__, "model": missing_type_model}
+    )
+    assert _discovery_position(missing_type_position, "catalog")["type_code"] is None
