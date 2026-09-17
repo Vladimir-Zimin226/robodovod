@@ -201,7 +201,9 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 
 Статус: `data/catalog-activation-official-presets`, корректирующий data-срез
 `data/catalog-positions-media` и `frontend/catalog-theme-media` реализованы.
-Следующим становится `intake/xlsx-csv-project-files`. Публикация проверяет
+Следующими становятся `data/catalog-description-enrichment` и
+`frontend/catalog-position-details`; `intake/xlsx-csv-project-files` следует
+после них. Публикация проверяет
 imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
 runtime models. Legacy остаётся default и rollback feature flag. Официальные
@@ -228,8 +230,9 @@ intake-итерации.
 #### Уточнение кейсодателя от 2026-09-17: 223 позиции и catalog UX
 
 Статус: data-срез `data/catalog-positions-media` и следующий UI-срез
-`frontend/catalog-theme-media` реализованы; далее идёт
-`intake/xlsx-csv-project-files`. Migration 0004 хранит append-only media metadata,
+`frontend/catalog-theme-media` реализованы; далее идут
+`data/catalog-description-enrichment`, `frontend/catalog-position-details` и
+только затем `intake/xlsx-csv-project-files`. Migration 0004 хранит append-only media metadata,
 extractor проверяет SHA-256 restricted PDF и связывает 223 позиции со 189
 уникальными content-addressed assets. Discovery API возвращает 223 позиции при
 187 канонических моделях, row-specific applicability/price и media provenance.
@@ -266,8 +269,74 @@ Gate полного корректирующего среза: API и UI воз�
 сравнении и расчётном snapshot; изображения имеют проверяемый source provenance;
 поиск и фильтры читаемы на тёмном фоне и работают с клавиатуры.
 
-Data-часть gate закрыта integration-тестами; визуальная/keyboard/contrast часть
-закрывается следующей frontend-итерацией.
+Data-часть и визуальная/keyboard/contrast часть gate закрыты.
+
+#### Уточнение после просмотра UI: описания и подробная карточка
+
+В текущем discovery read-model описание есть у 108 из 223 позиций, у 115 оно
+отсутствует. Проверка исходного 91-страничного PDF подтверждает, что эти тексты
+присутствуют в карточках PDF вместе с УГТ, стадией внедрения, рыночным
+потенциалом и кейсами. Предыдущий media pipeline извлекал только изображения;
+обычный PDF text extraction повреждает часть кириллицы из-за font mapping.
+
+17 сентября 2026 года рядом с исходным PDF подготовлены две полные текстовые
+версии. Они являются локальными входными результатами, а не инструкциями и не
+runtime truth:
+
+- `ФЦ_БАС_Каталог_часть_1_стр_1-46_полная_текстовая_версия.md`: 110 карточек,
+  SHA-256 `b0be869c049b95f493035f312ab83b99e4fda4caeec5ba828f0eb9587203bbe6`;
+- `ФЦ_БАС_Каталог_внедрения_часть_2_стр_47-91_полная_текстовая_версия.md`:
+  113 карточек, SHA-256
+  `044feb0a1d40e750867a70c93b382a52f10c83e8847bcb94f433d885e9c710d2`.
+
+Итого покрыты ровно 223 позиции. Первая часть page-oriented и сохраняет строки
+карточек близко к визуальному порядку; вторая уже field-oriented. Во второй
+части все 113 карточек имеют страницу, организацию, регион, сценарий, описание,
+УГТ, статус и market potential; у 14 карточек отсутствует только не напечатанный
+в PDF тип. Ссылки покрыты неравномерно: 54 URL в первой части и ни одного во
+второй, поэтому отсутствие URL нельзя интерпретировать как отсутствие source.
+Транскрипция заявляет двойную сверку, но не фиксирует OCR engine/model/version;
+в системе она регистрируется как externally prepared transcription и проходит
+нашу проверку, а не получает статус verified только на основании заявления.
+
+Отдельная итерация `data/catalog-description-enrichment`:
+
+- проверяет SHA-256 PDF и обеих транскрипций, запрещает незаметную подмену
+  входных файлов и не включает локальные source-файлы в Git;
+- содержит два строгих parser adapter для page-oriented и field-oriented
+  Markdown и строит единый versioned normalized overlay на 223 позиции;
+- сопоставляет 110 + 113 карточек в document order с существующими
+  `source_page + source_slot -> catalog position`, затем подтверждает mapping
+  anchors по названию и организации; номера проектов перезапускаются в каждом
+  разделе и не служат глобальным ID;
+- сохраняет verbatim text, normalized fields, transcript artifact/hash,
+  страницу/slot, position ID и checksum изображения как provenance; отсутствие
+  OCR engine/model в полученных файлах явно остаётся limitation metadata;
+- отдельно извлекает только явно подписанные УГТ, lifecycle stage, market
+  potential, case text и служебные метки; эти поля не становятся
+  matching/runtime facts автоматически;
+- не перезаписывает существующее качественное описание: расхождение становится
+  observation/review item; исходные опечатки хранятся verbatim, а любые display
+  corrections должны иметь отдельное review decision;
+- не достраивает 14 отсутствующих типов и отсутствующие URL; `null` сохраняется
+  отдельно от parser failure;
+- выдаёт coverage/conflict report по всем 223 позициям и остаётся идемпотентной;
+  publication/activation и расчётный runtime не переключаются.
+
+Gate: все 223 карточки однозначно сопоставлены либо имеют явную диагностическую
+причину; ни одна позиция не схлопнута; повторный запуск даёт тот же результат;
+ручная сверка PDF включает границу частей, все девять разделов, существующие
+описания, переносы строк, карточки без типа, source typos и duplicate models;
+все 115 ранее пустых descriptions либо получают проверенный текст, либо явный
+`REVIEW_REQUIRED`; UI получает только прошедшие evidence gate поля. Повторный
+OCR всего PDF в scope не входит и допускается только как точечный fallback для
+конкретного неразрешённого расхождения.
+
+Следующая итерация `frontend/catalog-position-details` открывает по нажатию на
+карточку доступный с клавиатуры drawer/modal: полное изображение и описание,
+все use cases/industries/regions/facts, row-specific procurement/applicability,
+УГТ/стадию/кейсы, source provenance и причины `discovery-only`. Она не считает
+новые значения на клиенте и не меняет selection/runtime semantics.
 
 ### Этап 6 — readiness, architecture, constraints и capacity
 
@@ -366,14 +435,16 @@ Gate: golden path проходит пять раз подряд локально
 6. `data/catalog-activation-official-presets`
 7. `data/catalog-positions-media`
 8. `frontend/catalog-theme-media`
-9. `intake/xlsx-csv-project-files`
-10. `engine/readiness-architecture-constraints`
-11. `engine/capacity-formula-trace`
-12. `economics/commercial-scenarios-sensitivity`
-13. `visualization/2d-simulation-report`
-14. `report/pdf-xlsx-csv`
-15. `admin/catalog-draft-publish`
-16. `qa/security-performance-deploy`
+9. `data/catalog-description-enrichment`
+10. `frontend/catalog-position-details`
+11. `intake/xlsx-csv-project-files`
+12. `engine/readiness-architecture-constraints`
+13. `engine/capacity-formula-trace`
+14. `economics/commercial-scenarios-sensitivity`
+15. `visualization/2d-simulation-report`
+16. `report/pdf-xlsx-csv`
+17. `admin/catalog-draft-publish`
+18. `qa/security-performance-deploy`
 
 Каждый пункт выполняется отдельной малой итерацией. Нельзя объединять importer
 или перенос endpoint с соседним пунктом: это уничтожает диагностическую

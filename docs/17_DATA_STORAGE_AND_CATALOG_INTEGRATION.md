@@ -408,12 +408,15 @@ AnalysisRun разрешает snapshot до запуска расчёта и с
 `PRESET|CALCULATED|ASSUMED` и ссылки на parameter/source; flat legacy preset
 генерируется из той же проекции. XLSX/CSV parsing, preview и project file
 storage относятся к отдельной итерации `intake/xlsx-csv-project-files`, которая
-после уточнения кейсодателя следует за корректирующими catalog data/UX срезами.
+после уточнения кейсодателя следует за корректирующими catalog data/UX срезами и
+итерациями enrichment/detail-view.
 
 ### Корректирующий срез: catalog positions, media и визуальный контракт
 
 Implementation status: `data/catalog-positions-media` и
 `frontend/catalog-theme-media` реализованы; следующий срез —
+`data/catalog-description-enrichment`, затем
+`frontend/catalog-position-details`; после них —
 `intake/xlsx-csv-project-files`. Migration `0004_catalog_position_media`
 добавляет append-only `catalog_media_assets` и `catalog_position_media`.
 Официальный PDF проверяется по зарегистрированному source SHA-256, 223 карточки
@@ -452,6 +455,36 @@ compare selection основаны на `position_id`, `selectable` и media URL
 Первичная выдача ограничена 12 карточками на семейство с явным раскрытием, чтобы
 223 позиции не создавали тяжёлый начальный DOM; поиск и счётчики работают по
 полной выборке. Расчётный runtime и публичные calculation endpoints не менялись.
+
+### Catalog transcription descriptions и position detail contract
+
+Текущий API содержит description для 108 из 223 позиций. Source audit
+официального PDF подтвердил наличие description, УГТ, lifecycle stage, market
+potential и case text. Embedded text нельзя импортировать напрямую:
+нестандартный font mapping заменяет часть кириллицы. Вместо нового OCR всего PDF
+получены две локальные полные текстовые версии: 110 карточек для страниц 1–46 и
+113 для страниц 47–91, то есть ровно 223 позиции.
+
+`data/catalog-description-enrichment` проверяет checksum PDF и обеих
+транскрипций, парсит их различающиеся page-oriented/field-oriented форматы и
+использует уже доказанное соответствие `source_page/source_slot` каждой
+позиции. Текущие SHA-256 транскрипций:
+`b0be869c049b95f493035f312ab83b99e4fda4caeec5ba828f0eb9587203bbe6` и
+`044feb0a1d40e750867a70c93b382a52f10c83e8847bcb94f433d885e9c710d2`.
+Raw/normalized text хранится с transcript artifact/hash, position, page/slot и
+media checksum provenance. OCR engine/model не указан поставщиком транскрипции,
+поэтому это явно маркируется как limitation, а PDF sample review остаётся
+обязательным. Существующее описание автоматически не заменяется; расхождения
+требуют review. 14 не напечатанных типов и отсутствующие URL не достраиваются.
+Маркетинговые поля не становятся runtime/matching facts и не активируют каталог.
+Результат должен быть детерминированным, идемпотентным и иметь coverage/conflict
+report по 223 позициям; повторный OCR всего PDF не входит в scope.
+
+`frontend/catalog-position-details` читает эту серверную проекцию и открывает
+доступный с клавиатуры drawer/modal по карточке. Он показывает полные, а не
+обрезанные description/use cases/industries/regions/facts, row-specific
+procurement/applicability, УГТ/стадию/кейсы, provenance и runtime blockers.
+Frontend не достраивает отсутствующие поля и не меняет identity позиции.
 
 ## 10. Файлы, backup, rollback и demo reset
 

@@ -388,6 +388,10 @@ project.json   машиночитаемый манифест концепции
 persistence, атомарная catalog activation и официальные metadata-driven
 profiles реализованы. Расчётный runtime безопасно остаётся на legacy
 `backend/fleet`, пока официальный каталог не получит достаточные runtime facts.
-Следующий этап — `intake/xlsx-csv-project-files`.
+Следующие этапы — `data/catalog-description-enrichment`, затем
+`frontend/catalog-position-details`; после них —
+`intake/xlsx-csv-project-files`. Для description enrichment уже подготовлены
+две локальные полные текстовые версии официального PDF (110 + 113 карточек);
+повторный OCR в проекте не планируется, нужен проверяемый parser/import.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.
