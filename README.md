@@ -427,6 +427,13 @@ profiles, description/detail UX, XLSX/CSV project intake и readiness/architectu
 hard constraints реализованы.
 Расчётный runtime безопасно остаётся на legacy `backend/fleet`, пока
 официальный каталог не получит достаточные runtime facts. Точный следующий
-этап — `engine/capacity-formula-trace`.
+этап — `catalog/runtime-eligibility-contract-gap-audit-223`: сначала
+фиксируется runtime-контракт по классам оборудования и строится
+воспроизводимый gap/coverage report по всем 223 positions и 187 model
+identities. В этом срезе не выполняются web research, не пишутся
+scrapers и не переключается runtime. Его отчёт даст основание выбрать
+следующий способ обогащения: локальные adapters, отдельный deep
+research или их комбинацию. `engine/capacity-formula-trace` идёт после
+этого decision gate.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

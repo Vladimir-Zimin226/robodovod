@@ -417,7 +417,7 @@ Implementation status: `data/catalog-positions-media`,
 `frontend/catalog-theme-media`, `data/catalog-description-enrichment`,
 `frontend/catalog-position-details`, `intake/xlsx-csv-project-files` и
 `engine/readiness-architecture-constraints` реализованы; точный
-следующий срез — `engine/capacity-formula-trace`.
+следующий срез — `catalog/runtime-eligibility-contract-gap-audit-223`.
 
 Readiness принимает происхождение projected input и полные
 `parameter_values/parameter_provenance` из project-file intake. `FILE`,
@@ -584,15 +584,23 @@ APPLY_REVISION → APPLIED`.
 7. Catalog-position projection для всех 223 строк, media pipeline и catalog UX.
 8. XLSX/CSV intake с привязкой файлов к проекту.
 9. Readiness, architecture и hard constraints с evidence gate.
-10. Baseline/purchase/RaaS и отдельная uncertainty/sensitivity ось.
-11. Обязательная 2D-визуализация и SimulationReport reconciliation.
-12. PDF + Excel/CSV, сохранение визуализации и минимальная admin update/publish.
-13. Security, deletion, performance, backup/reset и deployment acceptance.
+10. Runtime eligibility contract по классам и gap/coverage audit всех 223
+    positions / 187 model identities только по локальным данным.
+11. Decision gate и evidence enrichment: local source adapters, отдельный
+    deep research или hybrid; никакого silent fallback.
+12. Capacity formula trace по поддержанным capacity profiles, затем
+    catalog runtime dual-run/activation с rollback.
+13. Baseline/purchase/RaaS и отдельная uncertainty/sensitivity ось.
+14. Обязательная 2D-визуализация и SimulationReport reconciliation.
+15. PDF + Excel/CSV, сохранение визуализации и минимальная admin update/publish.
+16. Security, deletion, performance, backup/reset и deployment acceptance.
 
 Этот порядок минимизирует повторную работу: версии каталога существуют до
 catalog rows; runs ссылаются на версии до runtime switch; file intake сразу
-принадлежит проекту; подбор не может обойти evidence gate; 2D строится после
-стабилизации расчётного и persisted ScenarioSpec.
+принадлежит проекту; подбор не может обойти evidence gate; runtime gap-audit
+предшествует выбору инструмента enrichment; capacity не подстраивается
+под неполные каталожные факты; 2D строится после стабилизации расчётного и
+persisted ScenarioSpec.
 
 ## 14. Неблокирующее открытое решение
 
@@ -608,8 +616,9 @@ catalog rows; runs ссылаются на версии до runtime switch; fil
 tombstone без PII/content хранится 30 дней. Ни одно из этих решений не расширяет
 scope migration 0001.
 
-Безопасно отложить: live scraper, scheduler автообновления, temporal history
-каждого mutable user field, full IAM, S3/object storage, все ТТХ 223
-моделей, CAD/BIM и единое физическое 3D-здание. Нельзя откладывать СУБД,
+Безопасно отложить: live scraper и scheduler автообновления до завершения
+runtime gap-audit, temporal history каждого mutable user field, full IAM,
+S3/object storage, неподтверждённые ТТХ, CAD/BIM и единое физическое 3D-здание.
+Нельзя откладывать СУБД,
 project/run persistence, evidence gate, официальный intake, обязательную 2D,
 commercial scenarios, exports и минимальную административную актуализацию.

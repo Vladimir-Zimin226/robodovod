@@ -113,12 +113,14 @@ multi-zone scenes, но не единую физическую модель вс
   общих коридоров и межзональных потоков вместо справочного контурного слоя;
 - не связывать frame loop режиссёра с расчётной экономикой.
 
-Материалы организаторов нормализованы в локальном `data/staging/`: сохранены
-187 продуктов, 223 строки применимости/цен, официальные профили объектов и
-field-level provenance. Для 11 P0-решений выполнено внешнее enrichment.
-Структурный QA пройден; неполные, конфликтующие и неоднозначные сведения
-сохранены явными статусами и не должны становиться расчётной истиной. Staging
-исключён из Git и пока не является production-источником.
+Материалы организаторов импортированы в versioned production bundle:
+сохранены 187 model identities, 223 отдельные catalog positions с
+применимостью/ценой, официальные профили объектов, изображения,
+описания и field-level provenance. Для 11 P0-решений выполнено
+внешнее enrichment. Структурный QA пройден; неполные,
+конфликтующие и неоднозначные сведения сохранены явными статусами и не
+должны становиться расчётной истиной. Исходный `data/staging/` остаётся
+исключённым из Git и не является runtime-источником.
 
 ## Совместная работа через архивные снимки
 
@@ -160,17 +162,21 @@ stub с фиктивными характеристиками отвергнут
 
 ## Ближайший приоритет команды
 
-Встроенный warehouse golden path и результатный dashboard являются рабочей
-базой. Ближайший приоритет изменён после публикации ТЗ: повторный архитектурный
-аудит, ADR хранения и малая migration 0001 для PostgreSQL/SQLAlchemy/Alembic.
-Catalog domain, транзакционный importer и repository dual-run со старым `fleet`
-уже реализованы. Следующими, до runtime-switch, создаются проекты и immutable
-AnalysisRun; только после этого активируется официальный каталог и подключается
-XLSX/CSV intake.
+Встроенный warehouse golden path, PostgreSQL persistence, immutable
+AnalysisRun, официальный discovery-каталог, XLSX/CSV intake, readiness,
+architecture selection и hard constraints являются рабочей базой.
+Расчётный runtime пока остаётся на 13 legacy models; 223 official
+positions не становятся selectable без evidence-backed runtime facts.
 
-Следом приоритетны readiness/hard constraints, baseline/purchase/RaaS,
-обязательная 2D-визуализация, SimulationReport и экспорт PDF/Excel/CSV. Единая
-физическая многозонная 3D-геометрия не опережает обязательные разрывы ТЗ.
+Ближайший приоритет — `catalog/runtime-eligibility-contract-gap-audit-223`.
+Итерация определяет runtime eligibility по классам оборудования,
+аудирует все 223 positions и 187 model identities по уже имеющимся
+локальным данным и выдаёт машиночитаемый gap/coverage report. Только
+после этого отчёта принимается решение, нужны ли source-specific
+parsers/adapters, отдельный deep research в web-версии или комбинация.
+В сам gap-audit web research, scraper implementation, runtime switch, capacity и
+economics не входят. Затем идут evidence enrichment, capacity formula trace,
+commercial scenarios, обязательная 2D/SimulationReport и exports.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

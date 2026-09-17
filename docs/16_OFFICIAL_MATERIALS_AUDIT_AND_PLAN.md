@@ -290,15 +290,17 @@ constraints, local/Compose validation path и Definition of Done находят�
 Слабее:
 
 - target storage/API/component architecture существует только в docs.
-- Текущий hard filtering использует немного полей и silent defaults; это не
-  официальный constraint engine.
+- Readiness/constraint engine уже не превращает missing critical
+  geometry в PASS, но официальные 187 models ещё не имеют
+  полной evidence-backed runtime projection.
 - Текущие generic models/prices и presets слабее organizer data.
 - RobCraft KPI ещё не являются доказательством calculation throughput.
 - Client state/PDF не обеспечивают project reproducibility и required exports.
 
 ## 11. Безопасно отложить
 
-Live scraper и scheduler, все ТТХ 223 моделей, CAD/BIM, unified physical 3D,
+Live scraper и scheduler, заполнение всех ТТХ 223 positions до проведения
+runtime gap-audit, CAD/BIM, unified physical 3D,
 полный route optimizer, S3/object storage, collaborative projects,
 enterprise IAM, дополнительные регионы и одинаково глубокие airport/clinic
 ветки. Нельзя откладывать evidence correctness, storage/persistence, официальный
@@ -310,6 +312,12 @@ security/deployment acceptance.
 - Точная семантика отдельных duplicate rows сверх обязательного сохранения
   каждой source row и трактовки дублей как альтернативных предложений. Она не
   блокирует schema/import: identity модели и конкретное предложение разделены.
+- Способ внешнего обогащения runtime facts намеренно не выбран
+  заранее. Сначала итерация `catalog/runtime-eligibility-contract-gap-audit-223`
+  проверяет все локальные base/overlay/evidence/provenance данные и строит
+  coverage/gap report. По нему отдельно выбирается: source-specific
+  parsers/adapters, deep research в web-версии, hybrid или no action. Сам
+  gap-audit не выходит в интернет и не создаёт parsers.
 
 Закрыты решения: v4 актуален; derived text bundle разрешён; цены v4
 обрабатываются в RUB по продуктовому решению; НДС включён как допущение

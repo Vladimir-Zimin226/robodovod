@@ -204,7 +204,9 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 `data/catalog-description-enrichment`, `frontend/catalog-position-details` и
 `intake/xlsx-csv-project-files` и `engine/readiness-architecture-constraints`
 реализованы. Точный следующий этап —
-`engine/capacity-formula-trace`.
+`catalog/runtime-eligibility-contract-gap-audit-223`. Он изучает только
+уже имеющиеся в repository данные и не начинает web research или scraper
+implementation до coverage/gap decision gate.
 Публикация проверяет
 imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
@@ -234,7 +236,8 @@ contract/integration tests.
 Статус: срезы `data/catalog-positions-media`, `frontend/catalog-theme-media` и
 `data/catalog-description-enrichment`, `frontend/catalog-position-details` и
 `intake/xlsx-csv-project-files` и `engine/readiness-architecture-constraints`
-реализованы; далее идёт `engine/capacity-formula-trace`.
+реализованы; далее идёт
+`catalog/runtime-eligibility-contract-gap-audit-223`.
 Migration 0004 хранит append-only media metadata,
 extractor проверяет SHA-256 restricted PDF и связывает 223 позиции со 189
 уникальными content-addressed assets. Discovery API возвращает 223 позиции при
@@ -453,16 +456,31 @@ Gate: golden path проходит пять раз подряд локально
 10. `frontend/catalog-position-details` — реализован
 11. `intake/xlsx-csv-project-files` — реализован
 12. `engine/readiness-architecture-constraints` — реализован
-13. `engine/capacity-formula-trace` — следующий
-14. `economics/commercial-scenarios-sensitivity`
-15. `visualization/2d-simulation-report`
-16. `report/pdf-xlsx-csv`
-17. `admin/catalog-draft-publish`
-18. `qa/security-performance-deploy`
+13. `catalog/runtime-eligibility-contract-gap-audit-223` — следующий
+14. `catalog/official-source-enrichment` — точный способ выбирается по
+    отчёту пункта 13: local adapters, deep research или hybrid
+15. `engine/capacity-formula-trace`
+16. `catalog/runtime-dual-run-activation`
+17. `economics/commercial-scenarios-sensitivity`
+18. `visualization/2d-simulation-report`
+19. `report/pdf-xlsx-csv`
+20. `admin/catalog-draft-publish`
+21. `qa/security-performance-deploy`
 
 Каждый пункт выполняется отдельной малой итерацией. Нельзя объединять importer
 или перенос endpoint с соседним пунктом: это уничтожает диагностическую
 ценность и усложняет rollback.
+
+Итерация 13 фиксирует обязательные runtime fields и capacity-profile
+для каждого поддерживаемого класса, но не пишет сами capacity formulas.
+Она должна детерминированно классифицировать каждую из 223 positions и
+каждую из 187 model identities как минимум в `RUNTIME_READY`,
+`NEEDS_FACTS`, `CONFLICT_REVIEW`, `UNSUPPORTED_CAPACITY_PROFILE` или
+`NOT_EQUIPMENT`, показать missing fields/source coverage и выдать явную
+рекомендацию `LOCAL_ADAPTER`, `DEEP_RESEARCH`, `HYBRID` или `NO_ACTION`.
+Выходы — versioned machine-readable report, человекочитаемая сводка и
+тесты exact coverage/counts/idempotency. Нельзя додумывать URL/ТТХ, склеивать
+223 positions или переводить discovery facts в runtime facts.
 
 ## 7. Тестовая стратегия
 
