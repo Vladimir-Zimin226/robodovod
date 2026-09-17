@@ -17,6 +17,22 @@ page/slot/media locators, then inserts an append-only position overlay.
 Existing descriptions are retained on every conflict; marketing fields never
 enter `matching_spec_facts`. Original PDF and Markdown files remain local.
 
+The separate human-review workbook is generated outside the import bundle so
+review notes cannot silently affect runtime data:
+
+```bash
+python scripts/build_catalog_description_review.py --check
+```
+
+All 108 reviewed conflicts are recorded in
+`data/review/catalog-description-reviewed-decisions.json`: 94 exact case
+duplicates, three truncated PDF fragments, five scenario/case concatenations,
+three reordered case lists, and three collapsed `+N more` displays. The
+`data/review/catalog-description-conflicts.md` report confirms that no manual
+review items remain.
+Regeneration refuses to overwrite review decisions unless the maintainer
+explicitly passes `--force`.
+
 `manifest.json` is the authority for file hashes, byte sizes, record counts,
 source-artifact metadata, and the versioned RUB/VAT product decision. The
 importer verifies every entry before creating an `ImportRun`.
