@@ -270,6 +270,24 @@ docker compose --profile tools run --rm catalog-media
 возвращает media provenance до страницы/слота PDF и отдаёт content-addressed
 изображения через `/api/catalog/media/{catalog_code}/{sha256}`.
 
+## Описания позиций официального каталога
+
+Migration `0005_catalog_description` добавляет append-only overlay
+для 223 позиций. Два строгих адаптера читают локальные page-oriented и
+field-oriented транскрипции, проверяют SHA-256 PDF/Markdown, порядок,
+`source_page/source_slot`, название, организацию и checksum изображения.
+Существующие описания не заменяются: расхождения публикуются как
+`REVIEW_REQUIRED`; УГТ, стадия, market potential, кейсы и служебные метки не
+попадают в runtime/matching facts.
+
+```bash
+docker compose --profile tools run --rm catalog-description --mode VALIDATE_ONLY
+docker compose --profile tools run --rm catalog-description --mode COMMIT
+```
+
+Повторный `COMMIT` идемпотентен. API каталога возвращает выбранное описание,
+полный overlay и provenance; расчётный runtime остаётся на `backend/fleet`.
+
 ## Пользователи, проекты и AnalysisRun (migration 0003)
 
 Гостевой `/api/calculate` по-прежнему работает без регистрации и ничего не

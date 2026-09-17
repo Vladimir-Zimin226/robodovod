@@ -23,6 +23,8 @@ pytestmark = pytest.mark.skipif(
 
 ALEMBIC_CONFIG = Path(__file__).with_name("alembic.ini")
 CATALOG_TABLES = {
+    "catalog_description_imports",
+    "catalog_position_enrichments",
     "catalog_media_assets",
     "catalog_position_media",
     "manufacturers",
@@ -36,7 +38,8 @@ CATALOG_TABLES = {
     "procurement_options",
 }
 MEDIA_TABLES = {"catalog_media_assets", "catalog_position_media"}
-MUTABLE_DRAFT_DOMAIN_TABLES = CATALOG_TABLES - MEDIA_TABLES
+APPEND_ONLY_TABLES = MEDIA_TABLES | {"catalog_description_imports", "catalog_position_enrichments"}
+MUTABLE_DRAFT_DOMAIN_TABLES = CATALOG_TABLES - APPEND_ONLY_TABLES
 
 
 def _alembic_config() -> Config:
@@ -278,7 +281,7 @@ def test_domain_tables_all_have_draft_only_trigger(connection):
     assert trigger_tables == MUTABLE_DRAFT_DOMAIN_TABLES
 
 
-def test_media_tables_have_append_only_trigger(connection):
+def test_auxiliary_catalog_tables_have_append_only_trigger(connection):
     trigger_tables = set(
         connection.execute(
             text(
@@ -290,7 +293,7 @@ def test_media_tables_have_append_only_trigger(connection):
             )
         ).scalars()
     )
-    assert trigger_tables == MEDIA_TABLES
+    assert trigger_tables == APPEND_ONLY_TABLES
 
 
 def test_source_rows_preserve_artifact_row_identity(connection):

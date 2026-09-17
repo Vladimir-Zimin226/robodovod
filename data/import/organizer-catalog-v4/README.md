@@ -9,6 +9,14 @@ Images from the restricted 91-page visual catalog are handled separately by
 while PostgreSQL stores append-only checksums, dimensions, source page/slot and
 the exact relation to each of the 223 catalog positions.
 
+`catalog_description_overlay.json` and `catalog_description_report.json` are
+deterministic text-only derivatives of two local restricted Markdown
+transcriptions. They cover 110 + 113 positions in document order. The importer
+rebuilds them from local inputs, verifies all three source checksums and all 223
+page/slot/media locators, then inserts an append-only position overlay.
+Existing descriptions are retained on every conflict; marketing fields never
+enter `matching_spec_facts`. Original PDF and Markdown files remain local.
+
 `manifest.json` is the authority for file hashes, byte sizes, record counts,
 source-artifact metadata, and the versioned RUB/VAT product decision. The
 importer verifies every entry before creating an `ImportRun`.

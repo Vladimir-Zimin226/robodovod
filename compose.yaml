@@ -139,6 +139,25 @@ services:
     restart: "no"
     init: true
 
+  catalog-description:
+    profiles: ["tools"]
+    build:
+      context: ./backend
+    entrypoint: ["python", "-m", "catalog_description_enrichment"]
+    command: ["--mode", "COMMIT"]
+    environment:
+      DATABASE_URL: "${DATABASE_URL:?Set DATABASE_URL in .env}"
+      OFFICIAL_CATALOG_SOURCE_DIR: "/data/source"
+      CATALOG_DESCRIPTION_BUNDLE: "/data/import/organizer-catalog-v4"
+    volumes:
+      - "${OFFICIAL_CATALOG_SOURCE_DIR:-./Разобрать/Материалы от организаторов/Датасет}:/data/source:ro"
+      - ./data/import:/data/import:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    init: true
+
   admin-bootstrap:
     profiles: ["tools"]
     build:

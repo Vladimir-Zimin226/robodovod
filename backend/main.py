@@ -179,6 +179,12 @@ def _discovery_position(
     purchase = position.procurement_option
     applicability = position.applicability
     media = position.media
+    enrichment = position.enrichment
+    description = (
+        enrichment.description_normalized
+        if enrichment is not None and enrichment.description_status == "ENRICHED"
+        else model.description
+    )
     return {
         "id": position.id,
         "position_id": position.id,
@@ -193,7 +199,7 @@ def _discovery_position(
         "subtype_code": model.subtype_code,
         "maturity_status": model.maturity_status,
         "trl": model.trl,
-        "description": model.description,
+        "description": description,
         "industries": [applicability.industry] if applicability.industry else [],
         "use_cases": [applicability.scenario] if applicability.scenario else [],
         "regions": [applicability.region] if applicability.region else [],
@@ -241,6 +247,25 @@ def _discovery_position(
                 "source_slot": media.source_slot,
             }
             if media is not None
+            else None
+        ),
+        "enrichment": (
+            {
+                "description_status": enrichment.description_status,
+                "mapping_status": enrichment.mapping_status,
+                "transcript_description": enrichment.description_normalized,
+                "existing_description": enrichment.existing_description,
+                "fields": _json_value(enrichment.fields),
+                "provenance": {
+                    "adapter": enrichment.adapter,
+                    "transcript_sha256": enrichment.transcript_sha256,
+                    "source_page": enrichment.source_page,
+                    "source_slot": enrichment.source_slot,
+                    "media_sha256": enrichment.media_sha256,
+                    "limitation": enrichment.limitation,
+                },
+            }
+            if enrichment is not None
             else None
         ),
         "selectable": position.runtime_robot is not None,
@@ -293,12 +318,18 @@ def discover_catalog_models(
         def matches(position: CatalogPositionDTO) -> bool:
             model = position.model
             applicability = position.applicability
+            enrichment = position.enrichment
             values = (
                 model.name,
                 model.manufacturer or "",
                 model.type_code,
                 model.subtype_code or "",
-                model.description or "",
+                (
+                    enrichment.description_normalized
+                    if enrichment is not None
+                    and enrichment.description_status == "ENRICHED"
+                    else model.description or ""
+                ),
                 applicability.industry or "",
                 applicability.scenario or "",
                 applicability.region or "",
@@ -397,6 +428,17 @@ def discover_catalog_models(
             for position in positions
         ],
     }
+
+
+@app.get("/api/catalog/positions/{position_id}")
+def get_catalog_position(position_id: str):
+    """Return one position with gated description enrichment and provenance."""
+
+    snapshot, _ = _CATALOG_RUNTIME.load_discovery()
+    position = next((item for item in snapshot.positions if item.id == position_id), None)
+    if position is None:
+        raise HTTPException(404, "catalog position not found")
+    return _discovery_position(position, snapshot.version.code)
 
 
 @app.get("/api/catalog/media/{catalog_code}/{sha256}")

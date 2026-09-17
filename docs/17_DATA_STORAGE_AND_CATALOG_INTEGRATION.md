@@ -413,10 +413,10 @@ storage относятся к отдельной итерации `intake/xlsx-c
 
 ### Корректирующий срез: catalog positions, media и визуальный контракт
 
-Implementation status: `data/catalog-positions-media` и
-`frontend/catalog-theme-media` реализованы; следующий срез —
-`data/catalog-description-enrichment`, затем
-`frontend/catalog-position-details`; после них —
+Implementation status: `data/catalog-positions-media`,
+`frontend/catalog-theme-media` и `data/catalog-description-enrichment`
+реализованы; точный следующий срез — `frontend/catalog-position-details`;
+после него —
 `intake/xlsx-csv-project-files`. Migration `0004_catalog_position_media`
 добавляет append-only `catalog_media_assets` и `catalog_position_media`.
 Официальный PDF проверяется по зарегистрированному source SHA-256, 223 карточки
@@ -465,7 +465,7 @@ potential и case text. Embedded text нельзя импортировать н
 получены две локальные полные текстовые версии: 110 карточек для страниц 1–46 и
 113 для страниц 47–91, то есть ровно 223 позиции.
 
-`data/catalog-description-enrichment` проверяет checksum PDF и обеих
+Реализованный `data/catalog-description-enrichment` проверяет checksum PDF и обеих
 транскрипций, парсит их различающиеся page-oriented/field-oriented форматы и
 использует уже доказанное соответствие `source_page/source_slot` каждой
 позиции. Текущие SHA-256 транскрипций:

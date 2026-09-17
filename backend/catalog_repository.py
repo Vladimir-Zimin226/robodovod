@@ -14,6 +14,7 @@ from decimal import Decimal
 from typing import Any, Protocol
 
 from catalog_models import (
+    CatalogPositionEnrichment,
     CatalogMediaAsset,
     CatalogPositionMedia,
     CatalogSourceRow,
@@ -119,6 +120,22 @@ class CatalogMediaDTO:
 
 
 @dataclass(frozen=True)
+class CatalogEnrichmentDTO:
+    description_raw: str
+    description_normalized: str
+    existing_description: str | None
+    description_status: str
+    mapping_status: str
+    source_page: int
+    source_slot: int
+    transcript_sha256: str
+    media_sha256: str
+    adapter: str
+    fields: dict[str, Any]
+    limitation: str
+
+
+@dataclass(frozen=True)
 class CatalogPositionDTO:
     id: str
     source_record_key: str
@@ -129,6 +146,7 @@ class CatalogPositionDTO:
     media: CatalogMediaDTO | None
     runtime_robot: dict[str, Any] | None
     runtime_blockers: tuple[str, ...]
+    enrichment: CatalogEnrichmentDTO | None = None
 
     def runtime_dict(self) -> dict[str, Any] | None:
         return copy.deepcopy(self.runtime_robot)
@@ -436,6 +454,11 @@ class PostgresCatalogRepository:
                 )
                 .where(CatalogPositionMedia.catalog_version_id == version.id)
             ).all()
+            enrichment_rows = session.scalars(
+                select(CatalogPositionEnrichment).where(
+                    CatalogPositionEnrichment.catalog_version_id == version.id
+                )
+            ).all()
 
             applicability_by_model: dict[uuid.UUID, list[CatalogApplicabilityDTO]] = {}
             applicability_by_source: dict[uuid.UUID, CatalogApplicabilityDTO] = {}
@@ -505,6 +528,24 @@ class PostgresCatalogRepository:
                     source_page=link.source_page,
                     source_slot=link.source_slot,
                 )
+
+            enrichment_by_source = {
+                row.catalog_source_row_id: CatalogEnrichmentDTO(
+                    description_raw=row.description_raw,
+                    description_normalized=row.description_normalized,
+                    existing_description=row.existing_description_snapshot,
+                    description_status=row.description_status,
+                    mapping_status=row.mapping_status,
+                    source_page=row.source_page,
+                    source_slot=row.source_slot,
+                    transcript_sha256=row.transcript_sha256,
+                    media_sha256=row.media_sha256,
+                    adapter=row.adapter,
+                    fields=copy.deepcopy(row.normalized_fields),
+                    limitation=row.limitation,
+                )
+                for row in enrichment_rows
+            }
 
             facts_by_model: dict[uuid.UUID, list[CatalogFactDTO]] = {}
             for row in matching_rows:
@@ -588,6 +629,7 @@ class PostgresCatalogRepository:
                         media=media_by_source.get(source_row.id),
                         runtime_robot=runtime_robot,
                         runtime_blockers=blockers,
+                        enrichment=enrichment_by_source.get(source_row.id),
                     )
                 )
 

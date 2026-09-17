@@ -396,6 +396,128 @@ class CatalogPositionMedia(Base):
     )
 
 
+class CatalogDescriptionImport(Base):
+    __tablename__ = "catalog_description_imports"
+    __table_args__ = (
+        UniqueConstraint(
+            "catalog_version_id", name="uq_catalog_description_imports_version"
+        ),
+        CheckConstraint(
+            "overlay_sha256 ~ '^[0-9a-f]{64}$'",
+            name="ck_catalog_description_imports_overlay_sha256",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(report) = 'object'",
+            name="ck_catalog_description_imports_report_object",
+        ),
+        ForeignKeyConstraint(
+            ["catalog_version_id"],
+            ["catalog_versions.id"],
+            name="fk_catalog_description_imports_version",
+            ondelete="RESTRICT",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    catalog_version_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    overlay_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    report: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class CatalogPositionEnrichment(Base):
+    __tablename__ = "catalog_position_enrichments"
+    __table_args__ = (
+        UniqueConstraint(
+            "catalog_source_row_id",
+            name="uq_catalog_position_enrichments_source_row",
+        ),
+        UniqueConstraint(
+            "catalog_version_id",
+            "source_page",
+            "source_slot",
+            name="uq_catalog_position_enrichments_locator",
+        ),
+        CheckConstraint(
+            "adapter IN ('page-oriented-v1', 'field-oriented-v1')",
+            name="ck_catalog_position_enrichments_adapter",
+        ),
+        CheckConstraint(
+            "description_status IN ('ENRICHED', 'EXISTING_MATCH', 'REVIEW_REQUIRED')",
+            name="ck_catalog_position_enrichments_description_status",
+        ),
+        CheckConstraint(
+            "mapping_status IN ('VERIFIED', 'VERIFIED_WITH_NAME_CONFLICT', "
+            "'VERIFIED_WITH_ORGANIZATION_CONFLICT')",
+            name="ck_catalog_position_enrichments_mapping_status",
+        ),
+        CheckConstraint(
+            "source_page > 0 AND source_slot > 0",
+            name="ck_catalog_position_enrichments_locator",
+        ),
+        CheckConstraint(
+            "media_sha256 ~ '^[0-9a-f]{64}$' AND transcript_sha256 ~ '^[0-9a-f]{64}$'",
+            name="ck_catalog_position_enrichments_hashes",
+        ),
+        CheckConstraint(
+            "length(btrim(raw_card)) > 0 AND length(btrim(description_raw)) > 0 "
+            "AND length(btrim(description_normalized)) > 0",
+            name="ck_catalog_position_enrichments_text",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(normalized_fields) = 'object'",
+            name="ck_catalog_position_enrichments_fields_object",
+        ),
+        ForeignKeyConstraint(
+            ["catalog_source_row_id", "catalog_version_id"],
+            ["catalog_source_rows.id", "catalog_source_rows.catalog_version_id"],
+            name="fk_catalog_position_enrichments_source_row_version",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["transcript_artifact_id"],
+            ["source_artifacts.id"],
+            name="fk_catalog_position_enrichments_transcript_artifact",
+            ondelete="RESTRICT",
+        ),
+        ForeignKeyConstraint(
+            ["description_import_id"],
+            ["catalog_description_imports.id"],
+            name="fk_catalog_position_enrichments_import",
+            ondelete="RESTRICT",
+        ),
+        Index(
+            "ix_catalog_position_enrichments_version",
+            "catalog_version_id",
+            "catalog_source_row_id",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    catalog_version_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    catalog_source_row_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    transcript_artifact_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    description_import_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    source_page: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_slot: Mapped[int] = mapped_column(Integer, nullable=False)
+    adapter: Mapped[str] = mapped_column(Text, nullable=False)
+    transcript_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    media_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    raw_card: Mapped[str] = mapped_column(Text, nullable=False)
+    normalized_fields: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    description_raw: Mapped[str] = mapped_column(Text, nullable=False)
+    description_normalized: Mapped[str] = mapped_column(Text, nullable=False)
+    existing_description_snapshot: Mapped[str | None] = mapped_column(Text)
+    description_status: Mapped[str] = mapped_column(Text, nullable=False)
+    mapping_status: Mapped[str] = mapped_column(Text, nullable=False)
+    limitation: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
 class EquipmentApplicability(Base):
     __tablename__ = "equipment_applicability"
     __table_args__ = (
