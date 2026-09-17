@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { catalogItemKey, catalogMedia, formatCatalogPrice, matchesCatalogQuery, normalizeOfficialModel } from '../catalogPresentation';
+import CatalogPositionDialog from './CatalogPositionDialog';
 
 const API = import.meta.env.VITE_API_URL || '';
 const INITIAL_ITEMS_PER_FAMILY = 12;
@@ -44,6 +45,7 @@ export default function CatalogScreen({ objectType, onContinue }) {
   const [selected, setSelected] = useState([]);
   const [expandedFamilies, setExpandedFamilies] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
+  const [detailPosition, setDetailPosition] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -121,7 +123,7 @@ export default function CatalogScreen({ objectType, onContinue }) {
           const shown = expanded ? items : items.slice(0, INITIAL_ITEMS_PER_FAMILY);
           return <section className={`catalog-family catalog-accent-${category.accent}`} key={category.key} aria-labelledby={`family-${category.key}`}>
             <div className="catalog-family-heading"><span className="catalog-family-mark" aria-hidden="true">{category.short}</span><div><h2 id={`family-${category.key}`}>{category.label}</h2><p>Официальный каталог · {items.length} позиций</p></div></div>
-            <div className="catalog-grid">{shown.map((robot) => { const key = catalogItemKey(robot); return <RobotCard key={key} robot={robot} family={category} selected={selected.includes(key)} compareFull={selected.length >= MAX_COMPARE} onToggle={() => toggle(key)} />; })}</div>
+            <div className="catalog-grid">{shown.map((robot) => { const key = catalogItemKey(robot); return <RobotCard key={key} robot={robot} family={category} selected={selected.includes(key)} compareFull={selected.length >= MAX_COMPARE} onOpen={() => setDetailPosition(robot)} onToggle={() => toggle(key)} />; })}</div>
             {items.length > INITIAL_ITEMS_PER_FAMILY && <button className="catalog-show-more" onClick={() => setExpandedFamilies((current) => expanded ? current.filter((key) => key !== category.key) : [...current, category.key])} aria-expanded={expanded}>{expanded ? 'Свернуть раздел' : `Показать ещё ${items.length - INITIAL_ITEMS_PER_FAMILY}`}</button>}
           </section>;
         })}
@@ -130,20 +132,24 @@ export default function CatalogScreen({ objectType, onContinue }) {
       </div>
       {selected.length >= 2 && <button className="catalog-compare-fab" onClick={() => setShowCompare(true)}>Сравнить позиции <span>{selected.length}</span></button>}
       {showCompare && selectedRobots.length >= 2 && <CompareDialog robots={selectedRobots} onClose={() => setShowCompare(false)} />}
+      {detailPosition && <CatalogPositionDialog position={detailPosition} official={Boolean(catalog)} onClose={() => setDetailPosition(null)} />}
     </main>
   );
 }
 
-function RobotCard({ robot, family, selected, compareFull, onToggle }) {
+function RobotCard({ robot, family, selected, compareFull, onOpen, onToggle }) {
   const [imageFailed, setImageFailed] = useState(false);
   const media = catalogMedia(robot);
   const facts = (robot.fact_list || []).slice(0, 3);
   const usages = (robot.purpose || []).slice(0, 2);
   const compareDisabled = !selected && compareFull;
+  const openFromKeyboard = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } };
   return <article className={`catalog-card ${selected ? 'is-selected' : ''}`}>
-    <div className="catalog-media">{media && !imageFailed ? <img src={media.src} width={media.width} height={media.height} alt={`Официальное изображение: ${robot.name}`} loading="lazy" decoding="async" onError={() => setImageFailed(true)} /> : <div className="catalog-media-fallback" role="img" aria-label={`Изображение ${robot.name} отсутствует`}><span>{family.short}</span><small>НЕТ ИЗОБРАЖЕНИЯ</small></div>}<span className="catalog-position">ПОЗИЦИЯ {robot.source_row_number || '—'}</span><span className={`catalog-state ${robot.selectable ? 'is-ready' : ''}`}>{robot.selectable ? 'Для расчёта' : 'Discovery'}</span></div>
-    <div className="catalog-card-body"><div className="catalog-card-title"><div><p>{robot.manufacturer || 'Производитель не указан'}</p><h3>{robot.name}</h3></div><span>{family.short}</span></div><p className="catalog-description">{robot.description || 'Описание в исходном каталоге не указано.'}</p>{usages.length > 0 && <div className="catalog-tags" aria-label="Назначение">{usages.map((usage) => <span key={usage}>{usage}</span>)}</div>}{facts.length > 0 && <dl className="catalog-facts">{facts.map((fact) => <div key={fact.code}><dt>{fact.code.replaceAll('_', ' ')}</dt><dd>{typeof fact.value === 'object' ? JSON.stringify(fact.value) : String(fact.value)}{fact.unit ? ` ${fact.unit}` : ''}</dd></div>)}</dl>}</div>
-    <div className="catalog-card-footer"><div><strong>{formatCatalogPrice(robot)}</strong><small>{robot.type_label || 'Тип не указан'}</small></div><button onClick={onToggle} disabled={compareDisabled} aria-pressed={selected} title={compareDisabled ? 'Можно сравнить не более трёх позиций' : undefined}>{selected ? 'В сравнении' : compareDisabled ? 'Выбрано 3' : 'Сравнить'}</button></div>
+    <div className="catalog-card-open" role="button" tabIndex="0" aria-label={`Подробнее о позиции ${robot.name}`} onClick={onOpen} onKeyDown={openFromKeyboard}>
+      <div className="catalog-media">{media && !imageFailed ? <img src={media.src} width={media.width} height={media.height} alt={`Официальное изображение: ${robot.name}`} loading="lazy" decoding="async" onError={() => setImageFailed(true)} /> : <div className="catalog-media-fallback" role="img" aria-label={`Изображение ${robot.name} отсутствует`}><span>{family.short}</span><small>НЕТ ИЗОБРАЖЕНИЯ</small></div>}<span className="catalog-position">ПОЗИЦИЯ {robot.source_row_number || '—'}</span><span className={`catalog-state ${robot.selectable ? 'is-ready' : ''}`}>{robot.selectable ? 'Для расчёта' : 'Discovery'}</span></div>
+      <div className="catalog-card-body"><div className="catalog-card-title"><div><p>{robot.manufacturer || 'Производитель не указан'}</p><h3>{robot.name}</h3></div><span>{family.short}</span></div><p className="catalog-description">{robot.description || 'Описание в исходном каталоге не указано.'}</p>{usages.length > 0 && <div className="catalog-tags" aria-label="Назначение">{usages.map((usage) => <span key={usage}>{usage}</span>)}</div>}{facts.length > 0 && <dl className="catalog-facts">{facts.map((fact) => <div key={fact.code}><dt>{fact.code.replaceAll('_', ' ')}</dt><dd>{typeof fact.value === 'object' ? JSON.stringify(fact.value) : String(fact.value)}{fact.unit ? ` ${fact.unit}` : ''}</dd></div>)}</dl>}<span className="catalog-card-more">Подробнее <span aria-hidden="true">→</span></span></div>
+    </div>
+    <div className="catalog-card-footer"><div><strong>{formatCatalogPrice(robot)}</strong><small>{robot.type_label || 'Тип не указан'}</small></div><button type="button" onClick={onToggle} disabled={compareDisabled} aria-pressed={selected} title={compareDisabled ? 'Можно сравнить не более трёх позиций' : undefined}>{selected ? 'В сравнении' : compareDisabled ? 'Выбрано 3' : 'Сравнить'}</button></div>
   </article>;
 }
 

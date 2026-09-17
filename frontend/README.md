@@ -38,3 +38,9 @@ Vite также публикует соседний автономный дви�
 лениво через same-origin media URL; при отсутствии или ошибке asset показывается
 стабильный fallback. До evidence-backed runtime projection такие позиции
 остаются discovery-only и не подмешиваются в расчёт.
+
+Нажатие на карточку открывает доступный с клавиатуры modal и загружает полную
+позицию через `/api/catalog/positions/{position_id}`. В нём раздельно показаны
+описание модели, row-specific применимость/кейс/закупка, проверенные facts,
+presentation-only поля исходного PDF, provenance и runtime blockers. Modal не
+вычисляет отсутствующие значения и не меняет calculation/runtime semantics.

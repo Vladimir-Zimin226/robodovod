@@ -3,11 +3,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import {
+  catalogDetailView,
   catalogItemKey,
   catalogMedia,
+  formatCatalogFact,
   formatCatalogPrice,
   matchesCatalogQuery,
   normalizeOfficialModel,
+  runtimeBlockerLabel,
 } from '../src/catalogPresentation.js';
 
 const officialPosition = {
@@ -24,6 +27,12 @@ const officialPosition = {
   facts: [{ code: 'payload_kg', value: 1200, unit: 'кг' }],
   purchase: { amount: 5_500_000, evidence_id: 'evidence-1' },
   media: { url: '/api/catalog/media/asset-1', width_px: 800, height_px: 600, media_type: 'image/png' },
+  applicability: [{ industry: 'Складская логистика', scenario: 'Перемещение паллет', region: 'Россия', case: 'Внедрено 10 роботов.' }],
+  enrichment: {
+    fields: { trl: 8, lifecycle_stage: 'Эксплуатация', market_potential: 4, service_labels: ['Есть в каталоге'], source_url: 'https://example.test/source' },
+    provenance: { source_page: 6, source_slot: 1, limitation: 'external transcription' },
+  },
+  runtime_blockers: ['runtime_projection'],
 };
 
 test('catalog position identity does not collapse duplicate canonical models', () => {
@@ -60,6 +69,29 @@ test('media metadata and official prices are presentation-only projections', () 
   assert.equal(formatCatalogPrice({ price: { basis: 'quote_required' } }), 'По запросу');
 });
 
+test('detail view preserves row-specific text and presentation-only enrichment', () => {
+  const detail = catalogDetailView(officialPosition);
+  assert.equal(detail.description, 'Описание модели в исходном каталоге не указано.');
+  assert.equal(detail.caseText, 'Внедрено 10 роботов.');
+  assert.equal(detail.trl, '8/9');
+  assert.equal(detail.lifecycleStage, 'Эксплуатация');
+  assert.equal(detail.marketPotential, '4/5');
+  assert.equal(detail.sourceLocation, 'страница 6, слот 1');
+  assert.deepEqual(detail.serviceLabels, ['Есть в каталоге']);
+  assert.deepEqual(detail.runtimeBlockers, ['runtime_projection']);
+});
+
+test('detail presentation does not invent absent values', () => {
+  const detail = catalogDetailView({ name: 'Без данных' });
+  assert.equal(detail.trl, null);
+  assert.equal(detail.marketPotential, null);
+  assert.equal(detail.sourceUrl, null);
+  assert.equal(detail.caseText, null);
+  assert.deepEqual(detail.facts, []);
+  assert.equal(formatCatalogFact({ value: 1200, unit: 'кг' }), '1200 кг');
+  assert.equal(runtimeBlockerLabel('runtime_projection'), 'Нет утверждённой runtime-проекции');
+});
+
 test('catalog component keeps media and interactive controls accessible', async () => {
   const source = await readFile(new URL('../src/components/CatalogScreen.jsx', import.meta.url), 'utf8');
   assert.match(source, /loading="lazy"/);
@@ -68,4 +100,16 @@ test('catalog component keeps media and interactive controls accessible', async 
   assert.match(source, /aria-modal="true"/);
   assert.match(source, /event\.key === 'Escape'/);
   assert.match(source, /closeButton\.current\?\.focus\(\)/);
+  assert.match(source, /CatalogPositionDialog/);
+  assert.match(source, /aria-label=\{`Подробнее о позиции/);
+});
+
+test('position dialog fetches the position endpoint and traps keyboard focus', async () => {
+  const source = await readFile(new URL('../src/components/CatalogPositionDialog.jsx', import.meta.url), 'utf8');
+  assert.match(source, /\/api\/catalog\/positions\//);
+  assert.match(source, /event\.key === 'Escape'/);
+  assert.match(source, /event\.key !== 'Tab'/);
+  assert.match(source, /runtimeBlockers/);
+  assert.match(source, /transcript_sha256/);
+  assert.match(source, /aria-modal="true"/);
 });

@@ -414,9 +414,8 @@ storage относятся к отдельной итерации `intake/xlsx-c
 ### Корректирующий срез: catalog positions, media и визуальный контракт
 
 Implementation status: `data/catalog-positions-media`,
-`frontend/catalog-theme-media` и `data/catalog-description-enrichment`
-реализованы; точный следующий срез — `frontend/catalog-position-details`;
-после него —
+`frontend/catalog-theme-media`, `data/catalog-description-enrichment` и
+`frontend/catalog-position-details` реализованы; точный следующий срез —
 `intake/xlsx-csv-project-files`. Migration `0004_catalog_position_media`
 добавляет append-only `catalog_media_assets` и `catalog_position_media`.
 Официальный PDF проверяется по зарегистрированному source SHA-256, 223 карточки
@@ -485,6 +484,12 @@ report по 223 позициям; повторный OCR всего PDF не в�
 обрезанные description/use cases/industries/regions/facts, row-specific
 procurement/applicability, УГТ/стадию/кейсы, provenance и runtime blockers.
 Frontend не достраивает отсутствующие поля и не меняет identity позиции.
+
+Итерация реализована: карточка загружается по стабильному `position_id` через
+`/api/catalog/positions/{position_id}`, удерживает фокус внутри modal, закрывается
+по Escape/клику на backdrop и возвращает фокус в открывший элемент. Полные
+описание и row-specific кейс показаны раздельно; presentation-only поля PDF
+визуально отделены от evidence-gated facts и причин `discovery-only`.
 
 ## 10. Файлы, backup, rollback и demo reset
 

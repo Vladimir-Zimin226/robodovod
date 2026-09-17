@@ -47,3 +47,53 @@ export function formatCatalogPrice(robot) {
   if (value >= 1_000_000) return `${(value / 1_000_000).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} млн ₽`;
   return `${value.toLocaleString('ru-RU')} ₽`;
 }
+
+export function formatCatalogFact(fact) {
+  if (!fact || fact.value === null || fact.value === undefined) return '—';
+  const value = typeof fact.value === 'object' ? JSON.stringify(fact.value) : String(fact.value);
+  return `${value}${fact.unit ? ` ${fact.unit}` : ''}`;
+}
+
+export function runtimeBlockerLabel(blocker) {
+  if (blocker === 'runtime_projection') return 'Нет утверждённой runtime-проекции';
+  if (blocker === 'runtime_projection:economics') return 'Не хватает экономических параметров';
+  if (blocker === 'runtime_projection:invalid_robot_contract') return 'Runtime-профиль не прошёл проверку контракта';
+  if (blocker === 'procurement_option:ambiguous_purchase_amount') return 'Цена приобретения неоднозначна';
+  if (blocker.startsWith('matching_fact:')) return 'Не хватает проверенной характеристики для matching';
+  return 'Позиция пока недоступна для расчёта';
+}
+
+export function catalogDetailView(position) {
+  const applicability = position.applicability?.[0] || {};
+  const fields = position.enrichment?.fields || {};
+  const provenance = position.enrichment?.provenance || {};
+  const sourcePage = provenance.source_page ?? position.media?.source_page;
+  const sourceSlot = provenance.source_slot ?? position.media?.source_slot;
+  const trl = Number.isFinite(fields.trl) ? `${fields.trl}/9` : Number.isFinite(position.trl) ? `${position.trl}/9` : null;
+  const marketPotential = Number.isFinite(fields.market_potential) ? `${fields.market_potential}/5` : null;
+  let sourceUrl = null;
+  try {
+    const candidate = new URL(fields.source_url);
+    if (candidate.protocol === 'http:' || candidate.protocol === 'https:') sourceUrl = candidate.href;
+  } catch {
+    sourceUrl = null;
+  }
+  return {
+    description: position.description || 'Описание модели в исходном каталоге не указано.',
+    industries: position.industries || (applicability.industry ? [applicability.industry] : []),
+    useCases: position.use_cases || (applicability.scenario ? [applicability.scenario] : []),
+    regions: position.regions || (applicability.region ? [applicability.region] : []),
+    caseText: applicability.case || null,
+    trl,
+    lifecycleStage: fields.lifecycle_stage || position.maturity_status || null,
+    marketPotential,
+    serviceLabels: fields.service_labels || [],
+    sourceUrl,
+    sourceLocation: sourcePage ? `страница ${sourcePage}${sourceSlot ? `, слот ${sourceSlot}` : ''}` : null,
+    limitation: provenance.limitation || null,
+    facts: position.facts || [],
+    purchase: position.purchase || null,
+    purchasePrice: position.purchase?.raw_price || formatCatalogPrice(normalizeOfficialModel(position)),
+    runtimeBlockers: position.runtime_blockers || [],
+  };
+}
