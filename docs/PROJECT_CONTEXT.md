@@ -207,6 +207,15 @@ trace и отдельная economics policy. Deployment-ready моделей п
 разрешает закупочные claims. Полный контракт этапа находится в
 `18_RUNTIME_POOL_AND_CATALOG_UI.md`.
 
+Локальный end-to-end smoke после materialization подтвердил BASE/ENRICHMENT,
+публикацию и discovery-активацию с 187 моделями / 223 позициями и capacity pool
+21 / 24. Media rehydration отдельно зарегистрировала 189 content-addressed
+assets для 223 позиций. Профильные Compose tools-сервисы следует запускать с
+`--build` после обновления checkout: обычный `docker compose up --build` их не
+собирает. При пересоздании PostgreSQL media metadata и position links нужно
+восстановить повторным идемпотентным `catalog-media`, даже если одноимённый
+binary volume сохранился.
+
 Следующая малая итерация — `engine/capacity-formula-trace`.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —

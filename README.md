@@ -157,11 +157,16 @@ Runtime-каталог всегда разрешается через атома
 Импорт выполняется явно и только в `DRAFT`. Обычный `docker compose up` его не
 запускает. Сначала выполните validate-only, затем BASE и ENRICHMENT:
 
+Сервисы профиля `tools` не входят в обычный `docker compose up --build`.
+После обновления checkout первый запуск каждого такого сервиса должен включать
+`--build`, иначе старый tools-образ может проверять новый bundle устаревшим
+контрактом.
+
 ```bash
-docker compose --profile tools run --rm catalog-import --phase BASE --mode VALIDATE_ONLY
-docker compose --profile tools run --rm catalog-import --phase BASE --mode COMMIT
-docker compose --profile tools run --rm catalog-import --phase ENRICHMENT --mode VALIDATE_ONLY
-docker compose --profile tools run --rm catalog-import --phase ENRICHMENT --mode COMMIT
+docker compose --profile tools run --rm --build catalog-import --phase BASE --mode VALIDATE_ONLY
+docker compose --profile tools run --rm --build catalog-import --phase BASE --mode COMMIT
+docker compose --profile tools run --rm --build catalog-import --phase ENRICHMENT --mode VALIDATE_ONLY
+docker compose --profile tools run --rm --build catalog-import --phase ENRICHMENT --mode COMMIT
 ```
 
 Повтор успешного `COMMIT` идемпотентен и возвращает существующий `ImportRun`.
@@ -227,9 +232,9 @@ PUBLISHED`. Активация slot сериализована advisory lock, в
 закрывает старую history row и создаёт новую:
 
 ```bash
-docker compose --profile tools run --rm catalog-activation publish --catalog-code organizer-catalog-v4
-docker compose --profile tools run --rm catalog-activation activate --catalog-code organizer-catalog-v4 --slot discovery
-docker compose --profile tools run --rm catalog-activation status
+docker compose --profile tools run --rm --build catalog-activation publish --catalog-code organizer-catalog-v4
+docker compose --profile tools run --rm --build catalog-activation activate --catalog-code organizer-catalog-v4 --slot discovery
+docker compose --profile tools run --rm --build catalog-activation status
 ```
 
 `/api/catalog/models` использует активный `discovery` slot и возвращает
@@ -259,7 +264,7 @@ Migration `0004_catalog_position_media` добавляет append-only metadata 
 именованный `catalog_media` volume:
 
 ```bash
-docker compose --profile tools run --rm catalog-media
+docker compose --profile tools run --rm --build catalog-media
 ```
 
 По умолчанию PDF читается из локальной игнорируемой папки
@@ -268,6 +273,10 @@ docker compose --profile tools run --rm catalog-media
 восстанавливает отсутствующие файлы volume, не изменяя append-only связи. API
 возвращает media provenance до страницы/слота PDF и отдаёт content-addressed
 изображения через `/api/catalog/media/{catalog_code}/{sha256}`.
+После пересоздания PostgreSQL volume команду необходимо выполнить повторно:
+бинарники могут сохраниться в отдельном `catalog_media` volume, но DB metadata и
+связи с 223 позициями создаются заново. Успешный полный импорт регистрирует 189
+уникальных assets для 223 positions.
 
 ## Описания позиций официального каталога
 

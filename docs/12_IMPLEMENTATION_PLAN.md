@@ -248,6 +248,11 @@ extractor проверяет SHA-256 restricted PDF и связывает 223 п
 уникальными content-addressed assets. Discovery API возвращает 223 позиции при
 187 канонических моделях, row-specific applicability/price и media provenance.
 Расчётный runtime не переключён.
+На чистой PostgreSQL smoke-последовательность BASE → ENRICHMENT → publish →
+activate подтверждает capacity counts 21 / 24; отдельный повторный
+`catalog-media` восстанавливает 189 assets / 223 position links. Compose
+tools-профиль после обновления checkout запускается с явным `--build`, поскольку
+обычный `docker compose up --build` профильные образы не пересобирает.
 
 Catalog UI использует position ID как key/selection identity, показывает
 официальные assets лениво с устойчивым fallback, ограничивает сравнение тремя

@@ -74,4 +74,11 @@
 - Backend unit/integration и frontend component/contract tests проверяют теги,
   фильтры, counts, комбинирование фильтров и негативные случаи.
 
+Локальный Compose smoke подтвердил опубликованный discovery-срез 187 / 223,
+materialized capacity pool 21 / 24 и отдельное восстановление 189 media assets
+для всех 223 позиций. После обновления checkout профильные tools-сервисы должны
+быть пересобраны явно (`docker compose --profile tools run --rm --build ...`);
+после пересоздания PostgreSQL `catalog-media` повторно восстанавливает DB
+metadata/position links из проверенного restricted PDF.
+
 Следующий этап после прохождения gate — `engine/capacity-formula-trace`.
