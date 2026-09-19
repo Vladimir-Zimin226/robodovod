@@ -457,9 +457,11 @@ Gate: golden path проходит пять раз подряд локально
 11. `intake/xlsx-csv-project-files` — реализован
 12. `engine/readiness-architecture-constraints` — реализован
 13. `catalog/runtime-eligibility-contract-gap-audit-223` — реализован
-14. `catalog/official-source-enrichment` — следующий; по отчёту пункта 13:
-    deep research для 36 моделей, hybrid для 5 конфликтных моделей
-15. `engine/capacity-formula-trace`
+14. `catalog/official-source-enrichment` — исследование и decision staging
+    завершены: 131 accepted / 7 deferred / 318 missing; следующий малый срез —
+    immutable ENRICHMENT bundle и validate-only DRAFT import
+15. `engine/capacity-formula-trace` — только после повторного eligibility audit
+    фактически импортированного bundle
 16. `catalog/runtime-dual-run-activation`
 17. `economics/commercial-scenarios-sensitivity`
 18. `visualization/2d-simulation-report`

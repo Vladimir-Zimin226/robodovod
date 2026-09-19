@@ -58,3 +58,7 @@ htmlcov/
 /Разобрать/
 /data/staging/
 /data/catalog-media/
+
+# Local Deep Research workspace and generated upload copies
+/Исследования/
+/data/research/catalog-runtime-eligibility-v1/upload/

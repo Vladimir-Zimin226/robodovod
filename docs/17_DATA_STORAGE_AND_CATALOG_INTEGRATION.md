@@ -426,6 +426,14 @@ identities / 223 positions и даёт статусы моделей 0 ready, 36
 conflict review, 142 unsupported profile, 4 not equipment. Description overlay
 остаётся presentation-only; runtime не переключён.
 
+Official-source decision staging v1 дополнительно фиксирует 131 принятый факт
+для 26 моделей: 129 matching-safe и 2 review-only; ещё 7 полей отложены и 318
+остались missing. Post-enrichment projection сохраняет точный охват 187/223 и
+даёт статусы моделей 0 ready, 37 needs facts, 3 conflict review, 143 unsupported
+profile, 4 not equipment. Это только projection: PostgreSQL, active catalog и
+runtime не изменены. Следующий срез — новый immutable ENRICHMENT bundle,
+validate-only DRAFT import и повторный audit по импортированным данным.
+
 Readiness принимает происхождение projected input и полные
 `parameter_values/parameter_provenance` из project-file intake. `FILE`,
 `PRESET`, `USER`, `CATALOG` и `ASSUMPTION` не смешиваются: допущение

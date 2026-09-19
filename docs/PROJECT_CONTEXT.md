@@ -175,10 +175,15 @@ capacity profile без формул; отчёт детерминированн�
 `NEEDS_FACTS`, 5 `CONFLICT_REVIEW`, 142 `UNSUPPORTED_CAPACITY_PROFILE`, 4
 `NOT_EQUIPMENT`. Runtime остаётся на 13 legacy models.
 
-Ближайший приоритет — `catalog/official-source-enrichment`: deep research для
-36 моделей, hybrid для 5 конфликтных моделей, без local-adapter-only ветки по
-текущему evidence. Затем идут capacity formula trace, commercial scenarios,
-обязательная 2D/SimulationReport и exports.
+`catalog/official-source-enrichment` исследован и сведён в review-only staging:
+131 field fact принят для 26 моделей, 129 из них matching-safe, 2 review-only,
+7 отложены и 318 остаются missing. Проекция после staging сохраняет 0
+`RUNTIME_READY`; распределение моделей — 37 `NEEDS_FACTS`, 3
+`CONFLICT_REVIEW`, 143 `UNSUPPORTED_CAPACITY_PROFILE`, 4 `NOT_EQUIPMENT`.
+Ближайший приоритет — собрать новый immutable `ENRICHMENT` bundle, выполнить
+validate-only import в DRAFT и повторить audit по импортированным данным. Затем
+идут capacity formula trace, commercial scenarios, обязательная
+2D/SimulationReport и exports.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

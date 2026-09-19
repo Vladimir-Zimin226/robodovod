@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -21,8 +22,17 @@ from scripts.validate_catalog_deep_research_returns import (
     ReturnValidationError,
     validate_return,
 )
-from scripts.review_catalog_deep_research_returns import build_review, render_markdown
+from scripts.review_catalog_deep_research_returns import (
+    build_resolution,
+    build_review,
+    render_decision_queue,
+    render_markdown,
+)
 from scripts.audit_catalog_deep_research_packets import audit_packets
+from scripts.repair_catalog_deep_research_returns import (
+    _repair_deep_other,
+    _source_for,
+)
 
 
 def test_handoff_has_exact_model_and_batch_coverage(tmp_path: Path):
@@ -86,7 +96,7 @@ def test_handoff_has_exact_model_and_batch_coverage(tmp_path: Path):
         for batch in batches
         for model in batch["models"]
     )
-    assert manifest["prompt_revision"] == "audited-public-web-inline-json-v5"
+    assert manifest["prompt_revision"] == "scope-locked-public-web-inline-json-v6"
     for batch in batches:
         prompt = (output / "prompts" / f"{batch['batch_id']}.prompt.md").read_text(
             encoding="utf-8"
@@ -94,6 +104,12 @@ def test_handoff_has_exact_model_and_batch_coverage(tmp_path: Path):
         target_count = sum(len(model["research_targets"]) for model in batch["models"])
         assert f"ровно {batch['model_count']} model results" in prompt
         assert f"{target_count} field results" in prompt
+        assert "SCOPE_MISMATCH" in prompt
+        assert "Scope fingerprint SHA-256" in prompt
+        for model in batch["models"]:
+            assert model["organizer_id"] in prompt
+            assert model["name"] in prompt
+            assert all(f"`{field}`" in prompt for field in model["research_targets"])
 
 
 def test_each_upload_packet_is_unambiguous_and_self_contained(tmp_path: Path):
@@ -138,9 +154,11 @@ def test_friendly_workspace_has_six_numbered_research_folders(tmp_path: Path):
         start=1,
     ):
         files = {path.name for path in folder.iterdir() if path.is_file()}
-        assert len(files) == 4
+        assert len(files) == (5 if number in {5, 6} else 4)
         assert "00-ПРОМПТ-СКОПИРОВАТЬ-В-ЧАТ.md" in files
         assert len([name for name in files if name.endswith(".json")]) == 3
+        if number in {5, 6}:
+            assert "01-ИСПРАВИТЬ-ОТЧЁТ-В-ТОМ-ЖЕ-ЧАТЕ.md" in files
         prompt = (folder / "00-ПРОМПТ-СКОПИРОВАТЬ-В-ЧАТ.md").read_text(
             encoding="utf-8"
         )
@@ -169,6 +187,14 @@ def test_handoff_is_idempotent_and_preserves_positions(tmp_path: Path):
     }
 
     assert first == second
+    (output / "returns").mkdir(exist_ok=True)
+    (output / "returns" / "preserved.result.json").write_text(
+        "user result", encoding="utf-8"
+    )
+    (output / "raw-returns").mkdir()
+    (output / "raw-returns" / "preserved.md").write_text(
+        "raw report", encoding="utf-8"
+    )
     check(output)
     assert sum(
         len(model["position_ids"])
@@ -197,6 +223,43 @@ def test_return_schema_requires_evidence_and_identity_fields(tmp_path: Path):
     assert {"source_url", "source_locator", "raw_value", "accessed_at"} <= set(
         evidence_schema["required"]
     )
+
+
+def test_each_uploaded_schema_locks_exact_batch_roster_and_targets(tmp_path: Path):
+    output = tmp_path / "handoff"
+    build(output)
+    for batch_path in sorted((output / "batches").glob("*.json")):
+        batch = json.loads(batch_path.read_text(encoding="utf-8"))
+        batch_id = batch["batch_id"]
+        schema = json.loads(
+            (
+                output
+                / "upload"
+                / batch_id
+                / "03-RETURN-SCHEMA-REQUIRED.json"
+            ).read_text(encoding="utf-8")
+        )
+        results = schema["properties"]["results"]
+        lock = schema["x-robodovod-scope-lock"]
+        assert schema["properties"]["batch_id"] == {"const": batch_id}
+        assert results["minItems"] == results["maxItems"] == batch["model_count"]
+        assert len(results["items"]["oneOf"]) == batch["model_count"]
+        assert len(results["allOf"]) == batch["model_count"]
+        assert lock["batch_id"] == batch_id
+        assert {
+            row["organizer_id"] for row in lock["models"]
+        } == {row["organizer_id"] for row in batch["models"]}
+        for model, variant in zip(batch["models"], results["items"]["oneOf"], strict=True):
+            assert variant["properties"]["organizer_id"] == {
+                "const": model["organizer_id"]
+            }
+            fields = variant["properties"]["field_results"]
+            assert fields["minItems"] == fields["maxItems"] == len(
+                model["research_targets"]
+            )
+            assert set(fields["items"]["properties"]["field_path"]["enum"]) == set(
+                model["research_targets"]
+            )
 
 
 def test_return_validator_enforces_exact_target_coverage(tmp_path: Path):
@@ -237,6 +300,10 @@ def test_return_validator_enforces_exact_target_coverage(tmp_path: Path):
     summary = validate_return(batch_path, result_path)
     assert summary["models"] == 3
     assert summary["target_fields"] == 28
+    result["results"][0]["matched_manufacturer"] = "Known manufacturer"
+    result_path.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
+    assert validate_return(batch_path, result_path)["models"] == 3
+    result["results"][0]["matched_manufacturer"] = None
     result["results"][0]["identity_status"] = "AMBIGUOUS_MODEL_MATCH"
     result_path.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(
@@ -405,6 +472,138 @@ def test_review_is_deterministic_and_never_authorizes_import(tmp_path: Path):
     assert first["coverage"]["target_fields"] == 28
     assert first["review_decision_counts"] == {"REMAINS_MISSING": 28}
     assert "не изменяет base, overlay, backend, fleet или runtime" in render_markdown(first)
+    queue = render_decision_queue(first)
+    assert "Требуют проверки конфликта/identity: 0" in queue
+    assert "Кандидаты на принятие всего: 0" in queue
+    assert "Ожидают решения: 0" in queue
+    assert "Остаются без фактов: 28" in queue
+    assert "Роботизированный комплекс по укладке заготовок" in queue
+
+
+def test_decision_queue_renders_recorded_manual_decision():
+    report = {
+        "batches": [
+            {
+                "batch_id": "example",
+                "models": [
+                    {
+                        "organizer_id": "00000000-0000-0000-0000-000000000000",
+                        "position_ids": ["row-1"],
+                        "name": "Robot",
+                        "manufacturer": "Maker",
+                        "equipment_class": "CLEANING",
+                        "identity_status": "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+                        "matched_model": "Robot",
+                        "field_reviews": [
+                            {
+                                "field_path": "specs.operating_conditions",
+                                "review_decision": "CONFLICT_REVIEW",
+                                "evidence_status": "CONFLICT",
+                                "normalized_value": None,
+                                "normalized_unit": None,
+                                "known_fact_comparison": "NOT_COMPARABLE",
+                                "known_facts": [],
+                                "notes": "Two official values conflict.",
+                                "evidence": [],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
+    ledger = {
+        "decisions": [
+            {
+                "decision_id": "R001",
+                "organizer_id": "00000000-0000-0000-0000-000000000000",
+                "model_name": "Robot",
+                "field_path": "specs.operating_conditions",
+                "decision": "ACCEPT_PASSPORT_CONSERVATIVE",
+                "selected_value": {"min": -10, "max": 40},
+                "selected_unit": "°C",
+                "rationale": "Use the exact revision passport.",
+            }
+        ]
+    }
+    queue = render_decision_queue(report, ledger)
+    assert "**ACCEPT_PASSPORT_CONSERVATIVE**" in queue
+    assert "Use the exact revision passport." in queue
+
+
+def test_decision_queue_bulk_accepts_only_pinned_exact_candidates():
+    field = {
+        "field_path": "specs.navigation",
+        "review_decision": "ACCEPT_CANDIDATE",
+        "evidence_status": "VERIFIED_OFFICIAL",
+        "normalized_value": {"sensor": "lidar"},
+        "normalized_unit": None,
+        "known_fact_comparison": "NO_KNOWN_FACT",
+        "known_facts": [],
+        "notes": "Exact official model fact.",
+        "warnings": [],
+        "evidence": [
+            {
+                "raw_value": "Lidar navigation",
+                "source_url": "https://example.com/model",
+                "source_title": "Model",
+                "publisher": "Maker",
+                "source_type": "OFFICIAL_MODEL_PAGE",
+                "source_locator": "Specifications",
+            }
+        ],
+    }
+    report = {
+        "batches": [
+            {
+                "batch_id": "example",
+                "models": [
+                    {
+                        "organizer_id": "00000000-0000-0000-0000-000000000000",
+                        "position_ids": ["row-1"],
+                        "name": "Robot",
+                        "manufacturer": "Maker",
+                        "equipment_class": "CLEANING",
+                        "identity_status": "EXACT_MODEL_MATCH",
+                        "matched_model": "Robot",
+                        "field_reviews": [field],
+                    }
+                ],
+            }
+        ]
+    }
+    canonical = json.dumps(
+        report, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    ledger = {
+        "bulk_decisions": [
+            {
+                "decision_id": "B001",
+                "decision": "ACCEPT_EXACT_CANDIDATE",
+                "candidate_id_from": "A001",
+                "candidate_id_to": "A001",
+                "candidate_count": 1,
+                "review_canonical_sha256": hashlib.sha256(canonical).hexdigest(),
+            }
+        ]
+    }
+    queue = render_decision_queue(report, ledger)
+    assert "Уже рассмотрено обычных кандидатов: 1" in queue
+    assert "| `A001` |" in queue
+    assert "`ACCEPT_EXACT_CANDIDATE`" in queue
+    resolution = build_resolution(report, ledger)
+    assert resolution["counts"] == {
+        "research_target_fields": 1,
+        "accepted_fields": 1,
+        "deferred_fields": 0,
+        "rejected_fields": 0,
+        "remains_missing_fields": 0,
+        "unresolved_decision_fields": 0,
+    }
+
+    ledger["bulk_decisions"][0]["review_canonical_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="review hash mismatch"):
+        render_decision_queue(report, ledger)
 
 
 def test_packet_cross_audit_covers_all_six_batches(tmp_path: Path):
@@ -424,3 +623,25 @@ def test_packet_cross_audit_covers_all_six_batches(tmp_path: Path):
     }
     assert report["invariants"]["runtime_switch_allowed"] is False
     assert report["invariants"]["capacity_formulas_in_scope"] is False
+
+
+def test_local_repair_is_conservative_and_uses_exact_known_source_map(tmp_path: Path):
+    handoff = tmp_path / "handoff"
+    build(handoff)
+    batch = json.loads(
+        (handoff / "batches" / "deep-other-01.json").read_text(encoding="utf-8")
+    )
+    source = {
+        "research_completed_at": "2026-09-18T12:00:00+00:00",
+    }
+    repaired, decisions = _repair_deep_other(source, batch)
+    fields = [
+        field for model in repaired["results"] for field in model["field_results"]
+    ]
+    assert len(fields) == 28
+    assert {field["evidence_status"] for field in fields} == {"NOT_FOUND"}
+    assert all(not field["evidence"] for field in fields)
+    assert decisions[0]["action"] == "REJECT_NON_OFFICIAL_EVIDENCE"
+    assert _source_for("Спецификация робота-тягача RoboCV")[0].endswith(
+        "robot-tyagach-robocv-specifikaciya.pdf"
+    )

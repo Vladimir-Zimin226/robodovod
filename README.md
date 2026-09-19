@@ -434,9 +434,14 @@ review, 36/38 — facts, 142/175 не имеют поддержанного capa
 `contracts/catalog-runtime-eligibility-audit-v1.schema.json`.
 
 Расчётный runtime безопасно остаётся на legacy `backend/fleet`. Точный
-следующий этап — `catalog/official-source-enrichment`: 36/38 записей требуют
-deep research, 5/6 — hybrid conflict review + research; local-adapter-only
-кандидатов текущий evidence не выявил. Затем идёт
+следующий этап — materialize/import нового immutable `ENRICHMENT` bundle:
+официальное исследование дало 131 принятый field fact для 26 моделей, из них
+129 допущены в matching и 2 сохранены как review-only; 7 полей отложены, 318
+остались ненайденными. Post-enrichment projection по-прежнему даёт 0 runtime
+ready, 37/39 needs facts, 3/4 conflict review, 143/176 unsupported и 4/4 not
+equipment. Staging и полный audit находятся в
+`data/enrichment/catalog-official-source-enrichment-v1/` и
+`data/review/catalog-runtime-eligibility-post-enrichment-v1.json`. Затем идёт
 `engine/capacity-formula-trace`.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

@@ -140,8 +140,7 @@ def validate_return(batch_path: Path, result_path: Path) -> dict[str, Any]:
                 f"exact identity requires matched names: {model.organizer_id}"
             )
         if model.identity_status == "MODEL_NOT_FOUND" and (
-            model.matched_manufacturer is not None
-            or model.matched_model is not None
+            model.matched_model is not None
             or field_statuses != {"NOT_FOUND"}
         ):
             raise ReturnValidationError(

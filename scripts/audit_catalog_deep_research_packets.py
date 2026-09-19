@@ -63,6 +63,8 @@ def audit_packets(handoff: Path, eligibility_path: Path) -> dict[str, Any]:
             "Публичный веб-поиск обязателен",
             "CATALOG_RESULT_JSON_BEGIN",
             "CATALOG_RESULT_JSON_END",
+            "SCOPE_MISMATCH",
+            "Scope fingerprint SHA-256",
         ):
             if required_text not in prompt:
                 issue("PROMPT_GUARD", batch_id, f"missing {required_text!r}")
@@ -91,11 +93,25 @@ def audit_packets(handoff: Path, eligibility_path: Path) -> dict[str, Any]:
             (upload / "COPY-PASTE-PROMPT.md").read_bytes() != prompt_path.read_bytes()
         ):
             issue("UPLOAD_COPY", batch_id, "uploaded prompt differs from canonical prompt")
+        if hash_files["return_schema"].is_file():
+            return_schema = _load(hash_files["return_schema"])
+            lock = return_schema.get("x-robodovod-scope-lock", {})
+            expected_ids = {row["organizer_id"] for row in batch["models"]}
+            locked_ids = {row.get("organizer_id") for row in lock.get("models", [])}
+            if return_schema.get("properties", {}).get("batch_id") != {"const": batch_id}:
+                issue("SCHEMA_BATCH_LOCK", batch_id, "batch_id const is absent or differs")
+            if locked_ids != expected_ids:
+                issue("SCHEMA_ROSTER_LOCK", batch_id, "schema roster differs from batch")
         for model in batch["models"]:
             organizer_id = model["organizer_id"]
             model_ids.append(organizer_id)
             position_ids.extend(model["position_ids"])
             target_counts[batch_id] += len(model["research_targets"])
+            if model["organizer_id"] not in prompt or model["name"] not in prompt:
+                issue("PROMPT_ROSTER", organizer_id, "UUID or model name absent")
+            for field in model["research_targets"]:
+                if f"`{field}`" not in prompt:
+                    issue("PROMPT_TARGET", organizer_id, f"missing {field}")
             contract_row = contract_by_class.get(model["equipment_class"])
             if not contract_row:
                 if model["equipment_class"] is not None or model["required_fields"]:

@@ -312,12 +312,12 @@ security/deployment acceptance.
 - Точная семантика отдельных duplicate rows сверх обязательного сохранения
   каждой source row и трактовки дублей как альтернативных предложений. Она не
   блокирует schema/import: identity модели и конкретное предложение разделены.
-- Способ внешнего обогащения runtime facts выбран отчётом реализованной
-  итерации `catalog/runtime-eligibility-contract-gap-audit-223`: 36 model
-  identities требуют `DEEP_RESEARCH`, 5 конфликтных — `HYBRID`, 146 —
-  `NO_ACTION`; чистых `LOCAL_ADAPTER` случаев нет. Сам gap-audit использовал
-  только локальные base/overlay/evidence/provenance данные, не выходил в
-  интернет и не создавал parsers.
+- Внешнее исследование runtime facts завершено и сведено в versioned
+  review-only staging: 131 accepted (129 matching-safe + 2 review-only), 7
+  deferred и 318 missing field results. Post-enrichment projection по-прежнему
+  не даёт `RUNTIME_READY`: 36 model identities требуют `DEEP_RESEARCH`, 4 —
+  `HYBRID`, 147 — `NO_ACTION`; чистых `LOCAL_ADAPTER` случаев нет. PostgreSQL,
+  active catalog и runtime этим staging не изменены.
 
 Закрыты решения: v4 актуален; derived text bundle разрешён; цены v4
 обрабатываются в RUB по продуктовому решению; НДС включён как допущение

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import hashlib
 import json
@@ -53,10 +54,28 @@ def _canonical(value: Any) -> bytes:
 
 def _render_prompt(template: str, batch_id: str, models: list[dict[str, Any]]) -> str:
     target_count = sum(len(model["research_targets"]) for model in models)
+    roster_lines = []
+    for index, model in enumerate(models, start=1):
+        targets = ", ".join(f"`{field}`" for field in model["research_targets"])
+        roster_lines.append(
+            f"{index}. `{model['organizer_id']}` — **{model['name']}**\n"
+            f"   - targets ({len(model['research_targets'])}): {targets}"
+        )
+    scope_payload = [
+        {
+            "organizer_id": model["organizer_id"],
+            "name": model["name"],
+            "research_targets": model["research_targets"],
+        }
+        for model in models
+    ]
+    scope_fingerprint = hashlib.sha256(_canonical(scope_payload)).hexdigest()
     return (
         template.replace("{{BATCH_ID}}", batch_id)
         .replace("{{MODEL_COUNT}}", str(len(models)))
         .replace("{{TARGET_COUNT}}", str(target_count))
+        .replace("{{MODEL_ROSTER}}", "\n".join(roster_lines))
+        .replace("{{SCOPE_FINGERPRINT}}", scope_fingerprint)
     )
 
 
@@ -319,11 +338,95 @@ RETURN_SCHEMA = {
 }
 
 
+def _batch_return_schema(batch_id: str, models: list[dict[str, Any]]) -> dict[str, Any]:
+    """Lock an uploaded return schema to one exact batch roster and target set."""
+    schema = copy.deepcopy(RETURN_SCHEMA)
+    schema["$id"] = (
+        "https://robodovod.local/schemas/"
+        f"catalog-official-source-research-return-v1-{batch_id}.json"
+    )
+    schema["title"] = f"ROBODOVOD official-source research return: {batch_id}"
+    schema["properties"]["batch_id"] = {"const": batch_id}
+    results = schema["properties"]["results"]
+    base_model = results.pop("items")
+    variants: list[dict[str, Any]] = []
+    model_presence: list[dict[str, Any]] = []
+    scope_models: list[dict[str, Any]] = []
+    for model in models:
+        variant = copy.deepcopy(base_model)
+        organizer_id = model["organizer_id"]
+        targets = list(model["research_targets"])
+        variant["properties"]["organizer_id"] = {"const": organizer_id}
+        fields = variant["properties"]["field_results"]
+        fields["minItems"] = len(targets)
+        fields["maxItems"] = len(targets)
+        fields["items"]["properties"]["field_path"] = {"enum": targets}
+        fields["allOf"] = [
+            {
+                "contains": {
+                    "type": "object",
+                    "properties": {"field_path": {"const": field}},
+                    "required": ["field_path"],
+                },
+                "minContains": 1,
+                "maxContains": 1,
+            }
+            for field in targets
+        ]
+        variants.append(variant)
+        model_presence.append(
+            {
+                "contains": {
+                    "type": "object",
+                    "properties": {"organizer_id": {"const": organizer_id}},
+                    "required": ["organizer_id"],
+                },
+                "minContains": 1,
+                "maxContains": 1,
+            }
+        )
+        scope_models.append(
+            {
+                "organizer_id": organizer_id,
+                "name": model["name"],
+                "research_targets": targets,
+            }
+        )
+    results.update(
+        {
+            "minItems": len(models),
+            "maxItems": len(models),
+            "items": {"oneOf": variants},
+            "allOf": model_presence,
+        }
+    )
+    schema["x-robodovod-scope-lock"] = {
+        "batch_id": batch_id,
+        "scope_fingerprint_sha256": hashlib.sha256(
+            _canonical(scope_models)
+        ).hexdigest(),
+        "models": scope_models,
+    }
+    return schema
+
+
 DEEP_PROMPT = """# ChatGPT Deep Research: catalog evidence batch `{{BATCH_ID}}`
 
 ## Результат задачи
 
 Исследуй ровно {{MODEL_COUNT}} model identities из приложенного batch и верни ровно {{TARGET_COUNT}} field results: по одному для каждого `research_target`. Найди только явно опубликованные model-specific значения и доказательства. Не исследуй модели вне batch, цены, экономику, procurement, capacity formulas или runtime activation.
+
+## Жёсткая блокировка scope
+
+Ниже приведён исчерпывающий roster этого запуска. Это не пример и не рекомендация: разрешены только эти `organizer_id`, модели и target fields.
+
+Scope fingerprint SHA-256: `{{SCOPE_FINGERPRINT}}`
+
+{{MODEL_ROSTER}}
+
+До веб-поиска прочитай `01-BATCH-{{BATCH_ID}}.json` и сравни его с roster выше и с `x-robodovod-scope-lock` в `03-RETURN-SCHEMA-REQUIRED.json`. Они должны дословно совпадать по `batch_id`, каждому UUID, названию и target fields.
+
+Если вложение недоступно или найдено хотя бы одно несовпадение, не подставляй другие модели из памяти, предыдущего чата или поисковой выдачи. Остановись до исследования с единственным сообщением `SCOPE_MISMATCH` и перечисли несовпадение. Любая модель, которой нет в roster выше, запрещена, даже если совпадает количество моделей или полей.
 
 ## Входные файлы и доступ к вебу
 
@@ -331,7 +434,7 @@ DEEP_PROMPT = """# ChatGPT Deep Research: catalog evidence batch `{{BATCH_ID}}`
 
 Публичный веб-поиск обязателен для каждой модели. Открывай внешние страницы и документы. `known_source_candidates` — только отправные точки: проверь их содержимое и ищи дополнительные официальные источники. Отсутствие первичных документов среди вложений не является основанием для `NOT_FOUND`.
 
-Если интерфейс сначала показывает proposed research plan, это штатный этап до запуска. План должен явно предусматривать публичный веб-поиск по официальным источникам и охватывать {{MODEL_COUNT}} моделей и {{TARGET_COUNT}} targets, но не является итоговым результатом. После запуска доведи исследование до полного отчёта.
+Если интерфейс сначала показывает proposed research plan, это штатный этап до запуска, но не является итоговым результатом. План должен дословно перечислить все {{MODEL_COUNT}} `organizer_id` и названия из roster выше, подтвердить fingerprint `{{SCOPE_FINGERPRINT}}`, публичный веб-поиск и ровно {{TARGET_COUNT}} targets. План без полного точного roster нельзя запускать. После запуска доведи исследование до полного отчёта.
 
 ## Источники и доказательства
 
@@ -374,6 +477,8 @@ DEEP_PROMPT = """# ChatGPT Deep Research: catalog evidence batch `{{BATCH_ID}}`
 
 - публичный веб-поиск выполнен для каждой из {{MODEL_COUNT}} моделей;
 - JSON синтаксически валиден и содержит ровно {{MODEL_COUNT}} model results и {{TARGET_COUNT}} field results;
+- `batch_id`, все UUID, названия и targets сверены с жёстким roster выше; никаких других моделей в отчёте нет;
+- результат проверен по batch-specific ограничениям `03-RETURN-SCHEMA-REQUIRED.json`, включая `const organizer_id` и exact per-model targets;
 - состав `organizer_id` и `field_path` точно совпадает с batch;
 - каждый verified/conflict/ambiguous result имеет требуемое evidence, каждый `NOT_FOUND` имеет пустое evidence;
 - ни один факт не перенесён из known facts без нового допустимого evidence;
@@ -391,6 +496,12 @@ HYBRID_PROMPT = DEEP_PROMPT.replace(
 
 
 RECOVERY_PROMPT = """Продолжи уже начатое исследование для batch `{{BATCH_ID}}` немедленно в этом же чате по ранее составленному плану.
+
+Жёсткий roster этого batch (никакие другие модели недопустимы):
+
+{{MODEL_ROSTER}}
+
+Scope fingerprint SHA-256: `{{SCOPE_FINGERPRINT}}`. Если текущий план или вложения не совпадают с этим roster, верни `SCOPE_MISMATCH` и не исследуй заменяющие модели.
 
 Я подтверждаю выполнение всего исследования. Не показывай новый план, не проси нового подтверждения и не останавливайся на промежуточном ответе. Используй только заново приложенные `01-BATCH-{{BATCH_ID}}.json`, `02-RUNTIME-CONTRACT.json` и исправленный `03-RETURN-SCHEMA-REQUIRED.json`; игнорируй прежние вложения с другими именами, включая `runtime-eligibility-contract-v1.schema(1).json`. Проведи поиск по всем моделям и всем `research_targets`, соблюдая исходные правила источников и evidence.
 
@@ -426,12 +537,12 @@ README = """# ChatGPT Deep Research handoff — runtime eligibility v1
 6. Скачайте итоговый отчёт в Markdown и положите без ручного редактирования в `returns/`. Имя скачанного `.md` не важно: batch определяется из встроенного JSON.
 7. После всех запусков извлеките JSON локально или передайте каталог `returns/` обратно Codex с запросом: «Извлеки и провалидируй Deep Research returns, построй evidence review и не импортируй ничего без явного подтверждения».
 
-Веб-интерфейс ChatGPT может независимо от текста prompt показать системный proposed research plan до начала поиска. Это штатный этап интерфейса: проверьте, что в нём 10/10 или указанное для batch число моделей, и нажмите запуск/подтверждение в том же chat. Не создавайте для этого новый Deep Research chat.
+Веб-интерфейс ChatGPT может независимо от текста prompt показать системный proposed research plan до начала поиска. Это штатный этап интерфейса. Сверьте не только количество: план обязан перечислять все UUID и названия из раздела «Жёсткая блокировка scope» и тот же scope fingerprint. Если хотя бы одна модель заменена, не запускайте исследование. При полном совпадении нажмите запуск/подтверждение в том же chat.
 
 Локальная строгая проверка полного комплекта перед передачей:
 
 ```powershell
-./.venv/Scripts/python.exe scripts/extract_catalog_deep_research_reports.py --reports-dir data/research/catalog-runtime-eligibility-v1/returns --require-complete
+./.venv/Scripts/python.exe -m scripts.extract_catalog_deep_research_reports --reports-dir data/research/catalog-runtime-eligibility-v1/returns --require-complete
 ```
 
 Extractor требует полный JSON-блок между маркерами `CATALOG_RESULT_JSON_BEGIN/END`, создаёт `<batch-id>.result.json` и сразу выполняет schema/coverage-проверку.
@@ -439,13 +550,13 @@ Extractor требует полный JSON-блок между маркерам�
 После extraction постройте только staging/review-отчёт (без импорта в catalog/runtime):
 
 ```powershell
-./.venv/Scripts/python.exe scripts/review_catalog_deep_research_returns.py --returns-dir data/research/catalog-runtime-eligibility-v1/returns --require-complete
+./.venv/Scripts/python.exe -m scripts.review_catalog_deep_research_returns --returns-dir data/research/catalog-runtime-eligibility-v1/returns --require-complete
 ```
 
 Проверить целостность всех шести исходных пакетов независимо от результатов:
 
 ```powershell
-./.venv/Scripts/python.exe scripts/audit_catalog_deep_research_packets.py
+./.venv/Scripts/python.exe -m scripts.audit_catalog_deep_research_packets
 ```
 
 Если ChatGPT остановился на плане, не создавайте новый chat. Убедитесь, что приложен `03-RETURN-SCHEMA-REQUIRED.json`, затем отправьте в том же chat содержимое `upload/<batch-id>/RECOVERY-CURRENT-CHAT.md`.
@@ -479,7 +590,7 @@ FRIENDLY_README_HEADER = """# Исследования — начать здес
 2. В настройке источников убедитесь, что включён **Public web**, а не только uploaded files.
 3. Приложите к сообщению ровно три JSON-файла с номерами `01`, `02`, `03`.
 4. Откройте `00-ПРОМПТ-СКОПИРОВАТЬ-В-ЧАТ.md`, скопируйте весь текст и отправьте его вместе с приложениями.
-5. До начала поиска ChatGPT покажет proposed research plan. Не запускайте его, пока план явно не говорит о публичном веб-поиске по официальным источникам и не показывает указанное ниже число моделей/targets.
+5. До начала поиска ChatGPT покажет proposed research plan. Не запускайте его, пока план явно не говорит о публичном веб-поиске, не перечисляет дословно все UUID и названия из раздела «Жёсткая блокировка scope» и не подтверждает указанный там scope fingerprint. Одних совпадающих counts недостаточно.
 6. После проверки нажмите запуск/подтверждение в том же чате.
 7. После завершения скачайте только итоговый отчёт в формате Markdown и положите его без редактирования в папку `Результаты сюда`. Имя файла менять не нужно.
 
@@ -495,6 +606,48 @@ FRIENDLY_RESULTS_README_HEADER = """# Результаты класть сюда
 Скачайте сюда без переименования и ручного редактирования по одному итоговому Markdown-отчёту из каждого исследования. Имена файлов могут быть любыми: extractor определяет batch по JSON внутри отчёта.
 
 """
+
+
+SAME_CHAT_REPAIR_PROMPTS = {
+    "deep-other-01": """# Исправить итог исследования 5 в том же чате
+
+Предыдущий отчёт исследовал правильные 3 UUID и 28 targets, но не соответствует обязательной schema и использует недопустимые источники. Не запускай новый proposed plan и не заменяй модели. Исправь результат в этом же чате.
+
+Обязательные исправления:
+
+1. Верни корневые поля ровно `schema_version`, `batch_id`, `research_completed_at`, `results`; `schema_version` = `catalog-official-source-research-return-v1`.
+2. Используй `results`, не `model_results`; внутри — только поля из приложенной batch-specific `03-RETURN-SCHEMA-REQUIRED.json`.
+3. Для field result используй `evidence_status`, не `status`, и обязательно добавь `confidence`.
+4. Для evidence используй точные schema-имена `source_title`, `source_type`, `source_locator`, `publication_or_update_date`, `accessed_at`.
+5. `robotrends.ru` и `robot.moscow` не являются официальными сайтами производителей и не имеют доказанного статуса авторизованных партнёров. Не возвращай основанные на них значения как `VERIFIED_OFFICIAL`. Найди первичный официальный источник ООО «Дронсхаб»/производителя «Белки» и ООО «Арипикс Роботикс» для ARIPIX А1; если его нет — соответствующий target должен быть `NOT_FOUND`.
+6. Сохрани без изменения три UUID и ровно 28 targets из исходного scope-lock. Не добавляй другие модели.
+
+Верни новый полный итоговый Markdown-отчёт с одним JSON между `CATALOG_RESULT_JSON_BEGIN` и `CATALOG_RESULT_JSON_END`. Перед ответом проверь его по приложенной batch-specific schema. Не давай ссылку на файл и не сокращай JSON.
+""",
+    "hybrid-conflicts-01": """# Исправить итог исследования 6 в том же чате
+
+Предыдущий отчёт исследовал правильные 5 UUID и 39 targets, но не соответствует обязательной schema и не разрешил большую часть входных конфликтов. Не запускай новый proposed plan и не заменяй модели. Исправь результат в этом же чате.
+
+Обязательные исправления формата:
+
+1. Верни корневые поля ровно `schema_version`, `batch_id`, `research_completed_at`, `results`; `schema_version` = `catalog-official-source-research-return-v1`.
+2. Используй `results`, не `model_results`; внутри — только поля из приложенной batch-specific `03-RETURN-SCHEMA-REQUIRED.json`.
+3. Для field result используй `evidence_status`, не `status`, и обязательно добавь `confidence`.
+4. Для evidence используй точные schema-имена `source_title`, `source_type`, `source_locator`, `publication_or_update_date`, `accessed_at`.
+5. У `VERIFIED_*` должен быть ненулевой `normalized_value`; если источник публикует только текст, нормализуй этот явно опубликованный текст без домысливания.
+
+Обязательные исправления содержания:
+
+- SmartCube: сохранить обе официальные стороны 2,1/2,7 м/с как `CONFLICT`, если применимая ревизия документально не доказана.
+- Робот-штабелёр RoboCV: проверить обе стороны конфликтов `specs.aisle_requirements` и `specs.max_speed` по HTML и официальному PDF; нельзя выбирать одну сторону без доказательства revision/configuration.
+- Ronavi H1500: явно разобрать identity/revision conflict между локальными 6 часами и текущими официальными 10 часами, даже если targets этого batch другие.
+- AMR 100: batch относится к ООО «Морос». Нельзя переносить характеристики с `cybermech.by`, пока первичным источником не доказано, что это та же модель/ревизия или авторизованный партнёр. Иначе вернуть `AMBIGUOUS_MODEL_MATCH` для затронутых targets, а не `VERIFIED_OFFICIAL`.
+- Робот-тягач RoboCV: проверить обе стороны конфликтов `specs.max_speed`, `specs.payload`, `specs.positioning_accuracy` по HTML и официальному PDF; без доказанной revision/configuration вернуть `CONFLICT` минимум с двумя evidence.
+- Сохрани без изменения пять UUID и ровно 39 targets из исходного scope-lock. Не добавляй другие модели.
+
+Верни новый полный итоговый Markdown-отчёт с одним JSON между `CATALOG_RESULT_JSON_BEGIN` и `CATALOG_RESULT_JSON_END`. Перед ответом проверь его по приложенной batch-specific schema. Не давай ссылку на файл и не сокращай JSON.
+""",
+}
 
 
 def build(output: Path) -> None:
@@ -548,14 +701,16 @@ def build(output: Path) -> None:
         contract_upload = upload / "02-RUNTIME-CONTRACT.json"
         shutil.copyfile(CONTRACT, contract_upload)
         return_schema_upload = upload / "03-RETURN-SCHEMA-REQUIRED.json"
-        return_schema_upload.write_bytes(_canonical(RETURN_SCHEMA))
+        return_schema_upload.write_bytes(
+            _canonical(_batch_return_schema(batch_id, models))
+        )
         (upload / "COPY-PASTE-PROMPT.md").write_text(
             rendered_prompt,
             encoding="utf-8",
             newline="\n",
         )
         (upload / "RECOVERY-CURRENT-CHAT.md").write_text(
-            RECOVERY_PROMPT.replace("{{BATCH_ID}}", batch_id),
+            _render_prompt(RECOVERY_PROMPT, batch_id, models),
             encoding="utf-8",
             newline="\n",
         )
@@ -583,7 +738,7 @@ def build(output: Path) -> None:
     (output / "returns" / "README.md").write_text(RETURNS_README, encoding="utf-8", newline="\n")
     manifest = {
         "schema_version": "catalog-deep-research-handoff-manifest-v1",
-        "prompt_revision": "audited-public-web-inline-json-v5",
+        "prompt_revision": "scope-locked-public-web-inline-json-v6",
         "catalog_code": "organizer-catalog-v4",
         "contract_sha256": _sha256(CONTRACT),
         "audit_sha256": _sha256(AUDIT),
@@ -615,6 +770,13 @@ def build_friendly_workspace(output: Path, handoff: Path) -> None:
             source / "COPY-PASTE-PROMPT.md",
             destination / "00-ПРОМПТ-СКОПИРОВАТЬ-В-ЧАТ.md",
         )
+        repair_prompt = SAME_CHAT_REPAIR_PROMPTS.get(batch_id)
+        if repair_prompt is not None:
+            (destination / "01-ИСПРАВИТЬ-ОТЧЁТ-В-ТОМ-ЖЕ-ЧАТЕ.md").write_text(
+                repair_prompt,
+                encoding="utf-8",
+                newline="\n",
+            )
         batch = _json(source / f"01-BATCH-{batch_id}.json")
         target_count = sum(len(model["research_targets"]) for model in batch["models"])
         mapping_lines.append(
@@ -632,9 +794,9 @@ def build_friendly_workspace(output: Path, handoff: Path) -> None:
         + "Затем передайте эту папку Codex или запустите строгую extraction/schema/evidence-проверку.\n\n"
         + "Локальная проверка полного комплекта и построение review-only отчёта:\n\n"
         + "```powershell\n"
-        + ".\\.venv\\Scripts\\python.exe scripts\\extract_catalog_deep_research_reports.py "
+        + ".\\.venv\\Scripts\\python.exe -m scripts.extract_catalog_deep_research_reports "
         + "--reports-dir \"Исследования\\Результаты сюда\" --require-complete\n"
-        + ".\\.venv\\Scripts\\python.exe scripts\\review_catalog_deep_research_returns.py "
+        + ".\\.venv\\Scripts\\python.exe -m scripts.review_catalog_deep_research_returns "
         + "--returns-dir \"Исследования\\Результаты сюда\" --require-complete\n"
         + "```\n",
         encoding="utf-8",
@@ -655,6 +817,10 @@ def check(output: Path) -> None:
             path.relative_to(output).as_posix(): path.read_bytes()
             for path in output.rglob("*")
             if path.is_file()
+            and (
+                path.relative_to(output).parts[0] not in {"raw-returns", "returns"}
+                or path.relative_to(output).as_posix() in expected
+            )
         }
         if expected != actual:
             missing = sorted(expected.keys() - actual.keys())
