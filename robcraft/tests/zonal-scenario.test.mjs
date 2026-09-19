@@ -18,8 +18,8 @@ function zonalSpec() {
   ];
   spec.fleet = [
     { ...spec.fleet[0], zone_id: 'transport', quantity: 3 },
-    { zone_id: 'cleaning', equipment_model_id: 'cleaner_cc1_pro', visual_profile: 'service-cleaner', quantity: 2, max_speed_m_s: 1.2, payload_kg: 0 },
-    { zone_id: 'palletizing', equipment_model_id: 'palletizer_cell_21', visual_profile: 'palletizer-cell', quantity: 2, max_speed_m_s: 0, payload_kg: 21 },
+    { zone_id: 'cleaning', equipment_model_id: 'synthetic-cleaner', visual_profile: 'service-cleaner', quantity: 2, max_speed_m_s: 1.2, payload_kg: 0 },
+    { zone_id: 'palletizing', equipment_model_id: 'synthetic-palletizer', visual_profile: 'palletizer-cell', quantity: 2, max_speed_m_s: 0, payload_kg: 21 },
   ];
   spec.task_profiles = [
     { ...spec.task_profiles[0], zone_id: 'transport', demand_per_day: 480 },
@@ -72,12 +72,12 @@ test('клиническая доставка строит hospital-сцену �
   const spec = structuredClone(golden);
   spec.template = 'hospital';
   spec.zones[0] = { ...spec.zones[0], process_type: 'delivery', cargo_type: 'deliveries', name: 'Клиническая доставка' };
-  spec.fleet[0] = { ...spec.fleet[0], equipment_model_id: 'courier_flashbot', visual_profile: 'medical-delivery', quantity: 2, max_speed_m_s: 1.2, payload_kg: 10 };
+  spec.fleet[0] = { ...spec.fleet[0], equipment_model_id: 'synthetic-delivery', visual_profile: 'medical-delivery', quantity: 2, max_speed_m_s: 1.2, payload_kg: 10 };
   spec.task_profiles[0] = { ...spec.task_profiles[0], kind: 'delivery', exchange_time_s: 120 };
   const scene = generateWorldFromScenarioSpec(spec);
   assert.equal(scene.config.template, 'hospital');
   assert.equal(scene.routes.length, 2);
-  assert.ok(scene.routes.every(route => route.robotType === 'medical-cart' && route.equipmentModelId === 'courier_flashbot'));
+  assert.ok(scene.routes.every(route => route.robotType === 'medical-cart' && route.equipmentModelId === 'synthetic-delivery'));
 });
 
 test('если поддержанных 3D-зон нет, fallback содержит явную причину', () => {

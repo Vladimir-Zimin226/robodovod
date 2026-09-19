@@ -1,0 +1,77 @@
+{
+  "invariants": {
+    "capacity_formulas_in_scope": false,
+    "runtime_switch_allowed": false,
+    "unique_models": true,
+    "unique_positions": true
+  },
+  "issues": [],
+  "packets": [
+    {
+      "batch_id": "deep-cleaning-01",
+      "batch_sha256": "050bb92b53a17b63109eb01f20d62baebd466830ff92df05ae063ada1b707b7e",
+      "mode": "DEEP_RESEARCH",
+      "models": 7,
+      "positions": 7,
+      "prompt_sha256": "88f8eab216ec8511a839ccb152edf34e40d1a686643ab127b2568cc90d8596d4",
+      "target_fields": 84
+    },
+    {
+      "batch_id": "deep-cleaning-02",
+      "batch_sha256": "f6e824a1d2731475547abb953407ecbac4de4c6ae5b81e2e792917547a03e840",
+      "mode": "DEEP_RESEARCH",
+      "models": 6,
+      "positions": 6,
+      "prompt_sha256": "87a11d07a3f5861a8e2af6f75cfea4cc86475f1e2459f6d3cb7aa7ef96002e00",
+      "target_fields": 78
+    },
+    {
+      "batch_id": "deep-mobile-01",
+      "batch_sha256": "15e9a17bc8954dea1ba55ff34dc2f3d9d1539f0c6ecf637dc92b4b24ed3ce6d8",
+      "mode": "DEEP_RESEARCH",
+      "models": 10,
+      "positions": 11,
+      "prompt_sha256": "a6649f40523400b6290e67b71200dd4d51d551271dc5c296078f87108c490076",
+      "target_fields": 102
+    },
+    {
+      "batch_id": "deep-mobile-02",
+      "batch_sha256": "390a5a1edb25f28a8bf8e05ab1f0998da12db9e2c7361be03325e637fc224dfe",
+      "mode": "DEEP_RESEARCH",
+      "models": 10,
+      "positions": 11,
+      "prompt_sha256": "9d396c2ad177215ab2b7e51730837df49c826cdff55600a73e371ab6220e6ebb",
+      "target_fields": 125
+    },
+    {
+      "batch_id": "deep-other-01",
+      "batch_sha256": "5c2d0e6e5e66a03a0e7158f15aabdc12ff81a6b4880771b5ae137db120c35842",
+      "mode": "DEEP_RESEARCH",
+      "models": 3,
+      "positions": 3,
+      "prompt_sha256": "6897bdfa2931a81fb64d3149311016e502f0d212ae5cc0290cc57ba043d96c8e",
+      "target_fields": 28
+    },
+    {
+      "batch_id": "hybrid-conflicts-01",
+      "batch_sha256": "9809f87a313ef5dd7de562c91c421fc95fcbf00ec1b7532a2d11fa8134ac305a",
+      "mode": "HYBRID",
+      "models": 5,
+      "positions": 6,
+      "prompt_sha256": "1090712df6c70ac9eaabb2c3b2b4dfe73795d0e91e3fa911d7230d6c2c0f2d4a",
+      "target_fields": 39
+    }
+  ],
+  "research_scope": {
+    "batches": 6,
+    "models": 41,
+    "positions": 44,
+    "target_fields": 456
+  },
+  "schema_version": "catalog-deep-research-packet-audit-v1",
+  "source_eligibility_scope": {
+    "models": 187,
+    "positions": 223
+  },
+  "status": "PASS"
+}

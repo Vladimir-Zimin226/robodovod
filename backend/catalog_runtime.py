@@ -1,17 +1,15 @@
-"""Request-scoped catalog selection with an explicit legacy rollback switch."""
+"""Request-scoped selection of explicitly activated catalog snapshots."""
 
 from __future__ import annotations
 
-import os
 from collections.abc import Callable
 
 from catalog_repository import (
     ActivatedCatalogRepository,
     CatalogRepositoryError,
     CatalogSnapshotDTO,
-    LegacyFleetCatalogRepository,
 )
-from database import Database, get_database
+from database import Database, DatabaseConfigurationError, get_database
 
 
 class CatalogRuntimeConfigurationError(RuntimeError):
@@ -25,24 +23,12 @@ class CatalogRuntime:
     ) -> None:
         self._database_factory = database_factory
 
-    @staticmethod
-    def configured_source() -> str:
-        source = os.getenv("CATALOG_RUNTIME_SOURCE", "legacy").strip().lower()
-        if source not in {"legacy", "activated"}:
-            raise CatalogRuntimeConfigurationError(
-                "CATALOG_RUNTIME_SOURCE must be legacy or activated"
-            )
-        return source
-
     def load_runtime(self) -> CatalogSnapshotDTO:
-        source = self.configured_source()
-        if source == "legacy":
-            return LegacyFleetCatalogRepository().load()
         try:
             snapshot = ActivatedCatalogRepository(
                 self._database_factory(), "runtime"
             ).load()
-        except CatalogRepositoryError as exc:
+        except (CatalogRepositoryError, DatabaseConfigurationError) as exc:
             raise CatalogRuntimeConfigurationError(
                 "activated runtime catalog is unavailable"
             ) from exc
@@ -52,15 +38,12 @@ class CatalogRuntime:
             )
         return snapshot
 
-    def load_discovery(self) -> tuple[CatalogSnapshotDTO, str]:
-        """Prefer the activated discovery slot and expose an explicit fallback."""
-
+    def load_discovery(self) -> CatalogSnapshotDTO:
         try:
-            return (
-                ActivatedCatalogRepository(
-                    self._database_factory(), "discovery"
-                ).load(),
-                "activated",
-            )
-        except CatalogRepositoryError:
-            return LegacyFleetCatalogRepository().load(), "legacy-fallback"
+            return ActivatedCatalogRepository(
+                self._database_factory(), "discovery"
+            ).load()
+        except (CatalogRepositoryError, DatabaseConfigurationError) as exc:
+            raise CatalogRuntimeConfigurationError(
+                "activated discovery catalog is unavailable"
+            ) from exc

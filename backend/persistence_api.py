@@ -58,7 +58,6 @@ SCENARIO_SLOTS = (
     ("OPTIMISTIC", "Оптимистичный"),
     ("PESSIMISTIC", "Пессимистичный"),
 )
-CATALOG_VERSION_CODE = "legacy-fleet-v1"
 RULES_VERSION = "legacy-calculation-rules-v1+readiness-rules-v1"
 ECONOMICS_VERSION = "legacy-economics-v1"
 OBJECT_PROFILE_VERSION = "user-input-v1"
@@ -1033,20 +1032,12 @@ def create_persistence_router(
         parent_run_id: uuid.UUID | None = None,
     ) -> AnalysisRun:
         input_snapshot = input_model.model_dump(mode="json")
-        catalog_snapshot = resolve_catalog() if resolve_catalog is not None else None
-        catalog_version = (
-            catalog_snapshot.version if catalog_snapshot is not None else None
-        )
-        catalog_version_code = (
-            catalog_version.code if catalog_version is not None else CATALOG_VERSION_CODE
-        )
-        catalog_version_id = None
-        if catalog_version is not None:
-            try:
-                catalog_version_id = uuid.UUID(catalog_version.id)
-            except ValueError:
-                # The committed legacy adapter intentionally has a non-UUID id.
-                catalog_version_id = None
+        if resolve_catalog is None:
+            raise RuntimeError("catalog resolver is required for persisted analysis")
+        catalog_snapshot = resolve_catalog()
+        catalog_version = catalog_snapshot.version
+        catalog_version_code = catalog_version.code
+        catalog_version_id = uuid.UUID(catalog_version.id)
         object_profile_version = (
             resolve_object_profile_version()
             if resolve_object_profile_version is not None

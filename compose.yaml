@@ -46,7 +46,6 @@ services:
       SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
       SESSION_TTL_SECONDS: "${SESSION_TTL_SECONDS:-43200}"
       APP_ALLOWED_ORIGINS: "${APP_ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}"
-      CATALOG_RUNTIME_SOURCE: "${CATALOG_RUNTIME_SOURCE:-legacy}"
       OFFICIAL_CATALOG_BUNDLE_PATH: "/data/import/organizer-catalog-v4"
       CATALOG_MEDIA_ROOT: "/data/catalog-media"
       PROJECT_FILE_STORAGE_ROOT: "/data/uploads"
@@ -87,7 +86,9 @@ services:
       context: ./backend
     entrypoint: ["python", "-m", "catalog_dual_run"]
     command:
-      - "--catalog-code"
+      - "--reference-catalog-code"
+      - "${CATALOG_REFERENCE_CODE:-organizer-catalog-v4}"
+      - "--candidate-catalog-code"
       - "organizer-catalog-v4"
       - "--fixture"
       - "fixtures/catalog-dual-run-warehouse-v1.json"

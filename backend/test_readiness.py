@@ -1,12 +1,12 @@
 from fastapi.testclient import TestClient
 
-from fleet import as_dicts
 from main import app
 from models import UserInput
 from readiness import evaluate_equipment_constraints, evaluate_readiness
+from test_robot_fixtures import synthetic_robots
 
 
-ROBOTS = as_dicts()
+ROBOTS = synthetic_robots()
 
 
 def _input(**updates) -> UserInput:
@@ -48,7 +48,7 @@ def test_missing_critical_geometry_is_unknown_and_needs_validation():
     )
     candidate = next(
         item for item in report.technical_candidates
-        if item.equipment_model_id == "amr_heavy_1350"
+        if item.equipment_model_id == "synthetic-transport-heavy"
     )
 
     assert report.overall_status == "NEEDS_VALIDATION"
@@ -64,7 +64,7 @@ def test_missing_critical_geometry_is_unknown_and_needs_validation():
 def test_payload_and_aisle_failures_are_structured_hard_rejects():
     candidate = evaluate_equipment_constraints(
         _input(payload_kg=1_600, aisle_width_m=0.7),
-        _robot("amr_heavy_1350"),
+        _robot("synthetic-transport-heavy"),
     )
 
     payload = _constraint(candidate, "PAYLOAD")
@@ -82,7 +82,7 @@ def test_payload_and_aisle_failures_are_structured_hard_rejects():
 def test_unknown_payload_never_uses_legacy_default_or_becomes_pass():
     candidate = evaluate_equipment_constraints(
         _input(payload_kg=None),
-        _robot("amr_light_250"),
+        _robot("synthetic-transport-light"),
     )
 
     payload = _constraint(candidate, "PAYLOAD")
@@ -164,7 +164,17 @@ def test_same_input_and_rules_produce_identical_report():
     assert first == second
 
 
-def test_readiness_endpoint_exposes_versioned_contract_without_changing_calculate():
+def test_readiness_endpoint_exposes_versioned_contract_without_changing_calculate(
+    monkeypatch,
+):
+    class SyntheticRuntime:
+        @staticmethod
+        def load_runtime():
+            from test_robot_fixtures import synthetic_snapshot
+
+            return synthetic_snapshot()
+
+    monkeypatch.setattr("main._CATALOG_RUNTIME", SyntheticRuntime())
     response = TestClient(app).post(
         "/api/readiness",
         json={"input": _input().model_dump(mode="json")},

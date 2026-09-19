@@ -1,0 +1,615 @@
+{
+  "schema_version": "catalog-official-source-enrichment-reviewed-decisions-v1",
+  "policy": {
+    "mode": "REVIEW_ONLY",
+    "writes_runtime_or_catalog": false,
+    "preserve_alternative_evidence": true,
+    "authorized_conservative_resolution": {
+      "authorized_by_user": true,
+      "authorized_at": "2026-09-18",
+      "rule": "Разрешено выбирать явно опубликованное более осторожное значение, если направление консервативности однозначно для будущего расчёта; все альтернативные официальные evidence сохраняются.",
+      "allowed_patterns": [
+        "lower_autonomy",
+        "lower_capacity",
+        "lower_speed",
+        "narrower_operating_limit",
+        "larger_clearance_requirement",
+        "larger_planning_envelope"
+      ],
+      "excluded_patterns": [
+        "identity_or_revision_ambiguity",
+        "different_operating_modes_without_general_value",
+        "different_physical_quantities",
+        "semantic_mismatch",
+        "derived_or_combined_value"
+      ]
+    }
+  },
+  "bulk_decisions": [
+    {
+      "decision_id": "B001",
+      "decision": "ACCEPT_EXACT_CANDIDATE",
+      "candidate_id_from": "A002",
+      "candidate_id_to": "A116",
+      "candidate_count": 115,
+      "review_canonical_sha256": "3f6b798c7faa08390b780b4031be5a6e243a3357f1f8b74106cd0281c89d514d",
+      "guards": {
+        "evidence_status": "VERIFIED_OFFICIAL",
+        "evidence_required": true,
+        "warnings_required_empty": true,
+        "normalized_value_required": true,
+        "allowed_known_fact_comparisons": [
+          "MATCHES_KNOWN_FACT",
+          "NO_COMPARABLE_KNOWN_VALUE",
+          "NO_KNOWN_FACT"
+        ]
+      },
+      "transformation_policy": "EXACT_VALUE_UNIT_AND_EVIDENCE_ONLY",
+      "authorized_by_user": true,
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    }
+  ],
+  "decisions": [
+    {
+      "decision_id": "R001",
+      "organizer_id": "2f46660e-ea20-4845-9620-8c743b03225b",
+      "model_name": "Пиксель",
+      "field_path": "specs.operating_conditions",
+      "decision": "ACCEPT_PASSPORT_CONSERVATIVE",
+      "selected_value": {
+        "max": 40,
+        "min": -10
+      },
+      "selected_unit": "°C",
+      "selected_evidence": {
+        "raw_value": "температура окружающей среды: от –10 ˚С до +40 ˚С",
+        "source_url": "https://storage.yandexcloud.net/web-fies/automatika/docs/01_%D0%9F%D0%B8%D0%BA%D1%81%D0%B5%D0%BB%D1%8C_%D0%9F%D0%B0%D1%81%D0%BF%D0%BE%D1%80%D1%82_V03_PixV1.pdf",
+        "source_title": "Паспорт. Многофункциональная роботизированная платформа для коммунального хозяйства «Пиксель». Модель 01.V1",
+        "publisher": "ООО «Автономика»",
+        "source_type": "OFFICIAL_MANUAL",
+        "source_locator": "PDF page 5/9, §3.2 «Нормальные условия эксплуатации»"
+      },
+      "retained_alternative": {
+        "value": {
+          "max": 40,
+          "min": -30
+        },
+        "unit": "°C",
+        "source_url": "https://www.avtonomika.ru/products/pixel/",
+        "source_title": "Пиксель"
+      },
+      "rationale": "По решению пользователя принято более безопасное значение из паспорта точной ревизии 01.V1; более широкий диапазон текущей страницы сохранён как альтернативное evidence.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R002",
+      "organizer_id": "5a5b3599-bd64-4330-9bbb-4f8ce7d780b9",
+      "model_name": "Клинботикс 600",
+      "field_path": "capacity.cleaning_rate_m2_h",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": {
+        "max": 1500,
+        "min": 1000
+      },
+      "selected_unit": "m²/h",
+      "selected_evidence": {
+        "raw_value": "скорость уборки 1000-1500 м²/ час",
+        "source_url": "https://waybotrobotics.com/",
+        "source_title": "Cleanbotics — робот поломойщик для профессиональной уборки",
+        "publisher": "Waybot Robotics / ООО «Вейбот Автомакон Роботикс»",
+        "source_type": "OFFICIAL_MANUFACTURER_PAGE",
+        "source_locator": "Раздел «Модели», карточка «Клинботикс 600»"
+      },
+      "retained_alternative": {
+        "value": {
+          "max": 2300,
+          "min": 1000
+        },
+        "unit": "m²/h",
+        "source_url": "https://waybotrobotics.com/models/600",
+        "source_title": "Модель Cleanbotics 600"
+      },
+      "rationale": "По решению пользователя принят меньший официальный диапазон, чтобы не завышать будущую расчётную производительность; более широкий диапазон сохранён как альтернативное evidence.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R003",
+      "organizer_id": "5a5b3599-bd64-4330-9bbb-4f8ce7d780b9",
+      "model_name": "Клинботикс 600",
+      "field_path": "specs.autonomy",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": 3,
+      "selected_unit": "h",
+      "selected_evidence": {
+        "raw_value": "3 часа",
+        "source_url": "https://waybotrobotics.com/models/600",
+        "source_title": "Модель Cleanbotics 600",
+        "publisher": "Waybot Robotics / ООО «Вейбот Автомакон Роботикс»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Раздел «Технические характеристики», «Время работы без подзарядки»"
+      },
+      "retained_alternatives": [
+        {
+          "value": 4,
+          "unit": "h",
+          "raw_value": "Время работы на одном заряде (режим влажной уборки) — 4 часа",
+          "source_url": "https://waybotrobotics.com/models/600"
+        },
+        {
+          "value": 5,
+          "unit": "h",
+          "raw_value": "5 часов работы в режиме мойки",
+          "source_url": "https://waybotrobotics.com/models/600"
+        }
+      ],
+      "rationale": "По разрешённой пользователем консервативной политике принято минимальное явно опубликованное время работы; заявления 4 и 5 часов сохранены как альтернативные evidence.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R004",
+      "organizer_id": "5a5b3599-bd64-4330-9bbb-4f8ce7d780b9",
+      "model_name": "Клинботикс 600",
+      "field_path": "specs.dimensions",
+      "decision": "ACCEPT_CONSERVATIVE_PLANNING_ENVELOPE",
+      "selected_value": [750, 700, 1000],
+      "selected_unit": "mm",
+      "selected_evidence": {
+        "raw_value": "750 x 700 x 1000 мм",
+        "source_url": "https://waybotrobotics.com/models/600",
+        "source_title": "Модель Cleanbotics 600",
+        "publisher": "Waybot Robotics / ООО «Вейбот Автомакон Роботикс»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Таблица «Сравнение с конкурентами», строка «Габариты», колонка Cleanbotics 600"
+      },
+      "retained_alternative": {
+        "value": [700, 600, 1000],
+        "unit": "mm",
+        "source_url": "https://waybotrobotics.com/",
+        "source_title": "Cleanbotics — робот поломойщик для профессиональной уборки"
+      },
+      "rationale": "Для проверки пространства принят больший из двух целиком опубликованных габаритных контуров; меньший контур сохранён как альтернативное evidence.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R005",
+      "organizer_id": "d4b39362-518a-4cf2-8770-b69bc03585a0",
+      "model_name": "Веном Саранча",
+      "field_path": "specs.operating_conditions",
+      "decision": "ACCEPT_CONSERVATIVE_PARTIAL",
+      "selected_value": {
+        "max": 32
+      },
+      "selected_unit": "°C",
+      "selected_evidence": {
+        "raw_value": "Температура эксплуатации: до 32 С",
+        "source_url": "https://rob-com.ru/tproduct/480874550-266559644532-venom-sarancha",
+        "source_title": "Веном Саранча",
+        "publisher": "РОБКОМ",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Тех. характеристики"
+      },
+      "retained_alternative": {
+        "value": {
+          "max": 42,
+          "min": -30
+        },
+        "unit": "°C",
+        "source_url": "https://rob-com.ru/robot-kosilka-venom-sarancha",
+        "source_title": "Робот косилка Venom САРАНЧА - купить с доставкой по России"
+      },
+      "rationale": "По разрешённой пользователем консервативной политике принята только явно опубликованная верхняя граница +32 °C. Нижняя граница не перенесена из конфликтующего источника и остаётся неизвестной; полный диапазон −30…+42 °C сохранён как альтернативное evidence.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R006",
+      "organizer_id": "f31223c1-44c8-4410-8381-6356e2158b61",
+      "model_name": "Клинботикс 400 PRO",
+      "field_path": "capacity.cleaning_rate_m2_h",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": {"max": 1200, "min": 700},
+      "selected_unit": "m²/h",
+      "selected_evidence": {
+        "raw_value": "Скорость уборки 700-1200 м²/час",
+        "source_url": "https://waybotrobotics.com/models/400pro",
+        "source_title": "Модель Cleanbotics 400 PRO",
+        "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Сравнение с конкурентами → Cleanbotics 400 PRO"
+      },
+      "retained_alternative": {
+        "value": {"max": 1500, "min": 700},
+        "unit": "m²/h",
+        "source_url": "https://waybotrobotics.com/en/models/400pro",
+        "source_title": "Cleanbotics 400 PRO"
+      },
+      "rationale": "Принят меньший официальный диапазон русской страницы, чтобы не завышать расчётную производительность.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R007",
+      "organizer_id": "f31223c1-44c8-4410-8381-6356e2158b61",
+      "model_name": "Клинботикс 400 PRO",
+      "field_path": "specs.dimensions",
+      "decision": "DEFER",
+      "selected_value": null,
+      "selected_unit": null,
+      "retained_alternatives": [
+        {
+          "value": [561, 744, 611.5],
+          "unit": "mm",
+          "raw_value": "размер 561 x 744 х 611,5 мм",
+          "source_url": "https://waybotrobotics.com/",
+          "source_title": "Cleanbotics — робот поломойщик для профессиональной уборки"
+        },
+        {
+          "value": [676, 560, 744],
+          "unit": "mm",
+          "raw_value": "Габариты 676 x 560 x 744 мм",
+          "source_url": "https://waybotrobotics.com/models/400pro",
+          "source_title": "Модель Cleanbotics 400 PRO"
+        }
+      ],
+      "rationale": "По решению пользователя выбор отложен: ни один опубликованный габарит не больше другого по всем осям, порядок осей первой записи не определён, а составной максимальный контур был бы недопустимым вычисленным фактом.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R008",
+      "organizer_id": "f31223c1-44c8-4410-8381-6356e2158b61",
+      "model_name": "Клинботикс 400 PRO",
+      "field_path": "specs.min_aisle_width",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": 750,
+      "selected_unit": "mm",
+      "selected_evidence": {
+        "raw_value": "Ширина проходов 75 см в режиме пылесоса и 40 см в режиме влажной уборки",
+        "source_url": "https://waybotrobotics.com/models/400pro",
+        "source_title": "Модель Cleanbotics 400 PRO",
+        "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Области применения и условия эксплуатации"
+      },
+      "retained_alternatives": [
+        {"value": 400, "unit": "mm", "context": "wet_cleaning", "source_url": "https://waybotrobotics.com/models/400pro"},
+        {"value": 700, "unit": "mm", "context": "generic_comparison_table", "source_url": "https://waybotrobotics.com/models/400pro"}
+      ],
+      "rationale": "Для общего требования к проходу принято наибольшее явно опубликованное значение 750 мм; меньшие значения сохранены с контекстом режима.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R009",
+      "organizer_id": "dcfd9975-81eb-49b5-a422-827a720ba582",
+      "model_name": "Ronavi M (грузоподъемность до 1200 кг)",
+      "field_path": "specs.min_aisle_width",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": 800,
+      "selected_unit": "mm",
+      "selected_evidence": {
+        "raw_value": "минимальную ширину проезда 800 мм",
+        "source_url": "https://ronavi-robotics.ru/catalogue/m",
+        "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+        "publisher": "Ронави Роботикс",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "FAQ «Какая подготовка склада требуется для внедрения?»"
+      },
+      "retained_alternative": {
+        "value": 760,
+        "unit": "mm",
+        "source_url": "https://ronavi-robotics.ru/catalogue/m",
+        "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»"
+      },
+      "rationale": "Для подготовки склада принято большее требование 800 мм; табличный минимум 760 мм сохранён как альтернативное evidence.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R010",
+      "organizer_id": "0ece582a-084c-4a8b-99f4-576f0e01b7c8",
+      "model_name": "SmartCube",
+      "field_path": "specs.max_speed",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": 2.1,
+      "selected_unit": "m/s",
+      "selected_evidence": {
+        "raw_value": "Максимальная скорость движения составляет 2,1 м/с",
+        "source_url": "https://arobosys.ru/robot",
+        "source_title": "CR-02 — Новое поколение мобильного робота для кубической системы хранения",
+        "publisher": "ООО «АРС Смарт Роботикс»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Страница «CR-02»"
+      },
+      "retained_alternative": {"value": 2.7, "unit": "m/s", "source_url": "https://arobosys.ru/robot", "source_title": "CR-02 — Новое поколение мобильного робота для кубической системы хранения"},
+      "rationale": "Принята меньшая официально заявленная максимальная скорость, чтобы не завышать будущую пропускную способность.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R011",
+      "organizer_id": "2ffc706d-fe43-4c2b-baad-a624a95ad3ce",
+      "model_name": "Робот-штабелёр RoboCV",
+      "field_path": "specs.aisle_requirements",
+      "decision": "ACCEPT_CONDITIONAL_CONSERVATIVE",
+      "selected_value": {
+        "full_speed_min_mm": 1900,
+        "obstacle_bypass_min_mm": 1600,
+        "turning_min_mm": 2900
+      },
+      "selected_unit": "mm",
+      "selected_evidence": [
+        {
+          "raw_value": "Для объезда препятствий необходим проезд шириной не менее 1,6 м",
+          "source_url": "https://robocv.ru/robot-shtabelyor",
+          "source_title": "Робот-штабелёр",
+          "publisher": "ООО «РобоСиВи»",
+          "source_type": "OFFICIAL_MODEL_PAGE",
+          "source_locator": "Объезд препятствий"
+        },
+        {
+          "raw_value": "разворот 2,9 м; max. скорость 1,9 м",
+          "source_url": "https://robocv.ru/robot-shtabelyor",
+          "source_title": "Робот-штабелёр",
+          "publisher": "ООО «РобоСиВи»",
+          "source_type": "OFFICIAL_MODEL_PAGE",
+          "source_locator": "Требования к ширине проезда"
+        }
+      ],
+      "retained_alternative": {
+        "value": {
+          "full_speed_min_mm": 1800,
+          "turning_min_mm": 2900
+        },
+        "unit": "mm",
+        "raw_value": "разворот 2900 мм; полная скорость 1800 мм",
+        "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-shtabelyor-robocv-specifikaciya.pdf",
+        "source_title": "Спецификация робота-штабелёра RoboCV"
+      },
+      "rationale": "По решению пользователя разные условия сохранены отдельно. Для полной скорости принято более осторожное официальное требование 1900 мм; 1800 мм из PDF сохранено как альтернатива. Требования 1600 мм для объезда и 2900 мм для разворота не смешиваются с full-speed aisle.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R012",
+      "organizer_id": "2ffc706d-fe43-4c2b-baad-a624a95ad3ce",
+      "model_name": "Робот-штабелёр RoboCV",
+      "field_path": "specs.max_speed",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": 1.67,
+      "selected_unit": "m/s",
+      "selected_evidence": {
+        "raw_value": "Скорость 1,67 м/с",
+        "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-shtabelyor-robocv-specifikaciya.pdf",
+        "source_title": "Спецификация робота-штабелёра RoboCV",
+        "publisher": "ООО «РобоСиВи»",
+        "source_type": "OFFICIAL_DATASHEET",
+        "source_locator": "Макс. скорость"
+      },
+      "retained_alternative": {"value": 2.0, "unit": "m/s", "source_url": "https://robocv.ru/robot-shtabelyor", "source_title": "Робот-штабелёр"},
+      "rationale": "Принята меньшая скорость из официальной спецификации, чтобы не завышать будущую пропускную способность.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R013",
+      "organizer_id": "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+      "model_name": "Ronavi H1500 (грузоподъемность до 1 500 кг)",
+      "field_path": "specs.min_aisle_width",
+      "decision": "ACCEPT_CURRENT_OFFICIAL_REVISION_ONLY",
+      "selected_value": 750,
+      "selected_unit": "mm",
+      "selected_evidence": {
+        "raw_value": "Минимальная ширина проезда;750 мм",
+        "source_url": "https://ronavi-robotics.ru/catalogue/h1500",
+        "source_title": "Ronavi H1500",
+        "publisher": "Ронави Роботикс",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Технические характеристики"
+      },
+      "applicability": {
+        "scope": "CURRENT_OFFICIAL_REVISION_ONLY",
+        "organizer_revision_confirmed": false
+      },
+      "retained_identity_conflict": {
+        "field_path": "specs.autonomy",
+        "organizer_value": 6,
+        "current_official_value": 10,
+        "unit": "h"
+      },
+      "rationale": "По решению пользователя 750 мм принято только для текущей официальной ревизии точной модели Ronavi H1500. Это не разрешает отдельный конфликт автономности 6/10 часов и не доказывает ревизию organizer positions.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R014",
+      "decision_group": "AMR100-IDENTITY-001",
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "model_name": "AMR 100 (грузоподъемность до 100 кг)",
+      "field_path": "specs.autonomy",
+      "decision": "DEFER_IDENTITY",
+      "selected_value": null,
+      "selected_unit": null,
+      "retained_evidence": {"raw_value": "Время работы — 20 часов (при средних нагрузках)", "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/", "source_title": "AMR100 — Автономный мобильный робот от МОРОС"},
+      "rationale": "Текущая официальная страница относится к AMR100 до 150 кг, а organizer position — к варианту до 100 кг; применимость характеристики отложена до доказательства identity/revision.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R015",
+      "decision_group": "AMR100-IDENTITY-001",
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "model_name": "AMR 100 (грузоподъемность до 100 кг)",
+      "field_path": "specs.charging_requirements",
+      "decision": "DEFER_IDENTITY",
+      "selected_value": null,
+      "selected_unit": null,
+      "retained_evidence": {"raw_value": "Способ зарядки — Автоматическая док-станция / ручная зарядка", "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/", "source_title": "AMR100 — Автономный мобильный робот от МОРОС"},
+      "rationale": "Текущая официальная страница относится к AMR100 до 150 кг, а organizer position — к варианту до 100 кг; применимость характеристики отложена до доказательства identity/revision.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R016",
+      "decision_group": "AMR100-IDENTITY-001",
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "model_name": "AMR 100 (грузоподъемность до 100 кг)",
+      "field_path": "specs.dimensions",
+      "decision": "DEFER_IDENTITY",
+      "selected_value": null,
+      "selected_unit": null,
+      "retained_evidence": {"raw_value": "Габаритные размеры (Д×Ш×В) — 600 × 400 × 220 мм", "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/", "source_title": "AMR100 — Автономный мобильный робот от МОРОС"},
+      "rationale": "Текущая официальная страница относится к AMR100 до 150 кг, а organizer position — к варианту до 100 кг; применимость характеристики отложена до доказательства identity/revision.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R017",
+      "decision_group": "AMR100-IDENTITY-001",
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "model_name": "AMR 100 (грузоподъемность до 100 кг)",
+      "field_path": "specs.integrations",
+      "decision": "DEFER_IDENTITY",
+      "selected_value": null,
+      "selected_unit": null,
+      "retained_evidence": {"raw_value": "Возможность интеграции с конвейерами, подъемниками, манипуляторами.", "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/", "source_title": "AMR100 — Автономный мобильный робот от МОРОС"},
+      "rationale": "Текущая официальная страница относится к AMR100 до 150 кг, а organizer position — к варианту до 100 кг; применимость характеристики отложена до доказательства identity/revision.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R018",
+      "decision_group": "AMR100-IDENTITY-001",
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "model_name": "AMR 100 (грузоподъемность до 100 кг)",
+      "field_path": "specs.max_speed",
+      "decision": "DEFER_IDENTITY",
+      "selected_value": null,
+      "selected_unit": null,
+      "retained_evidence": {"raw_value": "Скорость перемещения — 3 м/с", "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/", "source_title": "AMR100 — Автономный мобильный робот от МОРОС"},
+      "rationale": "Текущая официальная страница относится к AMR100 до 150 кг, а organizer position — к варианту до 100 кг; применимость характеристики отложена до доказательства identity/revision.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R019",
+      "decision_group": "AMR100-IDENTITY-001",
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "model_name": "AMR 100 (грузоподъемность до 100 кг)",
+      "field_path": "specs.positioning_accuracy",
+      "decision": "DEFER_IDENTITY",
+      "selected_value": null,
+      "selected_unit": null,
+      "retained_evidence": {"raw_value": "Точность позиционирования — ±10 мм", "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/", "source_title": "AMR100 — Автономный мобильный робот от МОРОС"},
+      "rationale": "Текущая официальная страница относится к AMR100 до 150 кг, а organizer position — к варианту до 100 кг; применимость характеристики отложена до доказательства identity/revision.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R020",
+      "organizer_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "model_name": "Робот-тягач RoboCV",
+      "field_path": "specs.max_speed",
+      "decision": "ACCEPT_CONSERVATIVE",
+      "selected_value": 2.2,
+      "selected_unit": "m/s",
+      "selected_evidence": {
+        "raw_value": "Максимальная скорость, м/с: 2,2",
+        "source_url": "https://robocv.ru/robot-tyagach",
+        "source_title": "Робот-тягач",
+        "publisher": "ООО «РобоСиВи»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Технические характеристики"
+      },
+      "retained_alternative": {"value": 12, "unit": "km/h", "context": "without_load", "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf", "source_title": "Спецификация робота-тягача RoboCV"},
+      "rationale": "2,2 м/с ниже опубликованных 12 км/ч без груза и не привязаны к оптимальному режиму без нагрузки; принято более осторожное значение без пересчёта единиц в resolved fact.",
+      "decided_at": "2026-09-18",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R021",
+      "organizer_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "model_name": "Робот-тягач RoboCV",
+      "field_path": "specs.payload",
+      "decision": "ACCEPT_PAYLOAD_RECLASSIFY_TRACTION",
+      "selected_value": 5000,
+      "selected_unit": "kg",
+      "selected_evidence": {
+        "raw_value": "Грузоподъемность, кг: до 5000",
+        "source_url": "https://robocv.ru/robot-tyagach",
+        "source_title": "Робот-тягач",
+        "publisher": "ООО «РобоСиВи»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Технические характеристики"
+      },
+      "reclassified_candidate": {
+        "field_path": "specs.traction_capacity",
+        "value": 4000,
+        "unit": "kg",
+        "raw_value": "Сила тяги 4000кг",
+        "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf",
+        "source_title": "Спецификация робота-тягача RoboCV",
+        "runtime_eligible": false
+      },
+      "rationale": "По решению пользователя для payload принято единственное семантически соответствующее значение грузоподъёмности 5000 кг. Сила тяги 4000 кг является другой характеристикой, сохранена отдельно и не используется в runtime без контракта поля.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "R022",
+      "organizer_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "model_name": "Робот-тягач RoboCV",
+      "field_path": "specs.positioning_accuracy",
+      "decision": "ACCEPT_POSITIONING_RECLASSIFY_NAVIGATION",
+      "selected_value": 70,
+      "selected_unit": "mm",
+      "selected_evidence": {
+        "raw_value": "Точность позиционирования 70мм",
+        "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf",
+        "source_title": "Спецификация робота-тягача RoboCV",
+        "publisher": "ООО «РобоСиВи»",
+        "source_type": "OFFICIAL_DATASHEET",
+        "source_locator": "Точность позиционирования"
+      },
+      "reclassified_candidate": {
+        "field_path": "specs.navigation_accuracy",
+        "value": 50,
+        "unit": "mm",
+        "raw_value": "Точность навигации, см: 5",
+        "source_url": "https://robocv.ru/robot-tyagach",
+        "source_title": "Робот-тягач",
+        "runtime_eligible": false
+      },
+      "rationale": "По решению пользователя для positioning accuracy принято семантически точное и более осторожное значение 70 мм из официального PDF. Точность навигации 50 мм сохранена отдельно и не используется в runtime без контракта поля.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    },
+    {
+      "decision_id": "A001",
+      "organizer_id": "1625ac11-76d0-4994-a86a-e0a540453984",
+      "model_name": "Astramis SurfexUnit",
+      "field_path": "specs.charging_requirements",
+      "decision": "ACCEPT",
+      "selected_value": {
+        "battery_replenishment": "automatic battery replacement"
+      },
+      "selected_unit": null,
+      "selected_evidence": {
+        "raw_value": "Автоматическая замена аккумуляторов для экономии времени",
+        "source_url": "https://astramis.com/SurfexUnit",
+        "source_title": "Astramis SurfexUnit – робот для автономной промышленной уборки складов и производств",
+        "publisher": "АО «Астрамис»",
+        "source_type": "OFFICIAL_MODEL_PAGE",
+        "source_locator": "Раздел Astramis SurfexUnit, список характеристик"
+      },
+      "rationale": "По решению пользователя принято только явно опубликованное наличие автоматической замены аккумуляторов; электрические параметры зарядки не добавлены.",
+      "decided_at": "2026-09-19",
+      "import_status": "NOT_IMPORTED"
+    }
+  ]
+}

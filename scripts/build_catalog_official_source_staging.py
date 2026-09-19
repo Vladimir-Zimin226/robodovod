@@ -511,7 +511,7 @@ def project_eligibility(staging: StagingOverlay, staging_path: Path = STAGING) -
             "exclusions": [
                 "staging overlay is review-only and has not been imported into PostgreSQL",
                 "two accepted-but-qualified fields are not matching-safe",
-                "catalog runtime remains on backend/fleet",
+                "catalog runtime is unchanged and still requires explicit activation",
                 "capacity formulas, economics, procurement, and activation are outside this projection",
             ],
             "models": models,

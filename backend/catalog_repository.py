@@ -1,4 +1,4 @@
-"""Catalog repository boundary for legacy, versioned and activated snapshots.
+"""Catalog repository boundary for versioned and activated snapshots.
 
 The PostgreSQL adapter requires an explicit immutable version and reads matching
 facts only from the evidence-gated ``matching_spec_facts`` view.  Slot lookup is
@@ -24,13 +24,9 @@ from catalog_models import (
     ProcurementOption,
 )
 from database import Database
-from fleet import ROBOTS as LEGACY_ROBOTS
 from models import Robot
 from sqlalchemy import select, text
 from storage_models import CatalogActivation, CatalogVersion
-
-LEGACY_CATALOG_VERSION = "legacy-fleet-v1"
-
 
 class CatalogRepositoryError(RuntimeError):
     """Raised when a requested catalog snapshot cannot be loaded safely."""
@@ -175,88 +171,6 @@ class CatalogSnapshotDTO:
 class CatalogRepository(Protocol):
     def load(self) -> CatalogSnapshotDTO:
         """Load one immutable, explicitly scoped catalog snapshot."""
-
-
-def _legacy_fact(code: str, value: Any, unit: str) -> CatalogFactDTO:
-    return CatalogFactDTO(
-        code=code,
-        scope_code="GLOBAL",
-        value=copy.deepcopy(value),
-        canonical_unit=unit,
-        resolution_status="LEGACY_REFERENCE",
-        evidence_id=f"legacy:{code}",
-    )
-
-
-class LegacyFleetCatalogRepository:
-    """Reference adapter over the committed ``backend/fleet`` JSON records."""
-
-    def load(self) -> CatalogSnapshotDTO:
-        models: list[CatalogModelDTO] = []
-        positions: list[CatalogPositionDTO] = []
-        for robot in LEGACY_ROBOTS:
-            payload = robot.model_dump(mode="json")
-            specs = payload["specs"]
-            facts = (
-                _legacy_fact("payload", specs["payload_kg"], "kg"),
-                _legacy_fact("max_speed", specs["max_speed_m_s"], "m/s"),
-                _legacy_fact("min_aisle_width", specs["min_aisle_width_m"], "m"),
-                _legacy_fact("autonomy", specs["autonomy_hours"], "h"),
-                _legacy_fact("navigation", specs["navigation_type"], "1"),
-            )
-            model = CatalogModelDTO(
-                id=payload["id"],
-                source_namespace="legacy-fleet",
-                source_record_key=payload["id"],
-                organizer_id=None,
-                manufacturer=None,
-                name=payload["name"],
-                system_family=payload["category"],
-                type_code=payload["type_label"],
-                subtype_code=None,
-                maturity_status=None,
-                trl=None,
-                description=payload["description"],
-                attributes={},
-                facts=facts,
-                applicability=(),
-                procurement_options=(),
-                runtime_robot=copy.deepcopy(payload),
-                runtime_blockers=(),
-            )
-            models.append(model)
-            positions.append(
-                CatalogPositionDTO(
-                    id=payload["id"],
-                    source_record_key=payload["id"],
-                    source_row_number=len(positions) + 1,
-                    model=model,
-                    applicability=CatalogApplicabilityDTO(None, None, None, None),
-                    procurement_option=ProcurementOptionDTO(
-                        mode="REFERENCE",
-                        amount=None,
-                        currency=None,
-                        price_status="LEGACY_REFERENCE",
-                        vat_status="UNKNOWN",
-                        included_costs=(),
-                        excluded_costs=(),
-                        evidence_id=None,
-                    ),
-                    media=None,
-                    runtime_robot=copy.deepcopy(payload),
-                    runtime_blockers=(),
-                )
-            )
-        return CatalogSnapshotDTO(
-            version=CatalogVersionDTO(
-                id=LEGACY_CATALOG_VERSION,
-                code=LEGACY_CATALOG_VERSION,
-                status="REFERENCE",
-                schema_version="legacy-json-v1",
-            ),
-            models=tuple(models),
-            positions=tuple(positions),
-        )
 
 
 _DEFAULT_FACT_BINDINGS: dict[str, tuple[str, ...]] = {

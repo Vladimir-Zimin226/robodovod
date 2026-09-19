@@ -81,4 +81,4 @@
 
 ## Decision gate
 
-Следующий этап: `catalog/official-source-enrichment`. Он должен брать точный список полей и рекомендации из machine-readable отчёта. После него — `engine/capacity-formula-trace`; до этого runtime остаётся на `backend/fleet`.
+Следующий этап: `catalog/official-source-enrichment`. Он должен брать точный список полей и рекомендации из machine-readable отчёта. После него — `engine/capacity-formula-trace`; runtime требует явно активированную безопасную projection.

@@ -1,6 +1,6 @@
 {
   "fixture_version": "economics-warehouse-v2",
-  "policy": "immutable; create a new version instead of updating expected values",
+  "policy": "synthetic protocol fixture; contains no catalog or vendor model",
   "change_note": "Separate labor/equipment inflation and apply year-one ramp consistently to OPEX in TCO.",
   "input": {
     "object_type": "retail",
@@ -19,7 +19,7 @@
     "horizon_years": 5
   },
   "expected": {
-    "best_robot_id": "agv_pallet_qr",
+    "best_robot_id": "synthetic-transport-heavy",
     "economic_status": "ACCEPTABLE",
     "quantity": 11,
     "fleet_utilization": 0.88,

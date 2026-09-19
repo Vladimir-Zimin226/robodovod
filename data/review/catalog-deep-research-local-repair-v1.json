@@ -1,0 +1,76 @@
+{
+  "policy": {
+    "conservative_downgrade": true,
+    "network_used": false,
+    "runtime_or_catalog_write": false
+  },
+  "repairs": [
+    {
+      "batch_id": "deep-other-01",
+      "decisions": [
+        {
+          "action": "REJECT_NON_OFFICIAL_EVIDENCE",
+          "affected_fields": 5,
+          "detail": "ComNews/other third-party claims were not accepted as official or authorized-partner evidence."
+        }
+      ],
+      "result_path": "C:\\Users\\Владимир Королев\\PycharmProjects\\Конкурсы\\robodovod\\.repair-output-final\\deep-other-01.result.json",
+      "result_sha256": "eb566210f06da0f3c9212dac1122a0b5d2881aef981776b73f57ab9aae8417d6",
+      "source_path": "C:\\Users\\Владимир Королев\\Downloads\\deep-research-report.md",
+      "source_sha256": "bf557c74bca865c454eb5085f14dd94b5edfd88bc9fd71380e7bb850f2fe5017",
+      "validation": {
+        "batch_id": "deep-other-01",
+        "evidence_records": 0,
+        "models": 3,
+        "status_counts": {
+          "NOT_FOUND": 28
+        },
+        "target_fields": 28
+      }
+    },
+    {
+      "batch_id": "hybrid-conflicts-01",
+      "decisions": [
+        {
+          "action": "REJECT_SEMANTIC_MISMATCH",
+          "detail": "Режим работы 24/7 не является длительностью автономной работы.",
+          "field_path": "specs.autonomy",
+          "organizer_id": "2ffc706d-fe43-4c2b-baad-a624a95ad3ce"
+        },
+        {
+          "action": "REJECT_SEMANTIC_MISMATCH",
+          "detail": "До 10 часов автономной работы не является временем обменной операции.",
+          "field_path": "capacity.exchange_time_s",
+          "organizer_id": "5760e938-9a43-45a7-b8e8-f4f2e6383930"
+        },
+        {
+          "action": "REJECT_SEMANTIC_MISMATCH",
+          "detail": "Режим работы 24/7 не является длительностью автономной работы.",
+          "field_path": "specs.autonomy",
+          "organizer_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1"
+        },
+        {
+          "action": "RESTORE_OFFICIAL_URL_FROM_LOCAL_CANDIDATE",
+          "detail": "Missing URLs/publishers/source types were joined by exact source title to locally stored official candidates; no URL was guessed."
+        }
+      ],
+      "result_path": "C:\\Users\\Владимир Королев\\PycharmProjects\\Конкурсы\\robodovod\\.repair-output-final\\hybrid-conflicts-01.result.json",
+      "result_sha256": "5859898e09a5d9b2c2675c4fab8d9bf4be144374cd3b25f836de42f901378e4e",
+      "source_path": "C:\\Users\\Владимир Королев\\Downloads\\deep-research-report (1).md",
+      "source_sha256": "f9874dce352828efb9302998a3b8842a8e1e4257f77e9a36c2036048e6fa13ad",
+      "validation": {
+        "batch_id": "hybrid-conflicts-01",
+        "evidence_records": 23,
+        "models": 5,
+        "status_counts": {
+          "AMBIGUOUS_MODEL_MATCH": 7,
+          "CONFLICT": 6,
+          "NOT_FOUND": 24,
+          "VERIFIED_OFFICIAL": 2
+        },
+        "target_fields": 39
+      }
+    }
+  ],
+  "schema_version": "catalog-deep-research-local-repair-v1"
+}

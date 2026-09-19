@@ -48,8 +48,8 @@ test('golden ScenarioSpec создаёт точную модель и полны
   assert.equal(scene.routes.length, 11);
   assert.equal(scene.config.robotCount, 11);
   assert.equal(scene.scenario.revisionId, golden.revision_id);
-  assert.ok(scene.routes.every(route => route.equipmentModelId === 'agv_pallet_qr'));
-  assert.ok(scene.routes.every(route => route.modelCode === 'agv_pallet_qr'));
+  assert.ok(scene.routes.every(route => route.equipmentModelId === 'synthetic-transport-heavy'));
+  assert.ok(scene.routes.every(route => route.modelCode === 'synthetic-transport-heavy'));
   assert.ok(scene.routes.every(route => route.robotType === 'pallet-amr'));
   assert.ok(scene.routes.every(route => route.speed === .8));
   assert.ok(scene.routes.every(route => route.maxLoadKg === 1500));
@@ -87,7 +87,7 @@ test('спрос и units_per_trip задают частоту заявок и �
   assert.equal(report.tasks.completedUnits, report.tasks.completed * 4);
   assert.equal(report.tasks.requiredUnitsPerHour, 40);
   assert.equal(report.revisionId, spec.revision_id);
-  assert.equal(report.equipmentModelId, 'agv_pallet_qr');
+  assert.equal(report.equipmentModelId, 'synthetic-transport-heavy');
 });
 
 test('экономически неприемлемый технический вариант визуализируется без смены статуса', () => {
@@ -142,7 +142,7 @@ test('golden-парки 1…12 выполняют задания без длит
     assert.ok(result.report.tasks.completed > 0, `парк ${quantity}: нет завершённых заданий`);
     assert.ok(result.longestStall < 900, `парк ${quantity}: простой ${result.longestStall} с`);
     assert.ok(result.report.tasks.queued <= quantity * 2, `парк ${quantity}: очередь вышла за предел`);
-    assert.ok(result.report.robots.every(robot => robot.equipmentModelId === 'agv_pallet_qr'));
+    assert.ok(result.report.robots.every(robot => robot.equipmentModelId === 'synthetic-transport-heavy'));
   }
   // В этой сцене диспетчер намеренно ограничивает одновременное движение двумя
   // AMR, поэтому помашинная монотонность не является обещанием контракта. Полный

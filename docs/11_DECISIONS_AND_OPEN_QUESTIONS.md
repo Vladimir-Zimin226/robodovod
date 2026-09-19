@@ -20,7 +20,7 @@
 - organizer data and external enrichment are separate immutable layers;
 - only approved verified evidence may become an automatic matching input;
 - catalog import is versioned, transactional and idempotent;
-- current `backend/fleet` remains a comparison adapter until DB dual-run passes;
+- embedded legacy fleet is removed; runtime/discovery require activated catalog slots;
 - `organizer-catalog-v4` is the confirmed current organizer version;
 - deterministic derived organizer JSON/CSV bundle may be committed to Git;
   source binaries and working staging remain outside Git;

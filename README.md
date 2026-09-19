@@ -130,9 +130,10 @@ Downgrade нужен только для одноразовой development/test
 lifecycle, идемпотентность успешного импорта, единственную активную версию в
 slot и неизменяемую историю активаций.
 
-По умолчанию расчётные endpoint читают 13 JSON-записей из `backend/fleet`;
-пустая мигрированная БД не меняет каталог, экономику или ScenarioSpec.
-Автоматического импорта, публикации или активации при startup нет.
+Расчётные endpoint читают только явно активированный `runtime` slot. Пустая
+мигрированная БД или отсутствие безопасной runtime-проекции дают явный `503`:
+встроенного reference fleet и автоматической подстановки моделей больше нет.
+Импорт, публикация и активация при startup не выполняются.
 
 ## Catalog domain schema 0002
 
@@ -143,7 +144,7 @@ unsafe evidence не допускается в `matching_spec_facts`, а дан�
 перехода из `DRAFT` неизменяемы. Цена и её provenance хранятся отдельно от
 модели оборудования.
 
-Runtime-каталог по безопасному default продолжает использовать `backend/fleet`.
+Runtime-каталог всегда разрешается через атомарную activation history в БД.
 
 ## Catalog validator/importer
 
@@ -189,9 +190,8 @@ python scripts/build_catalog_bundle.py --check
 
 PostgreSQL adapter требует явный `catalog_version.code`, возвращает DTO без
 ORM-объектов и читает ТТХ только из evidence-gated view
-`matching_spec_facts`. Расчётные endpoint используют reference adapter над
-`backend/fleet`, пока явно не заданы одновременно активный `runtime` slot и
-`CATALOG_RUNTIME_SOURCE=activated`.
+`matching_spec_facts`. Расчётные endpoint требуют активный `runtime` slot и
+никогда не дополняют его встроенными или тестовыми моделями.
 
 После явного BASE/ENRICHMENT import служебное сравнение запускается отдельным
 Compose tools-service:
@@ -206,7 +206,7 @@ docker compose --profile tools run --rm catalog-dual-run
 $env:CATALOG_DUAL_RUN_ENABLED = 'true'
 $env:DATABASE_URL = 'postgresql+psycopg://<application-role>:<url-encoded-password>@localhost:5432/<database-name>'
 $env:PYTHONPATH = 'backend'
-.\.venv\Scripts\python.exe -m catalog_dual_run --catalog-code organizer-catalog-v4 --fixture backend\fixtures\catalog-dual-run-warehouse-v1.json
+.\.venv\Scripts\python.exe -m catalog_dual_run --reference-catalog-code organizer-catalog-v4-prev --candidate-catalog-code organizer-catalog-v4 --fixture backend\fixtures\catalog-dual-run-warehouse-v1.json
 ```
 
 JSON-отчёт сравнивает только явно сопоставленные модели по identity, hard
@@ -214,7 +214,7 @@ rejection, fleet, economics и canonical ScenarioSpec. Каждое несовп
 получает `EXPECTED_DIFFERENCE`, `DEFECT` или `BLOCKED_BY_EVIDENCE`; имена моделей
 автоматически не склеиваются. Текущий официальный каталог ожидаемо блокируется
 до evidence-backed runtime projection: dual-run не подставляет отсутствующие
-операционные и экономические поля из legacy. Код завершения `2` означает
+операционные и экономические поля из другой версии. Код завершения `2` означает
 необъяснённый `DEFECT`, `3` — ошибку конфигурации; expected/blocked без дефектов
 завершаются кодом `0`.
 
@@ -239,10 +239,9 @@ docker compose --profile tools run --rm catalog-activation status
 регион и кейс. После активации discovery-слота позиции доступны для просмотра,
 но не для расчётного выбора: bundle
 пока не содержит evidence-backed `runtime_projection`. Поэтому команда
-`activate --slot runtime` завершается безопасной ошибкой, а не дополняет ТТХ из
-legacy. Мгновенный rollback расчётов — `CATALOG_RUNTIME_SOURCE=legacy`
-(значение по умолчанию); отсутствие/ошибка активированного runtime в режиме
-`activated` даёт 503 без скрытого fallback.
+`activate --slot runtime` завершается безопасной ошибкой. Rollback выполняется
+активацией предыдущей опубликованной catalog version; отсутствие или ошибка
+активированного runtime даёт 503 без скрытого fallback.
 
 Официальные профили доступны через `/api/object-profiles`,
 `/api/object-profiles/{type}` и `/api/object-profiles/{type}/preset`. Они
@@ -286,7 +285,8 @@ docker compose --profile tools run --rm catalog-description --mode COMMIT
 ```
 
 Повторный `COMMIT` идемпотентен. API каталога возвращает выбранное описание,
-полный overlay и provenance; расчётный runtime остаётся на `backend/fleet`.
+полный overlay и provenance; расчётный runtime требует отдельной активированной
+evidence-backed projection.
 
 ## XLSX/CSV-файлы проекта
 
@@ -310,7 +310,7 @@ CSV-шаблон для каждого официального профиля �
 сохраняет. После регистрации пользователь получает изолированные проекты,
 три сценарных слота (`BASE`, `OPTIMISTIC`, `PESSIMISTIC`) и immutable snapshots
 расчётов. Повторное открытие читает сохранённый snapshot, а rerun создаёт новую
-запись. Default runtime использует `backend/fleet`; каждый новый AnalysisRun
+запись. Каждый новый AnalysisRun
 фиксирует code и, для PostgreSQL-каталога, UUID реально разрешённого request
 snapshot. Переключение версии после расчёта не меняет сохранённый результат.
 
@@ -433,15 +433,31 @@ review, 36/38 — facts, 142/175 не имеют поддержанного capa
 `data/review/catalog-runtime-eligibility-report-v1.json` и
 `contracts/catalog-runtime-eligibility-audit-v1.schema.json`.
 
-Расчётный runtime безопасно остаётся на legacy `backend/fleet`. Точный
-следующий этап — materialize/import нового immutable `ENRICHMENT` bundle:
+Legacy-модели удалены из runtime и репозитория; при отсутствии активированного
+безопасного каталога расчётные endpoints возвращают 503. Official-source
+enrichment staging зафиксировал результаты исследования:
 официальное исследование дало 131 принятый field fact для 26 моделей, из них
 129 допущены в matching и 2 сохранены как review-only; 7 полей отложены, 318
 остались ненайденными. Post-enrichment projection по-прежнему даёт 0 runtime
 ready, 37/39 needs facts, 3/4 conflict review, 143/176 unsupported и 4/4 not
 equipment. Staging и полный audit находятся в
 `data/enrichment/catalog-official-source-enrichment-v1/` и
-`data/review/catalog-runtime-eligibility-post-enrichment-v1.json`. Затем идёт
-`engine/capacity-formula-trace`.
+`data/review/catalog-runtime-eligibility-post-enrichment-v1.json`.
+
+Для практического расчётного пула введён отдельный
+`runtime-calculation-readiness-contract-v2`: он не ослабляет deployment gate,
+но отделяет model-specific formula facts от операционных scenario inputs.
+Результат — 21 модель / 24 позиции с готовым ядром предварительного
+capacity-расчёта по всему каталогу, из них
+19 моделей входят в accepted research cohort. Для 15 моделей нужны явно
+показанные cycle assumptions; 6 уборочных моделей считаются без них. Ни одна
+модель пока не имеет `DEPLOYMENT_READY`, materialization adapter ещё не создан,
+economics не включена и active runtime не переключён.
+
+Следующий обязательный этап описан в
+[`docs/18_RUNTIME_POOL_AND_CATALOG_UI.md`](docs/18_RUNTIME_POOL_AND_CATALOG_UI.md):
+полный каталог сохраняет все 223 позиции, а 21 расчётная БРС-модель (24 позиции)
+получает явный тег `Участвует в расчёте` и отдельный UI-фильтр. Статус
+`С допущениями` должен быть виден отдельно и не выдаваться за deployment-ready.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

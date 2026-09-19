@@ -1,0 +1,335 @@
+{
+  "batch_id": "deep-cleaning-02",
+  "catalog_code": "organizer-catalog-v4",
+  "equipment_class_contracts": [
+    {
+      "capacity_profile": {
+        "code": "CLEANING_AREA_V1",
+        "required_fields": [
+          "capacity.cleaning_rate_m2_h",
+          "capacity.cleaning_width_m"
+        ]
+      },
+      "code": "CLEANING",
+      "required_runtime_fields": [
+        "specs.dimensions",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "runtime_category": "cleaning_robot",
+      "selectors": [
+        {
+          "subtypes": [
+            "Робот уборщик",
+            "Робот-уборщик"
+          ],
+          "type": "Мобильные роботы"
+        }
+      ]
+    }
+  ],
+  "mode": "DEEP_RESEARCH",
+  "model_count": 6,
+  "models": [
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "АО \"168Роботикс\"",
+      "name": "БРО 2.1",
+      "organizer_id": "ba5d2051-3036-439f-8b2e-e05e26581fe6",
+      "position_ids": [
+        "catalog-v4-row-0105"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Робком\"",
+      "name": "Веном Саранча",
+      "organizer_id": "d4b39362-518a-4cf2-8770-b69bc03585a0",
+      "position_ids": [
+        "catalog-v4-row-0108"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"ГК Автомакон\"",
+      "name": "АК-SC80",
+      "organizer_id": "e2095cfe-3ce4-404e-a4bb-2f378480d7ca",
+      "position_ids": [
+        "catalog-v4-row-0023"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"РОБО\"",
+      "name": "РУБИ-С-03",
+      "organizer_id": "e8960183-1828-4fdb-8c39-91f5a3523a96",
+      "position_ids": [
+        "catalog-v4-row-0021"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "АО \"168Роботикс\"",
+      "name": "БРО 3.0",
+      "organizer_id": "ef375ca1-8de1-4a8d-9262-c1a6b71f0333",
+      "position_ids": [
+        "catalog-v4-row-0106"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Вейбот Автомакон Роботикс\"",
+      "name": "Клинботикс 400 PRO",
+      "organizer_id": "f31223c1-44c8-4410-8381-6356e2158b61",
+      "position_ids": [
+        "catalog-v4-row-0024"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    }
+  ],
+  "runtime_contract_version": "runtime-eligibility-contract-v1",
+  "schema_version": "catalog-official-source-research-batch-v1",
+  "scope_exclusions": [
+    "prices",
+    "economics",
+    "procurement",
+    "capacity formulas",
+    "runtime activation",
+    "unsupported capacity profiles"
+  ]
+}

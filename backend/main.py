@@ -11,8 +11,8 @@ from catalog_models import CatalogMediaAsset
 from catalog_repository import (
     CatalogPositionDTO,
     CatalogSnapshotDTO,
-    LegacyFleetCatalogRepository,
 )
+from catalog_taxonomy import CATEGORY_LABELS, CATEGORY_ORDER
 from catalog_runtime import CatalogRuntime, CatalogRuntimeConfigurationError
 from database import get_database
 from economics import (
@@ -32,7 +32,6 @@ from economics import (
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from fleet import CATEGORY_LABELS, CATEGORY_ORDER
 from models import CalculationResponse, RejectedRobot, UserInput
 from object_profiles import (
     ObjectProfileError,
@@ -57,12 +56,8 @@ logger = logging.getLogger("robomera.api")
 
 
 # ═══════════════════════════════════════════════════════════════
-# Парк роботов — legacy snapshot остаётся совместимым default и мгновенным
-# rollback. Активированный runtime разрешается отдельно через feature flag.
+# Парк роботов разрешается только из явно активированного runtime-каталога.
 # ═══════════════════════════════════════════════════════════════
-_RUNTIME_CATALOG = LegacyFleetCatalogRepository().load()
-ROBOTS = _RUNTIME_CATALOG.runtime_robots()
-ROBOT_BY_ID = {r["id"]: r for r in ROBOTS}
 _CATALOG_RUNTIME = CatalogRuntime()
 
 
@@ -72,6 +67,14 @@ def _runtime_snapshot() -> CatalogSnapshotDTO:
     except CatalogRuntimeConfigurationError:
         logger.error("Configured runtime catalog is unavailable")
         raise HTTPException(503, "runtime catalog unavailable") from None
+
+
+def _discovery_snapshot() -> CatalogSnapshotDTO:
+    try:
+        return _CATALOG_RUNTIME.load_discovery()
+    except CatalogRuntimeConfigurationError:
+        logger.error("Activated discovery catalog is unavailable")
+        raise HTTPException(503, "discovery catalog unavailable") from None
 
 
 def _robots_by_category(robots: list[dict[str, Any]]):
@@ -167,16 +170,18 @@ def get_robot(robot_id: str):
 def process_readiness(request: ReadinessRequest) -> ReadinessReport:
     """Evaluate process readiness before capacity and economics.
 
-    The catalog is resolved from the same immutable runtime snapshot as the
-    legacy calculation, but this endpoint does not activate discovery records.
+    The catalog is resolved from the same immutable activated runtime snapshot
+    as calculation; this endpoint does not activate discovery records.
     """
 
+    snapshot = _runtime_snapshot()
     return evaluate_readiness(
         request.input,
-        _runtime_snapshot().runtime_robots(),
+        snapshot.runtime_robots(),
         provenance=request.provenance,
         parameter_values=request.parameter_values,
         parameter_provenance=request.parameter_provenance,
+        catalog_version=snapshot.version.code,
     )
 
 
@@ -299,21 +304,30 @@ def _discovery_position(
 
 @app.get("/api/catalog/status")
 def catalog_status():
-    runtime = _runtime_snapshot()
     try:
-        discovery, discovery_source = _CATALOG_RUNTIME.load_discovery()
-    except Exception:
+        discovery = _CATALOG_RUNTIME.load_discovery()
+    except CatalogRuntimeConfigurationError:
         logger.warning("Discovery catalog status is unavailable")
         raise HTTPException(503, "discovery catalog unavailable") from None
-    return {
-        "runtime": {
-            "configured_source": _CATALOG_RUNTIME.configured_source(),
+    try:
+        runtime = _CATALOG_RUNTIME.load_runtime()
+        runtime_status = {
+            "source": "activated",
             "catalog_code": runtime.version.code,
             "catalog_status": runtime.version.status,
             "selectable_count": len(runtime.runtime_robots()),
-        },
+        }
+    except CatalogRuntimeConfigurationError:
+        runtime_status = {
+            "source": "unavailable",
+            "catalog_code": None,
+            "catalog_status": None,
+            "selectable_count": 0,
+        }
+    return {
+        "runtime": runtime_status,
         "discovery": {
-            "source": discovery_source,
+            "source": "activated",
             "catalog_code": discovery.version.code,
             "catalog_status": discovery.version.status,
             "model_count": len(discovery.models),
@@ -334,7 +348,7 @@ def discover_catalog_models(
 ):
     """Search/filter the activated discovery catalog without making it selectable."""
 
-    snapshot, source = _CATALOG_RUNTIME.load_discovery()
+    snapshot = _discovery_snapshot()
     positions = list(snapshot.positions)
     if q and q.strip():
         needle = q.casefold().strip()
@@ -407,7 +421,7 @@ def discover_catalog_models(
             "id": snapshot.version.id,
             "code": snapshot.version.code,
             "status": snapshot.version.status,
-            "source": source,
+            "source": "activated",
         },
         "total": len(positions),
         "model_count": len(snapshot.models),
@@ -459,7 +473,7 @@ def discover_catalog_models(
 def get_catalog_position(position_id: str):
     """Return one position with gated description enrichment and provenance."""
 
-    snapshot, _ = _CATALOG_RUNTIME.load_discovery()
+    snapshot = _discovery_snapshot()
     position = next((item for item in snapshot.positions if item.id == position_id), None)
     if position is None:
         raise HTTPException(404, "catalog position not found")
@@ -719,7 +733,8 @@ app.include_router(
         calculate_for_catalog=calculate_with_catalog,
         readiness_for_catalog=lambda inp, catalog, **context: evaluate_readiness(
             inp,
-            (catalog or _runtime_snapshot()).runtime_robots(),
+            catalog.runtime_robots(),
+            catalog_version=catalog.version.code,
             **context,
         ),
         resolve_object_profile_version=official_profile_version,

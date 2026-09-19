@@ -88,6 +88,12 @@ multi-zone scenes, но не единую физическую модель вс
 границы хранения и фундамент БД, затем импорт проверенного каталога через
 отдельный overlay и только после dual-run проверки — переключение backend.
 
+Встроенные legacy-модели удалены. Production runtime и discovery читают только
+явно активированные PostgreSQL slots; отсутствие безопасной runtime projection
+даёт 503. Тесты расчётного ядра используют отдельные синтетические записи,
+которые production-код не импортирует. До materialization официального
+расчётного пула работоспособного runtime-каталога намеренно нет.
+
 ## Принципы, которые нельзя потерять
 
 - Начинать с процесса и боли, а не с бренда робота.
@@ -165,25 +171,38 @@ stub с фиктивными характеристиками отвергнут
 Встроенный warehouse golden path, PostgreSQL persistence, immutable
 AnalysisRun, официальный discovery-каталог, XLSX/CSV intake, readiness,
 architecture selection и hard constraints являются рабочей базой.
-Расчётный runtime пока остаётся на 13 legacy models; 223 official
-positions не становятся selectable без evidence-backed runtime facts.
+Встроенный legacy fleet удалён. Production runtime может читать только явно
+активированную PostgreSQL-версию каталога; 223 official positions не становятся
+расчётными без evidence-backed runtime facts.
 
 `catalog/runtime-eligibility-contract-gap-audit-223` реализован только по
 локальным данным. Contract v1 фиксирует четыре поддержанных equipment class и
 capacity profile без формул; отчёт детерминированно покрывает 223 positions и
 187 model identities. Распределение моделей: 0 `RUNTIME_READY`, 36
 `NEEDS_FACTS`, 5 `CONFLICT_REVIEW`, 142 `UNSUPPORTED_CAPACITY_PROFILE`, 4
-`NOT_EQUIPMENT`. Runtime остаётся на 13 legacy models.
+`NOT_EQUIPMENT`. Этот общий eligibility-аудит сохранён как исторический срез;
+он не является текущим calculation-readiness решением.
 
 `catalog/official-source-enrichment` исследован и сведён в review-only staging:
 131 field fact принят для 26 моделей, 129 из них matching-safe, 2 review-only,
 7 отложены и 318 остаются missing. Проекция после staging сохраняет 0
 `RUNTIME_READY`; распределение моделей — 37 `NEEDS_FACTS`, 3
 `CONFLICT_REVIEW`, 143 `UNSUPPORTED_CAPACITY_PROFILE`, 4 `NOT_EQUIPMENT`.
-Ближайший приоритет — собрать новый immutable `ENRICHMENT` bundle, выполнить
-validate-only import в DRAFT и повторить audit по импортированным данным. Затем
-идут capacity formula trace, commercial scenarios, обязательная
-2D/SimulationReport и exports.
+Эти результаты являются входом materialization следующей итерации; они не
+разрешают автоматически активировать deployment runtime.
+
+Для предварительных расчётов deployment readiness отделён от calculation
+readiness versioned contract v2. По всему organizer catalog ядро
+предварительного capacity-расчёта есть у 21 модели / 24 позиций; 15 моделей
+требуют явных scenario assumptions, 6 готовы без них. В accepted research
+cohort расчётно пригодны 19 из 26 identities. Следующая итерация —
+`catalog/runtime-pool-materialization-ui-21`: материализовать этот пул без БАС,
+сохранить полный каталог из 223 позиций и добавить в каталог заметный тег
+`Участвует в расчёте`, уточнение `С допущениями` и фильтр `Все / Участвуют /
+Требуют данных`. Для end-to-end backend ещё нужен materialization adapter и
+отдельная economics policy. Deployment-ready моделей по-прежнему 0; это не
+разрешает закупочные claims. Полный контракт этапа находится в
+`18_RUNTIME_POOL_AND_CATALOG_UI.md`.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

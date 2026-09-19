@@ -1,0 +1,178 @@
+{
+  "$id": "https://robodovod.local/schemas/catalog-official-source-research-return-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "batch_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "research_completed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "results": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "field_results": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "confidence": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "evidence": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "accessed_at": {
+                        "format": "date",
+                        "type": "string"
+                      },
+                      "publication_or_update_date": {
+                        "format": "date",
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "publisher": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "raw_value": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "source_locator": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "source_title": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "source_type": {
+                        "enum": [
+                          "OFFICIAL_MODEL_PAGE",
+                          "OFFICIAL_DATASHEET",
+                          "OFFICIAL_MANUAL",
+                          "OFFICIAL_CATALOG",
+                          "AUTHORIZED_PARTNER_PAGE"
+                        ]
+                      },
+                      "source_url": {
+                        "format": "uri",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "raw_value",
+                      "source_url",
+                      "source_title",
+                      "publisher",
+                      "source_type",
+                      "source_locator",
+                      "publication_or_update_date",
+                      "accessed_at"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "evidence_status": {
+                  "enum": [
+                    "VERIFIED_OFFICIAL",
+                    "VERIFIED_AUTHORIZED_PARTNER",
+                    "CONFLICT",
+                    "AMBIGUOUS_MODEL_MATCH",
+                    "NOT_FOUND"
+                  ]
+                },
+                "field_path": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "normalized_unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "normalized_value": {},
+                "notes": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field_path",
+                "evidence_status",
+                "normalized_value",
+                "normalized_unit",
+                "evidence",
+                "confidence",
+                "notes"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "identity_status": {
+            "enum": [
+              "EXACT_MODEL_MATCH",
+              "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+              "AMBIGUOUS_MODEL_MATCH",
+              "MODEL_NOT_FOUND"
+            ]
+          },
+          "matched_manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "matched_model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "organizer_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "unresolved_issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "organizer_id",
+          "identity_status",
+          "matched_manufacturer",
+          "matched_model",
+          "field_results",
+          "unresolved_issues"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "catalog-official-source-research-return-v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "batch_id",
+    "research_completed_at",
+    "results"
+  ],
+  "title": "ROBODOVOD official-source research return",
+  "type": "object"
+}

@@ -1,0 +1,1431 @@
+{
+  "batch_id": "deep-mobile-01",
+  "research_completed_at": "2026-09-18T12:23:41+09:00",
+  "results": [
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-21",
+              "publisher": "Объединенная двигателестроительная корпорация (ОДК)",
+              "raw_value": "максимальная скорость — 1,5 м/с",
+              "source_locator": "Абзац 2, техническое описание платформы",
+              "source_title": "В ОДК-СТАР создают робота для транспортировки деталей и инструмента",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://www.uecrus.com/press/v-odk-star-sozdayut-robota-dlya-transportirovki-detaley-i-instrumenta/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "m/s",
+          "normalized_value": 1.5,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-21",
+              "publisher": "Объединенная двигателестроительная корпорация (ОДК)",
+              "raw_value": "алгоритмов навигации по карте",
+              "source_locator": "Абзац 2, описание автономного режима",
+              "source_title": "В ОДК-СТАР создают робота для транспортировки деталей и инструмента",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://www.uecrus.com/press/v-odk-star-sozdayut-robota-dlya-transportirovki-detaley-i-instrumenta/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": "навигация по карте",
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-21",
+              "publisher": "Объединенная двигателестроительная корпорация (ОДК)",
+              "raw_value": "Грузоподъемность — 100 кг",
+              "source_locator": "Абзац 2, техническое описание платформы",
+              "source_title": "В ОДК-СТАР создают робота для транспортировки деталей и инструмента",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://www.uecrus.com/press/v-odk-star-sozdayut-robota-dlya-transportirovki-detaley-i-instrumenta/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.payload",
+          "normalized_unit": "kg",
+          "normalized_value": 100,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница САДКО и официальный PDF-поиск ОДК; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "АО «ОДК-СТАР»",
+      "matched_model": "САДКО — самоходный автономный доставщик комплектующих и оборудования",
+      "organizer_id": "0265d700-534e-417e-8fde-47de88fc3ebb",
+      "unresolved_issues": [
+        "Официальная публикация описывает САДКО как находящуюся на этапе испытаний; коммерческая ревизия не указана."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2024-08-07",
+              "publisher": "Московский физико-технический институт (МФТИ)",
+              "raw_value": "метод навигации по потолочным оптическим меткам в видимом диапазоне",
+              "source_locator": "Основной текст, абзац о выбранном методе навигации",
+              "source_title": "Автономный склад: инженеры МФТИ разработали робота-кладовщика",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ai.mipt.ru/news/tpost/n0tcjtjoy1-avtonomnii-sklad-inzheneri-mfti-razrabot"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": "потолочные оптические метки в видимом диапазоне",
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.payload",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница погрузчика МФТИ и официальный PDF-поиск; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Московский физико-технический институт (МФТИ)",
+      "matched_model": "Автономный мобильный погрузчик / робот-транспортировщик палет",
+      "organizer_id": "19a68304-56f7-432f-afd8-b97b2b8466ba",
+      "unresolved_issues": [
+        "Официальная публикация описывает полноразмерный образец и прототип без отдельного модельного индекса."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные страницы тягача СИ ПИ и официальный PDF-поиск Cognitive Pilot; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные страницы тягача СИ ПИ и официальный PDF-поиск Cognitive Pilot; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные страницы тягача СИ ПИ и официальный PDF-поиск Cognitive Pilot; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные страницы тягача СИ ПИ и официальный PDF-поиск Cognitive Pilot; target не найден."
+        },
+        {
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-01",
+              "publisher": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+              "raw_value": "взаимодействовать друг с другом в режиме реального времени",
+              "source_locator": "Основной текст, описание коллективного взаимодействия флота",
+              "source_title": "До конца года в Пулково внедрят флот беспилотных тягачей под управлением ИИ",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://cognitivepilot.com/cognitive-news/news/do-kontsa-goda-v-pulkovo-vnedryat-flot-bespilotnykh-tyagachey-pod-upravleniem-ii/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "взаимодействие роботов в реальном времени",
+          "notes": "Значение явно опубликовано для применимого проекта."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-01",
+              "publisher": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+              "raw_value": "Интеграция ИИ в систему управления аэропортом объединит технику, персонал и биометрию.",
+              "source_locator": "Основной текст, абзац об интеграции ИИ",
+              "source_title": "До конца года в Пулково внедрят флот беспилотных тягачей под управлением ИИ",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://cognitivepilot.com/cognitive-news/news/do-kontsa-goda-v-pulkovo-vnedryat-flot-bespilotnykh-tyagachey-pod-upravleniem-ii/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "система управления аэропортом"
+          ],
+          "notes": "Значение явно опубликовано для применимого проекта."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2025-06-25",
+              "publisher": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+              "raw_value": "Скорость его движения при этом не будет превышать 15 км/ч.",
+              "source_locator": "Основной текст, абзац о задачах робота в Пулково",
+              "source_title": "В аэропорту Пулково появятся беспилотные роботы-грузчики",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://cognitivepilot.com/cognitive-news/news/v-aeroportu-pulkovo-poyavyatsya-bespilotnye-roboty-gruzchiki/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "km/h",
+          "normalized_value": 15,
+          "notes": "Значение явно опубликовано для применимого проекта."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные страницы тягача СИ ПИ и официальный PDF-поиск Cognitive Pilot; target не найден."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-01",
+              "publisher": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+              "raw_value": "тягачей, которые управляются при помощи нейросетей",
+              "source_locator": "Основной текст, первый абзац",
+              "source_title": "До конца года в Пулково внедрят флот беспилотных тягачей под управлением ИИ",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://cognitivepilot.com/cognitive-news/news/do-kontsa-goda-v-pulkovo-vnedryat-flot-bespilotnykh-tyagachey-pod-upravleniem-ii/"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-01",
+              "publisher": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+              "raw_value": "Набор сенсоров у тягачей состоит из четырех видеокамер, лидаров и радаров.",
+              "source_locator": "Основной текст, описание сенсоров",
+              "source_title": "До конца года в Пулково внедрят флот беспилотных тягачей под управлением ИИ",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://cognitivepilot.com/cognitive-news/news/do-kontsa-goda-v-pulkovo-vnedryat-flot-bespilotnykh-tyagachey-pod-upravleniem-ii/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": {
+            "control": "нейросети",
+            "sensors": [
+              "4 видеокамеры",
+              "лидары",
+              "радары"
+            ]
+          },
+          "notes": "Значение явно опубликовано для применимого проекта."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2026-04-01",
+              "publisher": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+              "raw_value": "принимать решения в сложных метеоусловиях Северной столицы",
+              "source_locator": "Цитата генерального директора Cognitive Pilot",
+              "source_title": "До конца года в Пулково внедрят флот беспилотных тягачей под управлением ИИ",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://cognitivepilot.com/cognitive-news/news/do-kontsa-goda-v-pulkovo-vnedryat-flot-bespilotnykh-tyagachey-pod-upravleniem-ii/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": "сложные метеоусловия Санкт-Петербурга",
+          "notes": "Значение явно опубликовано для применимого проекта."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2025-06-25",
+              "publisher": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+              "raw_value": "перевозят до 3 тонн багажа",
+              "source_locator": "Пункт «Мировая премьера»",
+              "source_title": "Пулково встречает будущее!",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://cognitivepilot.com/cognitive-news/blog/pulkovo-vstrechaet-budushchee/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.payload",
+          "normalized_unit": "t",
+          "normalized_value": 3,
+          "notes": "Значение явно опубликовано для применимого проекта."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные страницы тягача СИ ПИ и официальный PDF-поиск Cognitive Pilot; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные страницы тягача СИ ПИ и официальный PDF-поиск Cognitive Pilot; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Cognitive Pilot (ООО «Когнитив роботикс»)",
+      "matched_model": "Беспилотный робот-тягач СИ ПИ для аэропорта Пулково",
+      "organizer_id": "28a5afa8-0473-4f80-99a9-b2922b76810f",
+      "unresolved_issues": [
+        "Официальные публикации описывают проект Пулково; отдельный индекс ревизии тягача не опубликован."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SR, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SR, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "до 16 часов",
+              "source_locator": "Раздел «Технические характеристики Ronavi SR», строка «Время автономной работы»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": 16,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SR, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "Wi-Fi 5 ГГц 802.11 a/c/n",
+              "source_locator": "Раздел «Технические характеристики Ronavi SR», строка «Вид беспроводной связи»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "Wi-Fi 5 ГГц 802.11 a/c/n",
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "Интеграция с системой управления складом и производством",
+              "source_locator": "Блок «Комплексная автоматизация склада»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "открытому API (программный интерфейс) для интеграции с WMS",
+              "source_locator": "Раздел «Сортировочный робот для посылок и товаров»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "WMS",
+            "система управления складом и производством",
+            "открытый API"
+          ],
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "3 м/с",
+              "source_locator": "Раздел «Технические характеристики Ronavi SR», строка «Максимальная скорость»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "m/s",
+          "normalized_value": 3,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "690 мм",
+              "source_locator": "Раздел «Технические характеристики Ronavi SR», строка «Минимальная ширина проезда»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": "mm",
+          "normalized_value": 690,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "QR-метки",
+              "source_locator": "Раздел «Технические характеристики Ronavi SR», строка «Тип навигации»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": [
+            "QR-метки"
+          ],
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SR, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "полной сервисной поддержкой в РФ",
+              "source_locator": "Раздел преимуществ, «Надежность»",
+              "source_title": "Ronavi SR — робот-сортировщик для склада | Автоматическая сортировка грузов до 50 кг",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sr"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": "полная сервисная поддержка в РФ",
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SR, официальный каталог и официальный PDF-поиск; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Ronavi Robotics",
+      "matched_model": "Ronavi SR",
+      "organizer_id": "3f2aaa1b-2237-4d7b-b215-1ac5ec789ed5",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный каталог, точный поиск Ronavi RCM и официальный PDF-поиск; модель/target не найдены."
+        }
+      ],
+      "identity_status": "MODEL_NOT_FOUND",
+      "matched_manufacturer": "Ronavi Robotics",
+      "matched_model": null,
+      "organizer_id": "4d347e47-38f9-415b-aae1-7a6d3759a75c",
+      "unresolved_issues": [
+        "Точная модель Ronavi RCM не найдена в текущем официальном каталоге Ronavi и в целевых поисках официальных PDF/страниц."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены модельный блок AK-2000-2, официальный каталог и PDF-поиск; target не найден в доступном материале."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Automacon Robotics",
+      "matched_model": "AK-2000-2",
+      "organizer_id": "5a36611d-033e-4893-bd49-5d4f776f57dd",
+      "unresolved_issues": [
+        "На официальной странице есть ссылка на PDF-каталог; веб-интерфейс не смог загрузить PDF из-за размера, поэтому NOT_FOUND опирается на доступный модельный блок и целевой поиск PDF."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR800 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR800 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR800 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR800 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR800 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR800 и официальный PDF-поиск МОРОС; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ООО «Мобильные роботизированные системы» (МОРОС)",
+      "matched_model": "AMR800",
+      "organizer_id": "5ec66969-8fcc-47b3-b517-a9c29372fffe",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SD, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SD, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SD, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "Wi-Fi 5 ГГц 802.11 a/c/n",
+              "source_locator": "Раздел «Технические характеристики Ronavi SD», строка «Вид беспроводной связи»",
+              "source_title": "Ronavi SD — робот для сортировки посылок и писем до 10 кг | Купить AMR для почтовой логистики",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sd"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "Wi-Fi 5 ГГц 802.11 a/c/n",
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "Интеграция с ТСД и системой управления складом",
+              "source_locator": "Блок преимуществ модели",
+              "source_title": "Ronavi SD — робот для сортировки посылок и писем до 10 кг | Купить AMR для почтовой логистики",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sd"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "Поддержка работы с ТСД и интеграция с почтовыми системами",
+              "source_locator": "Раздел преимуществ, «Комплексная архитектура»",
+              "source_title": "Ronavi SD — робот для сортировки посылок и писем до 10 кг | Купить AMR для почтовой логистики",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sd"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "ТСД",
+            "система управления складом",
+            "почтовые системы"
+          ],
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SD, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "полной сервисной поддержкой",
+              "source_locator": "Раздел преимуществ, «Надежность»",
+              "source_title": "Ronavi SD — робот для сортировки посылок и писем до 10 кг | Купить AMR для почтовой логистики",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/sd"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": "полная сервисная поддержка",
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi SD, официальный каталог и официальный PDF-поиск; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Ronavi Robotics",
+      "matched_model": "Ronavi SD",
+      "organizer_id": "66d8e7ad-cdcd-4287-afb0-e2afa9ef5217",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi H2000, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi H2000, официальный каталог и официальный PDF-поиск; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "1190 мм",
+              "source_locator": "Раздел «Технические характеристики Ronavi H2000», строка «Минимальная ширина проезда»",
+              "source_title": "Ronavi H2000 — робот для гибкого конвейера до 2000 кг | Компенсация конвейерных разрывов",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/h2000"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": "mm",
+          "normalized_value": 1190,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "до 2 тонн внутри помещений",
+              "source_locator": "Заголовок модельной страницы",
+              "source_title": "Ronavi H2000 — робот для гибкого конвейера до 2000 кг | Компенсация конвейерных разрывов",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/h2000"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ronavi Robotics",
+              "raw_value": "в условиях цеха",
+              "source_locator": "Блок «Грузоподъёмность до 2000 кг»",
+              "source_title": "Ronavi H2000 — робот для гибкого конвейера до 2000 кг | Компенсация конвейерных разрывов",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/h2000"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": {
+            "context": "цех",
+            "environment": "внутри помещений"
+          },
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница Ronavi H2000, официальный каталог и официальный PDF-поиск; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "Ronavi Robotics",
+      "matched_model": "Ronavi H2000",
+      "organizer_id": "6f3da854-41da-4363-8496-5487f37c845a",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR1500 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR1500 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "До 22 часов без подзарядки",
+              "source_locator": "Раздел технических характеристик, строка «Время работы»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": 22,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "Автоматическая док-станция / ручная зарядка",
+              "source_locator": "Раздел технических характеристик, строка «Способ зарядки»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": [
+            "автоматическая док-станция",
+            "ручная зарядка"
+          ],
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR1500 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "Интеграция с MES и WMS-системами для полной автоматизации логистических процессов.",
+              "source_locator": "Раздел «Дополнительные возможности»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "Поддержка API для интеграции с промышленными системами.",
+              "source_locator": "Раздел «Программное обеспечение»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "MES",
+            "WMS",
+            "API для промышленных систем"
+          ],
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "До 1,5 м/с",
+              "source_locator": "Раздел технических характеристик, строка «Скорость движения»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "m/s",
+          "normalized_value": 1.5,
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR1500 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "QR-метки, SLAM",
+              "source_locator": "Раздел технических характеристик, строка «Навигация»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": [
+            "QR-метки",
+            "SLAM"
+          ],
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "Рабочая температура: от +5°C до +40°C",
+              "source_locator": "Раздел «Условия эксплуатации»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Мобильные роботизированные системы» (МОРОС)",
+              "raw_value": "Защита от пыли и влаги (по желанию – IP54 и выше)",
+              "source_locator": "Раздел «Условия эксплуатации»",
+              "source_title": "AMR1500 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-1500/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": {
+            "optional_ip_rating": "IP54+",
+            "temperature_degC": [
+              5,
+              40
+            ]
+          },
+          "notes": "Значение явно опубликовано для применимой модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR1500 и официальный PDF-поиск МОРОС; target не найден."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены страница AMR1500 и официальный PDF-поиск МОРОС; target не найден."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ООО «Мобильные роботизированные системы» (МОРОС)",
+      "matched_model": "AMR1500",
+      "organizer_id": "7d5a76d2-7bf3-4a40-b6f7-64590d4d9273",
+      "unresolved_issues": []
+    }
+  ],
+  "schema_version": "catalog-official-source-research-return-v1"
+}

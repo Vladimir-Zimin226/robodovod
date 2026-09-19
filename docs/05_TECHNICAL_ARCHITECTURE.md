@@ -122,10 +122,9 @@ PostgreSQL
 
 Текущий implementation note: PostgreSQL storage control-plane, catalog-domain
 schema, явный транзакционный importer и repository dual-run реализованы.
-Прототип всё ещё читает runtime-каталог только из legacy adapter над
-`backend/fleet`; PostgreSQL adapter доступен служебному dual-run под feature
-flag. Публичные calculation/ScenarioSpec contracts и источник данных под ними
-не менялись.
+Встроенный legacy fleet удалён. Runtime и discovery разрешаются только из явно
+активированных PostgreSQL slots и fail-closed при их отсутствии. Dual-run
+сравнивает две явно названные catalog versions.
 
 ### Storage ownership
 

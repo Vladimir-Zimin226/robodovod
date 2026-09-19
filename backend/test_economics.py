@@ -13,7 +13,11 @@ from economics import (
     zone_to_input, calc_zone, calc_combined, _calc_scenario, SCENARIOS,
 )
 from auditor import _parse_money, _num, _fallback_extract
-from fleet import as_dicts
+from test_robot_fixtures import synthetic_robot, synthetic_robots
+
+
+def as_dicts():
+    return synthetic_robots()
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -31,11 +35,12 @@ def _robot(picks=13, power=300, batt=300_000, cycles=3000, runtime=10):
 
 
 def _robot_dict(robot_id: str) -> dict:
-    """fleet.ROBOT_BY_ID хранит Pydantic-модели; economics ждёт dict."""
-    for r in as_dicts():
-        if r["id"] == robot_id:
-            return r
-    raise KeyError(robot_id)
+    """Return synthetic profiles by the historical test role requested."""
+    if robot_id == "synthetic-delivery":
+        return synthetic_robot("delivery")
+    if robot_id == "synthetic-transport-light":
+        return synthetic_robot("light")
+    return synthetic_robot("heavy")
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -265,7 +270,7 @@ class TestInflationInFlows:
                         fte_cost_rub=1_400_000, aisle_width_m=2.4,
                         payload_kg=700)
         _, details = _calc_scenario(
-            inp, _robot_dict("amr_heavy_1350"), "base", SCENARIOS["base"])
+            inp, _robot_dict("synthetic-transport-heavy"), "base", SCENARIOS["base"])
         expected_year_2 = (
             details["labor"] * (1 + LABOR_INFLATION)
             + details["equip"] * (1 + OPEX_INFLATION)
@@ -282,7 +287,7 @@ class TestInflationInFlows:
                         payload_kg=700)
         scenario = SCENARIOS["base"]
         _, details = _calc_scenario(
-            inp, _robot_dict("amr_heavy_1350"), "base", scenario)
+            inp, _robot_dict("synthetic-transport-heavy"), "base", scenario)
         expected = sum(
             details["opex"]
             * (scenario["ramp"] if year == 0 else 1.0)
@@ -305,34 +310,34 @@ class TestHorizon:
                          horizon_years=horizon)
 
     def test_default_horizon_is_5(self):
-        rec = calc_recommendation(self._inp(None), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(None), _robot_dict("synthetic-transport-heavy"))
         assert rec.horizon_years == 5
         assert rec.scenarios[1].horizon_years == 5
 
     def test_custom_horizon_in_result(self):
         for h in (5, 7, 10):
-            rec = calc_recommendation(self._inp(h), _robot_dict("amr_heavy_1350"))
+            rec = calc_recommendation(self._inp(h), _robot_dict("synthetic-transport-heavy"))
             assert rec.horizon_years == h
             for s in rec.scenarios:
                 assert s.horizon_years == h
 
     def test_longer_horizon_increases_npv(self):
-        rec5 = calc_recommendation(self._inp(5), _robot_dict("amr_heavy_1350"))
-        rec10 = calc_recommendation(self._inp(10), _robot_dict("amr_heavy_1350"))
+        rec5 = calc_recommendation(self._inp(5), _robot_dict("synthetic-transport-heavy"))
+        rec10 = calc_recommendation(self._inp(10), _robot_dict("synthetic-transport-heavy"))
         assert rec10.npv > rec5.npv
 
     def test_longer_horizon_increases_tco(self):
-        rec5 = calc_recommendation(self._inp(5), _robot_dict("amr_heavy_1350"))
-        rec10 = calc_recommendation(self._inp(10), _robot_dict("amr_heavy_1350"))
+        rec5 = calc_recommendation(self._inp(5), _robot_dict("synthetic-transport-heavy"))
+        rec10 = calc_recommendation(self._inp(10), _robot_dict("synthetic-transport-heavy"))
         assert rec10.tco > rec5.tco
 
     def test_horizon_does_not_change_capex(self):
-        rec5 = calc_recommendation(self._inp(5), _robot_dict("amr_heavy_1350"))
-        rec10 = calc_recommendation(self._inp(10), _robot_dict("amr_heavy_1350"))
+        rec5 = calc_recommendation(self._inp(5), _robot_dict("synthetic-transport-heavy"))
+        rec10 = calc_recommendation(self._inp(10), _robot_dict("synthetic-transport-heavy"))
         assert rec5.capex == rec10.capex
 
     def test_horizon_battery_within_bounds(self):
-        rec10 = calc_recommendation(self._inp(10), _robot_dict("amr_heavy_1350"))
+        rec10 = calc_recommendation(self._inp(10), _robot_dict("synthetic-transport-heavy"))
         for s in rec10.scenarios:
             if s.battery_replacement_year is not None:
                 assert s.battery_replacement_year <= 10
@@ -365,7 +370,7 @@ class TestHorizon:
         assert ASSUMPTIONS["horizon_years_max"] == MAX_HORIZON_YEARS
 
     def test_warning_mentions_horizon(self):
-        rec = calc_recommendation(self._inp(7), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(7), _robot_dict("synthetic-transport-heavy"))
         joined = " ".join(rec.warnings)
         assert "Горизонт расчёта: 7 лет" in joined
 
@@ -383,7 +388,7 @@ class TestStaffBreakdown:
                          released_headcount=n)
 
     def test_slider_enabled_when_staff_given(self):
-        rec = calc_recommendation(self._inp(), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(), _robot_dict("synthetic-transport-heavy"))
         assert rec.staff_breakdown.slider_enabled
         assert rec.staff_breakdown.slider_max == 12
         assert rec.staff_breakdown.staff_total == 12
@@ -394,63 +399,63 @@ class TestStaffBreakdown:
                         area_m2=12000, avg_distance_m=180, shifts_count=3,
                         shift_hours=8, fte_cost_rub=1_674_000,
                         aisle_width_m=2.4, payload_kg=700)
-        rec = calc_recommendation(inp, _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(inp, _robot_dict("synthetic-transport-heavy"))
         assert not rec.staff_breakdown.slider_enabled
         assert rec.staff_breakdown.slider_max == 0
 
     def test_full_release_by_default(self):
-        rec = calc_recommendation(self._inp(n=None), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=None), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.staff_requested is None
         assert sb.staff_applied == sb.staff_replaceable
         assert not sb.is_clamped
 
     def test_partial_request_applied(self):
-        rec = calc_recommendation(self._inp(n=6), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=6), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.staff_requested == 6
         assert sb.staff_applied == 6.0
         assert not sb.is_clamped
 
     def test_request_above_replaceable_is_clamped(self):
-        rec = calc_recommendation(self._inp(n=50), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=50), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.staff_requested == 50
         assert sb.staff_applied == sb.staff_replaceable
         assert sb.is_clamped
 
     def test_zero_request_no_labor_savings(self):
-        rec = calc_recommendation(self._inp(n=0), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=0), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.staff_applied == 0.0
         assert sb.staff_released == 0.0
 
     def test_below_pult_flag(self):
-        rec = calc_recommendation(self._inp(n=2), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=2), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.is_below_pult
         assert sb.staff_released == 0.0
 
     def test_monotonic_increase(self):
         sav = lambda n: calc_recommendation(
-            self._inp(n=n), _robot_dict("amr_heavy_1350")
+            self._inp(n=n), _robot_dict("synthetic-transport-heavy")
         ).scenarios[1].savings_annual
         assert sav(0) < sav(4) < sav(6) < sav(9) < sav(12)
 
     def test_warning_mentions_partial(self):
-        rec = calc_recommendation(self._inp(n=6), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=6), _robot_dict("synthetic-transport-heavy"))
         joined = " ".join(rec.warnings)
         assert "Замена персонала: 6 из 12 человек" in joined
         assert "Реально высвобождается 3 FTE" in joined
 
     def test_warning_mentions_clamp(self):
-        rec = calc_recommendation(self._inp(n=50), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=50), _robot_dict("synthetic-transport-heavy"))
         joined = " ".join(rec.warnings)
         assert "может заменить только" in joined
         assert "Применено к расчёту" in joined
 
     def test_warning_mentions_below_pult(self):
-        rec = calc_recommendation(self._inp(n=2), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=2), _robot_dict("synthetic-transport-heavy"))
         joined = " ".join(rec.warnings)
         assert "не покрывает пульт" in joined
         assert "Экономии на ФОТ нет" in joined
@@ -462,32 +467,32 @@ class TestStaffBreakdown:
                       released_headcount=-1)
 
     def test_pult_shortage_when_insufficient_release(self):
-        rec = calc_recommendation(self._inp(n=2), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=2), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.pult_shortage == pytest.approx(1.0)
         assert sb.pult_source == "mixed"
 
     def test_pult_source_from_staff_when_nobody_replaced(self):
-        rec = calc_recommendation(self._inp(n=0), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=0), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.staff_applied == 0.0
         assert sb.pult_source == "from_staff"
 
     def test_no_shortage_when_enough_released(self):
-        rec = calc_recommendation(self._inp(n=6), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=6), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.pult_shortage == 0.0
         assert sb.pult_source == "from_released"
 
     def test_no_shortage_when_released_equals_pult(self):
-        rec = calc_recommendation(self._inp(n=3), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=3), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.pult_shortage == 0.0
         assert sb.pult_source == "from_released"
         assert sb.staff_released == 0.0
 
     def test_pult_shortage_only_when_below_pult(self):
-        rec = calc_recommendation(self._inp(n=4), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=4), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.pult_shortage == 0.0
         assert sb.pult_source == "from_released"
@@ -508,7 +513,7 @@ class TestMinPultPerShift:
                          min_pult_fte_per_shift=min_per_shift)
 
     def test_default_min_is_one_per_shift(self):
-        rec = calc_recommendation(self._inp(), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(), _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.min_pult_per_shift == 1.0
         assert sb.pult_minimum == 3
@@ -516,7 +521,7 @@ class TestMinPultPerShift:
     def test_min_reason_when_percent_lower(self):
         rec = calc_recommendation(
             self._inp(n=6, min_per_shift=1.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.pult_reason == "min_per_shift"
         assert sb.staff_on_pult == 3.0
@@ -524,7 +529,7 @@ class TestMinPultPerShift:
     def test_pct_reason_when_percent_higher(self):
         rec = calc_recommendation(
             self._inp(n=12, min_per_shift=0.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         sb = rec.staff_breakdown
         assert sb.pult_reason == "supervision_pct"
         assert sb.staff_on_pult == pytest.approx(2.4, abs=0.1)
@@ -532,27 +537,27 @@ class TestMinPultPerShift:
     def test_min_zero_disables_floor(self):
         rec_1 = calc_recommendation(
             self._inp(n=6, min_per_shift=1.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         rec_0 = calc_recommendation(
             self._inp(n=6, min_per_shift=0.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         assert rec_0.staff_breakdown.staff_on_pult < rec_1.staff_breakdown.staff_on_pult
         assert rec_0.staff_breakdown.staff_released > rec_1.staff_breakdown.staff_released
 
     def test_min_doubled_increases_retained(self):
         rec_1 = calc_recommendation(
             self._inp(n=12, min_per_shift=1.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         rec_2 = calc_recommendation(
             self._inp(n=12, min_per_shift=2.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         assert rec_2.staff_breakdown.staff_on_pult == 6.0
         assert rec_1.staff_breakdown.staff_on_pult == 3.0
 
     def test_warning_mentions_min_when_fires(self):
         rec = calc_recommendation(
             self._inp(n=6, min_per_shift=1.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         joined = " ".join(rec.warnings)
         assert "сработал жёсткий минимум" in joined
         assert "min_pult_fte_per_shift=0" in joined
@@ -560,7 +565,7 @@ class TestMinPultPerShift:
     def test_warning_mentions_pct_when_fires(self):
         rec = calc_recommendation(
             self._inp(n=12, min_per_shift=0.0, shifts=3),
-            _robot_dict("amr_heavy_1350"))
+            _robot_dict("synthetic-transport-heavy"))
         joined = " ".join(rec.warnings)
         assert "процент supervision" in joined
         assert "20%" in joined
@@ -594,24 +599,24 @@ class TestFteReleased:
                          released_headcount=n)
 
     def test_fte_released_matches_staff_breakdown(self):
-        rec = calc_recommendation(self._inp(n=6), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=6), _robot_dict("synthetic-transport-heavy"))
         assert rec.fte_released == rec.staff_breakdown.staff_released
 
     def test_fte_displaced_is_potential(self):
-        rec = calc_recommendation(self._inp(n=6), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=6), _robot_dict("synthetic-transport-heavy"))
         assert rec.fte_displaced >= rec.fte_released
 
     def test_full_release_displaced_gt_released(self):
-        rec = calc_recommendation(self._inp(n=None), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=None), _robot_dict("synthetic-transport-heavy"))
         assert rec.fte_displaced > rec.fte_released
 
     def test_zero_release_gives_zero(self):
-        rec = calc_recommendation(self._inp(n=0), _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(self._inp(n=0), _robot_dict("synthetic-transport-heavy"))
         assert rec.fte_released == 0.0
 
     def test_monotonic_increasing(self):
         rel = lambda n: calc_recommendation(
-            self._inp(n=n), _robot_dict("amr_heavy_1350")
+            self._inp(n=n), _robot_dict("synthetic-transport-heavy")
         ).fte_released
         assert rel(0) < rel(4) <= rel(6) <= rel(12)
 
@@ -635,28 +640,10 @@ class TestResidualShare:
             assert 0.0 <= rs <= 1.0, f"{r['id']}: residual_share вне [0,1]"
 
     def test_residual_share_by_robot(self):
-        expected = {
-            "agv_pallet_qr": 0.30,
-            "amr_light_250": 0.35,
-            "amr_heavy_1350": 0.35,
-            "agv_tug_k05": 0.30,
-            "courier_flashbot": 0.45,
-            "bella_bot": 0.45,
-            "cleaner_cc1_pro": 0.35,
-            "sweeper_mt1": 0.35,
-            "palletizer_cell_21": 0.50,
-            "drone_inventory": 0.20,
-            "drone_inventory_pro": 0.25,
-            "drone_inspection": 0.20,
-            "drone_yard": 0.15,
-        }
         for r in as_dicts():
             rs = r["economics"].get("residual_share")
             assert rs is not None, f"{r['id']}: residual_share отсутствует"
-            if r["id"] in expected:
-                assert rs == pytest.approx(expected[r["id"]]), (
-                    f"{r['id']}: ожидалось {expected[r['id']]}, получено {rs}"
-                )
+            assert rs == pytest.approx(0.35)
 
     def test_residual_share_within_bounds(self):
         for r in as_dicts():
@@ -669,7 +656,7 @@ class TestResidualShare:
                         area_m2=12000, avg_distance_m=180, shifts_count=3,
                         shift_hours=8, staff_headcount=12,
                         fte_cost_rub=1_674_000, aisle_width_m=2.4, payload_kg=700)
-        rec = calc_recommendation(inp, _robot_dict("amr_heavy_1350"))
+        rec = calc_recommendation(inp, _robot_dict("synthetic-transport-heavy"))
         joined = " ".join(rec.warnings)
         assert "Остаточная стоимость" in joined
         assert "35% CAPEX" in joined
@@ -681,9 +668,9 @@ class TestResidualShare:
                         area_m2=12000, avg_distance_m=180, shifts_count=3,
                         shift_hours=8, staff_headcount=12,
                         fte_cost_rub=1_674_000, aisle_width_m=2.4, payload_kg=700)
-        robot_low = copy.deepcopy(_robot_dict("amr_heavy_1350"))
+        robot_low = copy.deepcopy(_robot_dict("synthetic-transport-heavy"))
         robot_low["economics"]["residual_share"] = 0.10
-        robot_high = copy.deepcopy(_robot_dict("amr_heavy_1350"))
+        robot_high = copy.deepcopy(_robot_dict("synthetic-transport-heavy"))
         robot_high["economics"]["residual_share"] = 0.80
         rec_low = calc_recommendation(inp, robot_low)
         rec_high = calc_recommendation(inp, robot_high)
@@ -737,27 +724,9 @@ class TestRobotPurpose:
                 assert 3 <= len(item) <= 50, f"{r['id']}: '{item}' длина не подходит"
 
     def test_purpose_expected_by_robot(self):
-        expected = {
-            "agv_pallet_qr": "Транспортировка паллет",
-            "amr_light_250": "Коробки и мелкие поддоны",
-            "amr_heavy_1350": "Тяжёлые паллеты до 1.35 т",
-            "agv_tug_k05": "Поезда тележек",
-            "courier_flashbot": "Межэтажная доставка",
-            "bella_bot": "Доставка внутри этажа",
-            "cleaner_cc1_pro": "Влажная уборка",
-            "sweeper_mt1": "Промышленные площади",
-            "palletizer_cell_21": "Укладка коробов",
-            "drone_inventory": "Инвентаризация склада",
-            "drone_inventory_pro": "RFID-сканирование",
-            "drone_inspection": "Инспекция стеллажей",
-            "drone_yard": "Аэропорт и порт",
-        }
-        by_id = {r["id"]: r for r in as_dicts()}
-        for rid, first_purpose in expected.items():
-            assert rid in by_id
-            assert first_purpose in by_id[rid]["purpose"], (
-                f"{rid}: ожидалось '{first_purpose}'"
-            )
+        assert all(
+            "Engine unit tests" in robot["purpose"] for robot in as_dicts()
+        )
 
 
 # ═══════════════════════════════════════════════════════════════

@@ -367,6 +367,8 @@ def evaluate_equipment_constraints(
     inp: UserInput,
     robot: Mapping[str, Any],
     provenance: Mapping[str, Any] | None = None,
+    *,
+    catalog_version: str = "unversioned-test-input",
 ) -> TechnicalCandidate:
     """Evaluate candidate facts without filling missing critical requirements."""
 
@@ -375,7 +377,7 @@ def evaluate_equipment_constraints(
     specs = robot.get("specs") or {}
     catalog_evidence = EvidenceRef(
         kind="CATALOG", field=None,
-        source={"catalog_version": "legacy-fleet-v1", "equipment_model_id": robot.get("id")},
+        source={"catalog_version": catalog_version, "equipment_model_id": robot.get("id")},
     )
     checks: list[ConstraintResult] = []
     object_ok = all(inp.object_type in robot.get("object_types", []) for _ in contexts)
@@ -471,6 +473,7 @@ def evaluate_readiness(
     provenance: Mapping[str, Any] | None = None,
     parameter_values: Mapping[str, Any] | None = None,
     parameter_provenance: Mapping[str, Any] | None = None,
+    catalog_version: str = "unversioned-test-input",
 ) -> ReadinessReport:
     provenance = provenance or {}
     parameter_values = parameter_values or {}
@@ -488,7 +491,12 @@ def evaluate_readiness(
     score = round(sum(_STATUS_SCORE[item.status] for item in checks) / len(checks)) if checks else 0
     known = sum(item.status in {"PASS", "FAIL"} for item in checks)
     confidence = "HIGH" if known / len(checks) >= 0.8 else "MEDIUM" if known / len(checks) >= 0.55 else "LOW"
-    technical = [evaluate_equipment_constraints(inp, robot, provenance) for robot in robots]
+    technical = [
+        evaluate_equipment_constraints(
+            inp, robot, provenance, catalog_version=catalog_version
+        )
+        for robot in robots
+    ]
     return ReadinessReport(
         overall_status=overall,
         score=score,

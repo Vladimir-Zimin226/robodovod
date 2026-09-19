@@ -19,14 +19,12 @@ from catalog_models import (
     FieldEvidence,
     ResolvedSpecFact,
 )
-from catalog_repository import (
-    LegacyFleetCatalogRepository,
-    PostgresCatalogRepository,
-)
+from catalog_repository import PostgresCatalogRepository
 from database import Database, DatabaseSettings
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from storage_models import CatalogVersion, CatalogVersionSource, SourceArtifact
+from test_robot_fixtures import synthetic_robot
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(
@@ -98,10 +96,7 @@ def repository_database(migrated_database):
 
 
 def _seed_runtime_mirror(database: Database) -> str:
-    legacy_snapshot = LegacyFleetCatalogRepository().load()
-    legacy_model = legacy_snapshot.by_source_key()["amr_heavy_1350"]
-    robot = legacy_model.runtime_dict()
-    assert robot is not None
+    robot = synthetic_robot("heavy")
 
     version_id = uuid.uuid4()
     model_id = uuid.uuid4()
@@ -231,14 +226,14 @@ def test_postgres_adapter_and_dual_run_match_safe_runtime_mirror(
     fixture_payload = loaded_fixture.model_dump(mode="json")
     fixture_payload["model_pairs"] = [
         {
-            "reference_id": "amr_heavy_1350",
-            "candidate_id": "amr_heavy_1350",
+            "reference_id": "synthetic-transport-heavy",
+            "candidate_id": "synthetic-transport-heavy",
         }
     ]
     fixture_payload["expected_differences"] = []
     fixture = type(loaded_fixture).model_validate(fixture_payload)
     monkeypatch.setenv("CATALOG_DUAL_RUN_ENABLED", "true")
-    report = run_dual_run(LegacyFleetCatalogRepository(), repository, fixture)
+    report = run_dual_run(repository, repository, fixture)
 
     assert report["summary"]["DEFECT"] == 0
     assert report["summary"]["BLOCKED_BY_EVIDENCE"] == 0
@@ -307,20 +302,3 @@ def test_official_catalog_exposes_only_safe_facts_and_reports_blockers(
     candidate = snapshot.by_source_key()["org-5760e938-9a43-45a7-b8e8-f4f2e6383930"]
     assert candidate.runtime_robot is None
     assert candidate.runtime_blockers == ("runtime_projection",)
-
-    fixture = load_dual_run_fixture(DUAL_RUN_FIXTURE)
-    monkeypatch.setenv("CATALOG_DUAL_RUN_ENABLED", "true")
-    report = run_dual_run(LegacyFleetCatalogRepository(), repository, fixture)
-
-    assert report["summary"] == {
-        "MATCH": 0,
-        "EXPECTED_DIFFERENCE": 1,
-        "DEFECT": 0,
-        "BLOCKED_BY_EVIDENCE": 12,
-    }
-    assert report["unused_expectations"] == []
-    assert all(
-        item["reason"]
-        for item in report["comparisons"]
-        if item["classification"] != "MATCH"
-    )

@@ -1,6 +1,6 @@
 {
   "fixture_version": "economics-warehouse-v1",
-  "policy": "immutable; create a new version instead of updating expected values",
+  "policy": "synthetic protocol fixture; contains no catalog or vendor model",
   "input": {
     "object_type": "retail",
     "mode": "whole",
@@ -18,7 +18,7 @@
     "horizon_years": 5
   },
   "expected": {
-    "best_robot_id": "agv_pallet_qr",
+    "best_robot_id": "synthetic-transport-heavy",
     "economic_status": "ACCEPTABLE",
     "quantity": 11,
     "fleet_utilization": 0.88,

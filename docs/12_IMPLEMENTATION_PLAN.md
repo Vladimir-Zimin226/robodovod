@@ -41,8 +41,8 @@ Warehouse — полный golden path. Аэропорт и медучрежде
 
 ## 3. Проверенная исходная точка
 
-- Backend — FastAPI и Pydantic, без SQLAlchemy/Alembic; каталог из 13 JSON
-  загружается `backend/fleet` в память при импорте модуля.
+- Исходный baseline использовал 13 встроенных JSON-моделей; этот fleet удалён
+  после ввода versioned catalog repository и activation slots.
 - API реализует legacy `/api/*`; документированный будущий `/api/v1` пока
   отсутствует. FastAPI генерирует базовый OpenAPI автоматически.
 - Frontend — React/Vite, состояние не сохраняется. Есть client-side PDF, но нет
@@ -153,12 +153,12 @@ runtime switch ещё не выполняются.
 
 ### Этап 3 — repository boundary и dual-run
 
-Статус: выполнен итерацией `data/catalog-repository-dual-run`; публичный
-runtime остаётся на legacy adapter, а PostgreSQL доступен только явной
-служебной командой с feature flag и версией каталога.
+Статус: выполнен итерацией `data/catalog-repository-dual-run`, затем legacy
+adapter удалён; production runtime использует только активированный PostgreSQL
+slot, а dual-run сравнивает две явные версии каталога.
 
 - Domain DTO не зависит от SQLAlchemy.
-- Legacy `backend/fleet` остаётся reference adapter и default runtime.
+- Встроенных production/reference моделей нет.
 - PostgreSQL adapter включается feature flag только для dual-run.
 - Для пересечения моделей сравниваются identity, rejection reasons, fleet,
   economics и canonical ScenarioSpec.
@@ -171,7 +171,7 @@ Gate: warehouse golden fixtures не регрессируют; PostgreSQL adapte
 ### Этап 4 — проекты, роли и AnalysisRun, migration 0003
 
 Статус: выполнен итерацией `persistence/projects-analysis-runs`; гостевой
-расчёт остаётся неперсистентным, а runtime-каталог остаётся legacy.
+расчёт остаётся неперсистентным, а runtime-каталог требует activation slot.
 
 - Минимальные `users`, `projects`, `project_files`, `scenarios`,
   `analysis_runs`, `audit_entries`;
@@ -203,14 +203,15 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 `data/catalog-positions-media`, `frontend/catalog-theme-media` и
 `data/catalog-description-enrichment`, `frontend/catalog-position-details` и
 `intake/xlsx-csv-project-files`, `engine/readiness-architecture-constraints` и
-`catalog/runtime-eligibility-contract-gap-audit-223` реализованы. Точный
-следующий этап — `catalog/official-source-enrichment`: 36 model identities
-направлены в deep research, 5 конфликтных — в hybrid review/research; чистых
-local-adapter-only случаев текущий evidence не выявил.
+`catalog/runtime-eligibility-contract-gap-audit-223`,
+`catalog/official-source-enrichment` и
+`catalog/calculation-readiness-contract-v2` реализованы. Следующий этап —
+`catalog/runtime-pool-materialization-ui-21`, определённый в `docs/18`.
 Публикация проверяет
 imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
-runtime models. Legacy остаётся default и rollback feature flag. Официальные
+runtime models. Встроенный legacy fleet удалён; rollback выполняется только
+между явно опубликованными версиями PostgreSQL-каталога. Официальные
 42/39/57 profiles и их PRESET/CALCULATED/ASSUMED provenance доступны через API;
 discovery показывает все 223 позиции, но selectable только доказательно готовые.
 
@@ -224,7 +225,8 @@ discovery показывает все 223 позиции, но selectable тол
   curated модели с достаточными facts.
 
 Gate: официальный warehouse файл даёт тот же нормализованный input, что preset;
-ошибки атомарны; legacy catalog можно вернуть activation/feature flag.
+ошибки атомарны; предыдущую опубликованную версию каталога можно вернуть через
+activation history.
 
 Для завершённой малой итерации пройдены atomic publication/activation,
 profile-count/provenance и legacy rollback gates. Эквивалентность официального
@@ -236,8 +238,9 @@ contract/integration tests.
 Статус: срезы `data/catalog-positions-media`, `frontend/catalog-theme-media` и
 `data/catalog-description-enrichment`, `frontend/catalog-position-details` и
 `intake/xlsx-csv-project-files`, `engine/readiness-architecture-constraints` и
-`catalog/runtime-eligibility-contract-gap-audit-223` реализованы; далее идёт
-`catalog/official-source-enrichment`.
+`catalog/runtime-eligibility-contract-gap-audit-223`, official-source
+enrichment и calculation-readiness contract v2 реализованы; далее идёт
+`catalog/runtime-pool-materialization-ui-21`.
 Migration 0004 хранит append-only media metadata,
 extractor проверяет SHA-256 restricted PDF и связывает 223 позиции со 189
 уникальными content-addressed assets. Discovery API возвращает 223 позиции при
@@ -369,8 +372,8 @@ Gate: payload/aisle создают hard reject, missing critical geometry — UN
 SKU и помодельные constraint results с required/available,
 evidence, reason code и `PASS/FAIL/UNKNOWN/ASSUMED`. Неизвестные
 payload/aisle не получают default и дают `NEEDS_VALIDATION`; превышение
-даёт hard reject. Runtime остаётся `legacy-fleet-v1`, capacity и
-economics не менялись. Оставшаяся часть этапа вынесена в
+даёт hard reject. После этой исторической итерации встроенный legacy runtime
+удалён; capacity и economics не менялись. Оставшаяся часть этапа вынесена в
 `engine/capacity-formula-trace`.
 
 ### Этап 7 — procurement, economics и две оси сценариев
@@ -460,14 +463,22 @@ Gate: golden path проходит пять раз подряд локально
 14. `catalog/official-source-enrichment` — исследование и decision staging
     завершены: 131 accepted / 7 deferred / 318 missing; следующий малый срез —
     immutable ENRICHMENT bundle и validate-only DRAFT import
-15. `engine/capacity-formula-trace` — только после повторного eligibility audit
-    фактически импортированного bundle
-16. `catalog/runtime-dual-run-activation`
-17. `economics/commercial-scenarios-sensitivity`
-18. `visualization/2d-simulation-report`
-19. `report/pdf-xlsx-csv`
-20. `admin/catalog-draft-publish`
-21. `qa/security-performance-deploy`
+15. `catalog/calculation-readiness-contract-v2` — реализован split calculation /
+    deployment gates: 21 model / 24 position calculation pool, из них 19
+    accepted-research identities; runtime activation не выполнена
+16. `catalog/runtime-pool-materialization-ui-21` — следующий этап: полный
+    discovery-каталог остаётся на 187 моделях / 223 позициях, а 21 расчётная
+    модель / 24 позиции получают materialized capacity runtime, явный UI-тег и
+    фильтр по участию в расчёте; обязательный контракт —
+    `docs/18_RUNTIME_POOL_AND_CATALOG_UI.md`
+17. `engine/capacity-formula-trace` — после materialization расчётного пула и
+    повторного audit фактически импортированного bundle
+18. `catalog/runtime-dual-run-activation`
+19. `economics/commercial-scenarios-sensitivity`
+20. `visualization/2d-simulation-report`
+21. `report/pdf-xlsx-csv`
+22. `admin/catalog-draft-publish`
+23. `qa/security-performance-deploy`
 
 Каждый пункт выполняется отдельной малой итерацией. Нельзя объединять importer
 или перенос endpoint с соседним пунктом: это уничтожает диагностическую

@@ -150,7 +150,12 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
     with TestClient(main.app) as client:
         status_response = client.get("/api/catalog/status")
         assert status_response.status_code == 200
-        assert status_response.json()["runtime"]["catalog_code"] == "legacy-fleet-v1"
+        assert status_response.json()["runtime"] == {
+            "source": "unavailable",
+            "catalog_code": None,
+            "catalog_status": None,
+            "selectable_count": 0,
+        }
         assert status_response.json()["discovery"] == {
             "source": "activated",
             "catalog_code": "organizer-catalog-v4",

@@ -1,0 +1,2539 @@
+{
+  "batch_id": "hybrid-conflicts-01",
+  "catalog_code": "organizer-catalog-v4",
+  "equipment_class_contracts": [
+    {
+      "capacity_profile": {
+        "code": "TRANSPORT_CYCLE_V1",
+        "required_fields": [
+          "capacity.units_per_trip",
+          "capacity.exchange_time_s"
+        ]
+      },
+      "code": "MOBILE_TRANSPORT",
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "runtime_category": "internal_mobile",
+      "selectors": [
+        {
+          "subtypes": [
+            "AMR",
+            "FMR",
+            "Беспилотный погрузчик",
+            "Мобильный робот-комплектовщик",
+            "Робот-штабелер",
+            "Роботизированная тележка"
+          ],
+          "type": "Мобильные роботы"
+        },
+        {
+          "subtypes": [
+            "FMR",
+            "Беспилотный тягач"
+          ],
+          "type": "Автономные наземные транспортные средства"
+        }
+      ]
+    }
+  ],
+  "mode": "HYBRID",
+  "model_count": 5,
+  "models": [
+    {
+      "capacity_profile": null,
+      "conflicts": [
+        {
+          "field": "model_identity_or_revision",
+          "reason": "The current official CR-02 robot page states both 2.1 m/s maximum speed in the operating-principle section and 2.7 m/s linear speed in technical characteristics. Clarify which value is the applicable maximum for matching.",
+          "sources": [
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-about"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.mass",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.navigation",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-software"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-software"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-software"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.throughput",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-station"
+            }
+          ]
+        },
+        {
+          "field": "specs.max_speed",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ars-smartcube-robot"
+            }
+          ]
+        }
+      ],
+      "current_status": "CONFLICT_REVIEW",
+      "equipment_class": null,
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.autonomy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "h",
+          "normalized_value": 8,
+          "raw_value": "8 часов",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "charging_time_h": 4,
+            "mode": "automatic_station_docking"
+          },
+          "raw_value": "Время зарядки — 4 часа; подключение без участия человека",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "Mbit/s",
+          "normalized_value": 100,
+          "raw_value": "не менее 100 Мб/сек",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "WMS"
+          ],
+          "raw_value": "Взаимодействие с WMS системой заказчика",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.mass",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "kg",
+          "normalized_value": 130,
+          "raw_value": "130 кг (без ящика)",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "m/s",
+          "normalized_value": [
+            2.1,
+            2.7
+          ],
+          "raw_value": [
+            "2,1 м/с",
+            "2,7 м/с"
+          ],
+          "status": "CONFLICT"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "grid": "2D",
+            "guidance": "rail grid",
+            "localization": "onboard sensors"
+          },
+          "raw_value": "По рельсам 2D-сетки; для навигации используются датчики",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "degC",
+          "normalized_value": [
+            0,
+            40
+          ],
+          "raw_value": "0°C до 40°C",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.payload",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "kg",
+          "normalized_value": 30,
+          "raw_value": "Максимальный вес ящика — 30 кг",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "maintenance_intervals": [
+              "6 months",
+              "12 months"
+            ],
+            "remote_support": true,
+            "support_email": "support@arobosys.com"
+          },
+          "raw_value": [
+            "Полугодичные и годичные интервалы ТО",
+            "Служба технической поддержки: support@arobosys.com"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": "Dedicated SmartCube rail grid above shafts",
+          "raw_value": "Робот перемещается по рельсам над шахтами",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "box/h",
+          "normalized_value": 200,
+          "raw_value": "200 ящиков в час",
+          "status": "VERIFIED_OFFICIAL"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements"
+          ],
+          "publisher": "ООО «АРС» / ARS Smart Robotics",
+          "source_id": "src-ars-smartcube-about",
+          "source_type": "official_system_page",
+          "title": "О системе ARS SmartCube™",
+          "url": "https://arobosys.ru/about"
+        },
+        {
+          "known_field_paths": [
+            "specs.autonomy",
+            "specs.charging_requirements",
+            "specs.dimensions",
+            "specs.mass",
+            "specs.max_speed",
+            "specs.navigation",
+            "specs.operating_conditions",
+            "specs.payload",
+            "specs.positioning_accuracy",
+            "specs.service_requirements",
+            "specs.surface_requirements"
+          ],
+          "publisher": "ООО «АРС» / ARS Smart Robotics",
+          "source_id": "src-ars-smartcube-robot",
+          "source_type": "official_system_module_page",
+          "title": "CR-02 — робот для системы ARS SmartCube™",
+          "url": "https://arobosys.ru/robot"
+        },
+        {
+          "known_field_paths": [
+            "specs.connectivity",
+            "specs.integrations",
+            "specs.service_requirements"
+          ],
+          "publisher": "ООО «АРС» / ARS Smart Robotics",
+          "source_id": "src-ars-smartcube-software",
+          "source_type": "official_software_page",
+          "title": "Программное обеспечение SmartCube™",
+          "url": "https://arobosys.ru/software"
+        },
+        {
+          "known_field_paths": [
+            "specs.throughput"
+          ],
+          "publisher": "ООО «АРС» / ARS Smart Robotics",
+          "source_id": "src-ars-smartcube-station",
+          "source_type": "official_system_module_page",
+          "title": "UC-01 — рабочая станция ARS SmartCube™",
+          "url": "https://arobosys.ru/station"
+        }
+      ],
+      "manufacturer": "ООО \"АРС\"",
+      "name": "SmartCube",
+      "organizer_id": "0ece582a-084c-4a8b-99f4-576f0e01b7c8",
+      "position_ids": [
+        "catalog-v4-row-0018"
+      ],
+      "required_fields": [],
+      "research_targets": [
+        "specs.max_speed"
+      ],
+      "subtype": "Умная система хранения",
+      "system_family": "BRS",
+      "type": "Стационарные роботизированные системы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [
+        {
+          "field": "model_identity_or_revision",
+          "reason": "Official HTML and official datasheet disagree on max speed (2.0 vs 1.67 m/s).",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.battery_type",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.fork_lift_height",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.throughput",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.functional_safety",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.navigation",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            }
+          ]
+        },
+        {
+          "field": "model_identity_or_revision",
+          "reason": "Official HTML and official datasheet disagree on minimum full-speed aisle (1900 vs 1800 mm); turning aisle is 2900 mm in both.",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.battery_type",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.fork_lift_height",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.throughput",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.functional_safety",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.navigation",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            }
+          ]
+        },
+        {
+          "field": "specs.aisle_requirements",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            }
+          ]
+        },
+        {
+          "field": "specs.max_speed",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-stacker-pdf"
+            }
+          ]
+        }
+      ],
+      "current_status": "CONFLICT_REVIEW",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": {
+            "full_speed_aisle_mm": [
+              1900,
+              1800
+            ],
+            "turning_aisle_mm": 2900
+          },
+          "raw_value": [
+            "разворот 2,9 м; max. скорость 1,9 м",
+            "разворот 2900 мм; полная скорость 1800 мм"
+          ],
+          "status": "CONFLICT"
+        },
+        {
+          "field_path": "specs.autonomy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.battery_type",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "Li-ion",
+            "lead-acid"
+          ],
+          "raw_value": "АКБ Li-Ion / Pb",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "battery replacement",
+            "top-up charging"
+          ],
+          "raw_value": [
+            "Способ заряда АКБ: замена / подзарядка",
+            "Подзарядка, замена батареи"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            2100,
+            1100,
+            3000
+          ],
+          "raw_value": [
+            "2,1 * 1,1 * 3 м",
+            "2100 х 1100 х 3000 мм"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.fork_lift_height",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 7000,
+          "raw_value": "до 7 м",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.functional_safety",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "2 programmable safety LiDARs",
+            "3D low-object detection",
+            "fork safety sensor",
+            "turn indicators",
+            "beacon",
+            "audible signals",
+            "load monitoring"
+          ],
+          "raw_value": "2 программируемых лидара; 3D-камера низких объектов; датчик под вилами; световые/звуковые сигналы; контроль груза",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "API",
+            "WMS",
+            "ERP"
+          ],
+          "raw_value": [
+            "API легко интегрируется с WMS/ERP системой",
+            "Простое документированное API для интеграции с WMS"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "m/s",
+          "normalized_value": [
+            2.0,
+            1.67
+          ],
+          "raw_value": [
+            "2 м/с",
+            "1,67 м/с"
+          ],
+          "status": "CONFLICT"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "LiDAR",
+            "odometry",
+            "infrastructure-free navigation"
+          ],
+          "raw_value": "Лидары, одометрия, безынфраструктурная навигация",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.payload",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "kg",
+          "normalized_value": 1400,
+          "raw_value": [
+            "Грузоподъемность, кг: 1400",
+            "Грузоподъемность 1400 кг"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 30,
+          "raw_value": [
+            "Точность навигации, см: 3",
+            "Точность позиционирования 30 мм"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.autonomy",
+            "specs.battery_type",
+            "specs.charging_requirements",
+            "specs.connectivity",
+            "specs.dimensions",
+            "specs.fork_lift_height",
+            "specs.integrations",
+            "specs.max_speed",
+            "specs.operating_conditions",
+            "specs.payload",
+            "specs.positioning_accuracy",
+            "specs.service_requirements",
+            "specs.surface_requirements",
+            "specs.throughput"
+          ],
+          "publisher": "ООО «РобоСиВи»",
+          "source_id": "src-robocv-stacker-html",
+          "source_type": "official_model_page",
+          "title": "Робот-штабелёр",
+          "url": "https://robocv.ru/robot-shtabelyor"
+        },
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.charging_requirements",
+            "specs.dimensions",
+            "specs.functional_safety",
+            "specs.integrations",
+            "specs.max_speed",
+            "specs.navigation",
+            "specs.payload",
+            "specs.positioning_accuracy"
+          ],
+          "publisher": "ООО «РобоСиВи»",
+          "source_id": "src-robocv-stacker-pdf",
+          "source_type": "official_datasheet_pdf",
+          "title": "РОБОТ-ШТАБЕЛЕР — Технические характеристики",
+          "url": "https://robocv.ru/wp-content/uploads/2021/05/robot-shtabelyor-robocv-specifikaciya.pdf"
+        }
+      ],
+      "manufacturer": "ООО \"Робосиви\"",
+      "name": "Робот-штабелёр RoboCV",
+      "organizer_id": "2ffc706d-fe43-4c2b-baad-a624a95ad3ce",
+      "position_ids": [
+        "catalog-v4-row-0016"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.aisle_requirements",
+        "specs.autonomy",
+        "specs.connectivity",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-штабелер",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [
+        {
+          "field": "model_identity_or_revision",
+          "reason": "Current official page states up to 10 h autonomy while the immutable canonical layer contains an older 6 h cross-document value; no canonical field was overwritten. This may indicate a revision/configuration change.",
+          "sources": [
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Время работы: до 6 часов.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.autonomy"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Время работы: до 6 часов.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.autonomy"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Время зарядки: около 18 минут на станции.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.charging_time"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Время зарядки: около 18 минут на станции.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.charging_time"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Габариты (ДхШхВ): 1044 × 654 × 380 мм.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.dimensions"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Габариты (ДхШхВ): 1044 × 654 × 380 мм.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.dimensions"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Масса робота: 250 кг.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.mass"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Масса робота: 250 кг.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.mass"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Максимальная скорость: до 1,5 м/с.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.max_speed"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Максимальная скорость: до 1,5 м/с.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.max_speed"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Тип навигации: QR-метки и SLAM (карта помещения).",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.navigation"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Тип навигации: QR-метки и SLAM (карта помещения).",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.navigation"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Допустимые условия эксплуатации: работа при температуре примерно +5…+25 °C, ровный промышленный пол.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.operating_conditions"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Допустимые условия эксплуатации: работа при температуре примерно +5…+25 °C, ровный промышленный пол.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.operating_conditions"
+            },
+            {
+              "evidence_status": "ORGANIZER_CSV_CORROBORATING",
+              "locator": "CSV:row 2 / Название",
+              "source_file": "catalog_export_v4.csv",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.payload"
+            },
+            {
+              "evidence_status": "ORGANIZER_CSV_CORROBORATING",
+              "locator": "CSV:row 67 / Название",
+              "source_file": "catalog_export_v4.csv",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.payload"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_CORROBORATING",
+              "locator": "page 1:Грузоподъёмность: до 1500 кг.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.payload"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_CORROBORATING",
+              "locator": "page 2:Грузоподъёмность: до 1500 кг.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.payload"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Точность позиционирования: около ±3 мм.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.positioning_accuracy"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Точность позиционирования: около ±3 мм.",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.positioning_accuracy"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 1:Производительность: до 80–100 паллет/час (при типовой конфигурации зоны).",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.throughput"
+            },
+            {
+              "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+              "locator": "page 2:Производительность: до 80–100 паллет/час (при типовой конфигурации зоны).",
+              "source_file": "Примеры_решений_типы_объектов.docx",
+              "source_id": "base:5760e938-9a43-45a7-b8e8-f4f2e6383930:specs.throughput"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ronavi-charger-page"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ronavi-h1500-page"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ronavi-h1500-page"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ronavi-h1500-page"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ronavi-h1500-page"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-ronavi-h1500-page"
+            }
+          ]
+        }
+      ],
+      "current_status": "CONFLICT_REVIEW",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.autonomy",
+          "layer": "BASE",
+          "normalized_unit": "h",
+          "normalized_value": [
+            6.0
+          ],
+          "raw_value": "до 6 часов.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.charging_time",
+          "layer": "BASE",
+          "normalized_unit": "min",
+          "normalized_value": [
+            18.0
+          ],
+          "raw_value": "около 18 минут на станции.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "BASE",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            1044.0,
+            654.0,
+            380.0
+          ],
+          "raw_value": "1044 × 654 × 380 мм.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.mass",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            250.0
+          ],
+          "raw_value": "250 кг.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "BASE",
+          "normalized_unit": "m/s",
+          "normalized_value": [
+            1.5
+          ],
+          "raw_value": "до 1,5 м/с.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "BASE",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": "QR-метки и SLAM (карта помещения).",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "BASE",
+          "normalized_unit": "degC",
+          "normalized_value": [
+            5.0,
+            25.0
+          ],
+          "raw_value": "работа при температуре примерно +5…+25 °C, ровный промышленный пол.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            1500.0
+          ],
+          "raw_value": "грузоподъемность до 1 500 кг",
+          "status": "CORROBORATED"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "BASE",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            3.0
+          ],
+          "raw_value": "около ±3 мм.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "BASE",
+          "normalized_unit": "pallet/h",
+          "normalized_value": [
+            80.0,
+            100.0
+          ],
+          "raw_value": "до 80–100 паллет/час (при типовой конфигурации зоны).",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 750,
+          "raw_value": "Минимальная ширина проезда — 750 мм",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "charger": "Ronavi Charger",
+            "mode": "automatic_docking",
+            "output_current_max_A": 25,
+            "output_voltage_max_V": 54
+          },
+          "raw_value": "Автоматическая стыковка со всеми роботами Ronavi",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": "Wi-Fi 5 GHz 802.11 a/c/n",
+          "raw_value": "Wi‑Fi 5 ГГц 802.11 a/c/n",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "WMS",
+            "MES",
+            "open API"
+          ],
+          "raw_value": "Интеграция с WMS и MES; открытое API",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "service": "local_full_support",
+            "spare_parts": "local",
+            "warranty_years": 1
+          },
+          "raw_value": "Сервисная поддержка и запасные части доступны локально",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.charging_requirements"
+          ],
+          "publisher": "Ronavi Robotics",
+          "source_id": "src-ronavi-charger-page",
+          "source_type": "official_accessory_page",
+          "title": "Зарядная станция Ronavi Charger для зарядки логистических роботов Ronavi",
+          "url": "https://ronavi-robotics.ru/catalogue/charger"
+        },
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.connectivity",
+            "specs.integrations",
+            "specs.service_requirements",
+            "specs.surface_requirements"
+          ],
+          "publisher": "Ronavi Robotics",
+          "source_id": "src-ronavi-h1500-page",
+          "source_type": "official_model_page",
+          "title": "Автономный мобильный робот Ronavi H1500",
+          "url": "https://ronavi-robotics.ru/catalogue/h1500"
+        }
+      ],
+      "manufacturer": "ООО \"Ронави Роботикс\"",
+      "name": "Ronavi H1500 (грузоподъемность до 1 500 кг)",
+      "organizer_id": "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+      "position_ids": [
+        "catalog-v4-row-0002",
+        "catalog-v4-row-0067"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.min_aisle_width",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [
+        {
+          "field": "model_identity_or_revision",
+          "reason": "Organizer label identifies AMR 100 with payload up to 100 kg; current official AMR100 page states up to 150 kg. Determine whether this is a newer revision, renamed configuration, or a changed specification before merging any candidate values.",
+          "sources": [
+            {
+              "evidence_status": "ORGANIZER_CSV",
+              "locator": "CSV:row 8 / Название",
+              "source_file": "catalog_export_v4.csv",
+              "source_id": "base:89ffd69f-f07b-4bf2-8023-1fd765a2b6ff:specs.payload"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.navigation",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.throughput",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        },
+        {
+          "field": "specs.autonomy",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        },
+        {
+          "field": "specs.charging_requirements",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        },
+        {
+          "field": "specs.dimensions",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        },
+        {
+          "field": "specs.integrations",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        },
+        {
+          "field": "specs.max_speed",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        },
+        {
+          "field": "specs.operating_conditions",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        },
+        {
+          "field": "specs.positioning_accuracy",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-moros-amr100-page"
+            }
+          ]
+        }
+      ],
+      "current_status": "CONFLICT_REVIEW",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            100.0
+          ],
+          "raw_value": "грузоподъемность до 100 кг",
+          "status": "ORGANIZER_NAME"
+        },
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.autonomy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "h",
+          "normalized_value": {
+            "average_load": 20,
+            "maximum_load": 10
+          },
+          "raw_value": "Время работы — 20 часов / 10 часов",
+          "status": "AMBIGUOUS_MODEL_MATCH"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "automatic_dock",
+            "manual charging"
+          ],
+          "raw_value": "Способ зарядки — автоматическая док-станция / ручная",
+          "status": "AMBIGUOUS_MODEL_MATCH"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            600,
+            400,
+            220
+          ],
+          "raw_value": "600 × 400 × 220 мм",
+          "status": "AMBIGUOUS_MODEL_MATCH"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "MES",
+            "API"
+          ],
+          "raw_value": "Интеграция с MES; поддержка API",
+          "status": "AMBIGUOUS_MODEL_MATCH"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "m/s",
+          "normalized_value": 3.0,
+          "raw_value": "3 м/с",
+          "status": "AMBIGUOUS_MODEL_MATCH"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "optional_ip_rating": "IP54+",
+            "temperature_degC": [
+              5,
+              40
+            ]
+          },
+          "raw_value": "Рабочая температура: +5°C…+40°C",
+          "status": "AMBIGUOUS_MODEL_MATCH"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 10.0,
+          "raw_value": "±10 мм",
+          "status": "AMBIGUOUS_MODEL_MATCH"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "model_match.payload_discriminator",
+            "specs.aisle_requirements",
+            "specs.autonomy",
+            "specs.charging_requirements",
+            "specs.connectivity",
+            "specs.dimensions",
+            "specs.integrations",
+            "specs.max_speed",
+            "specs.navigation",
+            "specs.operating_conditions",
+            "specs.positioning_accuracy",
+            "specs.service_requirements",
+            "specs.surface_requirements",
+            "specs.throughput"
+          ],
+          "publisher": "МОРОС",
+          "source_id": "src-moros-amr100-page",
+          "source_type": "official_model_page",
+          "title": "AMR100 — Автономный мобильный робот от МОРОС",
+          "url": "https://xn--l1aeahg.xn--p1ai/amr-100/"
+        }
+      ],
+      "manufacturer": "ООО \"Морос\"",
+      "name": "AMR 100 (грузоподъемность до 100 кг)",
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "position_ids": [
+        "catalog-v4-row-0008"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.positioning_accuracy",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [
+        {
+          "field": "model_identity_or_revision",
+          "reason": "Official positioning accuracy differs: 50 mm (HTML 5 cm) versus 70 mm (PDF).",
+          "sources": [
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.battery_type",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.throughput",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.functional_safety",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.navigation",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            }
+          ]
+        },
+        {
+          "field": "model_identity_or_revision",
+          "reason": "Official sources use different load metric/value: HTML 'грузоподъемность до 5000 кг' versus datasheet 'сила тяги 4000 кг'.",
+          "sources": [
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.battery_type",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.throughput",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.functional_safety",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.navigation",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            }
+          ]
+        },
+        {
+          "field": "model_identity_or_revision",
+          "reason": "Official speed specifications differ: 2.2 m/s HTML versus 7.5 km/h loaded and 12 km/h unloaded in PDF.",
+          "sources": [
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.autonomy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.battery_type",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.connectivity",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.operating_conditions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.service_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.surface_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "NOT_FOUND",
+              "locator": "specs.throughput",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.aisle_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.charging_requirements",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.dimensions",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.functional_safety",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.integrations",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "VERIFIED_OFFICIAL",
+              "locator": "specs.navigation",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            }
+          ]
+        },
+        {
+          "field": "specs.max_speed",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.max_speed",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            }
+          ]
+        },
+        {
+          "field": "specs.payload",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.payload",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            }
+          ]
+        },
+        {
+          "field": "specs.positioning_accuracy",
+          "reason": "local evidence has conflicting or ambiguous model-specific values",
+          "sources": [
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-html"
+            },
+            {
+              "evidence_status": "CONFLICT",
+              "locator": "specs.positioning_accuracy",
+              "source_file": "catalog_external_evidence.csv",
+              "source_id": "src-robocv-tug-pdf"
+            }
+          ]
+        }
+      ],
+      "current_status": "CONFLICT_REVIEW",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": {
+            "full_speed_aisle_mm": 2900,
+            "turning_aisle_mm": 2900
+          },
+          "raw_value": [
+            "Разворот 2,9 м; дорога для max. скорости 2,9 м",
+            "2900 мм для полной скорости; 2900 мм для разворота"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.autonomy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.battery_type",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "Li-ion",
+            "lead-acid"
+          ],
+          "raw_value": "АКБ Li-Ion / Pb",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "battery replacement",
+            "top-up charging"
+          ],
+          "raw_value": [
+            "Способ заряда АКБ: замена / подзарядка",
+            "Подзарядка, замена батареи"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": "Wi-Fi",
+          "raw_value": "ожидает сигнала по Wi‑Fi от IT-системы управления производством",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            1600,
+            800,
+            2200
+          ],
+          "raw_value": [
+            "1,6 * 0,8 * 2,2 м",
+            "1600 x 800 x 2200 мм"
+          ],
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.functional_safety",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "1 programmable safety LiDAR",
+            "3D low-object detection",
+            "beacon",
+            "audible signals"
+          ],
+          "raw_value": "1 программируемый лидар; 3D-камера низких объектов; проблесковый маячок; звуковые сигналы",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "API",
+            "WMS"
+          ],
+          "raw_value": "API для интеграции с WMS",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "m/s",
+          "normalized_value": {
+            "html_unspecified_load_m_s": 2.2,
+            "pdf_loaded_m_s": 2.0833,
+            "pdf_unloaded_m_s": 3.3333
+          },
+          "raw_value": [
+            "2,2 м/с",
+            "7,5 км/ч; 12 км/ч"
+          ],
+          "status": "CONFLICT"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "LiDAR",
+            "odometry",
+            "infrastructure-free navigation"
+          ],
+          "raw_value": "Лидары, одометрия, безынфраструктурная навигация",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.payload",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            5000,
+            4000
+          ],
+          "raw_value": [
+            "до 5000 кг",
+            "4000 кг (сила тяги)"
+          ],
+          "status": "CONFLICT"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            50,
+            70
+          ],
+          "raw_value": [
+            "5 см",
+            "70 мм"
+          ],
+          "status": "CONFLICT"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.autonomy",
+            "specs.battery_type",
+            "specs.charging_requirements",
+            "specs.connectivity",
+            "specs.dimensions",
+            "specs.max_speed",
+            "specs.operating_conditions",
+            "specs.payload",
+            "specs.positioning_accuracy",
+            "specs.service_requirements",
+            "specs.surface_requirements",
+            "specs.throughput"
+          ],
+          "publisher": "ООО «РобоСиВи»",
+          "source_id": "src-robocv-tug-html",
+          "source_type": "official_model_page",
+          "title": "Робот-тягач",
+          "url": "https://robocv.ru/robot-tyagach"
+        },
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.charging_requirements",
+            "specs.dimensions",
+            "specs.functional_safety",
+            "specs.integrations",
+            "specs.max_speed",
+            "specs.navigation",
+            "specs.payload",
+            "specs.positioning_accuracy"
+          ],
+          "publisher": "ООО «РобоСиВи»",
+          "source_id": "src-robocv-tug-pdf",
+          "source_type": "official_datasheet_pdf",
+          "title": "РОБОТ-ТЯГАЧ — Технические характеристики",
+          "url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf"
+        }
+      ],
+      "manufacturer": "ООО \"Робосиви\"",
+      "name": "Робот-тягач RoboCV",
+      "organizer_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "position_ids": [
+        "catalog-v4-row-0017"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.positioning_accuracy",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Беспилотный тягач",
+      "system_family": "BRS",
+      "type": "Автономные наземные транспортные средства"
+    }
+  ],
+  "runtime_contract_version": "runtime-eligibility-contract-v1",
+  "schema_version": "catalog-official-source-research-batch-v1",
+  "scope_exclusions": [
+    "prices",
+    "economics",
+    "procurement",
+    "capacity formulas",
+    "runtime activation",
+    "unsupported capacity profiles"
+  ]
+}

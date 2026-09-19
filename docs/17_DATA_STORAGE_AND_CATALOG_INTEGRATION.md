@@ -24,8 +24,8 @@ frontend одновременно с инфраструктурой БД не с
 
 ## 2. Проверенные исходные факты
 
-- Runtime-каталог сейчас загружается при импорте `backend/fleet` из 13 локальных
-  JSON-записей и хранится в process-global структурах; repository boundary нет.
+- На момент исходного аудита runtime загружал 13 локальных JSON-записей. Этот
+  встроенный fleet впоследствии удалён; актуальный runtime требует activation.
 - PostgreSQL, SQLAlchemy, Alembic, `DATABASE_URL`, миграционный service и
   `.env.example` отсутствуют. Compose поднимает только backend и frontend.
 - Проекты, пользователи, файлы и расчёты не сохраняются; состояние находится в
@@ -304,9 +304,8 @@ import и не переключает runtime repository.
 Implementation status: обе малые итерации реализованы. Importer читает только
 явно указанный committed bundle, сохраняет отдельные `ImportRun`, выполняет
 BASE/ENRICHMENT одной транзакцией на фазу и не публикует/не активирует каталог.
-Следующая repository-итерация также реализована; legacy `backend/fleet`
-намеренно остаётся единственным runtime-источником до project/AnalysisRun и
-отдельной atomic activation итерации.
+Следующая repository-итерация также реализована; после atomic activation
+итерации встроенный fleet удалён, а runtime использует только activation slot.
 
 `manufacturers`, `catalog_source_rows`, `equipment_models`,
 `equipment_applicability`, `spec_observations`, `field_evidence`,
@@ -327,24 +326,25 @@ commissioning или deep integration в catalog price. Ни RUB, ни VAT polic
 ### Repository и dual-run
 
 Implementation status: итерация `data/catalog-repository-dual-run` реализована.
-Legacy `backend/fleet` обёрнут reference adapter и остаётся default runtime;
-PostgreSQL adapter требует явный version code. DTO не экспортируют ORM, а
+Встроенный `backend/fleet` удалён; PostgreSQL adapter требует явный version
+code. DTO не экспортируют ORM, а
 adapter читает matching-поля исключительно из `matching_spec_facts`. Его
 последующее подключение через activation описано ниже.
 Warehouse fixture сравнивает identity, rejection, fleet, economics и canonical
 ScenarioSpec, классифицирует каждое отличие и не угадывает соответствие моделей
 по имени. Для текущей официальной пары отсутствие evidence-backed runtime
-projection фиксируется как `BLOCKED_BY_EVIDENCE`, без legacy-defaults.
+projection фиксируется как `BLOCKED_BY_EVIDENCE`, без подстановки полей из
+другой версии.
 
 - Ввести domain DTO и `CatalogRepository` без ORM-объектов за границей data
   layer.
-- Оставить `backend/fleet` reference adapter и safe-default feature flag;
-  PostgreSQL adapter до activation использовать в тесте/служебном dual-run.
+- Сравнивать две явно заданные PostgreSQL catalog versions; production runtime
+  всегда использовать только через activation slot.
 - Сравнивать пересечение моделей, причины hard rejection, fleet/economics и
   canonical ScenarioSpec. Ожидаемые различия из официальных данных фиксировать,
   а не принудительно добиваться побайтового равенства разных каталогов.
-- Runtime остаётся на legacy adapter, пока нет объяснённого отчёта и golden
-  fixtures.
+- Runtime fail-closed, пока нет опубликованной и активированной безопасной
+  projection; rollback выполняется активацией предыдущей версии.
 
 ### 0003 — project/run persistence
 
@@ -393,9 +393,9 @@ timestamp для закрытия прежней activation и открытия 
   safe facts, price provenance и явный `selectable`;
 - runtime activation требует хотя бы одну модель, полностью проходящую
   evidence-backed projection в строгий `Robot` contract;
-- `CATALOG_RUNTIME_SOURCE=legacy` — default и быстрый rollback;
-- режим `activated` без безопасного runtime snapshot fail-closed с 503, без
-  смешивания официальных и legacy facts.
+- отсутствие безопасного runtime snapshot fail-closed с 503;
+- rollback — явная активация предыдущей опубликованной версии, без смешивания
+  facts между версиями.
 
 Текущий organizer bundle не содержит `runtime_projection`, поэтому его
 discovery activation допустима, а runtime activation ожидаемо блокируется.
@@ -593,7 +593,7 @@ APPLY_REVISION → APPLIED`.
 1. Зафиксированный baseline и traceability — текущий аудит.
 2. Первая малая итерация storage control-plane (0001), без business switch.
 3. Catalog domain 0002, import contract, validate-only и транзакционный importer.
-4. Repository boundary и dual-run; legacy runtime остаётся default.
+4. Repository boundary и dual-run двух явно названных catalog versions.
 5. Project/scenario/AnalysisRun/file metadata 0003 и минимальные роли.
 6. Atomic catalog activation/switch и официальные presets.
 7. Catalog-position projection для всех 223 строк, media pipeline и catalog UX.

@@ -1,0 +1,198 @@
+{
+  "batch_id": "deep-other-01",
+  "catalog_code": "organizer-catalog-v4",
+  "equipment_class_contracts": [
+    {
+      "capacity_profile": {
+        "code": "PALLETIZING_THROUGHPUT_V1",
+        "required_fields": [
+          "specs.throughput"
+        ]
+      },
+      "code": "FIXED_PALLETIZING",
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.dimensions",
+        "specs.positioning_accuracy",
+        "specs.operating_conditions",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "runtime_category": "fixed_cell",
+      "selectors": [
+        {
+          "subtypes": [
+            "Робот-укладчик"
+          ],
+          "type": "Роботы-манипуляторы"
+        }
+      ]
+    },
+    {
+      "capacity_profile": {
+        "code": "DELIVERY_CYCLE_V1",
+        "required_fields": [
+          "capacity.units_per_trip",
+          "capacity.exchange_time_s",
+          "capacity.elevator_compatibility"
+        ]
+      },
+      "code": "SERVICE_DELIVERY",
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "runtime_category": "service_delivery",
+      "selectors": [
+        {
+          "subtypes": [
+            "Робот-курьер"
+          ],
+          "type": "Мобильные роботы"
+        }
+      ]
+    }
+  ],
+  "mode": "DEEP_RESEARCH",
+  "model_count": 3,
+  "models": [
+    {
+      "capacity_profile": "PALLETIZING_THROUGHPUT_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "FIXED_PALLETIZING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Битроботикс\"",
+      "name": "Роботизированный комплекс по укладке заготовок",
+      "organizer_id": "22b5ba99-bc4f-46a7-9a9b-e4475ecd9fc7",
+      "position_ids": [
+        "catalog-v4-row-0073"
+      ],
+      "required_fields": [
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.positioning_accuracy",
+        "specs.service_requirements",
+        "specs.throughput"
+      ],
+      "research_targets": [
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.positioning_accuracy",
+        "specs.service_requirements",
+        "specs.throughput"
+      ],
+      "subtype": "Робот-укладчик",
+      "system_family": "BRS",
+      "type": "Роботы-манипуляторы"
+    },
+    {
+      "capacity_profile": "DELIVERY_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "SERVICE_DELIVERY",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Дронсхаб\"",
+      "name": "Белка",
+      "organizer_id": "cdf80f5b-c60a-447b-af30-2c8a44480f98",
+      "position_ids": [
+        "catalog-v4-row-0049"
+      ],
+      "required_fields": [
+        "capacity.elevator_compatibility",
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.elevator_compatibility",
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-курьер",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "PALLETIZING_THROUGHPUT_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "FIXED_PALLETIZING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Арипикс Роботикс\"",
+      "name": "ARIPIX А1",
+      "organizer_id": "d55f507b-b3f2-4666-b3f4-dd3d48813e9d",
+      "position_ids": [
+        "catalog-v4-row-0072"
+      ],
+      "required_fields": [
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.positioning_accuracy",
+        "specs.service_requirements",
+        "specs.throughput"
+      ],
+      "research_targets": [
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.positioning_accuracy",
+        "specs.service_requirements",
+        "specs.throughput"
+      ],
+      "subtype": "Робот-укладчик",
+      "system_family": "BRS",
+      "type": "Роботы-манипуляторы"
+    }
+  ],
+  "runtime_contract_version": "runtime-eligibility-contract-v1",
+  "schema_version": "catalog-official-source-research-batch-v1",
+  "scope_exclusions": [
+    "prices",
+    "economics",
+    "procurement",
+    "capacity formulas",
+    "runtime activation",
+    "unsupported capacity profiles"
+  ]
+}

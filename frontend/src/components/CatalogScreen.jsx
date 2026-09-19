@@ -11,20 +11,9 @@ const FAMILY_META = {
   BAS: { label: 'Беспилотные авиационные системы', short: 'БАС', accent: 'cyan' },
   SOFTWARE: { label: 'Программные решения', short: 'ПО', accent: 'violet' },
 };
-const LEGACY_META = [
-  ['internal_mobile', 'Мобильные транспортные роботы', 'МТР'],
-  ['service_delivery', 'Роботы доставки', 'РД'],
-  ['cleaning_robot', 'Уборочные роботы', 'УР'],
-  ['fixed_cell', 'Стационарные ячейки', 'РЯ'],
-  ['aerial', 'Летательные системы', 'БАС'],
-];
-
 function familyMeta(key, index = 0) {
   if (FAMILY_META[key]) return FAMILY_META[key];
-  const legacy = LEGACY_META.find(([value]) => value === key);
-  return legacy
-    ? { label: legacy[1], short: legacy[2], accent: ['lime', 'cyan', 'violet'][index % 3] }
-    : { label: key || 'Другие решения', short: 'РТК', accent: ['lime', 'cyan', 'violet'][index % 3] };
+  return { label: key || 'Другие решения', short: 'РТК', accent: ['lime', 'cyan', 'violet'][index % 3] };
 }
 
 function readResponse(response) {
@@ -59,37 +48,26 @@ export default function CatalogScreen({ objectType, onContinue }) {
       })
       .catch((catalogError) => {
         if (catalogError.name === 'AbortError') return;
-        fetch(`${API}/api/robots`, { signal: controller.signal })
-          .then(readResponse)
-          .then((items) => {
-            setCatalog(null);
-            setHierarchy([]);
-            setRobots(items || []);
-            setStatus('ready');
-          })
-          .catch((legacyError) => {
-            if (legacyError.name === 'AbortError') return;
-            setError('Каталог временно недоступен. Проверьте соединение и повторите попытку.');
-            setStatus('error');
-          });
+        setError('Официальный каталог временно недоступен. Проверьте его активацию и соединение.');
+        setStatus('error');
       });
     return () => controller.abort();
   }, []);
 
   const visible = useMemo(() => {
     const filtered = robots.filter((robot) => {
-      if (!catalog && !(robot.object_types || ['retail', 'other']).includes(objectType)) return false;
       if (family && robot.system_family !== family) return false;
       if (typeFilter && robot.type_code !== typeFilter) return false;
       return matchesCatalogQuery(robot, query);
     });
     const key = sort === 'manufacturer' ? (robot) => robot.manufacturer || '' : sort === 'type' ? (robot) => robot.type_code || '' : (robot) => robot.name || '';
     return [...filtered].sort((left, right) => key(left).localeCompare(key(right), 'ru'));
-  }, [robots, catalog, objectType, family, typeFilter, query, sort]);
+  }, [robots, family, typeFilter, query, sort]);
 
-  const categories = useMemo(() => catalog
-    ? hierarchy.map((item, index) => ({ key: item.system_family, ...familyMeta(item.system_family, index) }))
-    : LEGACY_META.map(([key], index) => ({ key, ...familyMeta(key, index) })), [catalog, hierarchy]);
+  const categories = useMemo(
+    () => hierarchy.map((item, index) => ({ key: item.system_family, ...familyMeta(item.system_family, index) })),
+    [hierarchy],
+  );
   const types = family ? hierarchy.find((item) => item.system_family === family)?.types || [] : hierarchy.flatMap((item) => item.types || []);
   const selectedRobots = robots.filter((robot) => selected.includes(catalogItemKey(robot)));
   const toggle = (key) => setSelected((current) => current.includes(key) ? current.filter((item) => item !== key) : current.length < MAX_COMPARE ? [...current, key] : current);

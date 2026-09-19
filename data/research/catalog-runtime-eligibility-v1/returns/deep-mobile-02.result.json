@@ -1,0 +1,1599 @@
+{
+  "batch_id": "deep-mobile-02",
+  "research_completed_at": "2026-09-18T13:09:01+09:00",
+  "results": [
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены semargl.pro: точная модель/target, раздел загрузок и PDF-поиск; значение не найдено."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ООО «Семаргл»",
+      "matched_model": "Мобильный робот Сёмабот 400/1000/1500кг",
+      "organizer_id": "993d980e-8b91-45e0-9c98-50ffab6e11e4",
+      "unresolved_issues": [
+        "Официальный каталог подтверждает конфигурацию 1500 кг внутри карточки 400/1000/1500 кг, но не публикует отдельные ТТХ этой конфигурации."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Navio / ООО «Автотех»",
+              "raw_value": "L5 может находиться в движении до 23 часов — почти сутки.",
+              "source_locator": "Раздел «Беспрецедентная эффективность»",
+              "source_title": "Создан автономным",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://truck.navio.auto/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": 23,
+          "notes": "Это опубликованное время нахождения в движении, а не заявленная ёмкость батареи или запас хода."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2024-12-10",
+              "publisher": "Navio / ООО «Автотех»",
+              "raw_value": "технология V2X (vehicle-to-everything)",
+              "source_locator": "Раздел о безопасности и удалённом контроле",
+              "source_title": "Создан автономным: Navio представляет магистральный тягач L5",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://navio.auto/news/technology-11"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "V2X (vehicle-to-everything)",
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": "2024-12-10",
+              "publisher": "Navio / ООО «Автотех»",
+              "raw_value": "лидары, радары и камеры",
+              "source_locator": "Раздел «Функциональность»",
+              "source_title": "Создан автономным: Navio представляет магистральный тягач L5",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://navio.auto/news/technology-11"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": [
+            "лидары",
+            "радары",
+            "камеры"
+          ],
+          "notes": "Нормализован только явно перечисленный сенсорный контур автономного вождения."
+        },
+        {
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Navio / ООО «Автотех»",
+              "raw_value": "Каждый автономный грузовик круглосуточно находится под контролем удаленных операторов.",
+              "source_locator": "Раздел о безопасности",
+              "source_title": "Создан автономным",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://truck.navio.auto/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": "круглосуточный контроль удалённых операторов",
+          "notes": "Зафиксировано как явно опубликованный режим эксплуатации/надзора."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.payload",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальные L5 model page, пресс-релиз и PDF-поиск Navio; значение target не найдено."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ООО «Автотех» (Navio)",
+      "matched_model": "Магистральный тягач L5",
+      "organizer_id": "a834aa03-136e-4f61-a1d6-b5563d798f68",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.payload",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 300 Carrier B на dikom.ru/dikom-a.ru и PDF-поиск; точное значение target не найдено."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ДиКом",
+      "matched_model": "ДиКом DMR 300 Carrier B",
+      "organizer_id": "a83abbfd-78ee-43dc-9111-f51db4938001",
+      "unresolved_issues": [
+        "Точная модель подтверждена официальным блогом ДиКом 2024–2025; текущий каталог показывает отдельный «Carrier B» без индекса DMR 300, поэтому его ТТХ не перенесены на batch-модель."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.payload",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены точное имя, проекты/новости Avrora Robotics и PDF-поиск; точная модель/значение не найдены."
+        }
+      ],
+      "identity_status": "MODEL_NOT_FOUND",
+      "matched_manufacturer": "ООО «Аврора Роботикс»",
+      "matched_model": null,
+      "organizer_id": "b86f4613-789b-4cee-9f75-5d010da90b61",
+      "unresolved_issues": [
+        "На официальном сайте найдены роботизированные комплексы для поиска скрытых объектов в грунте, но не модель с точным названием «Роботизированный комплекс по обследованию грунта» и не однозначная ревизия."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка DMR 600, каталог, раздел документации и PDF-поиск ДиКом; значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка DMR 600, каталог, раздел документации и PDF-поиск ДиКом; значение target не найдено."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "Автономность 8 часов",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "Автономный мобильный робот-тележка ДиКом DMR 600 (AMR)",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://dikom-a.ru/product/dmr-600"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": 8,
+          "notes": ""
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "Время зарядки 2 часа",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "Автономный мобильный робот-тележка ДиКом DMR 600 (AMR)",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://dikom-a.ru/product/dmr-600"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": "h",
+          "normalized_value": 2,
+          "notes": "Опубликовано именно время зарядки; тип/электропараметры станции не нормализовались."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка DMR 600, каталог, раздел документации и PDF-поиск ДиКом; значение target не найдено."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "Интеграция с Яндекс Роботикс да",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "Автономный мобильный робот-тележка ДиКом DMR 600 (AMR)",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://dikom-a.ru/product/dmr-600"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": "Яндекс Роботикс",
+          "notes": ""
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "Скорость перемещения 2 м/с",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "Автономный мобильный робот-тележка ДиКом DMR 600 (AMR)",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://dikom-a.ru/product/dmr-600"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "m/s",
+          "normalized_value": 2,
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка DMR 600, каталог, раздел документации и PDF-поиск ДиКом; значение target не найдено."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "Тип навигации SLAM",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "Автономный мобильный робот-тележка ДиКом DMR 600 (AMR)",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://dikom-a.ru/product/dmr-600"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": "SLAM",
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка DMR 600, каталог, раздел документации и PDF-поиск ДиКом; значение target не найдено."
+        },
+        {
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "Осуществляем полный цикл сопровождения продукции: от доставки и монтажа до гарантийного сервисного обслуживания.",
+              "source_locator": "Раздел «Полный цикл сопровождения продукции»",
+              "source_title": "Автономный мобильный робот-тележка ДиКом DMR 600 (AMR)",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://dikom-a.ru/product/dmr-600"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "Настройка программного обеспечения; Тех. поддержка",
+              "source_locator": "Раздел «Полный цикл сопровождения продукции»",
+              "source_title": "Автономный мобильный робот-тележка ДиКом DMR 600 (AMR)",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://dikom-a.ru/product/dmr-600"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": [
+            "доставка и монтаж",
+            "настройка программного обеспечения",
+            "гарантийное сервисное обслуживание",
+            "техническая поддержка"
+          ],
+          "notes": "Нормализованы только явно перечисленные элементы сопровождения DMR 600."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка DMR 600, каталог, раздел документации и PDF-поиск ДиКом; значение target не найдено."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ДиКом",
+      "matched_model": "ДиКом DMR 600",
+      "organizer_id": "be814758-3616-4b94-befa-9848be2ac604",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.payload",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены «Робот-комплектовщик»/Kitting Robot, G2P/AMR/FMR и PDF-поиск robotics.yandex.ru; точная мобильная модель/значение не найдены."
+        }
+      ],
+      "identity_status": "MODEL_NOT_FOUND",
+      "matched_manufacturer": "Яндекс Роботикс",
+      "matched_model": null,
+      "organizer_id": "c3d39a80-5fb9-42d3-82ae-0696fb647128",
+      "unresolved_issues": [
+        "На официальном сайте термин «робот-комплектовщик/Kitting Robot» используется как решение/роль, а мобильные AMR/FMR публикуются отдельно; точная мобильная model identity batch не доказана."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены TAGARKA 6t, материалы загрузок и PDF-поиск Semargl; legacy TAGARKA не применялась."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ООО «Семаргл»",
+      "matched_model": "TAGARKA 6t",
+      "organizer_id": "c9e9517c-18f0-47b4-aa05-4344566aa885",
+      "unresolved_issues": [
+        "Текущий официальный каталог подтверждает TAGARKA 6t. Детальная legacy-страница TAGARKA публикует иные грузовые конфигурации 2,5/5 т, поэтому её ТТХ не перенесены на 6t."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ДиКом Автоматизация",
+              "raw_value": "DMR 1200 — Скорость перемещения 2 м/с",
+              "source_locator": "Раздел «Автономные мобильные роботы», карточка DMR 1200",
+              "source_title": "Автоматизация и роботизация производств и складов от завода \"ДиКом\"",
+              "source_type": "OFFICIAL_CATALOG",
+              "source_url": "https://dikom-a.ru/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "m/s",
+          "normalized_value": 2,
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены DMR 1200 в каталоге, документация DMR 600/1200 и PDF-поиск ДиКом; значение не найдено."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ДиКом",
+      "matched_model": "ДиКом DMR 1200",
+      "organizer_id": "cccd0c0d-8ae7-435d-a171-45f5d82886e6",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка Ronavi M, FAQ, связанные официальные страницы и PDF-поиск; значение target не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены карточка Ronavi M, FAQ, связанные официальные страницы и PDF-поиск; значение target не найдено."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "Время автономной работы (c 80% до 20%) | до 8 часов",
+              "source_locator": "Раздел «Технические характеристики Ronavi M»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": 8,
+          "notes": ""
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "зоны для подзарядки",
+              "source_locator": "FAQ «Какая подготовка склада требуется для внедрения?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": "зоны для подзарядки",
+          "notes": ""
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "Вид беспроводной связи | Wi-Fi 5 ГГц 802.11 a/c/n",
+              "source_locator": "Раздел «Технические характеристики Ronavi M»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "Wi-Fi 5 ГГц 802.11 a/c/n",
+          "notes": ""
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "открытое API (программный интерфейс)",
+              "source_locator": "FAQ «Как происходит интеграция с нашей WMS-системой?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "WMS-систем (1С, SAP, Oracle и другие)",
+              "source_locator": "FAQ «Как происходит интеграция с нашей WMS-системой?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "система управления роботами (RMS) получает задания от вашей WMS",
+              "source_locator": "FAQ «Как происходит интеграция с нашей WMS-системой?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "Open API",
+            "WMS: 1С, SAP, Oracle",
+            "RMS"
+          ],
+          "notes": ""
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "Максимальная скорость передвижения | 2.5 м/с",
+              "source_locator": "Раздел «Технические характеристики Ronavi M»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "m/s",
+          "normalized_value": 2.5,
+          "notes": ""
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "Минимальная ширина проезда | 760 мм",
+              "source_locator": "Раздел «Технические характеристики Ronavi M»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "минимальную ширину проезда 800 мм",
+              "source_locator": "FAQ «Какая подготовка склада требуется для внедрения?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На одной официальной странице опубликованы 760 мм в таблице ТТХ и 800 мм в требованиях подготовки склада; применимое единственное значение не выбрано."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "Тип навигации | QR-метки и SLAM",
+              "source_locator": "Раздел «Технические характеристики Ronavi M»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": [
+            "QR-метки",
+            "SLAM"
+          ],
+          "notes": ""
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "Достаточно обеспечить стандартные условия: ровное твердое покрытие (бетон, асфальт), минимальную ширину проезда 800 мм и зоны для подзарядки.",
+              "source_locator": "FAQ «Какая подготовка склада требуется для внедрения?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": "ровное твердое покрытие (бетон, асфальт); минимальная ширина проезда 800 мм; зоны для подзарядки",
+          "notes": "Сохранён опубликованный набор «стандартных условий» без вычислений."
+        },
+        {
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "Гарантия | 1 год",
+              "source_locator": "Раздел «Технические характеристики Ronavi M»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": "year",
+          "normalized_value": 1,
+          "notes": "Зафиксирован опубликованный model-specific срок гарантии как сервисное условие."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "бесподвесочная система позволяет работать на неровных покрытиях (перепады до 10 мм)",
+              "source_locator": "FAQ «Какая подготовка склада требуется для внедрения?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "Ронави Роботикс",
+              "raw_value": "ровное твердое покрытие (бетон, асфальт)",
+              "source_locator": "FAQ «Какая подготовка склада требуется для внедрения?»",
+              "source_title": "Ronavi M — напольный логистический робот-тележка для комплектации «товар к человеку»",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/m"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": "ровное твердое покрытие (бетон, асфальт); допустимы неровности до 10 мм",
+          "notes": "Нормализованы два явно опубликованных требования/допуска к покрытию."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+      "matched_manufacturer": "Ронави Роботикс",
+      "matched_model": "Ronavi M",
+      "organizer_id": "dcfd9975-81eb-49b5-a422-827a720ba582",
+      "unresolved_issues": [
+        "Конфликт specs.min_aisle_width: 760 мм в таблице технических характеристик против 800 мм в FAQ подготовки склада."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «СМ Роботикс»",
+              "raw_value": "Тип зарядки автоматическая",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "SM ROBOTICS — автономный палетоперевозчик MULE",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://sm-robotics.ru/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": "автоматическая",
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «СМ Роботикс»",
+              "raw_value": "Система управления флотом M-CONTROL",
+              "source_locator": "Раздел «Система управления флотом M-CONTROL»",
+              "source_title": "SM ROBOTICS — автономный палетоперевозчик MULE",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://sm-robotics.ru/"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «СМ Роботикс»",
+              "raw_value": "Интеграция с WMS склада",
+              "source_locator": "Раздел «Система управления флотом M-CONTROL»",
+              "source_title": "SM ROBOTICS — автономный палетоперевозчик MULE",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://sm-robotics.ru/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "M-CONTROL",
+            "WMS"
+          ],
+          "notes": "M-CONTROL опубликован на той же официальной странице как система управления флотом роботов SM ROBOTICS."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «СМ Роботикс»",
+              "raw_value": "Скорость 1,3 м/с",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "SM ROBOTICS — автономный палетоперевозчик MULE",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://sm-robotics.ru/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "m/s",
+          "normalized_value": 1.3,
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «СМ Роботикс»",
+              "raw_value": "SLAM-навигация есть",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "SM ROBOTICS — автономный палетоперевозчик MULE",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://sm-robotics.ru/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": "SLAM",
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «СМ Роботикс»",
+              "raw_value": "Грузоподъемность 1500 кг",
+              "source_locator": "Раздел «Технические характеристики»",
+              "source_title": "SM ROBOTICS — автономный палетоперевозчик MULE",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://sm-robotics.ru/"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.payload",
+          "normalized_unit": "kg",
+          "normalized_value": 1500,
+          "notes": ""
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены MULE, M-CONTROL, ТТХ и PDF-поиск SM Robotics; значение target не опубликовано."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ООО «СМ Роботикс»",
+      "matched_model": "MULE",
+      "organizer_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+      "unresolved_issues": []
+    }
+  ],
+  "schema_version": "catalog-official-source-research-return-v1"
+}

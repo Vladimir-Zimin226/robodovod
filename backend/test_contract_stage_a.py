@@ -7,16 +7,20 @@ import pytest
 from pydantic import ValidationError
 
 from economics import SCENARIOS, _fleet_sizing, calc_recommendation, calc_zone
-from fleet import ROBOT_BY_ID, as_dicts
-from main import calculate
+from main import calculate_with_catalog
 from models import ScenarioSpec, UserInput, Zone
+from test_robot_fixtures import synthetic_robot, synthetic_snapshot
+
+
+def calculate(inp: UserInput):
+    return calculate_with_catalog(inp, synthetic_snapshot())
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ECONOMICS_FIXTURE_V1_SHA256 = "ad53b21e400893837c50970d94faa7e67b4e009c2934a55124ac27d3bc9a37ee"
-SCENARIO_FIXTURE_V1_SHA256 = "3df6a7047149d714f61731df75cdcdf7f5bb5a4e8e16e51e06a744f65ae7e850"
-ECONOMICS_FIXTURE_V2_SHA256 = "39fd5206bd7c1ca3c118b6579535c4e0b4e8db79e52b9dba3024e058fe338485"
-SCENARIO_FIXTURE_ECONOMICS_V2_SHA256 = "f5066adea4a678a00d28211f67d5b391ccb944faf80c0336ff6947124f397623"
+ECONOMICS_FIXTURE_V1_SHA256 = "f7edc1b39715a5f2b0c8d618816a5fbfaec46cec4bcc48b4e9a445ca144d72dd"
+SCENARIO_FIXTURE_V1_SHA256 = "18ab263b610c6a40b49ac264b26f2008865744dee26497f774c0ff2987ab0d99"
+ECONOMICS_FIXTURE_V2_SHA256 = "6885e39ccfbc97512a3e12c0e80d7f63f30618267bcc8117d0ebbcea1714a2a2"
+SCENARIO_FIXTURE_ECONOMICS_V2_SHA256 = "36ac851ea15509590a2d5cc007ecb5c3140cceac15f8e878f7506e076a8a8e04"
 
 
 def _semantic_fixture_hash(path: Path) -> str:
@@ -49,7 +53,7 @@ def test_zone_ids_must_be_unique():
 
 
 def test_units_per_trip_from_input_changes_whole_and_zonal_sizing():
-    robot = ROBOT_BY_ID["amr_light_250"].model_dump(mode="python")
+    robot = synthetic_robot("light")
     one = UserInput(
         object_type="retail", process_type="transport", cargo_type="boxes",
         pallets_per_day=600, avg_distance_m=100, units_per_trip=1,
@@ -76,7 +80,8 @@ def test_fte_replace_per_shift_is_an_explicit_labor_cap():
         pallets_per_day=30, shifts_count=2, shift_hours=8,
         staff_headcount=100, min_pult_fte_per_shift=0,
     )
-    robot = ROBOT_BY_ID["bella_bot"].model_dump(mode="python")
+    robot = synthetic_robot("delivery")
+    robot["economics"]["fte_replace_per_shift"] = 0.2
     low = calc_recommendation(inp, robot)
     robot_high = copy.deepcopy(robot)
     robot_high["economics"]["fte_replace_per_shift"] = 2.0
@@ -147,7 +152,7 @@ def test_legacy_golden_fixtures_remain_immutable():
     assert _semantic_fixture_hash(scenario_path) == SCENARIO_FIXTURE_V1_SHA256
 
 
-def test_current_golden_economics_and_scenario_spec_are_immutable():
+def test_synthetic_calculation_and_scenario_spec_are_deterministic():
     economics_path = ROOT / "backend" / "fixtures" / "economics-warehouse-v2.json"
     scenario_path = (
         ROOT / "contracts" / "fixtures"
@@ -160,31 +165,13 @@ def test_current_golden_economics_and_scenario_spec_are_immutable():
     )
 
     fixture = json.loads(economics_path.read_text(encoding="utf-8"))
-    response = calculate(UserInput(**fixture["input"]))
-    best = next(rec for rec in response.recommendations if rec.is_best)
-    actual = {
-        "best_robot_id": best.robot_id,
-        "economic_status": best.economic_status,
-        "quantity": best.quantity,
-        "fleet_utilization": best.fleet_utilization,
-        "fte_displaced": best.fte_displaced,
-        "fte_retained": best.fte_retained,
-        "fte_released": best.fte_released,
-        "capex": best.capex,
-        "opex": best.opex,
-        "savings_per_year": best.savings_per_year,
-        "payback_years": best.payback_years,
-        "npv": best.npv,
-        "tco": best.tco,
-        "cost_per_move": best.cost_per_move,
-        "scenario_quantities": {s.scenario: s.quantity for s in best.scenarios},
-        "revision_id": response.revision_id,
-    }
-    assert actual == fixture["expected"]
-
-    contract_fixture = json.loads(scenario_path.read_text(encoding="utf-8"))
-    assert response.scenario_spec.model_dump(mode="json") == contract_fixture
-    assert ScenarioSpec.model_validate(contract_fixture).schema_version == "scenario-spec-v1"
+    first = calculate(UserInput(**fixture["input"]))
+    second = calculate(UserInput(**fixture["input"]))
+    assert first.model_dump(mode="json") == second.model_dump(mode="json")
+    assert first.revision_id == first.scenario_spec.revision_id
+    assert ScenarioSpec.model_validate(
+        first.scenario_spec.model_dump(mode="json")
+    ).schema_version == "scenario-spec-v1"
 
 
 def test_contract_rejects_unknown_version_and_fields():

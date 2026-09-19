@@ -1,0 +1,84 @@
+# ChatGPT Deep Research: catalog evidence batch `deep-cleaning-02`
+
+## Результат задачи
+
+Исследуй ровно 6 model identities из приложенного batch и верни ровно 78 field results: по одному для каждого `research_target`. Найди только явно опубликованные model-specific значения и доказательства. Не исследуй модели вне batch, цены, экономику, procurement, capacity formulas или runtime activation.
+
+## Жёсткая блокировка scope
+
+Ниже приведён исчерпывающий roster этого запуска. Это не пример и не рекомендация: разрешены только эти `organizer_id`, модели и target fields.
+
+Scope fingerprint SHA-256: `934636b18a5325a8047c0ff1ee5efb146a55746e2d847f5c9a93ad398e691e90`
+
+1. `ba5d2051-3036-439f-8b2e-e05e26581fe6` — **БРО 2.1**
+   - targets (13): `capacity.cleaning_rate_m2_h`, `capacity.cleaning_width_m`, `specs.autonomy`, `specs.charging_requirements`, `specs.connectivity`, `specs.dimensions`, `specs.integrations`, `specs.max_speed`, `specs.min_aisle_width`, `specs.navigation`, `specs.operating_conditions`, `specs.service_requirements`, `specs.surface_requirements`
+2. `d4b39362-518a-4cf2-8770-b69bc03585a0` — **Веном Саранча**
+   - targets (13): `capacity.cleaning_rate_m2_h`, `capacity.cleaning_width_m`, `specs.autonomy`, `specs.charging_requirements`, `specs.connectivity`, `specs.dimensions`, `specs.integrations`, `specs.max_speed`, `specs.min_aisle_width`, `specs.navigation`, `specs.operating_conditions`, `specs.service_requirements`, `specs.surface_requirements`
+3. `e2095cfe-3ce4-404e-a4bb-2f378480d7ca` — **АК-SC80**
+   - targets (13): `capacity.cleaning_rate_m2_h`, `capacity.cleaning_width_m`, `specs.autonomy`, `specs.charging_requirements`, `specs.connectivity`, `specs.dimensions`, `specs.integrations`, `specs.max_speed`, `specs.min_aisle_width`, `specs.navigation`, `specs.operating_conditions`, `specs.service_requirements`, `specs.surface_requirements`
+4. `e8960183-1828-4fdb-8c39-91f5a3523a96` — **РУБИ-С-03**
+   - targets (13): `capacity.cleaning_rate_m2_h`, `capacity.cleaning_width_m`, `specs.autonomy`, `specs.charging_requirements`, `specs.connectivity`, `specs.dimensions`, `specs.integrations`, `specs.max_speed`, `specs.min_aisle_width`, `specs.navigation`, `specs.operating_conditions`, `specs.service_requirements`, `specs.surface_requirements`
+5. `ef375ca1-8de1-4a8d-9262-c1a6b71f0333` — **БРО 3.0**
+   - targets (13): `capacity.cleaning_rate_m2_h`, `capacity.cleaning_width_m`, `specs.autonomy`, `specs.charging_requirements`, `specs.connectivity`, `specs.dimensions`, `specs.integrations`, `specs.max_speed`, `specs.min_aisle_width`, `specs.navigation`, `specs.operating_conditions`, `specs.service_requirements`, `specs.surface_requirements`
+6. `f31223c1-44c8-4410-8381-6356e2158b61` — **Клинботикс 400 PRO**
+   - targets (13): `capacity.cleaning_rate_m2_h`, `capacity.cleaning_width_m`, `specs.autonomy`, `specs.charging_requirements`, `specs.connectivity`, `specs.dimensions`, `specs.integrations`, `specs.max_speed`, `specs.min_aisle_width`, `specs.navigation`, `specs.operating_conditions`, `specs.service_requirements`, `specs.surface_requirements`
+
+До веб-поиска прочитай `01-BATCH-deep-cleaning-02.json` и сравни его с roster выше и с `x-robodovod-scope-lock` в `03-RETURN-SCHEMA-REQUIRED.json`. Они должны дословно совпадать по `batch_id`, каждому UUID, названию и target fields.
+
+Если вложение недоступно или найдено хотя бы одно несовпадение, не подставляй другие модели из памяти, предыдущего чата или поисковой выдачи. Остановись до исследования с единственным сообщением `SCOPE_MISMATCH` и перечисли несовпадение. Любая модель, которой нет в roster выше, запрещена, даже если совпадает количество моделей или полей.
+
+## Входные файлы и доступ к вебу
+
+Файлы `01-BATCH-deep-cleaning-02.json`, `02-RUNTIME-CONTRACT.json` и `03-RETURN-SCHEMA-REQUIRED.json` задают scope, контекст и JSON schema. Они не являются источниками новых ТТХ и не ограничивают источники исследования.
+
+Публичный веб-поиск обязателен для каждой модели. Открывай внешние страницы и документы. `known_source_candidates` — только отправные точки: проверь их содержимое и ищи дополнительные официальные источники. Отсутствие первичных документов среди вложений не является основанием для `NOT_FOUND`.
+
+Если интерфейс сначала показывает proposed research plan, это штатный этап до запуска, но не является итоговым результатом. План должен дословно перечислить все 6 `organizer_id` и названия из roster выше, подтвердить fingerprint `934636b18a5325a8047c0ff1ee5efb146a55746e2d847f5c9a93ad398e691e90`, публичный веб-поиск и ровно 78 targets. План без полного точного roster нельзя запускать. После запуска доведи исследование до полного отчёта.
+
+## Источники и доказательства
+
+1. Приоритет: точная официальная страница модели, затем официальный datasheet/manual/catalog PDF.
+2. Страница авторизованного партнёра допустима только после безуспешного поиска официального источника; evidence должно также доказывать статус партнёра.
+3. Маркетплейсы, агрегаторы, SEO-каталоги, форумы, соцсети и неподтверждённые пересказы не являются evidence.
+4. Не угадывай URL, модель, ревизию, единицу или значение. Не объединяй разные модели, ревизии и конфигурации.
+5. Для каждого verified/conflict/ambiguous field result добавь прямой `source_url`, title, publisher, точный locator/раздел/страницу, `publication_or_update_date` в `YYYY-MM-DD` или `null`, `accessed_at` в `YYYY-MM-DD` и короткий дословный `raw_value` не длиннее 20 слов.
+6. Нормализуй только явно опубликованное значение. Не вычисляй производные характеристики и не подставляй типовые значения класса.
+7. `known_facts_do_not_silently_overwrite` — контекст для сравнения. Не копируй его как новый факт. Доказанное расхождение возвращай как `CONFLICT` минимум с двумя evidence-записями, показывающими обе стороны.
+8. `NOT_FOUND` допустим только после поиска точной модели и конкретного target на официальном сайте и в официальных PDF. Для него `normalized_value=null`, `normalized_unit=null`, `evidence=[]`; в `notes` кратко укажи, что именно было проверено.
+
+## Правила статусов
+
+- `EXACT_MODEL_MATCH`: точная модель/ревизия доказана.
+- `EXACT_MODEL_MATCH_WITH_CONFLICTS`: точная identity доказана и есть хотя бы один `CONFLICT`.
+- `AMBIGUOUS_MODEL_MATCH`: найдено несколько правдоподобных моделей/ревизий, но применимую нельзя доказать; не выбирай одну из них. Для ambiguous field result значение и unit должны быть `null`, а evidence должно показывать неоднозначность.
+- `MODEL_NOT_FOUND`: после веб-поиска точная модель не найдена; target fields возвращаются как `NOT_FOUND`.
+- `VERIFIED_OFFICIAL`: значение подтверждено официальным источником.
+- `VERIFIED_AUTHORIZED_PARTNER`: официального источника нет, значение подтверждено доказанным авторизованным партнёром.
+- `CONFLICT`: применимое единственное значение выбрать нельзя; `normalized_value` и `normalized_unit` должны быть `null`.
+
+## Итоговый Markdown-отчёт
+
+Верни результат непосредственно в теле одного итогового Markdown-отчёта. Не создавай отдельный JSON-файл, не используй `sandbox:/` и не делай полноту результата зависимой от временного файла.
+
+Сначала дай краткую таблицу по 6 моделям: identity status, counts field statuses, conflicts и кликабельные source links. Затем выведи ровно один полный JSON-объект:
+
+1. отдельная строка `CATALOG_RESULT_JSON_BEGIN`;
+2. один fenced-блок, начинающийся строкой ```json;
+3. полный JSON строго по `03-RETURN-SCHEMA-REQUIRED.json`;
+4. закрывающая строка ```;
+5. отдельная строка `CATALOG_RESULT_JSON_END`.
+
+Внутри JSON запрещены Markdown-citations, комментарии, сокращения, `...` и дополнительные schema-поля. `batch_id` должен быть `deep-cleaning-02`; `research_completed_at` — валидный RFC 3339 date-time с timezone; каждый `organizer_id` должен присутствовать ровно один раз и без изменения.
+
+## Completion gate
+
+Не завершай итоговый отчёт, пока одновременно не выполнены все условия:
+
+- публичный веб-поиск выполнен для каждой из 6 моделей;
+- JSON синтаксически валиден и содержит ровно 6 model results и 78 field results;
+- `batch_id`, все UUID, названия и targets сверены с жёстким roster выше; никаких других моделей в отчёте нет;
+- результат проверен по batch-specific ограничениям `03-RETURN-SCHEMA-REQUIRED.json`, включая `const organizer_id` и exact per-model targets;
+- состав `organizer_id` и `field_path` точно совпадает с batch;
+- каждый verified/conflict/ambiguous result имеет требуемое evidence, каждый `NOT_FOUND` имеет пустое evidence;
+- ни один факт не перенесён из known facts без нового допустимого evidence;
+- итоговый JSON полностью находится между двумя маркерами в этом отчёте.

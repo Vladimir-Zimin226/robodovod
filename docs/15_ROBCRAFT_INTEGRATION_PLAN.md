@@ -264,7 +264,7 @@ RobCraft получает готовый экономический snapshot и 
   "fleet": [
     {
       "zone_id": "receiving",
-      "equipment_model_id": "agv_pallet_qr",
+      "equipment_model_id": "synthetic-transport-heavy",
       "visual_profile": "pallet-amr",
       "quantity": 3,
       "max_speed_m_s": 0.8,

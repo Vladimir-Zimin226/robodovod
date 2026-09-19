@@ -2,7 +2,7 @@
   "schema_version": "catalog-dual-run-fixture-v1",
   "model_pairs": [
     {
-      "reference_id": "amr_heavy_1350",
+      "reference_id": "org-5760e938-9a43-45a7-b8e8-f4f2e6383930",
       "candidate_id": "org-5760e938-9a43-45a7-b8e8-f4f2e6383930"
     }
   ],
@@ -65,13 +65,5 @@
       }
     }
   ],
-  "expected_differences": [
-    {
-      "scenario_id": "*",
-      "reference_id": "amr_heavy_1350",
-      "dimension": "identity",
-      "classification": "EXPECTED_DIFFERENCE",
-      "reason": "The legacy item is a generic AMR profile while the explicitly paired candidate is the official Ronavi H1500 model."
-    }
-  ]
+  "expected_differences": []
 }

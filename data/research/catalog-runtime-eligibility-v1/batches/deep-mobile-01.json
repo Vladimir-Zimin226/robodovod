@@ -1,0 +1,1191 @@
+{
+  "batch_id": "deep-mobile-01",
+  "catalog_code": "organizer-catalog-v4",
+  "equipment_class_contracts": [
+    {
+      "capacity_profile": {
+        "code": "TRANSPORT_CYCLE_V1",
+        "required_fields": [
+          "capacity.units_per_trip",
+          "capacity.exchange_time_s"
+        ]
+      },
+      "code": "MOBILE_TRANSPORT",
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "runtime_category": "internal_mobile",
+      "selectors": [
+        {
+          "subtypes": [
+            "AMR",
+            "FMR",
+            "Беспилотный погрузчик",
+            "Мобильный робот-комплектовщик",
+            "Робот-штабелер",
+            "Роботизированная тележка"
+          ],
+          "type": "Мобильные роботы"
+        },
+        {
+          "subtypes": [
+            "FMR",
+            "Беспилотный тягач"
+          ],
+          "type": "Автономные наземные транспортные средства"
+        }
+      ]
+    }
+  ],
+  "mode": "DEEP_RESEARCH",
+  "model_count": 10,
+  "models": [
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "АО \"ОДК-СТАР\"",
+      "name": "Робот для транспортировки деталей и инструментов",
+      "organizer_id": "0265d700-534e-417e-8fde-47de88fc3ebb",
+      "position_ids": [
+        "catalog-v4-row-0071"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Роботизированная тележка",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "МФТИ",
+      "name": "Беспилотный погрузчик",
+      "organizer_id": "19a68304-56f7-432f-afd8-b97b2b8466ba",
+      "position_ids": [
+        "catalog-v4-row-0019"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Беспилотный погрузчик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "АО \"Когнитив Пилот\"",
+      "name": "Беспилотный тягач (Когнитив Пилот)",
+      "organizer_id": "28a5afa8-0473-4f80-99a9-b2922b76810f",
+      "position_ids": [
+        "catalog-v4-row-0189"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Беспилотный тягач",
+      "system_family": "BRS",
+      "type": "Автономные наземные транспортные средства"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            50.0
+          ],
+          "raw_value": "грузоподъемность до 50 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Ронави Роботикс\"",
+      "name": "Ronavi SR (грузоподъемность до 50 кг)",
+      "organizer_id": "3f2aaa1b-2237-4d7b-b215-1ac5ec789ed5",
+      "position_ids": [
+        "catalog-v4-row-0003"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            350.0
+          ],
+          "raw_value": "грузоподъемность до 350 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Ронави Роботикс\"",
+      "name": "Ronavi RCM (грузоподъемность до 350 кг)",
+      "organizer_id": "4d347e47-38f9-415b-aae1-7a6d3759a75c",
+      "position_ids": [
+        "catalog-v4-row-0007"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.autonomy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "h",
+          "normalized_value": [
+            6,
+            8
+          ],
+          "raw_value": "6-8 часов",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.battery_capacity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "Ah",
+          "normalized_value": 225,
+          "raw_value": "225 Ач",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.battery_type",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": "LiFePO4",
+          "raw_value": "LiFePO4",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.battery_voltage",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "V",
+          "normalized_value": 24,
+          "raw_value": "24 В",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "charging_time_h": 2,
+            "modes": [
+              "manual",
+              "battery replacement",
+              "automatic"
+            ]
+          },
+          "raw_value": "ручной режим/замена батареи, автоматический режим; 2 часа",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            1980,
+            1065,
+            2285
+          ],
+          "raw_value": "1980 мм*1065 мм*2285 мм (Д*Ш*В)",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.functional_safety",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "front LiDARs",
+            "360-degree LiDAR",
+            "collision sensors"
+          ],
+          "raw_value": "Фронтальные лидары. Лидар кругового обзора. Датчики столкновения",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "m/s",
+          "normalized_value": 2.6,
+          "raw_value": "2.6 м/c",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": "3D Laser SLAM",
+          "raw_value": "3D Laser SLAM",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.payload",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "kg",
+          "normalized_value": 2000,
+          "raw_value": "2000 кг",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 30,
+          "raw_value": "±30 мм",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.slope",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "%",
+          "normalized_value": {
+            "max_abs_slope_percent": 8
+          },
+          "raw_value": "±8%",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.turning_radius",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 1555,
+          "raw_value": "1555 мм",
+          "status": "VERIFIED_OFFICIAL"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.autonomy",
+            "specs.battery_capacity",
+            "specs.battery_type",
+            "specs.battery_voltage",
+            "specs.charging_requirements",
+            "specs.connectivity",
+            "specs.dimensions",
+            "specs.functional_safety",
+            "specs.integrations",
+            "specs.max_speed",
+            "specs.navigation",
+            "specs.operating_conditions",
+            "specs.payload",
+            "specs.positioning_accuracy",
+            "specs.service_requirements",
+            "specs.slope",
+            "specs.surface_requirements",
+            "specs.throughput",
+            "specs.turning_radius"
+          ],
+          "publisher": "ГК «Автомакон»",
+          "source_id": "src-automacon-ak2000-2-page",
+          "source_type": "official_product_page",
+          "title": "AGV/FMR-роботы — AK-2000-2",
+          "url": "https://robot.automacon.ru/agv-fmr"
+        }
+      ],
+      "manufacturer": "ООО \"ГК Автомакон\"",
+      "name": "AK-2000-2",
+      "organizer_id": "5a36611d-033e-4893-bd49-5d4f776f57dd",
+      "position_ids": [
+        "catalog-v4-row-0015"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.min_aisle_width",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "FMR",
+      "system_family": "BRS",
+      "type": "Автономные наземные транспортные средства"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            800.0
+          ],
+          "raw_value": "грузоподъемность до 800 кг",
+          "status": "ORGANIZER_NAME"
+        },
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.autonomy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "h",
+          "normalized_value": {
+            "average_load": 24,
+            "maximum_load": 14
+          },
+          "raw_value": "Время работы — 24 часа / 14 часов",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.battery_type",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": "LiFePO4",
+          "raw_value": "LiFePo",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "manual_supply": {
+              "current_A": 10,
+              "phase": 1,
+              "voltage_V": 220
+            },
+            "modes": [
+              "automatic dock",
+              "manual"
+            ]
+          },
+          "raw_value": "Способ зарядки — док-станция / ручная; 220В, 10A",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            940,
+            640,
+            230
+          ],
+          "raw_value": "940 × 640 × 230 мм",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.functional_safety",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "collision scanners",
+            "computer vision",
+            "emergency stop"
+          ],
+          "raw_value": "Сканеры, компьютерное зрение, аварийная остановка",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "MES",
+            "WMS",
+            "API"
+          ],
+          "raw_value": "Интеграция с MES и WMS; поддержка API",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "m/s",
+          "normalized_value": 2.0,
+          "raw_value": "2 м/с",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "QR markers",
+            "SLAM"
+          ],
+          "raw_value": "QR-метки, SLAM",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "optional_ip_rating": "IP54+",
+            "temperature_degC": [
+              5,
+              40
+            ]
+          },
+          "raw_value": "Рабочая температура: +5°C…+40°C",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 10.0,
+          "raw_value": "±10 мм",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.autonomy",
+            "specs.battery_type",
+            "specs.charging_requirements",
+            "specs.connectivity",
+            "specs.dimensions",
+            "specs.functional_safety",
+            "specs.integrations",
+            "specs.max_speed",
+            "specs.navigation",
+            "specs.operating_conditions",
+            "specs.positioning_accuracy",
+            "specs.service_requirements",
+            "specs.surface_requirements",
+            "specs.throughput"
+          ],
+          "publisher": "МОРОС",
+          "source_id": "src-moros-amr800-page",
+          "source_type": "official_model_page",
+          "title": "AMR800 — Автономный мобильный робот от МОРОС",
+          "url": "https://xn--l1aeahg.xn--p1ai/amr-800/"
+        }
+      ],
+      "manufacturer": "ООО \"Морос\"",
+      "name": "AMR 800 (грузоподъемность до 800 кг)",
+      "organizer_id": "5ec66969-8fcc-47b3-b517-a9c29372fffe",
+      "position_ids": [
+        "catalog-v4-row-0009"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.connectivity",
+        "specs.min_aisle_width",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.autonomy",
+          "layer": "BASE",
+          "normalized_unit": "h",
+          "normalized_value": [
+            10.0
+          ],
+          "raw_value": "до 10 часов.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "BASE",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            420.0,
+            400.0,
+            200.0
+          ],
+          "raw_value": "420x400x200 мм.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.mass",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            20.0
+          ],
+          "raw_value": "20 кг.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "BASE",
+          "normalized_unit": "m/s",
+          "normalized_value": [
+            2.5
+          ],
+          "raw_value": "до 2,5 м/с.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.min_aisle_width",
+          "layer": "BASE",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            700.0
+          ],
+          "raw_value": "около 700 мм.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "BASE",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": "QR-метки.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            10.0
+          ],
+          "raw_value": "грузоподъемность до 10 кг",
+          "status": "CORROBORATED"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "BASE",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            3.0
+          ],
+          "raw_value": "порядка ±3 мм.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Ронави Роботикс\"",
+      "name": "Ronavi SD (грузоподъемность до 10 кг)",
+      "organizer_id": "66d8e7ad-cdcd-4287-afb0-e2afa9ef5217",
+      "position_ids": [
+        "catalog-v4-row-0005"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            2000.0
+          ],
+          "raw_value": "грузоподъемность до 2 000 кг",
+          "status": "ORGANIZER_NAME"
+        },
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 1190,
+          "raw_value": "Минимальная ширина проезда — 1190 мм",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.autonomy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "h",
+          "normalized_value": 10.0,
+          "raw_value": "Время автономной работы — до 10 часов",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "charger": "Ronavi Charger",
+            "mode": "automatic_docking",
+            "output_current_max_A": 25,
+            "output_voltage_max_V": 54
+          },
+          "raw_value": "Автоматическая стыковка со всеми роботами Ronavi",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": "Wi-Fi 5 GHz 802.11 a/c/n",
+          "raw_value": "Wi‑Fi 5 ГГц 802.11 a/c/n",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            1540,
+            990,
+            250
+          ],
+          "raw_value": "1540х990х250 мм",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "open API",
+            "WMS",
+            "MES/enterprise management systems"
+          ],
+          "raw_value": "Открытое API для подключения к системам управления предприятием",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "m/s",
+          "normalized_value": 1.0,
+          "raw_value": "1 м/с",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": [
+            "QR markers",
+            "SLAM"
+          ],
+          "raw_value": "Тип навигации — QR-метки и SLAM",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "authorized_support": true,
+            "service": "full_support",
+            "spare_parts": true,
+            "updates": true,
+            "warranty_years": 1
+          },
+          "raw_value": "Полная сервисная поддержка, запасные части и обновления",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.charging_requirements"
+          ],
+          "publisher": "Ronavi Robotics",
+          "source_id": "src-ronavi-charger-page",
+          "source_type": "official_accessory_page",
+          "title": "Зарядная станция Ronavi Charger для зарядки логистических роботов Ronavi",
+          "url": "https://ronavi-robotics.ru/catalogue/charger"
+        },
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.autonomy",
+            "specs.connectivity",
+            "specs.dimensions",
+            "specs.integrations",
+            "specs.max_speed",
+            "specs.navigation",
+            "specs.operating_conditions",
+            "specs.positioning_accuracy",
+            "specs.service_requirements",
+            "specs.surface_requirements",
+            "specs.throughput"
+          ],
+          "publisher": "Ronavi Robotics",
+          "source_id": "src-ronavi-h2000-page",
+          "source_type": "official_model_page",
+          "title": "Ronavi H2000 — промышленный робот для транспортировки тяжелых грузов до 2 тонн внутри помещений",
+          "url": "https://ronavi-robotics.ru/catalogue/h2000"
+        }
+      ],
+      "manufacturer": "ООО \"Ронави Роботикс\"",
+      "name": "Ronavi H2000 (грузоподъемность до 2 000 кг)",
+      "organizer_id": "6f3da854-41da-4363-8496-5487f37c845a",
+      "position_ids": [
+        "catalog-v4-row-0004",
+        "catalog-v4-row-0068"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.min_aisle_width",
+        "specs.operating_conditions",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            1500.0
+          ],
+          "raw_value": "грузоподъемность до 1 500 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Морос\"",
+      "name": "AMR 1500 (грузоподъемность до 1 500 кг)",
+      "organizer_id": "7d5a76d2-7bf3-4a40-b6f7-64590d4d9273",
+      "position_ids": [
+        "catalog-v4-row-0010"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    }
+  ],
+  "runtime_contract_version": "runtime-eligibility-contract-v1",
+  "schema_version": "catalog-official-source-research-batch-v1",
+  "scope_exclusions": [
+    "prices",
+    "economics",
+    "procurement",
+    "capacity formulas",
+    "runtime activation",
+    "unsupported capacity profiles"
+  ]
+}

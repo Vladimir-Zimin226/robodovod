@@ -1,0 +1,585 @@
+{
+  "batch_id": "deep-mobile-02",
+  "catalog_code": "organizer-catalog-v4",
+  "equipment_class_contracts": [
+    {
+      "capacity_profile": {
+        "code": "TRANSPORT_CYCLE_V1",
+        "required_fields": [
+          "capacity.units_per_trip",
+          "capacity.exchange_time_s"
+        ]
+      },
+      "code": "MOBILE_TRANSPORT",
+      "required_runtime_fields": [
+        "specs.payload",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "runtime_category": "internal_mobile",
+      "selectors": [
+        {
+          "subtypes": [
+            "AMR",
+            "FMR",
+            "Беспилотный погрузчик",
+            "Мобильный робот-комплектовщик",
+            "Робот-штабелер",
+            "Роботизированная тележка"
+          ],
+          "type": "Мобильные роботы"
+        },
+        {
+          "subtypes": [
+            "FMR",
+            "Беспилотный тягач"
+          ],
+          "type": "Автономные наземные транспортные средства"
+        }
+      ]
+    }
+  ],
+  "mode": "DEEP_RESEARCH",
+  "model_count": 10,
+  "models": [
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            1500.0
+          ],
+          "raw_value": "грузоподъемность до 1 500 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Семаргл\"",
+      "name": "Сёмабот (грузоподъемность до 1 500 кг)",
+      "organizer_id": "993d980e-8b91-45e0-9c98-50ffab6e11e4",
+      "position_ids": [
+        "catalog-v4-row-0013"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Автотех\"",
+      "name": "L5",
+      "organizer_id": "a834aa03-136e-4f61-a1d6-b5563d798f68",
+      "position_ids": [
+        "catalog-v4-row-0198"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Беспилотный тягач",
+      "system_family": "BRS",
+      "type": "Автономные наземные транспортные средства"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Диком-Сервис\"",
+      "name": "DMR 300 Carrier B",
+      "organizer_id": "a83abbfd-78ee-43dc-9111-f51db4938001",
+      "position_ids": [
+        "catalog-v4-row-0064"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Аврора Роботикс\"",
+      "name": "Роботизированный комплекс по обследованию грунта",
+      "organizer_id": "b86f4613-789b-4cee-9f75-5d010da90b61",
+      "position_ids": [
+        "catalog-v4-row-0180"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Роботизированная тележка",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            600.0
+          ],
+          "raw_value": "грузоподъемность до 600 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Диком-Сервис\"",
+      "name": "DMR 600 (грузоподъемность до 600 кг)",
+      "organizer_id": "be814758-3616-4b94-befa-9848be2ac604",
+      "position_ids": [
+        "catalog-v4-row-0012",
+        "catalog-v4-row-0065"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Яндекс Роботикс\"",
+      "name": "Робот-комплектовщик",
+      "organizer_id": "c3d39a80-5fb9-42d3-82ae-0696fb647128",
+      "position_ids": [
+        "catalog-v4-row-0032"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Мобильный робот-комплектовщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            6000.0
+          ],
+          "raw_value": "грузоподъемность до 6 000 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Семаргл\"",
+      "name": "Tagarka (грузоподъемность до 6 000 кг)",
+      "organizer_id": "c9e9517c-18f0-47b4-aa05-4344566aa885",
+      "position_ids": [
+        "catalog-v4-row-0069"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            1200.0
+          ],
+          "raw_value": "грузоподъемность до 1 200 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Диком-Сервис\"",
+      "name": "DMR 1200 (грузоподъемность до 1 200 кг)",
+      "organizer_id": "cccd0c0d-8ae7-435d-a171-45f5d82886e6",
+      "position_ids": [
+        "catalog-v4-row-0011"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.payload",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            1200.0
+          ],
+          "raw_value": "грузоподъемность до 1200 кг",
+          "status": "ORGANIZER_NAME"
+        }
+      ],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Ронави Роботикс\"",
+      "name": "Ronavi M (грузоподъемность до 1200 кг)",
+      "organizer_id": "dcfd9975-81eb-49b5-a422-827a720ba582",
+      "position_ids": [
+        "catalog-v4-row-0006"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "AMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "MOBILE_TRANSPORT",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО «СМ РОБОТИКС»",
+      "name": "MULE",
+      "organizer_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+      "position_ids": [
+        "catalog-v4-row-0020"
+      ],
+      "required_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "FMR",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    }
+  ],
+  "runtime_contract_version": "runtime-eligibility-contract-v1",
+  "schema_version": "catalog-official-source-research-batch-v1",
+  "scope_exclusions": [
+    "prices",
+    "economics",
+    "procurement",
+    "capacity formulas",
+    "runtime activation",
+    "unsupported capacity profiles"
+  ]
+}

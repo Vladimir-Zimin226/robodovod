@@ -1,0 +1,20 @@
+{
+  "schema_version": "catalog-local-adapter-overlay-v1",
+  "catalog_code": "organizer-catalog-v4",
+  "facts": [
+    {
+      "adapter_id": "L001",
+      "organizer_id": "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+      "model_name": "Ronavi H1500 (грузоподъемность до 1 500 кг)",
+      "field_path": "specs.surface_requirements",
+      "normalized_value": "ровный промышленный пол",
+      "normalized_unit": null,
+      "evidence_status": "CROSS_DOCUMENT_ENRICHED",
+      "source_file": "Примеры_решений_типы_объектов.docx",
+      "source_artifact_sha256": "2ced71f9d0c633d8f0baecd53413bfe6e5595599279349bcad7812e87d8c3d95",
+      "source_locator": "page 1-2: Допустимые условия эксплуатации",
+      "raw_value": "ровный промышленный пол",
+      "derivation": "Exact substring split from the already evidenced specs.operating_conditions value; no value was inferred."
+    }
+  ]
+}

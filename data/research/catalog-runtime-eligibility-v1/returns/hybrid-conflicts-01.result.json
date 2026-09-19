@@ -1,0 +1,658 @@
+{
+  "batch_id": "hybrid-conflicts-01",
+  "research_completed_at": "2026-09-18T07:06:32+09:00",
+  "results": [
+    {
+      "field_results": [
+        {
+          "confidence": 0.5,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «АРС Смарт Роботикс»",
+              "raw_value": "Максимальная скорость движения составляет 2,1 м/с",
+              "source_locator": "Страница «CR-02»",
+              "source_title": "CR-02 — Новое поколение мобильного робота для кубической системы хранения",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://arobosys.ru/robot"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «АРС Смарт Роботикс»",
+              "raw_value": "Линейная скорость 2,7 м/с",
+              "source_locator": "Технические характеристики",
+              "source_title": "CR-02 — Новое поколение мобильного робота для кубической системы хранения",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://arobosys.ru/robot"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Обе стороны сохранены; применимая revision/configuration документально не доказана."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+      "matched_manufacturer": "ООО «АРС Смарт Роботикс»",
+      "matched_model": "CR-02 / SmartCube",
+      "organizer_id": "0ece582a-084c-4a8b-99f4-576f0e01b7c8",
+      "unresolved_issues": [
+        "Locally repaired from exhausted research output; no runtime or catalog import is authorized."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Спецификация робота-штабелёра RoboCV не содержит информации о времени замены аккумулятора."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Спецификация робота-штабелёра RoboCV не содержит информацию о количестве перевозимых грузов за одну поездку."
+        },
+        {
+          "confidence": 0.5,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Для объезда препятствий необходим проезд шириной не менее 1,6 м",
+              "source_locator": "Объезд препятствий",
+              "source_title": "Робот-штабелёр",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robocv.ru/robot-shtabelyor"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Мин. ширина проезда для набора полной скорости 1800мм",
+              "source_locator": "Мин. ширина проезда для набора полной скорости",
+              "source_title": "Спецификация робота-штабелёра RoboCV",
+              "source_type": "OFFICIAL_DATASHEET",
+              "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-shtabelyor-robocv-specifikaciya.pdf"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.aisle_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Обе стороны сохранены; применимая revision/configuration документально не доказана."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Режим работы 24/7 не является длительностью автономной работы."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В спецификации робота-штабелёра RoboCV не указана информация о способах связи."
+        },
+        {
+          "confidence": 0.5,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Максимальная скорость, м/с: 2",
+              "source_locator": "Технические характеристики",
+              "source_title": "Робот-штабелёр",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robocv.ru/robot-shtabelyor"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Скорость 1,67 м/с",
+              "source_locator": "Макс. скорость",
+              "source_title": "Спецификация робота-штабелёра RoboCV",
+              "source_type": "OFFICIAL_DATASHEET",
+              "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-shtabelyor-robocv-specifikaciya.pdf"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Обе стороны сохранены; применимая revision/configuration документально не доказана."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Минимальная ширина проезда для разворота, м: 2,9",
+              "source_locator": "Технические характеристики",
+              "source_title": "Робот-штабелёр",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robocv.ru/robot-shtabelyor"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Мин. ширина проезда для разворота 2900мм",
+              "source_locator": "Мин. ширина проезда для разворота",
+              "source_title": "Спецификация робота-штабелёра RoboCV",
+              "source_type": "OFFICIAL_DATASHEET",
+              "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-shtabelyor-robocv-specifikaciya.pdf"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": "m",
+          "normalized_value": 2.9,
+          "notes": "Evidence URL восстановлен детерминированным join с локальным known_source_candidate."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В открытых источниках нет информации об условиях эксплуатации робота-штабелёра RoboCV."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В открытых источниках нет информации о требованиях к техническому обслуживанию робота-штабелёра RoboCV."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В открытых источниках нет информации о требованиях к поверхности пола для робота-штабелёра RoboCV."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+      "matched_manufacturer": "ООО «РобоСиВи»",
+      "matched_model": "Робот-штабелёр RoboCV",
+      "organizer_id": "2ffc706d-fe43-4c2b-baad-a624a95ad3ce",
+      "unresolved_issues": [
+        "Locally repaired from exhausted research output; no runtime or catalog import is authorized."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "До 10 часов автономной работы не является временем обменной операции."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Спецификация Ronavi H1500 не содержит информации о количестве грузов за одну поездку."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Ронави Роботикс»",
+              "raw_value": "Минимальная ширина проезда;750 мм",
+              "source_locator": "Технические характеристики",
+              "source_title": "Ronavi H1500",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://ronavi-robotics.ru/catalogue/h1500"
+            }
+          ],
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Источник относится к текущей модели/ревизии, но применимость к organizer identity документально не доказана."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В открытых источниках нет информации о требованиях к поверхности для Ronavi H1500."
+        }
+      ],
+      "identity_status": "AMBIGUOUS_MODEL_MATCH",
+      "matched_manufacturer": "ООО «Ронави Роботикс»",
+      "matched_model": null,
+      "organizer_id": "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+      "unresolved_issues": [
+        "Locally repaired from exhausted research output; no runtime or catalog import is authorized."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Спецификация AMR100 не содержит информации о времени подзарядки или замены аккумулятора."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В открытых источниках не указано, сколько грузов AMR100 может перевезти за один рейс."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Морос»",
+              "raw_value": "Время работы — 20 часов (при средних нагрузках)",
+              "source_locator": "Технические характеристики",
+              "source_title": "AMR100 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/"
+            }
+          ],
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Источник относится к текущей модели/ревизии, но применимость к organizer identity документально не доказана."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Морос»",
+              "raw_value": "Способ зарядки — Автоматическая док-станция / ручная зарядка",
+              "source_locator": "Технические характеристики",
+              "source_title": "AMR100 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/"
+            }
+          ],
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Источник относится к текущей модели/ревизии, но применимость к organizer identity документально не доказана."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Не найдено данных о средствах связи AMR100."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Морос»",
+              "raw_value": "Габаритные размеры (Д×Ш×В) — 600 × 400 × 220 мм",
+              "source_locator": "Технические характеристики",
+              "source_title": "AMR100 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/"
+            }
+          ],
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "field_path": "specs.dimensions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Источник относится к текущей модели/ревизии, но применимость к organizer identity документально не доказана."
+        },
+        {
+          "confidence": 0.8,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Морос»",
+              "raw_value": "Возможность интеграции с конвейерами, подъемниками, манипуляторами.",
+              "source_locator": "Ключевые функциональные возможности",
+              "source_title": "AMR100 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/"
+            }
+          ],
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Источник относится к текущей модели/ревизии, но применимость к organizer identity документально не доказана."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Морос»",
+              "raw_value": "Скорость перемещения — 3 м/с",
+              "source_locator": "Технические характеристики",
+              "source_title": "AMR100 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/"
+            }
+          ],
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Источник относится к текущей модели/ревизии, но применимость к organizer identity документально не доказана."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Минимальная ширина прохода не указана для AMR100."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В открытых источниках не найдено подробностей о системе навигации AMR100."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Условия эксплуатации AMR100 не указаны."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «Морос»",
+              "raw_value": "Точность позиционирования — ±10 мм",
+              "source_locator": "Технические характеристики",
+              "source_title": "AMR100 — Автономный мобильный робот от МОРОС",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://xn--l1aeahg.xn--p1ai/amr-100/"
+            }
+          ],
+          "evidence_status": "AMBIGUOUS_MODEL_MATCH",
+          "field_path": "specs.positioning_accuracy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Источник относится к текущей модели/ревизии, но применимость к organizer identity документально не доказана."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Сведения о требованиях к обслуживанию AMR100 не найдены."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Требования к поверхности для AMR100 не указаны."
+        }
+      ],
+      "identity_status": "AMBIGUOUS_MODEL_MATCH",
+      "matched_manufacturer": "ООО «Морос»",
+      "matched_model": null,
+      "organizer_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "unresolved_issues": [
+        "Locally repaired from exhausted research output; no runtime or catalog import is authorized."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.exchange_time_s",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Информация о времени работы или зарядки робота-тягача RoboCV отсутствует."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.units_per_trip",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "В открытых источниках не указано, сколько тележек может буксировать робот-тягач RoboCV за одну поездку."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Режим работы 24/7 не является длительностью автономной работы."
+        },
+        {
+          "confidence": 0.5,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Максимальная скорость, м/с: 2,2",
+              "source_locator": "Технические характеристики",
+              "source_title": "Робот-тягач",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robocv.ru/robot-tyagach"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Макс. скорость без груза 12 км/ч",
+              "source_locator": "Макс. скорость без груза",
+              "source_title": "Спецификация робота-тягача RoboCV",
+              "source_type": "OFFICIAL_DATASHEET",
+              "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Обе стороны сохранены; применимая revision/configuration документально не доказана."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Минимальная ширина проезда для разворота, м: 2,9",
+              "source_locator": "Технические характеристики",
+              "source_title": "Робот-тягач",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robocv.ru/robot-tyagach"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Мин. ширина проезда для разворота 2900мм",
+              "source_locator": "Мин. ширина проезда для разворота",
+              "source_title": "Спецификация робота-тягача RoboCV",
+              "source_type": "OFFICIAL_DATASHEET",
+              "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": "m",
+          "normalized_value": 2.9,
+          "notes": "Evidence URL восстановлен детерминированным join с локальным known_source_candidate."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Информация об условиях эксплуатации робота-тягача RoboCV не найдена."
+        },
+        {
+          "confidence": 0.5,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Грузоподъемность, кг: до 5000",
+              "source_locator": "Технические характеристики",
+              "source_title": "Робот-тягач",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robocv.ru/robot-tyagach"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Сила тяги 4000кг",
+              "source_locator": "Сила тяги",
+              "source_title": "Спецификация робота-тягача RoboCV",
+              "source_type": "OFFICIAL_DATASHEET",
+              "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.payload",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Обе стороны сохранены; применимая revision/configuration документально не доказана."
+        },
+        {
+          "confidence": 0.5,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Точность навигации, см: 5",
+              "source_locator": "Технические характеристики",
+              "source_title": "Робот-тягач",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robocv.ru/robot-tyagach"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РобоСиВи»",
+              "raw_value": "Точность позиционирования 70мм",
+              "source_locator": "Точность позиционирования",
+              "source_title": "Спецификация робота-тягача RoboCV",
+              "source_type": "OFFICIAL_DATASHEET",
+              "source_url": "https://robocv.ru/wp-content/uploads/2021/05/robot-tyagach-robocv-specifikaciya.pdf"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.positioning_accuracy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Обе стороны сохранены; применимая revision/configuration документально не доказана."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Требования к обслуживанию робота-тягача RoboCV не найдены."
+        },
+        {
+          "confidence": 0.0,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Требования к поверхности для робота-тягача RoboCV не найдены."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+      "matched_manufacturer": "ООО «РобоСиВи»",
+      "matched_model": "Робот-тягач RoboCV",
+      "organizer_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "unresolved_issues": [
+        "Locally repaired from exhausted research output; no runtime or catalog import is authorized."
+      ]
+    }
+  ],
+  "schema_version": "catalog-official-source-research-return-v1"
+}

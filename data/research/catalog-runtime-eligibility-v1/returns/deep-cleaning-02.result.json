@@ -1,0 +1,1400 @@
+{
+  "batch_id": "deep-cleaning-02",
+  "research_completed_at": "2026-09-18T14:01:32+09:00",
+  "results": [
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.cleaning_rate_m2_h",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице BRO 2.1 и в поиске официальных PDF/руководств на 168robotics.com значение производительности уборки в м²/ч не найдено."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.cleaning_width_m",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице BRO 2.1 и в поиске официальных PDF/руководств на 168robotics.com значение ширины уборки не найдено."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Время непрерывной работы в режиме сплошной уборки, ч; 6; в режиме патрулирования, ч; 10",
+              "source_locator": "BRO 2.1 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": {
+            "continuous_cleaning": 6,
+            "patrol": 10
+          },
+          "notes": "Оба режима автономной работы опубликованы для точной модели."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Время зарядки АКБ, ч; 4",
+              "source_locator": "BRO 2.1 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": "h",
+          "normalized_value": 4,
+          "notes": "Опубликовано как время зарядки АКБ."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице BRO 2.1 и в поиске официальных PDF/руководств на 168robotics.com model-specific интерфейс или канал связи не найдено."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Габариты (Д х Ш х В), мм; 1721 х 803 х 1120",
+              "source_locator": "BRO 2.1 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.dimensions",
+          "normalized_unit": "mm",
+          "normalized_value": {
+            "height": 1120,
+            "length": 1721,
+            "width": 803
+          },
+          "notes": "Габариты точной модели."
+        },
+        {
+          "confidence": 0.87,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице BRO 2.1 и в поиске официальных PDF/руководств на 168robotics.com model-specific внешняя интеграция не найдено."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Скорость рабочая, км/ч; до 5",
+              "source_locator": "BRO 2.1 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "km/h",
+          "normalized_value": 5,
+          "notes": "Нормализован опубликованный верхний предел рабочей скорости."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице BRO 2.1 и в поиске официальных PDF/руководств на 168robotics.com минимальная ширина прохода не найдена; радиус разворота не подменялся шириной прохода."
+        },
+        {
+          "confidence": 0.86,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице BRO 2.1 и в поиске официальных PDF/руководств на 168robotics.com model-specific технология навигации не найдена; общая характеристика всех роботов не перенесена."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Диапазон рабочих температур, °С; от -10 до +30",
+              "source_locator": "BRO 2.1 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": "°C",
+          "normalized_value": {
+            "max": 30,
+            "min": -10
+          },
+          "notes": "Опубликованный диапазон рабочих температур."
+        },
+        {
+          "confidence": 0.86,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице BRO 2.1 и в поиске официальных PDF/руководств на 168robotics.com требование или регламент технического обслуживания не найдено."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Наклон подстилающей поверхности, град; 8; Высота преодолеваемой «ступеньки», м; 0,05",
+              "source_locator": "BRO 2.1 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": {
+            "max_slope_deg": 8,
+            "max_step_m": 0.05
+          },
+          "notes": "Сохранены две явно опубликованные характеристики проходимости без пересчёта."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "АО «168Роботикс»",
+      "matched_model": "BRO 2.1",
+      "organizer_id": "ba5d2051-3036-439f-8b2e-e05e26581fe6",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.cleaning_rate_m2_h",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены обе официальные страницы Веном Саранча и поиск официальных PDF/паспортов на rob-com.ru; производительность уборки в м²/ч не найдена."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "Ширина захвата: 950 мм",
+              "source_locator": "Тех. характеристики шнекоротора",
+              "source_title": "Веном Саранча",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/tproduct/480874550-266559644532-venom-sarancha"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "capacity.cleaning_width_m",
+          "normalized_unit": "m",
+          "normalized_value": 0.95,
+          "notes": "Ширина относится к шнекоротору точной модели; ширина самого ротора 1000 мм не подменяет ширину захвата."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "С запасом аккумулятора до 5 часов (до 10ти часов с запасным аккумом) работы",
+              "source_locator": "ГУСЕНИЧНЫЙ РОБОТ САРАНЧА",
+              "source_title": "Робот косилка Venom САРАНЧА - купить с доставкой по России",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/robot-kosilka-venom-sarancha"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": {
+            "single_battery": 5,
+            "with_spare_battery": 10
+          },
+          "notes": "Режимы сохранены раздельно: один аккумулятор и запасной аккумулятор."
+        },
+        {
+          "confidence": 0.87,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены обе официальные страницы Веном Саранча и поиск официальных PDF/паспортов на rob-com.ru; model-specific время зарядки или требуемое сетевое питание не найдено; наличие зарядного устройства не нормализовалось как режим зарядки."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "Управление: пульт ДУ; Дальность действия: до 200 метров прямой видимости",
+              "source_locator": "Тех. характеристики",
+              "source_title": "Веном Саранча",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/tproduct/480874550-266559644532-venom-sarancha"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "пульт ДУ; до 200 м прямой видимости",
+          "notes": "Зафиксирована явно опубликованная дистанционная связь управления и её дальность."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "Размер ДхШхВ: 1800х1230х750 мм",
+              "source_locator": "Тех. характеристики",
+              "source_title": "Веном Саранча",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/tproduct/480874550-266559644532-venom-sarancha"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.dimensions",
+          "normalized_unit": "mm",
+          "normalized_value": {
+            "height": 750,
+            "length": 1800,
+            "width": 1230
+          },
+          "notes": "Габариты точной модели."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены обе официальные страницы Веном Саранча и поиск официальных PDF/паспортов на rob-com.ru; интеграция с внешними системами не найдена."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "Скорость перемещения (макс): 3-5 км/ч",
+              "source_locator": "Тех. характеристики",
+              "source_title": "Веном Саранча",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/tproduct/480874550-266559644532-venom-sarancha"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "km/h",
+          "normalized_value": 5,
+          "notes": "Поле — максимальная скорость; взят опубликованный верхний предел диапазона 3–5 км/ч."
+        },
+        {
+          "confidence": 0.92,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены обе официальные страницы Веном Саранча и поиск официальных PDF/паспортов на rob-com.ru; минимальная ширина прохода не найдена."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены обе официальные страницы Веном Саранча и поиск официальных PDF/паспортов на rob-com.ru; автономная навигационная система не найдена; пульт ДУ не переименовывался в навигацию."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "Температура эксплуатации: до 32 С",
+              "source_locator": "Тех. характеристики",
+              "source_title": "Веном Саранча",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/tproduct/480874550-266559644532-venom-sarancha"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "Температура эксплуатации: от -30 до 42 С",
+              "source_locator": "ТЕХ. ХАРАКТЕРИСТИКИ → Веном Саранча",
+              "source_title": "Робот косилка Venom САРАНЧА - купить с доставкой по России",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/robot-kosilka-venom-sarancha"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Две официальные страницы точной модели публикуют несовместимые верхние границы температуры: 32 °C и 42 °C."
+        },
+        {
+          "confidence": 0.86,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены обе официальные страницы Веном Саранча и поиск официальных PDF/паспортов на rob-com.ru; model-specific регламент или требование технического обслуживания не найдено."
+        },
+        {
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "РОБКОМ",
+              "raw_value": "идеальна для обработки больших территорий и склонов до 30 градусов",
+              "source_locator": "ГУСЕНИЧНЫЙ РОБОТ САРАНЧА",
+              "source_title": "Робот косилка Venom САРАНЧА - купить с доставкой по России",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://rob-com.ru/robot-kosilka-venom-sarancha"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": "deg",
+          "normalized_value": 30,
+          "notes": "Опубликован предел уклона для точной модели."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+      "matched_manufacturer": "ООО «Робком»",
+      "matched_model": "Веном Саранча",
+      "organizer_id": "d4b39362-518a-4cf2-8770-b69bc03585a0",
+      "unresolved_issues": [
+        "specs.operating_conditions: официальные страницы расходятся по верхней границе рабочей температуры."
+      ]
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "3000 квадратных метров в час",
+              "source_locator": "Плюсы роботизации клининга",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "capacity.cleaning_rate_m2_h",
+          "normalized_unit": "m2/h",
+          "normalized_value": 3000,
+          "notes": "Производительность опубликована на странице точной модели."
+        },
+        {
+          "confidence": 0.91,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.cleaning_width_m",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница АК-SC80, официальный каталог моделей и поиск презентаций/PDF на robot.automacon.ru; ширина уборки не найдена."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "АК-SC80 — 8 часов автономная работа",
+              "source_locator": "Карточка «Автономный робот-уборщик АК-SC80»",
+              "source_title": "Автономные роботы-уборщики Автомакон",
+              "source_type": "OFFICIAL_CATALOG",
+              "source_url": "https://robot.automacon.ru/waybotrobot"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": 8,
+          "notes": "Официальный каталог связывает 8 часов непосредственно с АК-SC80."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "Автоматическая зарядка, наполнение и слив воды",
+              "source_locator": "Преимущества модели АК-SC80",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": "автоматическая зарядка",
+          "notes": "Опубликован автоматический режим зарядки; время зарядки не заявлено."
+        },
+        {
+          "confidence": 0.95,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "Автоматическая загрузка на сервер отчетов о работе",
+              "source_locator": "Функциональные возможности → Простота в управлении",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "автоматическая загрузка отчётов на сервер",
+          "notes": "Зафиксирована явно опубликованная серверная передача данных."
+        },
+        {
+          "confidence": 0.92,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.dimensions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница АК-SC80, официальный каталог моделей и поиск презентаций/PDF на robot.automacon.ru; габариты точной модели не найдены."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "взаимодействие с системами доступа, лифтами и автоматическими воротами",
+              "source_locator": "Функциональные возможности → Полная автономность",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "системы доступа",
+            "лифты",
+            "автоматические ворота"
+          ],
+          "notes": "Интеграции перечислены прямо на странице точной модели."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница АК-SC80, официальный каталог моделей и поиск презентаций/PDF на robot.automacon.ru; числовое значение максимальной скорости не найдено; формулировка «высокая скорость» не нормализовалась."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница АК-SC80, официальный каталог моделей и поиск презентаций/PDF на robot.automacon.ru; минимальная ширина прохода не найдена."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "Оснащён уникальной запатентованной системой навигации, способной различать контуры помещения и предметов",
+              "source_locator": "Описание АК-SC80",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "Автономный обход препятствий; Интеллектуальное картографирование",
+              "source_locator": "Преимущества модели АК-SC80",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": "запатентованная навигация по контурам; интеллектуальное картографирование; автономный обход препятствий",
+          "notes": "Сохранены только прямо названные навигационные возможности."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "Средние и крупные крытые и открытые площади",
+              "source_locator": "Описание области применения",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": "средние и крупные крытые и открытые площади",
+          "notes": "Опубликован тип среды эксплуатации."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница АК-SC80, официальный каталог моделей и поиск презентаций/PDF на robot.automacon.ru; регламент, периодичность или квалификационные требования обслуживания не найдены."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ГК «Автомакон»",
+              "raw_value": "Керамическая плитка; Гравий; Мрамор; Бетонный пол; Карбид кремния; Мелкая плитка; Терраццо; Эпоксидный пол",
+              "source_locator": "Типы полов",
+              "source_title": "Автономный робот-уборщик АК-SC80",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robot.automacon.ru/ak-sc80"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": [
+            "керамическая плитка",
+            "гравий",
+            "мрамор",
+            "бетонный пол",
+            "карбид кремния",
+            "мелкая плитка",
+            "терраццо",
+            "эпоксидный пол"
+          ],
+          "notes": "Список поверхностей опубликован на странице точной модели."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ГК «Автомакон»",
+      "matched_model": "АК-SC80",
+      "organizer_id": "e2095cfe-3ce4-404e-a4bb-2f378480d7ca",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РОБО»",
+              "raw_value": "790 м² в час производительность",
+              "source_locator": "Кейс Prime Park → Ключевые показатели",
+              "source_title": "Prime Park",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robo.ooo/prime-park"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "capacity.cleaning_rate_m2_h",
+          "normalized_unit": "m2/h",
+          "normalized_value": 790,
+          "notes": "Показатель опубликован производителем для внедрения именно РУБИ-С-03."
+        },
+        {
+          "confidence": 0.92,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.cleaning_width_m",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; ширина уборки для ревизии С-03 не найдена."
+        },
+        {
+          "confidence": 0.89,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.autonomy",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; время работы на одном заряде для ревизии С-03 не найдено; 9,5 часа смены не приравнивались к автономности батареи."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РОБО»",
+              "raw_value": "Автономная подзарядка, замена воды и опорожнение бака без участия оператора",
+              "source_locator": "Внедрение роботов РУБИ-С-03 → Станции обслуживания",
+              "source_title": "Prime Park",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robo.ooo/prime-park"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": null,
+          "normalized_value": "автономная подзарядка",
+          "notes": "Функция опубликована в официальном кейсе точной ревизии."
+        },
+        {
+          "confidence": 0.94,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РОБО»",
+              "raw_value": "Платформа ROBO FMS — единый контроль всего парка роботов в реальном времени",
+              "source_locator": "Внедрение роботов РУБИ-С-03 → Централизованное управление",
+              "source_title": "Prime Park",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robo.ooo/prime-park"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "ROBO FMS; контроль парка в реальном времени",
+          "notes": "Зафиксировано model-specific подключение к платформе управления; сетевой протокол не заявлен."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.dimensions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; габариты для ревизии С-03 не найдены."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «РОБО»",
+              "raw_value": "Контроль через платформу ROBO FMS",
+              "source_locator": "Внедрение роботов РУБИ-С-03 → Ключевые возможности",
+              "source_title": "Prime Park",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://robo.ooo/prime-park"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": "ROBO FMS",
+          "notes": "Официальный кейс прямо связывает точную ревизию с ROBO FMS."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; максимальная скорость движения для ревизии С-03 не найдена."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; минимальная ширина прохода для ревизии С-03 не найдена."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; технология навигации для ревизии С-03 не найдена; карты маршрутов в кейсе не подменялись характеристикой навигационного стека."
+        },
+        {
+          "confidence": 0.86,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; формальный диапазон или требования условий эксплуатации для ревизии С-03 не найдены; описание паркинга не подменялось спецификацией."
+        },
+        {
+          "confidence": 0.88,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; model-specific регламент или периодичность сервисного обслуживания для ревизии С-03 не найдены."
+        },
+        {
+          "confidence": 0.9,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальный кейс с точной РУБИ-С-03, страницы РУБИ-С/ROBO FMS и поиск официальных PDF на robo.ooo; model-specific требования к покрытию, уклону или порогам для ревизии С-03 не найдены."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "ООО «РОБО»",
+      "matched_model": "РУБИ-С-03",
+      "organizer_id": "e8960183-1828-4fdb-8c39-91f5a3523a96",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Производительность, тыс. м2/час; 2,4-6,0",
+              "source_locator": "БРО 3.0 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "capacity.cleaning_rate_m2_h",
+          "normalized_unit": "m2/h",
+          "normalized_value": {
+            "max": 6000,
+            "min": 2400
+          },
+          "notes": "Диапазон переведён из явно опубликованных тысяч м²/ч в м²/ч."
+        },
+        {
+          "confidence": 0.91,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "capacity.cleaning_width_m",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице БРО 3.0 и в поиске официальных PDF/руководств на 168robotics.com ширина уборки не найдена."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Сплошная уборка: не менее 5,5 ч; патрулирование: 15 ч",
+              "source_locator": "БРО 3.0 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": {
+            "continuous_cleaning_min": 5.5,
+            "patrol": 15
+          },
+          "notes": "Сохранены опубликованные режимы и нижняя граница для сплошной уборки."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Время зарядки АКБ, ч; до 2,5",
+              "source_locator": "БРО 3.0 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": "h",
+          "normalized_value": 2.5,
+          "notes": "Опубликован верхний предел времени зарядки."
+        },
+        {
+          "confidence": 0.87,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице БРО 3.0 и в поиске официальных PDF/руководств на 168robotics.com model-specific интерфейс или канал связи не найдено."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Габариты (Д х Ш х В), мм; 1994 х 1252 х 1276",
+              "source_locator": "БРО 3.0 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.dimensions",
+          "normalized_unit": "mm",
+          "normalized_value": {
+            "height": 1276,
+            "length": 1994,
+            "width": 1252
+          },
+          "notes": "Габариты точной модели."
+        },
+        {
+          "confidence": 0.87,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице БРО 3.0 и в поиске официальных PDF/руководств на 168robotics.com model-specific внешняя интеграция не найдена."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Скорость рабочая, км/ч; до 5",
+              "source_locator": "БРО 3.0 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.max_speed",
+          "normalized_unit": "km/h",
+          "normalized_value": 5,
+          "notes": "Нормализован опубликованный верхний предел рабочей скорости."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице БРО 3.0 и в поиске официальных PDF/руководств на 168robotics.com минимальная ширина прохода не найдена; радиус разворота не подменялся шириной прохода."
+        },
+        {
+          "confidence": 0.86,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице БРО 3.0 и в поиске официальных PDF/руководств на 168robotics.com model-specific технология навигации не найдена; общая характеристика всех роботов не перенесена."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Диапазон рабочих температур, °С; от -10 до +30",
+              "source_locator": "БРО 3.0 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": "°C",
+          "normalized_value": {
+            "max": 30,
+            "min": -10
+          },
+          "notes": "Опубликованный диапазон рабочих температур."
+        },
+        {
+          "confidence": 0.86,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На официальной странице БРО 3.0 и в поиске официальных PDF/руководств на 168robotics.com требование или регламент технического обслуживания не найдено."
+        },
+        {
+          "confidence": 0.97,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "168robotics",
+              "raw_value": "Наклон подстилающей поверхности, град; 8; Высота преодолеваемой «ступеньки», м; 0,05",
+              "source_locator": "БРО 3.0 → таблица характеристик",
+              "source_title": "168robotics Робоуборка",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://168robotics.com/robots"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": {
+            "max_slope_deg": 8,
+            "max_step_m": 0.05
+          },
+          "notes": "Сохранены две явно опубликованные характеристики проходимости без пересчёта."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH",
+      "matched_manufacturer": "АО «168Роботикс»",
+      "matched_model": "БРО 3.0",
+      "organizer_id": "ef375ca1-8de1-4a8d-9262-c1a6b71f0333",
+      "unresolved_issues": []
+    },
+    {
+      "field_results": [
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Скорость уборки 700-1200 м²/час",
+              "source_locator": "Сравнение с конкурентами → Cleanbotics 400 PRO",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Cleaning speed 700–1500 m²/hour",
+              "source_locator": "Competitive Comparison → Cleanbotics 400 PRO",
+              "source_title": "Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/en/models/400pro"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "capacity.cleaning_rate_m2_h",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Русская и английская официальные версии страницы точной модели расходятся по верхней границе: 1200 и 1500 м²/ч."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "400 мм в режиме мойки и 500 мм в режиме пылесоса",
+              "source_locator": "Сравнение с конкурентами → Ширина уборки",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "capacity.cleaning_width_m",
+          "normalized_unit": "m",
+          "normalized_value": {
+            "vacuum": 0.5,
+            "wet": 0.4
+          },
+          "notes": "Ширина опубликована отдельно по режимам; значения не объединялись."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Время работы на одном заряде (режим влажной уборки) — 3 часа",
+              "source_locator": "Сравнение с конкурентами → Cleanbotics 400 PRO",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.autonomy",
+          "normalized_unit": "h",
+          "normalized_value": 3,
+          "notes": "Опубликовано для влажной уборки на одном заряде."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Время зарядки — 1 час",
+              "source_locator": "Сравнение с конкурентами → Cleanbotics 400 PRO",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.charging_requirements",
+          "normalized_unit": "h",
+          "normalized_value": 1,
+          "notes": "Опубликовано как время зарядки."
+        },
+        {
+          "confidence": 0.96,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Возможность удаленного запуска и уборки по расписанию",
+              "source_locator": "Передовые технологии",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Интерфейс управления Waybot Control",
+              "source_locator": "Передовые технологии",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.connectivity",
+          "normalized_unit": null,
+          "normalized_value": "Waybot Control; удалённый запуск",
+          "notes": "Зафиксированы model-specific удалённое управление и фирменный интерфейс; сетевой протокол не заявлен."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Габариты 676 x 560 x 744 мм",
+              "source_locator": "Ключевые особенности → Компактность и маневренность",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "размер 561 x 744 х 611,5 мм",
+              "source_locator": "Модели → Клинботикс 400 ПРО",
+              "source_title": "Cleanbotics — робот поломойщик для профессиональной уборки",
+              "source_type": "OFFICIAL_CATALOG",
+              "source_url": "https://waybotrobotics.com/"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.dimensions",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Две официальные страницы точной модели публикуют разные габариты; даты ревизий не указаны."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Возможность интеграции с лифтами и турникетами",
+              "source_locator": "Ключевые особенности",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.integrations",
+          "normalized_unit": null,
+          "normalized_value": [
+            "лифты",
+            "турникеты"
+          ],
+          "notes": "Интеграции указаны прямо на странице точной модели."
+        },
+        {
+          "confidence": 0.93,
+          "evidence": [],
+          "evidence_status": "NOT_FOUND",
+          "field_path": "specs.max_speed",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "Проверены официальная страница Cleanbotics 400 PRO, официальный сайт и поиск официальных PDF на waybotrobotics.com; числовое значение максимальной скорости движения не найдено; скорость уборки в м²/ч не подменялась скоростью движения."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Ширина проходов 75 см в режиме пылесоса и 40 см в режиме влажной уборки",
+              "source_locator": "Области применения и условия эксплуатации",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Минимальная ширина прохода — 700 мм",
+              "source_locator": "Сравнение с конкурентами → Cleanbotics 400 PRO",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "CONFLICT",
+          "field_path": "specs.min_aisle_width",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "notes": "На одной официальной странице точной модели 40 см для влажного режима несовместимы с общим минимумом 700 мм."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Система навигационных алгоритмов на базе SLAM",
+              "source_locator": "Передовые технологии",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Основной 3D-лидар с обзором 360° + 5 дополнительных лидаров; 4 HD-камеры",
+              "source_locator": "Система сенсоров для точного маневрирования",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.navigation",
+          "normalized_unit": null,
+          "normalized_value": "SLAM; 3D-лидар 360°; 5 дополнительных лидаров; 4 HD-камеры",
+          "notes": "Навигационный алгоритм и сенсоры опубликованы для точной модели."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Площадь до 2000 м²; Пороги не более 1,5 см; активный трафик не мешает эффективной работе",
+              "source_locator": "Области применения и условия эксплуатации",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.operating_conditions",
+          "normalized_unit": null,
+          "normalized_value": {
+            "high_traffic": true,
+            "max_area_m2": 2000,
+            "max_threshold_cm": 1.5
+          },
+          "notes": "Сохранены три явно опубликованных условия без вывода дополнительных ограничений."
+        },
+        {
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "модульная конструкция с легким доступом ко всем узлам, простое обслуживание",
+              "source_locator": "Сравнение с конкурентами → Обслуживание",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.service_requirements",
+          "normalized_unit": null,
+          "normalized_value": "модульная конструкция; лёгкий доступ к узлам; простое обслуживание",
+          "notes": "Опубликована качественная характеристика обслуживания, без придуманной периодичности."
+        },
+        {
+          "confidence": 0.99,
+          "evidence": [
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Керамическая плитка; Керамогранит; Натуральный камень; ПВХ и винил; Наливной пол; Ковровые покрытия с низким ворсом",
+              "source_locator": "Типы поверхностей",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            },
+            {
+              "accessed_at": "2026-09-18",
+              "publication_or_update_date": null,
+              "publisher": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+              "raw_value": "Дерево твердых пород",
+              "source_locator": "Типы поверхностей",
+              "source_title": "Модель Cleanbotics 400 PRO",
+              "source_type": "OFFICIAL_MODEL_PAGE",
+              "source_url": "https://waybotrobotics.com/models/400pro"
+            }
+          ],
+          "evidence_status": "VERIFIED_OFFICIAL",
+          "field_path": "specs.surface_requirements",
+          "normalized_unit": null,
+          "normalized_value": [
+            "керамическая плитка",
+            "керамогранит",
+            "натуральный камень",
+            "ПВХ и винил",
+            "наливной пол",
+            "ковровые покрытия с низким ворсом",
+            "дерево твердых пород"
+          ],
+          "notes": "Список поверхностей опубликован на странице точной модели."
+        }
+      ],
+      "identity_status": "EXACT_MODEL_MATCH_WITH_CONFLICTS",
+      "matched_manufacturer": "ООО «ВЕЙБОТ АВТОМАКОН РОБОТИКС»",
+      "matched_model": "Cleanbotics 400 PRO",
+      "organizer_id": "f31223c1-44c8-4410-8381-6356e2158b61",
+      "unresolved_issues": [
+        "capacity.cleaning_rate_m2_h: официальные русская и английская версии расходятся по верхней границе.",
+        "specs.dimensions: официальная страница модели и главная страница публикуют разные габариты.",
+        "specs.min_aisle_width: model-specific режимные значения расходятся с общим минимумом 700 мм."
+      ]
+    }
+  ],
+  "schema_version": "catalog-official-source-research-return-v1"
+}

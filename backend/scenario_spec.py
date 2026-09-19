@@ -34,16 +34,11 @@ TEMPLATE_BY_OBJECT = {
     "other": "warehouse",
 }
 
-VISUAL_PROFILE_BY_MODEL = {
-    "agv_pallet_qr": "pallet-amr",
-    "amr_light_250": "cargo-amr",
-    "amr_heavy_1350": "pallet-amr",
-    "agv_tug_k05": "tugger",
-    "courier_flashbot": "medical-delivery",
-    "bella_bot": "service-delivery",
-    "cleaner_cc1_pro": "service-cleaner",
-    "sweeper_mt1": "industrial-cleaner",
-    "palletizer_cell_21": "palletizer-cell",
+VISUAL_PROFILE_BY_CATEGORY = {
+    "internal_mobile": "pallet-amr",
+    "service_delivery": "service-delivery",
+    "cleaning_robot": "service-cleaner",
+    "fixed_cell": "palletizer-cell",
 }
 
 TASK_KIND = {
@@ -283,7 +278,10 @@ def _fleet_item(zone_id: str, rec: RobotRecommendation, robot: dict) -> Scenario
     return ScenarioFleetItem(
         zone_id=zone_id,
         equipment_model_id=rec.robot_id,
-        visual_profile=VISUAL_PROFILE_BY_MODEL.get(rec.robot_id, robot["category"]),
+        visual_profile=robot.get(
+            "visual_profile",
+            VISUAL_PROFILE_BY_CATEGORY.get(robot["category"], robot["category"]),
+        ),
         quantity=rec.quantity,
         max_speed_m_s=specs["max_speed_m_s"],
         payload_kg=specs["payload_kg"],

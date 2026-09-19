@@ -430,7 +430,7 @@ def render_decision_queue(
     lines = [
         "# Очередь ручных решений по обогащению каталога",
         "",
-        "> Review-only: решения в этом файле сами по себе не изменяют catalog, runtime или backend/fleet.",
+        "> Review-only: решения в этом файле сами по себе не изменяют catalog или runtime.",
         "",
         "## Как работать",
         "",

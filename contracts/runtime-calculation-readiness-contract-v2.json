@@ -1,0 +1,136 @@
+{
+  "schema_version": "runtime-calculation-readiness-contract-v2",
+  "catalog_code": "organizer-catalog-v4",
+  "policy": {
+    "calculation_scope": "PRELIMINARY_CAPACITY_ONLY",
+    "matching_safe_availability": "MATCHING_SAFE",
+    "calculation_conflicts_block_only_affected_fields": true,
+    "deployment_requires_all_fields_and_no_conflicts": true,
+    "scenario_assumptions_are_not_vendor_facts": true,
+    "materialization_into_runtime_required": true,
+    "economics_in_scope": false,
+    "runtime_switch_allowed": false,
+    "capacity_formulas_changed": false
+  },
+  "equipment_classes": [
+    {
+      "code": "MOBILE_TRANSPORT",
+      "capacity_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "scenario_inputs": [
+        {
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "fallback_value": 45,
+          "unit": "s",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S"
+        },
+        {
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "fallback_value": 1,
+          "unit": "unit/trip",
+          "provenance": "backend/economics.py:_fleet_sizing"
+        }
+      ],
+      "deployment_fields": [
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ]
+    },
+    {
+      "code": "SERVICE_DELIVERY",
+      "capacity_profile": "DELIVERY_CYCLE_V1",
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "scenario_inputs": [
+        {
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "fallback_value": 45,
+          "unit": "s",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S"
+        },
+        {
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "fallback_value": 1,
+          "unit": "unit/trip",
+          "provenance": "backend/economics.py:_fleet_sizing"
+        }
+      ],
+      "deployment_fields": [
+        "capacity.elevator_compatibility",
+        "capacity.exchange_time_s",
+        "capacity.units_per_trip",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ]
+    },
+    {
+      "code": "CLEANING",
+      "capacity_profile": "CLEANING_AREA_V1",
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "scenario_inputs": [],
+      "deployment_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ]
+    },
+    {
+      "code": "FIXED_PALLETIZING",
+      "capacity_profile": "PALLETIZING_THROUGHPUT_V1",
+      "calculation_model_fields": [
+        "specs.throughput"
+      ],
+      "scenario_inputs": [],
+      "deployment_fields": [
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.operating_conditions",
+        "specs.payload",
+        "specs.positioning_accuracy",
+        "specs.service_requirements",
+        "specs.throughput"
+      ]
+    }
+  ]
+}

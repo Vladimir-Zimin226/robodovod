@@ -129,7 +129,7 @@ ASSUMPTIONS = {
         "Экономия не может превышать этот предел или фактический штат"
     ),
     "exchange_operations_per_trip": EXCHANGE_OPERATIONS_PER_TRIP,
-    "exchange_note": ("exchange_time_s в backend/fleet - время на одну операцию "
+    "exchange_note": ("exchange_time_s в runtime projection - время на одну операцию "
                       "(погрузка ИЛИ разгрузка); за рейс их две"),
     "release_note": ("released_headcount - ползунок UI «Сколько сотрудников "
                      "заменить роботами»: сколько человек из текущего штата "

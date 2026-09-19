@@ -1,4 +1,4 @@
-"""Controlled legacy/PostgreSQL catalog comparison.
+"""Controlled comparison of two explicit PostgreSQL catalog versions.
 
 This module is intentionally not wired to a public endpoint. The command-line
 entry point requires ``CATALOG_DUAL_RUN_ENABLED=true`` and an explicit database
@@ -20,7 +20,6 @@ from catalog_repository import (
     CatalogModelDTO,
     CatalogRepository,
     CatalogRepositoryError,
-    LegacyFleetCatalogRepository,
     PostgresCatalogRepository,
 )
 from database import Database, DatabaseConfigurationError, DatabaseSettings
@@ -387,7 +386,8 @@ def run_dual_run(
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run controlled catalog dual-run")
-    parser.add_argument("--catalog-code", required=True)
+    parser.add_argument("--reference-catalog-code", required=True)
+    parser.add_argument("--candidate-catalog-code", required=True)
     parser.add_argument(
         "--fixture",
         type=Path,
@@ -405,8 +405,8 @@ def main(argv: list[str] | None = None) -> int:
         fixture = load_dual_run_fixture(args.fixture)
         database = Database(DatabaseSettings.from_environment())
         report = run_dual_run(
-            LegacyFleetCatalogRepository(),
-            PostgresCatalogRepository(database, args.catalog_code),
+            PostgresCatalogRepository(database, args.reference_catalog_code),
+            PostgresCatalogRepository(database, args.candidate_catalog_code),
             fixture,
             require_feature_flag=False,
         )

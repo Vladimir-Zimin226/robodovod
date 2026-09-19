@@ -1,0 +1,591 @@
+{
+  "batch_id": "deep-cleaning-01",
+  "catalog_code": "organizer-catalog-v4",
+  "equipment_class_contracts": [
+    {
+      "capacity_profile": {
+        "code": "CLEANING_AREA_V1",
+        "required_fields": [
+          "capacity.cleaning_rate_m2_h",
+          "capacity.cleaning_width_m"
+        ]
+      },
+      "code": "CLEANING",
+      "required_runtime_fields": [
+        "specs.dimensions",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.autonomy",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.surface_requirements",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.service_requirements"
+      ],
+      "runtime_category": "cleaning_robot",
+      "selectors": [
+        {
+          "subtypes": [
+            "Робот уборщик",
+            "Робот-уборщик"
+          ],
+          "type": "Мобильные роботы"
+        }
+      ]
+    }
+  ],
+  "mode": "DEEP_RESEARCH",
+  "model_count": 7,
+  "models": [
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "АО «НПO «Высoкoтoчные кoмплексы»",
+      "name": "Депеша-3",
+      "organizer_id": "0b9f76be-8213-4938-9661-2bb669dc3d33",
+      "position_ids": [
+        "catalog-v4-row-0110"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "АО \"Астрамис\"",
+      "name": "Astramis SurfexUnit",
+      "organizer_id": "1625ac11-76d0-4994-a86a-e0a540453984",
+      "position_ids": [
+        "catalog-v4-row-0111"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Автономика\"",
+      "name": "Пиксель",
+      "organizer_id": "2f46660e-ea20-4845-9620-8c743b03225b",
+      "position_ids": [
+        "catalog-v4-row-0107"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [
+        {
+          "field_path": "specs.autonomy",
+          "layer": "BASE",
+          "normalized_unit": "h",
+          "normalized_value": [
+            3.0,
+            4.0
+          ],
+          "raw_value": "до 3 часов на одном заряде (в некоторых режимах до 4 часов со станцией).",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.charging_time",
+          "layer": "BASE",
+          "normalized_unit": "h",
+          "normalized_value": [
+            2.0
+          ],
+          "raw_value": "около 2 часов.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.cleaning_tank",
+          "layer": "BASE",
+          "normalized_unit": "l",
+          "normalized_value": [
+            40.0
+          ],
+          "raw_value": "40 литров.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.cleaning_width",
+          "layer": "BASE",
+          "normalized_unit": "cm",
+          "normalized_value": [
+            43.0,
+            60.0
+          ],
+          "raw_value": "от 43 до 60 см.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.dimensions",
+          "layer": "BASE",
+          "normalized_unit": "mm",
+          "normalized_value": [
+            860.0,
+            610.0,
+            980.0
+          ],
+          "raw_value": "около 860 × 610 × 980 мм.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.mass",
+          "layer": "BASE",
+          "normalized_unit": "kg",
+          "normalized_value": [
+            130.0,
+            200.0
+          ],
+          "raw_value": "порядка 130–200 кг.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.max_speed",
+          "layer": "BASE",
+          "normalized_unit": "km/h",
+          "normalized_value": [
+            3.0,
+            4.0
+          ],
+          "raw_value": "до 3–4 км/ч.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.navigation",
+          "layer": "BASE",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": "лидар + камеры (автоматическое построение маршрутов и карты помещения).",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.throughput",
+          "layer": "BASE",
+          "normalized_unit": "m2/h",
+          "normalized_value": [
+            1000.0
+          ],
+          "raw_value": "до 1000 м2/ч.",
+          "status": "CROSS_DOCUMENT_ENRICHED"
+        },
+        {
+          "field_path": "specs.aisle_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": "mm",
+          "normalized_value": 1300,
+          "raw_value": "1,3 м",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.charging_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "automatic_return_to_charge": true,
+            "base_supply_voltage_V": 220,
+            "full_charge_time_h": 2
+          },
+          "raw_value": "Розетка 220 В; сам возвращается на подзарядку; 2 часа",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.connectivity",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.integrations",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.operating_conditions",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.payload",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.positioning_accuracy",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": null,
+          "raw_value": null,
+          "status": "NOT_FOUND"
+        },
+        {
+          "field_path": "specs.service_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "dedicated_support_contact": true,
+            "remote_resolution_share": 0.95,
+            "spare_parts_stock": true
+          },
+          "raw_value": "95% вопросов удалённо решает диспетчерская; закреплённый сотрудник; собственный склад запчастей",
+          "status": "VERIFIED_OFFICIAL"
+        },
+        {
+          "field_path": "specs.surface_requirements",
+          "layer": "EXTERNAL_EVIDENCE_OVERLAY",
+          "normalized_unit": null,
+          "normalized_value": {
+            "required": "flat hard floor",
+            "supported": [
+              "tile",
+              "laminate",
+              "smooth concrete",
+              "artificial stone",
+              "porcelain stoneware"
+            ],
+            "unsupported": [
+              "carpet",
+              "pile coverings"
+            ]
+          },
+          "raw_value": "Только ровный пол: плитка, ламинат, гладкий бетон, искусственный камень, керамогранит; не подходят ковролин и ворсовые покрытия",
+          "status": "VERIFIED_OFFICIAL"
+        }
+      ],
+      "known_source_candidates": [
+        {
+          "known_field_paths": [
+            "specs.charging_requirements",
+            "specs.connectivity",
+            "specs.integrations",
+            "specs.operating_conditions",
+            "specs.payload",
+            "specs.positioning_accuracy",
+            "specs.service_requirements"
+          ],
+          "publisher": "R2B / ООО «Р2Б»",
+          "source_id": "src-r2b-mark2se-page",
+          "source_type": "official_model_page",
+          "title": "MARK 2 SE",
+          "url": "https://r2b.company/mark2se"
+        },
+        {
+          "known_field_paths": [
+            "specs.aisle_requirements",
+            "specs.surface_requirements"
+          ],
+          "publisher": "R2B / ООО «Р2Б»",
+          "source_id": "src-r2b-mark2se-rent",
+          "source_type": "official_model_service_page",
+          "title": "Аренда робота-уборщика Mark 2 SE",
+          "url": "https://r2b.company/rent"
+        }
+      ],
+      "manufacturer": "ООО \"Р2Б\"",
+      "name": "MARK 2 SE",
+      "organizer_id": "446c5207-a099-45e0-b615-afd60de08589",
+      "position_ids": [
+        "catalog-v4-row-0022"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.connectivity",
+        "specs.integrations",
+        "specs.min_aisle_width",
+        "specs.operating_conditions"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Вейбот Автомакон Роботикс\"",
+      "name": "Клинботикс 600",
+      "organizer_id": "5a5b3599-bd64-4330-9bbb-4f8ce7d780b9",
+      "position_ids": [
+        "catalog-v4-row-0025"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Виафор\"",
+      "name": "МАРК",
+      "organizer_id": "5cecfb84-143b-4af7-89fb-afbf57403792",
+      "position_ids": [
+        "catalog-v4-row-0109"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    },
+    {
+      "capacity_profile": "CLEANING_AREA_V1",
+      "conflicts": [],
+      "current_status": "NEEDS_FACTS",
+      "equipment_class": "CLEANING",
+      "known_facts_do_not_silently_overwrite": [],
+      "known_source_candidates": [],
+      "manufacturer": "ООО \"Яку Роботикс\"",
+      "name": "Unit",
+      "organizer_id": "9b20417a-0ac7-4786-985b-f3459a15075d",
+      "position_ids": [
+        "catalog-v4-row-0026"
+      ],
+      "required_fields": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "research_targets": [
+        "capacity.cleaning_rate_m2_h",
+        "capacity.cleaning_width_m",
+        "specs.autonomy",
+        "specs.charging_requirements",
+        "specs.connectivity",
+        "specs.dimensions",
+        "specs.integrations",
+        "specs.max_speed",
+        "specs.min_aisle_width",
+        "specs.navigation",
+        "specs.operating_conditions",
+        "specs.service_requirements",
+        "specs.surface_requirements"
+      ],
+      "subtype": "Робот-уборщик",
+      "system_family": "BRS",
+      "type": "Мобильные роботы"
+    }
+  ],
+  "runtime_contract_version": "runtime-eligibility-contract-v1",
+  "schema_version": "catalog-official-source-research-batch-v1",
+  "scope_exclusions": [
+    "prices",
+    "economics",
+    "procurement",
+    "capacity formulas",
+    "runtime activation",
+    "unsupported capacity profiles"
+  ]
+}
