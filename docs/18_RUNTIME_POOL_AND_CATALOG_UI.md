@@ -81,4 +81,11 @@ materialized capacity pool 21 / 24 и отдельное восстановле�
 после пересоздания PostgreSQL `catalog-media` повторно восстанавливает DB
 metadata/position links из проверенного restricted PDF.
 
-Следующий этап после прохождения gate — `engine/capacity-formula-trace`.
+На момент реализации этого этапа следующим планировался
+`engine/capacity-formula-trace`. Уточнение после полного аудита reference
+Жени от 2026-09-19: сначала `contracts/calculation-semantics-v1`, затем
+registry/intake/constraints/executability audit; capacity trace остаётся C07.
+Обоснование и подробные gates — в [плане 19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
+Числа 21/24 — baseline этой поставки, не неизменный лимит будущего pool.
+Любое изменение требует отдельного evidence-backed audit, versioned diff,
+тестов и согласования; полный discovery 187/223 не сокращается.

@@ -1,7 +1,8 @@
 # План доработки «РОБОДОВОДА» до финала хакатона
 
-Статус: проверенный операционный план команды. Версия: 1.3 от 16 сентября
-2026 года.
+Статус: верхнеуровневый операционный план команды. Версия: 1.4 от 19 сентября
+2026 года. Детальная расчётная последовательность уточнена отдельным аудитом;
+исторические этапы и реализованные возможности сохранены.
 
 План повторно сопоставлен с фактическим кодом, официальными материалами,
 нормализованным staging и текущими тестами. Официальное ТЗ имеет приоритет.
@@ -10,6 +11,15 @@
 схему первой миграции и правила импорта. `13_ROBCRAFT_ENGINE.md` и
 `15_ROBCRAFT_INTEGRATION_PLAN.md` описывают реализованную 3D-подсистему, но не
 задают порядок оставшихся конкурсных работ.
+
+Уточнение 2026-09-19: для целевой расчётной и продуктовой логики высший
+приоритет имеют все 14 документов `Разобрать/Версии проекта от Жени/reference`
+версии 3.2. [План 19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md) содержит
+canonical model, source coverage, gap/conflict matrix, trace и исполнимые
+итерации. Он уточняет расчётные части этапов 6–9 и будущую последовательность
+ниже. Evidence/provenance, strict contracts и tenant isolation не ослабляются.
+Источники не устраняют неизвестные ТТХ, коммерческие условия и нормативные
+вопросы; разногласия с этим roadmap отражены в плане 19.
 
 ## 1. Цель финальной версии
 
@@ -40,6 +50,13 @@ Warehouse — полный golden path. Аэропорт и медучрежде
 10. После каждой итерации текущий demo path и regression suite работают.
 
 ## 3. Проверенная исходная точка
+
+Пункты этого раздела описывают исторический срез плана 1.3 от 16 сентября,
+если в них явно не указана последующая миграция. На 19 сентября persistence,
+PostgreSQL и production bundle реализованы; прежние утверждения об отсутствии
+сохранения и БД не являются текущим статусом. Актуальный срез f77c32c,
+разрыв capacity DTO/API и проверенный каталог приведены в плане 19 §2/§4.
+Историческое число тестов ниже не является результатом нового аудита.
 
 - Исходный baseline использовал 13 встроенных JSON-моделей; этот fleet удалён
   после ввода versioned catalog repository и activation slots.
@@ -478,14 +495,29 @@ Gate: golden path проходит пять раз подряд локально
     модель / 24 позиции получают materialized capacity runtime, явный UI-тег и
     фильтр по участию в расчёте; обязательный контракт —
     `docs/18_RUNTIME_POOL_AND_CATALOG_UI.md`
-17. `engine/capacity-formula-trace` — после materialization расчётного пула и
-    повторного audit фактически импортированного bundle
-18. `catalog/runtime-dual-run-activation`
-19. `economics/commercial-scenarios-sensitivity`
-20. `visualization/2d-simulation-report`
-21. `report/pdf-xlsx-csv`
-22. `admin/catalog-draft-publish`
-23. `qa/security-performance-deploy`
+17. `contracts/calculation-semantics-v1` — новый непосредственный этап C01:
+    units, exchange/speed/batch semantics, независимые capacity/economics
+    statuses, provenance и trace contract. Формулы ещё не реализуются.
+18. C02–C06 плана 19 — registry, intake/roles, отдельный UI intake,
+    applicability и повторный formula-executability audit.
+19. `engine/capacity-formula-trace` (C07), отдельно cleaning C08 и cell C09;
+    process coverage C10, capacity API/snapshots C11 и results UI C12.
+20. C13–C20 — отдельно commercial/procurement inputs, labour, purchase cost
+    ledger, full CF/reconciliation, RaaS, shared allocation, ranking, sensitivity.
+21. C21–C25 — financial UI, ScenarioSpec v2, утверждённая scheduling/SLA модель,
+    обязательная 2D и отдельный RobCraft adapter/report.
+22. C26–C28 — exports, capacity rollout и отдельная economics migration.
+    Capacity rollout C27 можно выполнить после C12, не дожидаясь экономики.
+23. `admin/catalog-draft-publish` — самостоятельная работа верхнего roadmap.
+24. C29 `qa/calculation-migration-acceptance` и оставшиеся
+    `qa/security-performance-deploy`/operations gates.
+
+Точные имена всех веток, dependencies, migrations и acceptance gates:
+[карточки C01–C29](planning/zhenya-phases.md). Для 28 process blocks указаны
+отдельные microstages C10.01–C10.28; отсутствующая формула — blocker до решения
+Жени, а не разрешение подменить её generic transport. Прежние укрупнённые
+пункты 17–23 пересмотрены этим датированным уточнением; реализация расчётного
+движка в аудитную сессию не входила.
 
 Каждый пункт выполняется отдельной малой итерацией. Нельзя объединять importer
 или перенос endpoint с соседним пунктом: это уничтожает диагностическую

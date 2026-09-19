@@ -1,0 +1,164 @@
+{
+    "schema_version":  "planning-source-coverage-v1",
+    "audited_at":  "2026-09-19",
+    "baseline_commit":  "f77c32c2fde86cd1450aa96d43dc6273059c57d4",
+    "source_root":  "Разобрать/Версии проекта от Жени/reference",
+    "recursive_file_count":  14,
+    "registry_present":  false,
+    "files":  [
+                  {
+                      "id":  "R00",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/00_METHODOLOGY.md",
+                      "bytes":  12891,
+                      "lines":  191,
+                      "sha256":  "bbf66a169149e39235a1cd38c4534fc2461c1accdd3ad1d31fddd02717556cb0",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R01",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/01_SOURCES.md",
+                      "bytes":  11852,
+                      "lines":  177,
+                      "sha256":  "73253cccc4f6cb31648fe32c03a9caacc7e24c5db832f7457984ccf90d3cabd7",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R02",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/02_CONSTANTS.md",
+                      "bytes":  39959,
+                      "lines":  558,
+                      "sha256":  "43addb7aad64dba565a8156b34266ee2492e9e3eebe92455f7986421ec318e01",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R03",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/03_FORMULAS.md",
+                      "bytes":  69284,
+                      "lines":  1176,
+                      "sha256":  "60f03e1a76e07db4acc6a44357c56adb2cef280e709eddcd58a5c6a5c5ca0621",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R04",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/04_DECISIONS.md",
+                      "bytes":  62385,
+                      "lines":  869,
+                      "sha256":  "3820498b206b6dbe436c7469009a23fab1f8c81828fb37c9296afdadafad2fb9",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R05",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/05_DATASET_AUDIT.md",
+                      "bytes":  18620,
+                      "lines":  374,
+                      "sha256":  "f6c90d96c777dc58c2bdcd68f1d8c9fded36a82236519cfd900d3c230a3a52d8",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R06",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/06_EXPERT.md",
+                      "bytes":  45052,
+                      "lines":  705,
+                      "sha256":  "ed650b06ccc846cad4873bb02b027a31210d71ff9a291fc336fa3344a3279b96",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R07",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/07_MIGRATION.md",
+                      "bytes":  39606,
+                      "lines":  802,
+                      "sha256":  "d7d239d782268f045fbfa6dd2e2dc9ed5fa585be91484e62892b83d3753ead07",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R08",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/08_FLEET_SCHEMA.md",
+                      "bytes":  24997,
+                      "lines":  432,
+                      "sha256":  "cff93a87334e6001c3f48c1b28e943f42d154613019e472f004718623cea45d1",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R09",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/09_OPEN_QUESTIONS.md",
+                      "bytes":  10209,
+                      "lines":  173,
+                      "sha256":  "fc63bee06807668a3c97573c73e99506c1c9426a9946f50ab2899e9cd201b71c",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R10",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/10_INTAKE_FORMS.md",
+                      "bytes":  40339,
+                      "lines":  658,
+                      "sha256":  "991cc2b9b0b946eece2b1ed5f09fbf4b2d8a9e9b287b2edc858694b5e379d053",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R11",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/11_INTAKE_LOGIC.md",
+                      "bytes":  27066,
+                      "lines":  637,
+                      "sha256":  "dedd1587824894f9a4ee88c010ff8ab57391ae1c0a2a58fe8bf33fbd4fce24ff",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R12",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/12_SIMULATION.md",
+                      "bytes":  2788,
+                      "lines":  76,
+                      "sha256":  "a521d8445c8c9dab43a87f4c316a9c15d6bdb931989b2db010fa30494e4e10b1",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  },
+                  {
+                      "id":  "R13",
+                      "path":  "Разобрать/Версии проекта от Жени/reference/13_RECONCILIATION.md",
+                      "bytes":  21140,
+                      "lines":  294,
+                      "sha256":  "08126b2b38061ef9555d2b1740a22243dd3a5bd3d3fdc642501c207cfcb90aeb",
+                      "declared_version":  "3.2",
+                      "declared_date":  "2026-09-18",
+                      "read_status":  "FULLY_READ",
+                      "inventory":  "docs/planning/zhenya-source-inventory.md"
+                  }
+              ]
+}

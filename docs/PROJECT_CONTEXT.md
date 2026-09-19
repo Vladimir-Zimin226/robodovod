@@ -1,6 +1,7 @@
 # Контекст проекта «РОБОДОВОД»
 
-Актуально на 16 сентября 2026 года.
+Актуально на 19 сентября 2026 года; расчётный аудит baseline
+`f77c32c2fde86cd1450aa96d43dc6273059c57d4`.
 
 ## Коротко
 
@@ -31,9 +32,11 @@ One-liner: **от производственного процесса до об�
 
 ## Состояние реализации
 
-Репозиторий содержит работающий локальный прототип:
+Репозиторий содержит прототип и PostgreSQL control-plane/catalog/persistence.
+Ниже перечислены реализованные подсистемы; это не утверждение, что нынешний
+capacity pool уже подключён к полному end-to-end расчёту:
 
-- FastAPI backend с локальным JSON-каталогом роботов;
+- FastAPI backend с versioned PostgreSQL repository и раздельными discovery/runtime slots;
 - React 19 + Vite frontend;
 - интервью на YandexGPT при наличии ключей и regex/fallback без них;
 - пресеты для склада, аэропорта и клиники;
@@ -41,8 +44,8 @@ One-liner: **от производственного процесса до об�
 - детерминированные расчёты fleet size, CAPEX, OPEX, TCO, payback, NPV и сценариев;
 - расчёт единого процесса или нескольких независимых функциональных зон с общей
   экономической сводкой и зональным what-if;
-- типизированный каталог из 13 решений в пяти категориях, 179 backend-тестов и
-  4 межъязыковых contract-теста;
+- полный discovery-каталог 187 моделей / 223 позиции и materialized capacity
+  pool 21 модель / 24 позиции; прежние 13 встроенных решений удалены;
 - встроенную 3D-визуализацию поддержанного складского сценария и генерацию PDF в браузере.
 - тёмный visualization-first dashboard с единой оболочкой, command input,
   readiness, реальными KPI, baseline/target, сценарным сравнением и responsive drawer;
@@ -216,7 +219,31 @@ assets для 223 позиций. Профильные Compose tools-серви�
 восстановить повторным идемпотентным `catalog-media`, даже если одноимённый
 binary volume сохранился.
 
-Следующая малая итерация — `engine/capacity-formula-trace`.
+Аудит 2026-09-19 полностью покрыл 14 файлов reference версии 3.2. Они являются
+главным источником целевой расчётной и продуктовой логики; архитектура,
+evidence gates, tenant isolation и воспроизводимые snapshots сохраняются.
+Подробный [план 19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md) и
+[inventory](planning/zhenya-source-inventory.md) фиксируют формулы,
+расхождения, решения, вопросы и последовательность внедрения.
+
+Следующая малая итерация — **`contracts/calculation-semantics-v1`** (C01).
+`engine/capacity-formula-trace` остаётся C07 после registry, normalization,
+constraints и executability audit. Нынешний `/api/calculate` требует legacy
+Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
+расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой
+формулы при конкретном input и не означает deployment readiness.
+
+Главные изменения целевого канона: полный exchange учитывается один раз,
+peak×reserve отделён от availability; роли и USER gross salary вместо единого
+fte_cost; full baseline/scenario cashflows с отдельным tax mode; purchase/RaaS
+как независимая ось; server-owned trace и ScenarioSpec v2. Неопределённые
+scheduling/SLA, scoring curves, pult allocation, annual ramp и НДС оформлены
+как вопросы с gates. План не разрешает добавлять недоказанные vendor facts.
+21/24 сохраняется как baseline до отдельного доказанного и согласованного
+изменения membership; 187/223 discovery и отсутствие БАС в pool проверяются.
+
+В этой сессии выполнены только документация и плановые артефакты: формулы,
+production API/UI, versioned catalog и runtime slots не менялись.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

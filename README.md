@@ -470,7 +470,14 @@ capacity-расчёта по всему каталогу, из них
 [`docs/18_RUNTIME_POOL_AND_CATALOG_UI.md`](docs/18_RUNTIME_POOL_AND_CATALOG_UI.md):
 полный каталог сохраняет все 223 позиции, а 21 расчётная БРС-модель (24 позиции)
 получает явный тег `Участвует в расчёте` и отдельный UI-фильтр. Статус
-`С допущениями` виден отдельно и не выдаётся за deployment-ready. Следующий
-этап — `engine/capacity-formula-trace`.
+`С допущениями` виден отдельно и не выдаётся за deployment-ready.
+
+После полного чтения 14 документов Жени версии 3.2 подготовлен
+[расчётный план внедрения](docs/19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md):
+canonical model, inventory, gap/conflict matrix, trace и поэтапная миграция.
+Следующий этап — `contracts/calculation-semantics-v1`; транспортный
+`engine/capacity-formula-trace` следует после contracts/registry/intake/audit.
+Текущий capacity DTO ещё не подключён к отдельному end-to-end calculation API.
+Аудит изменил только документы; production formulas и runtime slots не менялись.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

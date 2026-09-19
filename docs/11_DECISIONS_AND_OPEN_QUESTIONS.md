@@ -1,5 +1,37 @@
 # РОБОДОВОД — Decisions & Open Questions
 
+Уточнение 2026-09-19: исторические решения ниже сохранены; их расчётная часть
+пересмотрена по reference Жени 3.2. Текущий канон, конфликтующие пары источников
+и владельцы решений: [план 19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
+В частности, Q6 о salary benchmarks больше не разрешает salary fallback:
+целевая зарплата вводится пользователем по роли, без default из preset/региона.
+
+Непосредственная следующая ветка — `contracts/calculation-semantics-v1`.
+Capacity formulas следуют после units/registry/intake/constraints/audit.
+В этой документационной сессии новые формулы и runtime activation не выполнялись.
+
+### Расчётные вопросы после аудита reference
+
+- Женя: полный process_catalog и role codes; exchange total/split, рабочая
+  скорость и batch conversions; precision и zero-domain policy.
+- Женя: распределение pult/released/additional, дефицит и ричтраки;
+  годовой ramp/service/severance и повторные замены батарей.
+- Женя и профильный reviewer: tax modes/losses и применимость нормативных
+  требований; источники цены без НДС, RaaS responsibilities и warranty.
+- Женя: curves/weights scoring, denominator 75/77, completeness без зарплаты,
+  shared infrastructure/roles allocation и ranking cohort.
+- Женя и simulation owner: scheduling/SLA, окно/знаменатель отклонения >10%,
+  разделение availability и моделируемых потерь, типовой проект для ≤60s.
+- Владелец продукта: какие из 28 blocks обещают самостоятельный capacity;
+  отсутствующие формулы нельзя заменить generic transport. Упоминание БАС
+  не разрешает включать их в текущий pool без отдельного решения и evidence.
+
+Полный регистр Q01–Q12 и K01–K29 находится в плане 19; принятие предложенного
+решения фиксируется отдельным decision record, не подразумевается этим списком.
+Catalog baseline 187/223, capacity 21/24 (6/6 ready и 15/18 с assumptions),
+deployment-ready 0 сохраняется. Изменение pool требует доказанного diff и
+согласования; calculation readiness и formula executability разделены.
+
 ## 1. Frozen decisions
 
 ### Product
