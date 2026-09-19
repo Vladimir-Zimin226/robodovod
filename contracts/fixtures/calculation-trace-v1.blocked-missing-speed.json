@@ -1,0 +1,144 @@
+{
+  "assumptions": [],
+  "constraints": [],
+  "conversions": [],
+  "envelope": {
+    "acquisition": "PURCHASE",
+    "engine_version": "contract-only-no-execution-v1",
+    "input_revision": "input.contract-fixture-v1",
+    "model_id": "synthetic-contract-model",
+    "position_id": "synthetic-contract-position",
+    "process_id": "warehouse.receiving-shipping",
+    "run_id": "run.contract-blocked",
+    "schema_version": "calculation-trace-v1",
+    "uncertainty": "BASE"
+  },
+  "formula_nodes": [
+    {
+      "applicability_domain": "active scheduled process",
+      "dependency_node_ids": [],
+      "formula_id": "F01",
+      "formula_version": "v1",
+      "input_refs": [
+        "shifts_per_day",
+        "shift_hours"
+      ],
+      "node_id": "node.f01",
+      "source_digest": "sha256:15835ebc3a5210e8af37100dde786036291aadf07064f0eb96e31f066f59cae3",
+      "source_refs": [
+        "R03§1.1"
+      ],
+      "template_id": "operating-hours-per-day"
+    },
+    {
+      "applicability_domain": "TRANSPORT_CYCLE",
+      "dependency_node_ids": [
+        "node.f01"
+      ],
+      "formula_id": "F02",
+      "formula_version": "v1",
+      "input_refs": [
+        "operating_speed"
+      ],
+      "node_id": "node.f02",
+      "source_digest": "sha256:15835ebc3a5210e8af37100dde786036291aadf07064f0eb96e31f066f59cae3",
+      "source_refs": [
+        "R03§1.1",
+        "K02"
+      ],
+      "template_id": "transport-cycle-total-exchange"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "shifts_per_day",
+      "normalized_value": "2",
+      "numeric_encoding": "DECIMAL_STRING",
+      "provenance_ref": "prov.user",
+      "quantity_kind": "COUNT",
+      "raw_unit": "shift",
+      "raw_value": "2",
+      "status": "KNOWN",
+      "unit": "shift"
+    },
+    {
+      "name": "shift_hours",
+      "normalized_value": "11",
+      "numeric_encoding": "DECIMAL_STRING",
+      "provenance_ref": "prov.user",
+      "quantity_kind": "TIME",
+      "raw_unit": "h",
+      "raw_value": "11",
+      "status": "KNOWN",
+      "unit": "h"
+    },
+    {
+      "expected_unit": "m/s",
+      "missing_reason": "MISSING_SAFE_FACT",
+      "name": "operating_speed",
+      "provenance_ref": null,
+      "quantity_kind": "SPEED",
+      "status": "MISSING"
+    }
+  ],
+  "intermediates": [],
+  "issues": [
+    {
+      "code": "missing.safe-operating-speed",
+      "decision_refs": [
+        "K02"
+      ],
+      "field_refs": [
+        "operating_speed"
+      ],
+      "message": "No safe speed fact or explicit scenario operating speed",
+      "node_refs": [
+        "node.f02"
+      ],
+      "reason": "MISSING_SAFE_FACT",
+      "severity": "BLOCKER"
+    }
+  ],
+  "provenance": [
+    {
+      "confirmation_revision": "confirmation.contract-v1",
+      "kind": "USER",
+      "provenance_id": "prov.user"
+    }
+  ],
+  "replay": {
+    "canonical_input_digest": "sha256:9f4beec20d9c027e95411e2894277823d55e1da4741b06345c15105c74702267",
+    "deterministic_seed": null,
+    "trace_content_digest": "sha256:81579a3b4d5138b6faea690adfbb62a37ccf0daa0d5fb18189fa13f938cebd59"
+  },
+  "results": [
+    {
+      "capacity_basis": "NOT_APPLICABLE",
+      "result_id": "result.recommended-fleet",
+      "status": "BLOCKED",
+      "supporting_node_ids": [
+        "node.f02"
+      ],
+      "value": null
+    }
+  ],
+  "roundings": [],
+  "runtime_metadata": {
+    "build_id": null,
+    "runtime_id": null
+  },
+  "versions": {
+    "calculation_policy_version": "hackathon-calculation-policy-v1",
+    "capacity_projection_digest": "sha256:cfb42d4a0b44284cb5daab3dc1618a8af14ec4f74b2c7f012f0df6288155a5c3",
+    "capacity_projection_version": "synthetic-capacity-projection-v1",
+    "catalog_content_digest": "sha256:cfb42d4a0b44284cb5daab3dc1618a8af14ec4f74b2c7f012f0df6288155a5c3",
+    "catalog_version_id": "synthetic-contract-catalog-v1",
+    "commercial_policy_version": "hackathon-commercial-policy-v1",
+    "constraint_rules_version": "calculation-constraints-v1",
+    "formula_bundle_version": "calculation-formulas-v1",
+    "precision_policy_version": "decimal-context-28-half-even-v1",
+    "process_catalog_version": "calculation-process-catalog-v1",
+    "registry_digest": "sha256:cfb42d4a0b44284cb5daab3dc1618a8af14ec4f74b2c7f012f0df6288155a5c3",
+    "registry_version": "calculation-parameter-registry-v1"
+  }
+}

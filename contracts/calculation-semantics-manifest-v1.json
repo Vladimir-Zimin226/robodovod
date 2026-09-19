@@ -1,0 +1,236 @@
+{
+  "calculation_policy_version": "hackathon-calculation-policy-v1",
+  "capacity_api": {
+    "error_schema_version": "capacity-analysis-error-v1",
+    "legacy_path_unchanged": "/api/calculate",
+    "method": "POST",
+    "path": "/api/v2/capacity-analyses",
+    "request_schema_version": "capacity-analysis-request-v2",
+    "response_schema_version": "capacity-analysis-response-v2"
+  },
+  "compatibility": [
+    {
+      "from_contract": "calculation-response-v1/scenario-spec-v1",
+      "lossy": false,
+      "mode": "UNCHANGED",
+      "rule": "C01 adds DTOs and does not mutate legacy API payloads.",
+      "rule_id": "legacy.dto.unchanged",
+      "to_contract": "same"
+    },
+    {
+      "from_contract": "legacy provenance-known per-operation exchange",
+      "lossy": false,
+      "mode": "PROVENANCE_GATED_ADAPTER",
+      "rule": "Only a provenance-known legacy 45 seconds per operation migrates to total 90 seconds.",
+      "rule_id": "legacy.exchange-45",
+      "to_contract": "normalized total exchange"
+    },
+    {
+      "from_contract": "normalized-process-v1",
+      "lossy": false,
+      "mode": "ADDITIVE",
+      "rule": "Capacity result never requires a financial payload.",
+      "rule_id": "new.capacity-independent",
+      "to_contract": "capacity-result-v1"
+    }
+  ],
+  "decision_refs": [
+    "K02",
+    "K03",
+    "K04",
+    "K19",
+    "K27"
+  ],
+  "precision_policy": {
+    "ceil_epsilon": "FORBIDDEN",
+    "decimal_context_precision": 28,
+    "event_time_unit": "microsecond",
+    "intermediate_rounding": "NONE",
+    "money_display_digits": 2,
+    "percent_score_payback_display_digits": 2,
+    "raw_numeric_encoding": "DECIMAL_STRING",
+    "rounding_mode": "ROUND_HALF_EVEN",
+    "score_tolerance": "0.000001",
+    "version": "decimal-context-28-half-even-v1"
+  },
+  "registry_proposal": {
+    "fields": [
+      {
+        "name": "parameter_id",
+        "required": true
+      },
+      {
+        "name": "semantic_name",
+        "required": true
+      },
+      {
+        "name": "value",
+        "required": true
+      },
+      {
+        "name": "unit",
+        "required": true
+      },
+      {
+        "name": "quantity_kind",
+        "required": true
+      },
+      {
+        "name": "source_refs",
+        "required": true
+      },
+      {
+        "name": "source_digest",
+        "required": true
+      },
+      {
+        "name": "decision_refs",
+        "required": true
+      },
+      {
+        "name": "effective_version",
+        "required": true
+      },
+      {
+        "name": "replaced_by",
+        "required": false
+      },
+      {
+        "name": "applicability",
+        "required": true
+      }
+    ],
+    "immutable_snapshot": true,
+    "schema_version": "calculation-parameter-registry-v1-proposal",
+    "semantic_order": "parameter_id",
+    "target_registry_version": "calculation-parameter-registry-v1"
+  },
+  "schema_version": "calculation-semantics-manifest-v1",
+  "source_parameter_map": [
+    {
+      "decision_refs": [
+        "K27"
+      ],
+      "formula_id": "F01",
+      "parameter_names": [
+        "shifts_per_day",
+        "shift_hours",
+        "operating_hours_per_day"
+      ],
+      "source_refs": [
+        "R03",
+        "policy v1"
+      ]
+    },
+    {
+      "decision_refs": [
+        "K02"
+      ],
+      "formula_id": "F02",
+      "parameter_names": [
+        "one_way_distance",
+        "operating_speed",
+        "exchange_total_time",
+        "load_time",
+        "unload_time"
+      ],
+      "source_refs": [
+        "R03",
+        "policy v1"
+      ]
+    },
+    {
+      "decision_refs": [
+        "K03"
+      ],
+      "formula_id": "F03",
+      "parameter_names": [
+        "payload",
+        "item_mass",
+        "handling_batch_limit",
+        "passport_batch_limit",
+        "geometry_batch_limit",
+        "units_per_trip"
+      ],
+      "source_refs": [
+        "R03",
+        "policy v1"
+      ]
+    },
+    {
+      "decision_refs": [
+        "K04"
+      ],
+      "formula_id": "F04",
+      "parameter_names": [
+        "demand_per_day",
+        "peak_factor",
+        "reserve_share",
+        "availability"
+      ],
+      "source_refs": [
+        "R03",
+        "policy v1"
+      ]
+    },
+    {
+      "decision_refs": [
+        "K19"
+      ],
+      "formula_id": "F05",
+      "parameter_names": [
+        "cleaning_area_per_day",
+        "cleaning_frequency",
+        "cleaning_rate",
+        "availability"
+      ],
+      "source_refs": [
+        "R03",
+        "policy v1"
+      ]
+    },
+    {
+      "decision_refs": [
+        "K19"
+      ],
+      "formula_id": "F06",
+      "parameter_names": [
+        "demand_per_day",
+        "cell_rate",
+        "cell_efficiency",
+        "availability"
+      ],
+      "source_refs": [
+        "R03",
+        "policy v1"
+      ]
+    },
+    {
+      "decision_refs": [
+        "K04"
+      ],
+      "formula_id": "F07",
+      "parameter_names": [
+        "fleet_selected",
+        "fleet_recommended",
+        "nominal_capacity",
+        "effective_capacity",
+        "coverage",
+        "raw_load_ratio",
+        "utilization"
+      ],
+      "source_refs": [
+        "R03",
+        "policy v1"
+      ]
+    }
+  ],
+  "supported_contract_versions": [
+    "normalized-process-v1",
+    "role-pool-v1",
+    "capacity-result-v1",
+    "financial-result-v1",
+    "calculation-partial-result-v1",
+    "calculation-trace-v1"
+  ]
+}

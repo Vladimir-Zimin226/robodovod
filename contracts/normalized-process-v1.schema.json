@@ -1,0 +1,545 @@
+{
+  "$defs": {
+    "KnownQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/QuantityName"
+        },
+        "normalized_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Normalized Value",
+          "type": "string"
+        },
+        "numeric_encoding": {
+          "const": "DECIMAL_STRING",
+          "default": "DECIMAL_STRING",
+          "title": "Numeric Encoding",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "raw_unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "raw_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Raw Value",
+          "type": "string"
+        },
+        "status": {
+          "const": "KNOWN",
+          "default": "KNOWN",
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/Unit"
+        }
+      },
+      "required": [
+        "name",
+        "raw_value",
+        "raw_unit",
+        "normalized_value",
+        "unit",
+        "quantity_kind",
+        "provenance_ref"
+      ],
+      "title": "KnownQuantity",
+      "type": "object"
+    },
+    "MissingQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "missing_reason": {
+          "$ref": "#/$defs/MissingReason"
+        },
+        "name": {
+          "$ref": "#/$defs/QuantityName"
+        },
+        "provenance_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provenance Ref"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "status": {
+          "const": "MISSING",
+          "default": "MISSING",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "quantity_kind",
+        "expected_unit",
+        "missing_reason"
+      ],
+      "title": "MissingQuantity",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "MISSING_INPUT",
+        "MISSING_SAFE_FACT",
+        "UNIT_MISMATCH",
+        "CONFLICTING_FACT",
+        "UNAPPROVED_ASSUMPTION",
+        "NOT_APPLICABLE"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "ObjectKind": {
+      "enum": [
+        "WAREHOUSE",
+        "AIRPORT",
+        "CLINIC"
+      ],
+      "title": "ObjectKind",
+      "type": "string"
+    },
+    "ProcessCode": {
+      "enum": [
+        "warehouse_receiving_shipping",
+        "warehouse_storage",
+        "warehouse_picking",
+        "warehouse_palletizing",
+        "warehouse_cleaning",
+        "warehouse_inventory",
+        "airport_baggage",
+        "airport_catering",
+        "airport_fuelling",
+        "airport_internal_logistics",
+        "airport_terminal_cleaning",
+        "airport_apron_cleaning",
+        "airport_waste",
+        "airport_inspection",
+        "airport_passenger_assistance",
+        "airport_ground_service",
+        "clinic_food",
+        "clinic_linen",
+        "clinic_medicines",
+        "clinic_biomaterials",
+        "clinic_sterile_sets",
+        "clinic_consumables",
+        "clinic_waste_a",
+        "clinic_waste_b",
+        "clinic_results",
+        "clinic_cleaning",
+        "clinic_inventory",
+        "clinic_safety_requirements"
+      ],
+      "title": "ProcessCode",
+      "type": "string"
+    },
+    "ProcessQuantityKind": {
+      "enum": [
+        "PALLET",
+        "BOX",
+        "CASE",
+        "CART",
+        "DELIVERY",
+        "PORTION",
+        "KILOGRAM",
+        "SAMPLE",
+        "SET",
+        "BIN",
+        "ITEM",
+        "SQUARE_METER",
+        "PICK",
+        "DIGITAL_FLOW"
+      ],
+      "title": "ProcessQuantityKind",
+      "type": "string"
+    },
+    "ProcessSchedule": {
+      "additionalProperties": false,
+      "properties": {
+        "days_per_year": {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        "shift_hours": {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        "shifts_per_day": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "shifts_per_day",
+        "shift_hours",
+        "days_per_year"
+      ],
+      "title": "ProcessSchedule",
+      "type": "object"
+    },
+    "ProcessScope": {
+      "enum": [
+        "TRANSPORT_CYCLE",
+        "DELIVERY_CYCLE",
+        "CLEANING_AREA",
+        "FIXED_CELL",
+        "REFERENCE_ONLY",
+        "SCENARIO_ONLY",
+        "CONSTRAINT_ONLY"
+      ],
+      "title": "ProcessScope",
+      "type": "string"
+    },
+    "QuantityKind": {
+      "enum": [
+        "TIME",
+        "DISTANCE",
+        "MASS",
+        "AREA",
+        "COUNT",
+        "FLOW",
+        "SPEED",
+        "RATE",
+        "FRACTION",
+        "MONEY",
+        "ENERGY",
+        "POWER"
+      ],
+      "title": "QuantityKind",
+      "type": "string"
+    },
+    "QuantityName": {
+      "enum": [
+        "shifts_per_day",
+        "shift_hours",
+        "operating_hours_per_day",
+        "days_per_year",
+        "demand_per_day",
+        "cleaning_area_per_day",
+        "peak_factor",
+        "reserve_share",
+        "one_way_distance",
+        "exchange_total_time",
+        "load_time",
+        "unload_time",
+        "operating_speed",
+        "safe_max_speed",
+        "payload",
+        "item_mass",
+        "handling_batch_limit",
+        "passport_batch_limit",
+        "geometry_batch_limit",
+        "units_per_trip",
+        "cleaning_frequency",
+        "cleaning_rate",
+        "cell_rate",
+        "cell_efficiency",
+        "availability",
+        "fleet_selected",
+        "fleet_recommended",
+        "nominal_capacity",
+        "effective_capacity",
+        "coverage",
+        "raw_load_ratio",
+        "utilization",
+        "role_headcount",
+        "monthly_gross_salary"
+      ],
+      "title": "QuantityName",
+      "type": "string"
+    },
+    "SplitExchange": {
+      "additionalProperties": false,
+      "properties": {
+        "load_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        "mode": {
+          "const": "SPLIT",
+          "default": "SPLIT",
+          "title": "Mode",
+          "type": "string"
+        },
+        "unload_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "load_time",
+        "unload_time"
+      ],
+      "title": "SplitExchange",
+      "type": "object"
+    },
+    "TotalExchange": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "TOTAL",
+          "default": "TOTAL",
+          "title": "Mode",
+          "type": "string"
+        },
+        "total_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "total_time"
+      ],
+      "title": "TotalExchange",
+      "type": "object"
+    },
+    "Unit": {
+      "enum": [
+        "s",
+        "h",
+        "day",
+        "m",
+        "kg",
+        "m2",
+        "unit",
+        "person",
+        "robot",
+        "shift",
+        "trip",
+        "unit/day",
+        "pallet/day",
+        "box/day",
+        "case/day",
+        "cart/day",
+        "delivery/day",
+        "portion/day",
+        "kg/day",
+        "sample/day",
+        "set/day",
+        "bin/day",
+        "item/day",
+        "pick/day",
+        "m2/day",
+        "unit/h",
+        "m2/h",
+        "unit/min",
+        "pick/min",
+        "pallet/min",
+        "m/s",
+        "kg/unit",
+        "unit/trip",
+        "1",
+        "%",
+        "RUB",
+        "RUB/person/month",
+        "kWh",
+        "W"
+      ],
+      "title": "Unit",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "active": {
+      "title": "Active",
+      "type": "boolean"
+    },
+    "demand": {
+      "discriminator": {
+        "mapping": {
+          "KNOWN": "#/$defs/KnownQuantity",
+          "MISSING": "#/$defs/MissingQuantity"
+        },
+        "propertyName": "status"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        {
+          "$ref": "#/$defs/MissingQuantity"
+        }
+      ],
+      "title": "Demand"
+    },
+    "exchange": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "SPLIT": "#/$defs/SplitExchange",
+              "TOTAL": "#/$defs/TotalExchange"
+            },
+            "propertyName": "mode"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TotalExchange"
+            },
+            {
+              "$ref": "#/$defs/SplitExchange"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Exchange"
+    },
+    "explicit_batch": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "KNOWN": "#/$defs/KnownQuantity",
+              "MISSING": "#/$defs/MissingQuantity"
+            },
+            "propertyName": "status"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/KnownQuantity"
+            },
+            {
+              "$ref": "#/$defs/MissingQuantity"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Explicit Batch"
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "item_mass": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "KNOWN": "#/$defs/KnownQuantity",
+              "MISSING": "#/$defs/MissingQuantity"
+            },
+            "propertyName": "status"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/KnownQuantity"
+            },
+            {
+              "$ref": "#/$defs/MissingQuantity"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Item Mass"
+    },
+    "object_kind": {
+      "$ref": "#/$defs/ObjectKind"
+    },
+    "process_code": {
+      "$ref": "#/$defs/ProcessCode"
+    },
+    "process_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Process Id",
+      "type": "string"
+    },
+    "quantity_kind": {
+      "$ref": "#/$defs/ProcessQuantityKind"
+    },
+    "role_refs": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Role Refs",
+      "type": "array"
+    },
+    "route_distance": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "KNOWN": "#/$defs/KnownQuantity",
+              "MISSING": "#/$defs/MissingQuantity"
+            },
+            "propertyName": "status"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/KnownQuantity"
+            },
+            {
+              "$ref": "#/$defs/MissingQuantity"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Route Distance"
+    },
+    "schedule": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProcessSchedule"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "schema_version": {
+      "const": "normalized-process-v1",
+      "default": "normalized-process-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "$ref": "#/$defs/ProcessScope"
+    }
+  },
+  "required": [
+    "process_id",
+    "input_revision",
+    "object_kind",
+    "process_code",
+    "scope",
+    "active",
+    "quantity_kind",
+    "demand"
+  ],
+  "title": "NormalizedProcess",
+  "type": "object"
+}

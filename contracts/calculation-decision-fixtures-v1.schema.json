@@ -1,0 +1,478 @@
+{
+  "$defs": {
+    "K02ExchangeExample": {
+      "additionalProperties": false,
+      "properties": {
+        "example_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Example Id",
+          "type": "string"
+        },
+        "expected_total_seconds": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Expected Total Seconds",
+          "type": "string"
+        },
+        "legacy_migration": {
+          "title": "Legacy Migration",
+          "type": "boolean"
+        },
+        "normalized_exchange": {
+          "discriminator": {
+            "mapping": {
+              "SPLIT": "#/$defs/SplitExchange",
+              "TOTAL": "#/$defs/TotalExchange"
+            },
+            "propertyName": "mode"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/TotalExchange"
+            },
+            {
+              "$ref": "#/$defs/SplitExchange"
+            }
+          ],
+          "title": "Normalized Exchange"
+        },
+        "source_semantics": {
+          "enum": [
+            "NEW_TOTAL",
+            "RAW_SPLIT",
+            "LEGACY_PER_OPERATION"
+          ],
+          "title": "Source Semantics",
+          "type": "string"
+        }
+      },
+      "required": [
+        "example_id",
+        "source_semantics",
+        "normalized_exchange",
+        "expected_total_seconds",
+        "legacy_migration"
+      ],
+      "title": "K02ExchangeExample",
+      "type": "object"
+    },
+    "K03BatchExample": {
+      "additionalProperties": false,
+      "properties": {
+        "example_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Example Id",
+          "type": "string"
+        },
+        "expected_batch": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Batch"
+        },
+        "expected_reason": {
+          "enum": [
+            "RESOLVED",
+            "INVALID_DOMAIN",
+            "LIMIT_EXCEEDS_MASS_CAP"
+          ],
+          "title": "Expected Reason",
+          "type": "string"
+        },
+        "geometry_limit": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Geometry Limit"
+        },
+        "handling_limit": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Handling Limit"
+        },
+        "item_mass_kg": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Item Mass Kg",
+          "type": "string"
+        },
+        "passport_limit": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passport Limit"
+        },
+        "payload_kg": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Payload Kg",
+          "type": "string"
+        }
+      },
+      "required": [
+        "example_id",
+        "payload_kg",
+        "item_mass_kg",
+        "expected_batch",
+        "expected_reason"
+      ],
+      "title": "K03BatchExample",
+      "type": "object"
+    },
+    "K04CapacityExample": {
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "demand": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Demand",
+          "type": "string"
+        },
+        "example_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Example Id",
+          "type": "string"
+        },
+        "expected_capacity": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Expected Capacity",
+          "type": "string"
+        },
+        "expected_coverage": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Coverage"
+        },
+        "expected_raw_load_ratio": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Raw Load Ratio"
+        },
+        "expected_status": {
+          "enum": [
+            "COMPLETE",
+            "OVERLOADED",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Expected Status",
+          "type": "string"
+        },
+        "expected_utilization": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Utilization"
+        },
+        "selected_fleet": {
+          "minimum": 0,
+          "title": "Selected Fleet",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "example_id",
+        "active",
+        "demand",
+        "selected_fleet",
+        "expected_capacity",
+        "expected_coverage",
+        "expected_raw_load_ratio",
+        "expected_utilization",
+        "expected_status"
+      ],
+      "title": "K04CapacityExample",
+      "type": "object"
+    },
+    "KnownQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/QuantityName"
+        },
+        "normalized_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Normalized Value",
+          "type": "string"
+        },
+        "numeric_encoding": {
+          "const": "DECIMAL_STRING",
+          "default": "DECIMAL_STRING",
+          "title": "Numeric Encoding",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "raw_unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "raw_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Raw Value",
+          "type": "string"
+        },
+        "status": {
+          "const": "KNOWN",
+          "default": "KNOWN",
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/Unit"
+        }
+      },
+      "required": [
+        "name",
+        "raw_value",
+        "raw_unit",
+        "normalized_value",
+        "unit",
+        "quantity_kind",
+        "provenance_ref"
+      ],
+      "title": "KnownQuantity",
+      "type": "object"
+    },
+    "QuantityKind": {
+      "enum": [
+        "TIME",
+        "DISTANCE",
+        "MASS",
+        "AREA",
+        "COUNT",
+        "FLOW",
+        "SPEED",
+        "RATE",
+        "FRACTION",
+        "MONEY",
+        "ENERGY",
+        "POWER"
+      ],
+      "title": "QuantityKind",
+      "type": "string"
+    },
+    "QuantityName": {
+      "enum": [
+        "shifts_per_day",
+        "shift_hours",
+        "operating_hours_per_day",
+        "days_per_year",
+        "demand_per_day",
+        "cleaning_area_per_day",
+        "peak_factor",
+        "reserve_share",
+        "one_way_distance",
+        "exchange_total_time",
+        "load_time",
+        "unload_time",
+        "operating_speed",
+        "safe_max_speed",
+        "payload",
+        "item_mass",
+        "handling_batch_limit",
+        "passport_batch_limit",
+        "geometry_batch_limit",
+        "units_per_trip",
+        "cleaning_frequency",
+        "cleaning_rate",
+        "cell_rate",
+        "cell_efficiency",
+        "availability",
+        "fleet_selected",
+        "fleet_recommended",
+        "nominal_capacity",
+        "effective_capacity",
+        "coverage",
+        "raw_load_ratio",
+        "utilization",
+        "role_headcount",
+        "monthly_gross_salary"
+      ],
+      "title": "QuantityName",
+      "type": "string"
+    },
+    "SplitExchange": {
+      "additionalProperties": false,
+      "properties": {
+        "load_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        "mode": {
+          "const": "SPLIT",
+          "default": "SPLIT",
+          "title": "Mode",
+          "type": "string"
+        },
+        "unload_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "load_time",
+        "unload_time"
+      ],
+      "title": "SplitExchange",
+      "type": "object"
+    },
+    "TotalExchange": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "TOTAL",
+          "default": "TOTAL",
+          "title": "Mode",
+          "type": "string"
+        },
+        "total_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "total_time"
+      ],
+      "title": "TotalExchange",
+      "type": "object"
+    },
+    "Unit": {
+      "enum": [
+        "s",
+        "h",
+        "day",
+        "m",
+        "kg",
+        "m2",
+        "unit",
+        "person",
+        "robot",
+        "shift",
+        "trip",
+        "unit/day",
+        "pallet/day",
+        "box/day",
+        "case/day",
+        "cart/day",
+        "delivery/day",
+        "portion/day",
+        "kg/day",
+        "sample/day",
+        "set/day",
+        "bin/day",
+        "item/day",
+        "pick/day",
+        "m2/day",
+        "unit/h",
+        "m2/h",
+        "unit/min",
+        "pick/min",
+        "pallet/min",
+        "m/s",
+        "kg/unit",
+        "unit/trip",
+        "1",
+        "%",
+        "RUB",
+        "RUB/person/month",
+        "kWh",
+        "W"
+      ],
+      "title": "Unit",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "calculation_policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "title": "Calculation Policy Version",
+      "type": "string"
+    },
+    "k02_exchange": {
+      "items": {
+        "$ref": "#/$defs/K02ExchangeExample"
+      },
+      "title": "K02 Exchange",
+      "type": "array"
+    },
+    "k03_batch": {
+      "items": {
+        "$ref": "#/$defs/K03BatchExample"
+      },
+      "title": "K03 Batch",
+      "type": "array"
+    },
+    "k04_capacity": {
+      "items": {
+        "$ref": "#/$defs/K04CapacityExample"
+      },
+      "title": "K04 Capacity",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "calculation-decision-fixtures-v1",
+      "default": "calculation-decision-fixtures-v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "calculation_policy_version",
+    "k02_exchange",
+    "k03_batch",
+    "k04_capacity"
+  ],
+  "title": "CalculationDecisionFixtures",
+  "type": "object"
+}

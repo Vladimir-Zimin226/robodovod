@@ -1,0 +1,446 @@
+{
+  "$defs": {
+    "BlockerReason": {
+      "enum": [
+        "MISSING_INPUT",
+        "UNIT_MISMATCH",
+        "UNSUPPORTED_PROCESS_PROFILE",
+        "MISSING_SAFE_FACT",
+        "CONFLICTING_FACT",
+        "UNAPPROVED_ASSUMPTION",
+        "INVALID_DOMAIN",
+        "UNKNOWN_POLICY_VERSION",
+        "MISSING_COMMERCIAL_TERMS",
+        "MISSING_ROLE_SALARY",
+        "UNKNOWN_TAX_BASIS"
+      ],
+      "title": "BlockerReason",
+      "type": "string"
+    },
+    "CapacityResult": {
+      "additionalProperties": false,
+      "properties": {
+        "blockers": {
+          "items": {
+            "$ref": "#/$defs/ContractIssue"
+          },
+          "title": "Blockers",
+          "type": "array"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "capacity-result-v1",
+          "default": "capacity-result-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "WITH_ASSUMPTIONS",
+            "BLOCKED",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "trace_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Trace Ref",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CapacityValues"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "$ref": "#/$defs/ContractIssue"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "process_id",
+        "status",
+        "value",
+        "trace_ref"
+      ],
+      "title": "CapacityResult",
+      "type": "object"
+    },
+    "CapacityValues": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "effective_capacity": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "nominal_capacity": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "overloaded": {
+          "title": "Overloaded",
+          "type": "boolean"
+        },
+        "raw_load_ratio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recommended_fleet": {
+          "minimum": 0,
+          "title": "Recommended Fleet",
+          "type": "integer"
+        },
+        "selected_fleet": {
+          "minimum": 0,
+          "title": "Selected Fleet",
+          "type": "integer"
+        },
+        "utilization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "recommended_fleet",
+        "selected_fleet",
+        "nominal_capacity",
+        "effective_capacity",
+        "coverage",
+        "raw_load_ratio",
+        "utilization",
+        "overloaded"
+      ],
+      "title": "CapacityValues",
+      "type": "object"
+    },
+    "ContractIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Code",
+          "type": "string"
+        },
+        "decision_refs": {
+          "items": {
+            "pattern": "^K(?:0[1-9]|[12][0-9])$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "field_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Field Refs",
+          "type": "array"
+        },
+        "message": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "node_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Node Refs",
+          "type": "array"
+        },
+        "reason": {
+          "$ref": "#/$defs/BlockerReason"
+        },
+        "severity": {
+          "enum": [
+            "WARNING",
+            "BLOCKER"
+          ],
+          "title": "Severity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "reason",
+        "severity",
+        "field_refs",
+        "message"
+      ],
+      "title": "ContractIssue",
+      "type": "object"
+    },
+    "FinancialResult": {
+      "additionalProperties": false,
+      "properties": {
+        "benefit_status": {
+          "enum": [
+            "POSITIVE",
+            "NON_POSITIVE",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Benefit Status",
+          "type": "string"
+        },
+        "blockers": {
+          "items": {
+            "$ref": "#/$defs/ContractIssue"
+          },
+          "title": "Blockers",
+          "type": "array"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "financial-result-v1",
+          "default": "financial-result-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "trace_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trace Ref"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FinancialValues"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warnings": {
+          "items": {
+            "$ref": "#/$defs/ContractIssue"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "process_id",
+        "status",
+        "benefit_status",
+        "value"
+      ],
+      "title": "FinancialResult",
+      "type": "object"
+    },
+    "FinancialValues": {
+      "additionalProperties": false,
+      "properties": {
+        "annual_effect": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "annual_opex": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "capex": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "npv": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "capex",
+        "annual_opex",
+        "annual_effect"
+      ],
+      "title": "FinancialValues",
+      "type": "object"
+    },
+    "QuantityKind": {
+      "enum": [
+        "TIME",
+        "DISTANCE",
+        "MASS",
+        "AREA",
+        "COUNT",
+        "FLOW",
+        "SPEED",
+        "RATE",
+        "FRACTION",
+        "MONEY",
+        "ENERGY",
+        "POWER"
+      ],
+      "title": "QuantityKind",
+      "type": "string"
+    },
+    "ResultQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "numeric_encoding": {
+          "const": "DECIMAL_STRING",
+          "default": "DECIMAL_STRING",
+          "title": "Numeric Encoding",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "quantity_kind"
+      ],
+      "title": "ResultQuantity",
+      "type": "object"
+    },
+    "Unit": {
+      "enum": [
+        "s",
+        "h",
+        "day",
+        "m",
+        "kg",
+        "m2",
+        "unit",
+        "person",
+        "robot",
+        "shift",
+        "trip",
+        "unit/day",
+        "pallet/day",
+        "box/day",
+        "case/day",
+        "cart/day",
+        "delivery/day",
+        "portion/day",
+        "kg/day",
+        "sample/day",
+        "set/day",
+        "bin/day",
+        "item/day",
+        "pick/day",
+        "m2/day",
+        "unit/h",
+        "m2/h",
+        "unit/min",
+        "pick/min",
+        "pallet/min",
+        "m/s",
+        "kg/unit",
+        "unit/trip",
+        "1",
+        "%",
+        "RUB",
+        "RUB/person/month",
+        "kWh",
+        "W"
+      ],
+      "title": "Unit",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "capacity": {
+      "$ref": "#/$defs/CapacityResult"
+    },
+    "financial": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FinancialResult"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "result_status": {
+      "enum": [
+        "CAPACITY_ONLY",
+        "PARTIAL",
+        "COMPLETE"
+      ],
+      "title": "Result Status",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "calculation-partial-result-v1",
+      "default": "calculation-partial-result-v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "result_status",
+    "capacity"
+  ],
+  "title": "PartialCalculationResult",
+  "type": "object"
+}

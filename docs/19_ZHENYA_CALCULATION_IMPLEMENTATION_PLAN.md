@@ -9,10 +9,15 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
+Статус исполнения 2026-09-20: **C01 COMPLETE**. Контракты, fixtures и проверки
+описаны в [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md).
+Следующий этап — C02; формулы и runtime activation в C01 не выполнялись.
+
 ## 1. Решение о следующем этапе и границы
 
-Непосредственный следующий этап — **`contracts/calculation-semantics-v1`**
-(C01), а не реализация `engine/capacity-formula-trace`.
+Первый этап **`contracts/calculation-semantics-v1`** (C01) завершён.
+Непосредственный следующий этап — **`data/calculation-parameter-registry-v1`**
+(C02), а не реализация `engine/capacity-formula-trace`.
 Нынешний capacity contract не определяет однозначно суммарный exchange,
 скорость, единицу потока, границы допущений и исполнимость формулы.
 `CalculationResponse` требует экономику и `ScenarioSpec v1`; эти требования
@@ -29,8 +34,8 @@
 Документальные evidence/provenance, tenant isolation и строгие contracts
 сохраняются. Все алгоритмические решения принимает исполнитель по
 [policy v1](planning/calculation-policy-decisions-v1.md), без ожидания Жени.
-Новые DTO/модули ниже запланированы, но ещё не реализованы. В этой сессии
-меняются документы; production поведение и runtime slots не меняются.
+DTO и schema C01 реализованы аддитивно; остальные модули ниже остаются
+запланированными. Production поведение и runtime slots не меняются.
 
 Полностью прочитаны оба PDF официальной папки ТЗ, 20 страниц;
 [source coverage ТЗ](planning/official-requirements-coverage.json) фиксирует hashes.
@@ -523,7 +528,7 @@ P0 — может изменить рекомендацию/доказатель
 
 ### 6.1. Обязательный контракт
 
-Принятый контракт `CalculationTrace v1` — строгий JSON Schema/Pydantic контракт
+Реализованный в C01 контракт `CalculationTrace v1` — строгий JSON Schema/Pydantic контракт
 с `additionalProperties=false`, явным discriminated union quantities и
 nullable blocked result. Свободный текст не заменяет machine-readable узлы.
 
@@ -588,7 +593,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 
 | ID | Ветка / результат | Зависимости |
 |---|---|---|
-| C01 | `contracts/calculation-semantics-v1` — единицы, статусы, conflict decisions, trace skeleton | Этот аудит |
+| C01 COMPLETE | `contracts/calculation-semantics-v1` — единицы, статусы, conflict decisions, trace skeleton | Этот аудит |
 | C02 | `data/calculation-parameter-registry-v1` — versioned constants/policies | C01 |
 | C03 | `intake/process-role-normalization-v2` — backend intake/roles/units | C01–02 |
 | C04 | `frontend/process-role-intake-v2` — формы, input provenance, validation | C03 |

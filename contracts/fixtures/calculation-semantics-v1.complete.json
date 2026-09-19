@@ -1,0 +1,630 @@
+{
+  "normalized_process": {
+    "active": true,
+    "demand": {
+      "name": "demand_per_day",
+      "normalized_value": "2000",
+      "numeric_encoding": "DECIMAL_STRING",
+      "provenance_ref": "prov.user",
+      "quantity_kind": "FLOW",
+      "raw_unit": "pallet/day",
+      "raw_value": "2000",
+      "status": "KNOWN",
+      "unit": "pallet/day"
+    },
+    "exchange": {
+      "mode": "TOTAL",
+      "total_time": {
+        "name": "exchange_total_time",
+        "normalized_value": "90",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "TIME",
+        "raw_unit": "s",
+        "raw_value": "90",
+        "status": "KNOWN",
+        "unit": "s"
+      }
+    },
+    "explicit_batch": {
+      "name": "units_per_trip",
+      "normalized_value": "1",
+      "numeric_encoding": "DECIMAL_STRING",
+      "provenance_ref": "prov.user",
+      "quantity_kind": "RATE",
+      "raw_unit": "unit/trip",
+      "raw_value": "1",
+      "status": "KNOWN",
+      "unit": "unit/trip"
+    },
+    "input_revision": "input.contract-fixture-v1",
+    "item_mass": {
+      "name": "item_mass",
+      "normalized_value": "800",
+      "numeric_encoding": "DECIMAL_STRING",
+      "provenance_ref": "prov.user",
+      "quantity_kind": "RATE",
+      "raw_unit": "kg/unit",
+      "raw_value": "800",
+      "status": "KNOWN",
+      "unit": "kg/unit"
+    },
+    "object_kind": "WAREHOUSE",
+    "process_code": "warehouse_receiving_shipping",
+    "process_id": "warehouse.receiving-shipping",
+    "quantity_kind": "PALLET",
+    "role_refs": [
+      "warehouse.forklift-driver"
+    ],
+    "route_distance": {
+      "name": "one_way_distance",
+      "normalized_value": "120",
+      "numeric_encoding": "DECIMAL_STRING",
+      "provenance_ref": "prov.user",
+      "quantity_kind": "DISTANCE",
+      "raw_unit": "m",
+      "raw_value": "120",
+      "status": "KNOWN",
+      "unit": "m"
+    },
+    "schedule": {
+      "days_per_year": {
+        "name": "days_per_year",
+        "normalized_value": "365",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "TIME",
+        "raw_unit": "day",
+        "raw_value": "365",
+        "status": "KNOWN",
+        "unit": "day"
+      },
+      "shift_hours": {
+        "name": "shift_hours",
+        "normalized_value": "11",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "TIME",
+        "raw_unit": "h",
+        "raw_value": "11",
+        "status": "KNOWN",
+        "unit": "h"
+      },
+      "shifts_per_day": {
+        "name": "shifts_per_day",
+        "normalized_value": "2",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "COUNT",
+        "raw_unit": "shift",
+        "raw_value": "2",
+        "status": "KNOWN",
+        "unit": "shift"
+      }
+    },
+    "schema_version": "normalized-process-v1",
+    "scope": "TRANSPORT_CYCLE"
+  },
+  "result": {
+    "capacity": {
+      "blockers": [],
+      "process_id": "warehouse.receiving-shipping",
+      "schema_version": "capacity-result-v1",
+      "status": "WITH_ASSUMPTIONS",
+      "trace_ref": "run.contract-complete",
+      "value": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "9.176470588235294117647058822"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "13.10924369747899159663865546"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9900990099009900990099009901"
+        },
+        "recommended_fleet": 18,
+        "selected_fleet": 18,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9900990099009900990099009901"
+        }
+      },
+      "warnings": []
+    },
+    "financial": {
+      "benefit_status": "UNKNOWN",
+      "blockers": [
+        {
+          "code": "missing.role-salary",
+          "decision_refs": [],
+          "field_refs": [
+            "roles[warehouse.forklift-driver].monthly_gross_salary"
+          ],
+          "message": "Capacity is available; finance waits for an explicit role salary",
+          "node_refs": [],
+          "reason": "MISSING_ROLE_SALARY",
+          "severity": "BLOCKER"
+        }
+      ],
+      "process_id": "warehouse.receiving-shipping",
+      "schema_version": "financial-result-v1",
+      "status": "INCOMPLETE",
+      "trace_ref": null,
+      "value": null,
+      "warnings": []
+    },
+    "result_status": "PARTIAL",
+    "schema_version": "calculation-partial-result-v1"
+  },
+  "role_pool": {
+    "object_kind": "WAREHOUSE",
+    "pool_id": "warehouse.roles",
+    "roles": [
+      {
+        "headcount": {
+          "name": "role_headcount",
+          "normalized_value": "25",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "prov.user",
+          "quantity_kind": "COUNT",
+          "raw_unit": "person",
+          "raw_value": "25",
+          "status": "KNOWN",
+          "unit": "person"
+        },
+        "label": "Водитель погрузчика",
+        "monthly_gross_salary": {
+          "expected_unit": "RUB/person/month",
+          "missing_reason": "MISSING_INPUT",
+          "name": "monthly_gross_salary",
+          "provenance_ref": null,
+          "quantity_kind": "MONEY",
+          "status": "MISSING"
+        },
+        "object_scope": "WAREHOUSE",
+        "process_ids": [
+          "warehouse.receiving-shipping"
+        ],
+        "role_code": "forklift_driver",
+        "role_id": "warehouse.forklift-driver",
+        "zero_cost_marker": null
+      }
+    ],
+    "schema_version": "role-pool-v1"
+  },
+  "schema_version": "calculation-semantics-fixture-v1",
+  "trace": {
+    "assumptions": [
+      {
+        "applicable_scenario": "BASE",
+        "assumption_id": "assumption.synthetic-availability",
+        "assumption_version": "v1",
+        "confirmation_state": "POLICY_ACCEPTED",
+        "mode": "DEFAULT",
+        "permitted_scope": "synthetic contract fixture",
+        "provenance_ref": "prov.assumption.availability",
+        "rationale": "Explicit capacity fixture assumption",
+        "raw_user_override": null
+      }
+    ],
+    "constraints": [],
+    "conversions": [
+      {
+        "after": "120",
+        "before": "120",
+        "conversion_id": "conversion.distance-identity",
+        "exact_factor": "1",
+        "from_unit": "m",
+        "input_ref": "one_way_distance",
+        "operation": "IDENTITY",
+        "to_unit": "m",
+        "unit_definition_version": "si-unit-definitions-v1"
+      }
+    ],
+    "envelope": {
+      "acquisition": "PURCHASE",
+      "engine_version": "contract-only-no-execution-v1",
+      "input_revision": "input.contract-fixture-v1",
+      "model_id": "synthetic-contract-model",
+      "position_id": "synthetic-contract-position",
+      "process_id": "warehouse.receiving-shipping",
+      "run_id": "run.contract-complete",
+      "schema_version": "calculation-trace-v1",
+      "uncertainty": "BASE"
+    },
+    "formula_nodes": [
+      {
+        "applicability_domain": "active scheduled process",
+        "dependency_node_ids": [],
+        "formula_id": "F01",
+        "formula_version": "v1",
+        "input_refs": [
+          "shifts_per_day",
+          "shift_hours"
+        ],
+        "node_id": "node.f01",
+        "source_digest": "sha256:338a948882d237f6da8c6f34f47a1c7d5a4c4689cb780d843c2ad709d4cde354",
+        "source_refs": [
+          "R03§1.1",
+          "K27"
+        ],
+        "template_id": "operating-hours-per-day"
+      },
+      {
+        "applicability_domain": "TRANSPORT_CYCLE",
+        "dependency_node_ids": [
+          "node.f01"
+        ],
+        "formula_id": "F02",
+        "formula_version": "v1",
+        "input_refs": [
+          "one_way_distance",
+          "operating_speed",
+          "exchange_total_time"
+        ],
+        "node_id": "node.f02",
+        "source_digest": "sha256:338a948882d237f6da8c6f34f47a1c7d5a4c4689cb780d843c2ad709d4cde354",
+        "source_refs": [
+          "R03§1.1",
+          "K02"
+        ],
+        "template_id": "transport-cycle-total-exchange"
+      },
+      {
+        "applicability_domain": "pallet/unit batch",
+        "dependency_node_ids": [
+          "node.f02"
+        ],
+        "formula_id": "F03",
+        "formula_version": "v1",
+        "input_refs": [
+          "item_mass",
+          "units_per_trip"
+        ],
+        "node_id": "node.f03",
+        "source_digest": "sha256:338a948882d237f6da8c6f34f47a1c7d5a4c4689cb780d843c2ad709d4cde354",
+        "source_refs": [
+          "R03§1.1",
+          "K03"
+        ],
+        "template_id": "typed-batch-cap"
+      },
+      {
+        "applicability_domain": "active capacity profile",
+        "dependency_node_ids": [
+          "node.f01",
+          "node.f03"
+        ],
+        "formula_id": "F04",
+        "formula_version": "v1",
+        "input_refs": [
+          "demand_per_day",
+          "peak_factor",
+          "reserve_share",
+          "availability"
+        ],
+        "node_id": "node.f04",
+        "source_digest": "sha256:338a948882d237f6da8c6f34f47a1c7d5a4c4689cb780d843c2ad709d4cde354",
+        "source_refs": [
+          "R03§1.2",
+          "K22"
+        ],
+        "template_id": "peak-availability-reserve"
+      },
+      {
+        "applicability_domain": "selected fleet",
+        "dependency_node_ids": [
+          "node.f04"
+        ],
+        "formula_id": "F07",
+        "formula_version": "v1",
+        "input_refs": [
+          "fleet_selected"
+        ],
+        "node_id": "node.f07",
+        "source_digest": "sha256:338a948882d237f6da8c6f34f47a1c7d5a4c4689cb780d843c2ad709d4cde354",
+        "source_refs": [
+          "R03§1.4",
+          "K04"
+        ],
+        "template_id": "fleet-coverage-utilization"
+      }
+    ],
+    "inputs": [
+      {
+        "name": "shifts_per_day",
+        "normalized_value": "2",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "COUNT",
+        "raw_unit": "shift",
+        "raw_value": "2",
+        "status": "KNOWN",
+        "unit": "shift"
+      },
+      {
+        "name": "shift_hours",
+        "normalized_value": "11",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "TIME",
+        "raw_unit": "h",
+        "raw_value": "11",
+        "status": "KNOWN",
+        "unit": "h"
+      },
+      {
+        "name": "days_per_year",
+        "normalized_value": "365",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "TIME",
+        "raw_unit": "day",
+        "raw_value": "365",
+        "status": "KNOWN",
+        "unit": "day"
+      },
+      {
+        "name": "demand_per_day",
+        "normalized_value": "2000",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "FLOW",
+        "raw_unit": "pallet/day",
+        "raw_value": "2000",
+        "status": "KNOWN",
+        "unit": "pallet/day"
+      },
+      {
+        "name": "one_way_distance",
+        "normalized_value": "120",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "DISTANCE",
+        "raw_unit": "m",
+        "raw_value": "120",
+        "status": "KNOWN",
+        "unit": "m"
+      },
+      {
+        "name": "exchange_total_time",
+        "normalized_value": "90",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "TIME",
+        "raw_unit": "s",
+        "raw_value": "90",
+        "status": "KNOWN",
+        "unit": "s"
+      },
+      {
+        "name": "item_mass",
+        "normalized_value": "800",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "RATE",
+        "raw_unit": "kg/unit",
+        "raw_value": "800",
+        "status": "KNOWN",
+        "unit": "kg/unit"
+      },
+      {
+        "name": "units_per_trip",
+        "normalized_value": "1",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.user",
+        "quantity_kind": "RATE",
+        "raw_unit": "unit/trip",
+        "raw_value": "1",
+        "status": "KNOWN",
+        "unit": "unit/trip"
+      },
+      {
+        "name": "operating_speed",
+        "normalized_value": "1",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.vendor.speed",
+        "quantity_kind": "SPEED",
+        "raw_unit": "m/s",
+        "raw_value": "1",
+        "status": "KNOWN",
+        "unit": "m/s"
+      },
+      {
+        "name": "availability",
+        "normalized_value": "0.70",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.assumption.availability",
+        "quantity_kind": "FRACTION",
+        "raw_unit": "1",
+        "raw_value": "0.70",
+        "status": "KNOWN",
+        "unit": "1"
+      },
+      {
+        "name": "peak_factor",
+        "normalized_value": "1.5",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.assumption.availability",
+        "quantity_kind": "FRACTION",
+        "raw_unit": "1",
+        "raw_value": "1.5",
+        "status": "KNOWN",
+        "unit": "1"
+      },
+      {
+        "name": "reserve_share",
+        "normalized_value": "0",
+        "numeric_encoding": "DECIMAL_STRING",
+        "provenance_ref": "prov.assumption.availability",
+        "quantity_kind": "FRACTION",
+        "raw_unit": "1",
+        "raw_value": "0",
+        "status": "KNOWN",
+        "unit": "1"
+      }
+    ],
+    "intermediates": [
+      {
+        "name": "operating_hours_per_day",
+        "node_id": "node.f01",
+        "parent_refs": [
+          "shifts_per_day",
+          "shift_hours"
+        ],
+        "value": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "22"
+        },
+        "value_id": "value.operating-hours"
+      },
+      {
+        "name": "units_per_trip",
+        "node_id": "node.f03",
+        "parent_refs": [
+          "units_per_trip",
+          "item_mass"
+        ],
+        "value": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/trip",
+          "value": "1"
+        },
+        "value_id": "value.units-per-trip"
+      },
+      {
+        "name": "nominal_capacity",
+        "node_id": "node.f04",
+        "parent_refs": [
+          "node.f02",
+          "node.f03"
+        ],
+        "value": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "13.10924369747899159663865546"
+        },
+        "value_id": "value.nominal-capacity"
+      },
+      {
+        "name": "effective_capacity",
+        "node_id": "node.f04",
+        "parent_refs": [
+          "value.nominal-capacity",
+          "availability"
+        ],
+        "value": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "9.176470588235294117647058822"
+        },
+        "value_id": "value.effective-capacity"
+      }
+    ],
+    "issues": [],
+    "provenance": [
+      {
+        "confirmation_revision": "confirmation.contract-v1",
+        "kind": "USER",
+        "provenance_id": "prov.user"
+      },
+      {
+        "evidence_ids": [
+          "evidence.synthetic-speed"
+        ],
+        "evidence_status": "VERIFIED_OFFICIAL",
+        "fact_id": "fact.synthetic-speed",
+        "kind": "VENDOR_FACT",
+        "model_id": "synthetic-contract-model",
+        "permitted_for_matching": true,
+        "position_id": "synthetic-contract-position",
+        "provenance_id": "prov.vendor.speed",
+        "scope": "contract-fixture-only"
+      },
+      {
+        "assumption_id": "assumption.synthetic-availability",
+        "assumption_version": "v1",
+        "confirmation_state": "POLICY_ACCEPTED",
+        "kind": "ASSUMPTION",
+        "permitted_scope": "synthetic contract fixture",
+        "provenance_id": "prov.assumption.availability",
+        "rationale": "Contract fixture for explicit scenario assumption"
+      }
+    ],
+    "replay": {
+      "canonical_input_digest": "sha256:9f4beec20d9c027e95411e2894277823d55e1da4741b06345c15105c74702267",
+      "deterministic_seed": null,
+      "trace_content_digest": "sha256:a85de691ff62b4526908a69863987398dc935d400dc4c71dcf168a90e906afa6"
+    },
+    "results": [
+      {
+        "capacity_basis": "EFFECTIVE",
+        "result_id": "result.recommended-fleet",
+        "status": "WITH_ASSUMPTIONS",
+        "supporting_node_ids": [
+          "node.f04",
+          "node.f07"
+        ],
+        "value": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "COUNT",
+          "unit": "robot",
+          "value": "18"
+        }
+      }
+    ],
+    "roundings": [
+      {
+        "input_value": "17.97752808988764044943820225",
+        "node_id": "node.f04",
+        "operation": "CEIL",
+        "output_value": "18",
+        "precision_policy_version": "decimal-context-28-half-even-v1",
+        "reason": "Fleet is an integer resource",
+        "rounding_id": "rounding.recommended-fleet",
+        "source_ref": "K04"
+      }
+    ],
+    "runtime_metadata": {
+      "build_id": null,
+      "runtime_id": null
+    },
+    "versions": {
+      "calculation_policy_version": "hackathon-calculation-policy-v1",
+      "capacity_projection_digest": "sha256:cfb42d4a0b44284cb5daab3dc1618a8af14ec4f74b2c7f012f0df6288155a5c3",
+      "capacity_projection_version": "synthetic-capacity-projection-v1",
+      "catalog_content_digest": "sha256:cfb42d4a0b44284cb5daab3dc1618a8af14ec4f74b2c7f012f0df6288155a5c3",
+      "catalog_version_id": "synthetic-contract-catalog-v1",
+      "commercial_policy_version": "hackathon-commercial-policy-v1",
+      "constraint_rules_version": "calculation-constraints-v1",
+      "formula_bundle_version": "calculation-formulas-v1",
+      "precision_policy_version": "decimal-context-28-half-even-v1",
+      "process_catalog_version": "calculation-process-catalog-v1",
+      "registry_digest": "sha256:cfb42d4a0b44284cb5daab3dc1618a8af14ec4f74b2c7f012f0df6288155a5c3",
+      "registry_version": "calculation-parameter-registry-v1"
+    }
+  }
+}

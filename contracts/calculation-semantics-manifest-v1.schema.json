@@ -1,0 +1,398 @@
+{
+  "$defs": {
+    "CapacityApiDeclaration": {
+      "additionalProperties": false,
+      "properties": {
+        "error_schema_version": {
+          "const": "capacity-analysis-error-v1",
+          "title": "Error Schema Version",
+          "type": "string"
+        },
+        "legacy_path_unchanged": {
+          "const": "/api/calculate",
+          "title": "Legacy Path Unchanged",
+          "type": "string"
+        },
+        "method": {
+          "const": "POST",
+          "default": "POST",
+          "title": "Method",
+          "type": "string"
+        },
+        "path": {
+          "const": "/api/v2/capacity-analyses",
+          "default": "/api/v2/capacity-analyses",
+          "title": "Path",
+          "type": "string"
+        },
+        "request_schema_version": {
+          "const": "capacity-analysis-request-v2",
+          "title": "Request Schema Version",
+          "type": "string"
+        },
+        "response_schema_version": {
+          "const": "capacity-analysis-response-v2",
+          "title": "Response Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_schema_version",
+        "response_schema_version",
+        "error_schema_version",
+        "legacy_path_unchanged"
+      ],
+      "title": "CapacityApiDeclaration",
+      "type": "object"
+    },
+    "CompatibilityRule": {
+      "additionalProperties": false,
+      "properties": {
+        "from_contract": {
+          "minLength": 1,
+          "title": "From Contract",
+          "type": "string"
+        },
+        "lossy": {
+          "title": "Lossy",
+          "type": "boolean"
+        },
+        "mode": {
+          "enum": [
+            "UNCHANGED",
+            "ADDITIVE",
+            "PROVENANCE_GATED_ADAPTER"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "rule": {
+          "minLength": 1,
+          "title": "Rule",
+          "type": "string"
+        },
+        "rule_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "to_contract": {
+          "minLength": 1,
+          "title": "To Contract",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "from_contract",
+        "to_contract",
+        "mode",
+        "lossy",
+        "rule"
+      ],
+      "title": "CompatibilityRule",
+      "type": "object"
+    },
+    "ParameterRegistryProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/RegistryFieldProposal"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "immutable_snapshot": {
+          "const": true,
+          "title": "Immutable Snapshot",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "calculation-parameter-registry-v1-proposal",
+          "default": "calculation-parameter-registry-v1-proposal",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "semantic_order": {
+          "const": "parameter_id",
+          "title": "Semantic Order",
+          "type": "string"
+        },
+        "target_registry_version": {
+          "const": "calculation-parameter-registry-v1",
+          "title": "Target Registry Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_registry_version",
+        "immutable_snapshot",
+        "semantic_order",
+        "fields"
+      ],
+      "title": "ParameterRegistryProposal",
+      "type": "object"
+    },
+    "PrecisionPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "ceil_epsilon": {
+          "const": "FORBIDDEN",
+          "title": "Ceil Epsilon",
+          "type": "string"
+        },
+        "decimal_context_precision": {
+          "const": 28,
+          "title": "Decimal Context Precision",
+          "type": "integer"
+        },
+        "event_time_unit": {
+          "const": "microsecond",
+          "title": "Event Time Unit",
+          "type": "string"
+        },
+        "intermediate_rounding": {
+          "const": "NONE",
+          "title": "Intermediate Rounding",
+          "type": "string"
+        },
+        "money_display_digits": {
+          "const": 2,
+          "title": "Money Display Digits",
+          "type": "integer"
+        },
+        "percent_score_payback_display_digits": {
+          "const": 2,
+          "title": "Percent Score Payback Display Digits",
+          "type": "integer"
+        },
+        "raw_numeric_encoding": {
+          "const": "DECIMAL_STRING",
+          "title": "Raw Numeric Encoding",
+          "type": "string"
+        },
+        "rounding_mode": {
+          "const": "ROUND_HALF_EVEN",
+          "title": "Rounding Mode",
+          "type": "string"
+        },
+        "score_tolerance": {
+          "const": "0.000001",
+          "title": "Score Tolerance",
+          "type": "string"
+        },
+        "version": {
+          "const": "decimal-context-28-half-even-v1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "decimal_context_precision",
+        "rounding_mode",
+        "raw_numeric_encoding",
+        "intermediate_rounding",
+        "money_display_digits",
+        "percent_score_payback_display_digits",
+        "event_time_unit",
+        "score_tolerance",
+        "ceil_epsilon"
+      ],
+      "title": "PrecisionPolicy",
+      "type": "object"
+    },
+    "QuantityName": {
+      "enum": [
+        "shifts_per_day",
+        "shift_hours",
+        "operating_hours_per_day",
+        "days_per_year",
+        "demand_per_day",
+        "cleaning_area_per_day",
+        "peak_factor",
+        "reserve_share",
+        "one_way_distance",
+        "exchange_total_time",
+        "load_time",
+        "unload_time",
+        "operating_speed",
+        "safe_max_speed",
+        "payload",
+        "item_mass",
+        "handling_batch_limit",
+        "passport_batch_limit",
+        "geometry_batch_limit",
+        "units_per_trip",
+        "cleaning_frequency",
+        "cleaning_rate",
+        "cell_rate",
+        "cell_efficiency",
+        "availability",
+        "fleet_selected",
+        "fleet_recommended",
+        "nominal_capacity",
+        "effective_capacity",
+        "coverage",
+        "raw_load_ratio",
+        "utilization",
+        "role_headcount",
+        "monthly_gross_salary"
+      ],
+      "title": "QuantityName",
+      "type": "string"
+    },
+    "RegistryFieldProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "enum": [
+            "parameter_id",
+            "semantic_name",
+            "value",
+            "unit",
+            "quantity_kind",
+            "source_refs",
+            "source_digest",
+            "decision_refs",
+            "effective_version",
+            "replaced_by",
+            "applicability"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "required"
+      ],
+      "title": "RegistryFieldProposal",
+      "type": "object"
+    },
+    "SourceParameterBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_refs": {
+          "items": {
+            "pattern": "^K(?:02|03|04|19|27)$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "formula_id": {
+          "pattern": "^F0[1-7]$",
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "parameter_names": {
+          "items": {
+            "$ref": "#/$defs/QuantityName"
+          },
+          "title": "Parameter Names",
+          "type": "array"
+        },
+        "source_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "formula_id",
+        "source_refs",
+        "parameter_names",
+        "decision_refs"
+      ],
+      "title": "SourceParameterBinding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "calculation_policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "title": "Calculation Policy Version",
+      "type": "string"
+    },
+    "capacity_api": {
+      "$ref": "#/$defs/CapacityApiDeclaration"
+    },
+    "compatibility": {
+      "items": {
+        "$ref": "#/$defs/CompatibilityRule"
+      },
+      "title": "Compatibility",
+      "type": "array"
+    },
+    "decision_refs": {
+      "items": {
+        "enum": [
+          "K02",
+          "K03",
+          "K04",
+          "K19",
+          "K27"
+        ],
+        "type": "string"
+      },
+      "title": "Decision Refs",
+      "type": "array"
+    },
+    "precision_policy": {
+      "$ref": "#/$defs/PrecisionPolicy"
+    },
+    "registry_proposal": {
+      "$ref": "#/$defs/ParameterRegistryProposal"
+    },
+    "schema_version": {
+      "const": "calculation-semantics-manifest-v1",
+      "default": "calculation-semantics-manifest-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_parameter_map": {
+      "items": {
+        "$ref": "#/$defs/SourceParameterBinding"
+      },
+      "title": "Source Parameter Map",
+      "type": "array"
+    },
+    "supported_contract_versions": {
+      "items": {
+        "enum": [
+          "normalized-process-v1",
+          "role-pool-v1",
+          "capacity-result-v1",
+          "financial-result-v1",
+          "calculation-partial-result-v1",
+          "calculation-trace-v1"
+        ],
+        "type": "string"
+      },
+      "title": "Supported Contract Versions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "calculation_policy_version",
+    "decision_refs",
+    "supported_contract_versions",
+    "precision_policy",
+    "source_parameter_map",
+    "compatibility",
+    "registry_proposal",
+    "capacity_api"
+  ],
+  "title": "CalculationSemanticsManifest",
+  "type": "object"
+}

@@ -226,7 +226,13 @@ evidence gates, tenant isolation и воспроизводимые snapshots с�
 [inventory](planning/zhenya-source-inventory.md) фиксируют формулы,
 расхождения, решения, вопросы и последовательность внедрения.
 
-Следующая малая итерация — **`contracts/calculation-semantics-v1`** (C01).
+Этап **`contracts/calculation-semantics-v1`** (C01) завершён: добавлены строгие
+units/quantity/process/role DTO, независимые capacity/finance statuses,
+versioned `CalculationTrace`, replay digests, schema fixtures и proposed
+registry contract без подключения к production API. Контрактный отчёт:
+[calculation semantics v1](planning/calculation-semantics-contract-v1.md).
+
+Следующая малая итерация — **`data/calculation-parameter-registry-v1`** (C02).
 `engine/capacity-formula-trace` остаётся C07 после registry, normalization,
 constraints и executability audit. Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
@@ -244,8 +250,9 @@ fte_cost; full baseline/scenario cashflows с отдельным tax mode; purch
 21/24 сохраняется как baseline до отдельного доказанного и согласованного
 изменения membership; 187/223 discovery и отсутствие БАС в pool проверяются.
 
-В этой сессии выполнены только документация и плановые артефакты: формулы,
-production API/UI, versioned catalog и runtime slots не менялись.
+В этой сессии реализован только аддитивный контрактный этап C01 и его целевые
+schema/serialization tests. Формулы, production API/UI, versioned catalog и
+runtime slots не менялись.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

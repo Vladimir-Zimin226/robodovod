@@ -1,0 +1,195 @@
+{
+  "$defs": {
+    "ParameterDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "applicability": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Applicability",
+          "type": "array"
+        },
+        "decision_refs": {
+          "items": {
+            "pattern": "^K(?:0[1-9]|[12][0-9])$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "effective_version": {
+          "minLength": 1,
+          "title": "Effective Version",
+          "type": "string"
+        },
+        "parameter_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Parameter Id",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "replaced_by": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Replaced By"
+        },
+        "semantic_name": {
+          "minLength": 1,
+          "title": "Semantic Name",
+          "type": "string"
+        },
+        "source_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "parameter_id",
+        "semantic_name",
+        "value",
+        "unit",
+        "quantity_kind",
+        "source_refs",
+        "source_digest",
+        "decision_refs",
+        "effective_version",
+        "applicability"
+      ],
+      "title": "ParameterDefinition",
+      "type": "object"
+    },
+    "QuantityKind": {
+      "enum": [
+        "TIME",
+        "DISTANCE",
+        "MASS",
+        "AREA",
+        "COUNT",
+        "FLOW",
+        "SPEED",
+        "RATE",
+        "FRACTION",
+        "MONEY",
+        "ENERGY",
+        "POWER"
+      ],
+      "title": "QuantityKind",
+      "type": "string"
+    },
+    "Unit": {
+      "enum": [
+        "s",
+        "h",
+        "day",
+        "m",
+        "kg",
+        "m2",
+        "unit",
+        "person",
+        "robot",
+        "shift",
+        "trip",
+        "unit/day",
+        "pallet/day",
+        "box/day",
+        "case/day",
+        "cart/day",
+        "delivery/day",
+        "portion/day",
+        "kg/day",
+        "sample/day",
+        "set/day",
+        "bin/day",
+        "item/day",
+        "pick/day",
+        "m2/day",
+        "unit/h",
+        "m2/h",
+        "unit/min",
+        "pick/min",
+        "pallet/min",
+        "m/s",
+        "kg/unit",
+        "unit/trip",
+        "1",
+        "%",
+        "RUB",
+        "RUB/person/month",
+        "kWh",
+        "W"
+      ],
+      "title": "Unit",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/ParameterDefinition"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "registry_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Registry Digest",
+      "type": "string"
+    },
+    "registry_version": {
+      "minLength": 1,
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "calculation-parameter-registry-v1",
+      "default": "calculation-parameter-registry-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "semantic_order": {
+      "const": "parameter_id",
+      "default": "parameter_id",
+      "title": "Semantic Order",
+      "type": "string"
+    }
+  },
+  "required": [
+    "registry_version",
+    "registry_digest",
+    "entries"
+  ],
+  "title": "CalculationParameterRegistry",
+  "type": "object"
+}

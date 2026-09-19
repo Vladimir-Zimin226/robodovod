@@ -472,3 +472,29 @@ class ScenarioSpec(StrictContractModel):
 
 
 CalculationResponse.model_rebuild()
+
+
+# Additive C01 DTO specifications.  Legacy request/response models above remain
+# unchanged and production routes do not instantiate these contracts yet.
+from calculation_contracts import (  # noqa: E402,F401
+    CalculationDecisionFixtures,
+    CalculationParameterRegistry,
+    CalculationSemanticsFixture,
+    CalculationSemanticsManifest,
+    CalculationTrace,
+    CapacityAnalysisErrorResponse,
+    CapacityAnalysisRequest,
+    CapacityAnalysisResponse,
+    CapacityResult,
+    FinancialResult,
+    KnownQuantity,
+    MissingQuantity,
+    NormalizedProcess,
+    ParameterRegistryProposal,
+    PartialCalculationResult,
+    ProcessQuantityKind,
+    QuantityKind,
+    RolePool,
+    Unit,
+    VersionBindings,
+)

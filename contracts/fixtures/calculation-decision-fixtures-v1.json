@@ -1,0 +1,133 @@
+{
+  "calculation_policy_version": "hackathon-calculation-policy-v1",
+  "k02_exchange": [
+    {
+      "example_id": "k02.new-total-45",
+      "expected_total_seconds": "45",
+      "legacy_migration": false,
+      "normalized_exchange": {
+        "mode": "TOTAL",
+        "total_time": {
+          "name": "exchange_total_time",
+          "normalized_value": "45",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "prov.user",
+          "quantity_kind": "TIME",
+          "raw_unit": "s",
+          "raw_value": "45",
+          "status": "KNOWN",
+          "unit": "s"
+        }
+      },
+      "source_semantics": "NEW_TOTAL"
+    },
+    {
+      "example_id": "k02.raw-split-45-45",
+      "expected_total_seconds": "90",
+      "legacy_migration": false,
+      "normalized_exchange": {
+        "load_time": {
+          "name": "load_time",
+          "normalized_value": "45",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "prov.user",
+          "quantity_kind": "TIME",
+          "raw_unit": "s",
+          "raw_value": "45",
+          "status": "KNOWN",
+          "unit": "s"
+        },
+        "mode": "SPLIT",
+        "unload_time": {
+          "name": "unload_time",
+          "normalized_value": "45",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "prov.user",
+          "quantity_kind": "TIME",
+          "raw_unit": "s",
+          "raw_value": "45",
+          "status": "KNOWN",
+          "unit": "s"
+        }
+      },
+      "source_semantics": "RAW_SPLIT"
+    },
+    {
+      "example_id": "k02.legacy-per-operation-45",
+      "expected_total_seconds": "90",
+      "legacy_migration": true,
+      "normalized_exchange": {
+        "mode": "TOTAL",
+        "total_time": {
+          "name": "exchange_total_time",
+          "normalized_value": "90",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "prov.legacy",
+          "quantity_kind": "TIME",
+          "raw_unit": "s",
+          "raw_value": "90",
+          "status": "KNOWN",
+          "unit": "s"
+        }
+      },
+      "source_semantics": "LEGACY_PER_OPERATION"
+    }
+  ],
+  "k03_batch": [
+    {
+      "example_id": "k03.mass-cap",
+      "expected_batch": 3,
+      "expected_reason": "RESOLVED",
+      "geometry_limit": null,
+      "handling_limit": null,
+      "item_mass_kg": "3",
+      "passport_limit": null,
+      "payload_kg": "10"
+    },
+    {
+      "example_id": "k03.handling-limit",
+      "expected_batch": 2,
+      "expected_reason": "RESOLVED",
+      "geometry_limit": null,
+      "handling_limit": 2,
+      "item_mass_kg": "3",
+      "passport_limit": null,
+      "payload_kg": "10"
+    },
+    {
+      "example_id": "k03.zero-item-mass",
+      "expected_batch": null,
+      "expected_reason": "INVALID_DOMAIN",
+      "geometry_limit": null,
+      "handling_limit": null,
+      "item_mass_kg": "0",
+      "passport_limit": null,
+      "payload_kg": "10"
+    }
+  ],
+  "k04_capacity": [
+    {
+      "active": true,
+      "demand": "100",
+      "example_id": "k04.active-fleet-zero",
+      "expected_capacity": "0",
+      "expected_coverage": "0",
+      "expected_raw_load_ratio": null,
+      "expected_status": "OVERLOADED",
+      "expected_utilization": null,
+      "selected_fleet": 0
+    },
+    {
+      "active": false,
+      "demand": "0",
+      "example_id": "k04.inactive",
+      "expected_capacity": "0",
+      "expected_coverage": null,
+      "expected_raw_load_ratio": null,
+      "expected_status": "NOT_APPLICABLE",
+      "expected_utilization": null,
+      "selected_fleet": 0
+    }
+  ],
+  "schema_version": "calculation-decision-fixtures-v1"
+}

@@ -1,0 +1,48 @@
+{
+  "capacity": {
+    "blockers": [],
+    "process_id": "warehouse.receiving-shipping",
+    "schema_version": "capacity-result-v1",
+    "status": "WITH_ASSUMPTIONS",
+    "trace_ref": "run.contract-complete",
+    "value": {
+      "coverage": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "FRACTION",
+        "unit": "1",
+        "value": "1"
+      },
+      "effective_capacity": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "RATE",
+        "unit": "unit/h",
+        "value": "9.176470588235294117647058822"
+      },
+      "nominal_capacity": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "RATE",
+        "unit": "unit/h",
+        "value": "13.10924369747899159663865546"
+      },
+      "overloaded": false,
+      "raw_load_ratio": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "FRACTION",
+        "unit": "1",
+        "value": "0.9900990099009900990099009901"
+      },
+      "recommended_fleet": 18,
+      "selected_fleet": 18,
+      "utilization": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "FRACTION",
+        "unit": "1",
+        "value": "0.9900990099009900990099009901"
+      }
+    },
+    "warnings": []
+  },
+  "financial": null,
+  "result_status": "CAPACITY_ONLY",
+  "schema_version": "calculation-partial-result-v1"
+}

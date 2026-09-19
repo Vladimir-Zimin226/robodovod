@@ -1,0 +1,48 @@
+{
+  "error_code": "CALCULATION_BLOCKED",
+  "issues": [
+    {
+      "code": "missing.safe-operating-speed",
+      "decision_refs": [
+        "K02"
+      ],
+      "field_refs": [
+        "operating_speed"
+      ],
+      "message": "No safe speed fact or explicit scenario operating speed",
+      "node_refs": [
+        "node.f02"
+      ],
+      "reason": "MISSING_SAFE_FACT",
+      "severity": "BLOCKER"
+    }
+  ],
+  "partial_capacity": {
+    "blockers": [
+      {
+        "code": "missing.safe-operating-speed",
+        "decision_refs": [
+          "K02"
+        ],
+        "field_refs": [
+          "operating_speed"
+        ],
+        "message": "No safe speed fact or explicit scenario operating speed",
+        "node_refs": [
+          "node.f02"
+        ],
+        "reason": "MISSING_SAFE_FACT",
+        "severity": "BLOCKER"
+      }
+    ],
+    "process_id": "warehouse.receiving-shipping",
+    "schema_version": "capacity-result-v1",
+    "status": "BLOCKED",
+    "trace_ref": "run.contract-blocked",
+    "value": null,
+    "warnings": []
+  },
+  "request_id": "request.contract-blocked",
+  "run_id": "run.contract-blocked",
+  "schema_version": "capacity-analysis-error-v1"
+}

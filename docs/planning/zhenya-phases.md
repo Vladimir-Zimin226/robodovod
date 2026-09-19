@@ -4,7 +4,8 @@
 Родительский документ: [план 19](../19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
 Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к исполнению в
 [policy v1](calculation-policy-decisions-v1.md); отдельного ответа Жени не требуется. Новые пути ниже — предложения для
-реализации, не утверждение о существующих файлах. Все Cxx пока **PLANNED**.
+реализации, не утверждение о существующих файлах. C01 **COMPLETE** 2026-09-20;
+C02–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -18,6 +19,12 @@ Product BLOCKED/MISSING_INPUT — проверяемый ответ на неп�
 неразрешённое решение разработчика. Критерии scope — ТЗ и policy§3.
 
 ## C01 — `contracts/calculation-semantics-v1`
+
+Статус: **COMPLETE** (2026-09-20). Реализованы strict Pydantic/JSON Schema,
+fixtures K02–K04, partial statuses, trace/provenance/version bindings,
+детерминированная сериализация и proposed registry schema. Production API,
+формулы, UI и catalog runtime не изменены. Контрактный отчёт:
+[calculation-semantics-contract-v1.md](calculation-semantics-contract-v1.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
