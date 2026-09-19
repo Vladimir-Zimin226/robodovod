@@ -1,6 +1,6 @@
 # Контекст проекта «РОБОДОВОД»
 
-Актуально на 19 сентября 2026 года; расчётный аудит baseline
+Актуально на 20 сентября 2026 года; расчётный аудит baseline
 `f77c32c2fde86cd1450aa96d43dc6273059c57d4`.
 
 ## Коротко
@@ -220,7 +220,7 @@ assets для 223 позиций. Профильные Compose tools-серви�
 binary volume сохранился.
 
 Аудит 2026-09-19 полностью покрыл 14 файлов reference версии 3.2. Они являются
-главным источником целевой расчётной и продуктовой логики; архитектура,
+основой предметных формул; редакция1.1 разрешает конфликты по ТЗ/дополнениям; архитектура,
 evidence gates, tenant isolation и воспроизводимые snapshots сохраняются.
 Подробный [план 19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md) и
 [inventory](planning/zhenya-source-inventory.md) фиксируют формулы,
@@ -236,9 +236,11 @@ Robot/economics; materialized CapacityRuntimeDTO ещё не образует н
 Главные изменения целевого канона: полный exchange учитывается один раз,
 peak×reserve отделён от availability; роли и USER gross salary вместо единого
 fte_cost; full baseline/scenario cashflows с отдельным tax mode; purchase/RaaS
-как независимая ось; server-owned trace и ScenarioSpec v2. Неопределённые
-scheduling/SLA, scoring curves, pult allocation, annual ramp и НДС оформлены
-как вопросы с gates. План не разрешает добавлять недоказанные vendor facts.
+как независимая ось; server-owned trace и ScenarioSpec v2. Scheduling/SLA, scoring curves, pult allocation, annual ramp и НДС
+определены в [policy v1](planning/calculation-policy-decisions-v1.md).
+Все29конфликтов и12групп вопросов приняты к реализации без ожидания Жени.
+Основная денежная база gross, по дополнениям организаторов; warehouse —
+полный обязательный сценарий, все28process blocks имеют конечный scope. План не разрешает добавлять недоказанные vendor facts.
 21/24 сохраняется как baseline до отдельного доказанного и согласованного
 изменения membership; 187/223 discovery и отсутствие БАС в pool проверяются.
 

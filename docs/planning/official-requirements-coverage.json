@@ -1,0 +1,25 @@
+{
+  "schema_version": "planning-official-source-coverage-v1",
+  "audited_at": "2026-09-20",
+  "revision_parent": "d2c6a4c62cca30a0169c092aebea66672d8524cb",
+  "recursive_file_count": 2,
+  "total_pdf_pages": 20,
+  "files": [
+    {
+      "path": "Разобрать/Материалы от организаторов/ТЗ/1. ФЦ БАС.pdf",
+      "bytes": 565739,
+      "sha256": "acc5feed8f8686ee9928839a56c9b084e1bd577db55ef1e63b5c5b42278d4713",
+      "pdf_pages": 13,
+      "read_status": "FULLY_READ",
+      "role": "AUTHORITATIVE_REQUIREMENTS"
+    },
+    {
+      "path": "Разобрать/Материалы от организаторов/ТЗ/Дополнения для участников.pdf",
+      "bytes": 172735,
+      "sha256": "64eac97cc4c985035286ebbedfcd5b356c4aba4af1d1d69f2ac0ca1f20adc456",
+      "pdf_pages": 7,
+      "read_status": "FULLY_READ",
+      "role": "AUTHORITATIVE_REQUIREMENTS"
+    }
+  ]
+}

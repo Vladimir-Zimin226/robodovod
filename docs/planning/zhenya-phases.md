@@ -1,8 +1,9 @@
 # Исполнительные карточки внедрения расчётной логики
 
-План от 2026-09-19, baseline `f77c32c2fde86cd1450aa96d43dc6273059c57d4`.
+Редакция 1.1 от 2026-09-20, кодовый baseline `f77c32c2fde86cd1450aa96d43dc6273059c57d4`.
 Родительский документ: [план 19](../19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
-Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Новые пути ниже — предложения для
+Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к исполнению в
+[policy v1](calculation-policy-decisions-v1.md); отдельного ответа Жени не требуется. Новые пути ниже — предложения для
 реализации, не утверждение о существующих файлах. Все Cxx пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
@@ -10,13 +11,20 @@ tenant/owner predicates, immutable old runs, deterministic results,
 документированный rollback, отсутствие скрытой арифметики во frontend.
 Unit/integration/frontend/golden проверки запускаются только для затронутого
 слоя; «frontend — нет» означает отсутствие UI-изменений в данном PR.
-Изменение schema не разрешает активировать runtime или менять pool.
+Изменение schema не меняет pool. C27/C28 включают локальный rollout с rollback;
+production activation только в авторизованной среде, не обязательна для local release.
+Исследования и поздний review не являются зависимостями этапов.
+Product BLOCKED/MISSING_INPUT — проверяемый ответ на неполные данные, не
+неразрешённое решение разработчика. Критерии scope — ТЗ и policy§3.
 
 ## C01 — `contracts/calculation-semantics-v1`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** устранить блокирующую неоднозначность до первой формулы;
-  R00, R02–04, R08, R10–13. Закрыть semantics часть K02–04/K19 и Q02–04;
-  остальные вопросы имеют owner и блокируемую ветку, а не произвольный default.
+  R00, R02–04, R08, R10–13. Реализовать принятые semantics K02–04/K19 и precision policy§5;
+  новые внешние согласования не входят в этап.
 - **Модули / backend:** проектные schemas в `contracts/` и DTO specifications
   для `backend/models.py`; в этом этапе только контрактные определения,
   без исполнения формул, endpoint переключений и изменения legacy DTO.
@@ -32,12 +40,15 @@ Unit/integration/frontend/golden проверки запускаются тол�
   units/kinds, null blocked result, forbidden fact statuses; integration —
   Python/JS serialization examples; golden — schema fixtures, не vendor cards.
 - **Acceptance / зависимости:** все inputs F01–07 имеют тип/семантику;
-  API capacity не требует economics; K02/03/04 либо решены, либо конкретные
-  профили закрыты от исполнения. Нет неявных defaults. Вход — этот аудит.
+  API capacity не требует economics; K02/03/04 закреплены контрактными fixtures;
+  unsupported данные дают определённый ответ resolver. Нет неявных defaults. Вход — этот аудит.
 - **Вне этапа:** численные формулы, runtime activation, изменение counts,
   закупочное исследование, salary benchmarks, полноценная simulation schema.
 
 ## C02 — `data/calculation-parameter-registry-v1`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** materialize R02/R06 assumptions и R04 decisions с R00 provenance.
 - **Backend:** новый `backend/calculation/registry.py`: loader/validator,
@@ -47,17 +58,20 @@ Unit/integration/frontend/golden проверки запускаются тол�
   публичные endpoints пока без изменений.
 - **Frontend:** нет; labels/localization keys в contract metadata.
 - **Данные:** новый immutable `data/calculation/registry-v1.json` и manifest;
-  constants с unresolved policy не разрешены как executable default.
+  каждая constant имеет решение K/source; неизвестные facts не подставляются.
 - **Trace:** каждый использованный коэффициент ссылается на registry entry;
   различить unit definition, assumption и verified commercial fact.
 - **Тесты:** schema/domain/hash, repeated load/idempotency, полный scenario
-  table, no salary default, no duplicate/orphan IDs,75/77 conflict не скрыт.
+  table, no custom salary default, no duplicate/orphan IDs,принятый знаменатель77.
   Golden — registry snapshot; frontend — нет.
 - **Acceptance / зависимости:** C01; traceable values для всех поддержанных
-  формул, sources совпадают с manifest; K01 принят. Ни одного bare magic number.
+  формул, sources совпадают с manifest; K01 реализован. Ни одного bare magic number.
 - **Вне этапа:** vendor enrichment, новые fleet rows, формулы, UI.
 
 ## C03 — `intake/process-role-normalization-v2`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R05/R10/R11 семантика объектов, ролей, quantities;
   зарплата по роли USER/FILE monthly gross, сохранение raw provenance.
@@ -68,7 +82,7 @@ Unit/integration/frontend/golden проверки запускаются тол�
   Unknown extra fields запрещены; process/block identity не теряется.
 - **Frontend:** нет; ответ содержит field errors, required inputs и units.
 - **Данные:** versioned preset projection v2; исходные 42/39/57 profile parameters,
-  source hashes и старые import runs сохраняются; salary preset не автоподтверждается.
+  source hashes и старые import runs сохраняются; salary preset не автоподтверждается; demo exception явно ASSUMPTION K05.
 - **Trace:** conversion nodes, file hash/sheet/row/cell, aliases и user confirmation.
 - **Тесты:** unit conversions,28 block input roundtrip, union roles, H>24,
   no batches, salary missing, duplicate roles, invalid CSV/XLSX atomic rollback;
@@ -78,6 +92,9 @@ Unit/integration/frontend/golden проверки запускаются тол�
 - **Вне этапа:** расчёт N/NPV, UI, новый формат исходного organizer dataset.
 
 ## C04 — `frontend/process-role-intake-v2`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R10 формы, R11 activation/validation, R00 provenance.
 - **Backend:** нет новой domain logic; исправления server contract отдельным PR.
@@ -97,6 +114,9 @@ Unit/integration/frontend/golden проверки запускаются тол�
 
 ## C05 — `engine/applicability-constraints-v2`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R03 §5, R08 и R10 environment/process scope.
 - **Backend:** `readiness.py`, новый `backend/calculation/constraints.py`;
   `economics.py:check_constraints` остаётся только legacy adapter до C28.
@@ -109,11 +129,14 @@ Unit/integration/frontend/golden проверки запускаются тол�
 - **Тесты:** unit truth tables каждого check; budget/power/life warning без штрафа;
   unknown fact, airside, clinic waste, floors, temperature/noise scope;
   integration readiness=execution eligibility; golden constraint snapshots.
-- **Acceptance / зависимости:** C01–03/K15; E и RD больше не расходятся в новом
+- **Acceptance / зависимости:** C01–03/принятый K15; E и RD больше не расходятся в новом
   path. Необоснованный autonomy×.8 исключён из v2 с migration note.
 - **Вне этапа:** score, deployment certification, formula execution, изменения v1.
 
 ## C06 — `catalog/formula-executability-audit-v3`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R03 formula dependencies + R08 evidence; проверить G37.
 - **Backend:** `catalog_repository.py`, отдельный audit/resolver под
@@ -129,11 +152,16 @@ Unit/integration/frontend/golden проверки запускаются тол�
   deterministic order, no BAS; integration DTO without Robot costs;
   golden fullaudit. Frontend — нет.
 - **Acceptance / зависимости:** C02–03/C05; все inputs каждой разрешённой
-  формулы закрываются facts или явно требуемыми scenario inputs.
-  Любой count change отдельно согласован; иначе baseline unchanged.
-- **Вне этапа:** source research completion, runtime activation, новые формулы.
+  формулы имеют определённый исход resolver: safe fact, допустимый scenario
+  input либо локальный MISSING_SAFE_FACT/unsupported с причиной. Наличие всех
+  ТТХ у всех моделей не является acceptance: проверяется корректность resolver.
+  Membership фиксирован21/24; count change не входит в этап.
+- **Вне этапа:** внешнее source research, runtime activation, новые формулы.
 
 ## C07 — `engine/capacity-formula-trace`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R03 §1.1/1.4, R02 §3–5; подробный scope в плане 19 §7.1.
 - **Backend:** `backend/calculation/capacity/transport.py`, quantities/resolver/trace.
@@ -148,11 +176,14 @@ Unit/integration/frontend/golden проверки запускаются тол�
 - **Тесты:** Golden-Transport-Synthetic, manual 17/18/19, boxfloor,
   ceil boundaries, total 45 vs 45+45, v0/H0/domain; properties monotonicity;
   integration resolver rejects unsafe facts; front — нет.
-- **Acceptance / зависимости:** C06, K02–04; trace replay byte-stable и
+- **Acceptance / зависимости:** C06, принятые K02–04; trace replay byte-stable и
   каждый numerical input имеет unit/provenance; no hidden.90 reserve.
 - **Вне этапа:** cleaning/cell, finance, UI, activation, scheduling/SLA.
 
 ## C08 — `engine/cleaning-capacity-trace`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R03 §1.2/1.4, R02 defaults, R05 cleaning areas.
 - **Backend:** `backend/calculation/capacity/cleaning.py`; F05/F07
@@ -169,6 +200,9 @@ Unit/integration/frontend/golden проверки запускаются тол�
 
 ## C09 — `engine/palletizing-capacity-trace`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R03 §1.3, R02 cell efficiency, R05 boxes/pallet semantics.
 - **Backend:** `backend/calculation/capacity/palletizing.py`, F06/F07.
 - **Контракты / API:** explicit picks/min и output boxes/pallet; throughput
@@ -178,48 +212,48 @@ Unit/integration/frontend/golden проверки запускаются тол�
 - **Trace:** picks→boxes→pallets, efficiency и availability отдельно.
 - **Тесты:**20 output vs 33 receiving,0 denominator,rate unknown,manualN,
   unsupported fixed profile blocked; integration resolver; golden dimensional check.
-- **Acceptance / зависимости:** C06–07/Q04, подтверждённый смысл rate;
+- **Acceptance / зависимости:** C06–07/K19: typed picks/min input и synthetic fixtures;
   Python formula test не меняет нынешнее отсутствие cells в pool.
 - **Вне этапа:** manipulator motion/safety simulation, новые vendor facts, economics.
 
 ## C10 — `contracts/process-profile-coverage-v1`
 
-- **Цель / источники:** R10/R11 все 6+10+12 blocks; R03 имеет лишь несколько
-  формульных семейств. Закрыть Q03/Q09 о полном обещанном объёме продукта.
-- **Backend:** process router/registry binding к C07–09; явное
-  `UNSUPPORTED_PROCESS_PROFILE` или `NOT_APPLICABLE` по смыслу блока.
-- **Контракты / API:** complete process_catalog с role codes, quantity kind,
-  has_fot_savings, formula profile/version, checks, missing inputs/policies.
-- **Frontend:** нет; metadata используется C04/C12, отсутствие формулы видно.
-- **Данные:** versioned 28-row map, без подмены process semantics generic transport.
-- **Trace:** источник каждого mapping, required conversion/batch/route inputs.
-- **Тесты:** exact 28 blocks, no-code collisions, no-role valid,
-  safetyblock N/A не нулевой capacity, unsupported profile errors; golden mappings.
-- **Acceptance / зависимости:** C03,C07–09; каждая строка classified и
-  утверждён её продуктовый scope. Q09 закрыт перед заявлением full rollout.
-- **Вне этапа:** изобретение недостающих функций, BAS admission, scope
-  reduction без решения владельца. Если требуются новые алгоритмы,
-  сначала Женя утверждает формулу/units/domains/examples, затем отдельный
-  microstage из таблицы ниже. Blocked row не считается внедрённым процессом.
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
+- **Цель / источники:** T1/T2/A6, R10/R11 и policy§3: реализовать все28
+  process mappings с конечными scopes, без ожидания новых формул.
+- **Backend:** process router к C07–09; REFERENCE_ONLY/CONSTRAINT_ONLY;
+  параметрический USER_CYCLE для отдельно заданной пользовательской операции.
+- **Контракты / API:** versioned process_catalog, typed demand/batch/role,
+  scope, has_fot_savings, checks, requirement/error codes.
+- **Frontend:** UI metadata для C04/C12, без самостоятельной арифметики.
+- **Данные:** точная28-row таблица и union ролей из policy§3, fixed pool21/24.
+- **Trace:** каждый mapping имеет source/policy; generic cycle не vendor fact.
+- **Тесты:** exact28rows, все enum/scopes, batch conversion, no-role,
+  unsupported real operation объясняется; USER_CYCLE dimensional golden.
+- **Acceptance / зависимости:** C03,C07–09; все28микрошагов проверяют принятый
+  scope. Для REFERENCE_ONLY требуются inputs/discovery/reasons, не несуществующая
+  формула. Для CONSTRAINT_ONLY — применимые checks. Warehouse full flow обязателен.
+- **Вне этапа:** новые equipment facts, BAS, физические модели заправки,
+  инспекции, полного ASRS и медицинских действий. Это явная граница T1/A6,
+  последующее расширение не задерживает C29.
 
 ### Независимые process microstages C10.01–C10.28
 
-Точные ветки для полного покрытия перечислены ниже. Это не 28 обязательных
-новых алгоритмов: при применимости C07–09 PR содержит только проверенный
-mapping/normalizer и golden, при отсутствии формулы он **блокируется Q09**.
-Каждый microstage наследует контракты/API/data/trace/tests/gate C10, меняет
-только свой process profile и adapter; backend module
-`backend/calculation/process_profiles/<code>.py` создаётся только если нужна
-отдельная нормализация. UI/economics/procurement в них не входят.
-Приёмка каждого: raw official inputs → typed units → approved profile → trace,
-plus negative missing conversion и все applicable constraints. Нормативные
-claims должны иметь отдельный research gate. Новая fleet membership не входит.
+Каждая ветка ниже реализует scope одноимённой строки policy§3. Это28
+проверяемых adapters/mappings, а не28 недостающих физических алгоритмов.
+Все нужны для coverage; ветки REFERENCE_ONLY завершаются form/catalog/reason
+fixtures. Новый module `backend/calculation/process_profiles/<code>.py`
+создаётся при необходимости нормализации. Принятые формулы не ждут Жени.
+Новая fleet membership не входит. Нормативные неизвестные отражаются как
+UNKNOWN/NEEDS_VALIDATION, не legal claims.
 
-| ID | Ветка | Блок R11 схема 4 / что мешает немедленному mapping |
+| ID | Ветка | Блок R11 / scope согласно policy§3 |
 |---|---|---|
 | C10.01 | `profiles/warehouse-receiving-shipping-v1` | Приёмка/отгрузка; inbound/outbound flow и pallet route |
 | C10.02 | `profiles/warehouse-storage-v1` | Размещение; vertical/lift cycle не задан транспортной формулой |
-| C10.03 | `profiles/warehouse-picking-v1` | Отбор; order/line/box units и ручной/robot pick cycle |
+| C10.03 | `profiles/warehouse-picking-v1` | Транспорт при отборе рассчитывается отдельно; полный picking REFERENCE_ONLY, order/line/box units сохраняются |
 | C10.04 | `profiles/warehouse-palletizing-v1` | Паллетизация/упаковка; C09 не описывает отдельный packaging cycle |
 | C10.05 | `profiles/warehouse-cleaning-v1` | Уборка; C08 при корректной площади/частоте |
 | C10.06 | `profiles/warehouse-inventory-v1` | Инвентаризация; scan quantity/rate, нет формулы |
@@ -246,12 +280,14 @@ claims должны иметь отдельный research gate. Новая flee
 | C10.27 | `profiles/clinic-inventory-v1` | Инвентаризация; scan throughput отсутствует |
 | C10.28 | `profiles/clinic-safety-requirements-v1` | Требования безопасности; constraint profile, не fleet-sizing formula |
 
-Наличие skeleton для 28 rows достаточно для API partial flow C11; обещанные
-расчётные rows должны пройти свои microstage gates до C29. N/A safetyblock
-может быть полностью внедрён без самостоятельного capacity output, если так
-утверждено Q09. Неизвестная формула не становится N/A ради зелёной приёмки.
+C11 может использовать полный process_catalog после этих adapters.
+C29 принимает все28scopes по policy§3 и warehouse full flow. Формальная
+готовность REFERENCE_ONLY не объявляется реализацией физического процесса.
 
 ## C11 — `api/capacity-analysis-snapshots-v2`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R00 reproducibility и R03 capacity без вымышленной экономики.
 - **Backend:** `main.py`, `catalog_repository.py`, persistence service/models,
@@ -277,6 +313,9 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C12 — `frontend/capacity-results-trace`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R00 assumptions и R03 selected/recommended fleet.
 - **Backend:** нет; API C11 считается авторитетом чисел.
 - **Контракты / API:** C11 result status/units/revision; no client fallback.
@@ -293,16 +332,20 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C13 — `procurement/commercial-inputs-v1`
 
-- **Цель / источники:** R00/R01/R08 commercial facts, R02 netRUB; docs 09 gates сохраняются.
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
+- **Цель / источники:** R00/R01/R08 commercial facts, A4 CASH_GROSS_RUB; docs 09 gates сохраняются.
 - **Backend:** commercial resolver рядом с catalog repository; price/terms
   normalization, quote validity/scope, service responsibilities.
 - **Контракты / API:** CommercialMoney(raw amount,currency,taxbasis,rate,date,
   source,scope), contract terms PURCHASE/RAAS; procurement report независимо
-  от economics. USER scenario price допустима, но не vendor quote.
+  от economics. USER scenario price допустима, но не vendor quote. Сохраняются
+  статусы docs/09 с resolver policy §5, без численного procurement score.
 - **Frontend:** нет; формы коммерческих inputs в C21, API доступен для tests.
 - **Данные:** additive versioned commercial inputs, organizer raw price intact;
   procurement research отдельно, недоказанные цены/availability blocked.
-- **Trace:** raw→net normalization; rule/quote/evidence IDs; assumption override.
+- **Trace:** raw→CASH_GROSS_RUB; NET_RUB только при explicit rate; rule/quote/evidence IDs; assumption override.
 - **Тесты:** known/unknown VATrate, user net, wrong currency, stale quote,
   vendor identity mismatch, price 0 explicit semantics, ambiguoussource;
   API/golden commercial report; frontend — нет.
@@ -312,7 +355,10 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C14 — `engine/role-labor-baseline-v1`
 
-- **Цель / источники:** R03 §2, R02/R06, R10–11; закрытые K05–08.
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
+- **Цель / источники:** R03 §2, R02/R06, R10–11; принятые K05–08.
 - **Backend:** `backend/calculation/labour.py`; F08–15, role baseline,
   replacement/deficit, pult ledger, forklifts; no whole-staff-per-process.
 - **Контракты / API:** LabourResult/RoleAllocation, monetary input units и
@@ -330,9 +376,12 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C15 — `economics/purchase-cost-ledger-v1`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R03 §3.1–3.4, R02 scenario tables, R08, R13 bases.
 - **Backend:** `backend/calculation/economics/purchase.py`, typed capital/
-  operating ledger, F16–22, battery schedule после решения K10.
+  operating ledger, F16–22, battery schedule по принятому K10.
 - **Контракты / API:** year-indexed CostLedger, amount/source/scope/ownership,
   incomplete required cost line; snapshot monetary data сохраняет precision.
 - **Frontend:** нет.
@@ -350,9 +399,13 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C16 — `economics/full-cashflows-reconciliation-v1`
 
-- **Цель / источники:** R03 §3.5–3.6, все 49 rules R13; K09/K12/K13 решены.
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
+- **Цель / источники:** R03 §3.5–3.6, все 49 rules R13; K09/K12/K13 приняты.
 - **Backend:** `cashflow.py`, `tax.py`, `metrics.py` в новом economics package;
-  F23–31, base/scenario/difference annualledger, residual only terminal.
+  F23–31 с принятыми корректировками K09/K12/K13, primary pretax и
+  отдельный illustrative tax supplement; residual только terminal.
 - **Контракты / API:** FinancialResult, explicit tax mode, nullable payback,
   NPVbase/scenario/project, namedROI/TCO/effect, reconciliation findings.
 - **Frontend:** нет; dashboard ещё использует legacy до C21.
@@ -363,11 +416,14 @@ claims должны иметь отдельный research gate. Новая flee
 - **Тесты:**−80−(−100)=+20, identical flows give zero, reserve notdepreciated,
   no_other_income/loss carry,overheadcancel,latepayback/interpolation,
   CAPEX0, nonmonotonicCF; integration/goldenR13 table; front — нет.
-- **Acceptance / зависимости:** C15, research Q07; everyR13 rule has test/check
-  or approved explanation ifnotapplicable, metric definitions versioned.
+- **Acceptance / зависимости:** C15, принятый K12 (primary pretax + model tax supplement); everyR13 rule has test/check
+  либо explicit scope/policy exception из K, metric definitions versioned.
 - **Вне этапа:** RaaS, ranking, sensitivity, procurement claims, UI.
 
 ## C17 — `economics/raas-cashflows-v1`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R02 §3.3, R03 §3, R11 схема 10, R13/K21.
 - **Backend:** `economics/raas.py`; responsibility policy, F32 plusfullledger.
@@ -385,6 +441,9 @@ claims должны иметь отдельный research gate. Новая flee
 - **Вне этапа:** vendor contracts research completion, UI, ranking.
 
 ## C18 — `economics/multiprocess-allocation-v1`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R11 схема 6 и R13 project reconciliation; K17.
 - **Backend:** `allocation.py`, replace combined calculation only v2;
@@ -405,6 +464,9 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C19 — `engine/ranking-v2`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R03 §4–5, R02 §7/9, R08; K14–16.
 - **Backend:** `backend/calculation/ranking.py`, explicit component curves,
   eligibility before score, economy normalization afterCF.
@@ -417,11 +479,14 @@ claims должны иметь отдельный research gate. Новая flee
 - **Тесты:** boundary table §8, identicalNPV→50,all negative no false best,
   hard fail scoreabsent, unverifieddata completeness≠safe use,
   deterministic ties; integration/golden score table; front — нет.
-- **Acceptance / зависимости:** C05–06,C18; approved piecewise functions no
-  invented endpoint; selected best traceable, no legacyfloor 45.
+- **Acceptance / зависимости:** C05–06,C18; piecewise functions K14 без
+  необъявленного endpoint; selected best traceable, no legacyfloor 45.
 - **Вне этапа:** procurement rubric invention, sensitivity, UI.
 
 ## C20 — `economics/sensitivity-v1`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R00 reproducibility, R02 orthogonal scenarios,
   R03 metrics, R04 решение 7 tornado ±10%; docs 12 минимум price/volume/labour sensitivity.
@@ -441,6 +506,9 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C21 — `frontend/commercial-scenarios-v2`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R10/R11 acquisition flow, R13 reconciliation table.
 - **Backend:** только существующий versionedAPI C13–20; no browser finance.
 - **Контракты / API:** Financial/Procurement/SensitivityResult independent statuses.
@@ -457,6 +525,9 @@ claims должны иметь отдельный research gate. Новая flee
 - **Вне этапа:** simulation, exports implementation, realpayments/procurement actions.
 
 ## C22 — `contracts/scenario-spec-v2`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R00/R03 §6/R12, same resolved inputs across subsystems.
 - **Backend:** `scenario_spec.py`, new models/schemas; preservev 1 builder/replay.
@@ -477,8 +548,11 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C23 — `simulation/scheduling-kpi-report-v1`
 
-- **Цель / источники:** R12, R03 §6 и R10 SLA; **сначала** approved Q08/K18
-  method sheet с equations/event policy и independent examples.
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
+- **Цель / источники:** R12, R03 §6 и R10 SLA; policy K18/§4 с уже определёнными scheduler, SLA и performance fixture.
+  Дополнительная подпись владельца модели не требуется.
 - **Backend:** отдельный deterministic eventkernel/report service;
   capacity formula не заменяется queueheuristic.
 - **Контракты / API:** SimulationReportv 1: spec revision, seed, timebasis,
@@ -486,7 +560,7 @@ claims должны иметь отдельный research gate. Новая flee
   SLAverdict, deviation denominator, comparableunits/diagnostic limits.
 - **Frontend:** нет; endpoint/progress consumer в C24.
 - **Данные:** event model/distributions version, reference workload fixtures,
-  approved typicalproject size for≤60s target; no invented failure rates.
+  benchmark policy§4 для≤60s; no invented failure rates.
 - **Trace:** nominal operations vs operational availability decomposition;
   demand schedule alignedH/peak; simulation report immutable derived artifact.
 - **Тесты:** event ordering/seed replay,22 hvs 24h, zero demand/expected,
@@ -498,6 +572,9 @@ claims должны иметь отдельный research gate. Новая flee
   automatic economics mutation, calibrated industrial digital twin.
 
 ## C24 — `visualization/2d-simulation-report`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R12 обязательная 2D; R03 geometry is synthetic.
 - **Backend:** использовать C23 service; no local alternative business formulas.
@@ -514,6 +591,9 @@ claims должны иметь отдельный research gate. Новая flee
 - **Вне этапа:** RobCraft migration, improved economic recommendation fromanimation.
 
 ## C25 — `robcraft/scenario-v2-reconciliation`
+
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R12 same inputs + existing secure integration protocol.
 - **Backend:** no new capacity/finance; report comparison adapter only.
@@ -535,6 +615,9 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C26 — `report/calculation-evidence-exports`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R00 auditability/R13 reconciliation, docs 12 exports.
 - **Backend:** snapshot export builder, source/trace references, access control.
 - **Контракты / API:** export manifest withrun/versions/digests; PDF plus
@@ -553,6 +636,9 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C27 — `catalog/capacity-runtime-dual-run-rollout`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** R00 reproducibility, docs 17/18 evidence/activation contract.
 - **Backend:** `catalog_runtime.py`, repository/service rolloutselector;
   new capacity reader separate from legacy full Robot path.
@@ -567,15 +653,18 @@ claims должны иметь отдельный research gate. Новая flee
   pool 21/24 baseline+no BAS,6/15 models, mapping modelvsposition,
   runtime invalid/no active/fallbackblocked; API/frontend smoke; golden dualrunreport.
 - **Acceptance / зависимости:** C11–12, C06 actualbundleaudit; realcapacity
-  outputs can be partial finance. Countschange only with approved evidence delta.
+  outputs can be partial finance. Counts фиксированы; расширение membership вне этапа.
 - **Вне этапа:** economics/deployment activation, fictitious full Robot,
   full project completion. Может выполняться сразу после C12.
 
 ## C28 — `catalog/economics-runtime-migration`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** reference 3.2 canon, docs 17 persistence, все Gxx migrations.
 - **Backend:** route version switch/migrator and legacy isolation;
-  `economics.py` moved/retained as versioned legacy replay only after approved step.
+  `economics.py` moved/retained as versioned legacy replay по принятому migration gate C28.
 - **Контракты / API:** deprecation policy v1, active v2, explicit re-run semantics;
   nevertranslateoldfte_cost into exact gross without known old basis.
 - **Frontend:** new run→v2, historicalrun→versionedviewer; migration notice.
@@ -592,6 +681,9 @@ claims должны иметь отдельный research gate. Новая flee
 
 ## C29 — `qa/calculation-migration-acceptance`
 
+Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Внешние ответы и расширение pool не являются входом этапа.
+
 - **Цель / источники:** complete accepted reference coverage, R12 timing,
   R13 reconciliation и docs 12 конкурсные/security gates.
 - **Backend / API:** фиксы только обнаруженныхдефектов отдельными маленькими PR;
@@ -605,17 +697,22 @@ claims должны иметь отдельный research gate. Новая flee
 - **Тесты:** full unit/integration/frontend/golden/contracts, security isolation,
   uploadlimits, malformedunits/sources, backup/restore, offlineLLM/vendor,
   50 users andeconomy≤10s/model≤60s on defined environment; repeatgoldenpath 5 times.
-- **Acceptance / зависимости:** C28; Q08/Q09 обещанные process profiles resolved,
-  allrequiredC10 microstages pass. Каждый Rxx rule mapped to implemented test,
-  explicitN_A or approved product decision; blocked required formula not«done».
+- **Acceptance / зависимости:** C28; warehouse full flow, три object flows,
+  все28scope fixtures из policy§3. K/Q реализованы, policy-dependent golden
+  тесты проходят; external review не ожидается. Каждое правило Rxx отображено
+  в тест, документированное уточнение T/A/K или принятый scope.
 - **Вне этапа:** weakening evidence tohitdeadline, unexplained scope reduction,
   pretending simulation is deployment certification.
 
 ## Как считать план завершённым
 
-Аудит и roadmap готовы уже сейчас. Внедрение считается полным только после
-C29 и всех утверждённых process microstages, закрытия K/Q, необходимых для
-обещанных сценариев, и release gate. Partial capacity release C27 полезен
-самостоятельно, но не подменяет готовность всей экономики, SLA или внедрения
-оборудования на объекте. Работы admin/catalog publish и операционной сдачи,
-не связанные с расчётным каноном, остаются в верхнеуровневом docs 12.
+Завершение C29 — warehouse полный поток по T1/T3/T4, три типа объектов
+на уровне выбора/ввода/discovery и все28 принятых process scopes. Не требуется
+ждать ответы Жени, новые vendor facts, новые формулы физических процессов,
+legal sign-off или procurement/deployment readiness. Финансовая неполнота
+в custom input обрабатывается штатно и покрыта негативными тестами.
+E2E с полными явными scenario inputs работает offline; синтетический бюджет
+не выдаётся за коммерческое предложение. Старые runs воспроизводятся.
+Тестовые/evidence/security gates остаются обязательными: агент исправляет
+нарушения, а не обходит их. Review модельных assumptions проводится после
+реализации и оформляется policy v2. Runtime данные не меняются в этой сессии.

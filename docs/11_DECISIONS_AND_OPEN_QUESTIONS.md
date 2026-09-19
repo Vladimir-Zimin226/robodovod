@@ -1,36 +1,23 @@
 # РОБОДОВОД — Decisions & Open Questions
 
-Уточнение 2026-09-19: исторические решения ниже сохранены; их расчётная часть
-пересмотрена по reference Жени 3.2. Текущий канон, конфликтующие пары источников
-и владельцы решений: [план 19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
-В частности, Q6 о salary benchmarks больше не разрешает salary fallback:
-целевая зарплата вводится пользователем по роли, без default из preset/региона.
+Уточнение 2026-09-20: по поручению пользователя все K01–K29 и Q01–Q12
+расчётного плана разрешены агентом. Приоритет имеют ТЗ и дополнения,
+затем [принятая policy v1](planning/calculation-policy-decisions-v1.md).
+Ожидание Жени, внешнего исследования или коммерческого ответа не является
+условием начала/завершения C01–C29. Scope каждого из28process blocks принят.
 
 Непосредственная следующая ветка — `contracts/calculation-semantics-v1`.
-Capacity formulas следуют после units/registry/intake/constraints/audit.
-В этой документационной сессии новые формулы и runtime activation не выполнялись.
+Ключевые решения: gross денежная база по дополнениям§6; primary pretax CF;
+налоговый supplement как model assumption; консервативный unknown residual;
+целочисленный pult conservation; repeated battery wear; точные score curves;
+детерминированная simulation/SLA policy. Подробности и тесты в
+[плане19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
 
-### Расчётные вопросы после аудита reference
-
-- Женя: полный process_catalog и role codes; exchange total/split, рабочая
-  скорость и batch conversions; precision и zero-domain policy.
-- Женя: распределение pult/released/additional, дефицит и ричтраки;
-  годовой ramp/service/severance и повторные замены батарей.
-- Женя и профильный reviewer: tax modes/losses и применимость нормативных
-  требований; источники цены без НДС, RaaS responsibilities и warranty.
-- Женя: curves/weights scoring, denominator 75/77, completeness без зарплаты,
-  shared infrastructure/roles allocation и ranking cohort.
-- Женя и simulation owner: scheduling/SLA, окно/знаменатель отклонения >10%,
-  разделение availability и моделируемых потерь, типовой проект для ≤60s.
-- Владелец продукта: какие из 28 blocks обещают самостоятельный capacity;
-  отсутствующие формулы нельзя заменить generic transport. Упоминание БАС
-  не разрешает включать их в текущий pool без отдельного решения и evidence.
-
-Полный регистр Q01–Q12 и K01–K29 находится в плане 19; принятие предложенного
-решения фиксируется отдельным decision record, не подразумевается этим списком.
-Catalog baseline 187/223, capacity 21/24 (6/6 ready и 15/18 с assumptions),
-deployment-ready 0 сохраняется. Изменение pool требует доказанного diff и
-согласования; calculation readiness и formula executability разделены.
+Исторические вопросы ниже не являются approval gates текущего расчётного
+плана. Salary benchmark остаётся запрещённым fallback custom проекта;
+для demo разрешён отдельно подписанный scenario input из dataset.
+Discovery187/223, pool21/24 и отсутствие БАС сохраняются; изменение membership
+исключено из этой цепочки. Readiness/evidence/runtime missing input различаются.
 
 ## 1. Frozen decisions
 
@@ -113,7 +100,24 @@ deployment-ready 0 сохраняется. Изменение pool требуе�
   redacted errors and aggregate counts, but no secrets, password hashes, PII,
   uploaded binaries or full user snapshots.
 
-## 2. Decisions to freeze before coding contracts
+## 2. Исторические вопросы и принятые решения 2026-09-20
+
+Следующая таблица закрывает прежние Q1–Q8 этого документа; это отдельная
+нумерация от Q01–Q12 плана 19. Формулировки и прежние владельцы ниже сохранены
+как история, а не как действующие зависимости.
+
+| Вопрос | Решение для исполнения |
+|---|---|
+| Q1 readiness | K16 и независимые статусы capacity/labour/finance; completeness не заменяет executability. |
+| Q2 taxonomy | Текущие architecture IDs сохраняются для совместимости; новые process scopes и их отображение определены K19/таблицей 28 процессов. Количество enum не является gate. |
+| Q3 demo set | Текущий pool 21/24; полный warehouse fixture закреплён за MULE в policy §6. Подбор 8–10 новых записей и реального RaaS offer не требуется. |
+| Q4 procurement | Численный procurement score не вводится. Сохраняются шесть статусов docs/09; детерминированный resolver и отдельный supply risk закреплены в policy §5. Отсутствие подтверждения не означает доступность. |
+| Q5 logistics | Ввод пользователя или явный синтетический demo budget; региональные коэффициенты и таблицы без источника не создаются. |
+| Q6 wages | USER/FILE для custom; отдельно выбранный demo assumption из dataset по K05. Региональный fallback не входит в обязательный путь. |
+| Q7 recurring | Generic RaaS по K21 с раскрытым scenario tariff, без зависимости от живого коммерческого предложения. |
+| Q8 fixed cell | C09 реализует формулу на synthetic fixtures; admission реального SKU требует safe facts, расширение pool не входит в этап. |
+
+### Исторические формулировки до редакции 2026-09-20
 
 ### Q1. Final readiness dimensions/weights
 

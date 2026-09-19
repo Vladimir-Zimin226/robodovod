@@ -479,5 +479,8 @@ canonical model, inventory, gap/conflict matrix, trace и поэтапная м�
 `engine/capacity-formula-trace` следует после contracts/registry/intake/audit.
 Текущий capacity DTO ещё не подключён к отдельному end-to-end calculation API.
 Аудит изменил только документы; production formulas и runtime slots не менялись.
+Редакция плана 1.1 от 20 сентября разрешает все 29 конфликтов и 12 групп вопросов
+по ТЗ и дополнениям: [принятая policy](docs/planning/calculation-policy-decisions-v1.md).
+Этапы реализуются агентом без ожидания ответов Жени; evidence gates сохраняются.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

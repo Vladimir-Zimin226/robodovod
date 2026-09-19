@@ -1,7 +1,10 @@
 # Внедрение расчётной логики Жени: модель, расхождения и план
 
-Версия плана 1.0, 2026-09-19. Статус: **анализ завершён; предложения по
-разрешению противоречий требуют решений, реализация не начата**.
+Версия плана 1.1, 2026-09-20. Статус: **готов к автономной реализации;
+все K01–K29 и Q01–Q12 разрешены, ожидание внешних решений отсутствует**.
+Исполнитель: агент. Основание — последующее поручение пользователя самостоятельно
+принять решения по ТЗ. Исторический аудит 1.0 сохранён в коммите d2c6a4c.
+Обязательная спецификация спорных мест: [принятые решения](planning/calculation-policy-decisions-v1.md).
 Проверяемый baseline: `main`, `f77c32c2fde86cd1450aa96d43dc6273059c57d4`.
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
@@ -21,16 +24,21 @@
 может идти параллельно backend-этапам после C03. Ни C01, ни этот документ не
 активируют runtime, не меняют каталог и не разрешают добавлять вымышленные ТТХ.
 
-Расчётная и продуктовая логика `Разобрать/Версии проекта от Жени/reference`
-имеет приоритет над нынешними кодом, DTO, UI и прежним планом. Техническая
-архитектура адаптируется к ней с сохранением evidence, tenant isolation,
-strict contracts и immutable runs. Нормативное утверждение или vendor URL
-в reference — требование проверить источник, а не новое подтверждение факта.
-Внешнее исследование законодательства и оборудования в этом аудите не проводилось.
+Приоритет: ТЗ и дополнения организаторов → принятые решения версии1.1 →
+непротиворечивая расчётная логика reference → текущий код и прежние планы.
+Документальные evidence/provenance, tenant isolation и строгие contracts
+сохраняются. Все алгоритмические решения принимает исполнитель по
+[policy v1](planning/calculation-policy-decisions-v1.md), без ожидания Жени.
+Новые DTO/модули ниже запланированы, но ещё не реализованы. В этой сессии
+меняются документы; production поведение и runtime slots не меняются.
 
-Все новые имена DTO, формул, состояний и файлов ниже — **проектные предложения**,
-если явно не сказано, что они уже существуют. В этой сессии меняются только
-документы и плановые артефакты. Исторические расчёты не пересчитываются.
+Полностью прочитаны оба PDF официальной папки ТЗ, 20 страниц;
+[source coverage ТЗ](planning/official-requirements-coverage.json) фиксирует hashes.
+ТЗ§2/§5.5 требует полный путь для одного объекта и базовый доступ для трёх.
+Выбран warehouse full flow; глубина28процессов определена policy§3.
+Дополнения§7 разрешают команде определить ограничения, статьи затрат и RaaS.
+Недостаток пользовательских данных остаётся нормальным runtime outcome,
+не организационным blocker разработки. Каталог и его safe facts не подменяются.
 
 ## 2. Source coverage и исходное состояние
 
@@ -60,7 +68,7 @@ strict contracts и immutable runs. Нормативное утверждени�
 | R12 | `12_SIMULATION.md` | Обязательная 2D, одинаковые параметры, KPI и отклонение | Полностью |
 | R13 | `13_RECONCILIATION.md` | Полные потоки база/сценарий/разница, 49 правил сверки | Полностью |
 
-Главные источники: R00 задаёт метод, R02/R03 — числа и формулы, R10/R11 —
+Внутри reference главные источники: R00 задаёт метод, R02/R03 — числа и формулы, R10/R11 —
 пользовательскую семантику, R08 — потребность в equipment facts, R13 —
 финансовую сверку. R04/R06/R07 объясняют изменения, но не устраняют молча
 расхождения. R01/R05/R09/R12 также обязательны, а не вспомогательные исключения.
@@ -93,6 +101,10 @@ Discovery 187/223 сохраняется полностью; новые пост
 
 ## 3. Canonical calculation model
 
+Формулы F01–F35 ниже учитывают решения версии1.1. Точные алгоритмы
+спорных веток, включая unit/default policy, находятся в policy v1.
+Ссылки K/Q обозначают принятые решения, а не задачи согласования.
+
 ### 3.1. Порядок выполнения и границы ответственности
 
 1. Зафиксировать raw intake, источник, object/process/role identities и версии.
@@ -103,8 +115,8 @@ Discovery 187/223 сохраняется полностью; новые пост
    Hard FAIL исключает кандидата, критический UNKNOWN не становится PASS.
 5. Посчитать capacity, требуемый парк, capacity выбранного парка, coverage,
    utilization; сохранить trace. Ручной парк не заменяет demand.
-6. Независимо оценить scheduling/SLA: пока алгоритм не определён, этот результат
-   `NOT_EVALUATED`, даже при coverage=1. Не включать неизвестные задержки тайно.
+6. Независимо оценить scheduling/SLA по policy§4; без SLA input результат
+   N_A, при неполной ресурсной модели CONDITIONAL. Coverage=1 не означает SLA PASS.
 7. Рассчитать ручной baseline и модель труда по ролям и общим пулам персонала.
 8. Применить коммерческий контракт: цены, НДС, purchase/RaaS, обязанности сторон.
 9. Рассчитать годовые статьи CAPEX/OPEX, полные baseline/scenario CF и их разницу.
@@ -128,9 +140,9 @@ Capacity, labour, economics, procurement и simulation имеют независ
 | Груз | kg/item, габариты, тип тары, items/trip | USER + доказанные payload/geometry; batch conversion отдельно |
 | Среда | aisle=m, floor/grade, temperature=°C, noise=dBA и zone/time, lifts/protocols | USER/FILE и подтверждённые допустимые параметры оборудования |
 | Оборудование | speed=m/s, payload=kg, cleaning=m²/h, picks/min, W, kWh, autonomy=h | Только matching-safe fact с model/position, evidence, original unit и scope |
-| Персонал | role code, persons, monthly gross RUB/person/month | Зарплата только USER/явный FILE input, без регионального или preset fallback |
+| Персонал | role code, persons, monthly gross RUB/person/month | Custom: USER/FILE, без salary fallback; demo: явный ASSUMPTION из dataset по K05/§6 |
 | Трудовые политики | полезное время, ротация, direct/full multipliers, replacement limit | Versioned ASSUMPTION/POLICY из R02/R06, не vendor fact |
-| Экономика | RUB без НДС, тариф RUB/kWh, стоимость за robot/year или site | USER/quote/source price с currency, tax basis, scope, датой и качеством |
+| Экономика | RUB с НДС для CASH_GROSS_RUB, тариф RUB/kWh, стоимость за robot/year или site | USER/quote/source price с currency, tax basis, scope, датой и качеством |
 | Сценарий | acquisition PURCHASE/RAAS × uncertainty PESSIMISTIC/BASE/OPTIMISTIC | Независимые оси; не смешивать RaaS со сценарием оптимизма |
 | Derived | H, cycle, N, money lines, scores | Ссылки на формулы и все родительские inputs; не переименовывать в исходный fact |
 
@@ -140,9 +152,14 @@ Capacity, labour, economics, procurement и simulation имеют независ
 RUB gross → direct cost требует отдельной формулы. НДС неизвестной ставки
 не удаляется делением на предполагаемый коэффициент.
 
-Границы fallback: отсутствующий vendor fact → research requirement/blocker;
-эксплуатационный выбор → scenario input; экспертное значение R02/R06 →
-versioned assumption с override; неописанная формула → product decision blocker.
+Границы fallback: отсутствующий обязательный vendor fact → локальный missing-fact
+результат для SKU/profile; эксплуатационный выбор → scenario input;
+экспертное значение R02/R06 → versioned assumption с override. Для неописанной
+физической операции действует принятый scope K19, для новой технической
+неоднозначности — порядок самостоятельного решения из policy §7.
+Исследование улучшает данные впоследствии и не является gate разработки.
+Строка оборудования выше описывает факты каталога; сценарные power/autonomy,
+operating speed и бюджеты хранятся отдельно и не заменяют обязательные safe facts.
 Нулевое подтверждённое значение, unknown и not applicable — разные состояния.
 Optional cost, отключённый пользователем, равен 0 с причиной, а не с потерей provenance.
 
@@ -150,45 +167,45 @@ Optional cost, отключённый пользователем, равен 0 �
 
 Идентификаторы Fxx ниже — traceability этого плана. Формальные runtime IDs и
 версии утверждаются C01/C02. Спорные части помечены Kxx в разделе 5;
-их нельзя реализовать как молчаливый выбор.
+их реализация однозначно задана принятой policy v1.
 
 | ID / источник | Целевая формула и результат | Применимость / недостающее |
 |---|---|---|
 | F01 R03 §1.1 | `H = shifts × shift_hours`, h/day; `q_avg = daily_units / H`, units/h | H>0 и ≤24, не clamp |
 | F02 R03 §1.1 | `cycle_s = 2×L_m/v_m_s + load_s + unload_s`; при total exchange `2L/v + exchange_total_s` | Транспорт/доставка; выбор скорости K02; total exchange учитывается один раз |
-| F03 R02 §5, R03 §1.1 | `trips_h=3600/cycle_s`; `q_nominal=trips_h×units_per_trip` | Pallets/carts/cases/deliveries: 1; boxes: floor(payload/item_weight); спор passport batch K03 |
+| F03 R02 §5, R03 §1.1; K03 | `trips_h=3600/cycle_s`; `q_nominal=trips_h×units_per_trip`; boxes batch=min(floor(payload/item_mass), применимые user/passport/geometry limits) | Остальные batch1 либо явно заданный physical batch; unknown geometry раскрывается, масса не превышается |
 | F04 R02 §3, R03 §1.1 | `peak=1.25×(1+reserve_peak)`; `q_required=q_avg×peak`; `q_effective=q_nominal×availability`; `N=ceil(q_required/q_effective)` | Пик и availability независимы; дополнительного деления на target utilization 0.90 нет |
 | F05 R03 §1.2 | `daily_area=area×frequency`; `daily_robot=cleaning_rate×H×availability`; `N=ceil(daily_area/daily_robot)` | m²/day; транспортный peak здесь не указан |
 | F06 R03 §1.3 | `boxes_day=picks_min×60×H×cell_eff`; `pallets_day=boxes_day/boxes_per_pallet`; `N=ceil(demand_pallets_day/(pallets_day×availability))` | Cell_eff=.65 assumption; 20 output boxes/pallet против 33 receiving, не смешивать |
 | F07 R03 §1.4 | `fleet_capacity=N_manual×q_effective`; `utilization=min(required/fleet_capacity,1)`; `coverage=min(fleet_capacity/required,1)` | Одинаковые units/window; recommended и selected N отдельно; zero/overload K04 |
 | F08 R03 §2.1 | `human_cycle=2L/human_speed + human_exchange_total`; `manual_per_shift=3600/human_cycle×shift_hours×useful_time` | Единица перемещения явно задана; cleaning отдельно: `300×shift_hours×.85` m²/shift |
 | F09 R03 §2.2–2.4 | `person_shifts=max(shifts,ceil(daily_units/manual_per_shift))`; `rotation=max(1,(7×days/365)/(40/shift_hours)×1.090)×(1+loss)`; `required_people=ceil(person_shifts×rotation)` | Не умножать shifts повторно; warehouse/airport/clinic loss=.25/.35/.45 |
-| F10 R03 §2.6 | `gross_annual=monthly_gross×12`; `direct=gross_annual×1.302`; `full=gross_annual×1.55`; `fixed_overhead=gross_annual×.248` | Это допущения модели, не доказанные ставки для любого работодателя; зарплата обязательна |
+| F10 R03 §2.6 | `gross_annual=monthly_gross×12`; `direct=gross_annual×1.302`; `full=gross_annual×1.55`; `fixed_overhead=gross_annual×.248` | Это допущения модели, не доказанные ставки для любого работодателя; зарплата обязательна для labour/finance, demo exception K05 |
 | F11 R03 §2.6 | `replacement=min(required_people,role_pool)`; `deficit=max(0,required_people-role_pool)`; `robot_people=floor(required_people×coverage)`; `robot_replacement=min(robot_people,replacement)`; `growth=min(robot_people-robot_replacement,deficit)` | Рост/покрытие дефицита не равно увольнению; общий role pool не расходуется дважды |
-| F12 R03 §2.6 | `applied=floor(robot_replacement×replacement_limit)`; `pult_share=floor(applied×supervision)`; `pult_min=shifts×min_pult_per_shift`; `pult_remain=max(pult_share,pult_min)`; `released=max(0,applied-pult_remain)`; `saving=released×direct` | replacement_limit default 1; min_pult 1; согласовать операторы K06 |
-| F13 R03 §2.6/3.2 | `operators_from_released=min(pult_share,pult_remain)`; `additional=max(0,pult_remain-pult_share)`; `tech_count_t=ceil(N×ramp_t/20)`; `extra_operators_t=ceil(additional×ramp_t)` | Последние две статьи × USER salary×12×1.302×1.05^(t−1); отсутствующая зарплата K05 |
-| F14 R03 §2.7 | `base_equipment=input_count`, иначе `ceil(forklift_drivers/shifts)`; по роли `withdraw=min(released_role,base_equipment)`; fallback `ceil(released×.30/shifts)` | Fallback без cap в источнике; K08; стоимость .7 млн RUB/year assumption |
+| F12 R03 §2.6 | `applied=floor(robot_replacement×replacement_limit)`; `pult_share=floor(applied×supervision)`; `pult_min=shifts×min_pult_per_shift`; `pult_remain=max(pult_share,pult_min)`; `released=max(0,applied-pult_remain)`; `saving=released×direct` | replacement_limit default 1; min_pult 1; conservation и годовой staffing заданы K06/policy §5 |
+| F13 R03 §2.6/3.2; K06 | `transferred=min(applied,pult_remain)`; `additional=pult_remain-transferred`; `released=applied-transferred`; technicians=`ceil(N×ramp_t/20)` | Исправленная conservation модель; дополнительные operators поcontrol salary; missing salary → INCOMPLETE |
+| F14 R03 §2.7; K08 | `base_equipment=input_count`, иначе `ceil(drivers/shifts)`; `withdraw=min(base,ceil(released_driver/shifts))`; fallback `min(base,ceil(released×.30/shifts))` | Не более исходного парка; неизвестная база не даёт автоматической экономии |
 | F15 R03 §2.8/3.5 | Baseline по реально указанным ролям; `deficit_cost=deficit×unit_deficit_cost` | Default unit_deficit_cost=direct по R02/R04/R13; user 0 отключает; противоречия K07 |
 | F16 R03 §3.1 | `robots=N×price×hw`; `chargers=ceil(N×charger_ratio)×charger_price×hw`; `integration=N×per_robot×hw`; `infrastructure=(site_fixed+zone_fixed)×hw` | Purchase; commercial facts/explicit scenario inputs, без вымышленных цен |
-| F17 R03 §3.1 | Optional: `N×price×commission_fraction`, `N×price×training_fraction`, user amounts Wi-Fi/ERP/fleet licence/electric/floor/spares; `reserve=sum(all_capital_lines)×reserve_capex`; `CAPEX=base+reserve` | Не домножать optional доли на hw без решения; общие статьи один раз |
+| F17 R03 §3.1; K25 | Optional: `N×price×commission_fraction`, `N×price×training_fraction`, user amounts delivery/Wi-Fi/ERP/fleet licence/electric/floor/spares; `reserve=sum(all_capital_lines)×reserve_capex`; `CAPEX=base+reserve` | Optional статьи не получают hw автоматически; FIXED_TOTAL/PER_ROBOT/PERCENT_BASE взаимно исключаются для одной статьи; общие статьи один раз |
 | F18 R03 §3.1–3.2 | `equipment_CAPEX=robots+chargers+batteries_in_CAPEX`; insurance/consumables/repair=`equipment_CAPEX×.01/.02/.01` | Без инфраструктуры/резерва; не умножать repair ещё раз на N |
-| F19 R03 §3.2 | Service=0 при `t≤warranty`; иначе `N×annual_service×service_mult×1.05^(t−1)`; software=N×annual_software; comm=N×monthly_comm×12 | Ramp сервиса неоднозначен K09; warranty неизвестна ≠0 |
+| F19 R03 §3.2; K09 | Service=0 при `t≤warranty`, иначе `N×annual_service×service_mult×ramp_t×1.05^(t−1)`; software=N×annual_software; comm=N×monthly_comm×12 | Каждая строка получает ramp один раз; warranty неизвестна → нужный scenario input |
 | F20 R03 §3.2 | `energy_kWh=N×(power_W/1000)×H×availability×days/efficiency`; `energy_RUB=energy_kWh×tariff` | Если battery_kWh и autonomy_h заданы, заменить power path на `N×H×availability/autonomy×battery_kWh×days/efficiency`; выбрать один путь, затем tariff |
-| F21 R03 §3.3/3.5.2 | `cycles_year=H×days×availability/autonomy_h`; `replacement_year=ceil(resource_cycles/cycles_year)`; `battery_cost=N×price_battery×hw×1.05^(t−1)×ramp_t` | Только внутри горизонта; повторные замены и wear при ramp K10; RaaS0 |
+| F21 R03 §3.3; K10 | `annual_cycles=H×days×availability/autonomy_h`; накопленный wear=Σannual_cycles×ramp; replacement events при пересечении k×resource; cost=events×N×battery_price×hw×1.05^(t−1) | Повторные события; exact terminal crossing без будущей работы не покупает батарею; ramp второй раз не применяется |
 | F22 R03 §3.4 | `residual=N×price×hw×max(0,1-horizon/life)×liquidity` | AMR/fork lift/shuttle 10yr/.6; cell/manipulator 8yr/.4; mapping остальных K11; только terminal CF |
 | F23 R03 §3.5 | `released_t=ceil(released×ramp_t)`; `headcount_scenario_t=base_headcount-released_t`; direct/overhead ×1.08^(t−1); equipment `(base_count-withdraw×ramp_t)×cost×1.05^(t−1)` | По каждой роли; overhead остаётся на base headcount; saving×ramp против ceil K09 |
-| F24 R03 §3.5.2 | `severance_1=ceil(released×ramp_1)×monthly_gross×2.5`, следующие годы 0 | Это записанное правило, вопрос позднего высвобождения K09; нельзя незаметно заменить |
-| F25 R03 §3.5.1–3.5.3 | `EBITDA_base=−(direct_labour+fixed_overhead+equipment+deficit_cost)`; `EBITDA_scenario=−(remaining_labour+same_overhead+remaining_equipment+remaining_deficit+OPEX+RaaS_payment)` | Full ledger; savings отдельно не прибавлять к CF повторно |
-| F26 R03 §3.5.4–3.5.5 | `depreciation_t=CAPEX_without_reserve/5` при t≤min(horizon,5); `EBIT=EBITDA-depreciation`; other_income: `tax=EBIT×.25`; no_other_income: `tax=max(0,EBIT)×.25` с отдельной политикой losses | Негативный tax требует выбранного режима, применимость и loss carry K12; двойного tax shield нет |
-| F27 R03 §3.5 | `CF=EBITDA-tax-battery+terminal_residual-severance`; baseline без robot lines; `CF_scenario_0=−CAPEX` (RaaS: оставшаяся инфраструктура) | T0 отдельно от годов 1..h; суммарные строки сверяются по R13 |
+| F24 R03 §3.5.2; K09 | `severance_t=max(0,released_t-released_(t−1))×monthly_gross×2.5`; released_0=0 | Во все годы нового высвобождения; явно принятая корректировка правила толькоyear1 |
+| F25 R03 §3.5.1–3.5.3 | `EBITDA_base=−(direct_labour+fixed_overhead+equipment+deficit_cost)`; `EBITDA_scenario=−(remaining_labour+same_overhead+remaining_equipment+remaining_deficit+OPEX_excluding_RaaS_payment+RaaS_payment)` | Full ledger; в отображаемом total OPEX платёж уже включён; savings отдельно не прибавлять к CF повторно |
+| F26 R03 §3.5; K12 | `depreciation=CAPEX_without_reserve/5` первые5лет; EBIT=EBITDA−depreciation. Primary tax=0 в pretax CF; optional illustrative tax modes25% поpolicy§5 | Model tax supplement не юридический/бухгалтерский расчёт и не dependency основного результата |
+| F27 R03 §3.5; K12 | Primary `CF=EBITDA−battery+terminal_residual−severance`; supplement вычитает model tax; `CF_scenario_0=−CAPEX` | Separate primary/supplement ledgers; не смешивать денежные базы |
 | F28 R03 §3.5.3/3.6 | `NPV_base=Σ CF_base_t/(1+r)^t`; `NPV_scenario=−CAPEX+Σ CF_scenario_t/(1+r)^t`; `NPV_project=NPV_scenario−NPV_base` | Отрицательные два NPV не означают отрицательный эффект; example −80−(−100)=+20 млн |
-| F29 R03 §3.6 | Simple/discounted payback — первое пересечение cumulative differential CF с 0, с интерполяцией внутри года | Не `CAPEX/annual_saving`; no crossing → null+NOT_REACHED, не 99; CAPEX0 K13 |
-| F30 R03 §3.6 | `TCO_purchase=CAPEX+ΣOPEX+Σbattery`; `TCO_RaaS=infra_CAPEX+ΣOPEX_RaaS+ΣRaaS_payment`; `effect=Σ(CF_scenario_t−CF_base_t)` за t1..h | TCO без остатка/базового ФОТ; effect по тексту без t0, отличать от NPV |
-| F31 R03 §3.6 | `ROI_purchase=effect/CAPEX×100`; `ROI_RaaS=effect/TCO_RaaS×100`; отдельная `profitability_TCO=(effect−TCO+capex_basis)/TCO×100` | Нельзя переименовать нынешний ROI и оставить формулу; спор интерпретации K13 |
+| F29 R03 §3.6; K13 | Simple/discounted payback — первое пересечение cumulative differential CF с 0, с интерполяцией внутри года | При постоянном эффекте совпадает с `CAPEX/annual_effect`; no crossing → null+NOT_REACHED, не 99; CAPEX0 K13 |
+| F30 R03 §3.6 | `TCO_purchase=CAPEX+ΣOPEX+Σbattery`; `TCO_RaaS=infra_CAPEX+ΣOPEX_excluding_RaaS_payment+ΣRaaS_payment`; `effect=Σ(CF_scenario_t−CF_base_t)` за t1..h | TCO без остатка/базового ФОТ; RaaS payment один раз; effect по тексту без t0, отличать от NPV |
+| F31 R03 §3.6; K13 | `ROI_purchase=effect/CAPEX×100`; `ROI_RaaS=effect/TCO×100`; net benefit after investment=effect−CAPEX | Zero denominator N_A; дополнительный profitability_TCO исключён как неоднозначный необязательный показатель |
 | F32 R02 §3.3, R11 схема 10 | RaaS zeroing по таблице ниже; `payment=N×price×.02×12×ramp_t` для phased, без ramp для all_fleet | Не индексируется, hw multiplier не указан; контракт и ставка — assumption/input |
 | F33 R03 §4, R08 §9 | Applicability, data completeness, economy normalization и итоговый score ниже | Только после hard gates и NPV; K14–K16 |
 | F34 R03 §6 | `width=sqrt(area×aspect)`; `height=width/aspect`; aspect warehouse .60, airport .35, clinic .75; коридоры 2/3/4/5 по площади | Только synthetic visualization geometry, не фактическая планировка или новая длина расчётного маршрута; K18 |
-| F35 R03 §7, R02 §9 | Input completeness=`Σweights_filled/100×100%`; basic<40, working 40–70, high boundary спорно | Нет зарплаты → соответствующий labour-блок не считается, его salary weight 0; K16 |
+| F35 R03 §7, R02 §9; K16 | Intake completeness поscope: labour безsalary0; capacity поrequiredinputs; data score77maximumweights доN_A; basic<40, working40≤x<70, high≥70 | Readiness/полнота ввода/полнотакарточки — разные показатели |
 
 ### 3.4. Значения сценариев и правила данных
 
@@ -202,7 +219,7 @@ Optional cost, отключённый пользователем, равен 0 �
 | Supervision share | .35 | .25 | .15 |
 | Ramp по годам 1–5 | .40/.70/.90/1/1 | .50/.85/1/1/1 | .70/.95/1/1/1 |
 
-Horizon 5–15 лет; после пятого года ramp требует явного решения K09.
+Horizon 5–15 лет; после пятого года ramp=1 по принятому K09.
 Discount default .15, labour index .08, energy index .07,
 other expenses .05, model tax .25,
 energy tariff 8 RUB/kWh, efficiency .85, comm 500 RUB/robot/month,
@@ -251,12 +268,11 @@ biomaterial SLA30 min не проверяются только среднесу�
 применимость, availability in Russia, freshness/quote, service и evidence.
 Нет подтверждения закупки — нет procurement-ready, даже при численном NPV.
 
-R11 требует единую инфраструктуру и распределение по доле process CAPEX.
-Предлагаемый путь: сначала вычислить прямые расходы выбранной конфигурации,
-затем один раз распределить site lines и посчитать combined ledger.
-Знаменатель 0 и порядок выбора конфигурации — K17. Весь персонал объекта не
-может быть одновременно baseline каждого блока. До утверждения allocation
-общих role pools сводное высвобождение не публикуется как полное.
+Общая инфраструктура распределяется один раз по прямому CAPEX без
+shared/reserve; при нулевой сумме — поровну. Role pools распределяются по
+явным shares либо person-shifts методом largest-remainder. Anchor cohort
+фиксируется до экономического ranking; окончательный combined ledger
+пересчитывается после выбора. Алгоритм принят в K17/policy§5.
 
 ### 3.6. Применимость, ranking и ограничения
 
@@ -268,7 +284,8 @@ zone, access/lift protocols, WMS/1C/EMIAS/LIS, floor flatness/type, grade,
 outdoor, passport availability, asset life, budget, charging power.
 Life<horizon, budget<CAPEX и insufficient charging power — warnings без
 score penalty. Остальные применимые failures исключают кандидата.
-Формулировки про сертификаты и waste требуют K15/research; UNKNOWN сохраняется.
+Scoped requirements определены K15; неизвестные нормы/возможности не
+объявляются установленными, UNKNOWN сохраняется без ожидания research.
 Объединённая sterilization означает, что заявленное «29» нельзя использовать
 как количество уникальных check IDs. Неприменимые checks помечаются N/A,
 не фиктивным PASS с выдуманным evidence.
@@ -281,14 +298,14 @@ Aisle margin — **абсолютная разность в метрах** `aisl
 0→0,.15m→.3,.40m→.7,≥.60m→1.
 TRL1–6→0,7→.3,8→.7,9→1.
 Payload margin `(payload-weight)/payload`: <0 fail,0→0,.15→.5,.5→1,
-выше .5 снижается к .5 без заданной конечной точки.
+выше .5 линейно снижается до.5 при margin1 по K14.
 Integration fraction — доля поддержанных требуемых интеграций; если
-требуемых нет, **1.0** (R03 §4). Интерполяция остальных кривых и
-N/A-компоненты не определены полностью (K14).
+требуемых нет, **1.0** (R03 §4). Между узлами используется линейная интерполяция;
+N/A-компоненты исключаются с перенормировкой весов, UNKNOWN=0 (K14).
 
 `Data=100×Σ(weight×status)/Σ(applicable weights)`; status=1 verified,
 .5 filled-unverified,0 missing. Такой completeness не разрешает использовать
-unverified поле в matching. R02 считает 75 весов, R08 реально перечисляет 77 (K16).
+unverified поле в matching. Приняты77весов по перечню R08 (K16); историческое75 не используется.
 `Economy=100×(NPV−min)/(max−min)` в одной process cohort, при равенстве 50.
 Все NPV<0 могут дать лидеру 100; это **ранг**, не положительное ТЭО.
 `Score=clamp(.50×Applicability+.35×Economy+.15×Data+penalty,0,100)`;
@@ -297,7 +314,7 @@ unverified поле в matching. R02 считает 75 весов, R08 реал�
 
 ### 3.7. Статусы, precision и исполнимость
 
-| Измерение | Целевой контракт (предложение) | Запрет |
+| Измерение | Принятый целевой контракт | Запрет |
 |---|---|---|
 | Catalog eligibility | Сохранить READY/WITH_ASSUMPTIONS и blockers v2, добавить отдельный formula-executability report | Не менять статус всех 21 строк по факту наличия Python функции |
 | Formula execution | COMPLETE / WITH_ASSUMPTIONS / BLOCKED / NOT_APPLICABLE | BLOCKED не содержит подставленного 0 |
@@ -310,29 +327,25 @@ unverified поле в matching. R02 считает 75 весов, R08 реал�
 
 Причины BLOCKED типизированы: MISSING_INPUT, UNIT_MISMATCH,
 UNSUPPORTED_PROCESS_PROFILE, MISSING_SAFE_FACT, CONFLICTING_FACT,
-UNAPPROVED_ASSUMPTION, INVALID_DOMAIN, UNRESOLVED_FORMULA_POLICY,
+UNAPPROVED_ASSUMPTION, INVALID_DOMAIN, UNKNOWN_POLICY_VERSION,
 MISSING_COMMERCIAL_TERMS, MISSING_ROLE_SALARY, UNKNOWN_TAX_BASIS.
 Отсутствие economics не блокирует независимый COMPLETE capacity.
 
-R03 явно задаёт ceil/floor для fleets, people, chargers, technicians и
-battery year, но не общую precision policy. Предложение C01: Decimal,
-фиксированный context (предлагается precision 28), без промежуточного
-display rounding; money представлять decimal string RUB, отображать 2 знака
-half-even, коэффициенты хранить точно; каждый ceil/floor — отдельный trace node.
-Это **требует решения Q02**, не извлечённое из reference правило. Раннее
-округление до 10 000 RUB удалить только в новой версии engine; legacy runs
-отображать по прежним правилам. Сравнение с порогом выполняется до display
-rounding. Для score/percent и расчётной симуляции установить отдельный tolerance,
-не применять случайный epsilon ко всем величинам.
+Принята precision policy§5: Decimal context28, без промежуточного display
+rounding; money output2digits HALF_EVEN, score/percent/payback2digits.
+Каждый ceil/floor имеет trace node; canonical digest использует полную
+precision. Event time integerµs, threshold tolerance score1e-6; epsilon
+для ceil запрещён. Раннее округление10 000RUB сохраняется только при replay
+legacy runs. Это собственное решение K27/Q02, не приписанное reference.
 
 R11 схема 5 требует **volume>0, weight≥0, distance>0** для активного блока,
 replacement limit в[0,1], shifts×hours≤24; R10 предлагает shifts 1/2/3,
 hours 6/8/10/11/12. Нулевая масса допустима как field value, но не знаменатель
 box batch. Нулевые speed/cycle/batch недопустимы для исполнения. Пустой
 неактивный блок отличается от активного с invalid demand 0.
-Предложение: при отключении процесса показывать N0 и NOT_APPLICABLE
+Принято K04: при отключении процесса показывать N0 и NOT_APPLICABLE
 utilization, не запускать формулы. Fleet 0 при demand>0 даёт coverage 0 и
-overload без деления на 0. Эта часть требует K04; она не отменяет validation
+overload без деления на 0. Это решение K04 не отменяет validation
 положительного спроса для активного блока.
 
 R08 §3.5 задаёт приоритет: если raw карточка содержит load+unload и total,
@@ -350,7 +363,7 @@ class-based MTBF нельзя публиковать как безопасные
 zone/time/applicability, а не автоматическая верификация норм.
 Input completeness weights R02 §9: headcount 20, salary 19, demand 14,
 distance 10, aisle 10, shifts 8, area 5, weight 5, discount 5, hours 4; sum 100.
-Поведение блока без salary конфликтует с R03 и согласуется в K16.
+Поведение блока без salary принято в K16: capacity отдельно, labour completeness0.
 
 ## 4. As-is / target gap matrix
 
@@ -396,7 +409,7 @@ P0 — может изменить рекомендацию/доказатель
   [runtime-calculation-readiness-contract-v2.json](../contracts/runtime-calculation-readiness-contract-v2.json),
   [catalog-capacity-runtime-v1.schema.json](../contracts/catalog-capacity-runtime-v1.schema.json).
 
-| Gap / источник → target | As-is, точный модуль/участок | Тип; риск | Решение / этап | Миграции | Необходимые тесты | Blocker |
+| Gap / источник → target | As-is, точный модуль/участок | Тип; риск | Решение / этап | Миграции | Необходимые тесты | Принятое решение / dependency |
 |---|---|---|---|---|---|---|
 | G01 R00/R02: единый versioned registry | E constants и функции; отдельного registry нет; constants reference тоже расходятся | MISSING/ASSUMPTION; P0 | Source-bound registry, source/conflict IDs C01–02 | D,A | schema, no orphan constant, immutable replay | K01,Q01 |
 | G02 R10/R11: object/process/role модель | M: retail/airport/clinic/other и 4 process enums; generic volume, один staff | CONTRACT; P0 | ProcessSpec/RolePool/quantity kind, compatibility adapter C03 | A,D,U | roundtrip всех 28 blocks, unknown enum, no salary default | K19,Q03 |
@@ -420,15 +433,15 @@ P0 — может изменить рекомендацию/доказатель
 | G20 R03 F15/R13: baseline and deficit | E `manual_baseline` estimatesstaff, full cost×horizon without index; no full deficit ledger | CONFLICT/MISSING; P0 | Real role baseline, explicit deficit policy C14/C16 | A,D,U | no-role process, deficit 0/positive/off, fixed overhead unchanged | K07 |
 | G21 R02/R03: scenario tables | E SCENARIOS different hw/reserve/supervision, single first year ramp.78/.90/.95 | CONFLICT; P0 | versioned scenario axis and annual ramp C02/C15–17 | D,A,U | all 3×2 acquisitions, horizon 5..15 | K09 |
 | G22 R03 F16–18: full CAPEX and correct percentage base | E basics only; optional/site/zone expenses incomplete | PARTIAL; P0 | Separate capital ledger and ownership C15 | A,D,U | rounding chargers, reserveall, percent equipment only | K11,K17 |
-| G23 R03 net-of-VAT economics | BUNDLE price/ docs 16–17 VAT_INCLUDED organizer assumption; no rate; E uses as purchase scalar | CONFLICT provenance; P0 | CommercialMoney tax basis normalizer; unknown rate blocker C13 | D,A,U | included known rate,unknown rate,not applicable, raw retained | K20,Q07 |
+| G23 R03 net-of-VAT economics | BUNDLE price/ docs 16–17 VAT_INCLUDED organizer assumption; no rate; E uses as purchase scalar | CONFLICT provenance; P0 | CASH_GROSS_RUB primary; optional NET_RUB требует explicit rate C13 | D,A,U | included known rate,unknown rate,not applicable, raw retained | K20,Q07 |
 | G24 R03 F19: warranty, software/comm, tech/control | E service/software/energy only; no warranty or role salaries | MISSING; P0 | Itemized OPEX, missing wages incomplete C15 | A,D,U | warranty 0/3/h, no techsalary, 20/21 robots | K05,K09 |
 | G25 R03 F20: energy kWh/efficiency | E `_energy_cost_per_robot`: fallback 250W, no charging efficiency | CONFLICT/ASSUMPTION; P0 | Typed mutually exclusive energy paths C15 | D,A,U | W/kW,capacity/autonomy, no charger doublecount | Q05 |
-| G26 R03 F21: battery policy | E `_battery_replacement`: one event, no hw/index/ramp | PARTIAL; P0 | Explicit schedule policy before implementation C15 | D,A,U | exact horizon/year, zero cycles, repeats pending blocker | K10 |
+| G26 R03 F21: battery policy | E `_battery_replacement`: one event, no hw/index/ramp | PARTIAL; P0 | Explicit schedule policy before implementation C15 | D,A,U | exact horizon/year, zero cycles, repeated events K10 | K10 |
 | G27 R03 F22: depreciating residual | E fixed .40×equipment; incomplete asset-class mapping | CONFLICT; P0 | Class life/liquidity assumptions, terminal once C15–16 | D,A,U | age=life, horizon 5/7/10/15 | K11 |
 | G28 R03 F23–28/R13: full CF, tax/depreciation/severance | E `_calc_scenario` incremental saving−OPEX, no tax/full baseline | CONFLICT/MISSING; P0 | Separate finance ledger, reconciled differential CF C16 | A,D,U | NPV−80−(−100), single tax effect, fixed overhead cancel | K09,K12 |
 | G29 R03 F29–31: payback/ROI/TCO/effect | E `_payback`99, ROI=(benefit−TCO)/TCO; zonal PB=CAPEX/annual | CONFLICT/CONTRACT; P0 | Versioned metrics, nullable state, distinct meanings C16/C18 | A,D,U | no crossing, CAPEX0, negative annual after positive, interpolation | K13 |
 | G30 R02/R11 F32: RaaS orthogonal axis | M/E/API/UI no acquisition contract; scenarios only uncertainty | MISSING; P0 | RaaS ledger after purchase; explicit exclusions C17/C21 | A,D,U | payment once,zeroing,phased/allfleet,no residual | K21 |
-| G31 R11 combined project | E `calculate_zonal`: sum rounded results, fixed=max(model fixed), role input lost | CONFLICT; P0 | Shared infra/roles allocation before combined CF C18 | A,D,U | order invariance, conserve costs, no double FOT | K17 |
+| G31 R11 combined project | E `calc_combined`: sum rounded results, fixed=max(model fixed), role input lost | CONFLICT; P0 | Shared infra/roles allocation before combined CF C18 | A,D,U | order invariance, conserve costs, no double FOT | K17 |
 | G32 R03 F33: ranking weights and NPV cohort | E score 85+shifts−penalties floor 45; sorts economicstatus/payback/NPV | CONFLICT/LEGACY; P0 | Gates→complete NPV→R03 score, deterministic ties C19 | A,D,U | equalNPV50,all negative,no false best, incomplete finance | K14–K16 |
 | G33 R03/R08 technical checks | E `check_constraints`: service delivery omits payload, fixed only payload; RD separate larger checks | PARTIAL/CONFLICT; P0 | Single constraint service, separate architecture ranking C05 | A,D,U | all applicable checkIDs, conflicting readiness/calc impossible | K15 |
 | G34 R03 availability/route constraints | E has unreferenced `trip>0.8×autonomy` hard reject; no trace | LEGACY/ASSUMPTION; P0 | Isolate legacy, no silent 0.8 in v2; validated charging policy C05/C23 | D,A,U | legacyreplay, remove unexplained reject only v2 | Q08 |
@@ -448,7 +461,7 @@ P0 — может изменить рекомендацию/доказатель
 | G48 Runtime/data gates | BUNDLE187/223,21/24 correct; calculation ready not deployment | PARTIAL; P0 | Keep counts until approved evidence delta; dualrun rollback C27–28 | D,A,U | BASabsence, exact sets,modelvsposition,unknown not default | Q05 |
 | G49 R03 F34 geometry | SIM procedural scene dimensions/seed 42; no source-bound aspect/corridor profile | CONFLICT/ASSUMPTION; P1 | Synthetic geometry profile in ScenarioSpec/2D with label C22–24 | D,A,U | area conservation,boundaries 2000/10000/40000,no route mutation | K18 |
 | G50 R03 F35 input completeness | RD weighted readiness dimensions; E dataquality otherfields; no exact R02 intake weights | CONTRACT; P1 | Separate readiness/evidence/input completeness metrics C03/C19 | D,A,U |40/70 boundaries,no salary weight,false highwithblocked avoided | K16 |
-| G51 R09/R10 unsupported domains/BAS | M fourprocess profiles vs 28 blocks; no complete lifting/towing/manipulation/sterilization/BAS formulas | MISSING; P0 | Explicit UNSUPPORTED, process research C10 и microstages C10.01–28 | A,D,U | unsupported≠transport substitution; BAS outside pool | Q03,Q09 |
+| G51 R09/R10 unsupported domains/BAS | M fourprocess profiles vs 28 blocks; no complete lifting/towing/manipulation/sterilization/BAS formulas | MISSING; P0 | Explicit UNSUPPORTED, process scope policy§3, C10 и microstages C10.01–28 | A,D,U | unsupported≠transport substitution; BAS outside pool | Q03,Q09 |
 | G52 Historical docs/goldens | docs 14, economics fixturesv 1/v2 and ScenarioSpecv 1 encode oldbehavior | LEGACY; P1 | Keep immutable; new version fixtures and deprecation migration C28 | D,A,U | old runs still render, no accidental fixture overwrite | — |
 | G53 R08 commercial field variants vs R03 formula units | M RobotEconomics scalar fields; E нет discriminated monetary basis/curve priority | CONTRACT; P0 | Per-robot amount vs price fraction, fixed repair vs percent, service amount vs fraction как явные альтернативы C13/C15 | A,D,U | no double line, wrong dimension rejected, explicit curve priority | K25 |
 | G54 R10/R11 field priorities | I complete-profile validation, M defaults; UI нет field priority и automatic requirements | CONTRACT; P1 | Active-block required map, automatic requirements отдельно от supplied capabilities C03–05 | A,D,U | required no default, optional silent but traceable, auto cannot imply vendor fact | K26,K29 |
@@ -457,7 +470,7 @@ P0 — может изменить рекомендацию/доказатель
 
 Дополнительное расхождение контракта хранения:
 
-| Gap / источник → target | As-is, точный модуль/участок | Тип; риск | Решение / этап | Миграции | Необходимые тесты | Blocker |
+| Gap / источник → target | As-is, точный модуль/участок | Тип; риск | Решение / этап | Миграции | Необходимые тесты | Принятое решение / dependency |
 |---|---|---|---|---|---|---|
 | G57 R00 независимый capacity snapshot | `backend/persistence_models.py:AnalysisRun`: `ck_analysis_runs_versions_nonempty` требует economics_version; `ck_analysis_runs_state_payload` требует ScenarioSpec для SUCCEEDED | CONTRACT; P0 | Новый run kind и additive per-kind invariants C11: capacity result/trace/version bindings обязательны, economics/ScenarioSpec обязательны только для соответствующего kind; старые constraints не ослаблять глобально | D,A | migration old/new run kinds, invalid payload rejected, missing trace rejected, old SUCCEEDED still valid, cross-user deny | K05,C01 |
 
@@ -465,59 +478,52 @@ P0 — может изменить рекомендацию/доказатель
 или выдачей assumptions за vendor data. Несовместимые изменения получают
 новую версию; legacy path сохраняется для replay до отдельной миграции.
 
-## 5. Conflict register и политика разрешения
+## 5. Conflict register: решения приняты
 
-При конфликте reference с проектом целевым является reference, кроме того,
-что недоказанность факта остаётся недоказанностью. При конфликте внутри
-reference: (1) оба утверждения фиксируются; (2) явная именованная замена
-предлагается как приоритетная; (3) проверяются units и no-double-counting
-R00/R13; (4) назначается владелец решения; (5) до решения спорная ветка
-возвращает blocker либо ясно маркированный исследовательский вариант,
-который не участвует в итоговой рекомендации. Общая дата 3.2 не даёт
-автоматического приоритета последнему номеру файла.
+Все конфликтующие источники сохранены. Статус всех K —
+**ACCEPTED_FOR_IMPLEMENTATION** по поручению пользователя и полномочиям
+команды из ТЗ§7.5/дополнений§7. Внешнего подтверждения перед исполнением нет.
+Подробности, основания, trade-offs и checks (включая raw UNKNOWN currency,
+годовой staffing ledger и конкретный offline demo budget):
+[policy v1](planning/calculation-policy-decisions-v1.md).
 
-| ID | Оба источника / противоречие | Предлагаемое каноническое решение и основание | Подтверждение / блокируемый этап |
+| ID | Оба источника / противоречие | Принятое решение | Статус |
 |---|---|---|---|
-| K01 | R00: registry — единый источник; registry отсутствует. R04/R07 заголовки/счётчики не совпадают с R13 п.34 (70/85) | Восстановить реестр по **смысловым IDs**, не объявлять 70/85 полнотой; R02/R06 interim sources, unresolved marked | Женя: состав/version; C02 |
-| K02 | R03 §1.1 passport speed vs R08 §3.2 working speed; R03 total exchange vs contractv 2 legacy 45 per-operation | Нормализовать explicit operating speed; паспорт допустим только раскрытым proxy. Различить total/split exchange; 45 не переносить без решения | Женя + технический owner; C01/C07 |
-| K03 | R02 §5 boxes=floor(payload/item), не manual; R03 §1.1 допускает passport batch | Определить приоритет доказанного batch/geometry и weight formula, не делать arbitrary manual batch default; неизвестный item/batch блокирует | Женя; C07 |
-| K04 | R03 §1.4 clamp utilization/coverage vs отсутствие zero-domain и отдельного overload/SLA | Сохранить bounded metrics, добавить raw load ratio/overload; zero policy из §3.7 явно утвердить; no SLA inferred | Женя; C07–09 |
-| K05 | R00/R04/R10 missing salary→не рассчитывать весь блок; R11 no-role→нет ФОТ, другие процессы допустимы; R03 §3.2 tech/control absent→0+warning | Предложить независимый capacity и nullable incomplete economics; нулевая неизвестная обязательная статья запрещена; no-role/no-FOT N/A с обоснованием. Разделение capacity/«блока» требует явного подтверждения владельца | Женя; C01/C11/C14–17 |
-| K06 | R03 §2.6 pult_remain=max(share,min), released subtraction; operators_from_released=min(share,remain), additional=remain-share; текст обещает минимум из высвобожденных | Нужен conservation ledger applied=actual transferred+released, remaining pult=transferred+additional; не утверждать новые min/max формулы без владельца | Женя; C14 |
-| K07 | R03 §2.8 deficit отдельно от base; §3.5.1 включает; R11 схема 5 unset не монетизируется; R02/R04 replacement 57/R13 п.39 default direct; R13 п.26 «если задано» | Приоритет явному replacement 57/п.39: default direct как **явное assumption**, user 0 off; показать отдельно avoided cost и growth benefit; full CF включает по выбранной политике | Женя; C14/C16 |
-| K08 | R03 §2.7 role withdrawal без division shifts, fallback с division и без cap; R06 доля.30 | Предпочесть role route; cap withdrawals≤base при любом пути, fallback не выполнять без известных inputs; семантику shift fleet подтвердить | Женя; C14 |
-| K09 | R03 §3.2 service no ramp vs §3.5.2 «уже масштабирован»; saving×ramp vs ceil(released×ramp); severance только year 1; R02 ramp только 5 years при horizon 15; R13 §2 упрощён без ramp vs п.45 | Annual ledger источник CF; headcount integers и ramp применяются **один раз** по line policy; предложить ramp=1 after 5. Остальные policy choices до реализации не выбирать | Женя; C15–18 |
-| K10 | R03 §3.3 один battery year vs длительный horizon и rampwear; повторные замены не описаны | Separate battery schedule policy с явными событиями; неизвестный lifecycle не маскировать 0. Сначала утвердить first/repeated replacement и wear clock | Женя + equipment research; C15 |
-| K11 | R03 §3.2 «полный CAPEX для амортизации» vs §3.5.5 без reserve; R13 п.7 полный CAPEX для% vs п.46 equipmentonly; residual mapping не для cleaners | Явные поздние уточнения: depreciation без reserve, percent equipmentonly. Для новых assetclasses получить явное life/liquidity assumption | Женя подтверждает mapping; C15–16 |
-| K12 | R03 other_income позволяет negative tax; no_other_income/max и losses 50%/10 years; R01 нормативные ссылки без текущей верификации | Два режима явны; не суммировать shield повторно. Legal applicability и lossalgorithm через research и domainreview, до этого provisional finance, без claims о праве | Женя + профильный reviewer; C16 |
-| K13 | R03 §3.6 effect excludes t0, ROI=effect/CAPEX; optional profitability ещё вычитает TCO; current E другой ROI; zeroCAPEX не определён | Сохранить разные именованные показатели reference, раскрыть cashflow basis; не называть взаимозаменяемыми. Утвердить zero/payback и экономический смысл profitability | Женя; C16 |
-| K14 | R03 §4 availability высокие значения штрафует «нет резерва», хотя это не utilization; payload decline endpoint не дан; N/A-компоненты и interpolation заданы не полностью | Не дописывать piecewise curve; запросить domains/endpoints, availability semantic, нормализацию применимых weights; нет требуемых интеграций →1.0 уже определено источником | Женя; C19 |
-| K15 | R03 §5 «8+21=29» с объединением sterilization; clinic sterilization universal против допуска дневного cleaner в R08 §11 без неё/лифтов; wasteB приравнен explosion; EASA/ICAO названы certificate | Check IDs по смыслу; clinic/zone/process scope отдельно. Не утверждать наличие/обязательность неподтверждённых certificates; правовой/отраслевой research | Женя + reviewer; C05, deployment blocked |
-| K16 | R02/R03 Σ75=12×3+16×2+7; R08 фактически 17 important→77. R03 completeness «=70 high» vs 40–70 working; R02 §9 без salary полнота блока 0, R03 §7 только salaryweight 0 | Предложить переченьполей source of truth с вычисленным знаменателем 77 до N/A, но только после согласования; boundary 70 и block-completeness задать явно. Data score≠matching gate | Женя; C02/C19 |
-| K17 | R11 allocation по processCAPEX, но selection зависит Score/NPV, зависящих от shared cost; нет zero CAPEX allocation; staff shared между blocks | Заморозить конфигурацию/cohort, прямые CAPEX, затем allocate; role budget единый; выбрать zero rule. Combinedranking отдельно от независимого | Женя; C18 |
-| K18 | R12 sameparams и deviation>10%, но нет denominator/window/warmup/distributions; R03 synthetic geometry vs реальный L; operatinga уже включает downtime | Согласовать event model и nominal/effective сравнение; same snapshot, rawtelemetry отдельно; synthetic scene не изменяет inputL. Corridor boundary и SLA не придумывать | Женя + simulationowner; C22–25 |
-| K19 | R11 схема 3 новые 7 roles, схема 9/R10§8 их не перечисляют; process_catalog только schema; warehouse/airport/clinic 28 blocks и 4 формульныхсемейства | Unionroles с aliases иверсией после review; complete process map: supported, pendingformula, noFOT. No-role блок сохраняется; не терять 7 roles | Женя; C03/C10 |
-| K20 | R00/R02/R03 prices безНДС vs текущий raworganizerVAT_INCLUDED безставки; R01 не доказывает price facts | Сохранить rawtaxbasis, вводить normalized net только с rate/evidence или explicit user scenario amount; no automatic 22/20% conversion | Commercialowner; C13 |
-| K21 | R13 п.11 RaaS «в OPEX» vs п.40 отдельная line; R02 §2 OPEX_RaaS без operators vs §3.3 с ними; zeroing broad vs реальные vendor contracts неизвестны | `OPEX_RaaS` включает дополнительные operators, `total_operating_cost` включает payment один раз; zeroing модельной policy не vendor offer | Женя; C17 |
-| K22 | R01 описывает 43 решения и рекомендованную формулу ТЗ с резервом в знаменателе; R03 §1.1 применяет peak×reserve; фактический каталог 187/223 | Catalog scope не сокращать; для target capacity использовать подробную F04 с явно зафиксированным отличием от общей формулы R01. Внешнее ТЗ не интерпретировать молча как ту же алгебру | Женя подтверждает; C01/C07 |
-| K23 | R01/R00 обязательные поля без defaults; R01 и R09 §3 одновременно требуют ввод плеча и дают резерв 120m; R02 §5–6 defaults лишь optional/desirable | Только явно отмеченный scenario assumption для разрешённого optional поля; обязательный route input без подтверждения блокирует.120m не факт объекта | Женя подтверждает scope; C01/C03 |
-| K24 | R11 схема 6 перечисляет ranking перед финансовыми показателями; R03 §4 Score требует NPV кандидатов и shared allocation | Исполнение DAG: capacity→labour/cost/CF→allocation→NPV→ranking; UI может показать предварительный technical ordering с другим именем | Техническое решение по зависимостям; Женя подтверждает UX; C19 |
-| K25 | R08 §6 commissioning/training RUB/robot vs R03 доля price; spares%CAPEX в OPEX vs разовый CAPEX; fixedrepair/service%/explicit residual curve не описаны полноценно в R03 | Typed mutually exclusive basis, нормализация с доказанными входами. Для spares утвердить capital/operating scope; fixed/percent не суммировать. Explicit residual curve приоритетна по R08, без неё F22; выбор зафиксировать | Женя/commercial owner; C13/C15 |
-| K26 | R10 §7.2 mandatory с defaults vs §2 mandatory без defaults; optional process volumes в §6/7 становятся mandatory §9; автоматические requirements vs редактируемые значения | Требования scope вычислять отдельно, active-block volume required, emptyblock inactive; fieldpriority matrix согласовать, не переносить defaults в mandatory fields | Женя; C03–05 |
-| K27 | R06:5 как «середина 5–7»;365/(365−30)≈1.089552 vs 1.090;1.302×1.19=1.54938 vs 1.55; обоснование pult 1/4 robots, формула sharepeople; краткий growth может быть negative | Зафиксировать 1.090 и 1.55 как принятые model constants, derivations — approximate rationale; пример rotation 1.9075→1.908 не разрешает intermediate rounding. Pult/growth по согласованному F11–13; слова про 5 midpoint не считать формулой | Женя; C02/C14/Q02 |
-| K28 | R04 замены 18/24/32/34/46 vs D9/замены 51/58/64/66; R07 правка 64 зануляет отрицательный score vs 72 minmax; ранние R06§3/5 старые CAPEX/TRL penalties | Явно superseded: peak split F04, equipment base F18, operator RaaS F32, новый score F33/minmax; все исходные записи сохранены. R09 «закрыто» не устраняет других конфликтов | Женя подтверждает supersession ledger; C02/C15/C19 |
-| K29 | R02 §8 defaults 10 picks/min/800m²/h, R06 class priors и R10 §12 warranty 2/MTBF vs R03/R08 passportfacts и действующие evidence gates | Никогда не присваивать конкретной модели без evidence. Допустим explicit scenario-only generic estimate с labels, вне eligible vendor pool; иначе missing fact blocker. Не выводить паспортную availability из MTBF/MTTR без заданной методики | Catalog/product owner; C02/C06/C15 |
-
-Согласование этих решений — часть будущих acceptance gates. Подготовка плана
-их не утверждает и не требует останавливать анализ. Решения сохраняются
-append-only: source pair, выбранный вариант, rejected alternatives, rationale,
-owner, дата, затронутые formula/registry versions, fixtures и migration.
+| K01 | R00: registry — единый источник; registry отсутствует. R04/R07 заголовки/счётчики не совпадают с R13 п.34 (70/85) | Создать registry из всех R02/R06 entries со стабильными semantic IDs; происхождение каждого поля и supersession explicit. Счётчики заголовков70/85 не являются validation schema. | ACCEPTED |
+| K02 | R03 §1.1 passport speed vs R08 §3.2 working speed; R03 total exchange vs contractv 2 legacy 45 per-operation | Normalized exchange — total seconds; raw load+unload имеет приоритет. Legacy45 per operation мигрируется в total90 только в provenance-known legacy path; новое total45 остаётся45. Speed: USER operating≤safe max; иначе safe operating fact; иначе safe max как раскрытый optimistic proxy без дополнительного коэффициента. | ACCEPTED |
+| K03 | R02 §5 boxes=floor(payload/item), не manual; R03 §1.1 допускает passport batch | Для boxes предел массы=floor(payload/item_mass); batch=min(предел массы, explicit user handling limit, safe passport batch, геометрический limit), отсутствующие дополнительные ограничения не входят в min и отмечаются unknown. Остальные единицы batch1, кроме явно введённого физического batch. | ACCEPTED |
+| K04 | R03 §1.4 clamp utilization/coverage vs отсутствие zero-domain и отдельного overload/SLA | Demand>0 у активного процесса; inactive→N0/N_A. Fleet0 допустим what-if: capacity0,coverage0,utilization null,OVERLOADED. При capacity>0 сохранять raw load ratio и clamp utilization≤1; ни coverage, ни utilization не равны SLA. | ACCEPTED |
+| K05 | R00/R04/R10 missing salary→не рассчитывать весь блок; R11 no-role→нет ФОТ, другие процессы допустимы; R03 §3.2 tech/control absent→0+warning | Capacity рассчитывается независимо от зарплаты. Labour/finance требуют зарплату активной роли; no-role процесс имеет NO_FOT_BENEFIT. Tech/control без зарплаты дают INCOMPLETE для соответствующей статьи, не0. Demo wages — отдельный явно принятый scenario input из официального dataset, не USER и не vendor fact. | ACCEPTED |
+| K06 | R03 §2.6 pult_remain=max(share,min), released subtraction; operators_from_released=min(share,remain), additional=remain-share; текст обещает минимум из высвобожденных | applied=floor(robot_replacement×limit); demand_pult=max(floor(applied×share),shifts×min_per_shift); transferred=min(applied,demand_pult); released=applied−transferred; additional=demand_pult−transferred. | ACCEPTED |
+| K07 | R03 §2.8 deficit отдельно от base; §3.5.1 включает; R11 схема 5 unset не монетизируется; R02/R04 replacement 57/R13 п.39 default direct; R13 п.26 «если задано» | Default unit_deficit_cost=annual_direct как видимое scenario assumption, пользователь0 отключает. Deficit benefit отдельной строкой от savings; remaining_deficit_t=max(0,deficit−floor(growth×ramp_t)); annual cost indexed8%. | ACCEPTED |
+| K08 | R03 §2.7 role withdrawal без division shifts, fallback с division и без cap; R06 доля.30 | Base equipment=input integer иначе ceil(role_drivers/shifts), иначеunknown. Withdrawal по роли=min(base,ceil(released_driver/shifts)); fallback=min(base,ceil(released×.30/shifts)). Если base unknown, equipment savings неизвестна, не размер всей fleet. | ACCEPTED |
+| K09 | R03 §3.2 service no ramp vs §3.5.2 «уже масштабирован»; saving×ramp vs ceil(released×ramp); severance только year 1; R02 ramp только 5 years при horizon 15; R13 §2 упрощён без ramp vs п.45 | Ramp из R02, с6-го года1. Годовой released=ceil(released_final×ramp), savings выводится из difference role ledger, не linear savings×ramp. Service после warranty масштабируется ramp один раз. Severance=положительный прирост released_t против t−1 × monthly×2.5 во все годы прироста. | ACCEPTED |
+| K10 | R03 §3.3 один battery year vs длительный horizon и rampwear; повторные замены не описаны | Повторные батареи по накопленным циклам с ramp: cumulative_cycles_t=Σannual_cycles×ramp_t; события, когда k×resource_cycles строго меньше cumulative до конца года. Exact crossing в конце horizon не покупает батарею без последующей работы. Cost=count_events×N×battery_price×hw×1.05^(t−1), без второго ramp. | ACCEPTED |
+| K11 | R03 §3.2 «полный CAPEX для амортизации» vs §3.5.5 без reserve; R13 п.7 полный CAPEX для% vs п.46 equipmentonly; residual mapping не для cleaners | Percent base=equipment only, depreciation=capital without reserve/5; reserve не актив. R03 life/liquidity для перечисленных classes; cleaner/неизвестный class без safe/user life → residual0 с conservative-assumption. Explicit validated residual curve имеет приоритет. | ACCEPTED |
+| K12 | R03 other_income позволяет negative tax; no_other_income/max и losses 50%/10 years; R01 нормативные ссылки без текущей верификации | Основной конкурсный результат — собственные средства, денежные потоки до налога на прибыль. Налоговые сценарии R13 — дополнительная иллюстративная модель с явными25%/режимами, не юридическое обещание. Алгоритм ниже; внешний legal sign-off не prerequisite. | ACCEPTED |
+| K13 | R03 §3.6 effect excludes t0, ROI=effect/CAPEX; optional profitability ещё вычитает TCO; current E другой ROI; zeroCAPEX не определён | Primary simple payback — пересечение накопленного differential CF с учётом−CAPEX вt0; при постоянном CF совпадает с CAPEX/effect ТЗ. ROI=ΣdiffCF1..h/CAPEX; для RaaS denominator=TCO. CAPEX0 → payback0 лишь при неотрицательном потоке и положительном эффекте, иначеN_A; ROI denominator0→N_A. Нелогичный дополнительный profitability_TCO не публикуется. | ACCEPTED |
+| K14 | R03 §4 availability высокие значения штрафует «нет резерва», хотя это не utilization; payload decline endpoint не дан; N/A-компоненты и interpolation заданы не полностью | Piecewise linear interpolation по узлам R03. Payload margin выше.5 линейно падает до.5 при margin1; availability сохраняет немонотонные узлы R03 как model preference. N/A компоненты исключаются с перенормировкой весов; UNKNOWN=0 без перенормировки; no required integrations=1. | ACCEPTED |
+| K15 | R03 §5 «8+21=29» с объединением sterilization; clinic sterilization universal против допуска дневного cleaner в R08 §11 без неё/лифтов; wasteB приравнен explosion; EASA/ICAO названы certificate | Checks имеют process/route/zone/time scope; clinic sterilization только при требуемом sanitization; этажи — реально пересекаемые маршрутом. Class-B требует cleaning/containment compatibility, не универсальную взрывозащиту. Airside — отдельное требование operational permission, не вымышленный «сертификат EASA/ICAO». | ACCEPTED |
+| K16 | R02/R03 Σ75=12×3+16×2+7; R08 фактически 17 important→77. R03 completeness «=70 high» vs 40–70 working; R02 §9 без salary полнота блока 0, R03 §7 только salaryweight 0 | Поля R08 — источник перечня:12critical+17important+7useful, полный вес77. N/A исключается. Intake completeness отдельно: weights sum100; <40 basic,40≤x<70 working,≥70 high. Missing salary делает labour completeness0, capacity completeness считается по своим inputs. | ACCEPTED |
+| K17 | R11 allocation по processCAPEX, но selection зависит Score/NPV, зависящих от shared cost; нет zero CAPEX allocation; staff shared между blocks | Shared site CAPEX распределяется по прямому capital без shared/reserve; если сумма0 — поровну между активными процессами, remainder по stable ID. Shared staff распределяется один раз по явным shares или required person-shifts, largest-remainder; правила cohort ниже. | ACCEPTED |
+| K18 | R12 sameparams и deviation>10%, но нет denominator/window/warmup/distributions; R03 synthetic geometry vs реальный L; operatinga уже включает downtime | Детерминированный event scheduler, FIFO, fixed calendar/measurement и SLA definitions из §4 ниже. Availability применяется один раз как service-time dilation; неизвестные failure rates/зарядные циклы не выдумываются. | ACCEPTED |
+| K19 | R11 схема 3 новые 7 roles, схема 9/R10§8 их не перечисляют; process_catalog только schema; warehouse/airport/clinic 28 blocks и 4 формульныхсемейства | Role dictionary — union R11 схем3 и9/R10, role code scoped object; mapping28blocks закреплён §3. Unsupported physical operations получают REFERENCE_ONLY, generic user-configured cycle доступен как SCENARIO_ONLY. | ACCEPTED |
+| K20 | R00/R02/R03 prices безНДС vs текущий raworganizerVAT_INCLUDED безставки; R01 не доказывает price facts | Основная денежная база — CASH_GROSS_RUB, цены organizer уже включают НДС (A4). Ставку не угадываем и НДС повторно не добавляем. NET_RUB — отдельный режим только при explicit rate/basis для каждой применимой строки; недостающий rate не мешает gross result. | ACCEPTED |
+| K21 | R13 п.11 RaaS «в OPEX» vs п.40 отдельная line; R02 §2 OPEX_RaaS без operators vs §3.3 с ними; zeroing broad vs реальные vendor contracts неизвестны | RaaS .02/month как scenario tariff; contract horizon=h, renewal автоматически доh на тех же условиях, buyout0/off; phased/all_fleet поR03. Responsibility tableR02 сохраняется как model assumption. Payment отдельной строкой и один раз входит total OPEX/CF/TCO. | ACCEPTED |
+| K22 | R01 описывает 43 решения и рекомендованную формулу ТЗ с резервом в знаменателе; R03 §1.1 применяет peak×reserve; фактический каталог 187/223 | Capacity=ceil((daily/H)×1.25×(1+reserve)/(nominal×availability)); extra target utilization multiplier отсутствует. Formula trace показывает все три понятия ТЗ: пик, availability и reserve. | ACCEPTED |
+| K23 | R01/R00 обязательные поля без defaults; R01 и R09 §3 одновременно требуют ввод плеча и дают резерв 120m; R02 §5–6 defaults лишь optional/desirable | Общий transport route — USER input. Для demowarehouse120m — видимый scenario assumption изR09,25m остаётся picking distance. Defaults разрешены только с explicit source/priority; никакого скрытого sourcefact. | ACCEPTED |
+| K24 | R11 схема 6 перечисляет ranking перед финансовыми показателями; R03 §4 Score требует NPV кандидатов и shared allocation | Порядок DAG: input→constraints→capacity→labour→cost/CF→allocation→NPV→score. Предварительная техническая сортировка называется отдельно. | ACCEPTED |
+| K25 | R08 §6 commissioning/training RUB/robot vs R03 доля price; spares%CAPEX в OPEX vs разовый CAPEX; fixedrepair/service%/explicit residual curve не описаны полноценно в R03 | CostBasis union FIXED_TOTAL/PER_ROBOT/PERCENT_BASE, ровно один вариант/line. Spares по умолчанию разовыйCAPEX; recurring supplies отдельнаяline, не дубль. Service fixedannual приоритетнееpercent только если legacy source содержит оба; для новогоinput оба запрещены. | ACCEPTED |
+| K26 | R10 §7.2 mandatory с defaults vs §2 mandatory без defaults; optional process volumes в §6/7 становятся mandatory §9; автоматические requirements vs редактируемые значения | Active-block объём required, inactiveblock неошибка. Automatic object requirements — policy-derived, не доказанные capabilities робота. Обязательные поля не заполняются hiddendefaults; optionaldefault сохраняет trace без interrupt. | ACCEPTED |
+| K27 | R06:5 как «середина 5–7»;365/(365−30)≈1.089552 vs 1.090;1.302×1.19=1.54938 vs 1.55; обоснование pult 1/4 robots, формула sharepeople; краткий growth может быть negative | Хранить1.090/1.55/1.302 как принятые exactdecimal assumptions; пояснения≈, не альтернативные вычисления. Rotation промежуточно не округлять:1.4×1.090×1.25=1.9075. Human cleaning300m²/h относится к механизированному baseline; ручной baseline требует user rate. | ACCEPTED |
+| K28 | R04 замены 18/24/32/34/46 vs D9/замены 51/58/64/66; R07 правка 64 зануляет отрицательный score vs 72 minmax; ранние R06§3/5 старые CAPEX/TRL penalties | Supersession: R04 D9 и замены51/58/64/66, R07§72 вытесняют ранние inconsistent строки. Архивные документы не правятся, registry хранит replaced_by. | ACCEPTED |
+| K29 | R02 §8 defaults 10 picks/min/800m²/h, R06 class priors и R10 §12 warranty 2/MTBF vs R03/R08 passportfacts и действующие evidence gates | Default10picks/min/800m²/h/2yr/MTBF никогда не заполняют vendor fact. Safe mandatory fact отсутствует→модель вне соответствующего vendor calculation profile; параметры generic scenario вводятся отдельно с explicit assumptions. Research улучшает data позже, но не блокирует merge. | ACCEPTED |
 
 ## 6. Formula trace и воспроизводимость
 
 ### 6.1. Обязательный контракт
 
-Предлагаемый `CalculationTrace v1` — строгий JSON Schema/Pydantic контракт
+Принятый контракт `CalculationTrace v1` — строгий JSON Schema/Pydantic контракт
 с `additionalProperties=false`, явным discriminated union quantities и
 nullable blocked result. Свободный текст не заменяет machine-readable узлы.
 
@@ -588,10 +594,10 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C04 | `frontend/process-role-intake-v2` — формы, input provenance, validation | C03 |
 | C05 | `engine/applicability-constraints-v2` — общий constraint service | C01–03 |
 | C06 | `catalog/formula-executability-audit-v3` — dependency closure по каждому profile | C02–03,C05 |
-| C07 | `engine/capacity-formula-trace` — transport/delivery pure capacity | C06, закрытые K02–04 |
+| C07 | `engine/capacity-formula-trace` — transport/delivery pure capacity | C06, policy K02–04 |
 | C08 | `engine/cleaning-capacity-trace` — cleaning units/capacity | C06, trace infrastructure C07 |
 | C09 | `engine/palletizing-capacity-trace` — fixed-cell math, без расширения pool | C06–07, picks mapping |
-| C10 | `contracts/process-profile-coverage-v1` — все 28 blocks сопоставлены profile/N_A/blocked | C03,C07–09; неизвестные алгоритмы в Q09 |
+| C10 | `contracts/process-profile-coverage-v1` — все28scopes поpolicy§3 | C03,C07–09; K19 |
 | C11 | `api/capacity-analysis-snapshots-v2` — независимый API и immutable trace | C05–10 |
 | C12 | `frontend/capacity-results-trace` — partial results и объяснение N | C04,C11 |
 | C13 | `procurement/commercial-inputs-v1` — цены/НДС/условия, отдельные gates | C01–03 |
@@ -604,19 +610,18 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C20 | `economics/sensitivity-v1` — price/volume/labour deltas | C18–19 |
 | C21 | `frontend/commercial-scenarios-v2` — финансовые сценарии и сверка | C12,C13,C18–20 |
 | C22 | `contracts/scenario-spec-v2` — capacity snapshot и optional finance | C11; при наличии finance C18 |
-| C23 | `simulation/scheduling-kpi-report-v1` — event model, SLA и report | C22 + утверждённые Q08/K18 |
+| C23 | `simulation/scheduling-kpi-report-v1` — event model, SLA и report | C22 + policy K18/§4 |
 | C24 | `visualization/2d-simulation-report` — обязательная 2D | C23 |
 | C25 | `robcraft/scenario-v2-reconciliation` — v2 adapter и KPI comparison | C22–23 |
 | C26 | `report/calculation-evidence-exports` — PDF/XLSX/CSV из run | C21,C24–25 |
 | C27 | `catalog/capacity-runtime-dual-run-rollout` — независимый capacity rollout | C11–12; можно сразу после них, не ждать economics |
 | C28 | `catalog/economics-runtime-migration` — полный v2 rollout, legacy isolation | C21,C26–27; replay/rollback |
-| C29 | `qa/calculation-migration-acceptance` — сквозная приёмка | C28 и закрытые обещания Q08/Q09 |
+| C29 | `qa/calculation-migration-acceptance` — сквозная приёмка | C28; scope T1/policy§3 |
 
-Порядок C13–20 и C22–25 допускает независимые ветки после указанных gates;
-это не повод смешивать commercial и simulation code в одном PR. C10 не
-изобретает capacity для инвентаризации, заправки или safety-блока. Если Q09
-требует новых семейств, используется строго определённая процедура расширения
-из карточки C10; до её завершения «полностью внедрено» не заявляется.
+Порядок C13–20 и C22–25 допускает независимые ветки по зависимостям.
+C10 реализует принятые28scopes, включая REFERENCE_ONLY и CONSTRAINT_ONLY.
+Неизвестные физические алгоритмы не являются release dependency. После C29
+можно расширять их отдельными versioned профилями; сейчас обязательны T1–T4.
 
 ### 7.1. Подробный scope `engine/capacity-formula-trace`
 
@@ -626,8 +631,7 @@ manual N. Никаких обязательных price/service/autonomy/fte_rep
 Выход: typed cycle_s, trips/h, batch, nominal/effective units/h, demand/peak,
 recommended/selected fleet, coverage/utilization, limits, trace/blockers.
 
-Реализовать только F01–04/F07 и согласованный rounding; box batch F03 требует
-закрытого K03. Delivery использует ту же математическую семью **только при
+Реализовать F01–04/F07, precision policy§5 и box batch K03. Delivery использует ту же математическую семью **только при
 корректной единице доставки и input contract**. В текущем pool нет delivery
 моделей: unit fixtures допустимы, добавлять synthetic vendor card нельзя.
 Транспортный pool 15 моделей/18 позиций — фактический кандидат для нового path,
@@ -666,7 +670,8 @@ IDs, normalized input, registry/catalog versions, expected result, full trace
 | Golden-ManualFleet | Тот же syntheticinput,selected 17/18/19 | Coverage вычисляется по фактическим units/h, не selected/recommended ratio |
 | Golden-Purchase/RaaS | USER prices/roles + approved registry, same physicalfleet | zeroing/payment/single tax effect, complete capital/operating ledger |
 | Golden-Partial | Capacityinputs полны, salary/price/tax unknown | Capacity complete, economics incomplete, no score/recommendation falsepositive |
-| Golden-Conflicts | Незакрытый K02/K06/K10/K14 | Явный policyblocker; не golden «произвольно выбранного» числа |
+| Golden-Gross | Все статьи и валюта заданы, ставки НДС нет | CASH_GROSS_RUB и primary pretax economics исполнимы; NET_RUB требует rate, исходная gross цена сохранена |
+| Golden-Policies | Принятые K02/K06/K10/K14 | Exact outcomes policy: exchange90, pult conservation, repeatedwear, score knots; unknown policy version rejected |
 | Golden-Shared | 2 processes, shared site cost и одна role pool | Общаяинфраструктура 1 раз, sumallocated=total, released≤shared pool |
 
 ### 8.2. Boundary tables и invariants
@@ -678,7 +683,7 @@ IDs, normalized input, registry/catalog versions, expected result, full trace
 | Labour | shifts 1/2/3;hours 6/8/9/10/11/12;rolecount 0;salary missing/explicit 0;limit 0/1/>1;applied<minimum_pult;tech 20/21 robots |
 | Calendar/finance | days 0/365/366 policy;horizon 5/7/10/15/outside;discount 0/negative policy;CAPEX0;warranty 0/3/h;replacement year=h/h+1;life=h |
 | Ranking | availability 39.99/40/55/70/85/92/100%;aislemargin 0/.15/.40/.60;payloadmargin 0/.15/.50/>.50;TRL6/7/8/9;equalNPV/all negative |
-| Completeness | no applicable fields;salary absent;weights 75vs 77 blockeddecision;39.99/40/69.99/70/70.01;unverified filled cannot become matching-safe |
+| Completeness | no applicable fields;salary absent;weights77 по принятому K16;39.99/40/69.99/70/70.01;unverified filled cannot become matching-safe |
 | Constraints | noise day/night and required zone;floor thresholds;airsideknownfalse/unknown;actual routefloors;budget/chargingpower warnings not hard fail |
 | Simulation | windows/warmup/seed, zeroexpected, deviation 9.99/10/10.01%;queue overload,paused/restarted,20/30 min SLA boundaries |
 | Catalog/API | unsupportedBAS, unsafe/ambiguousfact,wrong unit,evidence wrong model, duplicate position IDs, unknown schema/field, stale input revision |
@@ -713,27 +718,27 @@ discovery 187/223, capacitybaseline 21/24,6/6 ready+15/18 assumptions,
 deployment 0, БАС отсутствуют. На approved membership change обновляется новая
 versioned fixture с decision/evidence diff; baseline fixture не переписывается.
 
-## 9. Открытые вопросы и владельцы
+## 9. Вопросы закрыты для реализации
 
-| ID | Нужное решение / данные | Владелец; gate |
+Q01–Q12 больше не требуют ответа Жени или внешнего reviewer. Ниже конечное
+поведение; более поздний review может выпустить policy v2 и новый расчёт,
+но не изменяет старые runs и не является prerequisite C01–C29.
+
+| Q | Закрытое решение | Runtime outcome при недостаточном пользовательском вводе |
 |---|---|---|
-| Q01 | Где authoritative registry, полный перечень revisions/replacements и source hashes? Утвердить recreated registry и K01 | Женя; C01–02 |
-| Q02 | Precision/rounding, zero domains, допустимые shifts/hours/days,70%boundary,нулевые CAPEX/payback,negative discount/zero salary semantics | Женя+технический owner; C01, C16 |
-| Q03 | Полный process_catalog для 28 blocks; unionrolecodes и alias, noFOT vs no formula, safety как требования; убрать неоднозначный retail mapping | Женя; C03/C10 |
-| Q04 | 45s total или per operation? operational speed? palletroute vs 25 mpicking; units/batches для portions/samples/linen,throughput unit fixed cell | Женя; C03,C07,C09 |
-| Q05 | Какие необходимые rate/speed/energy/autonomy/charger/life facts доказаны и доступны по каждой модели? Изменение pool только через evidence delta | Catalog research owner; C06,C13,C15,C27 |
-| Q06 | Pult conservation, rotation assumptions, manual cleaning 300 vs механизированная уборка, deficit monetization и fork lift withdrawal | Женя; C14 |
-| Q07 | Net/VAT policy при unknown rate, realservice/warranty/quote и RaaSresponsibility; допустимость.tax modes/losses,срок/ставка ихдействия | Commercialowner+reviewer, Женя; C13,C16–17 |
-| Q08 | Scheduling/SLA equations,peak arrival shape,event ordering,warmup/window,10%denominator,availability decomposition,типовойпроект≤60s | Женя+simulationowner; C22–25 |
-| Q09 | Какие 28 blocks обещают полный capacity икакие лишь constraints/discovery? Формулы дляоставшихся inventory/lift/picking/fuelling/inspection/passenger/ground operations? Нуженли BAS вообще? | Женя/владелецпродукта; C10,C29; до решения BASpool безизменений |
-| Q10 | Годовые ramp/service/ceil/severance,после 5 лет,повторныебатареи,cleaner residual class | Женя; C15–16 |
-| Q11 | Score curves endpoints/interpolation,N_Aweights,availability vs utilization,75vs 77; all negative rankingdisplay | Женя; C19 |
-| Q12 | Sharedrole/site allocation,zero CAPEX denominator,cohortscope и re-ranking combined configuration | Женя; C18–19 |
+| Q01 | K01, registry создаётся нами | Нет dependency на внешний registry |
+| Q02 | K04/K13/K16/K27 и§5 | Валидация полей/N_A вместо ожидания policy |
+| Q03 | K19 и28строк §3 | Определённый scope каждого процесса |
+| Q04 | K02/K03/K23 иbatch §3 | Missing input с перечнем нужных преобразований единиц |
+| Q05 | K29/§6; текущийpool фиксирован | Missing safe fact локально исключаетSKU/profile |
+| Q06 | K06–08/K27/§5 | Labour INCOMPLETE при недостающей зарплате/ставке |
+| Q07 | K12/K20/K21/K25 | Gross budget работает без ставки НДС и vendor quote |
+| Q08 | K18/§4 | Определённые scheduler/SLA/conditional statuses |
+| Q09 | K19/§3 | REFERENCE_ONLY/CONSTRAINT_ONLY — принятые product scopes |
+| Q10 | K09–11/§5 | Повторные циклы, ramp и неизвестный residual определены |
+| Q11 | K14/K16 | Все scoring curves/denominators определены |
+| Q12 | K17/§5 | Allocation и cohort имеют конечный алгоритм |
 
-Эти вопросы **не скрывают незавершённый анализ**: источники не содержат
-однозначных ответов. Их принятие — вход конкретного implementation gate.
-До Q08/Q09 нельзя обещать полный SLA и capacity всех процессов, даже если
-транспорт, cleaning и purchase golden path реализованы.
 
 ## 10. Проверки аудита и условия коммита
 
@@ -741,7 +746,7 @@ versioned fixture с decision/evidence diff; baseline fixture не перепи�
 bundle, contracts production, backend/frontend, `.github`, секреты и
 исторические fixtures не изменяются.
 
-Выполненные проверки текущего baseline:
+Исторические проверки аудита1.0 (новая редакция меняет только документы):
 
 | Проверка | Результат / предел вывода |
 |---|---|
@@ -768,3 +773,25 @@ DB migrations, Compose smoke, runtime activation, production deployments и
 новые расчётные формулы в этой сессии не запускались. Зелёные существующие
 тесты подтверждают baseline, **не соответствие будущему канону Жени**;
 новые expected results и acceptance gates перечислены в §8 и карточках Cxx.
+
+## 11. Проверки редакции 1.1
+
+2026-09-20: полностью прочитаны 20 страниц двух официальных PDF. Повторная
+проверка рекурсивных списков, размеров, SHA-256, количества строк/страниц:
+14/14 reference и 2/2 официальных источника совпадают с manifests.
+Все 29 K и 12 Q сопоставлены принятым решениям; также закрыты прежние Q1–Q8
+из docs/11. Совпадают 29 веток/карточек этапов и 28 process scopes.
+
+Структурная проверка восьми Markdown-файлов: 63 локальные ссылки, таблицы,
+парность fences, IDs F01–35/G01–57/K01–29/Q01–12. Арифметическая проверка
+плановых примеров: 18 групп, включая 3535 сочетаний для conservation персонала;
+MULE при заданных inputs даёт парк 20/15/13 в трёх сценариях. Это независимая
+проверка спецификации через Decimal, не реализация production engine.
+
+SHA-256 всех 10 файлов committed catalog bundle совпадают с manifest;
+discovery 187/223, pool 21/24, БАС в pool 0. Проверены safe payload/speed MULE
+и исходная price position. Git allowlist содержит только девять документов
+и плановых артефактов; diff/diff --check проверяются перед коммитом.
+Backend/frontend/runtime данные не меняются. Исторические 169/21/4/77 tests
+выше не выдаются за новый прогон; regression выполняется при реализации
+соответствующего этапа.
