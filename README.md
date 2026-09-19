@@ -236,9 +236,9 @@ docker compose --profile tools run --rm catalog-activation status
 иерархию, поиск/фильтры/сортировку, provenance facts и `selectable`. Публичной
 единицей являются все 223 исходные catalog positions; они ссылаются на 187
 канонических моделей, но не схлопывают различающиеся цену, отрасль, сценарий,
-регион и кейс. После активации discovery-слота позиции доступны для просмотра,
-но не для расчётного выбора: bundle
-пока не содержит evidence-backed `runtime_projection`. Поэтому команда
+регион и кейс. После активации discovery-слота позиции доступны для просмотра.
+Bundle содержит отдельную evidence-backed `capacity_runtime`-проекцию для 21
+модели / 24 позиций, но не legacy `Robot` с economics/procurement полями. Поэтому команда
 `activate --slot runtime` завершается безопасной ошибкой. Rollback выполняется
 активацией предыдущей опубликованной catalog version; отсутствие или ошибка
 активированного runtime даёт 503 без скрытого fallback.
@@ -435,10 +435,11 @@ review, 36/38 — facts, 142/175 не имеют поддержанного capa
 
 Legacy-модели удалены из runtime и репозитория; при отсутствии активированного
 безопасного каталога расчётные endpoints возвращают 503. Official-source
-enrichment staging зафиксировал результаты исследования:
-официальное исследование дало 131 принятый field fact для 26 моделей, из них
-129 допущены в matching и 2 сохранены как review-only; 7 полей отложены, 318
-остались ненайденными. Post-enrichment projection по-прежнему даёт 0 runtime
+enrichment staging зафиксировал результаты исследования, а materialization
+добавила принятый срез в immutable ENRICHMENT bundle:
+131 field fact для 26 моделей и 154 evidence records, из них 129 допущены в
+matching и 2 сохранены как review-only; 7 полей отложены, 318 остались
+ненайденными. Общий deployment post-enrichment projection по-прежнему даёт 0 runtime
 ready, 37/39 needs facts, 3/4 conflict review, 143/176 unsupported и 4/4 not
 equipment. Staging и полный audit находятся в
 `data/enrichment/catalog-official-source-enrichment-v1/` и
@@ -451,13 +452,16 @@ equipment. Staging и полный audit находятся в
 capacity-расчёта по всему каталогу, из них
 19 моделей входят в accepted research cohort. Для 15 моделей нужны явно
 показанные cycle assumptions; 6 уборочных моделей считаются без них. Ни одна
-модель пока не имеет `DEPLOYMENT_READY`, materialization adapter ещё не создан,
-economics не включена и active runtime не переключён.
+модель пока не имеет `DEPLOYMENT_READY`. Отдельная materialized
+`catalog-capacity-runtime-v1` проекция импортируется в DRAFT/ENRICHMENT,
+повторно проверяет matching-safe vendor facts и хранит scenario assumptions
+отдельно с provenance. Economics не включена и active runtime не переключён.
 
-Следующий обязательный этап описан в
+Контракт реализован в
 [`docs/18_RUNTIME_POOL_AND_CATALOG_UI.md`](docs/18_RUNTIME_POOL_AND_CATALOG_UI.md):
 полный каталог сохраняет все 223 позиции, а 21 расчётная БРС-модель (24 позиции)
 получает явный тег `Участвует в расчёте` и отдельный UI-фильтр. Статус
-`С допущениями` должен быть виден отдельно и не выдаваться за deployment-ready.
+`С допущениями` виден отдельно и не выдаётся за deployment-ready. Следующий
+этап — `engine/capacity-formula-trace`.
 
 Прототип является предварительной оценкой, а RobCraft — демонстрационной сценарной симуляцией. Они не являются инженерным проектом, офертой поставщика или откалиброванным цифровым двойником.

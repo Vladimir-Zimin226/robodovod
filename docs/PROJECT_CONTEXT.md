@@ -183,26 +183,31 @@ capacity profile без формул; отчёт детерминированн�
 `NOT_EQUIPMENT`. Этот общий eligibility-аудит сохранён как исторический срез;
 он не является текущим calculation-readiness решением.
 
-`catalog/official-source-enrichment` исследован и сведён в review-only staging:
-131 field fact принят для 26 моделей, 129 из них matching-safe, 2 review-only,
+`catalog/official-source-enrichment` исследован и сведён в review-only staging;
+итерация materialization перенесла принятый срез в versioned ENRICHMENT bundle:
+131 field fact и 154 evidence records для 26 моделей, 129 facts matching-safe, 2 review-only,
 7 отложены и 318 остаются missing. Проекция после staging сохраняет 0
 `RUNTIME_READY`; распределение моделей — 37 `NEEDS_FACTS`, 3
 `CONFLICT_REVIEW`, 143 `UNSUPPORTED_CAPACITY_PROFILE`, 4 `NOT_EQUIPMENT`.
-Эти результаты являются входом materialization следующей итерации; они не
-разрешают автоматически активировать deployment runtime.
+Staging не читается runtime-кодом: importer использует только его проверенную
+коммитнутую проекцию. Эти результаты стали входом materialized capacity runtime; они не разрешают
+автоматически активировать deployment runtime.
 
 Для предварительных расчётов deployment readiness отделён от calculation
 readiness versioned contract v2. По всему organizer catalog ядро
 предварительного capacity-расчёта есть у 21 модели / 24 позиций; 15 моделей
 требуют явных scenario assumptions, 6 готовы без них. В accepted research
-cohort расчётно пригодны 19 из 26 identities. Следующая итерация —
-`catalog/runtime-pool-materialization-ui-21`: материализовать этот пул без БАС,
-сохранить полный каталог из 223 позиций и добавить в каталог заметный тег
+cohort расчётно пригодны 19 из 26 identities. Итерация
+`catalog/runtime-pool-materialization-ui-21` материализовала этот пул без БАС,
+сохранила полный каталог из 223 позиций и добавила в каталог заметный тег
 `Участвует в расчёте`, уточнение `С допущениями` и фильтр `Все / Участвуют /
-Требуют данных`. Для end-to-end backend ещё нужен materialization adapter и
-отдельная economics policy. Deployment-ready моделей по-прежнему 0; это не
+Требуют данных`. Capacity DTO повторно проверяет evidence-gated facts и не
+требует фиктивного legacy Robot DTO. Для end-to-end расчёта ещё нужны formula
+trace и отдельная economics policy. Deployment-ready моделей по-прежнему 0; это не
 разрешает закупочные claims. Полный контракт этапа находится в
 `18_RUNTIME_POOL_AND_CATALOG_UI.md`.
+
+Следующая малая итерация — `engine/capacity-formula-trace`.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

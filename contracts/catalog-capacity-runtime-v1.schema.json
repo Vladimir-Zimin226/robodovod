@@ -1,0 +1,212 @@
+{
+  "$defs": {
+    "CapacityRuntimeModel": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation_blockers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Calculation Blockers",
+          "type": "array"
+        },
+        "calculation_model_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Calculation Model Fields",
+          "type": "array"
+        },
+        "calculation_profile": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Calculation Profile"
+        },
+        "calculation_readiness_status": {
+          "enum": [
+            "CALCULATION_READY",
+            "CALCULATION_READY_WITH_ASSUMPTIONS",
+            "CALCULATION_BLOCKED",
+            "UNSUPPORTED_CAPACITY_PROFILE",
+            "NOT_EQUIPMENT"
+          ],
+          "title": "Calculation Readiness Status",
+          "type": "string"
+        },
+        "calculation_ready": {
+          "title": "Calculation Ready",
+          "type": "boolean"
+        },
+        "calculation_requires_assumptions": {
+          "title": "Calculation Requires Assumptions",
+          "type": "boolean"
+        },
+        "deployment_readiness_status": {
+          "enum": [
+            "DEPLOYMENT_READY",
+            "DEPLOYMENT_REVIEW_REQUIRED",
+            "UNSUPPORTED_CAPACITY_PROFILE",
+            "NOT_EQUIPMENT"
+          ],
+          "title": "Deployment Readiness Status",
+          "type": "string"
+        },
+        "model_id": {
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "scenario_assumptions": {
+          "items": {
+            "$ref": "#/$defs/CapacityScenarioAssumption"
+          },
+          "title": "Scenario Assumptions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "model_id",
+        "calculation_readiness_status",
+        "calculation_ready",
+        "calculation_requires_assumptions",
+        "calculation_profile",
+        "calculation_model_fields",
+        "calculation_blockers",
+        "scenario_assumptions",
+        "deployment_readiness_status"
+      ],
+      "title": "CapacityRuntimeModel",
+      "type": "object"
+    },
+    "CapacityScenarioAssumption": {
+      "additionalProperties": false,
+      "properties": {
+        "fallback_value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "title": "Fallback Value"
+        },
+        "field": {
+          "minLength": 1,
+          "title": "Field",
+          "type": "string"
+        },
+        "input_path": {
+          "minLength": 1,
+          "title": "Input Path",
+          "type": "string"
+        },
+        "policy": {
+          "const": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "title": "Policy",
+          "type": "string"
+        },
+        "provenance": {
+          "minLength": 1,
+          "title": "Provenance",
+          "type": "string"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "vendor_fact": {
+          "const": false,
+          "title": "Vendor Fact",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "field",
+        "input_path",
+        "fallback_value",
+        "unit",
+        "policy",
+        "provenance",
+        "vendor_fact"
+      ],
+      "title": "CapacityScenarioAssumption",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "catalog_code": {
+      "const": "organizer-catalog-v4",
+      "title": "Catalog Code",
+      "type": "string"
+    },
+    "contract_version": {
+      "const": "runtime-calculation-readiness-contract-v2",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Counts",
+      "type": "object"
+    },
+    "deterministic_order": {
+      "const": "model_id",
+      "title": "Deterministic Order",
+      "type": "string"
+    },
+    "models": {
+      "items": {
+        "$ref": "#/$defs/CapacityRuntimeModel"
+      },
+      "title": "Models",
+      "type": "array"
+    },
+    "runtime_catalog_version": {
+      "const": "organizer-catalog-v4-capacity-runtime-v1",
+      "title": "Runtime Catalog Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "catalog-capacity-runtime-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_sha256": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Source Sha256",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "runtime_catalog_version",
+    "catalog_code",
+    "contract_version",
+    "source_sha256",
+    "counts",
+    "deterministic_order",
+    "models"
+  ],
+  "title": "CapacityRuntimeContract",
+  "type": "object"
+}

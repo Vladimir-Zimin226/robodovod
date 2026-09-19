@@ -1,7 +1,7 @@
 # Расчётный runtime-пул и его отображение в каталоге
 
-Статус: обязательный контракт следующей малой итерации
-`catalog/runtime-pool-materialization-ui-21`.
+Статус: реализован малой итерацией
+`catalog/runtime-pool-materialization-ui-21` 19 сентября 2026 года.
 
 ## Цель
 

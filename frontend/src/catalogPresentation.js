@@ -29,6 +29,31 @@ export function matchesCatalogQuery(robot, query) {
     .some((value) => String(value).toLocaleLowerCase('ru-RU').includes(needle));
 }
 
+export function matchesCalculationParticipation(robot, participation) {
+  if (participation === 'participating') return robot.calculation_ready === true;
+  if (participation === 'requires_data') return robot.calculation_ready !== true;
+  return true;
+}
+
+export function filterAndSortCatalog(robots, filters) {
+  const filtered = robots.filter((robot) => {
+    if (filters.family && robot.system_family !== filters.family) return false;
+    if (filters.type && robot.type_code !== filters.type) return false;
+    if (filters.manufacturer && robot.manufacturer !== filters.manufacturer) return false;
+    return matchesCalculationParticipation(robot, filters.calculationParticipation)
+      && matchesCatalogQuery(robot, filters.query || '');
+  });
+  const key = filters.sort === 'manufacturer'
+    ? (robot) => robot.manufacturer || ''
+    : filters.sort === 'type'
+      ? (robot) => robot.type_code || ''
+      : (robot) => robot.name || '';
+  return [...filtered].sort((left, right) => (
+    key(left).localeCompare(key(right), 'ru')
+    || (left.source_row_number || 0) - (right.source_row_number || 0)
+  ));
+}
+
 export function catalogMedia(model) {
   const media = model.media;
   if (!media?.url) return null;
@@ -55,6 +80,13 @@ export function formatCatalogFact(fact) {
 }
 
 export function runtimeBlockerLabel(blocker) {
+  if (blocker === 'capacity_runtime') return 'Нет материализованного capacity-профиля';
+  if (blocker === 'capacity_runtime:invalid_contract') return 'Capacity-профиль не прошёл проверку контракта';
+  if (blocker === 'unsupported_capacity_profile') return 'Тип решения пока не поддержан расчётом мощности';
+  if (blocker === 'not_equipment') return 'Позиция не является рассчитываемым оборудованием';
+  if (blocker === 'calculation_facts_incomplete') return 'Не хватает доказанных расчётных характеристик';
+  if (blocker.startsWith('missing:')) return 'Не хватает доказанной расчётной характеристики';
+  if (blocker.startsWith('conflict:')) return 'Расчётная характеристика требует разрешения конфликта';
   if (blocker === 'runtime_projection') return 'Нет утверждённой runtime-проекции';
   if (blocker === 'runtime_projection:economics') return 'Не хватает экономических параметров';
   if (blocker === 'runtime_projection:invalid_robot_contract') return 'Runtime-профиль не прошёл проверку контракта';
@@ -95,5 +127,9 @@ export function catalogDetailView(position) {
     purchase: position.purchase || null,
     purchasePrice: position.purchase?.raw_price || formatCatalogPrice(normalizeOfficialModel(position)),
     runtimeBlockers: position.runtime_blockers || [],
+    calculationBlockers: position.calculation_blockers || [],
+    calculationAssumptions: position.calculation_assumptions || [],
+    calculationVendorFacts: position.calculation_vendor_facts || [],
+    calculationProvenance: position.calculation_provenance || null,
   };
 }

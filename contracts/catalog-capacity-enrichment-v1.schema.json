@@ -1,0 +1,206 @@
+{
+  "$defs": {
+    "CapacityEnrichmentEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "accessed_at": {
+          "minLength": 1,
+          "title": "Accessed At",
+          "type": "string"
+        },
+        "publication_or_update_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Publication Or Update Date"
+        },
+        "publisher": {
+          "minLength": 1,
+          "title": "Publisher",
+          "type": "string"
+        },
+        "raw_value": {
+          "minLength": 1,
+          "title": "Raw Value",
+          "type": "string"
+        },
+        "source_locator": {
+          "minLength": 1,
+          "title": "Source Locator",
+          "type": "string"
+        },
+        "source_title": {
+          "minLength": 1,
+          "title": "Source Title",
+          "type": "string"
+        },
+        "source_type": {
+          "minLength": 1,
+          "title": "Source Type",
+          "type": "string"
+        },
+        "source_url": {
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_url",
+        "source_title",
+        "publisher",
+        "source_type",
+        "publication_or_update_date",
+        "accessed_at",
+        "source_locator",
+        "raw_value"
+      ],
+      "title": "CapacityEnrichmentEvidence",
+      "type": "object"
+    },
+    "CapacityEnrichmentFact": {
+      "additionalProperties": false,
+      "properties": {
+        "applicability_note": {
+          "minLength": 1,
+          "title": "Applicability Note",
+          "type": "string"
+        },
+        "decision_id": {
+          "minLength": 1,
+          "title": "Decision Id",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/CapacityEnrichmentEvidence"
+          },
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "field_path": {
+          "pattern": "^(specs|capacity)\\.[a-z0-9_]+$",
+          "title": "Field Path",
+          "type": "string"
+        },
+        "model_name": {
+          "minLength": 1,
+          "title": "Model Name",
+          "type": "string"
+        },
+        "normalized_unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Normalized Unit"
+        },
+        "normalized_value": {
+          "title": "Normalized Value"
+        },
+        "organizer_id": {
+          "minLength": 1,
+          "title": "Organizer Id",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "resolution_status": {
+          "minLength": 1,
+          "title": "Resolution Status",
+          "type": "string"
+        },
+        "usable_for_matching": {
+          "title": "Usable For Matching",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "decision_id",
+        "organizer_id",
+        "model_name",
+        "field_path",
+        "normalized_value",
+        "normalized_unit",
+        "resolution_status",
+        "usable_for_matching",
+        "rationale",
+        "applicability_note",
+        "evidence"
+      ],
+      "title": "CapacityEnrichmentFact",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "catalog_code": {
+      "const": "organizer-catalog-v4",
+      "title": "Catalog Code",
+      "type": "string"
+    },
+    "counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Counts",
+      "type": "object"
+    },
+    "deterministic_order": {
+      "const": "organizer_id,field_path,decision_id",
+      "title": "Deterministic Order",
+      "type": "string"
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/CapacityEnrichmentFact"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "reviewed_at": {
+      "minLength": 1,
+      "title": "Reviewed At",
+      "type": "string"
+    },
+    "reviewed_by_subject": {
+      "const": "catalog-official-source-enrichment-reviewed-decisions-v1",
+      "title": "Reviewed By Subject",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "catalog-capacity-enrichment-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_overlay_sha256": {
+      "title": "Source Overlay Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "catalog_code",
+    "source_overlay_sha256",
+    "reviewed_by_subject",
+    "reviewed_at",
+    "deterministic_order",
+    "counts",
+    "facts"
+  ],
+  "title": "CapacityEnrichmentContract",
+  "type": "object"
+}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { catalogItemKey, catalogMedia, formatCatalogPrice, matchesCatalogQuery, normalizeOfficialModel } from '../catalogPresentation';
+import { catalogItemKey, catalogMedia, filterAndSortCatalog, formatCatalogPrice, normalizeOfficialModel } from '../catalogPresentation';
 import CatalogPositionDialog from './CatalogPositionDialog';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -30,6 +30,8 @@ export default function CatalogScreen({ objectType, onContinue }) {
   const [query, setQuery] = useState('');
   const [family, setFamily] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [manufacturer, setManufacturer] = useState('');
+  const [calculationParticipation, setCalculationParticipation] = useState('all');
   const [sort, setSort] = useState('name');
   const [selected, setSelected] = useState([]);
   const [expandedFamilies, setExpandedFamilies] = useState([]);
@@ -41,7 +43,13 @@ export default function CatalogScreen({ objectType, onContinue }) {
     fetch(`${API}/api/catalog/models`, { signal: controller.signal })
       .then(readResponse)
       .then((payload) => {
-        setCatalog({ ...payload.catalog, selectable_count: payload.selectable_count });
+        setCatalog({
+          ...payload.catalog,
+          model_count: payload.model_count,
+          position_count: payload.position_count,
+          calculation_ready_model_count: payload.calculation_ready_model_count,
+          calculation_ready_position_count: payload.calculation_ready_position_count,
+        });
         setHierarchy(payload.hierarchy || []);
         setRobots((payload.items || []).map(normalizeOfficialModel));
         setStatus('ready');
@@ -55,23 +63,25 @@ export default function CatalogScreen({ objectType, onContinue }) {
   }, []);
 
   const visible = useMemo(() => {
-    const filtered = robots.filter((robot) => {
-      if (family && robot.system_family !== family) return false;
-      if (typeFilter && robot.type_code !== typeFilter) return false;
-      return matchesCatalogQuery(robot, query);
+    return filterAndSortCatalog(robots, {
+      family,
+      type: typeFilter,
+      manufacturer,
+      calculationParticipation,
+      query,
+      sort,
     });
-    const key = sort === 'manufacturer' ? (robot) => robot.manufacturer || '' : sort === 'type' ? (robot) => robot.type_code || '' : (robot) => robot.name || '';
-    return [...filtered].sort((left, right) => key(left).localeCompare(key(right), 'ru'));
-  }, [robots, family, typeFilter, query, sort]);
+  }, [robots, family, typeFilter, manufacturer, calculationParticipation, query, sort]);
 
   const categories = useMemo(
     () => hierarchy.map((item, index) => ({ key: item.system_family, ...familyMeta(item.system_family, index) })),
     [hierarchy],
   );
   const types = family ? hierarchy.find((item) => item.system_family === family)?.types || [] : hierarchy.flatMap((item) => item.types || []);
+  const manufacturers = useMemo(() => [...new Set(robots.map((robot) => robot.manufacturer).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru')), [robots]);
   const selectedRobots = robots.filter((robot) => selected.includes(catalogItemKey(robot)));
   const toggle = (key) => setSelected((current) => current.includes(key) ? current.filter((item) => item !== key) : current.length < MAX_COMPARE ? [...current, key] : current);
-  const resetFilters = () => { setQuery(''); setFamily(''); setTypeFilter(''); setSort('name'); };
+  const resetFilters = () => { setQuery(''); setFamily(''); setTypeFilter(''); setManufacturer(''); setCalculationParticipation('all'); setSort('name'); };
   const objectLabel = { retail: 'Торговля / Склад', airport: 'Логистика / Аэропорт', clinic: 'Соц. сфера / Медучреждение', other: 'Произвольный объект' }[objectType] || 'Объект';
 
   return (
@@ -81,12 +91,14 @@ export default function CatalogScreen({ objectType, onContinue }) {
           <div><span className="catalog-eyebrow">БИБЛИОТЕКА РЕШЕНИЙ</span><h1 id="catalog-title">Доступные решения</h1><p>{status === 'ready' ? `${visible.length} позиций` : 'Загружаем позиции'} · объект: <strong>{objectLabel}</strong></p></div>
           {catalog && <div className="catalog-version" aria-label={`Версия каталога ${catalog.code}`}><span className="catalog-live-dot" aria-hidden="true" /><div><small>АКТИВНЫЙ КАТАЛОГ</small><strong>{catalog.code}</strong></div></div>}
         </header>
-        {catalog && <p className="catalog-notice">Показаны все позиции организатора, включая варианты одной модели. Для расчёта сейчас доступно: <strong>{catalog.selectable_count}</strong>.</p>}
+        {catalog && <p className="catalog-notice">Полный discovery-каталог: <strong>{catalog.model_count} моделей</strong> / <strong>{catalog.position_count} позиций</strong>. Участвуют в предварительном capacity-расчёте: <strong>{catalog.calculation_ready_model_count} модель</strong> / <strong>{catalog.calculation_ready_position_count} позиции</strong>. Это не означает готовность к внедрению или закупке.</p>}
 
         <section className="catalog-filters" aria-label="Фильтры каталога">
           <label className="catalog-search"><span className="sr-only">Поиск по каталогу</span><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Название, производитель, отрасль или сценарий" type="search" /></label>
           <label><span className="sr-only">Семейство систем</span><select value={family} onChange={(event) => { setFamily(event.target.value); setTypeFilter(''); }}><option value="">Все семейства</option>{hierarchy.map((item) => <option key={item.system_family} value={item.system_family}>{familyMeta(item.system_family).label}</option>)}</select></label>
           <label><span className="sr-only">Тип решения</span><select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}><option value="">Все типы</option>{Array.from(new Map(types.map((item) => [item.type_code, item])).values()).map((item) => <option key={item.type_code} value={item.type_code}>{item.type_code} ({item.count})</option>)}</select></label>
+          <label><span className="sr-only">Производитель</span><select value={manufacturer} onChange={(event) => setManufacturer(event.target.value)}><option value="">Все производители</option>{manufacturers.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label><span className="sr-only">Участие в расчёте</span><select aria-label="Участие в расчёте" value={calculationParticipation} onChange={(event) => setCalculationParticipation(event.target.value)}><option value="all">Все</option><option value="participating">Участвуют</option><option value="requires_data">Требуют данных</option></select></label>
           <label><span className="sr-only">Сортировка</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="name">По названию</option><option value="manufacturer">По производителю</option><option value="type">По типу</option></select></label>
         </section>
 
@@ -106,7 +118,7 @@ export default function CatalogScreen({ objectType, onContinue }) {
           </section>;
         })}
 
-        <footer className="catalog-footer"><p>Выберите 2–3 позиции для сравнения. Discovery-позиции не участвуют в расчёте до появления полного evidence-backed профиля.</p><button className="catalog-primary" onClick={onContinue}>Перейти к расчёту <span aria-hidden="true">→</span></button></footer>
+        <footer className="catalog-footer"><p>Выберите 2–3 позиции для сравнения. Только позиции с тегом «Участвует в расчёте» входят в capacity-пул; остальные доступны для discovery и сравнения.</p><button className="catalog-primary" onClick={onContinue}>Перейти к расчёту <span aria-hidden="true">→</span></button></footer>
       </div>
       {selected.length >= 2 && <button className="catalog-compare-fab" onClick={() => setShowCompare(true)}>Сравнить позиции <span>{selected.length}</span></button>}
       {showCompare && selectedRobots.length >= 2 && <CompareDialog robots={selectedRobots} onClose={() => setShowCompare(false)} />}
@@ -124,7 +136,7 @@ function RobotCard({ robot, family, selected, compareFull, onOpen, onToggle }) {
   const openFromKeyboard = (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } };
   return <article className={`catalog-card ${selected ? 'is-selected' : ''}`}>
     <div className="catalog-card-open" role="button" tabIndex="0" aria-label={`Подробнее о позиции ${robot.name}`} onClick={onOpen} onKeyDown={openFromKeyboard}>
-      <div className="catalog-media">{media && !imageFailed ? <img src={media.src} width={media.width} height={media.height} alt={`Официальное изображение: ${robot.name}`} loading="lazy" decoding="async" onError={() => setImageFailed(true)} /> : <div className="catalog-media-fallback" role="img" aria-label={`Изображение ${robot.name} отсутствует`}><span>{family.short}</span><small>НЕТ ИЗОБРАЖЕНИЯ</small></div>}<span className="catalog-position">ПОЗИЦИЯ {robot.source_row_number || '—'}</span><span className={`catalog-state ${robot.selectable ? 'is-ready' : ''}`}>{robot.selectable ? 'Для расчёта' : 'Discovery'}</span></div>
+      <div className="catalog-media">{media && !imageFailed ? <img src={media.src} width={media.width} height={media.height} alt={`Официальное изображение: ${robot.name}`} loading="lazy" decoding="async" onError={() => setImageFailed(true)} /> : <div className="catalog-media-fallback" role="img" aria-label={`Изображение ${robot.name} отсутствует`}><span>{family.short}</span><small>НЕТ ИЗОБРАЖЕНИЯ</small></div>}<span className="catalog-position">ПОЗИЦИЯ {robot.source_row_number || '—'}</span><span className="catalog-readiness-tags"><span className={`catalog-state ${robot.calculation_ready ? 'is-ready' : ''}`}>{robot.calculation_ready ? 'Участвует в расчёте' : 'Требует данных'}</span>{robot.calculation_requires_assumptions && <span className="catalog-state is-assumption">С допущениями</span>}</span></div>
       <div className="catalog-card-body"><div className="catalog-card-title"><div><p>{robot.manufacturer || 'Производитель не указан'}</p><h3>{robot.name}</h3></div><span>{family.short}</span></div><p className="catalog-description">{robot.description || 'Описание в исходном каталоге не указано.'}</p>{usages.length > 0 && <div className="catalog-tags" aria-label="Назначение">{usages.map((usage) => <span key={usage}>{usage}</span>)}</div>}{facts.length > 0 && <dl className="catalog-facts">{facts.map((fact) => <div key={fact.code}><dt>{fact.code.replaceAll('_', ' ')}</dt><dd>{typeof fact.value === 'object' ? JSON.stringify(fact.value) : String(fact.value)}{fact.unit ? ` ${fact.unit}` : ''}</dd></div>)}</dl>}<span className="catalog-card-more">Подробнее <span aria-hidden="true">→</span></span></div>
     </div>
     <div className="catalog-card-footer"><div><strong>{formatCatalogPrice(robot)}</strong><small>{robot.type_label || 'Тип не указан'}</small></div><button type="button" onClick={onToggle} disabled={compareDisabled} aria-pressed={selected} title={compareDisabled ? 'Можно сравнить не более трёх позиций' : undefined}>{selected ? 'В сравнении' : compareDisabled ? 'Выбрано 3' : 'Сравнить'}</button></div>

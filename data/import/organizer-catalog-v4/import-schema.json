@@ -84,7 +84,7 @@
     },
     "files": {
       "type": "array",
-      "minItems": 8,
+      "minItems": 10,
       "items": {
         "type": "object",
         "additionalProperties": false,

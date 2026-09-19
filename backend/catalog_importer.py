@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import sys
@@ -20,6 +21,7 @@ from catalog_import_contract import (
     load_catalog_bundle,
 )
 from catalog_models import (
+    REVIEWED_STATUSES,
     SAFE_AUTOMATIC_STATUSES,
     CatalogSourceRow,
     EquipmentApplicability,
@@ -255,6 +257,13 @@ def _expected_counts(bundle: CatalogBundle, phase: Phase) -> dict[str, int]:
             "enrichment_products",
             "overlay_fields",
             "external_evidence_rows",
+            "capacity_enrichment_facts",
+            "capacity_enrichment_matching_facts",
+            "capacity_enrichment_evidence_rows",
+            "capacity_enrichment_models",
+            "capacity_runtime_models",
+            "capacity_runtime_pool_models",
+            "capacity_runtime_pool_positions",
         )
     }
 
@@ -714,6 +723,15 @@ def _import_enrichment(
     }
     if len(model_ids) != bundle.manifest.expected_counts["products"]:
         raise CatalogImportError("BASE phase is incomplete")
+    model_entities = {
+        str(model.organizer_id): model
+        for model in session.scalars(
+            select(EquipmentModel).where(
+                EquipmentModel.catalog_version_id == version_id
+            )
+        )
+        if model.organizer_id is not None
+    }
     source_artifact_id = artifacts["bundle:catalog_external_evidence.csv"]
     evidence_by_field: dict[tuple[str, str], list[tuple[uuid.UUID, str]]] = {}
     for index, row in enumerate(bundle.external_evidence, start=1):
@@ -853,10 +871,223 @@ def _import_enrichment(
     session.flush()
     for fact_id, evidence_ids in pending_fact_links:
         _evidence_links(session, version_id, fact_id, evidence_ids)
+    session.flush()
+
+    resolved_by_key = {
+        (fact.equipment_model_id, fact.spec_code, fact.scope_code): fact
+        for fact in session.scalars(
+            select(ResolvedSpecFact).where(
+                ResolvedSpecFact.catalog_version_id == version_id
+            )
+        )
+    }
+    capacity_evidence_count = 0
+    capacity_observation_count = 0
+    capacity_resolved_count = 0
+    capacity_resolved_updates = 0
+    capacity_source_artifact_id = artifacts[
+        "bundle:catalog_capacity_enrichment.json"
+    ]
+    for capacity_fact in bundle.capacity_enrichment.facts:
+        organizer_id = capacity_fact.organizer_id
+        model_id = model_ids[organizer_id]
+        spec_code = capacity_fact.field_path.split(".", 1)[-1]
+        evidence_ids: list[uuid.UUID] = []
+        for evidence_index, evidence in enumerate(capacity_fact.evidence, start=1):
+            evidence_id = _uuid(
+                version_id,
+                "capacity-enrichment-evidence",
+                f"{capacity_fact.decision_id}:{evidence_index:02d}",
+            )
+            evidence_ids.append(evidence_id)
+            session.add(
+                FieldEvidence(
+                    id=evidence_id,
+                    catalog_version_id=version_id,
+                    source_artifact_id=capacity_source_artifact_id,
+                    catalog_source_row_id=None,
+                    equipment_model_id=model_id,
+                    source_namespace="capacity-enrichment-v1",
+                    source_record_key=(
+                        f"{capacity_fact.decision_id}:{evidence_index:02d}"
+                    ),
+                    subject_type="PRODUCT",
+                    subject_key=organizer_id,
+                    field_path=capacity_fact.field_path,
+                    raw_value=evidence.raw_value,
+                    normalized_value=copy.deepcopy(capacity_fact.normalized_value),
+                    normalized_unit=capacity_fact.normalized_unit,
+                    source_locator=(
+                        f"{evidence.source_url} | {evidence.source_locator}"
+                    ),
+                    evidence_status=capacity_fact.resolution_status,
+                    confidence_label=None,
+                    confidence_score=None,
+                    publication_or_update_date=(
+                        _parse_date(evidence.publication_or_update_date)
+                        if evidence.publication_or_update_date
+                        else None
+                    ),
+                    observed_at=datetime.combine(
+                        date.fromisoformat(evidence.accessed_at),
+                        datetime.min.time(),
+                        tzinfo=UTC,
+                    ),
+                    notes=" | ".join(
+                        (
+                            capacity_fact.rationale,
+                            capacity_fact.applicability_note,
+                            evidence.publisher,
+                            evidence.source_title,
+                            f"decision:{capacity_fact.decision_id}",
+                        )
+                    ),
+                )
+            )
+            capacity_evidence_count += 1
+        typed = _typed_columns(capacity_fact.normalized_value)
+        observation_id = _uuid(
+            version_id,
+            "capacity-enrichment-observation",
+            capacity_fact.decision_id,
+        )
+        session.add(
+            SpecObservation(
+                id=observation_id,
+                catalog_version_id=version_id,
+                equipment_model_id=model_id,
+                field_evidence_id=evidence_ids[0],
+                spec_code=spec_code,
+                scope_code="GLOBAL",
+                raw_value=capacity_fact.evidence[0].raw_value,
+                canonical_unit=capacity_fact.normalized_unit or "1",
+                observation_status=capacity_fact.resolution_status,
+                observed_at=datetime.combine(
+                    date.fromisoformat(capacity_fact.evidence[0].accessed_at),
+                    datetime.min.time(),
+                    tzinfo=UTC,
+                ),
+                **typed,
+            )
+        )
+        capacity_observation_count += 1
+        if not capacity_fact.usable_for_matching:
+            continue
+        fact_key = (model_id, spec_code, "GLOBAL")
+        reviewed = capacity_fact.resolution_status in REVIEWED_STATUSES
+        reviewed_at = (
+            datetime.fromisoformat(bundle.capacity_enrichment.reviewed_at)
+            if reviewed
+            else None
+        )
+        reviewed_by = (
+            bundle.capacity_enrichment.reviewed_by_subject if reviewed else None
+        )
+        review_reason = (
+            f"{capacity_fact.decision_id}: {capacity_fact.rationale}"
+            if reviewed
+            else None
+        )
+        resolved = resolved_by_key.get(fact_key)
+        if resolved is None:
+            resolved = ResolvedSpecFact(
+                id=_uuid(
+                    version_id,
+                    "capacity-enrichment-resolved-fact",
+                    f"{organizer_id}:{spec_code}",
+                ),
+                catalog_version_id=version_id,
+                equipment_model_id=model_id,
+                primary_evidence_id=evidence_ids[0],
+                spec_code=spec_code,
+                scope_code="GLOBAL",
+                canonical_unit=capacity_fact.normalized_unit or "1",
+                resolution_status=capacity_fact.resolution_status,
+                usable_for_matching=True,
+                reviewed_by_subject=reviewed_by,
+                review_reason=review_reason,
+                reviewed_at=reviewed_at,
+                resolved_at=datetime.now(UTC),
+                **typed,
+            )
+            session.add(resolved)
+            resolved_by_key[fact_key] = resolved
+            capacity_resolved_count += 1
+        else:
+            resolved.primary_evidence_id = evidence_ids[0]
+            resolved.canonical_unit = capacity_fact.normalized_unit or "1"
+            resolved.resolution_status = capacity_fact.resolution_status
+            resolved.usable_for_matching = True
+            resolved.reviewed_by_subject = reviewed_by
+            resolved.review_reason = review_reason
+            resolved.reviewed_at = reviewed_at
+            resolved.resolved_at = datetime.now(UTC)
+            for column, value in typed.items():
+                setattr(resolved, column, value)
+            capacity_resolved_updates += 1
+        _evidence_links(session, version_id, resolved.id, evidence_ids)
+    session.flush()
+
+    matching_fact_keys = set(
+        session.execute(
+            select(
+                ResolvedSpecFact.equipment_model_id,
+                ResolvedSpecFact.spec_code,
+                ResolvedSpecFact.scope_code,
+            ).where(
+                ResolvedSpecFact.catalog_version_id == version_id,
+                ResolvedSpecFact.usable_for_matching.is_(True),
+            )
+        ).all()
+    )
+    for runtime_model in bundle.capacity_runtime.models:
+        model = model_entities.get(runtime_model.model_id)
+        if model is None:
+            raise CatalogImportError("capacity runtime references an unknown model")
+        if runtime_model.calculation_ready:
+            missing = [
+                field
+                for field in runtime_model.calculation_model_fields
+                if (
+                    model_ids[runtime_model.model_id],
+                    field.split(".", 1)[-1],
+                    "GLOBAL",
+                )
+                not in matching_fact_keys
+            ]
+            if missing:
+                raise CatalogImportError(
+                    "capacity runtime model has no matching-safe calculation fact"
+                )
+        attributes = dict(model.attributes or {})
+        attributes["capacity_runtime"] = runtime_model.model_dump(mode="json")
+        attributes["capacity_runtime"]["runtime_catalog_version"] = (
+            bundle.capacity_runtime.runtime_catalog_version
+        )
+        attributes["capacity_runtime"]["provenance"] = {
+            "contract_version": bundle.capacity_runtime.contract_version,
+            "source_sha256": dict(bundle.capacity_runtime.source_sha256),
+        }
+        model.attributes = attributes
+    ready_ids = {
+        item.model_id
+        for item in bundle.capacity_runtime.models
+        if item.calculation_ready
+    }
+    ready_positions = sum(
+        row["organizer_id"] in ready_ids for row in bundle.applicability
+    )
     return {
-        "field_evidence": len(bundle.external_evidence),
-        "spec_observations": observation_count,
-        "resolved_spec_facts": resolved_count,
+        "field_evidence": len(bundle.external_evidence) + capacity_evidence_count,
+        "spec_observations": observation_count + capacity_observation_count,
+        "resolved_spec_facts": resolved_count + capacity_resolved_count,
+        "resolved_spec_fact_updates": capacity_resolved_updates,
+        "capacity_enrichment_models": len(
+            {item.organizer_id for item in bundle.capacity_enrichment.facts}
+        ),
+        "capacity_runtime_models": len(bundle.capacity_runtime.models),
+        "capacity_runtime_pool_models": len(ready_ids),
+        "capacity_runtime_pool_positions": ready_positions,
     }
 
 

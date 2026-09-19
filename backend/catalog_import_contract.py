@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from catalog_models import EVIDENCE_STATUSES
+from catalog_models import EVIDENCE_STATUSES, REVIEWED_STATUSES, SAFE_AUTOMATIC_STATUSES
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -24,6 +24,8 @@ REQUIRED_FILES = {
     "object_profiles.json",
     "catalog_external_enrichment.json",
     "catalog_external_evidence.csv",
+    "catalog_capacity_enrichment.json",
+    "catalog_capacity_runtime.json",
     "import-schema.json",
 }
 
@@ -148,6 +150,187 @@ class BundleManifest(StrictModel):
         return self
 
 
+class CapacityScenarioAssumption(StrictModel):
+    field: str = Field(min_length=1)
+    input_path: str = Field(min_length=1)
+    fallback_value: int | float | str | bool
+    unit: str = Field(min_length=1)
+    policy: Literal["SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK"]
+    provenance: str = Field(min_length=1)
+    vendor_fact: Literal[False]
+
+
+class CapacityRuntimeModel(StrictModel):
+    model_id: str = Field(min_length=1)
+    calculation_readiness_status: Literal[
+        "CALCULATION_READY",
+        "CALCULATION_READY_WITH_ASSUMPTIONS",
+        "CALCULATION_BLOCKED",
+        "UNSUPPORTED_CAPACITY_PROFILE",
+        "NOT_EQUIPMENT",
+    ]
+    calculation_ready: bool
+    calculation_requires_assumptions: bool
+    calculation_profile: str | None
+    calculation_model_fields: list[str]
+    calculation_blockers: list[str]
+    scenario_assumptions: list[CapacityScenarioAssumption]
+    deployment_readiness_status: Literal[
+        "DEPLOYMENT_READY",
+        "DEPLOYMENT_REVIEW_REQUIRED",
+        "UNSUPPORTED_CAPACITY_PROFILE",
+        "NOT_EQUIPMENT",
+    ]
+
+    @model_validator(mode="after")
+    def validate_readiness(self) -> CapacityRuntimeModel:
+        ready = self.calculation_readiness_status in {
+            "CALCULATION_READY",
+            "CALCULATION_READY_WITH_ASSUMPTIONS",
+        }
+        requires = self.calculation_readiness_status == (
+            "CALCULATION_READY_WITH_ASSUMPTIONS"
+        )
+        if self.calculation_ready != ready:
+            raise ValueError("calculation_ready differs from readiness status")
+        if self.calculation_requires_assumptions != requires:
+            raise ValueError("assumption flag differs from readiness status")
+        if requires != bool(self.scenario_assumptions):
+            raise ValueError("scenario assumptions differ from readiness status")
+        if ready and (not self.calculation_profile or self.calculation_blockers):
+            raise ValueError("ready capacity runtime profile is incomplete")
+        if not ready and not self.calculation_blockers:
+            raise ValueError("blocked capacity runtime profile has no blocker")
+        if self.deployment_readiness_status == "DEPLOYMENT_READY":
+            raise ValueError("deployment-ready models are not allowed in this bundle")
+        return self
+
+
+class CapacityRuntimeContract(StrictModel):
+    schema_version: Literal["catalog-capacity-runtime-v1"]
+    runtime_catalog_version: Literal["organizer-catalog-v4-capacity-runtime-v1"]
+    catalog_code: Literal["organizer-catalog-v4"]
+    contract_version: Literal["runtime-calculation-readiness-contract-v2"]
+    source_sha256: dict[str, str]
+    counts: dict[str, int]
+    deterministic_order: Literal["model_id"]
+    models: list[CapacityRuntimeModel]
+
+    @model_validator(mode="after")
+    def validate_exact_pool(self) -> CapacityRuntimeContract:
+        ids = [item.model_id for item in self.models]
+        if ids != sorted(ids) or len(ids) != len(set(ids)):
+            raise ValueError("capacity runtime models must be unique and sorted")
+        statuses = [item.calculation_readiness_status for item in self.models]
+        actual = {
+            "models": len(self.models),
+            "calculation_ready_models": statuses.count("CALCULATION_READY"),
+            "calculation_ready_with_assumptions_models": statuses.count(
+                "CALCULATION_READY_WITH_ASSUMPTIONS"
+            ),
+            "calculation_pool_models": sum(item.calculation_ready for item in self.models),
+            "deployment_ready_models": sum(
+                item.deployment_readiness_status == "DEPLOYMENT_READY"
+                for item in self.models
+            ),
+        }
+        for key, value in actual.items():
+            if self.counts.get(key) != value:
+                raise ValueError(f"capacity runtime count mismatch: {key}")
+        if actual != {
+            "models": 187,
+            "calculation_ready_models": 6,
+            "calculation_ready_with_assumptions_models": 15,
+            "calculation_pool_models": 21,
+            "deployment_ready_models": 0,
+        }:
+            raise ValueError("capacity runtime pool differs from the approved gate")
+        if set(self.source_sha256) != {"contract", "audit", "products"} or any(
+            not SHA256_RE.fullmatch(value) for value in self.source_sha256.values()
+        ):
+            raise ValueError("capacity runtime provenance hashes are invalid")
+        return self
+
+
+class CapacityEnrichmentEvidence(StrictModel):
+    source_url: str = Field(min_length=1)
+    source_title: str = Field(min_length=1)
+    publisher: str = Field(min_length=1)
+    source_type: str = Field(min_length=1)
+    publication_or_update_date: str | None
+    accessed_at: str = Field(min_length=1)
+    source_locator: str = Field(min_length=1)
+    raw_value: str = Field(min_length=1)
+
+
+class CapacityEnrichmentFact(StrictModel):
+    decision_id: str = Field(min_length=1)
+    organizer_id: str = Field(min_length=1)
+    model_name: str = Field(min_length=1)
+    field_path: str = Field(pattern=r"^(specs|capacity)\.[a-z0-9_]+$")
+    normalized_value: Any
+    normalized_unit: str | None
+    resolution_status: str = Field(min_length=1)
+    usable_for_matching: bool
+    rationale: str = Field(min_length=1)
+    applicability_note: str = Field(min_length=1)
+    evidence: list[CapacityEnrichmentEvidence] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_evidence_status(self) -> CapacityEnrichmentFact:
+        if self.resolution_status not in EVIDENCE_STATUSES:
+            raise ValueError("unknown capacity enrichment evidence status")
+        if self.usable_for_matching and (
+            self.resolution_status
+            not in SAFE_AUTOMATIC_STATUSES + REVIEWED_STATUSES
+            or self.normalized_value is None
+        ):
+            raise ValueError("matching capacity enrichment fact is unsafe")
+        return self
+
+
+class CapacityEnrichmentContract(StrictModel):
+    schema_version: Literal["catalog-capacity-enrichment-v1"]
+    catalog_code: Literal["organizer-catalog-v4"]
+    source_overlay_sha256: str
+    reviewed_by_subject: Literal[
+        "catalog-official-source-enrichment-reviewed-decisions-v1"
+    ]
+    reviewed_at: str = Field(min_length=1)
+    deterministic_order: Literal["organizer_id,field_path,decision_id"]
+    counts: dict[str, int]
+    facts: list[CapacityEnrichmentFact]
+
+    @model_validator(mode="after")
+    def validate_exact_enrichment(self) -> CapacityEnrichmentContract:
+        keys = [
+            (item.organizer_id, item.field_path, item.decision_id)
+            for item in self.facts
+        ]
+        if keys != sorted(keys) or len(keys) != len(set(keys)):
+            raise ValueError("capacity enrichment facts must be unique and sorted")
+        actual = {
+            "facts": len(self.facts),
+            "matching_facts": sum(item.usable_for_matching for item in self.facts),
+            "evidence_rows": sum(len(item.evidence) for item in self.facts),
+            "models": len({item.organizer_id for item in self.facts}),
+        }
+        if actual != {
+            "facts": 131,
+            "matching_facts": 129,
+            "evidence_rows": 154,
+            "models": 26,
+        } or any(self.counts.get(key) != value for key, value in actual.items()):
+            raise ValueError("capacity enrichment counts differ from reviewed staging")
+        if not SHA256_RE.fullmatch(self.source_overlay_sha256):
+            raise ValueError("capacity enrichment source hash is invalid")
+        try:
+            datetime.fromisoformat(self.reviewed_at)
+        except ValueError as exc:
+            raise ValueError("capacity enrichment review time is invalid") from exc
+        return self
+
+
 @dataclass(frozen=True)
 class CatalogBundle:
     root: Path
@@ -160,6 +343,8 @@ class CatalogBundle:
     object_profiles: dict[str, Any]
     enrichment: list[dict[str, Any]]
     external_evidence: list[dict[str, str]]
+    capacity_enrichment: CapacityEnrichmentContract
+    capacity_runtime: CapacityRuntimeContract
 
 
 def _sha256(path: Path) -> str:
@@ -377,6 +562,52 @@ def _validate_enrichment(
         raise CatalogBundleError("overlay field has no external evidence")
 
 
+def _validate_capacity_runtime(
+    manifest: BundleManifest,
+    products: list[dict[str, Any]],
+    applicability: list[dict[str, str]],
+    capacity_runtime: CapacityRuntimeContract,
+) -> None:
+    product_by_id = {str(product["organizer_id"]): product for product in products}
+    runtime_ids = {item.model_id for item in capacity_runtime.models}
+    if runtime_ids != set(product_by_id):
+        raise CatalogBundleError("capacity runtime model coverage differs")
+    ready_ids = {item.model_id for item in capacity_runtime.models if item.calculation_ready}
+    if any(product_by_id[model_id].get("system_family") != "BRS" for model_id in ready_ids):
+        raise CatalogBundleError("capacity runtime pool contains a non-BRS model")
+    position_count = sum(row["organizer_id"] in ready_ids for row in applicability)
+    if position_count != 24:
+        raise CatalogBundleError("capacity runtime pool must cover exactly 24 positions")
+    _require_count(manifest, "capacity_runtime_models", len(capacity_runtime.models))
+    _require_count(manifest, "capacity_runtime_pool_models", len(ready_ids))
+    _require_count(manifest, "capacity_runtime_pool_positions", position_count)
+
+
+def _validate_capacity_enrichment(
+    manifest: BundleManifest,
+    product_ids: set[str],
+    capacity_enrichment: CapacityEnrichmentContract,
+) -> None:
+    if any(item.organizer_id not in product_ids for item in capacity_enrichment.facts):
+        raise CatalogBundleError("capacity enrichment references an unknown model")
+    _require_count(manifest, "capacity_enrichment_facts", len(capacity_enrichment.facts))
+    _require_count(
+        manifest,
+        "capacity_enrichment_matching_facts",
+        sum(item.usable_for_matching for item in capacity_enrichment.facts),
+    )
+    _require_count(
+        manifest,
+        "capacity_enrichment_evidence_rows",
+        sum(len(item.evidence) for item in capacity_enrichment.facts),
+    )
+    _require_count(
+        manifest,
+        "capacity_enrichment_models",
+        len({item.organizer_id for item in capacity_enrichment.facts}),
+    )
+
+
 def load_catalog_bundle(bundle_path: str | Path) -> CatalogBundle:
     root = Path(bundle_path).resolve()
     manifest_path = root / "manifest.json"
@@ -469,11 +700,24 @@ def load_catalog_bundle(bundle_path: str | Path) -> CatalogBundle:
             "notes",
         ),
     )
+    try:
+        capacity_enrichment = CapacityEnrichmentContract.model_validate(
+            _json(root / "catalog_capacity_enrichment.json")
+        )
+        capacity_runtime = CapacityRuntimeContract.model_validate(
+            _json(root / "catalog_capacity_runtime.json")
+        )
+    except ValidationError as exc:
+        raise CatalogBundleError("capacity runtime contract validation failed") from exc
 
     _validate_base(manifest, products, applicability, prices, base_evidence)
     _validate_reference(manifest, object_profiles)
     product_ids = {str(product["organizer_id"]) for product in products}
     _validate_enrichment(manifest, product_ids, enrichment, external_evidence)
+    _validate_capacity_enrichment(manifest, product_ids, capacity_enrichment)
+    _validate_capacity_runtime(
+        manifest, products, applicability, capacity_runtime
+    )
     return CatalogBundle(
         root=root,
         manifest=manifest,
@@ -485,4 +729,6 @@ def load_catalog_bundle(bundle_path: str | Path) -> CatalogBundle:
         object_profiles=object_profiles,
         enrichment=enrichment,
         external_evidence=external_evidence,
+        capacity_enrichment=capacity_enrichment,
+        capacity_runtime=capacity_runtime,
     )

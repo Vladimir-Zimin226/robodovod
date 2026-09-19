@@ -211,6 +211,13 @@ def test_enrichment_requires_base_then_preserves_unsafe_observations(importer_da
         importer_database, BUNDLE, phase="ENRICHMENT", mode="VALIDATE_ONLY"
     )
     assert validated.counts["overlay_fields"] == 140
+    assert validated.counts["capacity_runtime_models"] == 187
+    assert validated.counts["capacity_runtime_pool_models"] == 21
+    assert validated.counts["capacity_runtime_pool_positions"] == 24
+    assert validated.counts["capacity_enrichment_facts"] == 131
+    assert validated.counts["capacity_enrichment_matching_facts"] == 129
+    assert validated.counts["capacity_enrichment_evidence_rows"] == 154
+    assert validated.counts["capacity_enrichment_models"] == 26
     assert (
         _scalar(importer_database, select(func.count()).select_from(SpecObservation))
         == 65
@@ -220,14 +227,19 @@ def test_enrichment_requires_base_then_preserves_unsafe_observations(importer_da
         importer_database, BUNDLE, phase="ENRICHMENT", mode="COMMIT"
     )
     assert result.counts == {
-        "field_evidence": 156,
-        "spec_observations": 140,
-        "resolved_spec_facts": 75,
+        "field_evidence": 310,
+        "spec_observations": 271,
+        "resolved_spec_facts": 204,
+        "resolved_spec_fact_updates": 0,
+        "capacity_enrichment_models": 26,
+        "capacity_runtime_models": 187,
+        "capacity_runtime_pool_models": 21,
+        "capacity_runtime_pool_positions": 24,
     }
     with importer_database.session() as session:
-        assert session.scalar(select(func.count()).select_from(FieldEvidence)) == 3791
-        assert session.scalar(select(func.count()).select_from(SpecObservation)) == 205
-        assert session.scalar(select(func.count()).select_from(ResolvedSpecFact)) == 140
+        assert session.scalar(select(func.count()).select_from(FieldEvidence)) == 3945
+        assert session.scalar(select(func.count()).select_from(SpecObservation)) == 336
+        assert session.scalar(select(func.count()).select_from(ResolvedSpecFact)) == 269
         unsafe_observations = session.scalar(
             select(func.count())
             .select_from(SpecObservation)
@@ -251,7 +263,13 @@ def test_enrichment_requires_base_then_preserves_unsafe_observations(importer_da
         matching_count = session.scalar(
             text("SELECT count(*) FROM matching_spec_facts")
         )
-        assert matching_count == 140
+        assert matching_count == 269
+        reviewed_count = session.scalar(
+            select(func.count())
+            .select_from(ResolvedSpecFact)
+            .where(ResolvedSpecFact.resolution_status == "MANUALLY_APPROVED")
+        )
+        assert reviewed_count == 13
         version = session.scalar(select(CatalogVersion))
         assert version is not None and version.status == "DRAFT"
         assert version.content_sha256 is not None
@@ -282,7 +300,18 @@ def test_database_failure_rolls_back_complete_phase(importer_database, tmp_path)
     bundle = _copy_bundle(tmp_path)
     products_path = bundle / "catalog_products.json"
     products = json.loads(products_path.read_text(encoding="utf-8"))
-    products["products"][0]["system_family"] = ""
+    runtime = json.loads(
+        (bundle / "catalog_capacity_runtime.json").read_text(encoding="utf-8")
+    )
+    ready_ids = {
+        item["model_id"] for item in runtime["models"] if item["calculation_ready"]
+    }
+    non_runtime_product = next(
+        item
+        for item in products["products"]
+        if item["organizer_id"] not in ready_ids
+    )
+    non_runtime_product["system_family"] = ""
     products_path.write_text(
         json.dumps(products, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )

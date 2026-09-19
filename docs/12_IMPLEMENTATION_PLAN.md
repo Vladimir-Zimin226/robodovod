@@ -205,8 +205,9 @@ admin user CRUD и cross-user denial проходят integration tests; уда�
 `intake/xlsx-csv-project-files`, `engine/readiness-architecture-constraints` и
 `catalog/runtime-eligibility-contract-gap-audit-223`,
 `catalog/official-source-enrichment` и
-`catalog/calculation-readiness-contract-v2` реализованы. Следующий этап —
-`catalog/runtime-pool-materialization-ui-21`, определённый в `docs/18`.
+`catalog/calculation-readiness-contract-v2` и
+`catalog/runtime-pool-materialization-ui-21` реализованы. Следующий этап —
+`engine/capacity-formula-trace`, определённый после gate в `docs/18`.
 Публикация проверяет
 imports/checksums/counts, activation history
 переключается атомарно, а `runtime` slot закрыт для версии без evidence-backed
@@ -239,8 +240,9 @@ contract/integration tests.
 `data/catalog-description-enrichment`, `frontend/catalog-position-details` и
 `intake/xlsx-csv-project-files`, `engine/readiness-architecture-constraints` и
 `catalog/runtime-eligibility-contract-gap-audit-223`, official-source
-enrichment и calculation-readiness contract v2 реализованы; далее идёт
-`catalog/runtime-pool-materialization-ui-21`.
+enrichment, calculation-readiness contract v2 и
+`catalog/runtime-pool-materialization-ui-21` реализованы; далее идёт
+`engine/capacity-formula-trace`.
 Migration 0004 хранит append-only media metadata,
 extractor проверяет SHA-256 restricted PDF и связывает 223 позиции со 189
 уникальными content-addressed assets. Discovery API возвращает 223 позиции при
@@ -461,12 +463,12 @@ Gate: golden path проходит пять раз подряд локально
 12. `engine/readiness-architecture-constraints` — реализован
 13. `catalog/runtime-eligibility-contract-gap-audit-223` — реализован
 14. `catalog/official-source-enrichment` — исследование и decision staging
-    завершены: 131 accepted / 7 deferred / 318 missing; следующий малый срез —
-    immutable ENRICHMENT bundle и validate-only DRAFT import
+    завершены: 131 accepted / 7 deferred / 318 missing; принятый срез перенесён
+    в immutable ENRICHMENT bundle итерацией 16
 15. `catalog/calculation-readiness-contract-v2` — реализован split calculation /
     deployment gates: 21 model / 24 position calculation pool, из них 19
     accepted-research identities; runtime activation не выполнена
-16. `catalog/runtime-pool-materialization-ui-21` — следующий этап: полный
+16. `catalog/runtime-pool-materialization-ui-21` — реализован: полный
     discovery-каталог остаётся на 187 моделях / 223 позициях, а 21 расчётная
     модель / 24 позиции получают materialized capacity runtime, явный UI-тег и
     фильтр по участию в расчёте; обязательный контракт —

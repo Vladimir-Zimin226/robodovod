@@ -47,6 +47,8 @@ def test_committed_bundle_matches_contract():
     assert len(bundle.base_evidence) == 3635
     assert sum(len(product["fields"]) for product in bundle.enrichment) == 140
     assert len(bundle.external_evidence) == 156
+    assert len(bundle.capacity_runtime.models) == 187
+    assert sum(item.calculation_ready for item in bundle.capacity_runtime.models) == 21
 
 
 def test_checksum_mismatch_is_rejected(tmp_path):
@@ -92,4 +94,24 @@ def test_unknown_evidence_status_is_rejected(tmp_path):
     path.write_text(content, encoding="utf-8-sig", newline="")
     _update_file_contract(bundle, path.name)
     with pytest.raises(CatalogBundleError, match="unknown external evidence status"):
+        load_catalog_bundle(bundle)
+
+
+def test_capacity_runtime_cannot_mark_inconsistent_model_ready(tmp_path):
+    bundle = _copy_bundle(tmp_path)
+    path = bundle / "catalog_capacity_runtime.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    blocked = next(
+        item
+        for item in payload["models"]
+        if item["calculation_readiness_status"] == "NOT_EQUIPMENT"
+    )
+    blocked["calculation_ready"] = True
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    _update_file_contract(bundle, path.name)
+
+    with pytest.raises(CatalogBundleError, match="capacity runtime contract"):
         load_catalog_bundle(bundle)

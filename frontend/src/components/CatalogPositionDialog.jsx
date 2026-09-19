@@ -102,7 +102,7 @@ export default function CatalogPositionDialog({ position, official, onClose }) {
                 : <div className="catalog-media-fallback" role="img" aria-label={`Изображение ${detail.name} отсутствует`}><span>{detail.system_family || 'РТК'}</span><small>НЕТ ИЗОБРАЖЕНИЯ</small></div>}
             </div>
             <div className="catalog-detail-summary">
-              <div className="catalog-detail-state-row"><span className={`catalog-detail-state ${detail.selectable ? 'is-ready' : ''}`}>{detail.selectable ? 'Доступно для расчёта' : 'Только просмотр'}</span><strong>{formatCatalogPrice(detail)}</strong></div>
+              <div className="catalog-detail-state-row"><div className="catalog-detail-state-tags"><span className={`catalog-detail-state ${detail.calculation_ready ? 'is-ready' : ''}`}>{detail.calculation_ready ? 'Участвует в расчёте' : 'Требует данных'}</span>{detail.calculation_requires_assumptions && <span className="catalog-detail-state is-assumption">С допущениями</span>}</div><strong>{formatCatalogPrice(detail)}</strong></div>
               <h3>Описание модели</h3>
               <p id="catalog-detail-description">{view.description}</p>
               <dl className="catalog-detail-metrics">
@@ -141,10 +141,18 @@ export default function CatalogPositionDialog({ position, official, onClose }) {
           </section>
 
           <section className="catalog-detail-section" aria-labelledby="catalog-runtime-title">
-            <div className="catalog-detail-section-heading"><span>04</span><div><h3 id="catalog-runtime-title">Доступность для расчёта</h3><p>Discovery-данные не становятся runtime-фактами автоматически.</p></div></div>
-            {view.runtimeBlockers.length > 0
-              ? <ul className="catalog-runtime-blockers">{view.runtimeBlockers.map((blocker) => <li key={blocker}><strong>{runtimeBlockerLabel(blocker)}</strong><code>{blocker}</code></li>)}</ul>
-              : <p className="catalog-detail-ready">Позиция имеет полный серверный runtime-профиль.</p>}
+            <div className="catalog-detail-section-heading"><span>04</span><div><h3 id="catalog-runtime-title">Участие в предварительном расчёте</h3><p>Capacity readiness отделена от готовности к внедрению, закупке и economics.</p></div></div>
+            <dl className="catalog-detail-list">
+              <DetailValue label="Статус">{detail.calculation_readiness_status}</DetailValue>
+              <DetailValue label="Capacity profile">{detail.calculation_profile}</DetailValue>
+              <DetailValue label="Runtime version">{detail.runtime_catalog_version}</DetailValue>
+              <DetailValue label="Deployment">{detail.deployment_readiness_status}</DetailValue>
+            </dl>
+            {view.calculationBlockers.length > 0
+              ? <ul className="catalog-runtime-blockers">{view.calculationBlockers.map((blocker) => <li key={blocker}><strong>{runtimeBlockerLabel(blocker)}</strong><code>{blocker}</code></li>)}</ul>
+              : <p className="catalog-detail-ready">Расчётные vendor facts прошли evidence gate.</p>}
+            {view.calculationVendorFacts.length > 0 && <div className="catalog-detail-copy"><h4>Vendor facts для capacity</h4><dl className="catalog-detail-facts">{view.calculationVendorFacts.map((fact) => <DetailValue key={fact.field} label={fact.field}>{formatCatalogFact(fact)} · {fact.status} · evidence {fact.evidence_id}</DetailValue>)}</dl></div>}
+            {view.calculationAssumptions.length > 0 && <div className="catalog-assumptions"><h4>Сценарные допущения</h4><p>Это входы сценария, а не характеристики производителя.</p><ul>{view.calculationAssumptions.map((assumption) => <li key={assumption.field}><strong>{assumption.field}</strong><span>Сначала {assumption.input_path}; fallback {String(assumption.fallback_value)} {assumption.unit}</span><code>{assumption.provenance}</code></li>)}</ul></div>}
           </section>
 
           <section className="catalog-detail-section" aria-labelledby="catalog-provenance-title">

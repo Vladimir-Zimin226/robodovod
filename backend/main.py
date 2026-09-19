@@ -209,6 +209,7 @@ def _discovery_position(
     applicability = position.applicability
     media = position.media
     enrichment = position.enrichment
+    capacity = model.capacity_runtime
     description = (
         enrichment.description_normalized
         if enrichment is not None and enrichment.description_status == "ENRICHED"
@@ -299,6 +300,35 @@ def _discovery_position(
         ),
         "selectable": position.runtime_robot is not None,
         "runtime_blockers": list(position.runtime_blockers),
+        "calculation_readiness_status": capacity.calculation_readiness_status,
+        "calculation_ready": capacity.calculation_ready,
+        "calculation_requires_assumptions": capacity.calculation_requires_assumptions,
+        "calculation_profile": capacity.calculation_profile,
+        "calculation_blockers": list(capacity.calculation_blockers),
+        "runtime_catalog_version": capacity.runtime_catalog_version,
+        "calculation_vendor_facts": [
+            {
+                "field": next(
+                    (
+                        field
+                        for field in capacity.calculation_model_fields
+                        if field.split(".", 1)[-1] == fact.code
+                    ),
+                    fact.code,
+                ),
+                "code": fact.code,
+                "value": _json_value(fact.value),
+                "unit": fact.canonical_unit,
+                "status": fact.resolution_status,
+                "evidence_id": fact.evidence_id,
+            }
+            for fact in capacity.vendor_facts
+        ],
+        "calculation_assumptions": [
+            _json_value(item) for item in capacity.scenario_assumptions
+        ],
+        "calculation_provenance": _json_value(capacity.provenance),
+        "deployment_readiness_status": capacity.deployment_readiness_status,
     }
 
 
@@ -333,6 +363,12 @@ def catalog_status():
             "model_count": len(discovery.models),
             "position_count": len(discovery.positions),
             "selectable_count": len(discovery.runtime_robots()),
+            "calculation_ready_model_count": len(
+                discovery.calculation_ready_models()
+            ),
+            "calculation_ready_position_count": len(
+                discovery.calculation_ready_positions()
+            ),
         },
     }
 
@@ -344,6 +380,9 @@ def discover_catalog_models(
     type_code: str | None = Query(None, max_length=200),
     manufacturer: str | None = Query(None, max_length=200),
     selectable: bool | None = None,
+    calculation_participation: str = Query(
+        "all", pattern="^(all|participating|requires_data)$"
+    ),
     sort: str = Query("name", pattern="^(name|manufacturer|type)$"),
 ):
     """Search/filter the activated discovery catalog without making it selectable."""
@@ -398,6 +437,18 @@ def discover_catalog_models(
             for position in positions
             if (position.runtime_robot is not None) == selectable
         ]
+    if calculation_participation == "participating":
+        positions = [
+            position
+            for position in positions
+            if position.model.capacity_runtime.calculation_ready
+        ]
+    elif calculation_participation == "requires_data":
+        positions = [
+            position
+            for position in positions
+            if not position.model.capacity_runtime.calculation_ready
+        ]
     sort_keys = {
         "name": lambda position: (
             position.model.name.casefold(),
@@ -429,6 +480,30 @@ def discover_catalog_models(
         "selectable_count": sum(
             position.runtime_robot is not None for position in all_positions
         ),
+        "calculation_ready_model_count": len(snapshot.calculation_ready_models()),
+        "calculation_ready_position_count": len(
+            snapshot.calculation_ready_positions()
+        ),
+        "calculation_readiness_counts": {
+            status: {
+                "models": sum(
+                    model.capacity_runtime.calculation_readiness_status == status
+                    for model in snapshot.models
+                ),
+                "positions": sum(
+                    position.model.capacity_runtime.calculation_readiness_status
+                    == status
+                    for position in all_positions
+                ),
+            }
+            for status in (
+                "CALCULATION_READY",
+                "CALCULATION_READY_WITH_ASSUMPTIONS",
+                "CALCULATION_BLOCKED",
+                "UNSUPPORTED_CAPACITY_PROFILE",
+                "NOT_EQUIPMENT",
+            )
+        },
         "hierarchy": [
             {
                 "system_family": family,

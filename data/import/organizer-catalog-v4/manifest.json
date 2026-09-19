@@ -28,7 +28,14 @@
     "object_profile_parameters": 138,
     "enrichment_products": 11,
     "overlay_fields": 140,
-    "external_evidence_rows": 156
+    "external_evidence_rows": 156,
+    "capacity_runtime_models": 187,
+    "capacity_runtime_pool_models": 21,
+    "capacity_runtime_pool_positions": 24,
+    "capacity_enrichment_facts": 131,
+    "capacity_enrichment_matching_facts": 129,
+    "capacity_enrichment_evidence_rows": 154,
+    "capacity_enrichment_models": 26
   },
   "files": [
     {
@@ -90,10 +97,26 @@
     {
       "path": "import-schema.json",
       "phase": "REFERENCE",
-      "sha256": "5720f286da55e4a5123d8fe0431d40e3a696dd423b9cdeeb8ae3c345b3480e37",
-      "size_bytes": 4676,
+      "sha256": "22f995c079c1c2476b1fca5cc90e732ed7ed5f1135d64dd8aa315733bf971fc4",
+      "size_bytes": 4476,
       "record_kind": null,
       "records": null
+    },
+    {
+      "path": "catalog_capacity_runtime.json",
+      "phase": "ENRICHMENT",
+      "sha256": "4d881d60513ba84f617d4a8bd6a288333f76a4055147534e9ff2dcf66e830f5b",
+      "size_bytes": 102629,
+      "record_kind": "capacity_runtime_models",
+      "records": 187
+    },
+    {
+      "path": "catalog_capacity_enrichment.json",
+      "phase": "ENRICHMENT",
+      "sha256": "e31a55b17d5ef8bcb32cbc8ec4583424e4b0f6badc26bebc809aa3cdd8d01832",
+      "size_bytes": 178566,
+      "record_kind": "capacity_enrichment_facts",
+      "records": 131
     }
   ],
   "source_artifacts": [
@@ -256,14 +279,38 @@
     {
       "artifact_key": "bundle:import-schema.json",
       "original_name": "import-schema.json",
-      "sha256": "5720f286da55e4a5123d8fe0431d40e3a696dd423b9cdeeb8ae3c345b3480e37",
-      "size_bytes": 4676,
+      "sha256": "22f995c079c1c2476b1fca5cc90e732ed7ed5f1135d64dd8aa315733bf971fc4",
+      "size_bytes": 4476,
       "media_type": "application/json",
       "provenance_status": "VERIFIED",
       "license_status": "PERMITTED",
       "role": "IMPORT_BUNDLE",
       "ordinal": 7,
       "observed_at": "2026-09-16T00:00:00+00:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_capacity_runtime.json",
+      "original_name": "catalog_capacity_runtime.json",
+      "sha256": "4d881d60513ba84f617d4a8bd6a288333f76a4055147534e9ff2dcf66e830f5b",
+      "size_bytes": 102629,
+      "media_type": "application/json",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 8,
+      "observed_at": "2026-09-19T00:00:00+11:00"
+    },
+    {
+      "artifact_key": "bundle:catalog_capacity_enrichment.json",
+      "original_name": "catalog_capacity_enrichment.json",
+      "sha256": "e31a55b17d5ef8bcb32cbc8ec4583424e4b0f6badc26bebc809aa3cdd8d01832",
+      "size_bytes": 178566,
+      "media_type": "application/json",
+      "provenance_status": "VERIFIED",
+      "license_status": "PERMITTED",
+      "role": "IMPORT_BUNDLE",
+      "ordinal": 9,
+      "observed_at": "2026-09-19T00:00:00+11:00"
     }
   ]
 }

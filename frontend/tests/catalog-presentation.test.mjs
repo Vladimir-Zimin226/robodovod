@@ -6,8 +6,10 @@ import {
   catalogDetailView,
   catalogItemKey,
   catalogMedia,
+  filterAndSortCatalog,
   formatCatalogFact,
   formatCatalogPrice,
+  matchesCalculationParticipation,
   matchesCatalogQuery,
   normalizeOfficialModel,
   runtimeBlockerLabel,
@@ -33,6 +35,14 @@ const officialPosition = {
     provenance: { source_page: 6, source_slot: 1, limitation: 'external transcription' },
   },
   runtime_blockers: ['runtime_projection'],
+  calculation_readiness_status: 'CALCULATION_READY_WITH_ASSUMPTIONS',
+  calculation_ready: true,
+  calculation_requires_assumptions: true,
+  calculation_profile: 'TRANSPORT_CYCLE_V1',
+  calculation_blockers: [],
+  runtime_catalog_version: 'organizer-catalog-v4-capacity-runtime-v1',
+  calculation_vendor_facts: [{ field: 'specs.payload', code: 'payload', value: 1200, unit: 'kg', status: 'VERIFIED_OFFICIAL', evidence_id: 'evidence-1' }],
+  calculation_assumptions: [{ field: 'capacity.units_per_trip', input_path: 'UserInput.units_per_trip', fallback_value: 1, unit: 'unit/trip', provenance: 'backend/economics.py:_fleet_sizing', vendor_fact: false }],
 };
 
 test('catalog position identity does not collapse duplicate canonical models', () => {
@@ -54,6 +64,36 @@ test('search covers manufacturer, industry, use case and source identity', () =>
   assert.equal(matchesCatalogQuery(normalized, 'паллет'), true);
   assert.equal(matchesCatalogQuery(normalized, 'row-223'), true);
   assert.equal(matchesCatalogQuery(normalized, 'медицина'), false);
+});
+
+test('calculation participation combines independently with other filters', () => {
+  const normalized = normalizeOfficialModel(officialPosition);
+  assert.equal(matchesCalculationParticipation(normalized, 'all'), true);
+  assert.equal(matchesCalculationParticipation(normalized, 'participating'), true);
+  assert.equal(matchesCalculationParticipation(normalized, 'requires_data'), false);
+  assert.equal(matchesCatalogQuery(normalized, 'паллет'), true);
+  const blocked = normalizeOfficialModel({ ...officialPosition, calculation_ready: false });
+  assert.equal(matchesCalculationParticipation(blocked, 'participating'), false);
+  assert.equal(matchesCalculationParticipation(blocked, 'requires_data'), true);
+  const other = normalizeOfficialModel({
+    ...officialPosition,
+    position_id: 'position-224',
+    source_row_number: 224,
+    name: 'Другой робот',
+    manufacturer: 'Другой завод',
+    calculation_ready: false,
+  });
+  assert.deepEqual(
+    filterAndSortCatalog([other, normalized], {
+      family: 'BRS',
+      type: 'WAREHOUSE',
+      manufacturer: 'Завод Роботов',
+      calculationParticipation: 'participating',
+      query: 'паллет',
+      sort: 'manufacturer',
+    }).map(catalogItemKey),
+    ['position-223'],
+  );
 });
 
 test('media metadata and official prices are presentation-only projections', () => {
@@ -79,6 +119,9 @@ test('detail view preserves row-specific text and presentation-only enrichment',
   assert.equal(detail.sourceLocation, 'страница 6, слот 1');
   assert.deepEqual(detail.serviceLabels, ['Есть в каталоге']);
   assert.deepEqual(detail.runtimeBlockers, ['runtime_projection']);
+  assert.deepEqual(detail.calculationBlockers, []);
+  assert.equal(detail.calculationAssumptions[0].vendor_fact, false);
+  assert.equal(detail.calculationVendorFacts[0].evidence_id, 'evidence-1');
 });
 
 test('detail presentation does not invent absent values', () => {
@@ -102,6 +145,10 @@ test('catalog component keeps media and interactive controls accessible', async 
   assert.match(source, /closeButton\.current\?\.focus\(\)/);
   assert.match(source, /CatalogPositionDialog/);
   assert.match(source, /aria-label=\{`Подробнее о позиции/);
+  assert.match(source, /Участие в расчёте/);
+  assert.match(source, /Участвует в расчёте/);
+  assert.match(source, /С допущениями/);
+  assert.match(source, /setManufacturer/);
 });
 
 test('position dialog fetches the position endpoint and traps keyboard focus', async () => {
@@ -109,7 +156,8 @@ test('position dialog fetches the position endpoint and traps keyboard focus', a
   assert.match(source, /\/api\/catalog\/positions\//);
   assert.match(source, /event\.key === 'Escape'/);
   assert.match(source, /event\.key !== 'Tab'/);
-  assert.match(source, /runtimeBlockers/);
+  assert.match(source, /calculationBlockers/);
+  assert.match(source, /calculationAssumptions/);
   assert.match(source, /transcript_sha256/);
   assert.match(source, /aria-modal="true"/);
 });

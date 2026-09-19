@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import copy
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any, Protocol
 
@@ -76,6 +76,21 @@ class ProcurementOptionDTO:
 
 
 @dataclass(frozen=True)
+class CapacityRuntimeDTO:
+    calculation_readiness_status: str
+    calculation_ready: bool
+    calculation_requires_assumptions: bool
+    calculation_profile: str | None
+    calculation_blockers: tuple[str, ...]
+    runtime_catalog_version: str | None
+    calculation_model_fields: tuple[str, ...] = ()
+    vendor_facts: tuple[CatalogFactDTO, ...] = ()
+    scenario_assumptions: tuple[dict[str, Any], ...] = ()
+    provenance: dict[str, Any] | None = None
+    deployment_readiness_status: str | None = None
+
+
+@dataclass(frozen=True)
 class CatalogModelDTO:
     id: str
     source_namespace: str
@@ -95,6 +110,16 @@ class CatalogModelDTO:
     procurement_options: tuple[ProcurementOptionDTO, ...]
     runtime_robot: dict[str, Any] | None
     runtime_blockers: tuple[str, ...]
+    capacity_runtime: CapacityRuntimeDTO = field(
+        default_factory=lambda: CapacityRuntimeDTO(
+            calculation_readiness_status="CALCULATION_BLOCKED",
+            calculation_ready=False,
+            calculation_requires_assumptions=False,
+            calculation_profile=None,
+            calculation_blockers=("capacity_runtime",),
+            runtime_catalog_version=None,
+        )
+    )
 
     def runtime_dict(self) -> dict[str, Any] | None:
         """Return an isolated mutable value for the existing calculation core."""
@@ -167,6 +192,16 @@ class CatalogSnapshotDTO:
                 robots.append(runtime_robot)
         return robots
 
+    def calculation_ready_models(self) -> tuple[CatalogModelDTO, ...]:
+        return tuple(model for model in self.models if model.capacity_runtime.calculation_ready)
+
+    def calculation_ready_positions(self) -> tuple[CatalogPositionDTO, ...]:
+        return tuple(
+            position
+            for position in self.positions
+            if position.model.capacity_runtime.calculation_ready
+        )
+
 
 class CatalogRepository(Protocol):
     def load(self) -> CatalogSnapshotDTO:
@@ -188,6 +223,110 @@ def _fact_value(row: dict[str, Any]) -> Any:
         if value is not None:
             return copy.deepcopy(value)
     raise CatalogRepositoryError("matching fact has no typed value")
+
+
+def _capacity_runtime(
+    attributes: dict[str, Any], facts: tuple[CatalogFactDTO, ...]
+) -> CapacityRuntimeDTO:
+    raw = copy.deepcopy(attributes.get("capacity_runtime"))
+    if not isinstance(raw, dict):
+        return CapacityRuntimeDTO(
+            calculation_readiness_status="CALCULATION_BLOCKED",
+            calculation_ready=False,
+            calculation_requires_assumptions=False,
+            calculation_profile=None,
+            calculation_blockers=("capacity_runtime",),
+            runtime_catalog_version=None,
+        )
+    status = raw.get("calculation_readiness_status")
+    ready = raw.get("calculation_ready") is True
+    requires_assumptions = raw.get("calculation_requires_assumptions") is True
+    profile = raw.get("calculation_profile")
+    blockers = raw.get("calculation_blockers")
+    model_fields = raw.get("calculation_model_fields")
+    assumptions = raw.get("scenario_assumptions")
+    runtime_version = raw.get("runtime_catalog_version")
+    provenance = raw.get("provenance")
+    deployment_status = raw.get("deployment_readiness_status")
+    ready_statuses = {
+        "CALCULATION_READY",
+        "CALCULATION_READY_WITH_ASSUMPTIONS",
+    }
+    if (
+        not isinstance(status, str)
+        or status
+        not in {
+            *ready_statuses,
+            "CALCULATION_BLOCKED",
+            "UNSUPPORTED_CAPACITY_PROFILE",
+            "NOT_EQUIPMENT",
+        }
+        or ready != (status in ready_statuses)
+        or requires_assumptions
+        != (status == "CALCULATION_READY_WITH_ASSUMPTIONS")
+        or (ready and not isinstance(profile, str))
+        or (ready and blockers)
+        or (not ready and not blockers)
+        or not isinstance(blockers, list)
+        or not all(isinstance(item, str) and item for item in blockers)
+        or not isinstance(model_fields, list)
+        or not all(isinstance(item, str) and item for item in model_fields)
+        or not isinstance(assumptions, list)
+        or not all(isinstance(item, dict) for item in assumptions)
+        or requires_assumptions != bool(assumptions)
+        or any(
+            item.get("vendor_fact") is not False
+            or not isinstance(item.get("provenance"), str)
+            for item in assumptions
+        )
+        or not isinstance(runtime_version, str)
+        or deployment_status == "DEPLOYMENT_READY"
+    ):
+        return CapacityRuntimeDTO(
+            calculation_readiness_status="CALCULATION_BLOCKED",
+            calculation_ready=False,
+            calculation_requires_assumptions=False,
+            calculation_profile=None,
+            calculation_blockers=("capacity_runtime:invalid_contract",),
+            runtime_catalog_version=None,
+        )
+    facts_by_code = {fact.code: fact for fact in facts}
+    required_codes = [field.split(".", 1)[-1] for field in model_fields]
+    missing = [code for code in required_codes if code not in facts_by_code]
+    if ready and missing:
+        return CapacityRuntimeDTO(
+            calculation_readiness_status="CALCULATION_BLOCKED",
+            calculation_ready=False,
+            calculation_requires_assumptions=False,
+            calculation_profile=profile if isinstance(profile, str) else None,
+            calculation_blockers=tuple(
+                f"matching_fact:{code}" for code in sorted(missing)
+            ),
+            runtime_catalog_version=runtime_version,
+            calculation_model_fields=tuple(model_fields),
+            provenance=provenance if isinstance(provenance, dict) else None,
+            deployment_readiness_status=(
+                deployment_status if isinstance(deployment_status, str) else None
+            ),
+        )
+    vendor_facts = tuple(
+        facts_by_code[code] for code in required_codes if code in facts_by_code
+    )
+    return CapacityRuntimeDTO(
+        calculation_readiness_status=status,
+        calculation_ready=ready,
+        calculation_requires_assumptions=requires_assumptions,
+        calculation_profile=profile if isinstance(profile, str) else None,
+        calculation_blockers=tuple(blockers),
+        runtime_catalog_version=runtime_version,
+        calculation_model_fields=tuple(model_fields),
+        vendor_facts=vendor_facts,
+        scenario_assumptions=tuple(assumptions),
+        provenance=provenance if isinstance(provenance, dict) else None,
+        deployment_readiness_status=(
+            deployment_status if isinstance(deployment_status, str) else None
+        ),
+    )
 
 
 def _as_runtime_number(value: Any, unit: str, target: str) -> float:
@@ -482,6 +621,7 @@ class PostgresCatalogRepository:
                 facts = tuple(facts_by_model.get(model.id, ()))
                 applicability = tuple(applicability_by_model.get(model.id, ()))
                 procurement = tuple(procurement_by_model.get(model.id, ()))
+                capacity_runtime = _capacity_runtime(model.attributes or {}, facts)
                 runtime_robot, blockers = _project_runtime_robot(
                     model, facts, procurement
                 )
@@ -508,6 +648,7 @@ class PostgresCatalogRepository:
                     procurement_options=procurement,
                     runtime_robot=runtime_robot,
                     runtime_blockers=blockers,
+                    capacity_runtime=capacity_runtime,
                 )
                 models.append(item)
                 model_entities[model.id] = model

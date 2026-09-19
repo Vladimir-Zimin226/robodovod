@@ -1,0 +1,2819 @@
+{
+  "catalog_code": "organizer-catalog-v4",
+  "contract_version": "runtime-calculation-readiness-contract-v2",
+  "counts": {
+    "calculation_pool_models": 21,
+    "calculation_pool_positions": 24,
+    "calculation_ready_models": 6,
+    "calculation_ready_positions": 6,
+    "calculation_ready_with_assumptions_models": 15,
+    "calculation_ready_with_assumptions_positions": 18,
+    "deployment_ready_models": 0,
+    "deployment_ready_positions": 0,
+    "models": 187,
+    "positions": 223
+  },
+  "deterministic_order": "model_id",
+  "models": [
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0073d0bb-54cd-40f0-897b-75b22d3e9f8c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "00ddbb71-8fca-4cb1-9998-78250c62ea03",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "012ceb2f-4831-4039-a8db-64e6764884fb",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "018cc2dd-3dfe-4bd2-aac6-f54cbebd783e",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "0265d700-534e-417e-8fde-47de88fc3ebb",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "04d05489-05fb-46b3-aed0-1012f96d34a3",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "not_equipment"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "NOT_EQUIPMENT",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "NOT_EQUIPMENT",
+      "model_id": "05505022-3ef7-43da-8279-718e7c432491",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0749847e-b059-4f55-ad40-b5d6eddc703a",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0861538d-75c8-473e-a2ab-499a6b8c1d49",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "08ff32f6-6023-4b20-b528-322678f43910",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0a2e93bc-ebd4-4f0e-a4f5-c6097fe7a9b1",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0a4cab58-e194-4329-8f23-6074a5f7455f",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0aaaa4d1-9ca6-4737-a3d6-92081635402c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "0b9f76be-8213-4938-9661-2bb669dc3d33",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0ece582a-084c-4a8b-99f4-576f0e01b7c8",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "0f4d3500-ce64-4525-a1c1-bfb542c022d3",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "1615bcc8-7168-48b2-b2d3-99a9b89f54c0",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "1625ac11-76d0-4994-a86a-e0a540453984",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "164329f5-2baf-47bd-86d5-adabb2fbcbc0",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "1906efb4-3ed1-4882-ad33-2a527ef214ac",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "19283c8d-abfd-41a4-a4dd-846392728ea9",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "192ce3de-958f-4bad-9440-c2b3ab56634a",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed",
+        "missing:specs.payload"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "19a68304-56f7-432f-afd8-b97b2b8466ba",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "1a694805-4d3a-42ff-80b9-5f68525e76b5",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "1aaa2bd1-c536-41e1-80f0-0f81ab1455b5",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "not_equipment"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "NOT_EQUIPMENT",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "NOT_EQUIPMENT",
+      "model_id": "1f82ce16-5670-4903-a4ea-bfdbbc710f20",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.throughput"
+      ],
+      "calculation_model_fields": [
+        "specs.throughput"
+      ],
+      "calculation_profile": "PALLETIZING_THROUGHPUT_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "22b5ba99-bc4f-46a7-9a9b-e4475ecd9fc7",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "22de87a2-a16a-4ce3-9581-1c3eb6f6d2ec",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "23195034-45aa-48c1-8cb5-1f384c2cacb7",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "242d637c-6512-4bdf-9964-2c0010259f36",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "2603f59e-cd37-49f3-85ca-705ec956e37a",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "26cb8cfb-e0bd-44e7-ae06-22b7bc8379f5",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "28a5afa8-0473-4f80-99a9-b2922b76810f",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "2c5d6d69-1a64-4846-bcc0-bb6119af4558",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "2d247e24-f7ff-4952-816e-61b6eea96664",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "2f46660e-ea20-4845-9620-8c743b03225b",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "2ffc706d-fe43-4c2b-baad-a624a95ad3ce",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "32bea36f-5198-4f16-a167-2e47acd63bd9",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "33fca97e-ef4f-459d-a773-ab58b7f84fd5",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3416f6ec-ccf2-457f-b076-fa9d09648e33",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "34590532-dff0-4178-a9ca-6782e4db1701",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "34aa6c6a-e650-4327-ae15-9bad2024b007",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "38db0187-c455-4601-9ba1-7a1012485e4a",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3a18c8b1-ac3d-4a67-a814-b96ef4e58388",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3ab89426-fb2c-4f49-b7f9-36fc34a3c98f",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3b6ed000-db61-40d2-a1fc-aed019e7007c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3c19d4d7-f1b7-4c46-8169-6c3b6b9345fb",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3cae8286-ea39-4329-b7fd-6444cf2f6f91",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3d8ff7d4-19fb-4a21-bc4a-15fb13ad3393",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3d96dcc2-134a-4f9c-85d1-51963038edab",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3e262660-f12a-4eff-8c26-ccf36f923755",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "3f2a1265-3c35-4823-9d20-1978c86e424b",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "3f2aaa1b-2237-4d7b-b215-1ac5ec789ed5",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "4051cac7-0e4b-408e-b9c0-71fb93471ff7",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "42aed284-0f9c-45f4-a395-d7a5bf4fb5e7",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "441fadd3-016a-43f9-a331-f6e757c04ce9",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "4469b185-99a3-4ba0-a95a-d5dd6946303a",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_READY",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "446c5207-a099-45e0-b615-afd60de08589",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "45487628-a2c6-421f-9ea4-761b6c3be240",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "49db955c-62c7-4f69-912f-2745000471fa",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "4d347e47-38f9-415b-aae1-7a6d3759a75c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "4d5900ff-77ef-4536-8077-7f18bc242a53",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "4dc9e1a3-441b-440c-931c-8011f7869dcf",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "50005fcd-0788-4d5a-b133-bdb2f8ee0863",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "51505cb4-2db8-498b-a16c-421e6b816f82",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "5760e938-9a43-45a7-b8e8-f4f2e6383930",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "5778fa74-615d-4f5e-8660-70d0d7ee4b88",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "5a36611d-033e-4893-bd49-5d4f776f57dd",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_READY",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "5a5b3599-bd64-4330-9bbb-4f8ce7d780b9",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "5b43b013-3a2e-42ca-9013-33d0a9c39b05",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "5bda11dc-0ea8-47fa-8f73-5ff324575af8",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "5cecfb84-143b-4af7-89fb-afbf57403792",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "5e346a9f-abe8-4aad-a2c2-87ba696942e8",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "5ec66969-8fcc-47b3-b517-a9c29372fffe",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "60023f03-3a54-4d12-a1d7-6a00f8a353be",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "64061eae-b7cb-4aa2-bacd-92e8cdf9097b",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "644aaab9-6ce1-4639-a60a-ed753f8bd589",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "66d8e7ad-cdcd-4287-afb0-e2afa9ef5217",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "69437741-0523-499a-820a-cb375c1bf1ca",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "6a8c6254-6885-42bd-afb7-b3b4095fb972",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "6aa68572-2fef-4dd7-bfd5-68d117c558cc",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "6c0df6e9-ea39-40d2-93af-7aec13d629c7",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "6c8ca14a-e25e-4051-9165-de89fbf5c283",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "6d9890b0-d95a-4bae-8947-0a09d23c30e5",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "6f3da854-41da-4363-8496-5487f37c845a",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "72acd18d-325d-4a3e-9472-093ecdcdbb4b",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "74469f3b-8248-46ce-bcd4-34cd8731921c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "75877a99-cc68-454a-b77f-12f2641337cc",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "79b43d24-a12d-4852-a1b2-db6090f3c824",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "7ad0ceb9-6ea8-4862-9e52-8b352a8b3dda",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "7cd0705f-0615-4abd-9c1d-00ff384ffb51",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "7cd137fa-d946-4603-9ef3-e36914001ae8",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "7d1f1ab8-9bc2-45a0-9d76-c1de80c029df",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "7d5a76d2-7bf3-4a40-b6f7-64590d4d9273",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "7dcb35ee-d630-408a-a3d7-54797ac162db",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "807309a0-adcf-46ae-a3ea-bd211588c856",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "80c41c98-283d-4a29-8fce-4b9e6a1afce3",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "845b14b5-e469-4676-a3f3-39725fc6354e",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "87af2fe4-1a49-4263-a2a0-85fbd2b87014",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "8900ef0c-62a4-4f79-92dc-402d6ac9fb72",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "conflict:model_identity_or_revision",
+        "conflict:specs.autonomy",
+        "conflict:specs.charging_requirements",
+        "conflict:specs.dimensions",
+        "conflict:specs.integrations",
+        "conflict:specs.max_speed",
+        "conflict:specs.operating_conditions",
+        "conflict:specs.positioning_accuracy",
+        "missing:specs.max_speed"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "89ffd69f-f07b-4bf2-8023-1fd765a2b6ff",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "8a0e653f-b151-46b9-8195-ab8c275a8007",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "8ab1ea05-1c09-4f71-88a4-fffb0b725d6b",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "8dbe4684-18ef-49f7-bced-95969703a49a",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "8eb78e78-ab23-4f2a-9684-65fa37fd3a06",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "9186592a-aa17-47a3-b1bb-1477d71cf28d",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "92c20e09-7763-4649-bc50-11381fe2818c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "937da5de-b4a1-4a88-ac6d-a97206bdbe98",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "93ad5785-a2bb-47a2-b611-1b9b857cea48",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "94795e84-261d-456f-a58c-66b3e79a8213",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "not_equipment"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "NOT_EQUIPMENT",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "NOT_EQUIPMENT",
+      "model_id": "98ceb2a0-f777-48ef-9863-3f9a80f8a237",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "993d980e-8b91-45e0-9c98-50ffab6e11e4",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "9a941386-07e2-4350-ae35-f0d37a1d9f3f",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "9b20417a-0ac7-4786-985b-f3459a15075d",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "9dfb0b55-4d9e-47fc-8a28-ad4390147a26",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "9f06ff5b-0ed4-42e4-9795-b2cf3ac55fbb",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "a23855b0-2d22-44f1-838c-b4d23f4a69fb",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "a3b4c902-9e1b-454b-a2bf-01c6d0e98bdb",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "a51bb921-1931-474f-974e-7c37f9fd9aa0",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "not_equipment"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "NOT_EQUIPMENT",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "NOT_EQUIPMENT",
+      "model_id": "a556b956-a781-4c38-9fc8-7daeca279b59",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed",
+        "missing:specs.payload"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "a834aa03-136e-4f61-a1d6-b5563d798f68",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed",
+        "missing:specs.payload"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "a83abbfd-78ee-43dc-9111-f51db4938001",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "a9c720bc-e618-4dcc-90e1-990c5a3d1ae2",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "aa6c4a0f-08d6-4e18-aae3-cb3856324c9c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "aa8e3b27-df64-4a6a-9248-b1eedb41dd4e",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "ac5b3159-9df0-4911-8cc3-31227a5b3b59",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "afa183fe-b6d2-467c-9e2d-a0a2310d8f3d",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "b4a9ef38-b68a-4c0f-8512-9bc9a718c4e1",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "b5ead192-27fb-4898-b267-edff4ed825a0",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "b639b73b-9c1e-4eec-af6f-9662e1d1d171",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "b6b87828-0604-4874-8ea9-46c513840c23",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed",
+        "missing:specs.payload"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "b86f4613-789b-4cee-9f75-5d010da90b61",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "ba5d2051-3036-439f-8b2e-e05e26581fe6",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "bace806b-bb2c-42d1-806b-be4fd48f75f1",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "bd7a808d-3f50-4bd0-93e9-87e9646cfb26",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "be814758-3616-4b94-befa-9848be2ac604",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "bec9e863-0c3d-44cc-a656-766a323a9746",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c05b1315-5e53-46fe-bbc1-a5eb6a1aa6ae",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c125ce9a-8f04-4183-a136-5ddbb3c5ae89",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c293732e-214e-4473-93fd-15db477db3af",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed",
+        "missing:specs.payload"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "c3d39a80-5fb9-42d3-82ae-0696fb647128",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c70f67e1-8f70-4dff-a4e2-584f0ebaefa1",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c7c905b8-1dcd-43de-8d3c-6e4493077e28",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c8331668-727b-4b5f-a39f-bff2248beb5e",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c87a27d2-065f-4b82-9ccc-91078a56ef15",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "c9c11d90-43b8-450f-b778-65d4f02db031",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "c9e9517c-18f0-47b4-aa05-4344566aa885",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "cbaf82f3-3cf4-4ac8-9b8f-eddfdeb337ce",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "ccb79192-b9e8-418d-b7bd-eb26c78ee461",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "cccd0c0d-8ae7-435d-a171-45f5d82886e6",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "cd5058fb-f2d3-4bd2-8213-5e708d1cef3b",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.max_speed",
+        "missing:specs.payload"
+      ],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "DELIVERY_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "cdf80f5b-c60a-447b-af30-2c8a44480f98",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "ce44017e-6ada-421d-bbce-6869b33c2cda",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "cebbdfa8-500a-425f-bcbc-ad2dcc106539",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "cf43e50c-bdf6-4069-accb-e16b1d2c670e",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "cf9643b1-7a04-429c-9ac2-33060c9f42dd",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "d4b39362-518a-4cf2-8770-b69bc03585a0",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "d532535e-0a3b-48f4-98bd-a063f2c743db",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "missing:specs.throughput"
+      ],
+      "calculation_model_fields": [
+        "specs.throughput"
+      ],
+      "calculation_profile": "PALLETIZING_THROUGHPUT_V1",
+      "calculation_readiness_status": "CALCULATION_BLOCKED",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "d55f507b-b3f2-4666-b3f4-dd3d48813e9d",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "d59a8cc3-4edf-428b-8b36-783ac2bf1514",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "d6f3eec1-61c1-40ac-98b1-0f5d80877cb7",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "db02c054-a08a-4ddf-a957-6137eeef93ba",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "dc9e8ee5-17bf-422d-a621-daa8876e385c",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "dcfd9975-81eb-49b5-a422-827a720ba582",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "e091d100-5f2a-4b05-a012-e972f6367a4d",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "e0a7a647-8cdf-471a-bf6f-dff6ec9cec7d",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "e11fd28e-58be-448d-b32d-236e4de8d6d8",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_READY",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "e2095cfe-3ce4-404e-a4bb-2f378480d7ca",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_READY",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "e8960183-1828-4fdb-8c39-91f5a3523a96",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "eb72e89f-014f-4583-903c-c03be3bcfa1d",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "specs.max_speed",
+        "specs.payload"
+      ],
+      "calculation_profile": "TRANSPORT_CYCLE_V1",
+      "calculation_readiness_status": "CALCULATION_READY_WITH_ASSUMPTIONS",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": true,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+      "scenario_assumptions": [
+        {
+          "fallback_value": 45,
+          "field": "capacity.exchange_time_s",
+          "input_path": "transport_profile.exchange_time_s",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:LOAD_UNLOAD_TIME_S",
+          "unit": "s",
+          "vendor_fact": false
+        },
+        {
+          "fallback_value": 1,
+          "field": "capacity.units_per_trip",
+          "input_path": "UserInput.units_per_trip",
+          "policy": "SCENARIO_INPUT_THEN_EXPLICIT_FALLBACK",
+          "provenance": "backend/economics.py:_fleet_sizing",
+          "unit": "unit/trip",
+          "vendor_fact": false
+        }
+      ]
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "ece9a02a-2d71-496f-a29d-39ab24a8e9d9",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "ee36ba78-6a9f-4ef8-9296-8ffa022782cd",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_READY",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "ef375ca1-8de1-4a8d-9262-c1a6b71f0333",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "eff2586c-892d-4e44-a407-1ec7f06c8f76",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f0e502e3-5771-4464-a1df-97110801c7c3",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f1c8478c-86c2-4381-96db-08e0ae889b41",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f2b0dca0-0e77-454d-8d41-d6198a2a82b8",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [],
+      "calculation_model_fields": [
+        "capacity.cleaning_rate_m2_h"
+      ],
+      "calculation_profile": "CLEANING_AREA_V1",
+      "calculation_readiness_status": "CALCULATION_READY",
+      "calculation_ready": true,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "DEPLOYMENT_REVIEW_REQUIRED",
+      "model_id": "f31223c1-44c8-4410-8381-6356e2158b61",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f347978a-e6d5-473c-be89-2209a2d8c003",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f381872e-d6aa-43b6-be2a-ba36cc9eb90a",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f551e523-fa94-4a0b-a2c8-56ace2f51818",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f6cc47ab-c645-4fe5-9bd1-0acc609758f0",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "f7634ef8-0034-4c5b-b2f0-e44a14f05a76",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "fade5829-1946-4cf6-a0e6-8f8381d64312",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "fbd349c2-88c1-412f-95c2-96a8383217ed",
+      "scenario_assumptions": []
+    },
+    {
+      "calculation_blockers": [
+        "unsupported_capacity_profile"
+      ],
+      "calculation_model_fields": [],
+      "calculation_profile": null,
+      "calculation_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "calculation_ready": false,
+      "calculation_requires_assumptions": false,
+      "deployment_readiness_status": "UNSUPPORTED_CAPACITY_PROFILE",
+      "model_id": "fceeacf0-579f-46cc-92ff-2057fea5da7f",
+      "scenario_assumptions": []
+    }
+  ],
+  "runtime_catalog_version": "organizer-catalog-v4-capacity-runtime-v1",
+  "schema_version": "catalog-capacity-runtime-v1",
+  "source_sha256": {
+    "audit": "46c3d6cd2679af0c8c30c6372fdcb49b3cefcf2b2f26b8284a81787d53c88ded",
+    "contract": "f13d92561fd0097fc6e8a430cbbb65a888fda1d1df7119f636904f3c517ce453",
+    "products": "dac8460a8c7aaccc82c9dc8eba3a74c41c9d9b4bd50af58584d86ef983b19235"
+  }
+}

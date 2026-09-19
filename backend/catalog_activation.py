@@ -111,8 +111,16 @@ def _reconcile(session, version: CatalogVersion, bundle) -> dict[str, Any]:
         "equipment_applicability": expected["applicability_rows"],
         "procurement_options": expected["price_rows"],
         "base_field_evidence": expected["base_evidence_rows"],
-        "enrichment_field_evidence": expected["external_evidence_rows"],
-        "enrichment_spec_observations": expected["overlay_fields"],
+        "enrichment_field_evidence": expected["external_evidence_rows"]
+        + expected["capacity_enrichment_evidence_rows"],
+        "enrichment_spec_observations": expected["overlay_fields"]
+        + expected["capacity_enrichment_facts"],
+        "capacity_enrichment_models": expected["capacity_enrichment_models"],
+        "capacity_runtime_models": expected["capacity_runtime_models"],
+        "capacity_runtime_pool_models": expected["capacity_runtime_pool_models"],
+        "capacity_runtime_pool_positions": expected[
+            "capacity_runtime_pool_positions"
+        ],
     }
     actual_run_counts = {
         "equipment_models": base.get("equipment_models"),
@@ -122,6 +130,14 @@ def _reconcile(session, version: CatalogVersion, bundle) -> dict[str, Any]:
         "base_field_evidence": base.get("field_evidence"),
         "enrichment_field_evidence": enrichment.get("field_evidence"),
         "enrichment_spec_observations": enrichment.get("spec_observations"),
+        "capacity_enrichment_models": enrichment.get("capacity_enrichment_models"),
+        "capacity_runtime_models": enrichment.get("capacity_runtime_models"),
+        "capacity_runtime_pool_models": enrichment.get(
+            "capacity_runtime_pool_models"
+        ),
+        "capacity_runtime_pool_positions": enrichment.get(
+            "capacity_runtime_pool_positions"
+        ),
     }
     if actual_run_counts != expected_run_counts:
         raise CatalogActivationError("successful import counts do not match manifest")
@@ -132,7 +148,8 @@ def _reconcile(session, version: CatalogVersion, bundle) -> dict[str, Any]:
         "equipment_applicability": expected["applicability_rows"],
         "procurement_options": expected["price_rows"],
         "field_evidence": expected["base_evidence_rows"]
-        + expected["external_evidence_rows"],
+        + expected["external_evidence_rows"]
+        + expected["capacity_enrichment_evidence_rows"],
         "spec_observations": int(base.get("spec_observations", -1))
         + int(enrichment.get("spec_observations", -1)),
         "resolved_spec_facts": int(base.get("resolved_spec_facts", -1))

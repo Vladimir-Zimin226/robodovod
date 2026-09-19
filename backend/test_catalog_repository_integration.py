@@ -14,6 +14,7 @@ from catalog_dual_run import load_dual_run_fixture, run_dual_run
 from catalog_importer import run_catalog_import
 from catalog_media import import_catalog_media
 from catalog_models import (
+    REVIEWED_STATUSES,
     SAFE_AUTOMATIC_STATUSES,
     EquipmentModel,
     FieldEvidence,
@@ -295,10 +296,21 @@ def test_official_catalog_exposes_only_safe_facts_and_reports_blockers(
     assert any(len(prices_by_model[key]) > 1 for key in repeated)
     assert any(len(industries_by_model[key]) > 1 for key in repeated)
     assert all(
-        fact.resolution_status in SAFE_AUTOMATIC_STATUSES
+        fact.resolution_status in SAFE_AUTOMATIC_STATUSES + REVIEWED_STATUSES
         for model in snapshot.models
         for fact in model.facts
     )
     candidate = snapshot.by_source_key()["org-5760e938-9a43-45a7-b8e8-f4f2e6383930"]
     assert candidate.runtime_robot is None
     assert candidate.runtime_blockers == ("runtime_projection",)
+    assert len(snapshot.calculation_ready_models()) == 21
+    assert len(snapshot.calculation_ready_positions()) == 24
+    assert candidate.capacity_runtime.calculation_ready is True
+    assert candidate.capacity_runtime.calculation_requires_assumptions is True
+    assert candidate.capacity_runtime.runtime_catalog_version == (
+        "organizer-catalog-v4-capacity-runtime-v1"
+    )
+    assert all(
+        assumption["vendor_fact"] is False
+        for assumption in candidate.capacity_runtime.scenario_assumptions
+    )

@@ -38,6 +38,16 @@ FILE_CONTRACTS = {
     "object_profiles.json": ("REFERENCE", "parameters", 138),
     "catalog_external_enrichment.json": ("ENRICHMENT", "fields", 140),
     "catalog_external_evidence.csv": ("ENRICHMENT", "rows", 156),
+    "catalog_capacity_runtime.json": (
+        "ENRICHMENT",
+        "capacity_runtime_models",
+        187,
+    ),
+    "catalog_capacity_enrichment.json": (
+        "ENRICHMENT",
+        "capacity_enrichment_facts",
+        131,
+    ),
 }
 
 IMPORT_SCHEMA: dict[str, Any] = {
@@ -96,7 +106,7 @@ IMPORT_SCHEMA: dict[str, Any] = {
         },
         "files": {
             "type": "array",
-            "minItems": 8,
+            "minItems": 10,
             "items": {
                 "type": "object",
                 "additionalProperties": False,
@@ -192,7 +202,10 @@ Import order:
 1. `BASE` validates/imports 187 products, 223 source rows, 223 applicability
    rows, 223 price offers, 3635 base evidence rows, and 65 base spec facts.
 2. `ENRICHMENT` validates/imports 140 overlay observations and 156 external
-   evidence rows. It never updates organizer observations.
+   evidence rows, imports 131 reviewed official-source facts with 154 evidence
+   records, then materializes 21 calculation-ready model identities
+   covering 24 positions in a separate capacity runtime projection. It never
+   updates organizer observations or turns scenario assumptions into vendor facts.
 
 Only safe resolved statuses can enter `matching_spec_facts`. `CONFLICT`,
 `AMBIGUOUS_MODEL_MATCH`, `NOT_FOUND`, and `UNKNOWN` remain observations.
@@ -297,7 +310,9 @@ def _sha256(path: Path) -> str:
 
 def _write_json(path: Path, value: Any) -> None:
     path.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
 
 
@@ -311,10 +326,23 @@ def build(staging: Path, output: Path) -> None:
 
     schema_path = output / "import-schema.json"
     _write_json(schema_path, IMPORT_SCHEMA)
+    capacity_source = DEFAULT_OUTPUT / "catalog_capacity_runtime.json"
+    capacity_target = output / capacity_source.name
+    if capacity_source.resolve() != capacity_target.resolve():
+        shutil.copyfile(capacity_source, capacity_target)
+    capacity_enrichment_source = DEFAULT_OUTPUT / "catalog_capacity_enrichment.json"
+    capacity_enrichment_target = output / capacity_enrichment_source.name
+    if capacity_enrichment_source.resolve() != capacity_enrichment_target.resolve():
+        shutil.copyfile(capacity_enrichment_source, capacity_enrichment_target)
     (output / "README.md").write_text(README, encoding="utf-8", newline="\n")
 
     files = []
-    for name in (*DATA_FILES.keys(), "import-schema.json"):
+    for name in (
+        *DATA_FILES.keys(),
+        "import-schema.json",
+        capacity_source.name,
+        capacity_enrichment_source.name,
+    ):
         path = output / name
         contract = FILE_CONTRACTS.get(name)
         phase, record_kind, records = contract or ("REFERENCE", None, None)
@@ -346,7 +374,12 @@ def build(staging: Path, output: Path) -> None:
                 "license_status": "PERMITTED",
                 "role": "IMPORT_BUNDLE",
                 "ordinal": ordinal,
-                "observed_at": "2026-09-16T00:00:00+00:00",
+                "observed_at": (
+                    "2026-09-19T00:00:00+11:00"
+                    if file_entry["path"]
+                    in {capacity_source.name, capacity_enrichment_source.name}
+                    else "2026-09-16T00:00:00+00:00"
+                ),
             }
         )
 
@@ -381,6 +414,13 @@ def build(staging: Path, output: Path) -> None:
             "enrichment_products": 11,
             "overlay_fields": 140,
             "external_evidence_rows": 156,
+            "capacity_runtime_models": 187,
+            "capacity_runtime_pool_models": 21,
+            "capacity_runtime_pool_positions": 24,
+            "capacity_enrichment_facts": 131,
+            "capacity_enrichment_matching_facts": 129,
+            "capacity_enrichment_evidence_rows": 154,
+            "capacity_enrichment_models": 26,
         },
         "files": files,
         "source_artifacts": artifacts,

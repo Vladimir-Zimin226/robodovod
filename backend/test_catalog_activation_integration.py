@@ -143,6 +143,12 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
     assert len(snapshot.models) == 187
     assert len(snapshot.positions) == 223
     assert snapshot.runtime_robots() == []
+    assert len(snapshot.calculation_ready_models()) == 21
+    assert len(snapshot.calculation_ready_positions()) == 24
+    assert all(
+        position.model.system_family == "BRS"
+        for position in snapshot.calculation_ready_positions()
+    )
     assert catalog_activation_status(activation_database)["history_count"] == 2
 
     import main
@@ -163,6 +169,8 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
             "model_count": 187,
             "position_count": 223,
             "selectable_count": 0,
+            "calculation_ready_model_count": 21,
+            "calculation_ready_position_count": 24,
         }
         search = client.get(
             "/api/catalog/models",
@@ -177,6 +185,45 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
         assert all(item["system_family"] == "BRS" for item in payload["items"])
         assert all(item["selectable"] is False for item in payload["items"])
         assert all(item["position_id"] != item["model_id"] for item in payload["items"])
+        assert payload["calculation_ready_model_count"] == 21
+        assert payload["calculation_ready_position_count"] == 24
+        assert payload["calculation_readiness_counts"]["CALCULATION_READY"] == {
+            "models": 6,
+            "positions": 6,
+        }
+        assert payload["calculation_readiness_counts"][
+            "CALCULATION_READY_WITH_ASSUMPTIONS"
+        ] == {"models": 15, "positions": 18}
+
+        participating = client.get(
+            "/api/catalog/models",
+            params={"calculation_participation": "participating"},
+        ).json()
+        assert participating["total"] == 24
+        assert all(item["calculation_ready"] is True for item in participating["items"])
+        assert all(item["system_family"] == "BRS" for item in participating["items"])
+        assert all(item["selectable"] is False for item in participating["items"])
+        assert all(item["runtime_catalog_version"] for item in participating["items"])
+
+        requires_data = client.get(
+            "/api/catalog/models",
+            params={"calculation_participation": "requires_data"},
+        ).json()
+        assert requires_data["total"] == 199
+        assert all(item["calculation_ready"] is False for item in requires_data["items"])
+
+        combined = client.get(
+            "/api/catalog/models",
+            params={
+                "calculation_participation": "participating",
+                "q": "Ronavi",
+                "system_family": "BRS",
+                "manufacturer": 'ООО "Ронави Роботикс"',
+                "sort": "manufacturer",
+            },
+        ).json()
+        assert 0 < combined["total"] < 24
+        assert all(item["calculation_ready"] is True for item in combined["items"])
 
     with pytest.raises(CatalogActivationError, match="evidence-backed"):
         activate_catalog_version(
