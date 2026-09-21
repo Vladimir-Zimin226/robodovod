@@ -4,8 +4,8 @@
 Родительский документ: [план 19](../19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
 Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к исполнению в
 [policy v1](calculation-policy-decisions-v1.md); отдельного ответа Жени не требуется. Новые пути ниже — предложения для
-реализации, не утверждение о существующих файлах. C01 **COMPLETE** 2026-09-20;
-C02–C29 пока **PLANNED**.
+реализации, не утверждение о существующих файлах. C01 **COMPLETE** 2026-09-20,
+C02 **COMPLETE** 2026-09-22; C03–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -53,6 +53,12 @@ fixtures K02–K04, partial statuses, trace/provenance/version bindings,
   закупочное исследование, salary benchmarks, полноценная simulation schema.
 
 ## C02 — `data/calculation-parameter-registry-v1`
+
+Статус: **COMPLETE** (2026-09-22). Реализованы immutable registry/manifest,
+strict Pydantic/JSON Schema, source-bound digests, coverage и supersession
+ledger, полный scenario snapshot и targeted acceptance. Формулы, API, UI,
+catalog и runtime activation не изменены. Отчёт:
+[calculation-parameter-registry-v1.md](calculation-parameter-registry-v1.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

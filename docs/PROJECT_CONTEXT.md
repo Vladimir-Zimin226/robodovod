@@ -232,7 +232,13 @@ versioned `CalculationTrace`, replay digests, schema fixtures и proposed
 registry contract без подключения к production API. Контрактный отчёт:
 [calculation semantics v1](planning/calculation-semantics-contract-v1.md).
 
-Следующая малая итерация — **`data/calculation-parameter-registry-v1`** (C02).
+Этап **`data/calculation-parameter-registry-v1`** (C02) завершён: добавлены
+immutable snapshot из 228 параметров, strict schemas, manifest с hashes
+источников, coverage/supersession ledger и runtime-независимый loader. Таблица
+трёх сценариев полна, unsafe salary/vendor defaults исключены. Отчёт:
+[calculation parameter registry v1](planning/calculation-parameter-registry-v1.md).
+
+Следующая малая итерация — **`intake/process-role-normalization-v2`** (C03).
 `engine/capacity-formula-trace` остаётся C07 после registry, normalization,
 constraints и executability audit. Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
@@ -250,9 +256,9 @@ fte_cost; full baseline/scenario cashflows с отдельным tax mode; purch
 21/24 сохраняется как baseline до отдельного доказанного и согласованного
 изменения membership; 187/223 discovery и отсутствие БАС в pool проверяются.
 
-В этой сессии реализован только аддитивный контрактный этап C01 и его целевые
-schema/serialization tests. Формулы, production API/UI, versioned catalog и
-runtime slots не менялись.
+Реализованы аддитивные этапы C01–C02 и их целевые schema/serialization/data
+tests. Формулы, production API/UI, versioned catalog и runtime slots не
+менялись.
 
 Команда: Владимир — технический лидер и интегратор authoritative tree; Женя —
 продуктовая логика, формулы, граничные случаи и опыт пользователя. Замороженные

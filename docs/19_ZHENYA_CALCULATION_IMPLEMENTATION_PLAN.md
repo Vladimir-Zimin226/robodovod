@@ -9,15 +9,17 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-20: **C01 COMPLETE**. Контракты, fixtures и проверки
-описаны в [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md).
-Следующий этап — C02; формулы и runtime activation в C01 не выполнялись.
+Статус исполнения 2026-09-22: **C01–C02 COMPLETE**. Контракты C01 описаны в
+[calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
+реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md).
+Следующий этап — C03; формулы и runtime activation не выполнялись.
 
 ## 1. Решение о следующем этапе и границы
 
-Первый этап **`contracts/calculation-semantics-v1`** (C01) завершён.
-Непосредственный следующий этап — **`data/calculation-parameter-registry-v1`**
-(C02), а не реализация `engine/capacity-formula-trace`.
+Этапы **`contracts/calculation-semantics-v1`** (C01) и
+**`data/calculation-parameter-registry-v1`** (C02) завершены.
+Непосредственный следующий этап — **`intake/process-role-normalization-v2`**
+(C03), а не реализация `engine/capacity-formula-trace`.
 Нынешний capacity contract не определяет однозначно суммарный exchange,
 скорость, единицу потока, границы допущений и исполнимость формулы.
 `CalculationResponse` требует экономику и `ScenarioSpec v1`; эти требования
@@ -594,7 +596,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | ID | Ветка / результат | Зависимости |
 |---|---|---|
 | C01 COMPLETE | `contracts/calculation-semantics-v1` — единицы, статусы, conflict decisions, trace skeleton | Этот аудит |
-| C02 | `data/calculation-parameter-registry-v1` — versioned constants/policies | C01 |
+| C02 COMPLETE | `data/calculation-parameter-registry-v1` — versioned constants/policies | C01 |
 | C03 | `intake/process-role-normalization-v2` — backend intake/roles/units | C01–02 |
 | C04 | `frontend/process-role-intake-v2` — формы, input provenance, validation | C03 |
 | C05 | `engine/applicability-constraints-v2` — общий constraint service | C01–03 |

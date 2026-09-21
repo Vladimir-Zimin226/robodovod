@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "SourceArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "REFERENCE",
+            "ACCEPTED_POLICY"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "runtime_dependency": {
+          "const": false,
+          "title": "Runtime Dependency",
+          "type": "boolean"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "source_id": {
+          "enum": [
+            "R00",
+            "R02",
+            "R03",
+            "R04",
+            "R06",
+            "POLICY_V1"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "path",
+        "sha256",
+        "role",
+        "runtime_dependency"
+      ],
+      "title": "SourceArtifact",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "coverage_count": {
+      "exclusiveMinimum": 0,
+      "title": "Coverage Count",
+      "type": "integer"
+    },
+    "parameter_count": {
+      "exclusiveMinimum": 0,
+      "title": "Parameter Count",
+      "type": "integer"
+    },
+    "registry_semantic_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Registry Semantic Digest",
+      "type": "string"
+    },
+    "registry_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Registry Sha256",
+      "type": "string"
+    },
+    "registry_version": {
+      "const": "hackathon-calculation-parameter-registry-v1",
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "required_decisions": {
+      "items": {
+        "pattern": "^K(?:0[1-9]|[12][0-9])$",
+        "type": "string"
+      },
+      "title": "Required Decisions",
+      "type": "array"
+    },
+    "scenario_parameter_count": {
+      "exclusiveMinimum": 0,
+      "title": "Scenario Parameter Count",
+      "type": "integer"
+    },
+    "schema_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Schema Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "calculation-parameter-registry-manifest-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceArtifact"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "supersession_count": {
+      "exclusiveMinimum": 0,
+      "title": "Supersession Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "registry_version",
+    "registry_sha256",
+    "registry_semantic_digest",
+    "schema_sha256",
+    "sources",
+    "parameter_count",
+    "coverage_count",
+    "supersession_count",
+    "scenario_parameter_count",
+    "required_decisions"
+  ],
+  "title": "RegistryManifestV1",
+  "type": "object"
+}

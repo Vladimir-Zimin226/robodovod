@@ -1,0 +1,458 @@
+{
+  "$defs": {
+    "CoverageRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+          "title": "Coverage Id",
+          "type": "string"
+        },
+        "decision_refs": {
+          "items": {
+            "pattern": "^K(?:0[1-9]|[12][0-9])$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "disposition": {
+          "enum": [
+            "REGISTRY_VALUES",
+            "DERIVED_FORMULA",
+            "USER_INPUT_REQUIRED",
+            "VENDOR_INPUT_REQUIRED",
+            "POLICY_RULE",
+            "SUPERSEDED",
+            "FORBIDDEN_UNSAFE_DEFAULT",
+            "EXPLANATION_ONLY"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "parameter_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+            "type": "string"
+          },
+          "title": "Parameter Ids",
+          "type": "array"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "source_id": {
+          "enum": [
+            "R02",
+            "R06"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "coverage_id",
+        "source_id",
+        "locator",
+        "disposition",
+        "decision_refs",
+        "rationale"
+      ],
+      "title": "CoverageRecord",
+      "type": "object"
+    },
+    "ParameterDomain": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_values": {
+          "anyOf": [
+            {
+              "items": {
+                "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Values"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "maximum_inclusive": {
+          "default": true,
+          "title": "Maximum Inclusive",
+          "type": "boolean"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "minimum_inclusive": {
+          "default": true,
+          "title": "Minimum Inclusive",
+          "type": "boolean"
+        }
+      },
+      "title": "ParameterDomain",
+      "type": "object"
+    },
+    "ParameterSourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "source_id": {
+          "enum": [
+            "R00",
+            "R02",
+            "R03",
+            "R04",
+            "R06",
+            "POLICY_V1",
+            "OFFICIAL_TZ"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_status": {
+          "enum": [
+            "REFERENCE_CANON",
+            "ACCEPTED_POLICY",
+            "OFFICIAL_REQUIREMENT",
+            "UNIT_DEFINITION"
+          ],
+          "title": "Source Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "locator",
+        "source_status"
+      ],
+      "title": "ParameterSourceRef",
+      "type": "object"
+    },
+    "RegistryParameter": {
+      "additionalProperties": false,
+      "properties": {
+        "applicability": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Applicability",
+          "type": "array"
+        },
+        "consumers": {
+          "items": {
+            "pattern": "^(?:F(?:0[1-9]|[12][0-9]|3[0-5])|C(?:0[1-9]|[12][0-9]))$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Consumers",
+          "type": "array"
+        },
+        "decision_refs": {
+          "items": {
+            "pattern": "^K(?:0[1-9]|[12][0-9])$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "description_key": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+          "title": "Description Key",
+          "type": "string"
+        },
+        "domain": {
+          "$ref": "#/$defs/ParameterDomain"
+        },
+        "effective_version": {
+          "const": "hackathon-calculation-policy-v1",
+          "title": "Effective Version",
+          "type": "string"
+        },
+        "label_key": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+          "title": "Label Key",
+          "type": "string"
+        },
+        "override_policy": {
+          "enum": [
+            "LOCKED",
+            "EXPLICIT_USER_OVERRIDE"
+          ],
+          "title": "Override Policy",
+          "type": "string"
+        },
+        "parameter_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+          "title": "Parameter Id",
+          "type": "string"
+        },
+        "provenance_kind": {
+          "enum": [
+            "ASSUMPTION",
+            "POLICY",
+            "OFFICIAL",
+            "UNIT_DEFINITION"
+          ],
+          "title": "Provenance Kind",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "enum": [
+            "COUNT",
+            "TIME",
+            "DISTANCE",
+            "AREA",
+            "SPEED",
+            "RATE",
+            "FRACTION",
+            "MONEY",
+            "POWER",
+            "UNIT_DEFINITION",
+            "SCORE"
+          ],
+          "title": "Quantity Kind",
+          "type": "string"
+        },
+        "replaced_by": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Replaced By"
+        },
+        "scenario": {
+          "default": "ALL",
+          "enum": [
+            "PESSIMISTIC",
+            "BASE",
+            "OPTIMISTIC",
+            "ALL"
+          ],
+          "title": "Scenario",
+          "type": "string"
+        },
+        "semantic_name": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+          "title": "Semantic Name",
+          "type": "string"
+        },
+        "source_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "$ref": "#/$defs/ParameterSourceRef"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "unit": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "maximum": 15,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Year"
+        }
+      },
+      "required": [
+        "parameter_id",
+        "semantic_name",
+        "value",
+        "unit",
+        "quantity_kind",
+        "domain",
+        "provenance_kind",
+        "override_policy",
+        "source_refs",
+        "source_digest",
+        "decision_refs",
+        "applicability",
+        "consumers",
+        "effective_version",
+        "label_key",
+        "description_key"
+      ],
+      "title": "RegistryParameter",
+      "type": "object"
+    },
+    "SupersessionRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_refs": {
+          "items": {
+            "pattern": "^K(?:0[1-9]|[12][0-9])$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "old_semantics": {
+          "minLength": 1,
+          "title": "Old Semantics",
+          "type": "string"
+        },
+        "replacement_parameter_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+            "type": "string"
+          },
+          "title": "Replacement Parameter Ids",
+          "type": "array"
+        },
+        "replacement_rule": {
+          "minLength": 1,
+          "title": "Replacement Rule",
+          "type": "string"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "supersession_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,159}$",
+          "title": "Supersession Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "supersession_id",
+        "source_ref",
+        "old_semantics",
+        "replacement_rule",
+        "decision_refs"
+      ],
+      "title": "SupersessionRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "coverage": {
+      "items": {
+        "$ref": "#/$defs/CoverageRecord"
+      },
+      "title": "Coverage",
+      "type": "array"
+    },
+    "parameters": {
+      "items": {
+        "$ref": "#/$defs/RegistryParameter"
+      },
+      "title": "Parameters",
+      "type": "array"
+    },
+    "policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "registry_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Registry Digest",
+      "type": "string"
+    },
+    "registry_version": {
+      "const": "hackathon-calculation-parameter-registry-v1",
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "calculation-parameter-registry-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "semantic_order": {
+      "const": "parameter_id",
+      "title": "Semantic Order",
+      "type": "string"
+    },
+    "supersessions": {
+      "items": {
+        "$ref": "#/$defs/SupersessionRecord"
+      },
+      "title": "Supersessions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "registry_version",
+    "policy_version",
+    "registry_digest",
+    "semantic_order",
+    "parameters",
+    "coverage",
+    "supersessions"
+  ],
+  "title": "CalculationParameterRegistryV1",
+  "type": "object"
+}

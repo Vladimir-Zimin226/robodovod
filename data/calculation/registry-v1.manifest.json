@@ -1,0 +1,76 @@
+{
+  "coverage_count": 27,
+  "parameter_count": 228,
+  "registry_semantic_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+  "registry_sha256": "6a54e7934abc36d90c19582d8ef038deacc49d4e04ff7e4bf360bb5da3c43e22",
+  "registry_version": "hackathon-calculation-parameter-registry-v1",
+  "required_decisions": [
+    "K01",
+    "K05",
+    "K06",
+    "K07",
+    "K08",
+    "K09",
+    "K11",
+    "K12",
+    "K14",
+    "K16",
+    "K18",
+    "K21",
+    "K22",
+    "K23",
+    "K25",
+    "K26",
+    "K27",
+    "K28",
+    "K29"
+  ],
+  "scenario_parameter_count": 39,
+  "schema_sha256": "0203041937725267d8b9311b9ae05cd5be4f83e535d950a226af03b245da903c",
+  "schema_version": "calculation-parameter-registry-manifest-v1",
+  "sources": [
+    {
+      "path": "Разобрать/Версии проекта от Жени/reference/00_METHODOLOGY.md",
+      "role": "REFERENCE",
+      "runtime_dependency": false,
+      "sha256": "bbf66a169149e39235a1cd38c4534fc2461c1accdd3ad1d31fddd02717556cb0",
+      "source_id": "R00"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/reference/02_CONSTANTS.md",
+      "role": "REFERENCE",
+      "runtime_dependency": false,
+      "sha256": "43addb7aad64dba565a8156b34266ee2492e9e3eebe92455f7986421ec318e01",
+      "source_id": "R02"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/reference/03_FORMULAS.md",
+      "role": "REFERENCE",
+      "runtime_dependency": false,
+      "sha256": "60f03e1a76e07db4acc6a44357c56adb2cef280e709eddcd58a5c6a5c5ca0621",
+      "source_id": "R03"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/reference/04_DECISIONS.md",
+      "role": "REFERENCE",
+      "runtime_dependency": false,
+      "sha256": "3820498b206b6dbe436c7469009a23fab1f8c81828fb37c9296afdadafad2fb9",
+      "source_id": "R04"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/reference/06_EXPERT.md",
+      "role": "REFERENCE",
+      "runtime_dependency": false,
+      "sha256": "ed650b06ccc846cad4873bb02b027a31210d71ff9a291fc336fa3344a3279b96",
+      "source_id": "R06"
+    },
+    {
+      "path": "docs/planning/calculation-policy-decisions-v1.md",
+      "role": "ACCEPTED_POLICY",
+      "runtime_dependency": false,
+      "sha256": "212754fe55fca4d5890961b89361ff8b3494650ee5ec9dbcfd22055f98bdd584",
+      "source_id": "POLICY_V1"
+    }
+  ],
+  "supersession_count": 5
+}
