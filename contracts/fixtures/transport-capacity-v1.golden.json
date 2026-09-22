@@ -1,0 +1,21 @@
+{
+  "cycle_time_s": "330",
+  "decision_refs": [
+    "K02",
+    "K03",
+    "K04"
+  ],
+  "effective_units_per_hour": "7.636363636363636363636363637",
+  "formula_ids": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F07"
+  ],
+  "nominal_units_per_hour": "10.90909090909090909090909091",
+  "precision_policy_version": "decimal-context-28-half-even-v1",
+  "recommended_fleet": 18,
+  "registry_version": "hackathon-calculation-parameter-registry-v1",
+  "required_units_per_hour": "136.3636363636363636363636364"
+}

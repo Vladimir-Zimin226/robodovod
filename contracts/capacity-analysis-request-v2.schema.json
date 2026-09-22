@@ -411,7 +411,8 @@
         "FRACTION",
         "MONEY",
         "ENERGY",
-        "POWER"
+        "POWER",
+        "UNIT_DEFINITION"
       ],
       "title": "QuantityKind",
       "type": "string"
@@ -438,6 +439,11 @@
         "passport_batch_limit",
         "geometry_batch_limit",
         "units_per_trip",
+        "cycle_time",
+        "trips_per_hour",
+        "seconds_per_hour",
+        "required_capacity",
+        "fleet_capacity",
         "cleaning_frequency",
         "cleaning_rate",
         "cell_rate",
@@ -699,6 +705,8 @@
         "pick/day",
         "m2/day",
         "unit/h",
+        "trip/h",
+        "s/h",
         "m2/h",
         "unit/min",
         "pick/min",

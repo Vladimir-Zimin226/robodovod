@@ -128,6 +128,7 @@ class QuantityKind(StrEnum):
     MONEY = "MONEY"
     ENERGY = "ENERGY"
     POWER = "POWER"
+    UNIT_DEFINITION = "UNIT_DEFINITION"
 
 
 class ProcessQuantityKind(StrEnum):
@@ -174,6 +175,8 @@ class Unit(StrEnum):
     PICK_PER_DAY = "pick/day"
     SQUARE_METER_PER_DAY = "m2/day"
     UNIT_PER_HOUR = "unit/h"
+    TRIP_PER_HOUR = "trip/h"
+    SECOND_PER_HOUR = "s/h"
     SQUARE_METER_PER_HOUR = "m2/h"
     UNIT_PER_MINUTE = "unit/min"
     PICK_PER_MINUTE = "pick/min"
@@ -216,6 +219,8 @@ UNIT_KINDS: dict[str, QuantityKind] = {
     "pick/day": QuantityKind.FLOW,
     "m2/day": QuantityKind.FLOW,
     "unit/h": QuantityKind.RATE,
+    "trip/h": QuantityKind.RATE,
+    "s/h": QuantityKind.UNIT_DEFINITION,
     "m2/h": QuantityKind.RATE,
     "unit/min": QuantityKind.RATE,
     "pick/min": QuantityKind.RATE,
@@ -253,6 +258,11 @@ class QuantityName(StrEnum):
     PASSPORT_BATCH_LIMIT = "passport_batch_limit"
     GEOMETRY_BATCH_LIMIT = "geometry_batch_limit"
     UNITS_PER_TRIP = "units_per_trip"
+    CYCLE_TIME = "cycle_time"
+    TRIPS_PER_HOUR = "trips_per_hour"
+    SECONDS_PER_HOUR = "seconds_per_hour"
+    REQUIRED_CAPACITY = "required_capacity"
+    FLEET_CAPACITY = "fleet_capacity"
     CLEANING_FREQUENCY = "cleaning_frequency"
     CLEANING_RATE = "cleaning_rate"
     CELL_RATE = "cell_rate"
@@ -290,6 +300,11 @@ NORMALIZED_UNITS: dict[str, Unit] = {
     QuantityName.PASSPORT_BATCH_LIMIT: Unit.UNIT_PER_TRIP,
     QuantityName.GEOMETRY_BATCH_LIMIT: Unit.UNIT_PER_TRIP,
     QuantityName.UNITS_PER_TRIP: Unit.UNIT_PER_TRIP,
+    QuantityName.CYCLE_TIME: Unit.SECOND,
+    QuantityName.TRIPS_PER_HOUR: Unit.TRIP_PER_HOUR,
+    QuantityName.SECONDS_PER_HOUR: Unit.SECOND_PER_HOUR,
+    QuantityName.REQUIRED_CAPACITY: Unit.UNIT_PER_HOUR,
+    QuantityName.FLEET_CAPACITY: Unit.UNIT_PER_HOUR,
     QuantityName.CLEANING_FREQUENCY: Unit.DIMENSIONLESS,
     QuantityName.CLEANING_RATE: Unit.SQUARE_METER_PER_HOUR,
     QuantityName.CELL_RATE: Unit.UNIT_PER_HOUR,
@@ -733,11 +748,16 @@ class VersionBindings(StrictContractModel):
     catalog_content_digest: Digest
     capacity_projection_version: Annotated[str, Field(min_length=1)]
     capacity_projection_digest: Digest
-    registry_version: Literal["calculation-parameter-registry-v1"]
+    registry_version: Literal[
+        "calculation-parameter-registry-v1",
+        "hackathon-calculation-parameter-registry-v1",
+    ]
     registry_digest: Digest
     process_catalog_version: Literal["calculation-process-catalog-v1"]
     formula_bundle_version: Literal["calculation-formulas-v1"]
-    constraint_rules_version: Literal["calculation-constraints-v1"]
+    constraint_rules_version: Literal[
+        "calculation-constraints-v1", "calculation-constraint-rules-v2"
+    ]
     commercial_policy_version: Literal["hackathon-commercial-policy-v1"]
     precision_policy_version: Literal["decimal-context-28-half-even-v1"]
     calculation_policy_version: Literal["hackathon-calculation-policy-v1"]

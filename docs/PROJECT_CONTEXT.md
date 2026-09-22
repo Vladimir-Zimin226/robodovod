@@ -271,9 +271,14 @@ versioned dependency profiles F01–F07, evidence/unit/domain resolver,
 Membership остался 21/24, БАС не допущены. Отчёт:
 [formula executability audit v3](planning/formula-executability-audit-v3.md).
 
-Следующая малая итерация — **`engine/capacity-formula-trace`** (C07).
-C07 использует завершённые registry, normalization, constraints и
-executability audit. Нынешний `/api/calculate` требует legacy
+Этап **`engine/capacity-formula-trace`** (C07) завершён: реализованы pure
+F01–F04/F07 для transport/delivery, exact Decimal/FLOOR/CEIL, K02–K04,
+actual selected-fleet coverage и byte-stable `CalculationTrace`. C06 safe-fact
+closure и C05 eligibility обязательны; legacy Robot/economics не читаются.
+Отчёт: [transport capacity formula trace v1](planning/transport-capacity-formula-trace-v1.md).
+
+Следующая малая итерация — **`engine/cleaning-capacity-trace`** (C08).
+Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
 расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой
 формулы при конкретном input и не означает deployment readiness.

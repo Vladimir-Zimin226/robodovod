@@ -102,7 +102,8 @@
         "FRACTION",
         "MONEY",
         "ENERGY",
-        "POWER"
+        "POWER",
+        "UNIT_DEFINITION"
       ],
       "title": "QuantityKind",
       "type": "string"
@@ -135,6 +136,8 @@
         "pick/day",
         "m2/day",
         "unit/h",
+        "trip/h",
+        "s/h",
         "m2/h",
         "unit/min",
         "pick/min",

@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-22: **C01–C06 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C07 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -17,7 +17,8 @@ UI C04 — в [frontend process-role intake v2](planning/frontend-process-role-i
 constraints C05 — в [applicability constraints v2](planning/applicability-constraints-v2.md).
 Executability audit C06 — в
 [formula executability audit v3](planning/formula-executability-audit-v3.md).
-Следующий этап — C07; формулы и runtime activation не выполнялись.
+C07 — в [transport capacity formula trace v1](planning/transport-capacity-formula-trace-v1.md).
+Следующий этап — C08; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
