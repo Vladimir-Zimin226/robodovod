@@ -284,7 +284,14 @@ F05/F07 для cleaning area, direct/share-of-total area sources, typed
 `85000 × 0.6 = 51000 m2`. Отчёт:
 [cleaning capacity trace v1](planning/cleaning-capacity-trace-v1.md).
 
-Следующая малая итерация — **`engine/palletizing-capacity-trace`** (C09).
+Этап **`engine/palletizing-capacity-trace`** (C09) завершён: реализованы pure
+F06/F07 для fixed palletizing cell с dimension-safe цепочкой
+`pick/min → pick/h → box/day → pallet/day`, отдельными efficiency и
+availability, output policy 20 box/pallet и synthetic assumption provenance.
+Catalog pool не расширен. Отчёт:
+[palletizing capacity trace v1](planning/palletizing-capacity-trace-v1.md).
+
+Следующая малая итерация — **`contracts/process-profile-coverage-v1`** (C10).
 Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
 расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой

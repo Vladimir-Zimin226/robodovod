@@ -177,11 +177,14 @@ class Unit(StrEnum):
     UNIT_PER_HOUR = "unit/h"
     TRIP_PER_HOUR = "trip/h"
     SECOND_PER_HOUR = "s/h"
+    MINUTE_PER_HOUR = "min/h"
     PER_DAY = "1/day"
     SQUARE_METER_PER_HOUR = "m2/h"
     UNIT_PER_MINUTE = "unit/min"
     PICK_PER_MINUTE = "pick/min"
+    PICK_PER_HOUR = "pick/h"
     PALLET_PER_MINUTE = "pallet/min"
+    BOX_PER_PALLET = "box/pallet"
     METER_PER_SECOND = "m/s"
     KILOGRAM_PER_UNIT = "kg/unit"
     UNIT_PER_TRIP = "unit/trip"
@@ -222,11 +225,14 @@ UNIT_KINDS: dict[str, QuantityKind] = {
     "unit/h": QuantityKind.RATE,
     "trip/h": QuantityKind.RATE,
     "s/h": QuantityKind.UNIT_DEFINITION,
+    "min/h": QuantityKind.UNIT_DEFINITION,
     "1/day": QuantityKind.RATE,
     "m2/h": QuantityKind.RATE,
     "unit/min": QuantityKind.RATE,
     "pick/min": QuantityKind.RATE,
+    "pick/h": QuantityKind.RATE,
     "pallet/min": QuantityKind.RATE,
+    "box/pallet": QuantityKind.RATE,
     "m/s": QuantityKind.SPEED,
     "kg/unit": QuantityKind.RATE,
     "unit/trip": QuantityKind.RATE,
@@ -272,6 +278,11 @@ class QuantityName(StrEnum):
     CLEANING_RATE = "cleaning_rate"
     CELL_RATE = "cell_rate"
     CELL_EFFICIENCY = "cell_efficiency"
+    MINUTES_PER_HOUR = "minutes_per_hour"
+    PICKS_PER_HOUR = "picks_per_hour"
+    BOXES_PER_PALLET = "boxes_per_pallet"
+    BOXES_PER_DAY = "boxes_per_day"
+    PALLETS_PER_DAY = "pallets_per_day"
     AVAILABILITY = "availability"
     FLEET_SELECTED = "fleet_selected"
     FLEET_RECOMMENDED = "fleet_recommended"
@@ -315,8 +326,13 @@ NORMALIZED_UNITS: dict[str, Unit] = {
     QuantityName.CLEANING_AREA_SHARE: Unit.DIMENSIONLESS,
     QuantityName.CLEANING_FREQUENCY: Unit.PER_DAY,
     QuantityName.CLEANING_RATE: Unit.SQUARE_METER_PER_HOUR,
-    QuantityName.CELL_RATE: Unit.UNIT_PER_HOUR,
+    QuantityName.CELL_RATE: Unit.PICK_PER_MINUTE,
     QuantityName.CELL_EFFICIENCY: Unit.DIMENSIONLESS,
+    QuantityName.MINUTES_PER_HOUR: Unit.MINUTE_PER_HOUR,
+    QuantityName.PICKS_PER_HOUR: Unit.PICK_PER_HOUR,
+    QuantityName.BOXES_PER_PALLET: Unit.BOX_PER_PALLET,
+    QuantityName.BOXES_PER_DAY: Unit.BOX_PER_DAY,
+    QuantityName.PALLETS_PER_DAY: Unit.PALLET_PER_DAY,
     QuantityName.AVAILABILITY: Unit.DIMENSIONLESS,
     QuantityName.FLEET_SELECTED: Unit.ROBOT,
     QuantityName.FLEET_RECOMMENDED: Unit.ROBOT,

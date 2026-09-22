@@ -1,0 +1,23 @@
+{
+  "boxes_per_day": "8580",
+  "conversion": {
+    "after": "600",
+    "before": "10",
+    "conversion_id": "conversion.pick-minute-to-hour",
+    "exact_factor": "60",
+    "from_unit": "pick/min",
+    "input_ref": "cell_rate",
+    "operation": "MULTIPLY",
+    "to_unit": "pick/h",
+    "unit_definition_version": "si-unit-definitions-v1"
+  },
+  "effective_pallets_per_day": "300.3",
+  "formula_ids": [
+    "F01",
+    "F06",
+    "F07"
+  ],
+  "nominal_pallets_per_day": "429",
+  "picks_per_hour": "600",
+  "recommended_cells": 7
+}

@@ -31,6 +31,7 @@ from calculation_contracts import (  # noqa: E402
 )
 from calculation.capacity.transport import TransportCapacityRequestV1  # noqa: E402
 from calculation.capacity.cleaning import CleaningCapacityRequestV1  # noqa: E402
+from calculation.capacity.palletizing import PalletizingCapacityRequestV1  # noqa: E402
 
 CONTRACTS = ROOT / "contracts"
 FIXTURES = CONTRACTS / "fixtures"
@@ -807,6 +808,7 @@ def expected_files() -> tuple[tuple[Path, bytes], ...]:
         (CONTRACTS / "capacity-analysis-error-v1.schema.json", CapacityAnalysisErrorResponse),
         (CONTRACTS / "transport-capacity-request-v1.schema.json", TransportCapacityRequestV1),
         (CONTRACTS / "cleaning-capacity-request-v1.schema.json", CleaningCapacityRequestV1),
+        (CONTRACTS / "palletizing-capacity-request-v1.schema.json", PalletizingCapacityRequestV1),
     )
     generated = tuple((path, _bytes(model.model_json_schema())) for path, model in schemas)
     return generated + (

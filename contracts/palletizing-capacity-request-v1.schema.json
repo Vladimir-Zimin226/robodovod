@@ -54,46 +54,6 @@
       "title": "AssumptionProvenance",
       "type": "object"
     },
-    "BatchLimitsV1": {
-      "additionalProperties": false,
-      "properties": {
-        "explicit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/KnownQuantity"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "geometry": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/KnownQuantity"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "passport": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/KnownQuantity"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "title": "BatchLimitsV1",
-      "type": "object"
-    },
     "ConstraintCheck": {
       "additionalProperties": false,
       "properties": {
@@ -1382,49 +1342,7 @@
       "title": "Acquisition",
       "type": "string"
     },
-    "batch_limits": {
-      "$ref": "#/$defs/BatchLimitsV1"
-    },
-    "constraints": {
-      "$ref": "#/$defs/ConstraintReportV2"
-    },
-    "exchange": {
-      "anyOf": [
-        {
-          "discriminator": {
-            "mapping": {
-              "SPLIT": "#/$defs/SplitExchange",
-              "TOTAL": "#/$defs/TotalExchange"
-            },
-            "propertyName": "mode"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/TotalExchange"
-            },
-            {
-              "$ref": "#/$defs/SplitExchange"
-            }
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Exchange"
-    },
-    "executability": {
-      "$ref": "#/$defs/RunExecutabilityResult"
-    },
-    "fact_provenance": {
-      "additionalProperties": {
-        "type": "string"
-      },
-      "title": "Fact Provenance",
-      "type": "object"
-    },
-    "item_mass": {
+    "cell_rate": {
       "anyOf": [
         {
           "$ref": "#/$defs/KnownQuantity"
@@ -1432,24 +1350,18 @@
         {
           "type": "null"
         }
-      ],
-      "default": null
+      ]
+    },
+    "constraints": {
+      "$ref": "#/$defs/ConstraintReportV2"
+    },
+    "executability": {
+      "$ref": "#/$defs/RunExecutabilityResult"
     },
     "model_id": {
       "minLength": 1,
       "title": "Model Id",
       "type": "string"
-    },
-    "operating_speed": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/KnownQuantity"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null
     },
     "position_id": {
       "minLength": 1,
@@ -1507,8 +1419,8 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "transport-capacity-request-v1",
-      "default": "transport-capacity-request-v1",
+      "const": "palletizing-capacity-request-v1",
+      "default": "palletizing-capacity-request-v1",
       "title": "Schema Version",
       "type": "string"
     },
@@ -1543,12 +1455,12 @@
     "process",
     "model_id",
     "position_id",
+    "cell_rate",
     "executability",
     "constraints",
     "versions",
-    "provenance",
-    "fact_provenance"
+    "provenance"
   ],
-  "title": "TransportCapacityRequestV1",
+  "title": "PalletizingCapacityRequestV1",
   "type": "object"
 }

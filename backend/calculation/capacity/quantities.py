@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_EVEN, localcontext
 
+MINUTES_PER_HOUR = Decimal(60)
+
 
 def decimal(value: object) -> Decimal:
     return value if isinstance(value, Decimal) else Decimal(str(value))
@@ -148,3 +150,32 @@ def cleaning_capacity(
         nominal = rate_m2_hour * operating_hours_per_day
         effective = nominal * availability
         return required, nominal, effective, ceil_exact(required / effective)
+
+
+def palletizing_capacity(
+    *,
+    demand_pallets_day: Decimal,
+    rate_picks_minute: Decimal,
+    operating_hours_day: Decimal,
+    cell_efficiency: Decimal,
+    boxes_per_pallet: Decimal,
+    availability: Decimal,
+) -> tuple[Decimal, Decimal, Decimal, Decimal, int]:
+    """F06 boxes/day, nominal/effective pallets/day, and exact cell ceil."""
+    if demand_pallets_day <= 0 or rate_picks_minute <= 0 or operating_hours_day <= 0:
+        raise ValueError("pallet demand, pick rate, and operating hours must be positive")
+    if boxes_per_pallet <= 0:
+        raise ValueError("boxes per pallet denominator must be positive")
+    if not Decimal(0) < cell_efficiency <= Decimal(1):
+        raise ValueError("cell efficiency must be in (0, 1]")
+    if not Decimal(0) < availability <= Decimal(1):
+        raise ValueError("availability must be in (0, 1]")
+    with localcontext() as context:
+        context.prec = 28
+        context.rounding = ROUND_HALF_EVEN
+        picks_hour = rate_picks_minute * MINUTES_PER_HOUR
+        boxes_day = picks_hour * operating_hours_day * cell_efficiency
+        nominal_pallets_day = boxes_day / boxes_per_pallet
+        effective_pallets_day = nominal_pallets_day * availability
+        recommended = ceil_exact(demand_pallets_day / effective_pallets_day)
+        return picks_hour, boxes_day, nominal_pallets_day, effective_pallets_day, recommended
