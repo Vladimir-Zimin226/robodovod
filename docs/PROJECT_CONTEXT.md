@@ -253,10 +253,10 @@ Robot/economics; materialized CapacityRuntimeDTO ещё не образует н
 расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой
 формулы при конкретном input и не означает deployment readiness.
 
-До первого warehouse end-to-end результата действует scope guard: проект не
-строит полный ERP, налоговый учёт или digital twin. Advanced tax, cohort
-replacement и раздельные production deployment curves остаются extensions,
-если не нужны текущему acceptance или устранению двойного учёта.
+Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
+Ограничение сложности относится только к новой логике сверх принятого плана:
+его tax, replacement, allocation, sensitivity, simulation, export и rollout
+этапы не упрощаются и не переводятся в optional.
 
 Главные изменения целевого канона: полный exchange учитывается один раз,
 peak×reserve отделён от availability; роли и USER gross salary вместо единого

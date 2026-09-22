@@ -25,11 +25,11 @@ policy v1. C03–C11 продолжаются по K01–K29. Контрольн
 получают новую policy/registry version; completed C01/C02 и старые runs не
 переписываются.
 
-Scope guard: до первого end-to-end warehouse результата карточка этапа не
-расширяется advanced tax accounting, cohort replacement, production deployment
-curves или дополнительными метриками только потому, что они описаны в
-`reference v2`. Достаточны строгий вход, честный partial status, trace и
-минимальная формула, необходимая acceptance данного этапа.
+Полнота исполнения: C01–C29, включая tax, replacement, allocation, sensitivity,
+simulation, exports, rollout и migration acceptance, обязательны в полном
+объёме их карточек. Scope discipline запрещает только неуправляемое усложнение
+сверх плана. Ни один существующий acceptance gate не ослабляется; уточнения
+`reference v2` добавляются только через V2-A–V2-D с новой версией policy/data.
 
 ## C01 — `contracts/calculation-semantics-v1`
 
