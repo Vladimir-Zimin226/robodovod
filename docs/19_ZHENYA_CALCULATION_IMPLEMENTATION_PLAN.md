@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C10 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C11 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -21,7 +21,8 @@ C07 — в [transport capacity formula trace v1](planning/transport-capacity-for
 C08 — в [cleaning capacity trace v1](planning/cleaning-capacity-trace-v1.md).
 C09 — в [palletizing capacity trace v1](planning/palletizing-capacity-trace-v1.md).
 C10 — в [process profile coverage v1](planning/process-profile-coverage-v1.md).
-Следующий этап — C11; production runtime activation не выполнялась.
+C11 — в [capacity analysis snapshots v2](planning/capacity-analysis-snapshots-v2.md).
+Следующий этап — C12; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -626,7 +627,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C08 COMPLETE | `engine/cleaning-capacity-trace` — cleaning units/capacity | C06, trace infrastructure C07 |
 | C09 COMPLETE | `engine/palletizing-capacity-trace` — fixed-cell math, без расширения pool | C06–07, picks mapping |
 | C10 COMPLETE | `contracts/process-profile-coverage-v1` — все28scopes поpolicy§3 | C03,C07–09; K19 |
-| C11 | `api/capacity-analysis-snapshots-v2` — независимый API и immutable trace | C05–10 |
+| C11 COMPLETE | `api/capacity-analysis-snapshots-v2` — независимый API и immutable trace | C05–10 |
 | C12 | `frontend/capacity-results-trace` — partial results и объяснение N | C04,C11 |
 | C13 | `procurement/commercial-inputs-v1` — цены/НДС/условия, отдельные gates | C01–03 |
 | C14 | `engine/role-labor-baseline-v1` — baseline, rotation, pult, deficit | C03,C07–10; K05–08 |

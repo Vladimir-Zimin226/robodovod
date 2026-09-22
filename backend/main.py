@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import uuid
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ from catalog_repository import (
 )
 from catalog_taxonomy import CATEGORY_LABELS, CATEGORY_ORDER
 from catalog_runtime import CatalogRuntime, CatalogRuntimeConfigurationError
+from calculation.service import analyze_capacity
 from database import get_database
 from economics import (
     ASSUMPTIONS,
@@ -29,9 +31,13 @@ from economics import (
     recommendation_sort_key,
     validate_mandatory,
 )
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
+from calculation_contracts import CapacityAnalysisErrorResponse, ContractIssue
 from models import CalculationResponse, RejectedRobot, UserInput
 from object_profiles import (
     ObjectProfileError,
@@ -88,6 +94,21 @@ def _robots_by_category(robots: list[dict[str, Any]]):
 
 
 app = FastAPI(title="РобоМера API", version="3.9.0")
+
+
+@app.exception_handler(RequestValidationError)
+async def versioned_request_validation(request: Request, exc: RequestValidationError):
+    if request.url.path == "/api/v2/capacity-analyses":
+        body = CapacityAnalysisErrorResponse(
+            request_id=f"request.{uuid.uuid4()}", error_code="INVALID_REQUEST",
+            issues=[ContractIssue(
+                code="c11-invalid-request", reason="INVALID_DOMAIN", severity="BLOCKER",
+                field_refs=["request"], decision_refs=["K19"],
+                message="capacity analysis request does not match schema v2",
+            )],
+        )
+        return JSONResponse(status_code=422, content=body.model_dump(mode="json"))
+    return await request_validation_exception_handler(request, exc)
 allowed_origins = [
     origin.strip()
     for origin in os.getenv(
@@ -813,5 +834,7 @@ app.include_router(
             **context,
         ),
         resolve_object_profile_version=official_profile_version,
+        resolve_capacity_catalog=_discovery_snapshot,
+        analyze_capacity_for_catalog=analyze_capacity,
     )
 )

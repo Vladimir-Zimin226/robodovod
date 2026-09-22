@@ -29,7 +29,10 @@ from auth import (
 )
 from database import database_session
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
+from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
+from calculation.service import CapacityExecutionSnapshotV2, capacity_version_bindings
+from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisResponse, ContractIssue
 from persistence_models import (
     AnalysisRun,
     AuditEntry,
@@ -264,6 +267,7 @@ def _run_dict(run: AnalysisRun, *, include_snapshots: bool) -> dict[str, Any]:
         "scenario_id": run.scenario_id,
         "parent_run_id": run.parent_run_id,
         "status": run.status,
+        "run_kind": run.run_kind,
         "revision_id": run.revision_id,
         "versions": {
             "catalog": run.catalog_version_code,
@@ -276,6 +280,8 @@ def _run_dict(run: AnalysisRun, *, include_snapshots: bool) -> dict[str, Any]:
             "input": run.input_sha256,
             "result": run.result_sha256,
             "scenario_spec": run.scenario_spec_sha256,
+            "trace": run.trace_sha256,
+            "version_bindings": run.version_bindings_sha256,
         },
         "diagnostics": run.diagnostics,
         "created_at": run.created_at,
@@ -288,6 +294,8 @@ def _run_dict(run: AnalysisRun, *, include_snapshots: bool) -> dict[str, Any]:
                 "input_snapshot": run.input_snapshot,
                 "result_snapshot": run.result_snapshot,
                 "scenario_spec_snapshot": run.scenario_spec_snapshot,
+                "trace_snapshot": run.trace_snapshot,
+                "version_bindings_snapshot": run.version_bindings_snapshot,
             }
         )
     return value
@@ -338,6 +346,17 @@ def _canonical_sha256(value: dict[str, Any]) -> str:
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def _capacity_error(status_code: int, error_code: str, message: str, *, run_id: str | None = None) -> JSONResponse:
+    reason = "MISSING_SAFE_FACT" if error_code == "CAPACITY_SOURCE_UNAVAILABLE" else "INVALID_DOMAIN"
+    body = CapacityAnalysisErrorResponse(
+        request_id=f"request.{uuid.uuid4()}", run_id=run_id, error_code=error_code,
+        issues=[ContractIssue(code=f"c11-{error_code.lower().replace('_', '-')}", reason=reason,
+                              severity="BLOCKER", field_refs=["capacity_analysis"],
+                              decision_refs=["K19"], message=message)],
+    )
+    return JSONResponse(status_code=status_code, content=body.model_dump(mode="json"))
 
 
 def _storage_root() -> Path:
@@ -501,6 +520,8 @@ def create_persistence_router(
     calculate_for_catalog: Callable[[UserInput, Any], CalculationResponse] | None = None,
     readiness_for_catalog: Callable[..., Any] | None = None,
     resolve_object_profile_version: Callable[[], str] | None = None,
+    resolve_capacity_catalog: Callable[[], Any] | None = None,
+    analyze_capacity_for_catalog: Callable[[CapacityAnalysisRequest, Any, str], CapacityExecutionSnapshotV2] | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
@@ -1048,6 +1069,7 @@ def create_persistence_router(
             project_id=project.id,
             scenario_id=scenario.id,
             parent_run_id=parent_run_id,
+            run_kind="FULL_ANALYSIS",
             status="PENDING",
             input_snapshot=input_snapshot,
             input_sha256=_canonical_sha256(input_snapshot),
@@ -1163,6 +1185,130 @@ def create_persistence_router(
         db.commit()
         return _run_dict(run, include_snapshots=True)
 
+    @router.post(
+        "/v2/capacity-analyses",
+        response_model=CapacityAnalysisResponse,
+        responses={422: {"model": CapacityAnalysisErrorResponse}, 500: {"model": CapacityAnalysisErrorResponse},
+                   503: {"model": CapacityAnalysisErrorResponse}},
+        status_code=status.HTTP_201_CREATED,
+    )
+    def create_capacity_analysis(
+        payload: CapacityAnalysisRequest,
+        context: AuthContext = Depends(require_csrf),
+        db: Session = Depends(database_session),
+    ):
+        try:
+            project_id = uuid.UUID(payload.project_id)
+        except ValueError:
+            return _capacity_error(422, "INVALID_REQUEST", "project_id must identify a persisted project")
+        project = _owned_project(db, project_id, context.user.id)
+        if resolve_capacity_catalog is None or analyze_capacity_for_catalog is None:
+            return _capacity_error(503, "CAPACITY_SOURCE_UNAVAILABLE", "capacity source unavailable")
+        try:
+            catalog_snapshot = resolve_capacity_catalog()
+        except HTTPException as exc:
+            if exc.status_code == 503:
+                return _capacity_error(503, "CAPACITY_SOURCE_UNAVAILABLE", "capacity source unavailable")
+            raise
+        bindings = capacity_version_bindings(catalog_snapshot)
+        run_id = uuid.uuid4()
+        input_snapshot = payload.model_dump(mode="json")
+        binding_snapshot = bindings.model_dump(mode="json")
+        try:
+            catalog_version_id = uuid.UUID(catalog_snapshot.version.id)
+        except ValueError:
+            return _capacity_error(503, "CAPACITY_SOURCE_UNAVAILABLE", "capacity source version is invalid")
+        run = AnalysisRun(
+            id=run_id,
+            project_id=project.id,
+            scenario_id=None,
+            parent_run_id=None,
+            run_kind="CAPACITY_ANALYSIS",
+            status="PENDING",
+            input_snapshot=input_snapshot,
+            input_sha256=_canonical_sha256(input_snapshot),
+            catalog_version_id=catalog_version_id,
+            catalog_version_code=catalog_snapshot.version.code,
+            rules_version=bindings.constraint_rules_version,
+            economics_version=None,
+            object_profile_version="calculation-process-projection-v2",
+            application_version="capacity-analysis-service-v2",
+            version_bindings_snapshot=binding_snapshot,
+            version_bindings_sha256=_canonical_sha256(binding_snapshot),
+            diagnostics={},
+        )
+        db.add(run)
+        db.commit()
+        run.status = "RUNNING"
+        run.started_at = utcnow()
+        db.commit()
+        try:
+            execution = analyze_capacity_for_catalog(payload, catalog_snapshot, str(run_id))
+        except ValueError as exc:
+            run.status = "FAILED"
+            run.finished_at = utcnow()
+            run.diagnostics = {"error_code": "INVALID_REQUEST"}
+            db.commit()
+            return _capacity_error(422, "INVALID_REQUEST", str(exc), run_id=str(run_id))
+        except Exception:
+            logger.exception("Capacity analysis failed (run_id=%s)", run_id)
+            run.status = "FAILED"
+            run.finished_at = utcnow()
+            run.diagnostics = {"error_code": "INTERNAL_ERROR"}
+            db.commit()
+            return _capacity_error(500, "INTERNAL_ERROR", "capacity analysis failed", run_id=str(run_id))
+        result_snapshot = execution.response.model_dump(mode="json")
+        trace_snapshot = execution.response.trace.model_dump(mode="json")
+        run.status = "SUCCEEDED"
+        run.result_snapshot = result_snapshot
+        run.result_sha256 = _canonical_sha256(result_snapshot)
+        run.trace_snapshot = trace_snapshot
+        run.trace_sha256 = _canonical_sha256(trace_snapshot)
+        run.revision_id = payload.input_revision
+        run.diagnostics = {
+            "route": execution.route.model_dump(mode="json"),
+            "constraints": execution.constraints.model_dump(mode="json"),
+            "executability": execution.executability.model_dump(mode="json"),
+        }
+        run.finished_at = utcnow()
+        _audit(db, "CAPACITY_ANALYSIS_SUCCEEDED", actor_id=context.user.id,
+               project_id=project.id, aggregate={"run_id": str(run.id)})
+        db.commit()
+        return execution.response
+
+    @router.get("/v2/capacity-analyses/{run_id}", response_model=CapacityAnalysisResponse)
+    def get_capacity_analysis(
+        run_id: uuid.UUID,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        run = db.scalar(
+            select(AnalysisRun)
+            .join(Project, Project.id == AnalysisRun.project_id)
+            .where(
+                AnalysisRun.id == run_id,
+                AnalysisRun.run_kind == "CAPACITY_ANALYSIS",
+                AnalysisRun.status == "SUCCEEDED",
+                Project.owner_id == context.user.id,
+                Project.status == "ACTIVE",
+            )
+        )
+        if run is None or run.result_snapshot is None:
+            raise HTTPException(status_code=404, detail="capacity analysis not found")
+        if _canonical_sha256(run.result_snapshot) != run.result_sha256:
+            raise HTTPException(status_code=409, detail="capacity snapshot checksum mismatch")
+        if run.trace_snapshot is None or _canonical_sha256(run.trace_snapshot) != run.trace_sha256:
+            raise HTTPException(status_code=409, detail="capacity trace checksum mismatch")
+        if run.result_snapshot.get("trace") != run.trace_snapshot:
+            raise HTTPException(status_code=409, detail="capacity trace snapshot mismatch")
+        if (
+            run.version_bindings_snapshot is None
+            or _canonical_sha256(run.version_bindings_snapshot) != run.version_bindings_sha256
+            or run.trace_snapshot.get("versions") != run.version_bindings_snapshot
+        ):
+            raise HTTPException(status_code=409, detail="capacity version snapshot mismatch")
+        return CapacityAnalysisResponse.model_validate(run.result_snapshot)
+
     @router.get("/projects/{project_id}/analysis-runs")
     def list_analysis_runs(
         project_id: uuid.UUID,
@@ -1212,6 +1358,8 @@ def create_persistence_router(
         )
         if source is None:
             raise HTTPException(status_code=404, detail="analysis run not found")
+        if source.run_kind != "FULL_ANALYSIS":
+            raise HTTPException(status_code=409, detail="run kind requires its versioned endpoint")
         scenario = db.get(Scenario, source.scenario_id) if source.scenario_id else None
         if scenario is None or scenario.project_id != project.id:
             raise HTTPException(status_code=409, detail="source scenario is unavailable")

@@ -275,6 +275,10 @@ class AnalysisRun(Base):
     __tablename__ = "analysis_runs"
     __table_args__ = (
         CheckConstraint(
+            "run_kind IN ('FULL_ANALYSIS', 'CAPACITY_ANALYSIS')",
+            name="ck_analysis_runs_kind",
+        ),
+        CheckConstraint(
             "status IN ('PENDING', 'RUNNING', 'SUCCEEDED', 'FAILED', 'CANCELLED')",
             name="ck_analysis_runs_status",
         ),
@@ -304,25 +308,50 @@ class AnalysisRun(Base):
             name="ck_analysis_runs_scenario_spec_sha256",
         ),
         CheckConstraint(
+            "trace_snapshot IS NULL OR jsonb_typeof(trace_snapshot) = 'object'",
+            name="ck_analysis_runs_trace_object",
+        ),
+        CheckConstraint(
+            "version_bindings_snapshot IS NULL OR jsonb_typeof(version_bindings_snapshot) = 'object'",
+            name="ck_analysis_runs_version_bindings_object",
+        ),
+        CheckConstraint(
+            f"trace_sha256 IS NULL OR trace_sha256 ~ '{SHA256_CHECK}'",
+            name="ck_analysis_runs_trace_sha256",
+        ),
+        CheckConstraint(
+            f"version_bindings_sha256 IS NULL OR version_bindings_sha256 ~ '{SHA256_CHECK}'",
+            name="ck_analysis_runs_version_bindings_sha256",
+        ),
+        CheckConstraint(
             "length(btrim(catalog_version_code)) > 0 "
             "AND length(btrim(rules_version)) > 0 "
-            "AND length(btrim(economics_version)) > 0 "
+            "AND (economics_version IS NULL OR length(btrim(economics_version)) > 0) "
             "AND length(btrim(object_profile_version)) > 0 "
-            "AND length(btrim(application_version)) > 0",
+            "AND length(btrim(application_version)) > 0 "
+            "AND ((run_kind = 'FULL_ANALYSIS' AND economics_version IS NOT NULL) "
+            "OR (run_kind = 'CAPACITY_ANALYSIS' AND economics_version IS NULL "
+            "AND version_bindings_snapshot IS NOT NULL AND version_bindings_sha256 IS NOT NULL))",
             name="ck_analysis_runs_versions_nonempty",
         ),
         CheckConstraint(
             "(status = 'PENDING' AND started_at IS NULL AND finished_at IS NULL "
-            "AND result_snapshot IS NULL AND scenario_spec_snapshot IS NULL) OR "
+            "AND result_snapshot IS NULL AND scenario_spec_snapshot IS NULL AND trace_snapshot IS NULL) OR "
             "(status = 'RUNNING' AND started_at IS NOT NULL AND finished_at IS NULL "
-            "AND result_snapshot IS NULL AND scenario_spec_snapshot IS NULL) OR "
-            "(status = 'SUCCEEDED' AND started_at IS NOT NULL AND finished_at IS NOT NULL "
+            "AND result_snapshot IS NULL AND scenario_spec_snapshot IS NULL AND trace_snapshot IS NULL) OR "
+            "(status = 'SUCCEEDED' AND run_kind = 'FULL_ANALYSIS' AND started_at IS NOT NULL AND finished_at IS NOT NULL "
             "AND result_snapshot IS NOT NULL AND result_sha256 IS NOT NULL "
-            "AND scenario_spec_snapshot IS NOT NULL AND scenario_spec_sha256 IS NOT NULL) OR "
+            "AND scenario_spec_snapshot IS NOT NULL AND scenario_spec_sha256 IS NOT NULL "
+            "AND trace_snapshot IS NULL AND trace_sha256 IS NULL) OR "
+            "(status = 'SUCCEEDED' AND run_kind = 'CAPACITY_ANALYSIS' AND started_at IS NOT NULL AND finished_at IS NOT NULL "
+            "AND result_snapshot IS NOT NULL AND result_sha256 IS NOT NULL "
+            "AND scenario_spec_snapshot IS NULL AND scenario_spec_sha256 IS NULL "
+            "AND trace_snapshot IS NOT NULL AND trace_sha256 IS NOT NULL "
+            "AND version_bindings_snapshot IS NOT NULL AND version_bindings_sha256 IS NOT NULL) OR "
             "(status IN ('FAILED', 'CANCELLED') AND started_at IS NOT NULL "
             "AND finished_at IS NOT NULL AND result_snapshot IS NULL "
             "AND result_sha256 IS NULL AND scenario_spec_snapshot IS NULL "
-            "AND scenario_spec_sha256 IS NULL)",
+            "AND scenario_spec_sha256 IS NULL AND trace_snapshot IS NULL AND trace_sha256 IS NULL)",
             name="ck_analysis_runs_state_payload",
         ),
         CheckConstraint(
@@ -344,6 +373,9 @@ class AnalysisRun(Base):
     parent_run_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("analysis_runs.id", ondelete="CASCADE")
     )
+    run_kind: Mapped[str] = mapped_column(
+        Text, nullable=False, default="FULL_ANALYSIS"
+    )
     status: Mapped[str] = mapped_column(
         Text, nullable=False, default="PENDING", server_default=text("'PENDING'")
     )
@@ -353,13 +385,17 @@ class AnalysisRun(Base):
     result_sha256: Mapped[str | None] = mapped_column(Text)
     scenario_spec_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     scenario_spec_sha256: Mapped[str | None] = mapped_column(Text)
+    trace_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    trace_sha256: Mapped[str | None] = mapped_column(Text)
+    version_bindings_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    version_bindings_sha256: Mapped[str | None] = mapped_column(Text)
     revision_id: Mapped[str | None] = mapped_column(Text)
     catalog_version_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("catalog_versions.id", ondelete="RESTRICT")
     )
     catalog_version_code: Mapped[str] = mapped_column(Text, nullable=False)
     rules_version: Mapped[str] = mapped_column(Text, nullable=False)
-    economics_version: Mapped[str] = mapped_column(Text, nullable=False)
+    economics_version: Mapped[str | None] = mapped_column(Text)
     object_profile_version: Mapped[str] = mapped_column(Text, nullable=False)
     application_version: Mapped[str] = mapped_column(Text, nullable=False)
     diagnostics: Mapped[dict[str, Any]] = mapped_column(

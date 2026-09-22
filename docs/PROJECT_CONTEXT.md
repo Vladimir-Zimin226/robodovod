@@ -298,11 +298,18 @@ C07–C09; REFERENCE_ONLY и CONSTRAINT_ONLY имеют явные причин�
 production API, frontend и registry v1 не менялись. Отчёт:
 [process profile coverage v1](planning/process-profile-coverage-v1.md).
 
-Следующая малая итерация — **`api/capacity-analysis-snapshots-v2`** (C11).
-Нынешний `/api/calculate` требует legacy
-Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
-расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой
-формулы при конкретном input и не означает deployment readiness.
+Этап **`api/capacity-analysis-snapshots-v2`** (C11) завершён: добавлен
+CSRF/tenant-protected `POST /api/v2/capacity-analyses`, reopen endpoint,
+server-owned C05/C06/C10 routing и immutable capacity run с отдельными
+input/result/trace/version hashes. Capacity run не требует economics или
+ScenarioSpec v1; прежний full run и `/api/calculate` сохранены. Отчёт:
+[capacity analysis snapshots v2](planning/capacity-analysis-snapshots-v2.md).
+
+Следующая малая итерация — **`frontend/capacity-results-trace`** (C12).
+Legacy `/api/calculate` по-прежнему требует Robot/economics. Новый capacity
+endpoint читает опубликованный snapshot и не превращает calculation readiness
+в deployment readiness: C05/C06 gates выполняются для каждого input, а
+неподтверждённые ограничения дают blocked/needs-validation без fallback.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

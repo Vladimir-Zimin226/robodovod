@@ -731,6 +731,31 @@ class CapacityAnalysisRequest(StrictContractModel):
     position_id: Annotated[str, Field(min_length=1)]
     acquisition: Literal["PURCHASE", "RAAS"]
     uncertainty: Literal["PESSIMISTIC", "BASE", "OPTIMISTIC"]
+    selected_fleet: KnownQuantity | None = None
+    operating_speed: KnownQuantity | None = None
+    cleaning_area: KnownQuantity | None = None
+    cleaning_frequency: KnownQuantity | None = None
+    provenance: list[Provenance] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_execution_inputs(self) -> "CapacityAnalysisRequest":
+        if self.input_revision != self.process.input_revision:
+            raise ValueError("request and process input_revision must match")
+        expected = (
+            (self.selected_fleet, QuantityName.FLEET_SELECTED),
+            (self.operating_speed, QuantityName.OPERATING_SPEED),
+            (self.cleaning_area, QuantityName.CLEANING_AREA),
+            (self.cleaning_frequency, QuantityName.CLEANING_FREQUENCY),
+        )
+        for quantity, name in expected:
+            if quantity is not None and quantity.name != name:
+                raise ValueError(f"execution input must use {name}")
+        refs = {item.provenance_id for item in self.provenance}
+        if len(refs) != len(self.provenance):
+            raise ValueError("request provenance ids must be unique")
+        if any(item is not None and item.provenance_ref not in refs for item, _ in expected):
+            raise ValueError("execution input has dangling provenance")
+        return self
 
 
 class CapacityAnalysisResponse(StrictContractModel):

@@ -1,0 +1,301 @@
+"""C11 orchestration over one immutable catalog and policy snapshot."""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from decimal import Decimal
+from pathlib import Path
+from typing import Callable
+
+from catalog_repository import CatalogPositionDTO, CatalogSnapshotDTO
+from calculation.capacity.cleaning import DirectCleaningAreaV1, CleaningCapacityRequestV1, calculate_cleaning_capacity
+from calculation.capacity.palletizing import PalletizingCapacityRequestV1, calculate_palletizing_capacity
+from calculation.capacity.trace import finalize_trace
+from calculation.capacity.transport import BatchLimitsV1, TransportCapacityRequestV1, calculate_transport_capacity
+from calculation.constraints import (
+    CandidateConstraintFacts,
+    ConstraintEvaluationRequest,
+    ConstraintReportV2,
+    ObjectConstraintContext,
+    evaluate_constraints,
+)
+from calculation.executability import (
+    RunExecutabilityResult,
+    ScenarioValue,
+    candidate_from_repository,
+    evaluate_run_executability,
+    registry_payload,
+)
+from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
+from calculation_contracts import (
+    CalculationTrace,
+    CapacityAnalysisRequest,
+    CapacityAnalysisResponse,
+    CapacityResult,
+    ContractIssue,
+    KnownQuantity,
+    Provenance,
+    ReplayBinding,
+    TraceEnvelope,
+    TraceResult,
+    VersionBindings,
+    semantic_digest,
+)
+
+ROOT = Path(__file__).resolve().parents[2]
+ENGINE_VERSION = "capacity-analysis-service-v2"
+ZERO_DIGEST = "sha256:" + "0" * 64
+ConstraintProvider = Callable[[CapacityAnalysisRequest, CatalogPositionDTO], ConstraintReportV2]
+
+
+@dataclass(frozen=True)
+class CapacityExecutionSnapshotV2:
+    response: CapacityAnalysisResponse
+    route: ProcessRouteDecisionV1
+    constraints: ConstraintReportV2
+    executability: RunExecutabilityResult
+
+
+def capacity_version_bindings(snapshot: CatalogSnapshotDTO) -> VersionBindings:
+    manifest = json.loads((ROOT / "data/calculation/registry-v1.manifest.json").read_text(encoding="utf-8"))
+    process_coverage = json.loads((ROOT / "data/review/process-profile-coverage-v1.json").read_text(encoding="utf-8"))
+    projection = [
+        {
+            "position_id": item.id,
+            "model_id": item.model.id,
+            "capacity_runtime": {
+                "status": item.model.capacity_runtime.calculation_readiness_status,
+                "profile": item.model.capacity_runtime.calculation_profile,
+                "fields": list(item.model.capacity_runtime.calculation_model_fields),
+                "facts": [
+                    {
+                        "code": fact.code,
+                        "scope_code": fact.scope_code,
+                        "value": str(fact.value),
+                        "unit": fact.canonical_unit,
+                        "resolution_status": fact.resolution_status,
+                        "evidence_id": fact.evidence_id,
+                    }
+                    for fact in item.model.capacity_runtime.vendor_facts
+                ],
+            },
+        }
+        for item in snapshot.positions
+    ]
+    return VersionBindings(
+        catalog_version_id=snapshot.version.code,
+        catalog_content_digest=semantic_digest({
+            "id": snapshot.version.id,
+            "code": snapshot.version.code,
+            "status": snapshot.version.status,
+            "process_catalog_digest": process_coverage["catalog_digest"],
+        }),
+        capacity_projection_version="formula-executability-profiles-v3",
+        capacity_projection_digest=semantic_digest(projection),
+        registry_version="hackathon-calculation-parameter-registry-v1",
+        registry_digest=manifest["registry_semantic_digest"],
+        process_catalog_version="calculation-process-catalog-v1",
+        formula_bundle_version="calculation-formulas-v1",
+        constraint_rules_version="calculation-constraint-rules-v2",
+        commercial_policy_version="hackathon-commercial-policy-v1",
+        precision_policy_version="decimal-context-28-half-even-v1",
+        calculation_policy_version="hackathon-calculation-policy-v1",
+    )
+
+
+def _position(request: CapacityAnalysisRequest, snapshot: CatalogSnapshotDTO) -> CatalogPositionDTO:
+    if snapshot.version.status != "PUBLISHED":
+        raise ValueError("capacity source must be an immutable published snapshot")
+    position = next((item for item in snapshot.positions if item.id == request.position_id), None)
+    if position is None or position.model.id != request.model_id:
+        raise ValueError("model/position is absent from the published capacity snapshot")
+    if not position.model.capacity_runtime.calculation_ready:
+        raise ValueError("selected capacity source is not calculation-ready")
+    return position
+
+
+def conservative_constraints(request: CapacityAnalysisRequest, position: CatalogPositionDTO) -> ConstraintReportV2:
+    """Run C05 without inventing passport/environment facts.
+
+    K19/profile identity is safe metadata. Missing physical evidence remains
+    UNKNOWN, so production execution fails closed until the relevant gate.
+    """
+    source = f"catalog-capacity-profile:{position.id}"
+    candidate = CandidateConstraintFacts(
+        model_id=position.model.id,
+        position_id=position.id,
+        supported_object_kinds=[request.process.object_kind],
+        supported_process_scopes=[request.process.scope],
+        evidence={
+            "supported_object_kinds": {"evidence_status": "MATCHING_SAFE", "source_ref": source},
+            "supported_process_scopes": {"evidence_status": "MATCHING_SAFE", "source_ref": source},
+        },
+    )
+    return evaluate_constraints(ConstraintEvaluationRequest(
+        input_revision=request.input_revision,
+        process_id=request.process.process_id,
+        process_code=request.process.process_code,
+        process_scope=request.process.scope,
+        context=ObjectConstraintContext(object_kind=request.process.object_kind),
+        candidate=candidate,
+    ))
+
+
+def _scenario_values(request: CapacityAnalysisRequest) -> list[ScenarioValue]:
+    process = request.process
+    values: list[ScenarioValue] = []
+    if isinstance(process.demand, KnownQuantity) and process.scope != "CLEANING_AREA":
+        values.append(ScenarioValue(input_path="process.demand_per_day", value=process.demand.normalized_value,
+                                    unit=str(process.demand.unit), source_ref=process.demand.provenance_ref))
+    if process.schedule is not None:
+        values.extend([
+            ScenarioValue(input_path="process.shift_hours", value=process.schedule.shift_hours.normalized_value,
+                          unit="h", source_ref=process.schedule.shift_hours.provenance_ref),
+            ScenarioValue(input_path="process.shifts_per_day", value=process.schedule.shifts_per_day.normalized_value,
+                          unit="shift", source_ref=process.schedule.shifts_per_day.provenance_ref),
+        ])
+    if isinstance(process.route_distance, KnownQuantity):
+        values.append(ScenarioValue(input_path="process.one_way_distance_m", value=process.route_distance.normalized_value,
+                                    unit="m", source_ref=process.route_distance.provenance_ref))
+    if process.exchange is not None:
+        parts = [process.exchange.total_time] if process.exchange.mode == "TOTAL" else [process.exchange.load_time, process.exchange.unload_time]
+        total = sum((Decimal(item.normalized_value) for item in parts), Decimal(0))
+        values.append(ScenarioValue(input_path="process.exchange_total_time_s", value=format(total, "f"), unit="s",
+                                    source_ref=parts[0].provenance_ref))
+    if isinstance(process.explicit_batch, KnownQuantity):
+        values.append(ScenarioValue(input_path="process.units_per_trip", value=process.explicit_batch.normalized_value,
+                                    unit="unit/trip", source_ref=process.explicit_batch.provenance_ref))
+    if request.cleaning_area is not None:
+        values.append(ScenarioValue(input_path="process.cleaning_area_m2", value=request.cleaning_area.normalized_value,
+                                    unit="m2", source_ref=request.cleaning_area.provenance_ref))
+    if request.cleaning_frequency is not None:
+        values.append(ScenarioValue(input_path="process.cleaning_frequency_per_day", value=request.cleaning_frequency.normalized_value,
+                                    unit="1/day", source_ref=request.cleaning_frequency.provenance_ref))
+    if request.selected_fleet is not None:
+        values.append(ScenarioValue(input_path="run.selected_fleet_units", value=request.selected_fleet.normalized_value,
+                                    unit="robot", source_ref=request.selected_fleet.provenance_ref))
+    return sorted(values, key=lambda item: item.input_path)
+
+
+def _vendor_provenance(position: CatalogPositionDTO) -> tuple[list[Provenance], dict[str, str]]:
+    path_by_code = {field.rsplit(".", 1)[-1]: field for field in position.model.capacity_runtime.calculation_model_fields}
+    requirement_by_path = {
+        "specs.max_speed": "fact.max-speed", "specs.payload": "fact.payload",
+        "capacity.cleaning_rate_m2_h": "fact.cleaning-rate", "specs.throughput": "fact.cell-rate",
+    }
+    provenance: list[Provenance] = []
+    refs: dict[str, str] = {}
+    for fact in position.model.capacity_runtime.vendor_facts:
+        path = path_by_code.get(fact.code)
+        requirement = requirement_by_path.get(path or "")
+        if requirement is None:
+            continue
+        provenance_id = f"prov.vendor.{requirement.replace('.', '-')}"
+        provenance.append({
+            "provenance_id": provenance_id,
+            "kind": "VENDOR_FACT",
+            "fact_id": f"catalog.fact.{fact.code.replace('_', '-')}",
+            "model_id": position.model.id,
+            "position_id": position.id,
+            "scope": fact.scope_code,
+            "evidence_ids": [fact.evidence_id],
+            "evidence_status": fact.resolution_status,
+            "permitted_for_matching": True,
+        })
+        refs[requirement] = provenance_id
+    return provenance, refs
+
+
+def _terminal_response(request: CapacityAnalysisRequest, run_id: str, versions: VersionBindings,
+                       code: str, message: str, *, reason: str = "UNSUPPORTED_PROCESS_PROFILE",
+                       not_applicable: bool = False) -> CapacityAnalysisResponse:
+    status = "NOT_APPLICABLE" if not_applicable else "BLOCKED"
+    issue = None if not_applicable else ContractIssue(
+        code=code, reason=reason, severity="BLOCKER",
+        field_refs=["process", "model_id", "position_id"], decision_refs=["K19"], message=message,
+    )
+    trace = CalculationTrace(
+        envelope=TraceEnvelope(engine_version=ENGINE_VERSION, run_id=run_id,
+            input_revision=request.input_revision, acquisition=request.acquisition,
+            uncertainty=request.uncertainty, process_id=request.process.process_id,
+            model_id=request.model_id, position_id=request.position_id),
+        versions=versions, provenance=request.provenance, inputs=[], formula_nodes=[],
+        results=[TraceResult(result_id="result.capacity", status=status, value=None,
+                             capacity_basis="NOT_APPLICABLE")],
+        issues=[] if issue is None else [issue],
+        replay=ReplayBinding(canonical_input_digest=semantic_digest(request), trace_content_digest=ZERO_DIGEST),
+    )
+    trace = finalize_trace(trace)
+    capacity = CapacityResult(process_id=request.process.process_id, status=status, value=None,
+                              blockers=[] if issue is None else [issue], trace_ref=f"trace.{run_id}")
+    return CapacityAnalysisResponse(run_id=run_id, input_revision=request.input_revision,
+                                    capacity=capacity, trace=trace)
+
+
+def analyze_capacity(
+    request: CapacityAnalysisRequest,
+    snapshot: CatalogSnapshotDTO,
+    run_id: str,
+    *,
+    constraint_provider: ConstraintProvider = conservative_constraints,
+) -> CapacityExecutionSnapshotV2:
+    position = _position(request, snapshot)
+    versions = capacity_version_bindings(snapshot)
+    route = route_process(request.process)
+    constraints = constraint_provider(request, position)
+    candidate = candidate_from_repository(position.formula_executability_dto())
+    executability = evaluate_run_executability(
+        candidate, _scenario_values(request), constraints.eligibility, registry_payload()
+    )
+    if route.disposition in {"REFERENCE_ONLY", "CONSTRAINT_ONLY", "NOT_APPLICABLE"}:
+        response = _terminal_response(
+            request, run_id, versions, route.reason_code,
+            "Process has no accepted physical fleet-sizing profile",
+            not_applicable=route.disposition == "NOT_APPLICABLE",
+        )
+        return CapacityExecutionSnapshotV2(response, route, constraints, executability)
+
+    vendor_provenance, fact_refs = _vendor_provenance(position)
+    provenance = [*request.provenance, *vendor_provenance]
+    if route.disposition == "TRANSPORT":
+        engine_request = TransportCapacityRequestV1(
+            run_id=run_id, acquisition=request.acquisition, uncertainty=request.uncertainty,
+            process=request.process, model_id=request.model_id, position_id=request.position_id,
+            operating_speed=request.operating_speed, item_mass=None, batch_limits=BatchLimitsV1(),
+            selected_fleet=request.selected_fleet, executability=executability,
+            constraints=constraints, versions=versions, provenance=provenance,
+            fact_provenance=fact_refs,
+        )
+        response = calculate_transport_capacity(engine_request)
+    elif route.disposition == "CLEANING":
+        if request.cleaning_area is None:
+            response = _terminal_response(request, run_id, versions, "c11-cleaning-area-missing",
+                                          "Cleaning area must be explicit", reason="MISSING_INPUT")
+        else:
+            response = calculate_cleaning_capacity(CleaningCapacityRequestV1(
+                run_id=run_id, acquisition=request.acquisition, uncertainty=request.uncertainty,
+                process=request.process, model_id=request.model_id, position_id=request.position_id,
+                area_source=DirectCleaningAreaV1(area=request.cleaning_area),
+                frequency=request.cleaning_frequency, selected_fleet=request.selected_fleet,
+                executability=executability, constraints=constraints, versions=versions,
+                provenance=provenance, fact_provenance=fact_refs,
+            ))
+    elif route.disposition == "PALLETIZING":
+        fact = next((item for item in executability.dependencies if item.requirement_id == "fact.cell-rate"), None)
+        cell_rate = None if fact is None or fact.value is None else KnownQuantity(
+            name="cell_rate", raw_value=str(fact.value), raw_unit=fact.unit,
+            normalized_value=str(fact.value), unit=fact.unit, quantity_kind="RATE",
+            provenance_ref=fact_refs["fact.cell-rate"],
+        )
+        response = calculate_palletizing_capacity(PalletizingCapacityRequestV1(
+            run_id=run_id, acquisition=request.acquisition, uncertainty=request.uncertainty,
+            process=request.process, model_id=request.model_id, position_id=request.position_id,
+            cell_rate=cell_rate, selected_fleet=request.selected_fleet,
+            executability=executability, constraints=constraints, versions=versions,
+            provenance=provenance,
+        ))
+    else:
+        response = _terminal_response(request, run_id, versions, "c11-route-unsupported",
+                                      "USER_CYCLE requires its dedicated explicit contract")
+    return CapacityExecutionSnapshotV2(response, route, constraints, executability)

@@ -4,7 +4,7 @@ import json
 import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -23,9 +23,10 @@ from auth import SESSION_COOKIE
 from bootstrap_admin import BootstrapError, bootstrap_admin
 from database import dispose_database, get_database
 from persistence_api import purge_expired_tombstones
-from persistence_models import AuditEntry, ProjectFile, ProjectFileImport, Scenario, User
+from persistence_models import AnalysisRun, AuditEntry, ProjectFile, ProjectFileImport, Scenario, User
 from project_file_intake import build_csv_template
-from storage_models import Base
+from storage_models import Base, CatalogVersion
+from test_capacity_analysis_service import request as capacity_request, snapshot as capacity_snapshot
 
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
@@ -260,6 +261,83 @@ def test_rerun_creates_a_new_record_from_stored_input():
         assert second["id"] != first["id"]
         assert second["parent_run_id"] == first["id"]
         assert second["input_snapshot"] == first["input_snapshot"]
+
+
+def test_capacity_run_is_independent_immutable_and_tenant_scoped(monkeypatch, migrated_database):
+    catalog = capacity_snapshot()
+
+    class CapacitySource:
+        def load_discovery(self):
+            return catalog
+
+        def load_runtime(self):
+            raise AssertionError("C11 must not read the legacy economics runtime")
+
+    monkeypatch.setattr(main, "_CATALOG_RUNTIME", CapacitySource())
+    now = datetime.now(timezone.utc)
+    with get_database().session() as db:
+        db.add(CatalogVersion(
+            id=uuid.UUID(catalog.version.id), code=catalog.version.code,
+            status="PUBLISHED", schema_version="4", content_sha256="a" * 64,
+            validated_at=now, published_at=now,
+        ))
+        db.commit()
+    with TestClient(main.app) as owner:
+        _, headers = _register(owner, "capacity-owner@example.com")
+        project = _create_project(owner, headers)
+        payload = capacity_request().model_dump(mode="json")
+        payload["project_id"] = project["id"]
+        assert owner.post("/api/v2/capacity-analyses", json=payload).status_code == 403
+        created = owner.post("/api/v2/capacity-analyses", headers=headers, json=payload)
+        assert created.status_code == 201, created.text
+        result = created.json()
+        assert result["capacity"]["status"] == "BLOCKED"
+        reopened = owner.get(f"/api/v2/capacity-analyses/{result['run_id']}")
+        assert reopened.status_code == 200
+        assert reopened.json() == result
+        wrong_rerun = owner.post(
+            f"/api/projects/{project['id']}/analysis-runs/{result['run_id']}/rerun",
+            headers=headers,
+        )
+        assert wrong_rerun.status_code == 409
+
+    with get_database().session() as db:
+        run = db.get(AnalysisRun, uuid.UUID(result["run_id"]))
+        assert run.run_kind == "CAPACITY_ANALYSIS"
+        assert run.economics_version is None and run.scenario_spec_snapshot is None
+        assert run.trace_snapshot == result["trace"]
+        assert run.version_bindings_snapshot == result["trace"]["versions"]
+
+    with TestClient(main.app) as intruder:
+        _register(intruder, "capacity-intruder@example.com", PASSWORD_B)
+        assert intruder.get(f"/api/v2/capacity-analyses/{result['run_id']}").status_code == 404
+
+    with migrated_database.connect() as connection:
+        transaction = connection.begin()
+        try:
+            with pytest.raises(IntegrityError):
+                connection.execute(
+                    text("UPDATE analysis_runs SET trace_snapshot = '{}'::jsonb WHERE id = :id"),
+                    {"id": result["run_id"]},
+                )
+        finally:
+            transaction.rollback()
+
+
+def test_capacity_endpoint_returns_503_without_published_source(monkeypatch):
+    class MissingCapacitySource:
+        def load_discovery(self):
+            from catalog_runtime import CatalogRuntimeConfigurationError
+            raise CatalogRuntimeConfigurationError("missing")
+
+    monkeypatch.setattr(main, "_CATALOG_RUNTIME", MissingCapacitySource())
+    with TestClient(main.app) as client:
+        _, headers = _register(client, "capacity-missing@example.com")
+        project = _create_project(client, headers)
+        payload = capacity_request().model_dump(mode="json")
+        payload["project_id"] = project["id"]
+        response = client.post("/api/v2/capacity-analyses", headers=headers, json=payload)
+        assert response.status_code == 503
 
 
 def test_admin_bootstrap_is_idempotent_parallel_and_does_not_promote_collision(monkeypatch):

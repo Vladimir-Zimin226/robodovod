@@ -9,7 +9,8 @@ C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22,
 C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22,
 C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
 C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23,
-C10 **COMPLETE** 2026-09-23; C11–C29 пока **PLANNED**.
+C10 **COMPLETE** 2026-09-23, C11 **COMPLETE** 2026-09-23;
+C12–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -353,6 +354,9 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 готовность REFERENCE_ONLY не объявляется реализацией физического процесса.
 
 ## C11 — `api/capacity-analysis-snapshots-v2`
+
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[capacity analysis snapshots v2](capacity-analysis-snapshots-v2.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
