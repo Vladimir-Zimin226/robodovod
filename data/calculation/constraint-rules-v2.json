@@ -1,0 +1,41 @@
+{
+  "schema_version": "constraint-rules-v2",
+  "rules_version": "calculation-constraint-rules-v2",
+  "policy_version": "hackathon-calculation-policy-v1",
+  "migration_notes": [
+    "C05 replaces the legacy fixed-count lists (29, 23 or 31 checks) with versioned, scoped rules; rule count is not a business invariant.",
+    "The unexplained legacy autonomy x 0.8 rejection is not present in v2; charging and route feasibility require explicit evidence and later schedule policy.",
+    "Reference-v2 integration and 30 m2/robot density ideas remain advisory until their designated V2 gates."
+  ],
+  "rules": [
+    {"rule_id":"object-kind","version":"2.0.0","severity":"CRITICAL","evaluator":"object-kind","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.object-kind"},
+    {"rule_id":"process-scope","version":"2.0.0","severity":"CRITICAL","evaluator":"process-scope","source_refs":["policy:K15","R10"],"decision_refs":["K15","K19"],"localization_key":"constraints.process-scope"},
+    {"rule_id":"cargo","version":"2.0.0","severity":"CRITICAL","evaluator":"cargo","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.cargo"},
+    {"rule_id":"payload","version":"2.0.0","severity":"CRITICAL","evaluator":"payload","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.payload"},
+    {"rule_id":"aisle","version":"2.0.0","severity":"CRITICAL","evaluator":"aisle","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.aisle"},
+    {"rule_id":"lift-height","version":"2.0.0","severity":"CRITICAL","evaluator":"lift-height","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.lift-height"},
+    {"rule_id":"ceiling-clearance","version":"2.0.0","severity":"CRITICAL","evaluator":"ceiling-clearance","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.ceiling-clearance"},
+    {"rule_id":"route-floors","version":"2.0.0","severity":"CRITICAL","evaluator":"route-floors","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.route-floors"},
+    {"rule_id":"temperature","version":"2.0.0","severity":"CRITICAL","evaluator":"temperature","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.temperature"},
+    {"rule_id":"noise","version":"2.0.0","severity":"CRITICAL","evaluator":"noise","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.noise"},
+    {"rule_id":"airside","version":"2.0.0","severity":"CRITICAL","evaluator":"airside","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.airside"},
+    {"rule_id":"apron","version":"2.0.0","severity":"CRITICAL","evaluator":"apron","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.apron"},
+    {"rule_id":"restricted-zone","version":"2.0.0","severity":"CRITICAL","evaluator":"restricted-zone","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.restricted-zone"},
+    {"rule_id":"sanitization","version":"2.0.0","severity":"CRITICAL","evaluator":"sanitization","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.sanitization"},
+    {"rule_id":"class-b-containment","version":"2.0.0","severity":"CRITICAL","evaluator":"class-b-containment","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.class-b-containment"},
+    {"rule_id":"cleanable-surface","version":"2.0.0","severity":"CRITICAL","evaluator":"cleanable-surface","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.cleanable-surface"},
+    {"rule_id":"material-disinfection","version":"2.0.0","severity":"CRITICAL","evaluator":"material-disinfection","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.material-disinfection"},
+    {"rule_id":"access-protocols","version":"2.0.0","severity":"CRITICAL","evaluator":"access-protocols","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.access-protocols"},
+    {"rule_id":"passport-availability","version":"2.0.0","severity":"CRITICAL","evaluator":"passport-availability","source_refs":["policy:K15","R08"],"decision_refs":["K15","K29"],"localization_key":"constraints.passport-availability"},
+    {"rule_id":"floor-flatness","version":"2.0.0","severity":"CRITICAL","evaluator":"floor-flatness","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.floor-flatness"},
+    {"rule_id":"floor-covering","version":"2.0.0","severity":"CRITICAL","evaluator":"floor-covering","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.floor-covering"},
+    {"rule_id":"slope","version":"2.0.0","severity":"CRITICAL","evaluator":"slope","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.slope"},
+    {"rule_id":"outdoor","version":"2.0.0","severity":"CRITICAL","evaluator":"outdoor","source_refs":["policy:K15","R08"],"decision_refs":["K15"],"localization_key":"constraints.outdoor"},
+    {"rule_id":"availability","version":"2.0.0","severity":"CRITICAL","evaluator":"availability","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.availability"},
+    {"rule_id":"integrations","version":"2.0.0","severity":"ADVISORY","evaluator":"integrations","source_refs":["reference-v2:V2-D"],"decision_refs":["ZV2-10"],"localization_key":"constraints.integrations"},
+    {"rule_id":"life-warning","version":"2.0.0","severity":"WARNING","evaluator":"life-warning","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.life-warning"},
+    {"rule_id":"budget-warning","version":"2.0.0","severity":"WARNING","evaluator":"budget-warning","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.budget-warning"},
+    {"rule_id":"charging-warning","version":"2.0.0","severity":"WARNING","evaluator":"charging-warning","source_refs":["policy:K15","R03:5"],"decision_refs":["K15"],"localization_key":"constraints.charging-warning"},
+    {"rule_id":"density-warning","version":"2.0.0","severity":"WARNING","evaluator":"density-warning","source_refs":["reference-v2:ZV2-14"],"decision_refs":["ZV2-14"],"localization_key":"constraints.density-warning"}
+  ]
+}

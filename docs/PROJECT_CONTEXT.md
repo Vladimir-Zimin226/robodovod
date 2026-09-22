@@ -259,7 +259,13 @@ stale responses и показывает server-derived provenance. Legacy v1 for
 и runs сохранены. Отчёт:
 [frontend process-role intake v2](planning/frontend-process-role-intake-v2.md).
 
-Следующая малая итерация — **`engine/applicability-constraints-v2`** (C05).
+Этап **`engine/applicability-constraints-v2`** (C05) завершён: добавлены
+versioned strict request/report/rules contracts, scoped evidence-gated
+PASS/FAIL/UNKNOWN/ASSUMED/N_A checks и единый v2 eligibility report для
+readiness/execution. Legacy v1 runtime сохранён. Отчёт:
+[applicability constraints v2](planning/applicability-constraints-v2.md).
+
+Следующая малая итерация — **`catalog/formula-executability-audit-v3`** (C06).
 `engine/capacity-formula-trace` остаётся C07 после registry, normalization,
 constraints и executability audit. Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
@@ -282,7 +288,7 @@ fte_cost; full baseline/scenario cashflows с отдельным tax mode; purch
 21/24 сохраняется как baseline до отдельного доказанного и согласованного
 изменения membership; 187/223 discovery и отсутствие БАС в pool проверяются.
 
-Реализованы аддитивные этапы C01–C02 и их целевые schema/serialization/data
+Реализованы аддитивные этапы C01–C05 и их целевые schema/serialization/data
 tests. Формулы, production API/UI, versioned catalog и runtime slots не
 менялись.
 

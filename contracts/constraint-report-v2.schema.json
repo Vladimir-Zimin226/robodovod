@@ -1,0 +1,231 @@
+{
+  "$defs": {
+    "ConstraintCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "applicable": {
+          "title": "Applicable",
+          "type": "boolean"
+        },
+        "available": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConstraintValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "check_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Check Id",
+          "type": "string"
+        },
+        "decision_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "localization_key": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Localization Key",
+          "type": "string"
+        },
+        "reason_code": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "required": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConstraintValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rule_version": {
+          "title": "Rule Version",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": true,
+          "title": "Scope",
+          "type": "object"
+        },
+        "severity": {
+          "enum": [
+            "CRITICAL",
+            "WARNING",
+            "ADVISORY"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNKNOWN",
+            "ASSUMED",
+            "N_A"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "rule_version",
+        "applicable",
+        "severity",
+        "status",
+        "reason_code",
+        "scope",
+        "source_refs",
+        "decision_refs",
+        "localization_key"
+      ],
+      "title": "ConstraintCheck",
+      "type": "object"
+    },
+    "ConstraintValue": {
+      "additionalProperties": false,
+      "properties": {
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "title": "Value"
+        }
+      },
+      "required": [
+        "value",
+        "source_ref"
+      ],
+      "title": "ConstraintValue",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "blocker_codes": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Blocker Codes",
+      "type": "array"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/ConstraintCheck"
+      },
+      "title": "Checks",
+      "type": "array"
+    },
+    "eligibility": {
+      "enum": [
+        "ELIGIBLE",
+        "NEEDS_VALIDATION",
+        "BLOCKED"
+      ],
+      "title": "Eligibility",
+      "type": "string"
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "model_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Model Id",
+      "type": "string"
+    },
+    "policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "default": "hackathon-calculation-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "position_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Position Id",
+      "type": "string"
+    },
+    "process_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Process Id",
+      "type": "string"
+    },
+    "rules_version": {
+      "const": "calculation-constraint-rules-v2",
+      "default": "calculation-constraint-rules-v2",
+      "title": "Rules Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "constraint-report-v2",
+      "default": "constraint-report-v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "validation_codes": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Validation Codes",
+      "type": "array"
+    },
+    "warning_codes": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Warning Codes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "input_revision",
+    "process_id",
+    "model_id",
+    "position_id",
+    "eligibility",
+    "checks",
+    "blocker_codes",
+    "validation_codes",
+    "warning_codes"
+  ],
+  "title": "ConstraintReportV2",
+  "type": "object"
+}

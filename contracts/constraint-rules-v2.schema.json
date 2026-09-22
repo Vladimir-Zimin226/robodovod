@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "ConstraintRule": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "evaluator": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Evaluator",
+          "type": "string"
+        },
+        "localization_key": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Localization Key",
+          "type": "string"
+        },
+        "rule_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "CRITICAL",
+            "WARNING",
+            "ADVISORY"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "version": {
+          "const": "2.0.0",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "version",
+        "severity",
+        "evaluator",
+        "source_refs",
+        "localization_key"
+      ],
+      "title": "ConstraintRule",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "migration_notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Migration Notes",
+      "type": "array"
+    },
+    "policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "rules": {
+      "items": {
+        "$ref": "#/$defs/ConstraintRule"
+      },
+      "minItems": 1,
+      "title": "Rules",
+      "type": "array"
+    },
+    "rules_version": {
+      "const": "calculation-constraint-rules-v2",
+      "title": "Rules Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "constraint-rules-v2",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "rules_version",
+    "policy_version",
+    "migration_notes",
+    "rules"
+  ],
+  "title": "ConstraintRules",
+  "type": "object"
+}

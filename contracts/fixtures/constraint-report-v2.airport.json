@@ -1,0 +1,1147 @@
+{
+  "report": {
+    "blocker_codes": [],
+    "checks": [
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:supported_object_kinds",
+          "unit": null,
+          "value": [
+            "AIRPORT"
+          ]
+        },
+        "check_id": "object-kind",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.object-kind",
+        "reason_code": "object-kind-supported",
+        "required": {
+          "source_ref": "request:object_kind",
+          "unit": null,
+          "value": "AIRPORT"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "request:object_kind",
+          "catalog:airport:supported_object_kinds"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:supported_process_scopes",
+          "unit": null,
+          "value": [
+            "TRANSPORT_CYCLE"
+          ]
+        },
+        "check_id": "process-scope",
+        "decision_refs": [
+          "K15",
+          "K19"
+        ],
+        "localization_key": "constraints.process-scope",
+        "reason_code": "process-scope-supported",
+        "required": {
+          "source_ref": "request:process_scope",
+          "unit": null,
+          "value": "TRANSPORT_CYCLE"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R10",
+          "request:process_scope",
+          "catalog:airport:supported_process_scopes"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "cargo",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.cargo",
+        "reason_code": "cargo-kind-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "payload",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.payload",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "aisle",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.aisle",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "lift-height",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.lift-height",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "ceiling-clearance",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.ceiling-clearance",
+        "reason_code": "lift-clearance-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "route-floors",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.route-floors",
+        "reason_code": "single-floor-route",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:temperature_min_c",
+          "unit": "degC",
+          "value": [
+            "-30",
+            "45"
+          ]
+        },
+        "check_id": "temperature",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.temperature",
+        "reason_code": "temperature-range-supported",
+        "required": {
+          "source_ref": "input:airport:temperature-min",
+          "unit": "degC",
+          "value": [
+            "-25",
+            "40"
+          ]
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "input:airport:temperature-min",
+          "catalog:airport:temperature_min_c"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:noise_dba",
+          "unit": "dBA",
+          "value": {
+            "noise": "70",
+            "times": [
+              "NIGHT"
+            ],
+            "zones": [
+              "apron"
+            ]
+          }
+        },
+        "check_id": "noise",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.noise",
+        "reason_code": "scoped-noise-supported",
+        "required": {
+          "source_ref": "input:airport:noise",
+          "unit": "dBA",
+          "value": {
+            "limit": "75",
+            "time": "NIGHT",
+            "zones": [
+              "apron"
+            ]
+          }
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:airport:noise",
+          "catalog:airport:noise_dba"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:airside_operational_permission",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "airside",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.airside",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:airport:airside",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:airport:airside",
+          "catalog:airport:airside_operational_permission"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:apron_operational_permission",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "apron",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.apron",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:airport:apron",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:airport:apron",
+          "catalog:airport:apron_operational_permission"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "restricted-zone",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.restricted-zone",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "sanitization",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.sanitization",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "class-b-containment",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.class-b-containment",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "cleanable-surface",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.cleanable-surface",
+        "reason_code": "cleanable-surface-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "material-disinfection",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.material-disinfection",
+        "reason_code": "material-disinfection-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "access-protocols",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.access-protocols",
+        "reason_code": "access-protocols-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:technical_passport_available",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "passport-availability",
+        "decision_refs": [
+          "K15",
+          "K29"
+        ],
+        "localization_key": "constraints.passport-availability",
+        "reason_code": "technical-passport-available",
+        "required": {
+          "source_ref": "policy:K15",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "catalog:airport:technical_passport_available"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "floor-flatness",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.floor-flatness",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "floor-covering",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.floor-covering",
+        "reason_code": "floor-covering-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "slope",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.slope",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:outdoor_supported",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "outdoor",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.outdoor",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:airport:outdoor",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:airport:outdoor",
+          "catalog:airport:outdoor_supported"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:airport:availability",
+          "unit": "1",
+          "value": "0.9"
+        },
+        "check_id": "availability",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.availability",
+        "reason_code": "availability-supported",
+        "required": {
+          "source_ref": "policy:K15",
+          "unit": "1",
+          "value": "0.4"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "catalog:airport:availability"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "integrations",
+        "decision_refs": [
+          "ZV2-10"
+        ],
+        "localization_key": "constraints.integrations",
+        "reason_code": "integrations-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "ADVISORY",
+        "source_refs": [
+          "reference-v2:V2-D"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "life-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.life-warning",
+        "reason_code": "horizon-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "budget-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.budget-warning",
+        "reason_code": "limit-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "charging-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.charging-warning",
+        "reason_code": "limit-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "density-warning",
+        "decision_refs": [
+          "ZV2-14"
+        ],
+        "localization_key": "constraints.density-warning",
+        "reason_code": "density-inputs-not-available",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "airport_baggage",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "apron"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "reference-v2:ZV2-14"
+        ],
+        "status": "N_A"
+      }
+    ],
+    "eligibility": "ELIGIBLE",
+    "input_revision": "revision.airport.golden",
+    "model_id": "model.airport",
+    "policy_version": "hackathon-calculation-policy-v1",
+    "position_id": "position.airport",
+    "process_id": "process.airport.golden",
+    "rules_version": "calculation-constraint-rules-v2",
+    "schema_version": "constraint-report-v2",
+    "validation_codes": [],
+    "warning_codes": []
+  },
+  "request": {
+    "candidate": {
+      "airside_operational_permission": true,
+      "allowed_time_scopes": [
+        "NIGHT"
+      ],
+      "allowed_zones": [
+        "apron"
+      ],
+      "apron_operational_permission": true,
+      "availability": "0.9",
+      "capex_rub": null,
+      "charging_power_kw": null,
+      "class_b_containment_supported": null,
+      "cleanable_surface": null,
+      "evidence": {
+        "airside_operational_permission": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.airside-operational-permission",
+          "source_ref": "catalog:airport:airside_operational_permission"
+        },
+        "allowed_time_scopes": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.allowed-time-scopes",
+          "source_ref": "catalog:airport:allowed_time_scopes"
+        },
+        "allowed_zones": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.allowed-zones",
+          "source_ref": "catalog:airport:allowed_zones"
+        },
+        "apron_operational_permission": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.apron-operational-permission",
+          "source_ref": "catalog:airport:apron_operational_permission"
+        },
+        "availability": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.availability",
+          "source_ref": "catalog:airport:availability"
+        },
+        "noise_dba": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.noise-dba",
+          "source_ref": "catalog:airport:noise_dba"
+        },
+        "outdoor_supported": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.outdoor-supported",
+          "source_ref": "catalog:airport:outdoor_supported"
+        },
+        "supported_object_kinds": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.supported-object-kinds",
+          "source_ref": "catalog:airport:supported_object_kinds"
+        },
+        "supported_process_scopes": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.supported-process-scopes",
+          "source_ref": "catalog:airport:supported_process_scopes"
+        },
+        "technical_passport_available": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.technical-passport-available",
+          "source_ref": "catalog:airport:technical_passport_available"
+        },
+        "temperature_max_c": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.temperature-max-c",
+          "source_ref": "catalog:airport:temperature_max_c"
+        },
+        "temperature_min_c": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.airport.temperature-min-c",
+          "source_ref": "catalog:airport:temperature_min_c"
+        }
+      },
+      "expected_life_years": null,
+      "floor_flatness_tolerance_mm_2m": null,
+      "lift_protocols": null,
+      "material_disinfection_supported": null,
+      "max_lift_height_m": null,
+      "max_slope_percent": null,
+      "min_aisle_width_m": null,
+      "model_id": "model.airport",
+      "noise_dba": "70",
+      "outdoor_supported": true,
+      "payload_kg": null,
+      "position_id": "position.airport",
+      "restricted_zone_access_supported": null,
+      "sterilization_supported": null,
+      "supported_access_protocols": null,
+      "supported_cargo_kinds": null,
+      "supported_floor_coverings": null,
+      "supported_integrations": null,
+      "supported_object_kinds": [
+        "AIRPORT"
+      ],
+      "supported_process_scopes": [
+        "TRANSPORT_CYCLE"
+      ],
+      "technical_passport_available": true,
+      "temperature_max_c": "45",
+      "temperature_min_c": "-30"
+    },
+    "context": {
+      "active_area_m2": null,
+      "airside_required": true,
+      "apron_required": true,
+      "available_charging_power_kw": null,
+      "budget_rub": null,
+      "ceiling_height_m": null,
+      "class_b_containment_required": false,
+      "fleet_units": null,
+      "floor_covering": null,
+      "floor_flatness_mm_2m": null,
+      "horizon_years": null,
+      "max_noise_dba": "75",
+      "max_payload_kg": null,
+      "max_slope_percent": null,
+      "min_aisle_width_m": null,
+      "object_kind": "AIRPORT",
+      "outdoor_required": true,
+      "required_access_protocols": [],
+      "required_cargo_kind": null,
+      "required_integrations": [],
+      "required_lift_height_m": null,
+      "requirement_sources": {
+        "airside_required": {
+          "kind": "POLICY",
+          "source_ref": "input:airport:airside",
+          "user_confirmed": false
+        },
+        "apron_required": {
+          "kind": "POLICY",
+          "source_ref": "input:airport:apron",
+          "user_confirmed": false
+        },
+        "max_noise_dba": {
+          "kind": "USER",
+          "source_ref": "input:airport:noise",
+          "user_confirmed": true
+        },
+        "outdoor_required": {
+          "kind": "POLICY",
+          "source_ref": "input:airport:outdoor",
+          "user_confirmed": false
+        },
+        "temperature_max_c": {
+          "kind": "FILE",
+          "source_ref": "input:airport:temperature-max",
+          "user_confirmed": false
+        },
+        "temperature_min_c": {
+          "kind": "FILE",
+          "source_ref": "input:airport:temperature-min",
+          "user_confirmed": false
+        }
+      },
+      "restricted_zone_required": false,
+      "route_floors": [
+        1
+      ],
+      "route_zones": [
+        "apron"
+      ],
+      "sanitization_required": false,
+      "temperature_max_c": "40",
+      "temperature_min_c": "-25",
+      "time_scope": "NIGHT"
+    },
+    "input_revision": "revision.airport.golden",
+    "process_code": "airport_baggage",
+    "process_id": "process.airport.golden",
+    "process_scope": "TRANSPORT_CYCLE",
+    "schema_version": "constraint-evaluation-request-v2"
+  }
+}

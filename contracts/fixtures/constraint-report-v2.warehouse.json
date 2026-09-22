@@ -1,0 +1,1073 @@
+{
+  "report": {
+    "blocker_codes": [],
+    "checks": [
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:warehouse:supported_object_kinds",
+          "unit": null,
+          "value": [
+            "WAREHOUSE"
+          ]
+        },
+        "check_id": "object-kind",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.object-kind",
+        "reason_code": "object-kind-supported",
+        "required": {
+          "source_ref": "request:object_kind",
+          "unit": null,
+          "value": "WAREHOUSE"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "request:object_kind",
+          "catalog:warehouse:supported_object_kinds"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:warehouse:supported_process_scopes",
+          "unit": null,
+          "value": [
+            "TRANSPORT_CYCLE"
+          ]
+        },
+        "check_id": "process-scope",
+        "decision_refs": [
+          "K15",
+          "K19"
+        ],
+        "localization_key": "constraints.process-scope",
+        "reason_code": "process-scope-supported",
+        "required": {
+          "source_ref": "request:process_scope",
+          "unit": null,
+          "value": "TRANSPORT_CYCLE"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R10",
+          "request:process_scope",
+          "catalog:warehouse:supported_process_scopes"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "cargo",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.cargo",
+        "reason_code": "cargo-kind-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:warehouse:payload_kg",
+          "unit": "kg",
+          "value": "1000"
+        },
+        "check_id": "payload",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.payload",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:warehouse:payload",
+          "unit": "kg",
+          "value": "500"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "input:warehouse:payload",
+          "catalog:warehouse:payload_kg"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:warehouse:min_aisle_width_m",
+          "unit": "m",
+          "value": "1.8"
+        },
+        "check_id": "aisle",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.aisle",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:warehouse:aisle",
+          "unit": "m",
+          "value": "2.2"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "input:warehouse:aisle",
+          "catalog:warehouse:min_aisle_width_m"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "lift-height",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.lift-height",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "ceiling-clearance",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.ceiling-clearance",
+        "reason_code": "lift-clearance-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "route-floors",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.route-floors",
+        "reason_code": "single-floor-route",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "temperature",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.temperature",
+        "reason_code": "temperature-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "noise",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.noise",
+        "reason_code": "noise-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "airside",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.airside",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "apron",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.apron",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "restricted-zone",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.restricted-zone",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "sanitization",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.sanitization",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "class-b-containment",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.class-b-containment",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "cleanable-surface",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.cleanable-surface",
+        "reason_code": "cleanable-surface-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "material-disinfection",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.material-disinfection",
+        "reason_code": "material-disinfection-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "access-protocols",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.access-protocols",
+        "reason_code": "access-protocols-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:warehouse:technical_passport_available",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "passport-availability",
+        "decision_refs": [
+          "K15",
+          "K29"
+        ],
+        "localization_key": "constraints.passport-availability",
+        "reason_code": "technical-passport-available",
+        "required": {
+          "source_ref": "policy:K15",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "catalog:warehouse:technical_passport_available"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "floor-flatness",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.floor-flatness",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "floor-covering",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.floor-covering",
+        "reason_code": "floor-covering-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "slope",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.slope",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "outdoor",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.outdoor",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:warehouse:availability",
+          "unit": "1",
+          "value": "0.9"
+        },
+        "check_id": "availability",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.availability",
+        "reason_code": "availability-supported",
+        "required": {
+          "source_ref": "policy:K15",
+          "unit": "1",
+          "value": "0.4"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "catalog:warehouse:availability"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "integrations",
+        "decision_refs": [
+          "ZV2-10"
+        ],
+        "localization_key": "constraints.integrations",
+        "reason_code": "integrations-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "ADVISORY",
+        "source_refs": [
+          "reference-v2:V2-D"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "life-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.life-warning",
+        "reason_code": "horizon-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "budget-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.budget-warning",
+        "reason_code": "limit-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "charging-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.charging-warning",
+        "reason_code": "limit-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "density-warning",
+        "decision_refs": [
+          "ZV2-14"
+        ],
+        "localization_key": "constraints.density-warning",
+        "reason_code": "density-inputs-not-available",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "warehouse_receiving_shipping",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "receiving",
+            "storage"
+          ],
+          "time_scope": "ANY"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "reference-v2:ZV2-14"
+        ],
+        "status": "N_A"
+      }
+    ],
+    "eligibility": "ELIGIBLE",
+    "input_revision": "revision.warehouse.golden",
+    "model_id": "model.warehouse",
+    "policy_version": "hackathon-calculation-policy-v1",
+    "position_id": "position.warehouse",
+    "process_id": "process.warehouse.golden",
+    "rules_version": "calculation-constraint-rules-v2",
+    "schema_version": "constraint-report-v2",
+    "validation_codes": [],
+    "warning_codes": []
+  },
+  "request": {
+    "candidate": {
+      "airside_operational_permission": null,
+      "allowed_time_scopes": null,
+      "allowed_zones": null,
+      "apron_operational_permission": null,
+      "availability": "0.9",
+      "capex_rub": null,
+      "charging_power_kw": null,
+      "class_b_containment_supported": null,
+      "cleanable_surface": null,
+      "evidence": {
+        "availability": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.warehouse.availability",
+          "source_ref": "catalog:warehouse:availability"
+        },
+        "min_aisle_width_m": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.warehouse.min-aisle-width-m",
+          "source_ref": "catalog:warehouse:min_aisle_width_m"
+        },
+        "payload_kg": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.warehouse.payload-kg",
+          "source_ref": "catalog:warehouse:payload_kg"
+        },
+        "supported_object_kinds": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.warehouse.supported-object-kinds",
+          "source_ref": "catalog:warehouse:supported_object_kinds"
+        },
+        "supported_process_scopes": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.warehouse.supported-process-scopes",
+          "source_ref": "catalog:warehouse:supported_process_scopes"
+        },
+        "technical_passport_available": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.warehouse.technical-passport-available",
+          "source_ref": "catalog:warehouse:technical_passport_available"
+        }
+      },
+      "expected_life_years": null,
+      "floor_flatness_tolerance_mm_2m": null,
+      "lift_protocols": null,
+      "material_disinfection_supported": null,
+      "max_lift_height_m": null,
+      "max_slope_percent": null,
+      "min_aisle_width_m": "1.8",
+      "model_id": "model.warehouse",
+      "noise_dba": null,
+      "outdoor_supported": null,
+      "payload_kg": "1000",
+      "position_id": "position.warehouse",
+      "restricted_zone_access_supported": null,
+      "sterilization_supported": null,
+      "supported_access_protocols": null,
+      "supported_cargo_kinds": null,
+      "supported_floor_coverings": null,
+      "supported_integrations": null,
+      "supported_object_kinds": [
+        "WAREHOUSE"
+      ],
+      "supported_process_scopes": [
+        "TRANSPORT_CYCLE"
+      ],
+      "technical_passport_available": true,
+      "temperature_max_c": null,
+      "temperature_min_c": null
+    },
+    "context": {
+      "active_area_m2": null,
+      "airside_required": false,
+      "apron_required": false,
+      "available_charging_power_kw": null,
+      "budget_rub": null,
+      "ceiling_height_m": null,
+      "class_b_containment_required": false,
+      "fleet_units": null,
+      "floor_covering": null,
+      "floor_flatness_mm_2m": null,
+      "horizon_years": null,
+      "max_noise_dba": null,
+      "max_payload_kg": "500",
+      "max_slope_percent": null,
+      "min_aisle_width_m": "2.2",
+      "object_kind": "WAREHOUSE",
+      "outdoor_required": false,
+      "required_access_protocols": [],
+      "required_cargo_kind": null,
+      "required_integrations": [],
+      "required_lift_height_m": null,
+      "requirement_sources": {
+        "max_payload_kg": {
+          "kind": "FILE",
+          "source_ref": "input:warehouse:payload",
+          "user_confirmed": false
+        },
+        "min_aisle_width_m": {
+          "kind": "FILE",
+          "source_ref": "input:warehouse:aisle",
+          "user_confirmed": false
+        }
+      },
+      "restricted_zone_required": false,
+      "route_floors": [
+        1
+      ],
+      "route_zones": [
+        "receiving",
+        "storage"
+      ],
+      "sanitization_required": false,
+      "temperature_max_c": null,
+      "temperature_min_c": null,
+      "time_scope": "ANY"
+    },
+    "input_revision": "revision.warehouse.golden",
+    "process_code": "warehouse_receiving_shipping",
+    "process_id": "process.warehouse.golden",
+    "process_scope": "TRANSPORT_CYCLE",
+    "schema_version": "constraint-evaluation-request-v2"
+  }
+}

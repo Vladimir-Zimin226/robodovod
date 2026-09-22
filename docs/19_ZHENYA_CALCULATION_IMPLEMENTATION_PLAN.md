@@ -9,10 +9,13 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-22: **C01–C02 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-22: **C01–C05 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
-реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md).
-Следующий этап — C03; формулы и runtime activation не выполнялись.
+реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
+intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
+UI C04 — в [frontend process-role intake v2](planning/frontend-process-role-intake-v2.md),
+constraints C05 — в [applicability constraints v2](planning/applicability-constraints-v2.md).
+Следующий этап — C06; формулы и runtime activation не выполнялись.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -611,7 +614,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C02 COMPLETE | `data/calculation-parameter-registry-v1` — versioned constants/policies | C01 |
 | C03 COMPLETE | `intake/process-role-normalization-v2` — backend intake/roles/units | C01–02 |
 | C04 COMPLETE | `frontend/process-role-intake-v2` — формы, input provenance, validation | C03 |
-| C05 | `engine/applicability-constraints-v2` — общий constraint service | C01–03 |
+| C05 COMPLETE | `engine/applicability-constraints-v2` — общий constraint service | C01–03 |
 | C06 | `catalog/formula-executability-audit-v3` — dependency closure по каждому profile | C02–03,C05 |
 | C07 | `engine/capacity-formula-trace` — transport/delivery pure capacity | C06, policy K02–04 |
 | C08 | `engine/cleaning-capacity-trace` — cleaning units/capacity | C06, trace infrastructure C07 |

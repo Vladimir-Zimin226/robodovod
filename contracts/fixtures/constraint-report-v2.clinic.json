@@ -1,0 +1,1154 @@
+{
+  "report": {
+    "blocker_codes": [],
+    "checks": [
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:supported_object_kinds",
+          "unit": null,
+          "value": [
+            "CLINIC"
+          ]
+        },
+        "check_id": "object-kind",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.object-kind",
+        "reason_code": "object-kind-supported",
+        "required": {
+          "source_ref": "request:object_kind",
+          "unit": null,
+          "value": "CLINIC"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "request:object_kind",
+          "catalog:clinic:supported_object_kinds"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:supported_process_scopes",
+          "unit": null,
+          "value": [
+            "TRANSPORT_CYCLE"
+          ]
+        },
+        "check_id": "process-scope",
+        "decision_refs": [
+          "K15",
+          "K19"
+        ],
+        "localization_key": "constraints.process-scope",
+        "reason_code": "process-scope-supported",
+        "required": {
+          "source_ref": "request:process_scope",
+          "unit": null,
+          "value": "TRANSPORT_CYCLE"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R10",
+          "request:process_scope",
+          "catalog:clinic:supported_process_scopes"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "cargo",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.cargo",
+        "reason_code": "cargo-kind-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "payload",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.payload",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "aisle",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.aisle",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "lift-height",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.lift-height",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "ceiling-clearance",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.ceiling-clearance",
+        "reason_code": "lift-clearance-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "route-floors",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.route-floors",
+        "reason_code": "single-floor-route",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "temperature",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.temperature",
+        "reason_code": "temperature-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:noise_dba",
+          "unit": "dBA",
+          "value": {
+            "noise": "40",
+            "times": [
+              "NIGHT"
+            ],
+            "zones": [
+              "ward",
+              "waste-room"
+            ]
+          }
+        },
+        "check_id": "noise",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.noise",
+        "reason_code": "scoped-noise-supported",
+        "required": {
+          "source_ref": "input:clinic:noise",
+          "unit": "dBA",
+          "value": {
+            "limit": "45",
+            "time": "NIGHT",
+            "zones": [
+              "ward",
+              "waste-room"
+            ]
+          }
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:clinic:noise",
+          "catalog:clinic:noise_dba"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "airside",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.airside",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "apron",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.apron",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "restricted-zone",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.restricted-zone",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:sterilization_supported",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "sanitization",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.sanitization",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:clinic:sanitization",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:clinic:sanitization",
+          "catalog:clinic:sterilization_supported"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:class_b_containment_supported",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "class-b-containment",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.class-b-containment",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:clinic:class-b",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:clinic:class-b",
+          "catalog:clinic:class_b_containment_supported"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:cleanable_surface",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "cleanable-surface",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.cleanable-surface",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:clinic:sanitization",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:clinic:sanitization",
+          "catalog:clinic:cleanable_surface"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:material_disinfection_supported",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "material-disinfection",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.material-disinfection",
+        "reason_code": "requirement-satisfied",
+        "required": {
+          "source_ref": "input:clinic:sanitization",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "input:clinic:sanitization",
+          "catalog:clinic:material_disinfection_supported"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "access-protocols",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.access-protocols",
+        "reason_code": "access-protocols-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:technical_passport_available",
+          "unit": null,
+          "value": true
+        },
+        "check_id": "passport-availability",
+        "decision_refs": [
+          "K15",
+          "K29"
+        ],
+        "localization_key": "constraints.passport-availability",
+        "reason_code": "technical-passport-available",
+        "required": {
+          "source_ref": "policy:K15",
+          "unit": null,
+          "value": true
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08",
+          "catalog:clinic:technical_passport_available"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "floor-flatness",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.floor-flatness",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "floor-covering",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.floor-covering",
+        "reason_code": "floor-covering-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "slope",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.slope",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "outdoor",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.outdoor",
+        "reason_code": "requirement-not-applicable",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R08"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": true,
+        "available": {
+          "source_ref": "catalog:clinic:availability",
+          "unit": "1",
+          "value": "0.9"
+        },
+        "check_id": "availability",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.availability",
+        "reason_code": "availability-supported",
+        "required": {
+          "source_ref": "policy:K15",
+          "unit": "1",
+          "value": "0.4"
+        },
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "CRITICAL",
+        "source_refs": [
+          "policy:K15",
+          "R03:5",
+          "catalog:clinic:availability"
+        ],
+        "status": "PASS"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "integrations",
+        "decision_refs": [
+          "ZV2-10"
+        ],
+        "localization_key": "constraints.integrations",
+        "reason_code": "integrations-not-required",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "ADVISORY",
+        "source_refs": [
+          "reference-v2:V2-D"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "life-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.life-warning",
+        "reason_code": "horizon-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "budget-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.budget-warning",
+        "reason_code": "limit-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "charging-warning",
+        "decision_refs": [
+          "K15"
+        ],
+        "localization_key": "constraints.charging-warning",
+        "reason_code": "limit-not-provided",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "policy:K15",
+          "R03:5"
+        ],
+        "status": "N_A"
+      },
+      {
+        "applicable": false,
+        "available": null,
+        "check_id": "density-warning",
+        "decision_refs": [
+          "ZV2-14"
+        ],
+        "localization_key": "constraints.density-warning",
+        "reason_code": "density-inputs-not-available",
+        "required": null,
+        "rule_version": "2.0.0",
+        "scope": {
+          "process_code": "clinic_waste_b",
+          "process_scope": "TRANSPORT_CYCLE",
+          "route_floors": [
+            1
+          ],
+          "route_zones": [
+            "ward",
+            "waste-room"
+          ],
+          "time_scope": "NIGHT"
+        },
+        "severity": "WARNING",
+        "source_refs": [
+          "reference-v2:ZV2-14"
+        ],
+        "status": "N_A"
+      }
+    ],
+    "eligibility": "ELIGIBLE",
+    "input_revision": "revision.clinic.golden",
+    "model_id": "model.clinic",
+    "policy_version": "hackathon-calculation-policy-v1",
+    "position_id": "position.clinic",
+    "process_id": "process.clinic.golden",
+    "rules_version": "calculation-constraint-rules-v2",
+    "schema_version": "constraint-report-v2",
+    "validation_codes": [],
+    "warning_codes": []
+  },
+  "request": {
+    "candidate": {
+      "airside_operational_permission": null,
+      "allowed_time_scopes": [
+        "NIGHT"
+      ],
+      "allowed_zones": [
+        "ward",
+        "waste-room"
+      ],
+      "apron_operational_permission": null,
+      "availability": "0.9",
+      "capex_rub": null,
+      "charging_power_kw": null,
+      "class_b_containment_supported": true,
+      "cleanable_surface": true,
+      "evidence": {
+        "allowed_time_scopes": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.allowed-time-scopes",
+          "source_ref": "catalog:clinic:allowed_time_scopes"
+        },
+        "allowed_zones": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.allowed-zones",
+          "source_ref": "catalog:clinic:allowed_zones"
+        },
+        "availability": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.availability",
+          "source_ref": "catalog:clinic:availability"
+        },
+        "class_b_containment_supported": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.class-b-containment-supported",
+          "source_ref": "catalog:clinic:class_b_containment_supported"
+        },
+        "cleanable_surface": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.cleanable-surface",
+          "source_ref": "catalog:clinic:cleanable_surface"
+        },
+        "material_disinfection_supported": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.material-disinfection-supported",
+          "source_ref": "catalog:clinic:material_disinfection_supported"
+        },
+        "noise_dba": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.noise-dba",
+          "source_ref": "catalog:clinic:noise_dba"
+        },
+        "sterilization_supported": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.sterilization-supported",
+          "source_ref": "catalog:clinic:sterilization_supported"
+        },
+        "supported_object_kinds": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.supported-object-kinds",
+          "source_ref": "catalog:clinic:supported_object_kinds"
+        },
+        "supported_process_scopes": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.supported-process-scopes",
+          "source_ref": "catalog:clinic:supported_process_scopes"
+        },
+        "technical_passport_available": {
+          "evidence_status": "MATCHING_SAFE",
+          "fact_id": "fact.clinic.technical-passport-available",
+          "source_ref": "catalog:clinic:technical_passport_available"
+        }
+      },
+      "expected_life_years": null,
+      "floor_flatness_tolerance_mm_2m": null,
+      "lift_protocols": null,
+      "material_disinfection_supported": true,
+      "max_lift_height_m": null,
+      "max_slope_percent": null,
+      "min_aisle_width_m": null,
+      "model_id": "model.clinic",
+      "noise_dba": "40",
+      "outdoor_supported": null,
+      "payload_kg": null,
+      "position_id": "position.clinic",
+      "restricted_zone_access_supported": null,
+      "sterilization_supported": true,
+      "supported_access_protocols": null,
+      "supported_cargo_kinds": null,
+      "supported_floor_coverings": null,
+      "supported_integrations": null,
+      "supported_object_kinds": [
+        "CLINIC"
+      ],
+      "supported_process_scopes": [
+        "TRANSPORT_CYCLE"
+      ],
+      "technical_passport_available": true,
+      "temperature_max_c": null,
+      "temperature_min_c": null
+    },
+    "context": {
+      "active_area_m2": null,
+      "airside_required": false,
+      "apron_required": false,
+      "available_charging_power_kw": null,
+      "budget_rub": null,
+      "ceiling_height_m": null,
+      "class_b_containment_required": true,
+      "fleet_units": null,
+      "floor_covering": null,
+      "floor_flatness_mm_2m": null,
+      "horizon_years": null,
+      "max_noise_dba": "45",
+      "max_payload_kg": null,
+      "max_slope_percent": null,
+      "min_aisle_width_m": null,
+      "object_kind": "CLINIC",
+      "outdoor_required": false,
+      "required_access_protocols": [],
+      "required_cargo_kind": null,
+      "required_integrations": [],
+      "required_lift_height_m": null,
+      "requirement_sources": {
+        "class_b_containment_required": {
+          "kind": "POLICY",
+          "source_ref": "input:clinic:class-b",
+          "user_confirmed": false
+        },
+        "max_noise_dba": {
+          "kind": "USER",
+          "source_ref": "input:clinic:noise",
+          "user_confirmed": true
+        },
+        "sanitization_required": {
+          "kind": "POLICY",
+          "source_ref": "input:clinic:sanitization",
+          "user_confirmed": false
+        }
+      },
+      "restricted_zone_required": false,
+      "route_floors": [
+        1
+      ],
+      "route_zones": [
+        "ward",
+        "waste-room"
+      ],
+      "sanitization_required": true,
+      "temperature_max_c": null,
+      "temperature_min_c": null,
+      "time_scope": "NIGHT"
+    },
+    "input_revision": "revision.clinic.golden",
+    "process_code": "clinic_waste_b",
+    "process_id": "process.clinic.golden",
+    "process_scope": "TRANSPORT_CYCLE",
+    "schema_version": "constraint-evaluation-request-v2"
+  }
+}

@@ -8,11 +8,13 @@ individual catalog candidate.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from typing import Any, Literal
-
-from pydantic import BaseModel, ConfigDict, Field
+from typing import TYPE_CHECKING, Any, Literal
 
 from models import UserInput
+from pydantic import BaseModel, ConfigDict, Field
+
+if TYPE_CHECKING:
+    from calculation.constraints import ConstraintEvaluationRequest, ConstraintReportV2
 
 
 CheckStatus = Literal["PASS", "FAIL", "UNKNOWN", "ASSUMED"]
@@ -507,3 +509,17 @@ def evaluate_readiness(
         architecture_candidates=_architectures(inp, overall, preconditions),
         technical_candidates=technical,
     )
+
+
+def evaluate_execution_constraints_v2(
+    request: ConstraintEvaluationRequest,
+) -> ConstraintReportV2:
+    """Delegate v2 readiness/execution eligibility to the single C05 service.
+
+    The lazy import keeps the production v1 import path and endpoint contract
+    unchanged until the C28 compatibility-removal gate.
+    """
+
+    from calculation.constraints import evaluate_constraints
+
+    return evaluate_constraints(request)
