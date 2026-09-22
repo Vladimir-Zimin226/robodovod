@@ -305,11 +305,16 @@ input/result/trace/version hashes. Capacity run не требует economics и
 ScenarioSpec v1; прежний full run и `/api/calculate` сохранены. Отчёт:
 [capacity analysis snapshots v2](planning/capacity-analysis-snapshots-v2.md).
 
-Следующая малая итерация — **`frontend/capacity-results-trace`** (C12).
-Legacy `/api/calculate` по-прежнему требует Robot/economics. Новый capacity
-endpoint читает опубликованный snapshot и не превращает calculation readiness
-в deployment readiness: C05/C06 gates выполняются для каждого input, а
-неподтверждённые ограничения дают blocked/needs-validation без fallback.
+Этап **`frontend/capacity-results-trace`** (C12) завершён: отдельная панель
+читает только C11 snapshot, показывает status, units, selected/recommended
+fleet, nominal/effective capacity, coverage/overload, blockers и server-owned
+trace с источниками. Устаревшие revision отбрасываются, отсутствующая экономика
+показана явно, а старые `/api/calculate` runs сохраняют прежнее представление.
+Отчёт: [frontend capacity results trace](planning/frontend-capacity-results-trace.md).
+
+Следующая малая итерация — **`procurement/commercial-inputs-v1`** (C13).
+Production runtime activation по-прежнему не выполнялась; «Участвует в
+расчёте» не означает SLA или deployment readiness.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

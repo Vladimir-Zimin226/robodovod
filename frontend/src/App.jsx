@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import OnboardingScreen from './OnboardingScreen';
 import IntakeScreen from './components/IntakeScreen';
 import ResultsPanel from './components/ResultsPanel';
+import CapacityResultsTrace from './components/CapacityResultsTrace';
 import CatalogScreen from './components/CatalogScreen';
 import { AppShell } from './components/AppShell';
 import { AdminUsersScreen, AuthScreen, ProjectsScreen } from './components/PersistenceScreens';
 import { readCsrfCookie } from './persistenceApi';
+import { isCapacityAnalysisResponse } from './capacityResultsModel';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -229,7 +231,7 @@ export default function App() {
           <AdminUsersScreen />
         ) : (
           <>
-            {user && activeProject && result && (
+            {user && activeProject && result && !isCapacityAnalysisResponse(result) && (
               <div className="save-run-bar">
                 <span>Проект: <strong>{activeProject.name}</strong> · базовый сценарий</span>
                 <button className="primary-action" disabled={saveState === 'saving' || saveState === 'saved'} onClick={saveAnalysis}>
@@ -238,12 +240,16 @@ export default function App() {
                 {saveState && !['saving', 'saved'].includes(saveState) && <small>{saveState}</small>}
               </div>
             )}
-            <ResultsPanel
-              result={result}
-              userInput={userInput}
-              onRecalc={(input) => { setSaveState(''); recalc(input, inputProvenance, projectFileContext); }}
-              onRestart={restart}
-            />
+            {isCapacityAnalysisResponse(result) ? (
+              <CapacityResultsTrace response={result} onRestart={restart} />
+            ) : (
+              <ResultsPanel
+                result={result}
+                userInput={userInput}
+                onRecalc={(input) => { setSaveState(''); recalc(input, inputProvenance, projectFileContext); }}
+                onRestart={restart}
+              />
+            )}
           </>
         )}
       </div>

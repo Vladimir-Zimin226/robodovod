@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { persistenceRequest as request, readCsrfCookie } from '../persistenceApi';
+import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 
 export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
   const [mode, setMode] = useState('login');
@@ -94,6 +95,7 @@ export function ProjectsScreen({ onOpenProject, onOpenRun }) {
   const [runs, setRuns] = useState({});
   const [error, setError] = useState('');
   const csrf = readCsrfCookie();
+  const capacityClient = useMemo(() => createCapacityAnalysisClient(), []);
 
   const load = async () => {
     try {
@@ -161,10 +163,12 @@ export function ProjectsScreen({ onOpenProject, onOpenRun }) {
     }
   };
 
-  const openRun = async (projectId, runId) => {
+  const openRun = async (projectId, run) => {
     try {
-      const run = await request(`/api/projects/${projectId}/analysis-runs/${runId}`);
-      onOpenRun(run, projects.find((project) => project.id === projectId));
+      const opened = run.run_kind === 'CAPACITY_ANALYSIS'
+        ? { ...run, input_snapshot: null, result_snapshot: await capacityClient.read(run.id, run.revision_id) }
+        : await request(`/api/projects/${projectId}/analysis-runs/${run.id}`);
+      onOpenRun(opened, projects.find((project) => project.id === projectId));
     } catch (err) {
       setError(err.message);
     }
@@ -202,8 +206,8 @@ export function ProjectsScreen({ onOpenProject, onOpenRun }) {
               <div className="run-list">
                 {(runs[project.id] || []).length === 0 && <p>Сохранённых расчётов нет.</p>}
                 {(runs[project.id] || []).map((run) => (
-                  <button key={run.id} onClick={() => openRun(project.id, run.id)}>
-                    <strong>{run.status}</strong><span>{new Date(run.created_at).toLocaleString('ru-RU')}</span><small>{run.versions.catalog}</small>
+                  <button key={run.id} onClick={() => openRun(project.id, run)}>
+                    <strong>{run.run_kind === 'CAPACITY_ANALYSIS' ? 'CAPACITY' : run.status}</strong><span>{new Date(run.created_at).toLocaleString('ru-RU')}</span><small>{run.versions.catalog}</small>
                   </button>
                 ))}
               </div>

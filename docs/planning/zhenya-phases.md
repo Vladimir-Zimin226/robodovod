@@ -9,8 +9,8 @@ C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22,
 C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22,
 C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
 C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23,
-C10 **COMPLETE** 2026-09-23, C11 **COMPLETE** 2026-09-23;
-C12–C29 пока **PLANNED**.
+C10 **COMPLETE** 2026-09-23, C11 **COMPLETE** 2026-09-23,
+C12 **COMPLETE** 2026-09-23; C13–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -384,6 +384,9 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 - **Вне этапа:** slot switch, UI, economics, role baseline calculations.
 
 ## C12 — `frontend/capacity-results-trace`
+
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[frontend capacity results trace](frontend-capacity-results-trace.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

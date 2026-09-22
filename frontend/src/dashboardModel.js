@@ -4,6 +4,8 @@ export const SCENARIO_LABELS = {
   optimistic: 'Оптимистичный',
 };
 
+export { formatServerQuantity, getCapacityResultsModel } from './capacityResultsModel.js';
+
 export function getRecommended(recommendations = []) {
   return recommendations.find((item) => item.is_best === true) || null;
 }
