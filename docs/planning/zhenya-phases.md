@@ -10,7 +10,8 @@ C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22,
 C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
 C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23,
 C10 **COMPLETE** 2026-09-23, C11 **COMPLETE** 2026-09-23,
-C12 **COMPLETE** 2026-09-23; C13–C29 пока **PLANNED**.
+C12 **COMPLETE** 2026-09-23, C13 **COMPLETE** 2026-09-23;
+C14–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -406,6 +407,9 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 - **Вне этапа:** ranking/economics, catalogue membership, simulation UI.
 
 ## C13 — `procurement/commercial-inputs-v1`
+
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[commercial inputs and procurement report v1](commercial-inputs-v1.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

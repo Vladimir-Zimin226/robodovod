@@ -1,0 +1,431 @@
+{
+  "$defs": {
+    "CommercialCostLineV1": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "discriminator": {
+            "mapping": {
+              "FIXED_TOTAL": "#/$defs/FixedTotalBasisV1",
+              "PERCENT_BASE": "#/$defs/PercentBaseBasisV1",
+              "PER_ROBOT": "#/$defs/PerRobotBasisV1"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/FixedTotalBasisV1"
+            },
+            {
+              "$ref": "#/$defs/PerRobotBasisV1"
+            },
+            {
+              "$ref": "#/$defs/PercentBaseBasisV1"
+            }
+          ],
+          "title": "Basis"
+        },
+        "category": {
+          "enum": [
+            "ROBOT",
+            "CHARGER",
+            "INTEGRATION",
+            "INFRASTRUCTURE",
+            "DELIVERY",
+            "COMMISSIONING",
+            "TRAINING",
+            "SERVICE",
+            "SOFTWARE",
+            "SPARES",
+            "RECURRING_SUPPLIES",
+            "OTHER"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "excluded_by_scenario": {
+          "default": false,
+          "title": "Excluded By Scenario",
+          "type": "boolean"
+        },
+        "included_in": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Included In",
+          "type": "array"
+        },
+        "line_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Line Id",
+          "type": "string"
+        },
+        "timing": {
+          "enum": [
+            "CAPITAL_ONCE",
+            "ANNUAL",
+            "MONTHLY"
+          ],
+          "title": "Timing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "line_id",
+        "category",
+        "timing",
+        "basis"
+      ],
+      "title": "CommercialCostLineV1",
+      "type": "object"
+    },
+    "CommercialMoneyV1": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "enum": [
+            "RUB",
+            "USD",
+            "EUR",
+            "UNKNOWN"
+          ],
+          "title": "Currency",
+          "type": "string"
+        },
+        "raw_amount": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Raw Amount",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "commercial-money-v1",
+          "default": "commercial-money-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/CommercialScopeV1"
+        },
+        "source": {
+          "$ref": "#/$defs/CommercialSourceV1"
+        },
+        "tax_basis": {
+          "enum": [
+            "CASH_GROSS_RUB",
+            "NET_RUB",
+            "UNKNOWN"
+          ],
+          "title": "Tax Basis",
+          "type": "string"
+        },
+        "vat_rate": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vat Rate"
+        },
+        "zero_semantics": {
+          "anyOf": [
+            {
+              "enum": [
+                "EXCLUDED_BY_SCENARIO",
+                "ZERO_PRICE_CONFIRMED"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zero Semantics"
+        }
+      },
+      "required": [
+        "raw_amount",
+        "currency",
+        "tax_basis",
+        "source",
+        "scope"
+      ],
+      "title": "CommercialMoneyV1",
+      "type": "object"
+    },
+    "CommercialScopeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "boundary": {
+          "enum": [
+            "BARE_EQUIPMENT",
+            "CONFIGURED_EQUIPMENT",
+            "TURNKEY_SOLUTION",
+            "SERVICE_TARIFF",
+            "SCENARIO_BUDGET"
+          ],
+          "title": "Boundary",
+          "type": "string"
+        },
+        "model_id": {
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "position_id": {
+          "minLength": 1,
+          "title": "Position Id",
+          "type": "string"
+        },
+        "procurement_option_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Procurement Option Id"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region"
+        }
+      },
+      "required": [
+        "model_id",
+        "position_id",
+        "boundary"
+      ],
+      "title": "CommercialScopeV1",
+      "type": "object"
+    },
+    "CommercialSourceV1": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "USER",
+            "FILE",
+            "ORGANIZER_DATASET",
+            "VENDOR_QUOTE",
+            "ASSUMPTION"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "observed_on": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed On"
+        },
+        "source_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        }
+      },
+      "required": [
+        "kind",
+        "source_id"
+      ],
+      "title": "CommercialSourceV1",
+      "type": "object"
+    },
+    "FixedTotalBasisV1": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "FIXED_TOTAL",
+          "default": "FIXED_TOTAL",
+          "title": "Kind",
+          "type": "string"
+        },
+        "money": {
+          "$ref": "#/$defs/CommercialMoneyV1"
+        }
+      },
+      "required": [
+        "money"
+      ],
+      "title": "FixedTotalBasisV1",
+      "type": "object"
+    },
+    "PerRobotBasisV1": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "PER_ROBOT",
+          "default": "PER_ROBOT",
+          "title": "Kind",
+          "type": "string"
+        },
+        "money": {
+          "$ref": "#/$defs/CommercialMoneyV1"
+        }
+      },
+      "required": [
+        "money"
+      ],
+      "title": "PerRobotBasisV1",
+      "type": "object"
+    },
+    "PercentBaseBasisV1": {
+      "additionalProperties": false,
+      "properties": {
+        "base_line_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Base Line Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "PERCENT_BASE",
+          "default": "PERCENT_BASE",
+          "title": "Kind",
+          "type": "string"
+        },
+        "rate": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Rate",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rate",
+        "base_line_id"
+      ],
+      "title": "PercentBaseBasisV1",
+      "type": "object"
+    },
+    "ServiceResponsibilityV1": {
+      "additionalProperties": false,
+      "properties": {
+        "area": {
+          "enum": [
+            "HARDWARE",
+            "BATTERY",
+            "CHARGING",
+            "MAINTENANCE",
+            "SPARES",
+            "SOFTWARE",
+            "CONNECTIVITY",
+            "INTEGRATION",
+            "INFRASTRUCTURE",
+            "INSURANCE"
+          ],
+          "title": "Area",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "responsible_party": {
+          "enum": [
+            "CUSTOMER",
+            "VENDOR",
+            "INTEGRATOR",
+            "SHARED",
+            "UNKNOWN"
+          ],
+          "title": "Responsible Party",
+          "type": "string"
+        }
+      },
+      "required": [
+        "area",
+        "responsible_party"
+      ],
+      "title": "ServiceResponsibilityV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "acquisition": {
+      "const": "PURCHASE",
+      "default": "PURCHASE",
+      "title": "Acquisition",
+      "type": "string"
+    },
+    "cost_lines": {
+      "items": {
+        "$ref": "#/$defs/CommercialCostLineV1"
+      },
+      "title": "Cost Lines",
+      "type": "array"
+    },
+    "primary_price": {
+      "$ref": "#/$defs/CommercialMoneyV1"
+    },
+    "responsibilities": {
+      "items": {
+        "$ref": "#/$defs/ServiceResponsibilityV1"
+      },
+      "title": "Responsibilities",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "purchase-terms-v1",
+      "default": "purchase-terms-v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "primary_price"
+  ],
+  "title": "PurchaseTermsV1",
+  "type": "object"
+}

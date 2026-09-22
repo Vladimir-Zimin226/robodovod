@@ -10,6 +10,7 @@ from __future__ import annotations
 import copy
 import uuid
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import Decimal
 from typing import Any, Protocol
 
@@ -20,6 +21,7 @@ from catalog_models import (
     CatalogSourceRow,
     EquipmentApplicability,
     EquipmentModel,
+    FieldEvidence,
     Manufacturer,
     ProcurementOption,
 )
@@ -74,6 +76,14 @@ class ProcurementOptionDTO:
     id: str | None = None
     source_row_id: str | None = None
     raw_price: str | None = None
+    vat_rate: Decimal | None = None
+    currency_provenance: str | None = None
+    vat_provenance: str | None = None
+    evidence_status: str | None = None
+    observed_on: date | None = None
+    valid_until: date | None = None
+    verified_quotes: tuple[dict[str, Any], ...] = ()
+    procurement_assertions: tuple[dict[str, Any], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -510,6 +520,12 @@ class PostgresCatalogRepository:
                     ProcurementOption.id,
                 )
             ).all()
+            procurement_evidence_rows = session.scalars(
+                select(FieldEvidence).where(
+                    FieldEvidence.catalog_version_id == version.id,
+                    FieldEvidence.subject_type == "PRICE_OFFER",
+                )
+            ).all()
             matching_rows = (
                 session.execute(
                     text(
@@ -572,7 +588,9 @@ class PostgresCatalogRepository:
             procurement_by_model: dict[uuid.UUID, list[ProcurementOptionDTO]] = {}
             procurement_by_source: dict[uuid.UUID, ProcurementOptionDTO] = {}
             procurement_model_by_source: dict[uuid.UUID, uuid.UUID] = {}
+            procurement_evidence = {row.id: row for row in procurement_evidence_rows}
             for row in procurement_rows:
+                evidence = procurement_evidence.get(row.field_evidence_id)
                 item = ProcurementOptionDTO(
                     mode=row.procurement_mode,
                     amount=row.amount,
@@ -589,6 +607,11 @@ class PostgresCatalogRepository:
                     id=str(row.id),
                     source_row_id=str(row.catalog_source_row_id),
                     raw_price=row.raw_price,
+                    vat_rate=row.vat_rate,
+                    currency_provenance=row.currency_provenance,
+                    vat_provenance=row.vat_provenance,
+                    evidence_status=None if evidence is None else evidence.evidence_status,
+                    observed_on=None if evidence is None else evidence.observed_at.date(),
                 )
                 procurement_by_model.setdefault(row.equipment_model_id, []).append(item)
                 if row.catalog_source_row_id in procurement_by_source:

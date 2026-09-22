@@ -47,6 +47,8 @@ from object_profiles import (
     official_profile_version,
     profile_api_dict,
 )
+from procurement.contracts import ProcurementReportRequestV1, ProcurementReportV1
+from procurement.resolver import resolve_procurement_report
 from pydantic import BaseModel
 from readiness import ReadinessReport, ReadinessRequest, evaluate_readiness
 from scenario_spec import build_scenario_spec
@@ -153,6 +155,16 @@ def readiness():
         )
         raise HTTPException(status_code=503, detail="database unavailable") from None
     return {"status": "ready", "database": "available"}
+
+
+@app.post("/api/v2/procurement-reports", response_model=ProcurementReportV1)
+def procurement_report(request: ProcurementReportRequestV1) -> ProcurementReportV1:
+    """Resolve commercial inputs without calculating economics or changing catalog state."""
+
+    try:
+        return resolve_procurement_report(request, _discovery_snapshot())
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
 
 
 # ═══════════════════════════════════════════════════════════════

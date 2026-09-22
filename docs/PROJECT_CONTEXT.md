@@ -312,9 +312,16 @@ trace с источниками. Устаревшие revision отбрасыв�
 показана явно, а старые `/api/calculate` runs сохраняют прежнее представление.
 Отчёт: [frontend capacity results trace](planning/frontend-capacity-results-trace.md).
 
-Следующая малая итерация — **`procurement/commercial-inputs-v1`** (C13).
-Production runtime activation по-прежнему не выполнялась; «Участвует в
-расчёте» не означает SLA или deployment readiness.
+Этап **`procurement/commercial-inputs-v1`** (C13) завершён: добавлены strict
+`CommercialMoney`, PURCHASE/RAAS terms, K25 cost-basis union, service
+responsibilities и evidence-gated procurement resolver/API. Organizer raw price
+сохраняется; gross не делится автоматически, `NET_RUB` требует explicit VAT
+rate, USER budget не выдаётся за vendor quote, а procurement status не получает
+численного score. Отчёт:
+[commercial inputs and procurement report v1](planning/commercial-inputs-v1.md).
+
+Следующая малая итерация — **`engine/role-labor-baseline-v1`** (C14).
+Frontend, economics formulas и production runtime activation в C13 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

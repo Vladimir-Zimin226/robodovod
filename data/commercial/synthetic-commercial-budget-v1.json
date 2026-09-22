@@ -1,0 +1,432 @@
+{
+  "acquisition": "PURCHASE",
+  "assertions": [],
+  "currency_assumption": {
+    "applies_to_source_id": "price-v4-row-0020",
+    "confirmation_state": "POLICY_ACCEPTED",
+    "currency": "RUB",
+    "provenance_id": "assumption.demo-rub-v1",
+    "rationale": "Explicit contest demo currency assumption; source currency remains UNKNOWN"
+  },
+  "evaluation_date": "2026-09-23",
+  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+  "position_id": "catalog-v4-row-0020",
+  "schema_version": "procurement-report-request-v1",
+  "terms": [
+    {
+      "acquisition": "PURCHASE",
+      "cost_lines": [
+        {
+          "basis": {
+            "kind": "PER_ROBOT",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "100000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.charger",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "CHARGER",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.charger",
+          "timing": "CAPITAL_ONCE"
+        },
+        {
+          "basis": {
+            "kind": "PER_ROBOT",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "100000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.integration",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "INTEGRATION",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.integration",
+          "timing": "CAPITAL_ONCE"
+        },
+        {
+          "basis": {
+            "kind": "FIXED_TOTAL",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "500000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.infrastructure",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "INFRASTRUCTURE",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.infrastructure",
+          "timing": "CAPITAL_ONCE"
+        },
+        {
+          "basis": {
+            "kind": "FIXED_TOTAL",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "100000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.delivery",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "DELIVERY",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.delivery",
+          "timing": "CAPITAL_ONCE"
+        },
+        {
+          "basis": {
+            "kind": "FIXED_TOTAL",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "100000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.commissioning",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "COMMISSIONING",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.commissioning",
+          "timing": "CAPITAL_ONCE"
+        },
+        {
+          "basis": {
+            "kind": "FIXED_TOTAL",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "50000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.training",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "TRAINING",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.training",
+          "timing": "CAPITAL_ONCE"
+        },
+        {
+          "basis": {
+            "kind": "PER_ROBOT",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "50000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.service",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "SERVICE",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.service",
+          "timing": "ANNUAL"
+        },
+        {
+          "basis": {
+            "kind": "PER_ROBOT",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "10000",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.software",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": null
+            }
+          },
+          "category": "SOFTWARE",
+          "excluded_by_scenario": false,
+          "included_in": [],
+          "line_id": "budget.software",
+          "timing": "ANNUAL"
+        },
+        {
+          "basis": {
+            "kind": "FIXED_TOTAL",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "0",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.wifi",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": "EXCLUDED_BY_SCENARIO"
+            }
+          },
+          "category": "OTHER",
+          "excluded_by_scenario": true,
+          "included_in": [],
+          "line_id": "budget.wifi",
+          "timing": "CAPITAL_ONCE"
+        },
+        {
+          "basis": {
+            "kind": "FIXED_TOTAL",
+            "money": {
+              "currency": "RUB",
+              "raw_amount": "0",
+              "schema_version": "commercial-money-v1",
+              "scope": {
+                "boundary": "SCENARIO_BUDGET",
+                "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                "position_id": "catalog-v4-row-0020",
+                "procurement_option_id": "price-v4-row-0020",
+                "region": "RU"
+              },
+              "source": {
+                "evidence_ids": [],
+                "kind": "ASSUMPTION",
+                "observed_on": null,
+                "source_id": "synthetic.budget.spares",
+                "valid_until": null
+              },
+              "tax_basis": "CASH_GROSS_RUB",
+              "vat_rate": null,
+              "zero_semantics": "EXCLUDED_BY_SCENARIO"
+            }
+          },
+          "category": "SPARES",
+          "excluded_by_scenario": true,
+          "included_in": [],
+          "line_id": "budget.spares",
+          "timing": "CAPITAL_ONCE"
+        }
+      ],
+      "primary_price": {
+        "currency": "UNKNOWN",
+        "raw_amount": "3000000.00",
+        "schema_version": "commercial-money-v1",
+        "scope": {
+          "boundary": "BARE_EQUIPMENT",
+          "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+          "position_id": "catalog-v4-row-0020",
+          "procurement_option_id": "price-v4-row-0020",
+          "region": "RU"
+        },
+        "source": {
+          "evidence_ids": [
+            "evidence.price-v4-row-0020"
+          ],
+          "kind": "ORGANIZER_DATASET",
+          "observed_on": "2026-09-15",
+          "source_id": "price-v4-row-0020",
+          "valid_until": null
+        },
+        "tax_basis": "CASH_GROSS_RUB",
+        "vat_rate": null,
+        "zero_semantics": null
+      },
+      "responsibilities": [
+        {
+          "area": "HARDWARE",
+          "evidence_ids": [],
+          "responsible_party": "CUSTOMER"
+        },
+        {
+          "area": "MAINTENANCE",
+          "evidence_ids": [],
+          "responsible_party": "CUSTOMER"
+        },
+        {
+          "area": "INFRASTRUCTURE",
+          "evidence_ids": [],
+          "responsible_party": "CUSTOMER"
+        }
+      ],
+      "schema_version": "purchase-terms-v1"
+    },
+    {
+      "acquisition": "RAAS",
+      "billing_basis": "PER_ROBOT_MONTH",
+      "buyout": {
+        "currency": "RUB",
+        "raw_amount": "0",
+        "schema_version": "commercial-money-v1",
+        "scope": {
+          "boundary": "SCENARIO_BUDGET",
+          "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+          "position_id": "catalog-v4-row-0020",
+          "procurement_option_id": "price-v4-row-0020",
+          "region": "RU"
+        },
+        "source": {
+          "evidence_ids": [],
+          "kind": "ASSUMPTION",
+          "observed_on": null,
+          "source_id": "synthetic.raas-buyout",
+          "valid_until": null
+        },
+        "tax_basis": "CASH_GROSS_RUB",
+        "vat_rate": null,
+        "zero_semantics": "EXCLUDED_BY_SCENARIO"
+      },
+      "contract_months": 60,
+      "cost_lines": [],
+      "deployment_mode": "ALL_FLEET",
+      "renewal": "SAME_TERMS_TO_HORIZON",
+      "responsibilities": [
+        {
+          "area": "HARDWARE",
+          "evidence_ids": [],
+          "responsible_party": "VENDOR"
+        },
+        {
+          "area": "INFRASTRUCTURE",
+          "evidence_ids": [],
+          "responsible_party": "UNKNOWN"
+        }
+      ],
+      "schema_version": "raas-terms-v1",
+      "tariff_basis": {
+        "base_line_id": "robot.purchase-price",
+        "kind": "PERCENT_BASE",
+        "rate": "0.02"
+      }
+    }
+  ]
+}

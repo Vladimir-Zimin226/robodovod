@@ -98,6 +98,23 @@ fixture. Registry v1 остаётся доступен для replay; новые
 | V2-C | Перед C16/C17 | replacements, TCO/ROI/payback, additional income, tax supplement |
 | V2-D | Перед C19 | окончательный набор checks и integration scoring |
 
+### V2-B — решение C13
+
+Gate закрыт 2026-09-23 без изменения policy v1:
+
+- **ZV2-08 — REJECTED_WITH_REASON как универсальный default.** Батарея считается
+  включённой только при явном included-cost/source scope; отдельная replacement
+  line остаётся возможной для C15. Наличие батареи в любой цене не выводится
+  автоматически.
+- **ZV2-11 — ADOPTED_IN_POLICY_V2 как contract field.** Ownership каждой RaaS
+  responsibility задаётся `CUSTOMER/VENDOR/INTEGRATOR/SHARED/UNKNOWN`; отсутствие
+  evidence остаётся `UNKNOWN`, без fallback allocation.
+- **ZV2-12 — REJECTED_WITH_REASON в части default VAT 20%.** Сохраняется K20:
+  organizer gross не делится, `NET_RUB` требует explicit rate, labour VAT здесь
+  не рассматривается. Gross basis и отдельная card rate поддержаны контрактом.
+- CAPEX cost bases приняты по K25 как discriminated
+  `FIXED_TOTAL/PER_ROBOT/PERCENT_BASE`; численная агрегация остаётся C15.
+
 Каждый gate должен завершаться одним из результатов: `ADOPTED_IN_POLICY_V2`,
 `DEFERRED_POST_MVP` или `REJECTED_WITH_REASON`. Отсутствие решения не меняет
 policy v1 и не останавливает более ранние независимые этапы.
