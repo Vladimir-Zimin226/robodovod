@@ -1,0 +1,540 @@
+{
+  "request": {
+    "allocations": [],
+    "allow_surplus_replacement": false,
+    "base_forklift_count": null,
+    "deficit_costs": [],
+    "input_revision": "revision.c14",
+    "object_id": "object.warehouse",
+    "object_kind": "WAREHOUSE",
+    "processes": [
+      {
+        "capacity": {
+          "capacity_result_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "capacity_run_id": "capacity.process.receiving",
+          "capacity_status": "COMPLETE",
+          "coverage": "1",
+          "input_revision": "revision.c14",
+          "process_id": "process.receiving",
+          "schema_version": "capacity-labour-projection-v1",
+          "selected_fleet": 5
+        },
+        "manual_units_per_shift": {
+          "provenance_ref": "prov.manual",
+          "source": "USER",
+          "unit": "pallet/shift",
+          "value": "100"
+        },
+        "process": {
+          "active": true,
+          "demand": {
+            "name": "demand_per_day",
+            "normalized_value": "1400",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "FLOW",
+            "raw_unit": "pallet/day",
+            "raw_value": "1400",
+            "status": "KNOWN",
+            "unit": "pallet/day"
+          },
+          "exchange": null,
+          "explicit_batch": null,
+          "input_revision": "revision.c14",
+          "item_mass": null,
+          "object_kind": "WAREHOUSE",
+          "process_code": "warehouse_receiving_shipping",
+          "process_id": "process.receiving",
+          "quantity_kind": "PALLET",
+          "role_refs": [
+            "role.driver"
+          ],
+          "route_distance": {
+            "name": "one_way_distance",
+            "normalized_value": "100",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "DISTANCE",
+            "raw_unit": "m",
+            "raw_value": "100",
+            "status": "KNOWN",
+            "unit": "m"
+          },
+          "schedule": {
+            "days_per_year": {
+              "name": "days_per_year",
+              "normalized_value": "365",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "day",
+              "raw_value": "365",
+              "status": "KNOWN",
+              "unit": "day"
+            },
+            "shift_hours": {
+              "name": "shift_hours",
+              "normalized_value": "8",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "h",
+              "raw_value": "8",
+              "status": "KNOWN",
+              "unit": "h"
+            },
+            "shifts_per_day": {
+              "name": "shifts_per_day",
+              "normalized_value": "2",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "COUNT",
+              "raw_unit": "shift",
+              "raw_value": "2",
+              "status": "KNOWN",
+              "unit": "shift"
+            }
+          },
+          "schema_version": "normalized-process-v1",
+          "scope": "TRANSPORT_CYCLE"
+        },
+        "role_id": "role.driver"
+      }
+    ],
+    "project_id": "project.c14.warehouse",
+    "replacement_limit": "1",
+    "role_pool": {
+      "object_kind": "WAREHOUSE",
+      "pool_id": "pool.c14.warehouse",
+      "roles": [
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "20",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "20",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "name": "monthly_gross_salary",
+            "normalized_value": "100000",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.salary.role.driver",
+            "quantity_kind": "MONEY",
+            "raw_unit": "RUB/person/month",
+            "raw_value": "100000",
+            "status": "KNOWN",
+            "unit": "RUB/person/month"
+          },
+          "object_scope": "WAREHOUSE",
+          "process_ids": [
+            "process.receiving"
+          ],
+          "role_code": "forklift_driver",
+          "role_id": "role.driver",
+          "zero_cost_marker": null
+        },
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "1",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "1",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "name": "monthly_gross_salary",
+            "normalized_value": "100000",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.salary.role.tech",
+            "quantity_kind": "MONEY",
+            "raw_unit": "RUB/person/month",
+            "raw_value": "100000",
+            "status": "KNOWN",
+            "unit": "RUB/person/month"
+          },
+          "object_scope": "SITE",
+          "process_ids": [],
+          "role_code": "tech_support",
+          "role_id": "role.tech",
+          "zero_cost_marker": null
+        }
+      ],
+      "schema_version": "role-pool-v1"
+    },
+    "run_id": "run.c14.warehouse",
+    "salary_sources": [
+      {
+        "provenance_ref": "prov.salary.role.driver",
+        "role_id": "role.driver",
+        "source": "USER"
+      },
+      {
+        "provenance_ref": "prov.salary.role.tech",
+        "role_id": "role.tech",
+        "source": "USER"
+      }
+    ],
+    "schema_version": "role-labour-analysis-v1",
+    "tenant_id": "tenant.c14",
+    "uncertainty": "BASE"
+  },
+  "result": {
+    "allocations": [
+      {
+        "allocated_people": 20,
+        "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+        "process_id": "process.receiving",
+        "provenance_ref": "policy.k17.person-shifts",
+        "role_id": "role.driver",
+        "weight": "14"
+      }
+    ],
+    "finance_status": "COMPLETE",
+    "forklifts": {
+      "base_count": 10,
+      "remaining": 2,
+      "source": "ROLE_DERIVED",
+      "status": "COMPLETE",
+      "withdrawn": 8
+    },
+    "input_revision": "revision.c14",
+    "issues": [],
+    "labour_status": "COMPLETE",
+    "object_id": "object.warehouse",
+    "object_kind": "WAREHOUSE",
+    "operating_staff": {
+      "control_additional": 0,
+      "control_money": null,
+      "control_required": 5,
+      "control_transferred": 5,
+      "reason_codes": [],
+      "simultaneous_shifts": 2,
+      "status": "COMPLETE",
+      "technician_money": {
+        "annual_direct": "1562400",
+        "annual_fixed_overhead": "297600",
+        "annual_full": "1860000",
+        "annual_gross": "1200000",
+        "monthly_gross": "100000",
+        "salary_provenance_ref": "prov.salary.role.tech",
+        "unit": "RUB/person/year",
+        "zero_cost_role": false
+      },
+      "technicians_required": 1,
+      "total_selected_fleet": 5
+    },
+    "processes": [
+      {
+        "allocated_people": 20,
+        "applied": 20,
+        "capacity_coverage": "1",
+        "deficit_growth": 7,
+        "manual_unit": "pallet/shift",
+        "manual_units_per_shift": "100",
+        "operating_hours_per_day": "16",
+        "person_shifts": 14,
+        "process_id": "process.receiving",
+        "reason_codes": [],
+        "released": 15,
+        "required_people": 27,
+        "robot_people": 27,
+        "robot_replacement": 20,
+        "role_id": "role.driver",
+        "rotation_factor": "1.9075",
+        "status": "COMPLETE",
+        "transferred": 5
+      }
+    ],
+    "project_id": "project.c14.warehouse",
+    "replay": {
+      "canonical_input_digest": "sha256:b584277c581c23216303fe90adb87f9f3541dc36b6025ac6c67397eea22e4659",
+      "capacity_result_digests": [
+        "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "trace_content_digest": "sha256:9b121d3d8e63b84395d80cfc580c5fa28a62e877acf15c4471526ac99470f7a3"
+    },
+    "roles": [
+      {
+        "allocated_people": 20,
+        "annual_deficit_cost": "10936800",
+        "annual_staffing": [
+          {
+            "ramp": "0.5",
+            "released": 8,
+            "remaining": 12,
+            "year": 1
+          },
+          {
+            "ramp": "0.85",
+            "released": 13,
+            "remaining": 7,
+            "year": 2
+          },
+          {
+            "ramp": "1",
+            "released": 15,
+            "remaining": 5,
+            "year": 3
+          },
+          {
+            "ramp": "1",
+            "released": 15,
+            "remaining": 5,
+            "year": 4
+          },
+          {
+            "ramp": "1",
+            "released": 15,
+            "remaining": 5,
+            "year": 5
+          }
+        ],
+        "deficit": 7,
+        "deficit_cost_source": "DEFAULT_ANNUAL_DIRECT",
+        "deficit_growth": 7,
+        "headcount": 20,
+        "money": {
+          "annual_direct": "1562400",
+          "annual_fixed_overhead": "297600",
+          "annual_full": "1860000",
+          "annual_gross": "1200000",
+          "monthly_gross": "100000",
+          "salary_provenance_ref": "prov.salary.role.driver",
+          "unit": "RUB/person/year",
+          "zero_cost_role": false
+        },
+        "reason_codes": [],
+        "released": 15,
+        "remaining": 5,
+        "required_people": 27,
+        "role_code": "forklift_driver",
+        "role_id": "role.driver",
+        "status": "COMPLETE",
+        "surplus": 0,
+        "transferred": 5,
+        "unallocated_people": 0
+      }
+    ],
+    "run_id": "run.c14.warehouse",
+    "schema_version": "role-labour-result-v1",
+    "tenant_id": "tenant.c14",
+    "total_additional_control": 0,
+    "total_deficit": 7,
+    "total_released": 15,
+    "total_surplus": 0,
+    "total_transferred": 5,
+    "trace": [
+      {
+        "formula_id": "F08",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.demand",
+          "process.schedule",
+          "process.route_distance"
+        ],
+        "node_id": "process.receiving.f08",
+        "output_name": "manual_units_per_shift",
+        "output_value": "100",
+        "provenance_refs": [
+          "prov.manual"
+        ],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "pallet/shift"
+      },
+      {
+        "formula_id": "F09",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.receiving.f08",
+          "process.schedule"
+        ],
+        "node_id": "process.receiving.f09",
+        "output_name": "required_people",
+        "output_value": "27",
+        "provenance_refs": [
+          "registry.labor.staffing.vacation-factor",
+          "registry.labor.nonproductive-loss.warehouse"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F11",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.receiving.f09",
+          "capacity.coverage",
+          "role.allocation"
+        ],
+        "node_id": "process.receiving.f11",
+        "output_name": "robot_replacement",
+        "output_value": "20",
+        "provenance_refs": [
+          "capacity.process.receiving"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F12",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.receiving.f11",
+          "replacement_limit"
+        ],
+        "node_id": "process.receiving.f12",
+        "output_name": "applied",
+        "output_value": "20",
+        "provenance_refs": [
+          "policy.k06.replacement-limit"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F13",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.applied",
+          "scenario.supervision-share",
+          "schedule.simultaneous-shifts"
+        ],
+        "node_id": "site.f13.control",
+        "output_name": "control_required",
+        "output_value": "5",
+        "provenance_refs": [
+          "registry.scenario.base.supervision-share",
+          "registry.labor.control.minimum-per-shift"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F10",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "role.monthly_gross_salary"
+        ],
+        "node_id": "role.driver.f10",
+        "output_name": "annual_direct",
+        "output_value": "1562400",
+        "provenance_refs": [
+          "prov.salary.role.driver"
+        ],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "RUB/person/year"
+      },
+      {
+        "formula_id": "F15",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "role.required_people",
+          "role.headcount",
+          "role.deficit_cost"
+        ],
+        "node_id": "role.driver.f15",
+        "output_name": "annual_deficit_cost",
+        "output_value": "10936800",
+        "provenance_refs": [],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "RUB/year"
+      },
+      {
+        "formula_id": "F13",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "capacity.selected_fleet",
+          "labor.technical.robots-per-fte"
+        ],
+        "node_id": "site.f13.technicians",
+        "output_name": "technicians_required",
+        "output_value": "1",
+        "provenance_refs": [
+          "registry.labor.technical.robots-per-fte"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F14",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "base_forklift_count",
+          "role.forklift_driver.released",
+          "schedule.simultaneous_shifts"
+        ],
+        "node_id": "site.f14.forklifts",
+        "output_name": "forklifts_withdrawn",
+        "output_value": "8",
+        "provenance_refs": [
+          "policy.k08"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "unit"
+      }
+    ],
+    "versions": {
+      "calculation_policy_version": "hackathon-calculation-policy-v1",
+      "capacity_projection_version": "capacity-labour-projection-v1",
+      "engine_version": "role-labour-baseline-v1",
+      "intake_version": "calculation-intake-normalization-v2",
+      "precision_policy_version": "decimal-context-28-half-even-v1",
+      "process_catalog_version": "calculation-process-catalog-v1",
+      "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+      "registry_version": "hackathon-calculation-parameter-registry-v1",
+      "schema_version": "role-labour-result-v1",
+      "v2a_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14"
+    }
+  }
+}

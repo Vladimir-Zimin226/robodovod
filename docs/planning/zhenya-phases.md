@@ -10,8 +10,8 @@ C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22,
 C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
 C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23,
 C10 **COMPLETE** 2026-09-23, C11 **COMPLETE** 2026-09-23,
-C12 **COMPLETE** 2026-09-23, C13 **COMPLETE** 2026-09-23;
-C14–C29 пока **PLANNED**.
+C12 **COMPLETE** 2026-09-23, C13 **COMPLETE** 2026-09-23,
+C14 **COMPLETE** 2026-09-23; C15–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -434,7 +434,11 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 
 ## C14 — `engine/role-labor-baseline-v1`
 
-Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[role labour baseline v1](role-labor-baseline-v1.md).
+
+Решения: `hackathon-calculation-policy-v1` +
+`hackathon-calculation-policy-v1+v2a-c14`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R03 §2, R02/R06, R10–11; принятые K05–08.

@@ -1,0 +1,638 @@
+{
+  "request": {
+    "allocations": [],
+    "allow_surplus_replacement": false,
+    "base_forklift_count": null,
+    "deficit_costs": [],
+    "input_revision": "revision.c14",
+    "object_id": "object.clinic",
+    "object_kind": "CLINIC",
+    "processes": [
+      {
+        "capacity": {
+          "capacity_result_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "capacity_run_id": "capacity.process.food",
+          "capacity_status": "COMPLETE",
+          "coverage": "0.8",
+          "input_revision": "revision.c14",
+          "process_id": "process.food",
+          "schema_version": "capacity-labour-projection-v1",
+          "selected_fleet": 3
+        },
+        "manual_units_per_shift": {
+          "provenance_ref": "prov.manual",
+          "source": "USER",
+          "unit": "portion/shift",
+          "value": "200"
+        },
+        "process": {
+          "active": true,
+          "demand": {
+            "name": "demand_per_day",
+            "normalized_value": "1950",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "FLOW",
+            "raw_unit": "portion/day",
+            "raw_value": "1950",
+            "status": "KNOWN",
+            "unit": "portion/day"
+          },
+          "exchange": null,
+          "explicit_batch": null,
+          "input_revision": "revision.c14",
+          "item_mass": null,
+          "object_kind": "CLINIC",
+          "process_code": "clinic_food",
+          "process_id": "process.food",
+          "quantity_kind": "PORTION",
+          "role_refs": [
+            "role.food"
+          ],
+          "route_distance": {
+            "name": "one_way_distance",
+            "normalized_value": "100",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "DISTANCE",
+            "raw_unit": "m",
+            "raw_value": "100",
+            "status": "KNOWN",
+            "unit": "m"
+          },
+          "schedule": {
+            "days_per_year": {
+              "name": "days_per_year",
+              "normalized_value": "365",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "day",
+              "raw_value": "365",
+              "status": "KNOWN",
+              "unit": "day"
+            },
+            "shift_hours": {
+              "name": "shift_hours",
+              "normalized_value": "8",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "h",
+              "raw_value": "8",
+              "status": "KNOWN",
+              "unit": "h"
+            },
+            "shifts_per_day": {
+              "name": "shifts_per_day",
+              "normalized_value": "3",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "COUNT",
+              "raw_unit": "shift",
+              "raw_value": "3",
+              "status": "KNOWN",
+              "unit": "shift"
+            }
+          },
+          "schema_version": "normalized-process-v1",
+          "scope": "DELIVERY_CYCLE"
+        },
+        "role_id": "role.food"
+      },
+      {
+        "capacity": {
+          "capacity_result_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "capacity_run_id": "capacity.process.safety",
+          "capacity_status": "NOT_APPLICABLE",
+          "coverage": null,
+          "input_revision": "revision.c14",
+          "process_id": "process.safety",
+          "schema_version": "capacity-labour-projection-v1",
+          "selected_fleet": null
+        },
+        "manual_units_per_shift": null,
+        "process": {
+          "active": true,
+          "demand": {
+            "name": "demand_per_day",
+            "normalized_value": "1",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "FLOW",
+            "raw_unit": "item/day",
+            "raw_value": "1",
+            "status": "KNOWN",
+            "unit": "item/day"
+          },
+          "exchange": null,
+          "explicit_batch": null,
+          "input_revision": "revision.c14",
+          "item_mass": null,
+          "object_kind": "CLINIC",
+          "process_code": "clinic_safety_requirements",
+          "process_id": "process.safety",
+          "quantity_kind": "ITEM",
+          "role_refs": [],
+          "route_distance": null,
+          "schedule": {
+            "days_per_year": {
+              "name": "days_per_year",
+              "normalized_value": "365",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "day",
+              "raw_value": "365",
+              "status": "KNOWN",
+              "unit": "day"
+            },
+            "shift_hours": {
+              "name": "shift_hours",
+              "normalized_value": "8",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "h",
+              "raw_value": "8",
+              "status": "KNOWN",
+              "unit": "h"
+            },
+            "shifts_per_day": {
+              "name": "shifts_per_day",
+              "normalized_value": "3",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "COUNT",
+              "raw_unit": "shift",
+              "raw_value": "3",
+              "status": "KNOWN",
+              "unit": "shift"
+            }
+          },
+          "schema_version": "normalized-process-v1",
+          "scope": "CONSTRAINT_ONLY"
+        },
+        "role_id": null
+      }
+    ],
+    "project_id": "project.c14.clinic",
+    "replacement_limit": "1",
+    "role_pool": {
+      "object_kind": "CLINIC",
+      "pool_id": "pool.c14.clinic",
+      "roles": [
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "15",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "15",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "name": "monthly_gross_salary",
+            "normalized_value": "100000",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.salary.role.food",
+            "quantity_kind": "MONEY",
+            "raw_unit": "RUB/person/month",
+            "raw_value": "100000",
+            "status": "KNOWN",
+            "unit": "RUB/person/month"
+          },
+          "object_scope": "CLINIC",
+          "process_ids": [
+            "process.food"
+          ],
+          "role_code": "catering_worker",
+          "role_id": "role.food",
+          "zero_cost_marker": null
+        },
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "1",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "1",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "name": "monthly_gross_salary",
+            "normalized_value": "100000",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.salary.role.tech",
+            "quantity_kind": "MONEY",
+            "raw_unit": "RUB/person/month",
+            "raw_value": "100000",
+            "status": "KNOWN",
+            "unit": "RUB/person/month"
+          },
+          "object_scope": "SITE",
+          "process_ids": [],
+          "role_code": "tech_support",
+          "role_id": "role.tech",
+          "zero_cost_marker": null
+        }
+      ],
+      "schema_version": "role-pool-v1"
+    },
+    "run_id": "run.c14.clinic",
+    "salary_sources": [
+      {
+        "provenance_ref": "prov.salary.role.food",
+        "role_id": "role.food",
+        "source": "USER"
+      },
+      {
+        "provenance_ref": "prov.salary.role.tech",
+        "role_id": "role.tech",
+        "source": "USER"
+      }
+    ],
+    "schema_version": "role-labour-analysis-v1",
+    "tenant_id": "tenant.c14",
+    "uncertainty": "BASE"
+  },
+  "result": {
+    "allocations": [
+      {
+        "allocated_people": 15,
+        "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+        "process_id": "process.food",
+        "provenance_ref": "policy.k17.person-shifts",
+        "role_id": "role.food",
+        "weight": "10"
+      }
+    ],
+    "finance_status": "COMPLETE",
+    "forklifts": {
+      "base_count": null,
+      "remaining": null,
+      "source": "NOT_APPLICABLE",
+      "status": "NOT_APPLICABLE",
+      "withdrawn": null
+    },
+    "input_revision": "revision.c14",
+    "issues": [],
+    "labour_status": "COMPLETE",
+    "object_id": "object.clinic",
+    "object_kind": "CLINIC",
+    "operating_staff": {
+      "control_additional": 0,
+      "control_money": null,
+      "control_required": 3,
+      "control_transferred": 3,
+      "reason_codes": [],
+      "simultaneous_shifts": 3,
+      "status": "COMPLETE",
+      "technician_money": {
+        "annual_direct": "1562400",
+        "annual_fixed_overhead": "297600",
+        "annual_full": "1860000",
+        "annual_gross": "1200000",
+        "monthly_gross": "100000",
+        "salary_provenance_ref": "prov.salary.role.tech",
+        "unit": "RUB/person/year",
+        "zero_cost_role": false
+      },
+      "technicians_required": 1,
+      "total_selected_fleet": 3
+    },
+    "processes": [
+      {
+        "allocated_people": 15,
+        "applied": 15,
+        "capacity_coverage": "0.8",
+        "deficit_growth": 3,
+        "manual_unit": "portion/shift",
+        "manual_units_per_shift": "200",
+        "operating_hours_per_day": "24",
+        "person_shifts": 10,
+        "process_id": "process.food",
+        "reason_codes": [],
+        "released": 12,
+        "required_people": 23,
+        "robot_people": 18,
+        "robot_replacement": 15,
+        "role_id": "role.food",
+        "rotation_factor": "2.2127",
+        "status": "COMPLETE",
+        "transferred": 3
+      },
+      {
+        "allocated_people": null,
+        "applied": null,
+        "capacity_coverage": null,
+        "deficit_growth": null,
+        "manual_unit": null,
+        "manual_units_per_shift": null,
+        "operating_hours_per_day": null,
+        "person_shifts": null,
+        "process_id": "process.safety",
+        "reason_codes": [
+          "no-fot-benefit"
+        ],
+        "released": null,
+        "required_people": null,
+        "robot_people": null,
+        "robot_replacement": null,
+        "role_id": null,
+        "rotation_factor": null,
+        "status": "NO_FOT_BENEFIT",
+        "transferred": null
+      }
+    ],
+    "project_id": "project.c14.clinic",
+    "replay": {
+      "canonical_input_digest": "sha256:b9ddc29a0ebf2ca651fb271de50c0211fcb7f19290c24a58870d03d38672d577",
+      "capacity_result_digests": [
+        "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "trace_content_digest": "sha256:7f6f5124770a7e15c88fce3f02af0dac6526769b646d30e04446ab4f412e44c4"
+    },
+    "roles": [
+      {
+        "allocated_people": 15,
+        "annual_deficit_cost": "12499200",
+        "annual_staffing": [
+          {
+            "ramp": "0.5",
+            "released": 6,
+            "remaining": 9,
+            "year": 1
+          },
+          {
+            "ramp": "0.85",
+            "released": 11,
+            "remaining": 4,
+            "year": 2
+          },
+          {
+            "ramp": "1",
+            "released": 12,
+            "remaining": 3,
+            "year": 3
+          },
+          {
+            "ramp": "1",
+            "released": 12,
+            "remaining": 3,
+            "year": 4
+          },
+          {
+            "ramp": "1",
+            "released": 12,
+            "remaining": 3,
+            "year": 5
+          }
+        ],
+        "deficit": 8,
+        "deficit_cost_source": "DEFAULT_ANNUAL_DIRECT",
+        "deficit_growth": 3,
+        "headcount": 15,
+        "money": {
+          "annual_direct": "1562400",
+          "annual_fixed_overhead": "297600",
+          "annual_full": "1860000",
+          "annual_gross": "1200000",
+          "monthly_gross": "100000",
+          "salary_provenance_ref": "prov.salary.role.food",
+          "unit": "RUB/person/year",
+          "zero_cost_role": false
+        },
+        "reason_codes": [],
+        "released": 12,
+        "remaining": 3,
+        "required_people": 23,
+        "role_code": "catering_worker",
+        "role_id": "role.food",
+        "status": "COMPLETE",
+        "surplus": 0,
+        "transferred": 3,
+        "unallocated_people": 0
+      }
+    ],
+    "run_id": "run.c14.clinic",
+    "schema_version": "role-labour-result-v1",
+    "tenant_id": "tenant.c14",
+    "total_additional_control": 0,
+    "total_deficit": 8,
+    "total_released": 12,
+    "total_surplus": 0,
+    "total_transferred": 3,
+    "trace": [
+      {
+        "formula_id": "F08",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.demand",
+          "process.schedule",
+          "process.route_distance"
+        ],
+        "node_id": "process.food.f08",
+        "output_name": "manual_units_per_shift",
+        "output_value": "200",
+        "provenance_refs": [
+          "prov.manual"
+        ],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "portion/shift"
+      },
+      {
+        "formula_id": "F09",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.food.f08",
+          "process.schedule"
+        ],
+        "node_id": "process.food.f09",
+        "output_name": "required_people",
+        "output_value": "23",
+        "provenance_refs": [
+          "registry.labor.staffing.vacation-factor",
+          "registry.labor.nonproductive-loss.clinic"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F11",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.food.f09",
+          "capacity.coverage",
+          "role.allocation"
+        ],
+        "node_id": "process.food.f11",
+        "output_name": "robot_replacement",
+        "output_value": "15",
+        "provenance_refs": [
+          "capacity.process.food"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F12",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.food.f11",
+          "replacement_limit"
+        ],
+        "node_id": "process.food.f12",
+        "output_name": "applied",
+        "output_value": "15",
+        "provenance_refs": [
+          "policy.k06.replacement-limit"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F13",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.applied",
+          "scenario.supervision-share",
+          "schedule.simultaneous-shifts"
+        ],
+        "node_id": "site.f13.control",
+        "output_name": "control_required",
+        "output_value": "3",
+        "provenance_refs": [
+          "registry.scenario.base.supervision-share",
+          "registry.labor.control.minimum-per-shift"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F10",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "role.monthly_gross_salary"
+        ],
+        "node_id": "role.food.f10",
+        "output_name": "annual_direct",
+        "output_value": "1562400",
+        "provenance_refs": [
+          "prov.salary.role.food"
+        ],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "RUB/person/year"
+      },
+      {
+        "formula_id": "F15",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "role.required_people",
+          "role.headcount",
+          "role.deficit_cost"
+        ],
+        "node_id": "role.food.f15",
+        "output_name": "annual_deficit_cost",
+        "output_value": "12499200",
+        "provenance_refs": [],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "RUB/year"
+      },
+      {
+        "formula_id": "F13",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "capacity.selected_fleet",
+          "labor.technical.robots-per-fte"
+        ],
+        "node_id": "site.f13.technicians",
+        "output_name": "technicians_required",
+        "output_value": "1",
+        "provenance_refs": [
+          "registry.labor.technical.robots-per-fte"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F14",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "base_forklift_count",
+          "role.forklift_driver.released",
+          "schedule.simultaneous_shifts"
+        ],
+        "node_id": "site.f14.forklifts",
+        "output_name": "forklifts_withdrawn",
+        "output_value": null,
+        "provenance_refs": [
+          "policy.k08"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "unit"
+      }
+    ],
+    "versions": {
+      "calculation_policy_version": "hackathon-calculation-policy-v1",
+      "capacity_projection_version": "capacity-labour-projection-v1",
+      "engine_version": "role-labour-baseline-v1",
+      "intake_version": "calculation-intake-normalization-v2",
+      "precision_policy_version": "decimal-context-28-half-even-v1",
+      "process_catalog_version": "calculation-process-catalog-v1",
+      "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+      "registry_version": "hackathon-calculation-parameter-registry-v1",
+      "schema_version": "role-labour-result-v1",
+      "v2a_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14"
+    }
+  }
+}

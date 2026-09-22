@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C13 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C14 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -24,7 +24,8 @@ C10 — в [process profile coverage v1](planning/process-profile-coverage-v1.md
 C11 — в [capacity analysis snapshots v2](planning/capacity-analysis-snapshots-v2.md).
 C12 — в [frontend capacity results trace](planning/frontend-capacity-results-trace.md).
 C13 — в [commercial inputs and procurement report v1](planning/commercial-inputs-v1.md).
-Следующий этап — C14; production runtime activation не выполнялась.
+C14 — в [role labour baseline v1](planning/role-labor-baseline-v1.md).
+Следующий этап — C15; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -632,7 +633,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C11 COMPLETE | `api/capacity-analysis-snapshots-v2` — независимый API и immutable trace | C05–10 |
 | C12 COMPLETE | `frontend/capacity-results-trace` — partial results и объяснение N | C04,C11 |
 | C13 COMPLETE | `procurement/commercial-inputs-v1` — цены/НДС/условия, отдельные gates | C01–03 |
-| C14 | `engine/role-labor-baseline-v1` — baseline, rotation, pult, deficit | C03,C07–10; K05–08 |
+| C14 COMPLETE | `engine/role-labor-baseline-v1` — baseline, rotation, pult, deficit | C03,C07–10; K05–08 |
 | C15 | `economics/purchase-cost-ledger-v1` — capital и operating статьи | C02,C13–14; K09–11 |
 | C16 | `economics/full-cashflows-reconciliation-v1` — налоги/CF/метрики | C15; K09,K12–13 |
 | C17 | `economics/raas-cashflows-v1` — второй acquisition mode | C13,C16; K21 |

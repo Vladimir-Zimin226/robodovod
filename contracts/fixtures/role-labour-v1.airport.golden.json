@@ -1,0 +1,702 @@
+{
+  "request": {
+    "allocations": [],
+    "allow_surplus_replacement": false,
+    "base_forklift_count": null,
+    "deficit_costs": [],
+    "input_revision": "revision.c14",
+    "object_id": "object.airport",
+    "object_kind": "AIRPORT",
+    "processes": [
+      {
+        "capacity": {
+          "capacity_result_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "capacity_run_id": "capacity.process.internal",
+          "capacity_status": "COMPLETE",
+          "coverage": "0",
+          "input_revision": "revision.c14",
+          "process_id": "process.internal",
+          "schema_version": "capacity-labour-projection-v1",
+          "selected_fleet": 0
+        },
+        "manual_units_per_shift": {
+          "provenance_ref": "prov.manual",
+          "source": "USER",
+          "unit": "cart/shift",
+          "value": "100"
+        },
+        "process": {
+          "active": true,
+          "demand": {
+            "name": "demand_per_day",
+            "normalized_value": "300",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "FLOW",
+            "raw_unit": "cart/day",
+            "raw_value": "300",
+            "status": "KNOWN",
+            "unit": "cart/day"
+          },
+          "exchange": null,
+          "explicit_batch": null,
+          "input_revision": "revision.c14",
+          "item_mass": null,
+          "object_kind": "AIRPORT",
+          "process_code": "airport_internal_logistics",
+          "process_id": "process.internal",
+          "quantity_kind": "CART",
+          "role_refs": [
+            "role.trolley"
+          ],
+          "route_distance": {
+            "name": "one_way_distance",
+            "normalized_value": "100",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "DISTANCE",
+            "raw_unit": "m",
+            "raw_value": "100",
+            "status": "KNOWN",
+            "unit": "m"
+          },
+          "schedule": {
+            "days_per_year": {
+              "name": "days_per_year",
+              "normalized_value": "365",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "day",
+              "raw_value": "365",
+              "status": "KNOWN",
+              "unit": "day"
+            },
+            "shift_hours": {
+              "name": "shift_hours",
+              "normalized_value": "8",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "h",
+              "raw_value": "8",
+              "status": "KNOWN",
+              "unit": "h"
+            },
+            "shifts_per_day": {
+              "name": "shifts_per_day",
+              "normalized_value": "3",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "COUNT",
+              "raw_unit": "shift",
+              "raw_value": "3",
+              "status": "KNOWN",
+              "unit": "shift"
+            }
+          },
+          "schema_version": "normalized-process-v1",
+          "scope": "TRANSPORT_CYCLE"
+        },
+        "role_id": "role.trolley"
+      },
+      {
+        "capacity": {
+          "capacity_result_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "capacity_run_id": "capacity.process.waste",
+          "capacity_status": "COMPLETE",
+          "coverage": "0",
+          "input_revision": "revision.c14",
+          "process_id": "process.waste",
+          "schema_version": "capacity-labour-projection-v1",
+          "selected_fleet": 0
+        },
+        "manual_units_per_shift": {
+          "provenance_ref": "prov.manual",
+          "source": "USER",
+          "unit": "bin/shift",
+          "value": "100"
+        },
+        "process": {
+          "active": true,
+          "demand": {
+            "name": "demand_per_day",
+            "normalized_value": "100",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "FLOW",
+            "raw_unit": "bin/day",
+            "raw_value": "100",
+            "status": "KNOWN",
+            "unit": "bin/day"
+          },
+          "exchange": null,
+          "explicit_batch": null,
+          "input_revision": "revision.c14",
+          "item_mass": null,
+          "object_kind": "AIRPORT",
+          "process_code": "airport_waste",
+          "process_id": "process.waste",
+          "quantity_kind": "BIN",
+          "role_refs": [
+            "role.trolley"
+          ],
+          "route_distance": {
+            "name": "one_way_distance",
+            "normalized_value": "100",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "DISTANCE",
+            "raw_unit": "m",
+            "raw_value": "100",
+            "status": "KNOWN",
+            "unit": "m"
+          },
+          "schedule": {
+            "days_per_year": {
+              "name": "days_per_year",
+              "normalized_value": "365",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "day",
+              "raw_value": "365",
+              "status": "KNOWN",
+              "unit": "day"
+            },
+            "shift_hours": {
+              "name": "shift_hours",
+              "normalized_value": "8",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "TIME",
+              "raw_unit": "h",
+              "raw_value": "8",
+              "status": "KNOWN",
+              "unit": "h"
+            },
+            "shifts_per_day": {
+              "name": "shifts_per_day",
+              "normalized_value": "3",
+              "numeric_encoding": "DECIMAL_STRING",
+              "provenance_ref": "prov.user",
+              "quantity_kind": "COUNT",
+              "raw_unit": "shift",
+              "raw_value": "3",
+              "status": "KNOWN",
+              "unit": "shift"
+            }
+          },
+          "schema_version": "normalized-process-v1",
+          "scope": "TRANSPORT_CYCLE"
+        },
+        "role_id": "role.trolley"
+      }
+    ],
+    "project_id": "project.c14.airport",
+    "replacement_limit": "1",
+    "role_pool": {
+      "object_kind": "AIRPORT",
+      "pool_id": "pool.c14.airport",
+      "roles": [
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "20",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.user",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "20",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "name": "monthly_gross_salary",
+            "normalized_value": "100000",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "prov.salary.role.trolley",
+            "quantity_kind": "MONEY",
+            "raw_unit": "RUB/person/month",
+            "raw_value": "100000",
+            "status": "KNOWN",
+            "unit": "RUB/person/month"
+          },
+          "object_scope": "AIRPORT",
+          "process_ids": [
+            "process.internal",
+            "process.waste"
+          ],
+          "role_code": "trolley_operator",
+          "role_id": "role.trolley",
+          "zero_cost_marker": null
+        }
+      ],
+      "schema_version": "role-pool-v1"
+    },
+    "run_id": "run.c14.airport",
+    "salary_sources": [
+      {
+        "provenance_ref": "prov.salary.role.trolley",
+        "role_id": "role.trolley",
+        "source": "USER"
+      }
+    ],
+    "schema_version": "role-labour-analysis-v1",
+    "tenant_id": "tenant.c14",
+    "uncertainty": "BASE"
+  },
+  "result": {
+    "allocations": [
+      {
+        "allocated_people": 10,
+        "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+        "process_id": "process.internal",
+        "provenance_ref": "policy.k17.person-shifts",
+        "role_id": "role.trolley",
+        "weight": "3"
+      },
+      {
+        "allocated_people": 10,
+        "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+        "process_id": "process.waste",
+        "provenance_ref": "policy.k17.person-shifts",
+        "role_id": "role.trolley",
+        "weight": "3"
+      }
+    ],
+    "finance_status": "COMPLETE",
+    "forklifts": {
+      "base_count": null,
+      "remaining": null,
+      "source": "NOT_APPLICABLE",
+      "status": "NOT_APPLICABLE",
+      "withdrawn": null
+    },
+    "input_revision": "revision.c14",
+    "issues": [],
+    "labour_status": "COMPLETE",
+    "object_id": "object.airport",
+    "object_kind": "AIRPORT",
+    "operating_staff": {
+      "control_additional": 0,
+      "control_money": null,
+      "control_required": 0,
+      "control_transferred": 0,
+      "reason_codes": [],
+      "simultaneous_shifts": 3,
+      "status": "NOT_APPLICABLE",
+      "technician_money": null,
+      "technicians_required": 0,
+      "total_selected_fleet": 0
+    },
+    "processes": [
+      {
+        "allocated_people": 10,
+        "applied": 0,
+        "capacity_coverage": "0",
+        "deficit_growth": 0,
+        "manual_unit": "cart/shift",
+        "manual_units_per_shift": "100",
+        "operating_hours_per_day": "24",
+        "person_shifts": 3,
+        "process_id": "process.internal",
+        "reason_codes": [],
+        "released": 0,
+        "required_people": 7,
+        "robot_people": 0,
+        "robot_replacement": 0,
+        "role_id": "role.trolley",
+        "rotation_factor": "2.0601",
+        "status": "COMPLETE",
+        "transferred": 0
+      },
+      {
+        "allocated_people": 10,
+        "applied": 0,
+        "capacity_coverage": "0",
+        "deficit_growth": 0,
+        "manual_unit": "bin/shift",
+        "manual_units_per_shift": "100",
+        "operating_hours_per_day": "24",
+        "person_shifts": 3,
+        "process_id": "process.waste",
+        "reason_codes": [],
+        "released": 0,
+        "required_people": 7,
+        "robot_people": 0,
+        "robot_replacement": 0,
+        "role_id": "role.trolley",
+        "rotation_factor": "2.0601",
+        "status": "COMPLETE",
+        "transferred": 0
+      }
+    ],
+    "project_id": "project.c14.airport",
+    "replay": {
+      "canonical_input_digest": "sha256:44280b505fe68c4eff95f70fb78cc2b103247bedd8314b7200d4fd55e5d72e8e",
+      "capacity_result_digests": [
+        "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      ],
+      "trace_content_digest": "sha256:f961ba1849bd502691ebdcdf186b467fba01643e74196c808dfe52cec73144fb"
+    },
+    "roles": [
+      {
+        "allocated_people": 20,
+        "annual_deficit_cost": "0",
+        "annual_staffing": [
+          {
+            "ramp": "0.5",
+            "released": 0,
+            "remaining": 20,
+            "year": 1
+          },
+          {
+            "ramp": "0.85",
+            "released": 0,
+            "remaining": 20,
+            "year": 2
+          },
+          {
+            "ramp": "1",
+            "released": 0,
+            "remaining": 20,
+            "year": 3
+          },
+          {
+            "ramp": "1",
+            "released": 0,
+            "remaining": 20,
+            "year": 4
+          },
+          {
+            "ramp": "1",
+            "released": 0,
+            "remaining": 20,
+            "year": 5
+          }
+        ],
+        "deficit": 0,
+        "deficit_cost_source": "DEFAULT_ANNUAL_DIRECT",
+        "deficit_growth": 0,
+        "headcount": 20,
+        "money": {
+          "annual_direct": "1562400",
+          "annual_fixed_overhead": "297600",
+          "annual_full": "1860000",
+          "annual_gross": "1200000",
+          "monthly_gross": "100000",
+          "salary_provenance_ref": "prov.salary.role.trolley",
+          "unit": "RUB/person/year",
+          "zero_cost_role": false
+        },
+        "reason_codes": [],
+        "released": 0,
+        "remaining": 20,
+        "required_people": 14,
+        "role_code": "trolley_operator",
+        "role_id": "role.trolley",
+        "status": "COMPLETE",
+        "surplus": 6,
+        "transferred": 0,
+        "unallocated_people": 0
+      }
+    ],
+    "run_id": "run.c14.airport",
+    "schema_version": "role-labour-result-v1",
+    "tenant_id": "tenant.c14",
+    "total_additional_control": 0,
+    "total_deficit": 0,
+    "total_released": 0,
+    "total_surplus": 6,
+    "total_transferred": 0,
+    "trace": [
+      {
+        "formula_id": "F08",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.demand",
+          "process.schedule",
+          "process.route_distance"
+        ],
+        "node_id": "process.internal.f08",
+        "output_name": "manual_units_per_shift",
+        "output_value": "100",
+        "provenance_refs": [
+          "prov.manual"
+        ],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "cart/shift"
+      },
+      {
+        "formula_id": "F09",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.internal.f08",
+          "process.schedule"
+        ],
+        "node_id": "process.internal.f09",
+        "output_name": "required_people",
+        "output_value": "7",
+        "provenance_refs": [
+          "registry.labor.staffing.vacation-factor",
+          "registry.labor.nonproductive-loss.airport"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F08",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.demand",
+          "process.schedule",
+          "process.route_distance"
+        ],
+        "node_id": "process.waste.f08",
+        "output_name": "manual_units_per_shift",
+        "output_value": "100",
+        "provenance_refs": [
+          "prov.manual"
+        ],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "bin/shift"
+      },
+      {
+        "formula_id": "F09",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.waste.f08",
+          "process.schedule"
+        ],
+        "node_id": "process.waste.f09",
+        "output_name": "required_people",
+        "output_value": "7",
+        "provenance_refs": [
+          "registry.labor.staffing.vacation-factor",
+          "registry.labor.nonproductive-loss.airport"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F11",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.internal.f09",
+          "capacity.coverage",
+          "role.allocation"
+        ],
+        "node_id": "process.internal.f11",
+        "output_name": "robot_replacement",
+        "output_value": "0",
+        "provenance_refs": [
+          "capacity.process.internal"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F12",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.internal.f11",
+          "replacement_limit"
+        ],
+        "node_id": "process.internal.f12",
+        "output_name": "applied",
+        "output_value": "0",
+        "provenance_refs": [
+          "policy.k06.replacement-limit"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F11",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.waste.f09",
+          "capacity.coverage",
+          "role.allocation"
+        ],
+        "node_id": "process.waste.f11",
+        "output_name": "robot_replacement",
+        "output_value": "0",
+        "provenance_refs": [
+          "capacity.process.waste"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F12",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.waste.f11",
+          "replacement_limit"
+        ],
+        "node_id": "process.waste.f12",
+        "output_name": "applied",
+        "output_value": "0",
+        "provenance_refs": [
+          "policy.k06.replacement-limit"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F13",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "process.applied",
+          "scenario.supervision-share",
+          "schedule.simultaneous-shifts"
+        ],
+        "node_id": "site.f13.control",
+        "output_name": "control_required",
+        "output_value": "0",
+        "provenance_refs": [
+          "registry.scenario.base.supervision-share",
+          "registry.labor.control.minimum-per-shift"
+        ],
+        "rounding": "FLOOR",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F10",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "role.monthly_gross_salary"
+        ],
+        "node_id": "role.trolley.f10",
+        "output_name": "annual_direct",
+        "output_value": "1562400",
+        "provenance_refs": [
+          "prov.salary.role.trolley"
+        ],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "RUB/person/year"
+      },
+      {
+        "formula_id": "F15",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "role.required_people",
+          "role.headcount",
+          "role.deficit_cost"
+        ],
+        "node_id": "role.trolley.f15",
+        "output_name": "annual_deficit_cost",
+        "output_value": "0",
+        "provenance_refs": [],
+        "rounding": "NONE",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "RUB/year"
+      },
+      {
+        "formula_id": "F13",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "capacity.selected_fleet",
+          "labor.technical.robots-per-fte"
+        ],
+        "node_id": "site.f13.technicians",
+        "output_name": "technicians_required",
+        "output_value": "0",
+        "provenance_refs": [
+          "registry.labor.technical.robots-per-fte"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1",
+          "POLICY_V2A"
+        ],
+        "unit": "person"
+      },
+      {
+        "formula_id": "F14",
+        "formula_version": "calculation-formulas-v1",
+        "input_refs": [
+          "base_forklift_count",
+          "role.forklift_driver.released",
+          "schedule.simultaneous_shifts"
+        ],
+        "node_id": "site.f14.forklifts",
+        "output_name": "forklifts_withdrawn",
+        "output_value": null,
+        "provenance_refs": [
+          "policy.k08"
+        ],
+        "rounding": "CEIL",
+        "source_refs": [
+          "R03",
+          "POLICY_V1"
+        ],
+        "unit": "unit"
+      }
+    ],
+    "versions": {
+      "calculation_policy_version": "hackathon-calculation-policy-v1",
+      "capacity_projection_version": "capacity-labour-projection-v1",
+      "engine_version": "role-labour-baseline-v1",
+      "intake_version": "calculation-intake-normalization-v2",
+      "precision_policy_version": "decimal-context-28-half-even-v1",
+      "process_catalog_version": "calculation-process-catalog-v1",
+      "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+      "registry_version": "hackathon-calculation-parameter-registry-v1",
+      "schema_version": "role-labour-result-v1",
+      "v2a_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14"
+    }
+  }
+}

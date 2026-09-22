@@ -320,8 +320,16 @@ rate, USER budget не выдаётся за vendor quote, а procurement status
 численного score. Отчёт:
 [commercial inputs and procurement report v1](planning/commercial-inputs-v1.md).
 
-Следующая малая итерация — **`engine/role-labor-baseline-v1`** (C14).
-Frontend, economics formulas и production runtime activation в C13 не менялись.
+Этап **`engine/role-labor-baseline-v1`** (C14) завершён: добавлены strict
+request/result contracts, pure F08–F15 role baseline, rotation/deficit/surplus,
+детерминированный shared-role allocation, единый object pult/tech ledger,
+forklift conservation и независимый от salary capacity projection. Missing
+salary даёт локальный `INCOMPLETE`, zero требует `ZERO_COST_ROLE`, no-role —
+`NO_FOT_BENEFIT`. V2-A закрыт versioned overlay без изменения registry v1 и
+K19 mappings. Отчёт: [role labour baseline v1](planning/role-labor-baseline-v1.md).
+
+Следующая малая итерация — **`economics/purchase-cost-ledger-v1`** (C15).
+Frontend, cashflow/NPV и production runtime activation в C14 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

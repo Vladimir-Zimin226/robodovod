@@ -27,6 +27,7 @@ from calculation.executability import (
     evaluate_run_executability,
     registry_payload,
 )
+from calculation.labour import LabourAnalysisRequestV1, LabourResultV1, calculate_role_labour
 from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
 from calculation_contracts import (
     CalculationTrace,
@@ -299,3 +300,9 @@ def analyze_capacity(
         response = _terminal_response(request, run_id, versions, "c11-route-unsupported",
                                       "USER_CYCLE requires its dedicated explicit contract")
     return CapacityExecutionSnapshotV2(response, route, constraints, executability)
+
+
+def analyze_role_labour(request: LabourAnalysisRequestV1) -> LabourResultV1:
+    """Versioned C14 boundary; supplied C07-C11 projections stay read-only."""
+
+    return calculate_role_labour(request)

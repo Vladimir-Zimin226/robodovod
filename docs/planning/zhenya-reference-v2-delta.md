@@ -98,6 +98,41 @@ fixture. Registry v1 остаётся доступен для replay; новые
 | V2-C | Перед C16/C17 | replacements, TCO/ROI/payback, additional income, tax supplement |
 | V2-D | Перед C19 | окончательный набор checks и integration scoring |
 
+### V2-A — решение C14
+
+Gate закрыт 2026-09-23 additive policy overlay
+`hackathon-calculation-policy-v1+v2a-c14`; policy/registry v1 и старые runs не
+переписаны:
+
+- **ZV2-01 — REJECTED_WITH_REASON.** Default `1/N` отклонён: он теряет
+  различие фактических person-shifts. Сохранён K17 fallback по person-shifts,
+  largest remainder и stable process ID; explicit USER/FILE shares приоритетны.
+- **ZV2-02 — REJECTED_WITH_REASON.** Отсутствие default отклонено как замена
+  K07. Сохранён видимый `annual_direct` scenario assumption; explicit USER/FILE
+  amount имеет приоритет, а explicit 0 с `DEFICIT_NOT_MONETIZED` отключает
+  монетизацию.
+- **ZV2-03 — REJECTED_WITH_REASON.** `floor(final × ramp)` конфликтует с K09.
+  Staffing ledger использует `ceil(released_final × ramp_t)` и сохраняет
+  целочисленные released/remaining по роли.
+- **ZV2-04 — ADOPTED_IN_POLICY_V2.** Добавлен explicit
+  `allow_surplus_replacement`, default `false`; без opt-in surplus не входит в
+  replacement target.
+- **ZV2-05 — ADOPTED_IN_POLICY_V2.** Required/headcount/deficit/surplus и
+  монетизация считаются по каждой object-scoped роли; object totals только
+  суммируют role ledgers и не взаимозачитывают роли.
+- **ZV2-06 — DEFERRED_POST_MVP.** Расширенный process catalog с новой
+  activation model не нужен F08–F15 и потребовал бы менять уже immutable C03/C10
+  contracts. C14 читает текущие pinned mappings; отдельная следующая catalog
+  version допустима после MVP.
+- **ZV2-07 — REJECTED_WITH_REASON.** Airport catering mapping на
+  `catering_worker` не принят: сохраняется K19/C03/C10
+  `airport_catering → trolley_operator`; clinic food продолжает использовать
+  `catering_worker`. Это исключает silent remap старых inputs/runs.
+- **ZV2-17 — ADOPTED_IN_POLICY_V2.** Pult и technicians считаются один раз на
+  объект от sum applied/sum fleet; minimum pult использует maximum simultaneous
+  shifts и не масштабируется числом процессов. Conservation сохраняет
+  transferred/released/additional/remaining без двойного ФОТ.
+
 ### V2-B — решение C13
 
 Gate закрыт 2026-09-23 без изменения policy v1:
