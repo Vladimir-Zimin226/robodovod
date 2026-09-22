@@ -170,6 +170,29 @@ Gate завершён 2026-09-23 overlay
 ZV2-08/11/12 остаются в исходах C13: battery inclusion только explicit,
 responsibility ownership versioned, default VAT 20% запрещён.
 
+### V2-C — завершение C16
+
+Gate завершён 2026-09-23 overlay
+`hackathon-calculation-policy-v1+v2c-c16`; K09/K12/K13, registry v1 и старые
+runs сохранены:
+
+- **ZV2-09 — REJECTED_WITH_REASON.** Сохраняется решение V2-B: упрощённая
+  replacement основного оборудования без cohorts, commissioning, depreciation
+  и tax treatment не входит MVP. Battery events K10 остаются в C15 ledger.
+- **ZV2-10 — ADOPTED_IN_POLICY_V2.** `CAPEX_cashflow` является t0 purchase flow,
+  `CAPEX_amortizable` — единственной depreciation base; reserve не
+  амортизируется и не вычитается повторно.
+- **ZV2-12 — REJECTED_WITH_REASON в части default VAT 20%.** C16 использует
+  C13/C15 gross cash basis без guessed rate. Illustrative profit-tax supplement
+  явно помечен simplified non-tax-accounting и не меняет primary pretax result.
+- **ZV2-16 — ADOPTED_IN_POLICY_V2.** Additional income/prevented loss получает
+  discriminated `INCLUDED` с USER/FILE/POLICY provenance либо traceable
+  `EXCLUDED`; скрытый числовой default не используется.
+- **ZV2-18 — ADOPTED_IN_POLICY_V2.** Публикуются отдельные
+  `TCO_purchase_gross` и `TCO_purchase_net_of_residual`; replacements входят
+  один раз через annual C15 ledger. ROI назван `roi_on_capex_cashflow`, а
+  исключённый K13 profitability-TCO не возвращается.
+
 Каждый gate должен завершаться одним из результатов: `ADOPTED_IN_POLICY_V2`,
 `DEFERRED_POST_MVP` или `REJECTED_WITH_REASON`. Отсутствие решения не меняет
 policy v1 и не останавливает более ранние независимые этапы.

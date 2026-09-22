@@ -11,8 +11,8 @@ C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
 C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23,
 C10 **COMPLETE** 2026-09-23, C11 **COMPLETE** 2026-09-23,
 C12 **COMPLETE** 2026-09-23, C13 **COMPLETE** 2026-09-23,
-C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23;
-C16–C29 пока **PLANNED**.
+C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23,
+C16 **COMPLETE** 2026-09-23; C17–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -493,7 +493,11 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 
 ## C16 — `economics/full-cashflows-reconciliation-v1`
 
-Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[full cashflows and reconciliation v1](full-cashflows-reconciliation-v1.md).
+
+Решения: `hackathon-calculation-policy-v1` +
+`hackathon-calculation-policy-v1+v2c-c16`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R03 §3.5–3.6, все 49 rules R13; K09/K12/K13 приняты.

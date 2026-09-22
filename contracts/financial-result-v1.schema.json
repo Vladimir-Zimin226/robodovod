@@ -1,0 +1,708 @@
+{
+  "$defs": {
+    "AnnualFinancialLedgerV1": {
+      "additionalProperties": false,
+      "properties": {
+        "base_lines": {
+          "items": {
+            "$ref": "#/$defs/FinancialLineV1"
+          },
+          "title": "Base Lines",
+          "type": "array"
+        },
+        "battery_replacements": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Battery Replacements"
+        },
+        "depreciation": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Depreciation"
+        },
+        "differential_cf": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Differential Cf"
+        },
+        "ebit_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebit Base"
+        },
+        "ebit_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebit Scenario"
+        },
+        "ebitda_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebitda Base"
+        },
+        "ebitda_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebitda Scenario"
+        },
+        "primary_cf_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Primary Cf Base"
+        },
+        "primary_cf_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Primary Cf Scenario"
+        },
+        "ramp": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Ramp",
+          "type": "string"
+        },
+        "residual": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Residual",
+          "type": "string"
+        },
+        "scenario_lines": {
+          "items": {
+            "$ref": "#/$defs/FinancialLineV1"
+          },
+          "title": "Scenario Lines",
+          "type": "array"
+        },
+        "severance": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Severance"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "supplement_cf_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supplement Cf Base"
+        },
+        "supplement_cf_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supplement Cf Scenario"
+        },
+        "tax_base": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaxLineV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tax_scenario": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaxLineV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "ramp",
+        "base_lines",
+        "scenario_lines",
+        "ebitda_base",
+        "ebitda_scenario",
+        "depreciation",
+        "ebit_base",
+        "ebit_scenario",
+        "severance",
+        "battery_replacements",
+        "residual",
+        "primary_cf_base",
+        "primary_cf_scenario",
+        "differential_cf",
+        "tax_base",
+        "tax_scenario",
+        "supplement_cf_base",
+        "supplement_cf_scenario",
+        "status"
+      ],
+      "title": "AnnualFinancialLedgerV1",
+      "type": "object"
+    },
+    "FinancialLineV1": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Amount"
+        },
+        "line_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Line Id",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "unit": {
+          "const": "RUB",
+          "default": "RUB",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "line_id",
+        "amount",
+        "source_refs"
+      ],
+      "title": "FinancialLineV1",
+      "type": "object"
+    },
+    "FinancialReplayV1": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_input_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Canonical Input Digest",
+          "type": "string"
+        },
+        "capacity_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Capacity Result Digest",
+          "type": "string"
+        },
+        "labour_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Labour Result Digest",
+          "type": "string"
+        },
+        "purchase_ledger_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Purchase Ledger Digest",
+          "type": "string"
+        },
+        "trace_content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Trace Content Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_input_digest",
+        "purchase_ledger_digest",
+        "labour_result_digest",
+        "capacity_result_digest",
+        "trace_content_digest"
+      ],
+      "title": "FinancialReplayV1",
+      "type": "object"
+    },
+    "FinancialTraceNodeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "formula_id": {
+          "enum": [
+            "F23",
+            "F24",
+            "F25",
+            "F26",
+            "F27",
+            "F28",
+            "F29",
+            "F30",
+            "F31"
+          ],
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "input_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Refs",
+          "type": "array"
+        },
+        "node_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "output": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Output",
+          "type": "string"
+        },
+        "rounding": {
+          "default": "NONE",
+          "enum": [
+            "NONE",
+            "CEIL",
+            "FLOOR",
+            "HALF_EVEN_2"
+          ],
+          "title": "Rounding",
+          "type": "string"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "node_id",
+        "formula_id",
+        "input_refs",
+        "output",
+        "value",
+        "unit"
+      ],
+      "title": "FinancialTraceNodeV1",
+      "type": "object"
+    },
+    "MetricValueV1": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "NOT_REACHED",
+            "N_A",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "RUB",
+            "PERCENT",
+            "YEAR"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "status",
+        "value",
+        "unit"
+      ],
+      "title": "MetricValueV1",
+      "type": "object"
+    },
+    "ReconciliationFindingV1": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "rule_id": {
+          "pattern": "^R13-(?:0[1-9]|[1-4][0-9])$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "NOT_APPLICABLE",
+            "POLICY_EXCEPTION",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "status",
+        "evidence_refs"
+      ],
+      "title": "ReconciliationFindingV1",
+      "type": "object"
+    },
+    "TaxLineV1": {
+      "additionalProperties": false,
+      "properties": {
+        "loss_close": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Loss Close",
+          "type": "string"
+        },
+        "loss_open": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Loss Open",
+          "type": "string"
+        },
+        "loss_used": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Loss Used",
+          "type": "string"
+        },
+        "tax": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Tax",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tax",
+        "loss_open",
+        "loss_used",
+        "loss_close"
+      ],
+      "title": "TaxLineV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "annual_ledgers": {
+      "items": {
+        "$ref": "#/$defs/AnnualFinancialLedgerV1"
+      },
+      "title": "Annual Ledgers",
+      "type": "array"
+    },
+    "calculation_policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "default": "hackathon-calculation-policy-v1",
+      "title": "Calculation Policy Version",
+      "type": "string"
+    },
+    "cumulative_effect": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "discounted_payback": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "engine_version": {
+      "const": "full-cashflows-reconciliation-v1",
+      "default": "full-cashflows-reconciliation-v1",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "initial_primary_cf_base": {
+      "const": "0",
+      "default": "0",
+      "title": "Initial Primary Cf Base",
+      "type": "string"
+    },
+    "initial_primary_cf_scenario": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Initial Primary Cf Scenario"
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "issues": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "labour_result_version": {
+      "const": "role-labour-result-v1",
+      "default": "role-labour-result-v1",
+      "title": "Labour Result Version",
+      "type": "string"
+    },
+    "net_benefit_after_investment": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "npv_base": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "npv_project": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "npv_scenario": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "policy_overlay_version": {
+      "const": "hackathon-calculation-policy-v1+v2c-c16",
+      "default": "hackathon-calculation-policy-v1+v2c-c16",
+      "title": "Policy Overlay Version",
+      "type": "string"
+    },
+    "precision_policy_version": {
+      "const": "decimal-context-28-half-even-v1",
+      "default": "decimal-context-28-half-even-v1",
+      "title": "Precision Policy Version",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "purchase_ledger_version": {
+      "const": "purchase-cost-ledger-v1",
+      "default": "purchase-cost-ledger-v1",
+      "title": "Purchase Ledger Version",
+      "type": "string"
+    },
+    "reconciliation": {
+      "items": {
+        "$ref": "#/$defs/ReconciliationFindingV1"
+      },
+      "title": "Reconciliation",
+      "type": "array"
+    },
+    "registry_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Registry Digest",
+      "type": "string"
+    },
+    "registry_version": {
+      "const": "hackathon-calculation-parameter-registry-v1",
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "replay": {
+      "$ref": "#/$defs/FinancialReplayV1"
+    },
+    "roi_on_capex_cashflow": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "run_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "financial-result-v1",
+      "default": "financial-result-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "simple_payback": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "status": {
+      "enum": [
+        "COMPLETE",
+        "INCOMPLETE"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "tax_mode": {
+      "enum": [
+        "NONE",
+        "ILLUSTRATIVE_OTHER_INCOME",
+        "ILLUSTRATIVE_NO_OTHER_INCOME"
+      ],
+      "title": "Tax Mode",
+      "type": "string"
+    },
+    "tax_policy_version": {
+      "const": "illustrative-profit-tax-v1",
+      "default": "illustrative-profit-tax-v1",
+      "title": "Tax Policy Version",
+      "type": "string"
+    },
+    "tco_purchase_gross": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "tco_purchase_net_of_residual": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "tenant_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "trace": {
+      "items": {
+        "$ref": "#/$defs/FinancialTraceNodeV1"
+      },
+      "title": "Trace",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "project_id",
+    "tenant_id",
+    "input_revision",
+    "status",
+    "tax_mode",
+    "initial_primary_cf_scenario",
+    "annual_ledgers",
+    "npv_base",
+    "npv_scenario",
+    "npv_project",
+    "simple_payback",
+    "discounted_payback",
+    "cumulative_effect",
+    "roi_on_capex_cashflow",
+    "net_benefit_after_investment",
+    "tco_purchase_gross",
+    "tco_purchase_net_of_residual",
+    "issues",
+    "reconciliation",
+    "trace",
+    "registry_version",
+    "registry_digest",
+    "replay"
+  ],
+  "title": "FinancialResultV1",
+  "type": "object"
+}

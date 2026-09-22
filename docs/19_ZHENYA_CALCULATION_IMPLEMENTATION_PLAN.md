@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C15 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C16 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -26,7 +26,8 @@ C12 — в [frontend capacity results trace](planning/frontend-capacity-results-
 C13 — в [commercial inputs and procurement report v1](planning/commercial-inputs-v1.md).
 C14 — в [role labour baseline v1](planning/role-labor-baseline-v1.md).
 C15 — в [purchase cost ledger v1](planning/purchase-cost-ledger-v1.md).
-Следующий этап — C16; production runtime activation не выполнялась.
+C16 — в [full cashflows and reconciliation v1](planning/full-cashflows-reconciliation-v1.md).
+Следующий этап — C17; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -636,7 +637,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C13 COMPLETE | `procurement/commercial-inputs-v1` — цены/НДС/условия, отдельные gates | C01–03 |
 | C14 COMPLETE | `engine/role-labor-baseline-v1` — baseline, rotation, pult, deficit | C03,C07–10; K05–08 |
 | C15 COMPLETE | `economics/purchase-cost-ledger-v1` — capital и operating статьи | C02,C13–14; K09–11 |
-| C16 | `economics/full-cashflows-reconciliation-v1` — налоги/CF/метрики | C15; K09,K12–13 |
+| C16 COMPLETE | `economics/full-cashflows-reconciliation-v1` — налоги/CF/метрики | C15; K09,K12–13 |
 | C17 | `economics/raas-cashflows-v1` — второй acquisition mode | C13,C16; K21 |
 | C18 | `economics/multiprocess-allocation-v1` — общий объект и role pools | C14–17; K17 |
 | C19 | `engine/ranking-v2` — R03 score после CF и gates | C05–06,C18; K14–16 |

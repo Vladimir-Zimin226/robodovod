@@ -28,6 +28,7 @@ from calculation.executability import (
     registry_payload,
 )
 from calculation.labour import LabourAnalysisRequestV1, LabourResultV1, calculate_role_labour
+from calculation.economics.cashflow import FinancialAnalysisRequestV1, FinancialResultV1, calculate_financial_result
 from calculation.economics.purchase import PurchaseCostLedgerV1, PurchaseLedgerRequestV1, calculate_purchase_ledger
 from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
 from calculation_contracts import (
@@ -313,3 +314,9 @@ def analyze_purchase_costs(request: PurchaseLedgerRequestV1) -> PurchaseCostLedg
     """Versioned C15 boundary; C13/C14 snapshots remain immutable inputs."""
 
     return calculate_purchase_ledger(request)
+
+
+def analyze_financials(request: FinancialAnalysisRequestV1) -> FinancialResultV1:
+    """Versioned C16 boundary over immutable C14/C15 snapshots."""
+
+    return calculate_financial_result(request)

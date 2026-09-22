@@ -336,9 +336,15 @@ inputs дают локальный `INCOMPLETE`, included/excluded cost не с�
 а capacity/labour snapshots остаются immutable. Отчёт:
 [purchase cost ledger v1](planning/purchase-cost-ledger-v1.md).
 
-Следующая малая итерация — **`economics/full-cashflows-reconciliation-v1`**
-(C16). Frontend, cashflow/NPV/tax и production runtime activation в C15 не
-менялись.
+Этап **`economics/full-cashflows-reconciliation-v1`** (C16) завершён: добавлены
+strict full base/scenario ledgers F23–F31, primary pretax cashflow, отдельный
+illustrative tax supplement, NPV/payback/ROI/TCO и R13-01..49 reconciliation.
+C14/C15/capacity snapshots связаны immutable digests; missing finance остаётся
+`INCOMPLETE`. V2-C закрыт versioned overlay. Отчёт:
+[full cashflows and reconciliation v1](planning/full-cashflows-reconciliation-v1.md).
+
+Следующая малая итерация — **`economics/raas-cashflows-v1`** (C17). Frontend,
+RaaS, ranking и production runtime activation в C16 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
