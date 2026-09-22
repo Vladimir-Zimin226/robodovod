@@ -1,0 +1,1722 @@
+{
+  "request": {
+    "additional_income_raw": null,
+    "input_revision": "fixture.warehouse.v2",
+    "legacy_import_version": "project-file-intake-v1",
+    "object_id": "fixture.warehouse",
+    "object_kind": "WAREHOUSE",
+    "processes": [
+      {
+        "activation_source": "LEGACY_V1",
+        "active": true,
+        "block_id": "block.warehouse_receiving_shipping",
+        "demand": {
+          "provenance": {
+            "alias": "obem_priemki_poddony_sutki",
+            "cell": null,
+            "file_name": "warehouse-project-input.csv",
+            "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+            "llm_message_id": null,
+            "raw_text": "obem_priemki_poddony_sutki + obem_otgruzki_poddony_sutki",
+            "row": 14,
+            "sheet": null,
+            "source": "FILE",
+            "user_confirmed": false
+          },
+          "unit": "pallet/day",
+          "value": "2000"
+        },
+        "explicit_batch": null,
+        "process_code": "warehouse_receiving_shipping",
+        "process_id": "fixture.warehouse.warehouse_receiving_shipping",
+        "quantity_kind": "PALLET",
+        "role_refs": [
+          "fixture.warehouse.forklift_driver"
+        ],
+        "route_distance": null,
+        "schedule": {
+          "days_per_year": {
+            "provenance": {
+              "alias": "rabochih_dney_v_godu",
+              "cell": null,
+              "file_name": "warehouse-project-input.csv",
+              "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 11,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "day",
+            "value": "365"
+          },
+          "shift_hours": {
+            "provenance": {
+              "alias": "prodolzhitelnost_smeny",
+              "cell": null,
+              "file_name": "warehouse-project-input.csv",
+              "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 12,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "h",
+            "value": "11"
+          },
+          "shifts_per_day": {
+            "provenance": {
+              "alias": "kolichestvo_rabochih_smen_v_sutki",
+              "cell": null,
+              "file_name": "warehouse-project-input.csv",
+              "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 10,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "shift",
+            "value": "2"
+          }
+        }
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.warehouse_storage",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "warehouse_storage",
+        "process_id": "fixture.warehouse.warehouse_storage",
+        "quantity_kind": "PALLET",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.warehouse_picking",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "warehouse_picking",
+        "process_id": "fixture.warehouse.warehouse_picking",
+        "quantity_kind": "PICK",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.warehouse_palletizing",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "warehouse_palletizing",
+        "process_id": "fixture.warehouse.warehouse_palletizing",
+        "quantity_kind": "PALLET",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.warehouse_cleaning",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "warehouse_cleaning",
+        "process_id": "fixture.warehouse.warehouse_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.warehouse_inventory",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "warehouse_inventory",
+        "process_id": "fixture.warehouse.warehouse_inventory",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      }
+    ],
+    "raw_profile_parameters": {
+      "dolya_melkoshtuchnogo_otbora_piece_pick": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "dolya_melkoshtuchnogo_otbora_piece_pick",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 18,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "%"
+        },
+        "value": 30
+      },
+      "dolya_negabaritnyh_nestandartnyh_gruzov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "dolya_negabaritnyh_nestandartnyh_gruzov",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 38,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "%"
+        },
+        "value": 5
+      },
+      "dolya_sku_s_bystrym_oborotom_a_klass": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "dolya_sku_s_bystrym_oborotom_a_klass",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 20,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "%"
+        },
+        "value": 20
+      },
+      "gorizont_rascheta_okupaemosti": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "gorizont_rascheta_okupaemosti",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 43,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "лет"
+        },
+        "value": 5
+      },
+      "iz_nih_operatory_pogruzchikov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "iz_nih_operatory_pogruzchikov",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 23,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "чел."
+        },
+        "value": 25
+      },
+      "iz_nih_operatory_upakovochnyh_liniy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "iz_nih_operatory_upakovochnyh_liniy",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 24,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "чел."
+        },
+        "value": 20
+      },
+      "iz_nih_otborschiki_komplektovschiki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "iz_nih_otborschiki_komplektovschiki",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 22,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "чел."
+        },
+        "value": 100
+      },
+      "koefficient_nachisleniy_na_fot_strahovye_vznosy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "koefficient_nachisleniy_na_fot_strahovye_vznosy",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 27,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "-"
+        },
+        "value": 1.302
+      },
+      "koefficient_poter_rabochego_vremeni_otpusk_bolezn_tekuchest": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "koefficient_poter_rabochego_vremeni_otpusk_bolezn_tekuchest",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 29,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "%"
+        },
+        "value": 25
+      },
+      "kolichestvo_etazhey_mezoninov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_etazhey_mezoninov",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 5,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "шт."
+        },
+        "value": 1
+      },
+      "kolichestvo_palletomest": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_palletomest",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 33,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м/п"
+        },
+        "value": 20000
+      },
+      "kolichestvo_rabochih_smen_v_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_rabochih_smen_v_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 10,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "смен"
+        },
+        "value": 2
+      },
+      "kolichestvo_sku_aktivnyh": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_sku_aktivnyh",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 19,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "SKU"
+        },
+        "value": 2000
+      },
+      "moschnost_elektrosnabzheniya_dostupnaya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "moschnost_elektrosnabzheniya_dostupnaya",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 39,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "кВт"
+        },
+        "value": 500
+      },
+      "nalichie_erp_1s": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_erp_1s",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 41,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "-"
+        },
+        "value": "1С:ERP"
+      },
+      "nalichie_wms": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_wms",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 40,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "-"
+        },
+        "value": "Да"
+      },
+      "obem_otbora_shtuk_sutki_vsego": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_otbora_shtuk_sutki_vsego",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 17,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "шт./сут"
+        },
+        "value": 150000
+      },
+      "obem_otbora_strok_sutki_vsego": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_otbora_strok_sutki_vsego",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 16,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "строк/сут"
+        },
+        "value": 100000
+      },
+      "obem_otgruzki_poddony_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_otgruzki_poddony_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 15,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "поддон/сут"
+        },
+        "value": 1000
+      },
+      "obem_priemki_poddony_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_priemki_poddony_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 14,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "поддон/сут"
+        },
+        "value": 1000
+      },
+      "obschaya_chislennost_personala_sklada": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obschaya_chislennost_personala_sklada",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 21,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "чел."
+        },
+        "value": 180
+      },
+      "obschaya_ploschad_sklada": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obschaya_ploschad_sklada",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 2,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м²"
+        },
+        "value": 20000
+      },
+      "pikovyy_koefficient_nagruzki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "pikovyy_koefficient_nagruzki",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 13,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "-"
+        },
+        "value": 1.5
+      },
+      "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "planiruemyy_byudzhet_na_robotizaciyu_capex",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 42,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "млн руб."
+        },
+        "value": 80
+      },
+      "ploschad_aktivnoy_robotiziruemoy_zony": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "ploschad_aktivnoy_robotiziruemoy_zony",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 3,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м²"
+        },
+        "value": 10000
+      },
+      "prodolzhitelnost_smeny": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "prodolzhitelnost_smeny",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 12,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "ч"
+        },
+        "value": 11
+      },
+      "protyazhennost_konveyernoy_transportnoy_sistemy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "protyazhennost_konveyernoy_transportnoy_sistemy",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 31,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м"
+        },
+        "value": 350
+      },
+      "rabochih_dney_v_godu": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "rabochih_dney_v_godu",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 11,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "дн."
+        },
+        "value": 365
+      },
+      "rovnost_pola_otklonenie": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "rovnost_pola_otklonenie",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 9,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "мм/2м"
+        },
+        "value": 3
+      },
+      "shirina_glavnyh_proezdov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "shirina_glavnyh_proezdov",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 6,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м"
+        },
+        "value": 3.5
+      },
+      "shirina_rabochih_prohodov_mezhdu_stellazhami": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "shirina_rabochih_prohodov_mezhdu_stellazhami",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 7,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м"
+        },
+        "value": 2.8
+      },
+      "srednie_gabarity_pallety_d_sh_v": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednie_gabarity_pallety_d_sh_v",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 36,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "мм"
+        },
+        "value": "1200×800×1600"
+      },
+      "srednie_gabarity_shtuchnoy_edinicy_d_sh_v": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednie_gabarity_shtuchnoy_edinicy_d_sh_v",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 37,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "мм"
+        },
+        "value": "300×200×150"
+      },
+      "srednyaya_dlina_marshruta_otborschika_na_1_stroku": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_dlina_marshruta_otborschika_na_1_stroku",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 30,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м"
+        },
+        "value": 25
+      },
+      "srednyaya_massa_gruzovoy_edinicy_pallet": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_massa_gruzovoy_edinicy_pallet",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 34,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "кг"
+        },
+        "value": 800
+      },
+      "srednyaya_massa_shtuchnoy_edinicy_sku": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_massa_shtuchnoy_edinicy_sku",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 35,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "кг"
+        },
+        "value": 1.8
+      },
+      "srednyaya_vyrabotka_otborschika_strok_ch": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_vyrabotka_otborschika_strok_ch",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 28,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "строк/ч·чел"
+        },
+        "value": 150
+      },
+      "srednyaya_z_p_operatora_pogruzchika_gross": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_z_p_operatora_pogruzchika_gross",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 26,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "руб./мес."
+        },
+        "value": 120000
+      },
+      "srednyaya_z_p_otborschika_gross": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_z_p_otborschika_gross",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 25,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "руб./мес."
+        },
+        "value": 100000
+      },
+      "tip_napolnogo_pokrytiya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "tip_napolnogo_pokrytiya",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 8,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "-"
+        },
+        "value": "Промышленный бетон"
+      },
+      "tip_stellazhnoy_sistemy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "tip_stellazhnoy_sistemy",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 32,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "-"
+        },
+        "value": "Фронтальные паллетные"
+      },
+      "vysota_potolkov_v_zone_hraneniya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "vysota_potolkov_v_zone_hraneniya",
+          "source": {
+            "format": "CSV",
+            "name": "warehouse-project-input.csv",
+            "row": 4,
+            "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+          },
+          "unit": "м"
+        },
+        "value": 10
+      }
+    },
+    "roles": [
+      {
+        "allocation_shares": null,
+        "headcount": {
+          "provenance": {
+            "alias": "iz_nih_operatory_pogruzchikov",
+            "cell": null,
+            "file_name": "warehouse-project-input.csv",
+            "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+            "llm_message_id": null,
+            "raw_text": null,
+            "row": 23,
+            "sheet": null,
+            "source": "FILE",
+            "user_confirmed": false
+          },
+          "unit": "person",
+          "value": "25"
+        },
+        "label": null,
+        "monthly_gross_salary": null,
+        "object_scope": "WAREHOUSE",
+        "process_ids": [
+          "fixture.warehouse.warehouse_receiving_shipping"
+        ],
+        "role_code": "forklift_driver",
+        "role_id": "fixture.warehouse.forklift_driver",
+        "zero_cost_marker": null
+      }
+    ],
+    "schema_version": "calculation-intake-v2",
+    "source_profile_version": "organizer-object-profiles-v1:sha256:5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401"
+  },
+  "response": {
+    "conversions": [
+      {
+        "field": "processes.block.warehouse_receiving_shipping.demand",
+        "node_id": "conversion.0001",
+        "normalized_unit": "pallet/day",
+        "normalized_value": "2000",
+        "provenance": {
+          "alias": "obem_priemki_poddony_sutki",
+          "cell": null,
+          "file_name": "warehouse-project-input.csv",
+          "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+          "llm_message_id": null,
+          "raw_text": "obem_priemki_poddony_sutki + obem_otgruzki_poddony_sutki",
+          "row": 14,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "pallet/day",
+        "raw_value": "2000",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.warehouse_receiving_shipping.schedule.shifts_per_day",
+        "node_id": "conversion.0002",
+        "normalized_unit": "shift",
+        "normalized_value": "2",
+        "provenance": {
+          "alias": "kolichestvo_rabochih_smen_v_sutki",
+          "cell": null,
+          "file_name": "warehouse-project-input.csv",
+          "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 10,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "shift",
+        "raw_value": "2",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.warehouse_receiving_shipping.schedule.shift_hours",
+        "node_id": "conversion.0003",
+        "normalized_unit": "h",
+        "normalized_value": "11",
+        "provenance": {
+          "alias": "prodolzhitelnost_smeny",
+          "cell": null,
+          "file_name": "warehouse-project-input.csv",
+          "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 12,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "h",
+        "raw_value": "11",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.warehouse_receiving_shipping.schedule.days_per_year",
+        "node_id": "conversion.0004",
+        "normalized_unit": "day",
+        "normalized_value": "365",
+        "provenance": {
+          "alias": "rabochih_dney_v_godu",
+          "cell": null,
+          "file_name": "warehouse-project-input.csv",
+          "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 11,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "day",
+        "raw_value": "365",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "roles.fixture.warehouse.forklift_driver.headcount",
+        "node_id": "conversion.0005",
+        "normalized_unit": "person",
+        "normalized_value": "25",
+        "provenance": {
+          "alias": "iz_nih_operatory_pogruzchikov",
+          "cell": null,
+          "file_name": "warehouse-project-input.csv",
+          "file_sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 23,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "person",
+        "raw_value": "25",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      }
+    ],
+    "errors": [],
+    "input_revision": "fixture.warehouse.v2",
+    "normalized_processes": [
+      {
+        "active": true,
+        "demand": {
+          "name": "demand_per_day",
+          "normalized_value": "2000",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "conversion.0001",
+          "quantity_kind": "FLOW",
+          "raw_unit": "pallet/day",
+          "raw_value": "2000",
+          "status": "KNOWN",
+          "unit": "pallet/day"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.warehouse.v2",
+        "item_mass": null,
+        "object_kind": "WAREHOUSE",
+        "process_code": "warehouse_receiving_shipping",
+        "process_id": "fixture.warehouse.warehouse_receiving_shipping",
+        "quantity_kind": "PALLET",
+        "role_refs": [
+          "fixture.warehouse.forklift_driver"
+        ],
+        "route_distance": null,
+        "schedule": {
+          "days_per_year": {
+            "name": "days_per_year",
+            "normalized_value": "365",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0004",
+            "quantity_kind": "TIME",
+            "raw_unit": "day",
+            "raw_value": "365",
+            "status": "KNOWN",
+            "unit": "day"
+          },
+          "shift_hours": {
+            "name": "shift_hours",
+            "normalized_value": "11",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0003",
+            "quantity_kind": "TIME",
+            "raw_unit": "h",
+            "raw_value": "11",
+            "status": "KNOWN",
+            "unit": "h"
+          },
+          "shifts_per_day": {
+            "name": "shifts_per_day",
+            "normalized_value": "2",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0002",
+            "quantity_kind": "COUNT",
+            "raw_unit": "shift",
+            "raw_value": "2",
+            "status": "KNOWN",
+            "unit": "shift"
+          }
+        },
+        "schema_version": "normalized-process-v1",
+        "scope": "TRANSPORT_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "pallet/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.warehouse.v2",
+        "item_mass": null,
+        "object_kind": "WAREHOUSE",
+        "process_code": "warehouse_storage",
+        "process_id": "fixture.warehouse.warehouse_storage",
+        "quantity_kind": "PALLET",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "pick/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.warehouse.v2",
+        "item_mass": null,
+        "object_kind": "WAREHOUSE",
+        "process_code": "warehouse_picking",
+        "process_id": "fixture.warehouse.warehouse_picking",
+        "quantity_kind": "PICK",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "pallet/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.warehouse.v2",
+        "item_mass": null,
+        "object_kind": "WAREHOUSE",
+        "process_code": "warehouse_palletizing",
+        "process_id": "fixture.warehouse.warehouse_palletizing",
+        "quantity_kind": "PALLET",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "FIXED_CELL"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "m2/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.warehouse.v2",
+        "item_mass": null,
+        "object_kind": "WAREHOUSE",
+        "process_code": "warehouse_cleaning",
+        "process_id": "fixture.warehouse.warehouse_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "CLEANING_AREA"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "item/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.warehouse.v2",
+        "item_mass": null,
+        "object_kind": "WAREHOUSE",
+        "process_code": "warehouse_inventory",
+        "process_id": "fixture.warehouse.warehouse_inventory",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      }
+    ],
+    "object_id": "fixture.warehouse",
+    "process_projection_version": "calculation-process-projection-v2",
+    "raw_extensions": {
+      "activation_sources": {
+        "fixture.warehouse.warehouse_cleaning": "LEGACY_V1",
+        "fixture.warehouse.warehouse_inventory": "LEGACY_V1",
+        "fixture.warehouse.warehouse_palletizing": "LEGACY_V1",
+        "fixture.warehouse.warehouse_picking": "LEGACY_V1",
+        "fixture.warehouse.warehouse_receiving_shipping": "LEGACY_V1",
+        "fixture.warehouse.warehouse_storage": "LEGACY_V1"
+      },
+      "additional_income_raw": null,
+      "legacy_import_version": "project-file-intake-v1",
+      "raw_profile_parameters": {
+        "dolya_melkoshtuchnogo_otbora_piece_pick": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "dolya_melkoshtuchnogo_otbora_piece_pick",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 18,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "%"
+          },
+          "value": 30
+        },
+        "dolya_negabaritnyh_nestandartnyh_gruzov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "dolya_negabaritnyh_nestandartnyh_gruzov",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 38,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "%"
+          },
+          "value": 5
+        },
+        "dolya_sku_s_bystrym_oborotom_a_klass": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "dolya_sku_s_bystrym_oborotom_a_klass",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 20,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "%"
+          },
+          "value": 20
+        },
+        "gorizont_rascheta_okupaemosti": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "gorizont_rascheta_okupaemosti",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 43,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "лет"
+          },
+          "value": 5
+        },
+        "iz_nih_operatory_pogruzchikov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "iz_nih_operatory_pogruzchikov",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 23,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "чел."
+          },
+          "value": 25
+        },
+        "iz_nih_operatory_upakovochnyh_liniy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "iz_nih_operatory_upakovochnyh_liniy",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 24,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "чел."
+          },
+          "value": 20
+        },
+        "iz_nih_otborschiki_komplektovschiki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "iz_nih_otborschiki_komplektovschiki",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 22,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "чел."
+          },
+          "value": 100
+        },
+        "koefficient_nachisleniy_na_fot_strahovye_vznosy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "koefficient_nachisleniy_na_fot_strahovye_vznosy",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 27,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "-"
+          },
+          "value": 1.302
+        },
+        "koefficient_poter_rabochego_vremeni_otpusk_bolezn_tekuchest": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "koefficient_poter_rabochego_vremeni_otpusk_bolezn_tekuchest",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 29,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "%"
+          },
+          "value": 25
+        },
+        "kolichestvo_etazhey_mezoninov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_etazhey_mezoninov",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 5,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "шт."
+          },
+          "value": 1
+        },
+        "kolichestvo_palletomest": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_palletomest",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 33,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м/п"
+          },
+          "value": 20000
+        },
+        "kolichestvo_rabochih_smen_v_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_rabochih_smen_v_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 10,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "смен"
+          },
+          "value": 2
+        },
+        "kolichestvo_sku_aktivnyh": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_sku_aktivnyh",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 19,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "SKU"
+          },
+          "value": 2000
+        },
+        "moschnost_elektrosnabzheniya_dostupnaya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "moschnost_elektrosnabzheniya_dostupnaya",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 39,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "кВт"
+          },
+          "value": 500
+        },
+        "nalichie_erp_1s": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_erp_1s",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 41,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "-"
+          },
+          "value": "1С:ERP"
+        },
+        "nalichie_wms": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_wms",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 40,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "-"
+          },
+          "value": "Да"
+        },
+        "obem_otbora_shtuk_sutki_vsego": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_otbora_shtuk_sutki_vsego",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 17,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "шт./сут"
+          },
+          "value": 150000
+        },
+        "obem_otbora_strok_sutki_vsego": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_otbora_strok_sutki_vsego",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 16,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "строк/сут"
+          },
+          "value": 100000
+        },
+        "obem_otgruzki_poddony_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_otgruzki_poddony_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 15,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "поддон/сут"
+          },
+          "value": 1000
+        },
+        "obem_priemki_poddony_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_priemki_poddony_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 14,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "поддон/сут"
+          },
+          "value": 1000
+        },
+        "obschaya_chislennost_personala_sklada": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obschaya_chislennost_personala_sklada",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 21,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "чел."
+          },
+          "value": 180
+        },
+        "obschaya_ploschad_sklada": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obschaya_ploschad_sklada",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 2,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м²"
+          },
+          "value": 20000
+        },
+        "pikovyy_koefficient_nagruzki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "pikovyy_koefficient_nagruzki",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 13,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "-"
+          },
+          "value": 1.5
+        },
+        "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "planiruemyy_byudzhet_na_robotizaciyu_capex",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 42,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "млн руб."
+          },
+          "value": 80
+        },
+        "ploschad_aktivnoy_robotiziruemoy_zony": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "ploschad_aktivnoy_robotiziruemoy_zony",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 3,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м²"
+          },
+          "value": 10000
+        },
+        "prodolzhitelnost_smeny": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "prodolzhitelnost_smeny",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 12,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "ч"
+          },
+          "value": 11
+        },
+        "protyazhennost_konveyernoy_transportnoy_sistemy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "protyazhennost_konveyernoy_transportnoy_sistemy",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 31,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м"
+          },
+          "value": 350
+        },
+        "rabochih_dney_v_godu": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "rabochih_dney_v_godu",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 11,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "дн."
+          },
+          "value": 365
+        },
+        "rovnost_pola_otklonenie": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "rovnost_pola_otklonenie",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 9,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "мм/2м"
+          },
+          "value": 3
+        },
+        "shirina_glavnyh_proezdov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "shirina_glavnyh_proezdov",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 6,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м"
+          },
+          "value": 3.5
+        },
+        "shirina_rabochih_prohodov_mezhdu_stellazhami": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "shirina_rabochih_prohodov_mezhdu_stellazhami",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 7,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м"
+          },
+          "value": 2.8
+        },
+        "srednie_gabarity_pallety_d_sh_v": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednie_gabarity_pallety_d_sh_v",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 36,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "мм"
+          },
+          "value": "1200×800×1600"
+        },
+        "srednie_gabarity_shtuchnoy_edinicy_d_sh_v": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednie_gabarity_shtuchnoy_edinicy_d_sh_v",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 37,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "мм"
+          },
+          "value": "300×200×150"
+        },
+        "srednyaya_dlina_marshruta_otborschika_na_1_stroku": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_dlina_marshruta_otborschika_na_1_stroku",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 30,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м"
+          },
+          "value": 25
+        },
+        "srednyaya_massa_gruzovoy_edinicy_pallet": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_massa_gruzovoy_edinicy_pallet",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 34,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "кг"
+          },
+          "value": 800
+        },
+        "srednyaya_massa_shtuchnoy_edinicy_sku": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_massa_shtuchnoy_edinicy_sku",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 35,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "кг"
+          },
+          "value": 1.8
+        },
+        "srednyaya_vyrabotka_otborschika_strok_ch": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_vyrabotka_otborschika_strok_ch",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 28,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "строк/ч·чел"
+          },
+          "value": 150
+        },
+        "srednyaya_z_p_operatora_pogruzchika_gross": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_z_p_operatora_pogruzchika_gross",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 26,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "руб./мес."
+          },
+          "value": 120000
+        },
+        "srednyaya_z_p_otborschika_gross": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_z_p_otborschika_gross",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 25,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "руб./мес."
+          },
+          "value": 100000
+        },
+        "tip_napolnogo_pokrytiya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "tip_napolnogo_pokrytiya",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 8,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "-"
+          },
+          "value": "Промышленный бетон"
+        },
+        "tip_stellazhnoy_sistemy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "tip_stellazhnoy_sistemy",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 32,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "-"
+          },
+          "value": "Фронтальные паллетные"
+        },
+        "vysota_potolkov_v_zone_hraneniya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "vysota_potolkov_v_zone_hraneniya",
+            "source": {
+              "format": "CSV",
+              "name": "warehouse-project-input.csv",
+              "row": 4,
+              "sha256": "764cd380ab6527e2aa21915878060d076198b079e832834ddd262cf04592f4b7"
+            },
+            "unit": "м"
+          },
+          "value": 10
+        }
+      },
+      "role_allocations_raw": {},
+      "source_profile_version": "organizer-object-profiles-v1:sha256:5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401",
+      "unaccepted_salary_raw": {}
+    },
+    "required_inputs": [
+      "processes.block.warehouse_receiving_shipping.route_distance",
+      "roles.fixture.warehouse.forklift_driver.monthly_gross_salary"
+    ],
+    "role_pool": {
+      "object_kind": "WAREHOUSE",
+      "pool_id": "fixture.warehouse.roles",
+      "roles": [
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "25",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0005",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "25",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "expected_unit": "RUB/person/month",
+            "missing_reason": "MISSING_INPUT",
+            "name": "monthly_gross_salary",
+            "provenance_ref": null,
+            "quantity_kind": "MONEY",
+            "status": "MISSING"
+          },
+          "object_scope": "WAREHOUSE",
+          "process_ids": [
+            "fixture.warehouse.warehouse_receiving_shipping"
+          ],
+          "role_code": "forklift_driver",
+          "role_id": "fixture.warehouse.forklift_driver",
+          "zero_cost_marker": null
+        }
+      ],
+      "schema_version": "role-pool-v1"
+    },
+    "schema_version": "calculation-intake-normalization-v2",
+    "valid": true
+  }
+}

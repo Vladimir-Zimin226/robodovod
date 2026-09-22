@@ -47,6 +47,7 @@ def test_xlsx_adapter_round_trip_without_restricted_fixture():
     assert set(result.parameter_provenance) == set(result.parameter_values)
     assert {item["kind"] for item in result.parameter_provenance.values()} == {"FILE"}
     assert result.parameter_provenance["obschaya_ploschad_sklada"]["source"]["row"] == 4
+    assert result.parameter_provenance["obschaya_ploschad_sklada"]["source"]["cell"] == "C4"
     assert result.normalized_input == build_official_preset("warehouse")["normalized_input"]
 
 

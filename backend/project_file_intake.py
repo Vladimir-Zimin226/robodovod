@@ -250,6 +250,7 @@ def _parse_xlsx(
                 locations[parameter.parameter_code] = {
                     "sheet": expected_sheet,
                     "row": row,
+                    "cell": f"C{row}",
                 }
         _append_missing(profile.parameters_by_code(), values, errors)
         return values, errors, warnings, locations

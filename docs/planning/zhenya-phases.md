@@ -5,7 +5,7 @@
 Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к исполнению в
 [policy v1](calculation-policy-decisions-v1.md); отдельного ответа Жени не требуется. Новые пути ниже — предложения для
 реализации, не утверждение о существующих файлах. C01 **COMPLETE** 2026-09-20,
-C02 **COMPLETE** 2026-09-22; C03–C29 пока **PLANNED**.
+C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22; C04–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -95,6 +95,12 @@ catalog и runtime activation не изменены. Отчёт:
 - **Вне этапа:** vendor enrichment, новые fleet rows, формулы, UI.
 
 ## C03 — `intake/process-role-normalization-v2`
+
+Статус: **COMPLETE** (2026-09-22). Добавлен аддитивный strict intake v2,
+typed unit normalizer, exact K19 projection 6/10/12, raw provenance и
+compatibility adapter для существующего file import v1. Production API, frontend,
+catalog/runtime и формулы не изменены. Отчёт:
+[calculation intake normalization v2](calculation-intake-normalization-v2.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

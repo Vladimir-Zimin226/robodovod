@@ -1,0 +1,1791 @@
+{
+  "request": {
+    "additional_income_raw": null,
+    "input_revision": "fixture.airport.v2",
+    "legacy_import_version": "project-file-intake-v1",
+    "object_id": "fixture.airport",
+    "object_kind": "AIRPORT",
+    "processes": [
+      {
+        "activation_source": "LEGACY_V1",
+        "active": true,
+        "block_id": "block.airport_baggage",
+        "demand": {
+          "provenance": {
+            "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+            "cell": null,
+            "file_name": "airport-project-input.csv",
+            "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+            "llm_message_id": null,
+            "raw_text": "obem_peremescheniya_bagazha_edinic_sutki",
+            "row": 16,
+            "sheet": null,
+            "source": "FILE",
+            "user_confirmed": false
+          },
+          "unit": "item/day",
+          "value": "35000"
+        },
+        "explicit_batch": null,
+        "process_code": "airport_baggage",
+        "process_id": "fixture.airport.airport_baggage",
+        "quantity_kind": "ITEM",
+        "role_refs": [
+          "fixture.airport.baggage_handler"
+        ],
+        "route_distance": null,
+        "schedule": {
+          "days_per_year": {
+            "provenance": {
+              "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+              "cell": null,
+              "file_name": "airport-project-input.csv",
+              "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 16,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "day",
+            "value": "365"
+          },
+          "shift_hours": {
+            "provenance": {
+              "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+              "cell": null,
+              "file_name": "airport-project-input.csv",
+              "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 16,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "h",
+            "value": "8"
+          },
+          "shifts_per_day": {
+            "provenance": {
+              "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+              "cell": null,
+              "file_name": "airport-project-input.csv",
+              "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 16,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "shift",
+            "value": "3"
+          }
+        }
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_catering",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_catering",
+        "process_id": "fixture.airport.airport_catering",
+        "quantity_kind": "PORTION",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_fuelling",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_fuelling",
+        "process_id": "fixture.airport.airport_fuelling",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_internal_logistics",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_internal_logistics",
+        "process_id": "fixture.airport.airport_internal_logistics",
+        "quantity_kind": "CART",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_terminal_cleaning",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_terminal_cleaning",
+        "process_id": "fixture.airport.airport_terminal_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_apron_cleaning",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_apron_cleaning",
+        "process_id": "fixture.airport.airport_apron_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_waste",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_waste",
+        "process_id": "fixture.airport.airport_waste",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_inspection",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_inspection",
+        "process_id": "fixture.airport.airport_inspection",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_passenger_assistance",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_passenger_assistance",
+        "process_id": "fixture.airport.airport_passenger_assistance",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.airport_ground_service",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "airport_ground_service",
+        "process_id": "fixture.airport.airport_ground_service",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      }
+    ],
+    "raw_profile_parameters": {
+      "chislennost_personala_nazemnogo_obsluzhivaniya_ramp": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "chislennost_personala_nazemnogo_obsluzhivaniya_ramp",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 25,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "чел."
+        },
+        "value": 320
+      },
+      "chislennost_personala_vnutri_terminala_logistika_uborka": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "chislennost_personala_vnutri_terminala_logistika_uborka",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 26,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "чел."
+        },
+        "value": 180
+      },
+      "dolya_transfernyh_passazhirov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "dolya_transfernyh_passazhirov",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 10,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "%"
+        },
+        "value": 15
+      },
+      "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 38,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "кВт"
+        },
+        "value": 300
+      },
+      "godovaya_tekuchest_personal_terminala": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "godovaya_tekuchest_personal_terminala",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 30,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "%"
+        },
+        "value": 35
+      },
+      "gorizont_rascheta_okupaemosti": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "gorizont_rascheta_okupaemosti",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 40,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "лет"
+        },
+        "value": 7
+      },
+      "koefficient_nachisleniy_na_fot": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "koefficient_nachisleniy_na_fot",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 29,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "-"
+        },
+        "value": 1.302
+      },
+      "kolichestvo_stoek_registracii": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_stoek_registracii",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 11,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "шт."
+        },
+        "value": 50
+      },
+      "kolichestvo_stoek_vydachi_bagazha_karuseley": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_stoek_vydachi_bagazha_karuseley",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 18,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "шт."
+        },
+        "value": 8
+      },
+      "kolichestvo_terminalov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_terminalov",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 4,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "шт."
+        },
+        "value": 2
+      },
+      "kolichestvo_uborochnyh_mashin_terminal": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_uborochnyh_mashin_terminal",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 22,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "шт."
+        },
+        "value": 8
+      },
+      "kolichestvo_vyhodov_na_posadku_geytov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_vyhodov_na_posadku_geytov",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 5,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "шт."
+        },
+        "value": 20
+      },
+      "kolichestvo_vzletno_posadochnyh_polos": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_vzletno_posadochnyh_polos",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 6,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "шт."
+        },
+        "value": 2
+      },
+      "nalichie_bms_sistemy_upravleniya_zdaniem": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_bms_sistemy_upravleniya_zdaniem",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 37,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "-"
+        },
+        "value": "Да"
+      },
+      "nalichie_fids_aodb_sistemy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_fids_aodb_sistemy",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 36,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "-"
+        },
+        "value": "Да"
+      },
+      "nalichie_sistemy_kontrolya_dostupa_skud": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_sistemy_kontrolya_dostupa_skud",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 32,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "-"
+        },
+        "value": "Да (OSDP)"
+      },
+      "obem_bortovogo_pitaniya_porciy_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_bortovogo_pitaniya_porciy_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 19,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "порций/сут"
+        },
+        "value": 22000
+      },
+      "obem_peremescheniya_bagazha_edinic_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_peremescheniya_bagazha_edinic_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 16,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "ед./сут"
+        },
+        "value": 35000
+      },
+      "obem_zapravki_vozdushnyh_sudov_reysov_sut": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_zapravki_vozdushnyh_sudov_reysov_sut",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 20,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "рейсов/сут"
+        },
+        "value": 280
+      },
+      "ogranicheniya_po_urovnyu_shuma_zona": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "ogranicheniya_po_urovnyu_shuma_zona",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 34,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "дБА"
+        },
+        "value": 70
+      },
+      "passazhiropotok_mln_passazhirov_god": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "passazhiropotok_mln_passazhirov_god",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 7,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "млн пасс./год"
+        },
+        "value": 8.5
+      },
+      "pikovoe_kolichestvo_passazhirov_v_chas_phf": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "pikovoe_kolichestvo_passazhirov_v_chas_phf",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 9,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "пасс./ч"
+        },
+        "value": 3200
+      },
+      "pikovoe_kolichestvo_reysov_v_chas": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "pikovoe_kolichestvo_reysov_v_chas",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 13,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "рейсов/ч"
+        },
+        "value": 32
+      },
+      "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "planiruemyy_byudzhet_na_robotizaciyu_capex",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 39,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "млн руб."
+        },
+        "value": 120
+      },
+      "ploschad_perrona_i_tehnicheskih_zon": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "ploschad_perrona_i_tehnicheskih_zon",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 3,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "м²"
+        },
+        "value": 100000
+      },
+      "ploschad_ubiraemaya_robotizirovannoy_uborkoy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "ploschad_ubiraemaya_robotizirovannoy_uborkoy",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 23,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "м²"
+        },
+        "value": 51000
+      },
+      "srednee_kolichestvo_operaciy_nazemnogo_obsluzhivaniya_na_1_reys": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednee_kolichestvo_operaciy_nazemnogo_obsluzhivaniya_na_1_reys",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 15,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "операций"
+        },
+        "value": 18
+      },
+      "srednee_vremya_oborota_vozdushnogo_sudna_tat": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednee_vremya_oborota_vozdushnogo_sudna_tat",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 14,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "мин"
+        },
+        "value": 45
+      },
+      "srednesutochnoe_kolichestvo_passazhirov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednesutochnoe_kolichestvo_passazhirov",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 8,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "пасс./сут"
+        },
+        "value": 23300
+      },
+      "srednesutochnoe_kolichestvo_reysov_vzlet_posadka": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednesutochnoe_kolichestvo_reysov_vzlet_posadka",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 12,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "рейсов/сут"
+        },
+        "value": 280
+      },
+      "srednyaya_massa_edinicy_bagazha": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_massa_edinicy_bagazha",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 17,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "кг"
+        },
+        "value": 18
+      },
+      "srednyaya_z_p_sotrudnika_nazemnogo_obsluzhivaniya_gross": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_z_p_sotrudnika_nazemnogo_obsluzhivaniya_gross",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 27,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "руб./мес."
+        },
+        "value": 100000
+      },
+      "srednyaya_z_p_uborschika_terminala_gross": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_z_p_uborschika_terminala_gross",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 28,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "руб./мес."
+        },
+        "value": 65000
+      },
+      "summarnaya_ploschad_terminala_ov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "summarnaya_ploschad_terminala_ov",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 2,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "м²"
+        },
+        "value": 85000
+      },
+      "sutochnoe_kolichestvo_reysov_vnutrennih_gruzovyh_telezhek_vnutri_terminala": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "sutochnoe_kolichestvo_reysov_vnutrennih_gruzovyh_telezhek_vnutri_terminala",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 21,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "рейсов/сут"
+        },
+        "value": 420
+      },
+      "sutochnyy_obem_vyvoza_musora_konteynerov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "sutochnyy_obem_vyvoza_musora_konteynerov",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 24,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "конт./сут"
+        },
+        "value": 85
+      },
+      "temperatura_v_neotaplivaemyh_zonah_perron_zima": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "temperatura_v_neotaplivaemyh_zonah_perron_zima",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 35,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "°C"
+        },
+        "value": -25
+      },
+      "trebovaniya_po_sertifikacii_oborudovaniya_dlya_airside": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "trebovaniya_po_sertifikacii_oborudovaniya_dlya_airside",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 33,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "-"
+        },
+        "value": "EASA/ИКАО"
+      },
+      "zonirovanie_kolichestvo_rezhimnyh_zon": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "zonirovanie_kolichestvo_rezhimnyh_zon",
+          "source": {
+            "format": "CSV",
+            "name": "airport-project-input.csv",
+            "row": 31,
+            "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+          },
+          "unit": "шт."
+        },
+        "value": 4
+      }
+    },
+    "roles": [
+      {
+        "allocation_shares": null,
+        "headcount": {
+          "provenance": {
+            "alias": "chislennost_personala_nazemnogo_obsluzhivaniya_ramp",
+            "cell": null,
+            "file_name": "airport-project-input.csv",
+            "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+            "llm_message_id": null,
+            "raw_text": null,
+            "row": 25,
+            "sheet": null,
+            "source": "FILE",
+            "user_confirmed": false
+          },
+          "unit": "person",
+          "value": "320"
+        },
+        "label": null,
+        "monthly_gross_salary": null,
+        "object_scope": "AIRPORT",
+        "process_ids": [
+          "fixture.airport.airport_baggage"
+        ],
+        "role_code": "baggage_handler",
+        "role_id": "fixture.airport.baggage_handler",
+        "zero_cost_marker": null
+      }
+    ],
+    "schema_version": "calculation-intake-v2",
+    "source_profile_version": "organizer-object-profiles-v1:sha256:5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401"
+  },
+  "response": {
+    "conversions": [
+      {
+        "field": "processes.block.airport_baggage.demand",
+        "node_id": "conversion.0001",
+        "normalized_unit": "item/day",
+        "normalized_value": "35000",
+        "provenance": {
+          "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+          "cell": null,
+          "file_name": "airport-project-input.csv",
+          "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+          "llm_message_id": null,
+          "raw_text": "obem_peremescheniya_bagazha_edinic_sutki",
+          "row": 16,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "item/day",
+        "raw_value": "35000",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.airport_baggage.schedule.shifts_per_day",
+        "node_id": "conversion.0002",
+        "normalized_unit": "shift",
+        "normalized_value": "3",
+        "provenance": {
+          "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+          "cell": null,
+          "file_name": "airport-project-input.csv",
+          "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 16,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "shift",
+        "raw_value": "3",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.airport_baggage.schedule.shift_hours",
+        "node_id": "conversion.0003",
+        "normalized_unit": "h",
+        "normalized_value": "8",
+        "provenance": {
+          "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+          "cell": null,
+          "file_name": "airport-project-input.csv",
+          "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 16,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "h",
+        "raw_value": "8",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.airport_baggage.schedule.days_per_year",
+        "node_id": "conversion.0004",
+        "normalized_unit": "day",
+        "normalized_value": "365",
+        "provenance": {
+          "alias": "obem_peremescheniya_bagazha_edinic_sutki",
+          "cell": null,
+          "file_name": "airport-project-input.csv",
+          "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 16,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "day",
+        "raw_value": "365",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "roles.fixture.airport.baggage_handler.headcount",
+        "node_id": "conversion.0005",
+        "normalized_unit": "person",
+        "normalized_value": "320",
+        "provenance": {
+          "alias": "chislennost_personala_nazemnogo_obsluzhivaniya_ramp",
+          "cell": null,
+          "file_name": "airport-project-input.csv",
+          "file_sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 25,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "person",
+        "raw_value": "320",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      }
+    ],
+    "errors": [],
+    "input_revision": "fixture.airport.v2",
+    "normalized_processes": [
+      {
+        "active": true,
+        "demand": {
+          "name": "demand_per_day",
+          "normalized_value": "35000",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "conversion.0001",
+          "quantity_kind": "FLOW",
+          "raw_unit": "item/day",
+          "raw_value": "35000",
+          "status": "KNOWN",
+          "unit": "item/day"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_baggage",
+        "process_id": "fixture.airport.airport_baggage",
+        "quantity_kind": "ITEM",
+        "role_refs": [
+          "fixture.airport.baggage_handler"
+        ],
+        "route_distance": null,
+        "schedule": {
+          "days_per_year": {
+            "name": "days_per_year",
+            "normalized_value": "365",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0004",
+            "quantity_kind": "TIME",
+            "raw_unit": "day",
+            "raw_value": "365",
+            "status": "KNOWN",
+            "unit": "day"
+          },
+          "shift_hours": {
+            "name": "shift_hours",
+            "normalized_value": "8",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0003",
+            "quantity_kind": "TIME",
+            "raw_unit": "h",
+            "raw_value": "8",
+            "status": "KNOWN",
+            "unit": "h"
+          },
+          "shifts_per_day": {
+            "name": "shifts_per_day",
+            "normalized_value": "3",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0002",
+            "quantity_kind": "COUNT",
+            "raw_unit": "shift",
+            "raw_value": "3",
+            "status": "KNOWN",
+            "unit": "shift"
+          }
+        },
+        "schema_version": "normalized-process-v1",
+        "scope": "TRANSPORT_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "portion/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_catering",
+        "process_id": "fixture.airport.airport_catering",
+        "quantity_kind": "PORTION",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "TRANSPORT_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "delivery/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_fuelling",
+        "process_id": "fixture.airport.airport_fuelling",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "cart/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_internal_logistics",
+        "process_id": "fixture.airport.airport_internal_logistics",
+        "quantity_kind": "CART",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "TRANSPORT_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "m2/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_terminal_cleaning",
+        "process_id": "fixture.airport.airport_terminal_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "CLEANING_AREA"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "m2/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_apron_cleaning",
+        "process_id": "fixture.airport.airport_apron_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "CLEANING_AREA"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "kg/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_waste",
+        "process_id": "fixture.airport.airport_waste",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "TRANSPORT_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "item/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_inspection",
+        "process_id": "fixture.airport.airport_inspection",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "delivery/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_passenger_assistance",
+        "process_id": "fixture.airport.airport_passenger_assistance",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "delivery/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.airport.v2",
+        "item_mass": null,
+        "object_kind": "AIRPORT",
+        "process_code": "airport_ground_service",
+        "process_id": "fixture.airport.airport_ground_service",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      }
+    ],
+    "object_id": "fixture.airport",
+    "process_projection_version": "calculation-process-projection-v2",
+    "raw_extensions": {
+      "activation_sources": {
+        "fixture.airport.airport_apron_cleaning": "LEGACY_V1",
+        "fixture.airport.airport_baggage": "LEGACY_V1",
+        "fixture.airport.airport_catering": "LEGACY_V1",
+        "fixture.airport.airport_fuelling": "LEGACY_V1",
+        "fixture.airport.airport_ground_service": "LEGACY_V1",
+        "fixture.airport.airport_inspection": "LEGACY_V1",
+        "fixture.airport.airport_internal_logistics": "LEGACY_V1",
+        "fixture.airport.airport_passenger_assistance": "LEGACY_V1",
+        "fixture.airport.airport_terminal_cleaning": "LEGACY_V1",
+        "fixture.airport.airport_waste": "LEGACY_V1"
+      },
+      "additional_income_raw": null,
+      "legacy_import_version": "project-file-intake-v1",
+      "raw_profile_parameters": {
+        "chislennost_personala_nazemnogo_obsluzhivaniya_ramp": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "chislennost_personala_nazemnogo_obsluzhivaniya_ramp",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 25,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "чел."
+          },
+          "value": 320
+        },
+        "chislennost_personala_vnutri_terminala_logistika_uborka": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "chislennost_personala_vnutri_terminala_logistika_uborka",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 26,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "чел."
+          },
+          "value": 180
+        },
+        "dolya_transfernyh_passazhirov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "dolya_transfernyh_passazhirov",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 10,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "%"
+          },
+          "value": 15
+        },
+        "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 38,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "кВт"
+          },
+          "value": 300
+        },
+        "godovaya_tekuchest_personal_terminala": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "godovaya_tekuchest_personal_terminala",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 30,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "%"
+          },
+          "value": 35
+        },
+        "gorizont_rascheta_okupaemosti": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "gorizont_rascheta_okupaemosti",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 40,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "лет"
+          },
+          "value": 7
+        },
+        "koefficient_nachisleniy_na_fot": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "koefficient_nachisleniy_na_fot",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 29,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "-"
+          },
+          "value": 1.302
+        },
+        "kolichestvo_stoek_registracii": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_stoek_registracii",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 11,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "шт."
+          },
+          "value": 50
+        },
+        "kolichestvo_stoek_vydachi_bagazha_karuseley": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_stoek_vydachi_bagazha_karuseley",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 18,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "шт."
+          },
+          "value": 8
+        },
+        "kolichestvo_terminalov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_terminalov",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 4,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "шт."
+          },
+          "value": 2
+        },
+        "kolichestvo_uborochnyh_mashin_terminal": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_uborochnyh_mashin_terminal",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 22,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "шт."
+          },
+          "value": 8
+        },
+        "kolichestvo_vyhodov_na_posadku_geytov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_vyhodov_na_posadku_geytov",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 5,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "шт."
+          },
+          "value": 20
+        },
+        "kolichestvo_vzletno_posadochnyh_polos": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_vzletno_posadochnyh_polos",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 6,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "шт."
+          },
+          "value": 2
+        },
+        "nalichie_bms_sistemy_upravleniya_zdaniem": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_bms_sistemy_upravleniya_zdaniem",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 37,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "-"
+          },
+          "value": "Да"
+        },
+        "nalichie_fids_aodb_sistemy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_fids_aodb_sistemy",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 36,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "-"
+          },
+          "value": "Да"
+        },
+        "nalichie_sistemy_kontrolya_dostupa_skud": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_sistemy_kontrolya_dostupa_skud",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 32,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "-"
+          },
+          "value": "Да (OSDP)"
+        },
+        "obem_bortovogo_pitaniya_porciy_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_bortovogo_pitaniya_porciy_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 19,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "порций/сут"
+          },
+          "value": 22000
+        },
+        "obem_peremescheniya_bagazha_edinic_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_peremescheniya_bagazha_edinic_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 16,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "ед./сут"
+          },
+          "value": 35000
+        },
+        "obem_zapravki_vozdushnyh_sudov_reysov_sut": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_zapravki_vozdushnyh_sudov_reysov_sut",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 20,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "рейсов/сут"
+          },
+          "value": 280
+        },
+        "ogranicheniya_po_urovnyu_shuma_zona": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "ogranicheniya_po_urovnyu_shuma_zona",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 34,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "дБА"
+          },
+          "value": 70
+        },
+        "passazhiropotok_mln_passazhirov_god": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "passazhiropotok_mln_passazhirov_god",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 7,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "млн пасс./год"
+          },
+          "value": 8.5
+        },
+        "pikovoe_kolichestvo_passazhirov_v_chas_phf": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "pikovoe_kolichestvo_passazhirov_v_chas_phf",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 9,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "пасс./ч"
+          },
+          "value": 3200
+        },
+        "pikovoe_kolichestvo_reysov_v_chas": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "pikovoe_kolichestvo_reysov_v_chas",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 13,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "рейсов/ч"
+          },
+          "value": 32
+        },
+        "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "planiruemyy_byudzhet_na_robotizaciyu_capex",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 39,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "млн руб."
+          },
+          "value": 120
+        },
+        "ploschad_perrona_i_tehnicheskih_zon": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "ploschad_perrona_i_tehnicheskih_zon",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 3,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "м²"
+          },
+          "value": 100000
+        },
+        "ploschad_ubiraemaya_robotizirovannoy_uborkoy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "ploschad_ubiraemaya_robotizirovannoy_uborkoy",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 23,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "м²"
+          },
+          "value": 51000
+        },
+        "srednee_kolichestvo_operaciy_nazemnogo_obsluzhivaniya_na_1_reys": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednee_kolichestvo_operaciy_nazemnogo_obsluzhivaniya_na_1_reys",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 15,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "операций"
+          },
+          "value": 18
+        },
+        "srednee_vremya_oborota_vozdushnogo_sudna_tat": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednee_vremya_oborota_vozdushnogo_sudna_tat",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 14,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "мин"
+          },
+          "value": 45
+        },
+        "srednesutochnoe_kolichestvo_passazhirov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednesutochnoe_kolichestvo_passazhirov",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 8,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "пасс./сут"
+          },
+          "value": 23300
+        },
+        "srednesutochnoe_kolichestvo_reysov_vzlet_posadka": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednesutochnoe_kolichestvo_reysov_vzlet_posadka",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 12,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "рейсов/сут"
+          },
+          "value": 280
+        },
+        "srednyaya_massa_edinicy_bagazha": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_massa_edinicy_bagazha",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 17,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "кг"
+          },
+          "value": 18
+        },
+        "srednyaya_z_p_sotrudnika_nazemnogo_obsluzhivaniya_gross": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_z_p_sotrudnika_nazemnogo_obsluzhivaniya_gross",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 27,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "руб./мес."
+          },
+          "value": 100000
+        },
+        "srednyaya_z_p_uborschika_terminala_gross": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_z_p_uborschika_terminala_gross",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 28,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "руб./мес."
+          },
+          "value": 65000
+        },
+        "summarnaya_ploschad_terminala_ov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "summarnaya_ploschad_terminala_ov",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 2,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "м²"
+          },
+          "value": 85000
+        },
+        "sutochnoe_kolichestvo_reysov_vnutrennih_gruzovyh_telezhek_vnutri_terminala": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "sutochnoe_kolichestvo_reysov_vnutrennih_gruzovyh_telezhek_vnutri_terminala",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 21,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "рейсов/сут"
+          },
+          "value": 420
+        },
+        "sutochnyy_obem_vyvoza_musora_konteynerov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "sutochnyy_obem_vyvoza_musora_konteynerov",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 24,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "конт./сут"
+          },
+          "value": 85
+        },
+        "temperatura_v_neotaplivaemyh_zonah_perron_zima": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "temperatura_v_neotaplivaemyh_zonah_perron_zima",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 35,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "°C"
+          },
+          "value": -25
+        },
+        "trebovaniya_po_sertifikacii_oborudovaniya_dlya_airside": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "trebovaniya_po_sertifikacii_oborudovaniya_dlya_airside",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 33,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "-"
+          },
+          "value": "EASA/ИКАО"
+        },
+        "zonirovanie_kolichestvo_rezhimnyh_zon": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "zonirovanie_kolichestvo_rezhimnyh_zon",
+            "source": {
+              "format": "CSV",
+              "name": "airport-project-input.csv",
+              "row": 31,
+              "sha256": "88a9913d65c004715b9730237cdf325113d4310f28116b6d2f8c4cbfd805d2d4"
+            },
+            "unit": "шт."
+          },
+          "value": 4
+        }
+      },
+      "role_allocations_raw": {},
+      "source_profile_version": "organizer-object-profiles-v1:sha256:5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401",
+      "unaccepted_salary_raw": {}
+    },
+    "required_inputs": [
+      "processes.block.airport_baggage.route_distance",
+      "processes.block.airport_baggage.explicit_batch",
+      "roles.fixture.airport.baggage_handler.monthly_gross_salary"
+    ],
+    "role_pool": {
+      "object_kind": "AIRPORT",
+      "pool_id": "fixture.airport.roles",
+      "roles": [
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "320",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0005",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "320",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "expected_unit": "RUB/person/month",
+            "missing_reason": "MISSING_INPUT",
+            "name": "monthly_gross_salary",
+            "provenance_ref": null,
+            "quantity_kind": "MONEY",
+            "status": "MISSING"
+          },
+          "object_scope": "AIRPORT",
+          "process_ids": [
+            "fixture.airport.airport_baggage"
+          ],
+          "role_code": "baggage_handler",
+          "role_id": "fixture.airport.baggage_handler",
+          "zero_cost_marker": null
+        }
+      ],
+      "schema_version": "role-pool-v1"
+    },
+    "schema_version": "calculation-intake-normalization-v2",
+    "valid": true
+  }
+}

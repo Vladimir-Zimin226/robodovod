@@ -1,0 +1,2371 @@
+{
+  "request": {
+    "additional_income_raw": null,
+    "input_revision": "fixture.clinic.v2",
+    "legacy_import_version": "project-file-intake-v1",
+    "object_id": "fixture.clinic",
+    "object_kind": "CLINIC",
+    "processes": [
+      {
+        "activation_source": "LEGACY_V1",
+        "active": true,
+        "block_id": "block.clinic_food",
+        "demand": {
+          "provenance": {
+            "alias": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+            "cell": null,
+            "file_name": "medical_facility-project-input.csv",
+            "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+            "llm_message_id": null,
+            "raw_text": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+            "row": 15,
+            "sheet": null,
+            "source": "FILE",
+            "user_confirmed": false
+          },
+          "unit": "portion/day",
+          "value": "1950"
+        },
+        "explicit_batch": null,
+        "process_code": "clinic_food",
+        "process_id": "fixture.clinic.clinic_food",
+        "quantity_kind": "PORTION",
+        "role_refs": [
+          "fixture.clinic.catering_worker"
+        ],
+        "route_distance": null,
+        "schedule": {
+          "days_per_year": {
+            "provenance": {
+              "alias": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+              "cell": null,
+              "file_name": "medical_facility-project-input.csv",
+              "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 15,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "day",
+            "value": "365"
+          },
+          "shift_hours": {
+            "provenance": {
+              "alias": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+              "cell": null,
+              "file_name": "medical_facility-project-input.csv",
+              "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 15,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "h",
+            "value": "8"
+          },
+          "shifts_per_day": {
+            "provenance": {
+              "alias": "kolichestvo_smen_medpersonala_uhod_za_pacientami",
+              "cell": null,
+              "file_name": "medical_facility-project-input.csv",
+              "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+              "llm_message_id": null,
+              "raw_text": null,
+              "row": 12,
+              "sheet": null,
+              "source": "FILE",
+              "user_confirmed": false
+            },
+            "unit": "shift",
+            "value": "3"
+          }
+        }
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_linen",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_linen",
+        "process_id": "fixture.clinic.clinic_linen",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_medicines",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_medicines",
+        "process_id": "fixture.clinic.clinic_medicines",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_biomaterials",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_biomaterials",
+        "process_id": "fixture.clinic.clinic_biomaterials",
+        "quantity_kind": "SAMPLE",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_sterile_sets",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_sterile_sets",
+        "process_id": "fixture.clinic.clinic_sterile_sets",
+        "quantity_kind": "SET",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_consumables",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_consumables",
+        "process_id": "fixture.clinic.clinic_consumables",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_waste_a",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_waste_a",
+        "process_id": "fixture.clinic.clinic_waste_a",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_waste_b",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_waste_b",
+        "process_id": "fixture.clinic.clinic_waste_b",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_results",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_results",
+        "process_id": "fixture.clinic.clinic_results",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_cleaning",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_cleaning",
+        "process_id": "fixture.clinic.clinic_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_inventory",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_inventory",
+        "process_id": "fixture.clinic.clinic_inventory",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      },
+      {
+        "activation_source": "LEGACY_V1",
+        "active": false,
+        "block_id": "block.clinic_safety_requirements",
+        "demand": null,
+        "explicit_batch": null,
+        "process_code": "clinic_safety_requirements",
+        "process_id": "fixture.clinic.clinic_safety_requirements",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null
+      }
+    ],
+    "raw_profile_parameters": {
+      "chislennost_sanitarov_i_transportirovschikov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "chislennost_sanitarov_i_transportirovschikov",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 40,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "чел."
+        },
+        "value": 65
+      },
+      "chislennost_sotrudnikov_pischebloka_razdacha": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "chislennost_sotrudnikov_pischebloka_razdacha",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 41,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "чел."
+        },
+        "value": 28
+      },
+      "chislennost_sotrudnikov_prachechnoy_transport_belya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "chislennost_sotrudnikov_prachechnoy_transport_belya",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 42,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "чел."
+        },
+        "value": 18
+      },
+      "dolya_srochnyh_stat_dostavok_medikamentov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "dolya_srochnyh_stat_dostavok_medikamentov",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 30,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "%"
+        },
+        "value": 8
+      },
+      "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 56,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "кВт"
+        },
+        "value": 80
+      },
+      "godovaya_tekuchest_nemedicinskiy_personal": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "godovaya_tekuchest_nemedicinskiy_personal",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 46,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "%"
+        },
+        "value": 45
+      },
+      "gorizont_rascheta_okupaemosti": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "gorizont_rascheta_okupaemosti",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 58,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "лет"
+        },
+        "value": 7
+      },
+      "koechnyy_fond_v_ekspluatacii_srednyaya_zanyatost": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "koechnyy_fond_v_ekspluatacii_srednyaya_zanyatost",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 7,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "%"
+        },
+        "value": 82
+      },
+      "koefficient_nachisleniy_na_fot": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "koefficient_nachisleniy_na_fot",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 45,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": 1.302
+      },
+      "kolichestvo_ambulatornyh_posescheniy_v_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_ambulatornyh_posescheniy_v_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 9,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "посещений/сут"
+        },
+        "value": 850
+      },
+      "kolichestvo_aptechnyh_tochek_vydachi_apteka_aptechnye_sklady": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_aptechnyh_tochek_vydachi_apteka_aptechnye_sklady",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 27,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 2
+      },
+      "kolichestvo_biomaterialov_prob_v_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_biomaterialov_prob_v_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 32,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "проб/сут"
+        },
+        "value": 1200
+      },
+      "kolichestvo_etazhey_osnovnoy_korpus": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_etazhey_osnovnoy_korpus",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 4,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 9
+      },
+      "kolichestvo_kliniko_diagnosticheskih_laboratoriy_kdl": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_kliniko_diagnosticheskih_laboratoriy_kdl",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 33,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 2
+      },
+      "kolichestvo_koek_stacionar": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_koek_stacionar",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 6,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "коек"
+        },
+        "value": 650
+      },
+      "kolichestvo_kormleniy_v_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_kormleniy_v_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 14,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "раз/сут"
+        },
+        "value": 3
+      },
+      "kolichestvo_liftov_gruzovyh_medicinskih": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_liftov_gruzovyh_medicinskih",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 5,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 4
+      },
+      "kolichestvo_naimenovaniy_medikamentov_v_obraschenii": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_naimenovaniy_medikamentov_v_obraschenii",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 25,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "наименований"
+        },
+        "value": 2800
+      },
+      "kolichestvo_operacionnyh": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_operacionnyh",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 8,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 12
+      },
+      "kolichestvo_smen_medpersonala_uhod_za_pacientami": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_smen_medpersonala_uhod_za_pacientami",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 12,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "смен/сут"
+        },
+        "value": 3
+      },
+      "kolichestvo_tochek_dostavki_otdeleniy_or_reanimaciya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_tochek_dostavki_otdeleniy_or_reanimaciya",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 28,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 22
+      },
+      "kolichestvo_tochek_razdachi_pitaniya_otdeleniy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_tochek_razdachi_pitaniya_otdeleniy",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 17,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 18
+      },
+      "kolichestvo_tochek_sbora_othodov": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_tochek_sbora_othodov",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 38,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 20
+      },
+      "kolichestvo_tochek_sbora_vydachi_belya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "kolichestvo_tochek_sbora_vydachi_belya",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 22,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "шт."
+        },
+        "value": 18
+      },
+      "nalichie_lis_laboratornaya_informacionnaya_sistema": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_lis_laboratornaya_informacionnaya_sistema",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 52,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Да"
+      },
+      "nalichie_mis_medicinskaya_informacionnaya_sistema": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_mis_medicinskaya_informacionnaya_sistema",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 51,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Да (ЕМИАС)"
+      },
+      "nalichie_pandusov_podemnikov_dlya_mezhetazhnogo_amr_bez_lifta": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_pandusov_podemnikov_dlya_mezhetazhnogo_amr_bez_lifta",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 55,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Нет"
+      },
+      "nalichie_sistemy_upravleniya_liftami_bms": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_sistemy_upravleniya_liftami_bms",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 53,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Да (частично)"
+      },
+      "nalichie_skud_kontrol_dostupa_po_zonam": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "nalichie_skud_kontrol_dostupa_po_zonam",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 49,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Да"
+      },
+      "normativ_dostavki_pitaniya_min_ot_pischebloka_do_otdeleniya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "normativ_dostavki_pitaniya_min_ot_pischebloka_do_otdeleniya",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 19,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "мин"
+        },
+        "value": 20
+      },
+      "obem_chistogo_belya_na_razdachu_kg_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_chistogo_belya_na_razdachu_kg_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 21,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "кг/сут"
+        },
+        "value": 1800
+      },
+      "obem_dostavki_rashodnyh_materialov_reysov_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_dostavki_rashodnyh_materialov_reysov_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 31,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "рейсов/сут"
+        },
+        "value": 45
+      },
+      "obem_gryaznogo_belya_kg_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_gryaznogo_belya_kg_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 20,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "кг/сут"
+        },
+        "value": 1800
+      },
+      "obem_medicinskih_othodov_klassa_a_nenasyschennye": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_medicinskih_othodov_klassa_a_nenasyschennye",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 36,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "кг/сут"
+        },
+        "value": 850
+      },
+      "obem_medicinskih_othodov_klassa_b_inficirovannye": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_medicinskih_othodov_klassa_b_inficirovannye",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 37,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "кг/сут"
+        },
+        "value": 220
+      },
+      "obem_vydachi_medikamentov_zayavok_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_vydachi_medikamentov_zayavok_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 26,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "заявок/сут"
+        },
+        "value": 340
+      },
+      "obem_vydachi_rezultatov_analizov_reysov_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obem_vydachi_rezultatov_analizov_reysov_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 35,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "рейсов/сут"
+        },
+        "value": 28
+      },
+      "obezzarazhivanie_robota_mezhdu_reysami": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obezzarazhivanie_robota_mezhdu_reysami",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 47,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Обязательно для Б-маршрутов"
+      },
+      "obschaya_ploschad_zdaniya_y": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obschaya_ploschad_zdaniya_y",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 3,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "м²"
+        },
+        "value": 45000
+      },
+      "obschee_kolichestvo_porciy_pitaniya_v_sutki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 15,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "порций/сут"
+        },
+        "value": 1950
+      },
+      "periodichnost_smeny_belya_raz_v_sutki_v_srednem": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "periodichnost_smeny_belya_raz_v_sutki_v_srednem",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 23,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "раз/сут"
+        },
+        "value": 1.3
+      },
+      "periodichnost_vyvoza_othodov_iz_otdeleniy": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "periodichnost_vyvoza_othodov_iz_otdeleniy",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 39,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "раз/сут"
+        },
+        "value": 2
+      },
+      "pikovoe_vremya_logisticheskoy_nagruzki": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "pikovoe_vremya_logisticheskoy_nagruzki",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 13,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "07:00-10:00 и 15:00-17:00"
+      },
+      "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "planiruemyy_byudzhet_na_robotizaciyu_capex",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 57,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "млн руб."
+        },
+        "value": 35
+      },
+      "rezhim_raboty_ambulatorii": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "rezhim_raboty_ambulatorii",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 11,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "5/2, 08:00-20:00"
+      },
+      "rezhim_raboty_stacionara": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "rezhim_raboty_stacionara",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 10,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "24/7/365"
+      },
+      "shirina_koridorov_osnovnyh": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "shirina_koridorov_osnovnyh",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 54,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "м"
+        },
+        "value": 2.4
+      },
+      "srednee_rasstoyanie_ot_pischebloka_do_otdeleniya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednee_rasstoyanie_ot_pischebloka_do_otdeleniya",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 16,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "м"
+        },
+        "value": 180
+      },
+      "srednee_vremya_dostavki_proby_normativ": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednee_vremya_dostavki_proby_normativ",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 34,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "мин"
+        },
+        "value": 30
+      },
+      "srednee_vremya_komplektacii_1_zayavki_v_apteke": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednee_vremya_komplektacii_1_zayavki_v_apteke",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 29,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "мин"
+        },
+        "value": 12
+      },
+      "srednyaya_massa_konteynera_s_belem": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_massa_konteynera_s_belem",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 24,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "кг"
+        },
+        "value": 55
+      },
+      "srednyaya_massa_telezhki_s_pitaniem_brutto": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_massa_telezhki_s_pitaniem_brutto",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 18,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "кг"
+        },
+        "value": 120
+      },
+      "srednyaya_z_p_sanitara_transportirovschika_gross": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_z_p_sanitara_transportirovschika_gross",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 43,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "руб./мес."
+        },
+        "value": 55000
+      },
+      "srednyaya_z_p_sotrudnika_pischebloka_gross": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "srednyaya_z_p_sotrudnika_pischebloka_gross",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 44,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "руб./мес."
+        },
+        "value": 52000
+      },
+      "tip_medicinskogo_uchrezhdeniya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "tip_medicinskogo_uchrezhdeniya",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 2,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Многопрофильная больница"
+      },
+      "trebovaniya_k_materialu_poverhnostey_robota": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "trebovaniya_k_materialu_poverhnostey_robota",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 50,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "-"
+        },
+        "value": "Нержавеющая сталь или ABS с антибактер. покрытием"
+      },
+      "trebovaniya_k_urovnyu_shuma_v_palatah_nochnoe_vremya": {
+        "provenance": {
+          "kind": "FILE",
+          "parameter_code": "trebovaniya_k_urovnyu_shuma_v_palatah_nochnoe_vremya",
+          "source": {
+            "format": "CSV",
+            "name": "medical_facility-project-input.csv",
+            "row": 48,
+            "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+          },
+          "unit": "дБА"
+        },
+        "value": 30
+      }
+    },
+    "roles": [
+      {
+        "allocation_shares": null,
+        "headcount": {
+          "provenance": {
+            "alias": "chislennost_sotrudnikov_pischebloka_razdacha",
+            "cell": null,
+            "file_name": "medical_facility-project-input.csv",
+            "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+            "llm_message_id": null,
+            "raw_text": null,
+            "row": 41,
+            "sheet": null,
+            "source": "FILE",
+            "user_confirmed": false
+          },
+          "unit": "person",
+          "value": "28"
+        },
+        "label": null,
+        "monthly_gross_salary": null,
+        "object_scope": "CLINIC",
+        "process_ids": [
+          "fixture.clinic.clinic_food"
+        ],
+        "role_code": "catering_worker",
+        "role_id": "fixture.clinic.catering_worker",
+        "zero_cost_marker": null
+      }
+    ],
+    "schema_version": "calculation-intake-v2",
+    "source_profile_version": "organizer-object-profiles-v1:sha256:5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401"
+  },
+  "response": {
+    "conversions": [
+      {
+        "field": "processes.block.clinic_food.demand",
+        "node_id": "conversion.0001",
+        "normalized_unit": "portion/day",
+        "normalized_value": "1950",
+        "provenance": {
+          "alias": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+          "cell": null,
+          "file_name": "medical_facility-project-input.csv",
+          "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+          "llm_message_id": null,
+          "raw_text": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+          "row": 15,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "portion/day",
+        "raw_value": "1950",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.clinic_food.schedule.shifts_per_day",
+        "node_id": "conversion.0002",
+        "normalized_unit": "shift",
+        "normalized_value": "3",
+        "provenance": {
+          "alias": "kolichestvo_smen_medpersonala_uhod_za_pacientami",
+          "cell": null,
+          "file_name": "medical_facility-project-input.csv",
+          "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 12,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "shift",
+        "raw_value": "3",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.clinic_food.schedule.shift_hours",
+        "node_id": "conversion.0003",
+        "normalized_unit": "h",
+        "normalized_value": "8",
+        "provenance": {
+          "alias": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+          "cell": null,
+          "file_name": "medical_facility-project-input.csv",
+          "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 15,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "h",
+        "raw_value": "8",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "processes.block.clinic_food.schedule.days_per_year",
+        "node_id": "conversion.0004",
+        "normalized_unit": "day",
+        "normalized_value": "365",
+        "provenance": {
+          "alias": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+          "cell": null,
+          "file_name": "medical_facility-project-input.csv",
+          "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 15,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "day",
+        "raw_value": "365",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      },
+      {
+        "field": "roles.fixture.clinic.catering_worker.headcount",
+        "node_id": "conversion.0005",
+        "normalized_unit": "person",
+        "normalized_value": "28",
+        "provenance": {
+          "alias": "chislennost_sotrudnikov_pischebloka_razdacha",
+          "cell": null,
+          "file_name": "medical_facility-project-input.csv",
+          "file_sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42",
+          "llm_message_id": null,
+          "raw_text": null,
+          "row": 41,
+          "sheet": null,
+          "source": "FILE",
+          "user_confirmed": false
+        },
+        "raw_unit": "person",
+        "raw_value": "28",
+        "rule": "PHYSICAL_UNIT_DEFINITION"
+      }
+    ],
+    "errors": [],
+    "input_revision": "fixture.clinic.v2",
+    "normalized_processes": [
+      {
+        "active": true,
+        "demand": {
+          "name": "demand_per_day",
+          "normalized_value": "1950",
+          "numeric_encoding": "DECIMAL_STRING",
+          "provenance_ref": "conversion.0001",
+          "quantity_kind": "FLOW",
+          "raw_unit": "portion/day",
+          "raw_value": "1950",
+          "status": "KNOWN",
+          "unit": "portion/day"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_food",
+        "process_id": "fixture.clinic.clinic_food",
+        "quantity_kind": "PORTION",
+        "role_refs": [
+          "fixture.clinic.catering_worker"
+        ],
+        "route_distance": null,
+        "schedule": {
+          "days_per_year": {
+            "name": "days_per_year",
+            "normalized_value": "365",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0004",
+            "quantity_kind": "TIME",
+            "raw_unit": "day",
+            "raw_value": "365",
+            "status": "KNOWN",
+            "unit": "day"
+          },
+          "shift_hours": {
+            "name": "shift_hours",
+            "normalized_value": "8",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0003",
+            "quantity_kind": "TIME",
+            "raw_unit": "h",
+            "raw_value": "8",
+            "status": "KNOWN",
+            "unit": "h"
+          },
+          "shifts_per_day": {
+            "name": "shifts_per_day",
+            "normalized_value": "3",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0002",
+            "quantity_kind": "COUNT",
+            "raw_unit": "shift",
+            "raw_value": "3",
+            "status": "KNOWN",
+            "unit": "shift"
+          }
+        },
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "kg/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_linen",
+        "process_id": "fixture.clinic.clinic_linen",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "delivery/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_medicines",
+        "process_id": "fixture.clinic.clinic_medicines",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "sample/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_biomaterials",
+        "process_id": "fixture.clinic.clinic_biomaterials",
+        "quantity_kind": "SAMPLE",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "set/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_sterile_sets",
+        "process_id": "fixture.clinic.clinic_sterile_sets",
+        "quantity_kind": "SET",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "item/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_consumables",
+        "process_id": "fixture.clinic.clinic_consumables",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "kg/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_waste_a",
+        "process_id": "fixture.clinic.clinic_waste_a",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "kg/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_waste_b",
+        "process_id": "fixture.clinic.clinic_waste_b",
+        "quantity_kind": "KILOGRAM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "delivery/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_results",
+        "process_id": "fixture.clinic.clinic_results",
+        "quantity_kind": "DELIVERY",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "DELIVERY_CYCLE"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "m2/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_cleaning",
+        "process_id": "fixture.clinic.clinic_cleaning",
+        "quantity_kind": "SQUARE_METER",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "CLEANING_AREA"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "item/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_inventory",
+        "process_id": "fixture.clinic.clinic_inventory",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "REFERENCE_ONLY"
+      },
+      {
+        "active": false,
+        "demand": {
+          "expected_unit": "item/day",
+          "missing_reason": "NOT_APPLICABLE",
+          "name": "demand_per_day",
+          "provenance_ref": null,
+          "quantity_kind": "FLOW",
+          "status": "MISSING"
+        },
+        "exchange": null,
+        "explicit_batch": null,
+        "input_revision": "fixture.clinic.v2",
+        "item_mass": null,
+        "object_kind": "CLINIC",
+        "process_code": "clinic_safety_requirements",
+        "process_id": "fixture.clinic.clinic_safety_requirements",
+        "quantity_kind": "ITEM",
+        "role_refs": [],
+        "route_distance": null,
+        "schedule": null,
+        "schema_version": "normalized-process-v1",
+        "scope": "CONSTRAINT_ONLY"
+      }
+    ],
+    "object_id": "fixture.clinic",
+    "process_projection_version": "calculation-process-projection-v2",
+    "raw_extensions": {
+      "activation_sources": {
+        "fixture.clinic.clinic_biomaterials": "LEGACY_V1",
+        "fixture.clinic.clinic_cleaning": "LEGACY_V1",
+        "fixture.clinic.clinic_consumables": "LEGACY_V1",
+        "fixture.clinic.clinic_food": "LEGACY_V1",
+        "fixture.clinic.clinic_inventory": "LEGACY_V1",
+        "fixture.clinic.clinic_linen": "LEGACY_V1",
+        "fixture.clinic.clinic_medicines": "LEGACY_V1",
+        "fixture.clinic.clinic_results": "LEGACY_V1",
+        "fixture.clinic.clinic_safety_requirements": "LEGACY_V1",
+        "fixture.clinic.clinic_sterile_sets": "LEGACY_V1",
+        "fixture.clinic.clinic_waste_a": "LEGACY_V1",
+        "fixture.clinic.clinic_waste_b": "LEGACY_V1"
+      },
+      "additional_income_raw": null,
+      "legacy_import_version": "project-file-intake-v1",
+      "raw_profile_parameters": {
+        "chislennost_sanitarov_i_transportirovschikov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "chislennost_sanitarov_i_transportirovschikov",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 40,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "чел."
+          },
+          "value": 65
+        },
+        "chislennost_sotrudnikov_pischebloka_razdacha": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "chislennost_sotrudnikov_pischebloka_razdacha",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 41,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "чел."
+          },
+          "value": 28
+        },
+        "chislennost_sotrudnikov_prachechnoy_transport_belya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "chislennost_sotrudnikov_prachechnoy_transport_belya",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 42,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "чел."
+          },
+          "value": 18
+        },
+        "dolya_srochnyh_stat_dostavok_medikamentov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "dolya_srochnyh_stat_dostavok_medikamentov",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 30,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "%"
+          },
+          "value": 8
+        },
+        "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "dostupnaya_moschnost_dlya_zaryadnoy_infrastruktury",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 56,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "кВт"
+          },
+          "value": 80
+        },
+        "godovaya_tekuchest_nemedicinskiy_personal": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "godovaya_tekuchest_nemedicinskiy_personal",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 46,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "%"
+          },
+          "value": 45
+        },
+        "gorizont_rascheta_okupaemosti": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "gorizont_rascheta_okupaemosti",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 58,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "лет"
+          },
+          "value": 7
+        },
+        "koechnyy_fond_v_ekspluatacii_srednyaya_zanyatost": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "koechnyy_fond_v_ekspluatacii_srednyaya_zanyatost",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 7,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "%"
+          },
+          "value": 82
+        },
+        "koefficient_nachisleniy_na_fot": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "koefficient_nachisleniy_na_fot",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 45,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": 1.302
+        },
+        "kolichestvo_ambulatornyh_posescheniy_v_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_ambulatornyh_posescheniy_v_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 9,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "посещений/сут"
+          },
+          "value": 850
+        },
+        "kolichestvo_aptechnyh_tochek_vydachi_apteka_aptechnye_sklady": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_aptechnyh_tochek_vydachi_apteka_aptechnye_sklady",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 27,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 2
+        },
+        "kolichestvo_biomaterialov_prob_v_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_biomaterialov_prob_v_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 32,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "проб/сут"
+          },
+          "value": 1200
+        },
+        "kolichestvo_etazhey_osnovnoy_korpus": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_etazhey_osnovnoy_korpus",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 4,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 9
+        },
+        "kolichestvo_kliniko_diagnosticheskih_laboratoriy_kdl": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_kliniko_diagnosticheskih_laboratoriy_kdl",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 33,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 2
+        },
+        "kolichestvo_koek_stacionar": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_koek_stacionar",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 6,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "коек"
+          },
+          "value": 650
+        },
+        "kolichestvo_kormleniy_v_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_kormleniy_v_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 14,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "раз/сут"
+          },
+          "value": 3
+        },
+        "kolichestvo_liftov_gruzovyh_medicinskih": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_liftov_gruzovyh_medicinskih",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 5,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 4
+        },
+        "kolichestvo_naimenovaniy_medikamentov_v_obraschenii": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_naimenovaniy_medikamentov_v_obraschenii",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 25,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "наименований"
+          },
+          "value": 2800
+        },
+        "kolichestvo_operacionnyh": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_operacionnyh",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 8,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 12
+        },
+        "kolichestvo_smen_medpersonala_uhod_za_pacientami": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_smen_medpersonala_uhod_za_pacientami",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 12,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "смен/сут"
+          },
+          "value": 3
+        },
+        "kolichestvo_tochek_dostavki_otdeleniy_or_reanimaciya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_tochek_dostavki_otdeleniy_or_reanimaciya",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 28,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 22
+        },
+        "kolichestvo_tochek_razdachi_pitaniya_otdeleniy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_tochek_razdachi_pitaniya_otdeleniy",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 17,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 18
+        },
+        "kolichestvo_tochek_sbora_othodov": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_tochek_sbora_othodov",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 38,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 20
+        },
+        "kolichestvo_tochek_sbora_vydachi_belya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "kolichestvo_tochek_sbora_vydachi_belya",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 22,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "шт."
+          },
+          "value": 18
+        },
+        "nalichie_lis_laboratornaya_informacionnaya_sistema": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_lis_laboratornaya_informacionnaya_sistema",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 52,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Да"
+        },
+        "nalichie_mis_medicinskaya_informacionnaya_sistema": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_mis_medicinskaya_informacionnaya_sistema",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 51,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Да (ЕМИАС)"
+        },
+        "nalichie_pandusov_podemnikov_dlya_mezhetazhnogo_amr_bez_lifta": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_pandusov_podemnikov_dlya_mezhetazhnogo_amr_bez_lifta",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 55,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Нет"
+        },
+        "nalichie_sistemy_upravleniya_liftami_bms": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_sistemy_upravleniya_liftami_bms",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 53,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Да (частично)"
+        },
+        "nalichie_skud_kontrol_dostupa_po_zonam": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "nalichie_skud_kontrol_dostupa_po_zonam",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 49,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Да"
+        },
+        "normativ_dostavki_pitaniya_min_ot_pischebloka_do_otdeleniya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "normativ_dostavki_pitaniya_min_ot_pischebloka_do_otdeleniya",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 19,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "мин"
+          },
+          "value": 20
+        },
+        "obem_chistogo_belya_na_razdachu_kg_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_chistogo_belya_na_razdachu_kg_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 21,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "кг/сут"
+          },
+          "value": 1800
+        },
+        "obem_dostavki_rashodnyh_materialov_reysov_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_dostavki_rashodnyh_materialov_reysov_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 31,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "рейсов/сут"
+          },
+          "value": 45
+        },
+        "obem_gryaznogo_belya_kg_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_gryaznogo_belya_kg_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 20,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "кг/сут"
+          },
+          "value": 1800
+        },
+        "obem_medicinskih_othodov_klassa_a_nenasyschennye": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_medicinskih_othodov_klassa_a_nenasyschennye",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 36,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "кг/сут"
+          },
+          "value": 850
+        },
+        "obem_medicinskih_othodov_klassa_b_inficirovannye": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_medicinskih_othodov_klassa_b_inficirovannye",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 37,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "кг/сут"
+          },
+          "value": 220
+        },
+        "obem_vydachi_medikamentov_zayavok_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_vydachi_medikamentov_zayavok_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 26,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "заявок/сут"
+          },
+          "value": 340
+        },
+        "obem_vydachi_rezultatov_analizov_reysov_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obem_vydachi_rezultatov_analizov_reysov_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 35,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "рейсов/сут"
+          },
+          "value": 28
+        },
+        "obezzarazhivanie_robota_mezhdu_reysami": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obezzarazhivanie_robota_mezhdu_reysami",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 47,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Обязательно для Б-маршрутов"
+        },
+        "obschaya_ploschad_zdaniya_y": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obschaya_ploschad_zdaniya_y",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 3,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "м²"
+          },
+          "value": 45000
+        },
+        "obschee_kolichestvo_porciy_pitaniya_v_sutki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "obschee_kolichestvo_porciy_pitaniya_v_sutki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 15,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "порций/сут"
+          },
+          "value": 1950
+        },
+        "periodichnost_smeny_belya_raz_v_sutki_v_srednem": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "periodichnost_smeny_belya_raz_v_sutki_v_srednem",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 23,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "раз/сут"
+          },
+          "value": 1.3
+        },
+        "periodichnost_vyvoza_othodov_iz_otdeleniy": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "periodichnost_vyvoza_othodov_iz_otdeleniy",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 39,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "раз/сут"
+          },
+          "value": 2
+        },
+        "pikovoe_vremya_logisticheskoy_nagruzki": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "pikovoe_vremya_logisticheskoy_nagruzki",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 13,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "07:00-10:00 и 15:00-17:00"
+        },
+        "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "planiruemyy_byudzhet_na_robotizaciyu_capex",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 57,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "млн руб."
+          },
+          "value": 35
+        },
+        "rezhim_raboty_ambulatorii": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "rezhim_raboty_ambulatorii",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 11,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "5/2, 08:00-20:00"
+        },
+        "rezhim_raboty_stacionara": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "rezhim_raboty_stacionara",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 10,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "24/7/365"
+        },
+        "shirina_koridorov_osnovnyh": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "shirina_koridorov_osnovnyh",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 54,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "м"
+          },
+          "value": 2.4
+        },
+        "srednee_rasstoyanie_ot_pischebloka_do_otdeleniya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednee_rasstoyanie_ot_pischebloka_do_otdeleniya",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 16,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "м"
+          },
+          "value": 180
+        },
+        "srednee_vremya_dostavki_proby_normativ": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednee_vremya_dostavki_proby_normativ",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 34,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "мин"
+          },
+          "value": 30
+        },
+        "srednee_vremya_komplektacii_1_zayavki_v_apteke": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednee_vremya_komplektacii_1_zayavki_v_apteke",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 29,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "мин"
+          },
+          "value": 12
+        },
+        "srednyaya_massa_konteynera_s_belem": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_massa_konteynera_s_belem",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 24,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "кг"
+          },
+          "value": 55
+        },
+        "srednyaya_massa_telezhki_s_pitaniem_brutto": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_massa_telezhki_s_pitaniem_brutto",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 18,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "кг"
+          },
+          "value": 120
+        },
+        "srednyaya_z_p_sanitara_transportirovschika_gross": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_z_p_sanitara_transportirovschika_gross",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 43,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "руб./мес."
+          },
+          "value": 55000
+        },
+        "srednyaya_z_p_sotrudnika_pischebloka_gross": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "srednyaya_z_p_sotrudnika_pischebloka_gross",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 44,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "руб./мес."
+          },
+          "value": 52000
+        },
+        "tip_medicinskogo_uchrezhdeniya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "tip_medicinskogo_uchrezhdeniya",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 2,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Многопрофильная больница"
+        },
+        "trebovaniya_k_materialu_poverhnostey_robota": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "trebovaniya_k_materialu_poverhnostey_robota",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 50,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "-"
+          },
+          "value": "Нержавеющая сталь или ABS с антибактер. покрытием"
+        },
+        "trebovaniya_k_urovnyu_shuma_v_palatah_nochnoe_vremya": {
+          "provenance": {
+            "kind": "FILE",
+            "parameter_code": "trebovaniya_k_urovnyu_shuma_v_palatah_nochnoe_vremya",
+            "source": {
+              "format": "CSV",
+              "name": "medical_facility-project-input.csv",
+              "row": 48,
+              "sha256": "befd3d18d7fcc139d96d190f1595fc4bf45566d9017669524bd869f7e1d2fe42"
+            },
+            "unit": "дБА"
+          },
+          "value": 30
+        }
+      },
+      "role_allocations_raw": {},
+      "source_profile_version": "organizer-object-profiles-v1:sha256:5473a2c5eacc90ff2aab3f54d8e83e772a73e8ed96ec24e1a60a63fd27ee3401",
+      "unaccepted_salary_raw": {}
+    },
+    "required_inputs": [
+      "processes.block.clinic_food.route_distance",
+      "processes.block.clinic_food.explicit_batch",
+      "roles.fixture.clinic.catering_worker.monthly_gross_salary"
+    ],
+    "role_pool": {
+      "object_kind": "CLINIC",
+      "pool_id": "fixture.clinic.roles",
+      "roles": [
+        {
+          "headcount": {
+            "name": "role_headcount",
+            "normalized_value": "28",
+            "numeric_encoding": "DECIMAL_STRING",
+            "provenance_ref": "conversion.0005",
+            "quantity_kind": "COUNT",
+            "raw_unit": "person",
+            "raw_value": "28",
+            "status": "KNOWN",
+            "unit": "person"
+          },
+          "label": null,
+          "monthly_gross_salary": {
+            "expected_unit": "RUB/person/month",
+            "missing_reason": "MISSING_INPUT",
+            "name": "monthly_gross_salary",
+            "provenance_ref": null,
+            "quantity_kind": "MONEY",
+            "status": "MISSING"
+          },
+          "object_scope": "CLINIC",
+          "process_ids": [
+            "fixture.clinic.clinic_food"
+          ],
+          "role_code": "catering_worker",
+          "role_id": "fixture.clinic.catering_worker",
+          "zero_cost_marker": null
+        }
+      ],
+      "schema_version": "role-pool-v1"
+    },
+    "schema_version": "calculation-intake-normalization-v2",
+    "valid": true
+  }
+}

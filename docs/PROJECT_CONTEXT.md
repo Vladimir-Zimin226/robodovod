@@ -246,7 +246,13 @@ immutable snapshot из 228 параметров, strict schemas, manifest с ha
 трёх сценариев полна, unsafe salary/vendor defaults исключены. Отчёт:
 [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md).
 
-Следующая малая итерация — **`intake/process-role-normalization-v2`** (C03).
+Этап **`intake/process-role-normalization-v2`** (C03) завершён: добавлены
+strict versioned intake/normalization contracts, exact K19 projection 28 блоков,
+typed units, USER/FILE/LLM raw provenance, monthly gross salary без default
+и compatibility adapter из существующего file import v1. Отчёт:
+[calculation intake normalization v2](planning/calculation-intake-normalization-v2.md).
+
+Следующая малая итерация — **`frontend/process-role-intake-v2`** (C04).
 `engine/capacity-formula-trace` остаётся C07 после registry, normalization,
 constraints и executability audit. Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый

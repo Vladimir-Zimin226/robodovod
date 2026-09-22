@@ -1,0 +1,598 @@
+{
+  "$defs": {
+    "ActivationSource": {
+      "enum": [
+        "USER",
+        "FILE",
+        "LLM",
+        "ROLE",
+        "POLICY",
+        "LEGACY_V1"
+      ],
+      "title": "ActivationSource",
+      "type": "string"
+    },
+    "ObjectKind": {
+      "enum": [
+        "WAREHOUSE",
+        "AIRPORT",
+        "CLINIC"
+      ],
+      "title": "ObjectKind",
+      "type": "string"
+    },
+    "ProcessCode": {
+      "enum": [
+        "warehouse_receiving_shipping",
+        "warehouse_storage",
+        "warehouse_picking",
+        "warehouse_palletizing",
+        "warehouse_cleaning",
+        "warehouse_inventory",
+        "airport_baggage",
+        "airport_catering",
+        "airport_fuelling",
+        "airport_internal_logistics",
+        "airport_terminal_cleaning",
+        "airport_apron_cleaning",
+        "airport_waste",
+        "airport_inspection",
+        "airport_passenger_assistance",
+        "airport_ground_service",
+        "clinic_food",
+        "clinic_linen",
+        "clinic_medicines",
+        "clinic_biomaterials",
+        "clinic_sterile_sets",
+        "clinic_consumables",
+        "clinic_waste_a",
+        "clinic_waste_b",
+        "clinic_results",
+        "clinic_cleaning",
+        "clinic_inventory",
+        "clinic_safety_requirements"
+      ],
+      "title": "ProcessCode",
+      "type": "string"
+    },
+    "ProcessIntake": {
+      "additionalProperties": false,
+      "properties": {
+        "activation_source": {
+          "$ref": "#/$defs/ActivationSource"
+        },
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "block_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Block Id",
+          "type": "string"
+        },
+        "demand": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "explicit_batch": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "process_code": {
+          "$ref": "#/$defs/ProcessCode"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/ProcessQuantityKind"
+        },
+        "role_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Role Refs",
+          "type": "array"
+        },
+        "route_distance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "schedule": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcessScheduleInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "block_id",
+        "process_id",
+        "process_code",
+        "active",
+        "activation_source",
+        "quantity_kind"
+      ],
+      "title": "ProcessIntake",
+      "type": "object"
+    },
+    "ProcessQuantityKind": {
+      "enum": [
+        "PALLET",
+        "BOX",
+        "CASE",
+        "CART",
+        "DELIVERY",
+        "PORTION",
+        "KILOGRAM",
+        "SAMPLE",
+        "SET",
+        "BIN",
+        "ITEM",
+        "SQUARE_METER",
+        "PICK",
+        "DIGITAL_FLOW"
+      ],
+      "title": "ProcessQuantityKind",
+      "type": "string"
+    },
+    "ProcessScheduleInput": {
+      "additionalProperties": false,
+      "properties": {
+        "days_per_year": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "shift_hours": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "shifts_per_day": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "ProcessScheduleInput",
+      "type": "object"
+    },
+    "RawProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "alias": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alias"
+        },
+        "cell": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z]{1,3}[1-9][0-9]{0,6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cell"
+        },
+        "file_name": {
+          "anyOf": [
+            {
+              "maxLength": 255,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Name"
+        },
+        "file_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Sha256"
+        },
+        "llm_message_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Message Id"
+        },
+        "raw_text": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Text"
+        },
+        "row": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Row"
+        },
+        "sheet": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet"
+        },
+        "source": {
+          "$ref": "#/$defs/RawSource"
+        },
+        "user_confirmed": {
+          "default": false,
+          "title": "User Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "RawProvenance",
+      "type": "object"
+    },
+    "RawQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance": {
+          "$ref": "#/$defs/RawProvenance"
+        },
+        "unit": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "provenance"
+      ],
+      "title": "RawQuantity",
+      "type": "object"
+    },
+    "RawSource": {
+      "enum": [
+        "USER",
+        "FILE",
+        "LLM",
+        "PRESET",
+        "ASSUMPTION",
+        "LEGACY_V1"
+      ],
+      "title": "RawSource",
+      "type": "string"
+    },
+    "RoleCode": {
+      "enum": [
+        "forklift_driver",
+        "loader",
+        "storekeeper",
+        "picker",
+        "sorter",
+        "packer",
+        "cleaner",
+        "inventory_worker",
+        "baggage_handler",
+        "trolley_operator",
+        "special_equipment_driver",
+        "terminal_cleaner",
+        "perron_cleaner",
+        "runway_inspector",
+        "security_guard",
+        "passenger_assistant",
+        "courier",
+        "ramp_worker",
+        "ground_support_worker",
+        "catering_worker",
+        "laundry_worker",
+        "sanitary",
+        "porter",
+        "lab_assistant",
+        "sterile_supply_worker",
+        "consumable_worker",
+        "lab_result_courier",
+        "tech_support",
+        "control_operator"
+      ],
+      "title": "RoleCode",
+      "type": "string"
+    },
+    "RoleIntake": {
+      "additionalProperties": false,
+      "properties": {
+        "allocation_shares": {
+          "anyOf": [
+            {
+              "patternProperties": {
+                "^[a-z0-9][a-z0-9._:-]{0,127}$": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allocation Shares"
+        },
+        "headcount": {
+          "$ref": "#/$defs/RawQuantity"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "monthly_gross_salary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RawQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "object_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectKind"
+            },
+            {
+              "const": "SITE",
+              "type": "string"
+            }
+          ],
+          "title": "Object Scope"
+        },
+        "process_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Process Ids",
+          "type": "array"
+        },
+        "role_code": {
+          "$ref": "#/$defs/RoleCode"
+        },
+        "role_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Role Id",
+          "type": "string"
+        },
+        "zero_cost_marker": {
+          "anyOf": [
+            {
+              "const": "ZERO_COST_ROLE",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zero Cost Marker"
+        }
+      },
+      "required": [
+        "role_id",
+        "object_scope",
+        "role_code",
+        "headcount"
+      ],
+      "title": "RoleIntake",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "additional_income_raw": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RawQuantity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "legacy_import_version": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Legacy Import Version"
+    },
+    "object_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Object Id",
+      "type": "string"
+    },
+    "object_kind": {
+      "$ref": "#/$defs/ObjectKind"
+    },
+    "processes": {
+      "items": {
+        "$ref": "#/$defs/ProcessIntake"
+      },
+      "title": "Processes",
+      "type": "array"
+    },
+    "raw_profile_parameters": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Raw Profile Parameters"
+    },
+    "roles": {
+      "items": {
+        "$ref": "#/$defs/RoleIntake"
+      },
+      "title": "Roles",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "calculation-intake-v2",
+      "default": "calculation-intake-v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_profile_version": {
+      "anyOf": [
+        {
+          "maxLength": 160,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Profile Version"
+    }
+  },
+  "required": [
+    "input_revision",
+    "object_id",
+    "object_kind",
+    "processes",
+    "roles"
+  ],
+  "title": "CalculationIntakeRequestV2",
+  "type": "object"
+}
