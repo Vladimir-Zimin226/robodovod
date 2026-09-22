@@ -7,8 +7,8 @@ Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к
 реализации, не утверждение о существующих файлах. C01 **COMPLETE** 2026-09-20,
 C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22,
 C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22,
-C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23;
-C08–C29 пока **PLANNED**.
+C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
+C08 **COMPLETE** 2026-09-23; C09–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -239,6 +239,9 @@ membership. Отчёт: [formula executability audit v3](formula-executability-a
 - **Вне этапа:** cleaning/cell, finance, UI, activation, scheduling/SLA.
 
 ## C08 — `engine/cleaning-capacity-trace`
+
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[cleaning capacity trace v1](cleaning-capacity-trace-v1.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

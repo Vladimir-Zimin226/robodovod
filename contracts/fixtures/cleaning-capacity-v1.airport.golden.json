@@ -1,0 +1,21 @@
+{
+  "derived_area_m2": "51000",
+  "effective_m2_day": "16800",
+  "formula_ids": [
+    "F01",
+    "F05",
+    "F07"
+  ],
+  "input_units": [
+    "1",
+    "1/day",
+    "h",
+    "m2",
+    "m2/day",
+    "m2/h",
+    "shift"
+  ],
+  "nominal_m2_day": "24000",
+  "recommended_fleet": 4,
+  "required_area_m2_day": "51000"
+}

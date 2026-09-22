@@ -124,3 +124,27 @@ def actual_fleet_capacity(
             return nominal, effective, Decimal(0), None, True
         raw_load = required / effective
         return nominal, effective, min(effective / required, Decimal(1)), raw_load, raw_load > 1
+
+
+def cleaning_capacity(
+    *,
+    area_m2: Decimal,
+    frequency_per_day: Decimal,
+    rate_m2_hour: Decimal,
+    operating_hours_per_day: Decimal,
+    availability: Decimal,
+) -> tuple[Decimal, Decimal, Decimal, int]:
+    """F05 daily required, nominal/effective capacity, and exact fleet ceil."""
+    if area_m2 <= 0 or frequency_per_day <= 0:
+        raise ValueError("cleaning area and frequency must be positive")
+    if rate_m2_hour <= 0 or operating_hours_per_day <= 0:
+        raise ValueError("cleaning rate and operating hours must be positive")
+    if not Decimal(0) < availability <= Decimal(1):
+        raise ValueError("availability must be in (0, 1]")
+    with localcontext() as context:
+        context.prec = 28
+        context.rounding = ROUND_HALF_EVEN
+        required = area_m2 * frequency_per_day
+        nominal = rate_m2_hour * operating_hours_per_day
+        effective = nominal * availability
+        return required, nominal, effective, ceil_exact(required / effective)

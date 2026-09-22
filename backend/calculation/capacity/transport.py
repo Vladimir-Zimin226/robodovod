@@ -25,7 +25,6 @@ from calculation_contracts import (
     ContractIssue,
     DerivedProvenance,
     ExchangeTime,
-    FormulaNode,
     IntermediateValue,
     KnownQuantity,
     NormalizedProcess,
@@ -35,7 +34,6 @@ from calculation_contracts import (
     QuantityKind,
     QuantityName,
     ReplayBinding,
-    ResultQuantity,
     RoundingEvent,
     StrictContractModel,
     TraceEnvelope,
@@ -43,7 +41,6 @@ from calculation_contracts import (
     Unit,
     UserProvenance,
     VersionBindings,
-    calculation_trace_digest,
     semantic_digest,
 )
 
@@ -57,6 +54,7 @@ from .quantities import (
     resolve_batch,
     size_fleet,
 )
+from .trace import finalize_trace, formula_node, result_quantity
 
 ZERO_DIGEST = "sha256:" + "0" * 64
 ENGINE_VERSION = "transport-capacity-engine-v1"
@@ -175,25 +173,6 @@ def _q(name: QuantityName, value: Decimal, unit: Unit, kind: QuantityKind, prove
                          unit=unit, quantity_kind=kind, provenance_ref=provenance_ref)
 
 
-def _result(value: Decimal, unit: Unit, kind: QuantityKind) -> ResultQuantity:
-    return ResultQuantity(value=canonical(value), unit=unit, quantity_kind=kind)
-
-
-def _node(formula_id: str, dependencies: list[str], inputs: list[str]) -> FormulaNode:
-    source = {"formula_id": formula_id, "version": "hackathon-calculation-policy-v1"}
-    return FormulaNode(node_id=f"node.{formula_id.lower()}", formula_id=formula_id,
-                       formula_version="calculation-formulas-v1", source_refs=["R03", "POLICY_V1"],
-                       source_digest=semantic_digest(source), template_id=f"template.{formula_id.lower()}",
-                       applicability_domain="TRANSPORT_OR_DELIVERY_CYCLE", dependency_node_ids=dependencies,
-                       input_refs=inputs)
-
-
-def _trace_digest(trace: CalculationTrace) -> CalculationTrace:
-    payload = trace.model_copy(deep=True)
-    payload.replay.trace_content_digest = calculation_trace_digest(payload)
-    return payload
-
-
 def _blocked(request: TransportCapacityRequestV1, code: str, message: str) -> CapacityAnalysisResponse:
     reason = "MISSING_SAFE_FACT" if request.executability.status != "EXECUTABLE" else "INVALID_DOMAIN"
     issue = ContractIssue(code=code, reason=reason, severity="BLOCKER",
@@ -208,7 +187,7 @@ def _blocked(request: TransportCapacityRequestV1, code: str, message: str) -> Ca
         versions=request.versions, provenance=provenance, inputs=[], formula_nodes=[], results=[
             TraceResult(result_id="result.capacity", status="BLOCKED", value=None, capacity_basis="NOT_APPLICABLE")],
         issues=[issue], replay=ReplayBinding(canonical_input_digest=semantic_digest(request), trace_content_digest=ZERO_DIGEST))
-    trace = _trace_digest(trace)
+    trace = finalize_trace(trace)
     capacity = CapacityResult(process_id=request.process.process_id, status="BLOCKED", value=None,
                               blockers=[issue], trace_ref=trace_ref)
     return CapacityAnalysisResponse(run_id=request.run_id, input_revision=request.process.input_revision,
@@ -226,7 +205,7 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
             versions=request.versions, provenance=request.provenance, inputs=[], formula_nodes=[], results=[
                 TraceResult(result_id="result.capacity", status="NOT_APPLICABLE", value=None, capacity_basis="NOT_APPLICABLE")],
             replay=ReplayBinding(canonical_input_digest=semantic_digest(request), trace_content_digest=ZERO_DIGEST))
-        trace = _trace_digest(trace)
+        trace = finalize_trace(trace)
         return CapacityAnalysisResponse(run_id=request.run_id, input_revision=request.process.input_revision,
             capacity=CapacityResult(process_id=request.process.process_id, status="NOT_APPLICABLE", value=None,
                                     trace_ref=f"trace.{request.run_id}"), trace=trace)
@@ -354,11 +333,11 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
             inputs.append(optional)
 
     nodes = [
-        _node("F01", [], ["shifts_per_day", "shift_hours"]),
-        _node("F02", [], ["one_way_distance", "operating_speed", exchange.mode.lower()]),
-        _node("F03", ["node.f02"], ["units_per_trip", seconds_id]),
-        _node("F04", ["node.f01", "node.f03"], ["demand_per_day", availability_id, peak_id, reserve_id]),
-        _node("F07", ["node.f04"], ["fleet_selected"]),
+        formula_node("F01", [], ["shifts_per_day", "shift_hours"], applicability_domain="TRANSPORT_OR_DELIVERY_CYCLE"),
+        formula_node("F02", [], ["one_way_distance", "operating_speed", exchange.mode.lower()], applicability_domain="TRANSPORT_OR_DELIVERY_CYCLE"),
+        formula_node("F03", ["node.f02"], ["units_per_trip", seconds_id], applicability_domain="TRANSPORT_OR_DELIVERY_CYCLE"),
+        formula_node("F04", ["node.f01", "node.f03"], ["demand_per_day", availability_id, peak_id, reserve_id], applicability_domain="TRANSPORT_OR_DELIVERY_CYCLE"),
+        formula_node("F07", ["node.f04"], ["fleet_selected"], applicability_domain="TRANSPORT_OR_DELIVERY_CYCLE"),
     ]
     intermediate_data = [
         ("iv.operating-hours", "node.f01", QuantityName.OPERATING_HOURS_PER_DAY, h, Unit.HOUR, QuantityKind.TIME),
@@ -369,7 +348,7 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
         ("iv.required", "node.f04", QuantityName.REQUIRED_CAPACITY, required, Unit.UNIT_PER_HOUR, QuantityKind.RATE),
         ("iv.fleet", "node.f07", QuantityName.FLEET_CAPACITY, effective_fleet, Unit.UNIT_PER_HOUR, QuantityKind.RATE),
     ]
-    intermediates = [IntermediateValue(value_id=i, node_id=n, name=name, value=_result(v, unit, kind), parent_refs=[n])
+    intermediates = [IntermediateValue(value_id=i, node_id=n, name=name, value=result_quantity(v, unit, kind), parent_refs=[n])
                      for i, n, name, v, unit, kind in intermediate_data]
     roundings = [RoundingEvent(rounding_id="round.fleet-ceil", node_id="node.f04", operation="CEIL",
         input_value=canonical(required / effective), output_value=str(recommended),
@@ -391,11 +370,11 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
             message="Geometry batch limit is unknown and was excluded from the minimum"))
     status = "WITH_ASSUMPTIONS" if assumptions else "COMPLETE"
     values = CapacityValues(recommended_fleet=recommended, selected_fleet=selected,
-        nominal_capacity=_result(nominal_fleet, Unit.UNIT_PER_HOUR, QuantityKind.RATE),
-        effective_capacity=_result(effective_fleet, Unit.UNIT_PER_HOUR, QuantityKind.RATE),
-        coverage=_result(coverage, Unit.DIMENSIONLESS, QuantityKind.FRACTION),
-        raw_load_ratio=None if raw_load is None else _result(raw_load, Unit.DIMENSIONLESS, QuantityKind.FRACTION),
-        utilization=None if utilization is None else _result(utilization, Unit.DIMENSIONLESS, QuantityKind.FRACTION),
+        nominal_capacity=result_quantity(nominal_fleet, Unit.UNIT_PER_HOUR, QuantityKind.RATE),
+        effective_capacity=result_quantity(effective_fleet, Unit.UNIT_PER_HOUR, QuantityKind.RATE),
+        coverage=result_quantity(coverage, Unit.DIMENSIONLESS, QuantityKind.FRACTION),
+        raw_load_ratio=None if raw_load is None else result_quantity(raw_load, Unit.DIMENSIONLESS, QuantityKind.FRACTION),
+        utilization=None if utilization is None else result_quantity(utilization, Unit.DIMENSIONLESS, QuantityKind.FRACTION),
         overloaded=overloaded)
     capacity = CapacityResult(process_id=request.process.process_id, status=status, value=values,
                               warnings=warnings, trace_ref=f"trace.{request.run_id}")
@@ -409,6 +388,6 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
         roundings=roundings, results=[TraceResult(result_id="result.effective-fleet-capacity", status=status,
             value=values.effective_capacity, supporting_node_ids=["node.f07"], capacity_basis="EFFECTIVE")],
         issues=warnings, replay=ReplayBinding(canonical_input_digest=semantic_digest(request), trace_content_digest=ZERO_DIGEST))
-    trace = _trace_digest(trace)
+    trace = finalize_trace(trace)
     return CapacityAnalysisResponse(run_id=request.run_id, input_revision=request.process.input_revision,
                                     capacity=capacity, trace=trace)

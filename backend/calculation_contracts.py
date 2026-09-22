@@ -177,6 +177,7 @@ class Unit(StrEnum):
     UNIT_PER_HOUR = "unit/h"
     TRIP_PER_HOUR = "trip/h"
     SECOND_PER_HOUR = "s/h"
+    PER_DAY = "1/day"
     SQUARE_METER_PER_HOUR = "m2/h"
     UNIT_PER_MINUTE = "unit/min"
     PICK_PER_MINUTE = "pick/min"
@@ -221,6 +222,7 @@ UNIT_KINDS: dict[str, QuantityKind] = {
     "unit/h": QuantityKind.RATE,
     "trip/h": QuantityKind.RATE,
     "s/h": QuantityKind.UNIT_DEFINITION,
+    "1/day": QuantityKind.RATE,
     "m2/h": QuantityKind.RATE,
     "unit/min": QuantityKind.RATE,
     "pick/min": QuantityKind.RATE,
@@ -243,6 +245,9 @@ class QuantityName(StrEnum):
     OPERATING_HOURS_PER_DAY = "operating_hours_per_day"
     DAYS_PER_YEAR = "days_per_year"
     DEMAND_PER_DAY = "demand_per_day"
+    CLEANING_AREA = "cleaning_area"
+    TOTAL_AREA = "total_area"
+    CLEANING_AREA_SHARE = "cleaning_area_share"
     CLEANING_AREA_PER_DAY = "cleaning_area_per_day"
     PEAK_FACTOR = "peak_factor"
     RESERVE_SHARE = "reserve_share"
@@ -305,7 +310,10 @@ NORMALIZED_UNITS: dict[str, Unit] = {
     QuantityName.SECONDS_PER_HOUR: Unit.SECOND_PER_HOUR,
     QuantityName.REQUIRED_CAPACITY: Unit.UNIT_PER_HOUR,
     QuantityName.FLEET_CAPACITY: Unit.UNIT_PER_HOUR,
-    QuantityName.CLEANING_FREQUENCY: Unit.DIMENSIONLESS,
+    QuantityName.CLEANING_AREA: Unit.SQUARE_METER,
+    QuantityName.TOTAL_AREA: Unit.SQUARE_METER,
+    QuantityName.CLEANING_AREA_SHARE: Unit.DIMENSIONLESS,
+    QuantityName.CLEANING_FREQUENCY: Unit.PER_DAY,
     QuantityName.CLEANING_RATE: Unit.SQUARE_METER_PER_HOUR,
     QuantityName.CELL_RATE: Unit.UNIT_PER_HOUR,
     QuantityName.CELL_EFFICIENCY: Unit.DIMENSIONLESS,

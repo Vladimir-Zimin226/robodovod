@@ -277,7 +277,14 @@ actual selected-fleet coverage и byte-stable `CalculationTrace`. C06 safe-fact
 closure и C05 eligibility обязательны; legacy Robot/economics не читаются.
 Отчёт: [transport capacity formula trace v1](planning/transport-capacity-formula-trace-v1.md).
 
-Следующая малая итерация — **`engine/cleaning-capacity-trace`** (C08).
+Этап **`engine/cleaning-capacity-trace`** (C08) завершён: реализованы pure
+F05/F07 для cleaning area, direct/share-of-total area sources, typed
+`m2`, `1/day`, `m2/h`, `m2/day`, exact fleet ceil и общий C07 trace runtime.
+Проверены все шесть cleaning-ready позиций C06 и airport golden
+`85000 × 0.6 = 51000 m2`. Отчёт:
+[cleaning capacity trace v1](planning/cleaning-capacity-trace-v1.md).
+
+Следующая малая итерация — **`engine/palletizing-capacity-trace`** (C09).
 Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
 расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой
