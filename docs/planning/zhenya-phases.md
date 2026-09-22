@@ -1,6 +1,6 @@
 # Исполнительные карточки внедрения расчётной логики
 
-Редакция 1.1 от 2026-09-20, кодовый baseline `f77c32c2fde86cd1450aa96d43dc6273059c57d4`.
+Редакция 1.2 от 2026-09-22, кодовый baseline `f77c32c2fde86cd1450aa96d43dc6273059c57d4`.
 Родительский документ: [план 19](../19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
 Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к исполнению в
 [policy v1](calculation-policy-decisions-v1.md); отдельного ответа Жени не требуется. Новые пути ниже — предложения для
@@ -17,6 +17,19 @@ production activation только в авторизованной среде, �
 Исследования и поздний review не являются зависимостями этапов.
 Product BLOCKED/MISSING_INPUT — проверяемый ответ на неполные данные, не
 неразрешённое решение разработчика. Критерии scope — ТЗ и policy§3.
+
+Новая поставка Жени `reference v2` учтена как
+[deferred overlay](zhenya-reference-v2-delta.md), а не как неявная замена
+policy v1. C03–C11 продолжаются по K01–K29. Контрольные точки: V2-A после C11
+до C14, V2-B перед C13/C15, V2-C перед C16/C17, V2-D перед C19. На них решения
+получают новую policy/registry version; completed C01/C02 и старые runs не
+переписываются.
+
+Scope guard: до первого end-to-end warehouse результата карточка этапа не
+расширяется advanced tax accounting, cohort replacement, production deployment
+curves или дополнительными метриками только потому, что они описаны в
+`reference v2`. Достаточны строгий вход, честный partial status, trace и
+минимальная формула, необходимая acceptance данного этапа.
 
 ## C01 — `contracts/calculation-semantics-v1`
 
@@ -102,6 +115,9 @@ catalog и runtime activation не изменены. Отчёт:
   API strict tests; golden warehouse/airport/clinic mappings; frontend — нет.
 - **Acceptance / зависимости:** C01–02 и Q03/04 mappings; одинаковый смысл
   ручного/файлового/LLM ввода; portions≠deliveries; existing upload security сохранена.
+- **Reference v2:** сохранить расширяемость для `process_id`, activation source,
+  role allocation и additional-income raw input, но не менять K19 mappings и
+  fallback allocation до V2-A/V2-C.
 - **Вне этапа:** расчёт N/NPV, UI, новый формат исходного organizer dataset.
 
 ## C04 — `frontend/process-role-intake-v2`
@@ -144,6 +160,9 @@ catalog и runtime activation не изменены. Отчёт:
   integration readiness=execution eligibility; golden constraint snapshots.
 - **Acceptance / зависимости:** C01–03/принятый K15; E и RD больше не расходятся в новом
   path. Необоснованный autonomy×.8 исключён из v2 с migration note.
+- **Reference v2:** density 30 m²/robot допускается только как object warning;
+  integrations и итоговый счётчик проверок утверждаются на V2-D, без скрытого
+  превращения неподтверждённых требований в hard fail.
 - **Вне этапа:** score, deployment certification, formula execution, изменения v1.
 
 ## C06 — `catalog/formula-executability-audit-v3`
@@ -385,6 +404,9 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
   integration typedintpeople and blockedsubtree; frontend — нет.
 - **Acceptance / зависимости:** C03,C07–10 и K05–08; baseline counts от user,
   освобождение и deficit coverage не суммируются как одно увольнение.
+- **Reference v2 / V2-A:** до реализации явно решить ZV2-01–07 и ZV2-17:
+  allocation fallback, deficit default, floor/ceil ramp, surplus replacement,
+  role-level deficit и airport catering role. До решения действует policy v1.
 - **Вне этапа:** CF, taxes, RaaS, shared process allocation algorithm C18.
 
 ## C15 — `economics/purchase-cost-ledger-v1`
@@ -408,6 +430,9 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 - **Acceptance / зависимости:** C02,C13–14/K09–11; sumlines exact, no unknown
   treatedzero, ledger trace replay. Сложный battery policy выделить отдельным PR
   в этой ветке после basic cost ledger, без изменения financial flow.
+- **Reference v2 / V2-B:** проверить battery-in-price, replacement CAPEX,
+  `gross/amortizable/cashflow` bases и deployment/utilization. Новые правила
+  требуют registry/policy v2 и не меняют registry v1.
 - **Вне этапа:** tax/NPV/ROI, RaaS, UI, combined allocation.
 
 ## C16 — `economics/full-cashflows-reconciliation-v1`
@@ -431,6 +456,9 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
   CAPEX0, nonmonotonicCF; integration/goldenR13 table; front — нет.
 - **Acceptance / зависимости:** C15, принятый K12 (primary pretax + model tax supplement); everyR13 rule has test/check
   либо explicit scope/policy exception из K, metric definitions versioned.
+- **Reference v2 / V2-C:** отдельно решить equipment replacement, TCO net of
+  residual, additional income и новые ROI names. Primary pretax K12 сохраняется;
+  tax/VAT расширение не превращается в юридически точный движок.
 - **Вне этапа:** RaaS, ranking, sensitivity, procurement claims, UI.
 
 ## C17 — `economics/raas-cashflows-v1`
@@ -451,6 +479,8 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
   integration/golden purchasevsRaaS samefleet; frontend — нет.
 - **Acceptance / зависимости:** C13,C16/K21; RaaS has remaining infra CAPEX
   and may have incomplete economics; model policy not advertised vendor offer.
+- **Reference v2 / V2-B–C:** client/vendor infrastructure ownership и новые
+  TCO labels принимаются только versioned, с сохранением responsibility trace.
 - **Вне этапа:** vendor contracts research completion, UI, ranking.
 
 ## C18 — `economics/multiprocess-allocation-v1`
@@ -494,6 +524,8 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
   deterministic ties; integration/golden score table; front — нет.
 - **Acceptance / зависимости:** C05–06,C18; piecewise functions K14 без
   необъявленного endpoint; selected best traceable, no legacyfloor 45.
+- **Reference v2 / V2-D:** согласовать 23 против 31 checks и окончательно
+  закрепить integrations как applicability component либо hard fail по scope.
 - **Вне этапа:** procurement rubric invention, sensitivity, UI.
 
 ## C20 — `economics/sensitivity-v1`

@@ -226,6 +226,14 @@ evidence gates, tenant isolation и воспроизводимые snapshots с�
 [inventory](planning/zhenya-source-inventory.md) фиксируют формулы,
 расхождения, решения, вопросы и последовательность внедрения.
 
+Новая поставка Жени `Референсы/reference v2` изучена 2026-09-22. Она сильно
+расширяет labour/intake/finance/reconciliation, но содержит и внутренние
+неоднозначности. Принятые K01–K29 остаются исполнимой основой; все новые идеи,
+конфликты и source hashes сохранены в
+[reference v2 delta-register](planning/zhenya-reference-v2-delta.md). Они
+рассматриваются versioned на gates V2-A–V2-D и не переписывают registry v1 или
+старые runs.
+
 Этап **`contracts/calculation-semantics-v1`** (C01) завершён: добавлены строгие
 units/quantity/process/role DTO, независимые capacity/finance statuses,
 versioned `CalculationTrace`, replay digests, schema fixtures и proposed
@@ -244,6 +252,11 @@ constraints и executability audit. Нынешний `/api/calculate` требу
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
 расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой
 формулы при конкретном input и не означает deployment readiness.
+
+До первого warehouse end-to-end результата действует scope guard: проект не
+строит полный ERP, налоговый учёт или digital twin. Advanced tax, cohort
+replacement и раздельные production deployment curves остаются extensions,
+если не нужны текущему acceptance или устранению двойного учёта.
 
 Главные изменения целевого канона: полный exchange учитывается один раз,
 peak×reserve отделён от availability; роли и USER gross salary вместо единого
