@@ -1,0 +1,535 @@
+{
+  "$defs": {
+    "AnnualCostLedgerV1": {
+      "additionalProperties": false,
+      "properties": {
+        "deployment_share": {
+          "const": "1",
+          "default": "1",
+          "title": "Deployment Share",
+          "type": "string"
+        },
+        "operating_lines": {
+          "items": {
+            "$ref": "#/$defs/CostLineV1"
+          },
+          "title": "Operating Lines",
+          "type": "array"
+        },
+        "operating_total": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operating Total"
+        },
+        "ramp": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Ramp",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "ramp",
+        "operating_lines",
+        "operating_total",
+        "status"
+      ],
+      "title": "AnnualCostLedgerV1",
+      "type": "object"
+    },
+    "BatteryEventV1": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Amount",
+          "type": "string"
+        },
+        "cumulative_cycles": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Cumulative Cycles",
+          "type": "string"
+        },
+        "events_per_robot": {
+          "minimum": 0,
+          "title": "Events Per Robot",
+          "type": "integer"
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "events_per_robot",
+        "cumulative_cycles",
+        "amount"
+      ],
+      "title": "BatteryEventV1",
+      "type": "object"
+    },
+    "CostLineV1": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Amount"
+        },
+        "basis": {
+          "minLength": 1,
+          "title": "Basis",
+          "type": "string"
+        },
+        "category": {
+          "minLength": 1,
+          "title": "Category",
+          "type": "string"
+        },
+        "formula_id": {
+          "enum": [
+            "F16",
+            "F17",
+            "F18",
+            "F19",
+            "F20",
+            "F21",
+            "F22"
+          ],
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "line_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Line Id",
+          "type": "string"
+        },
+        "ownership": {
+          "enum": [
+            "CUSTOMER",
+            "VENDOR",
+            "INTEGRATOR",
+            "SHARED",
+            "UNKNOWN"
+          ],
+          "title": "Ownership",
+          "type": "string"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "source_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "EXCLUDED",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "timing": {
+          "enum": [
+            "CAPITAL_ONCE",
+            "ANNUAL",
+            "TERMINAL"
+          ],
+          "title": "Timing",
+          "type": "string"
+        },
+        "unit": {
+          "const": "RUB",
+          "default": "RUB",
+          "title": "Unit",
+          "type": "string"
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 0,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "line_id",
+        "formula_id",
+        "category",
+        "timing",
+        "year",
+        "status",
+        "amount",
+        "basis",
+        "ownership"
+      ],
+      "title": "CostLineV1",
+      "type": "object"
+    },
+    "PurchaseLedgerReplayV1": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_input_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Canonical Input Digest",
+          "type": "string"
+        },
+        "capacity_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Capacity Result Digest",
+          "type": "string"
+        },
+        "labour_trace_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Labour Trace Digest",
+          "type": "string"
+        },
+        "trace_content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Trace Content Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_input_digest",
+        "capacity_result_digest",
+        "labour_trace_digest",
+        "trace_content_digest"
+      ],
+      "title": "PurchaseLedgerReplayV1",
+      "type": "object"
+    },
+    "PurchaseTraceNodeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "formula_id": {
+          "enum": [
+            "F16",
+            "F17",
+            "F18",
+            "F19",
+            "F20",
+            "F21",
+            "F22"
+          ],
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inputs",
+          "type": "array"
+        },
+        "node_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "output": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Output",
+          "type": "string"
+        },
+        "rounding": {
+          "default": "NONE",
+          "enum": [
+            "NONE",
+            "CEIL"
+          ],
+          "title": "Rounding",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "node_id",
+        "formula_id",
+        "inputs",
+        "output",
+        "value",
+        "unit",
+        "source_refs"
+      ],
+      "title": "PurchaseTraceNodeV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "annual_ledgers": {
+      "items": {
+        "$ref": "#/$defs/AnnualCostLedgerV1"
+      },
+      "title": "Annual Ledgers",
+      "type": "array"
+    },
+    "battery_events": {
+      "items": {
+        "$ref": "#/$defs/BatteryEventV1"
+      },
+      "title": "Battery Events",
+      "type": "array"
+    },
+    "capex_amortizable": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Capex Amortizable"
+    },
+    "capex_cashflow": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Capex Cashflow"
+    },
+    "capex_gross": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Capex Gross"
+    },
+    "capital_lines": {
+      "items": {
+        "$ref": "#/$defs/CostLineV1"
+      },
+      "title": "Capital Lines",
+      "type": "array"
+    },
+    "commercial_policy_version": {
+      "const": "hackathon-commercial-policy-v1",
+      "title": "Commercial Policy Version",
+      "type": "string"
+    },
+    "engine_version": {
+      "const": "purchase-cost-ledger-v1",
+      "default": "purchase-cost-ledger-v1",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "equipment_capex": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Equipment Capex"
+    },
+    "fleet_count": {
+      "minimum": 0,
+      "title": "Fleet Count",
+      "type": "integer"
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "issues": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "policy_overlay_version": {
+      "const": "hackathon-calculation-policy-v1+v2b-c15",
+      "default": "hackathon-calculation-policy-v1+v2b-c15",
+      "title": "Policy Overlay Version",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "registry_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Registry Digest",
+      "type": "string"
+    },
+    "registry_version": {
+      "const": "hackathon-calculation-parameter-registry-v1",
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "replay": {
+      "$ref": "#/$defs/PurchaseLedgerReplayV1"
+    },
+    "reserve": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Reserve"
+    },
+    "run_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "purchase-cost-ledger-v1",
+      "default": "purchase-cost-ledger-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "COMPLETE",
+        "INCOMPLETE"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "tenant_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "terminal_residual": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Terminal Residual"
+    },
+    "trace": {
+      "items": {
+        "$ref": "#/$defs/PurchaseTraceNodeV1"
+      },
+      "title": "Trace",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "project_id",
+    "tenant_id",
+    "input_revision",
+    "status",
+    "fleet_count",
+    "capital_lines",
+    "annual_ledgers",
+    "battery_events",
+    "capex_gross",
+    "capex_amortizable",
+    "capex_cashflow",
+    "equipment_capex",
+    "reserve",
+    "terminal_residual",
+    "issues",
+    "trace",
+    "registry_version",
+    "registry_digest",
+    "commercial_policy_version",
+    "replay"
+  ],
+  "title": "PurchaseCostLedgerV1",
+  "type": "object"
+}

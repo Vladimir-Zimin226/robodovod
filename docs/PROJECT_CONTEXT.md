@@ -328,8 +328,17 @@ salary даёт локальный `INCOMPLETE`, zero требует `ZERO_COST_
 `NO_FOT_BENEFIT`. V2-A закрыт versioned overlay без изменения registry v1 и
 K19 mappings. Отчёт: [role labour baseline v1](planning/role-labor-baseline-v1.md).
 
-Следующая малая итерация — **`economics/purchase-cost-ledger-v1`** (C15).
-Frontend, cashflow/NPV и production runtime activation в C14 не менялись.
+Этап **`economics/purchase-cost-ledger-v1`** (C15) завершён: добавлены strict
+purchase request/ledger contracts, pure F16–F22 capital/operating lines,
+раздельные gross/amortizable/cashflow CAPEX bases, warranty/service/energy,
+cumulative battery replacements и residual. Missing commercial/technical
+inputs дают локальный `INCOMPLETE`, included/excluded cost не считается дважды,
+а capacity/labour snapshots остаются immutable. Отчёт:
+[purchase cost ledger v1](planning/purchase-cost-ledger-v1.md).
+
+Следующая малая итерация — **`economics/full-cashflows-reconciliation-v1`**
+(C16). Frontend, cashflow/NPV/tax и production runtime activation в C15 не
+менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

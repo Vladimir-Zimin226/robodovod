@@ -150,6 +150,26 @@ Gate закрыт 2026-09-23 без изменения policy v1:
 - CAPEX cost bases приняты по K25 как discriminated
   `FIXED_TOTAL/PER_ROBOT/PERCENT_BASE`; численная агрегация остаётся C15.
 
+### V2-B — завершение C15
+
+Gate завершён 2026-09-23 overlay
+`hackathon-calculation-policy-v1+v2b-c15`; результаты C13 сохранены:
+
+- **ZV2-09 — REJECTED_WITH_REASON.** Упрощённая повторная замена основного
+  оборудования без cohorts, нового commissioning и согласованного
+  depreciation/tax effect не принимается. C15 реализует принятый K10 battery
+  schedule; main-equipment replacement остаётся вне MVP policy.
+- **ZV2-10 — ADOPTED_IN_POLICY_V2.** Ledger явно публикует
+  `CAPEX_gross`, `CAPEX_amortizable` и `CAPEX_cashflow`; reserve входит в gross/
+  cashflow и исключён из amortizable base. C16 использует эти bindings без
+  пересборки C15 lines.
+- **ZV2-15 — ADOPTED_IN_POLICY_V2.** Для PURCHASE deployment всего купленного
+  fleet равен 1.0 и не масштабирует CAPEX; utilization ramp применяется один
+  раз к годовым energy/service/software/shared-labour lines и battery wear.
+
+ZV2-08/11/12 остаются в исходах C13: battery inclusion только explicit,
+responsibility ownership versioned, default VAT 20% запрещён.
+
 Каждый gate должен завершаться одним из результатов: `ADOPTED_IN_POLICY_V2`,
 `DEFERRED_POST_MVP` или `REJECTED_WITH_REASON`. Отсутствие решения не меняет
 policy v1 и не останавливает более ранние независимые этапы.

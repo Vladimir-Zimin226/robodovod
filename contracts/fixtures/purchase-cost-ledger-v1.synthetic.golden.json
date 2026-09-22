@@ -1,0 +1,2162 @@
+{
+  "request": {
+    "battery_lifecycle": {
+      "autonomy_hours": {
+        "evidence_ids": [
+          "evidence.prov.vendor.autonomy"
+        ],
+        "evidence_status": "VERIFIED_OFFICIAL",
+        "provenance_ref": "prov.vendor.autonomy",
+        "source": "VENDOR_FACT",
+        "unit": "h",
+        "value": "8"
+      },
+      "mode": "SEPARATE_REPLACEMENTS",
+      "replacement_unit_price": {
+        "evidence_ids": [],
+        "evidence_status": null,
+        "provenance_ref": "prov.user.battery-price",
+        "source": "USER",
+        "unit": "RUB/battery",
+        "value": "500000"
+      },
+      "resource_cycles": {
+        "evidence_ids": [
+          "evidence.prov.vendor.battery-resource"
+        ],
+        "evidence_status": "VERIFIED_OFFICIAL",
+        "provenance_ref": "prov.vendor.battery-resource",
+        "source": "VENDOR_FACT",
+        "unit": "cycle",
+        "value": "3000"
+      }
+    },
+    "charger_ratio": {
+      "evidence_ids": [],
+      "evidence_status": null,
+      "provenance_ref": "prov.user.charger-ratio",
+      "source": "USER",
+      "unit": "charger/robot",
+      "value": "0.3"
+    },
+    "energy_path": {
+      "average_power_w": {
+        "evidence_ids": [
+          "evidence.prov.vendor.power"
+        ],
+        "evidence_status": "VERIFIED_OFFICIAL",
+        "provenance_ref": "prov.vendor.power",
+        "source": "VENDOR_FACT",
+        "unit": "W",
+        "value": "1000"
+      },
+      "kind": "POWER"
+    },
+    "equipment_class": "AMR",
+    "fleet_count": 21,
+    "horizon_years": 5,
+    "initial_battery": {
+      "mode": "INCLUDED_IN_ROBOT_PRICE",
+      "provenance_ref": "prov.commercial.battery-included",
+      "separate_unit_price": null
+    },
+    "input_revision": "revision.c15",
+    "labour_opex": {
+      "additional_control_required": 1,
+      "control_annual_direct": "500000",
+      "source_result_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "technician_annual_direct": "600000",
+      "technicians_required": 2
+    },
+    "labour_trace_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "operating": {
+      "availability": {
+        "evidence_ids": [],
+        "evidence_status": null,
+        "provenance_ref": "prov.capacity.availability",
+        "source": "POLICY",
+        "unit": "1",
+        "value": "0.7"
+      },
+      "capacity_result_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "days_per_year": {
+        "evidence_ids": [],
+        "evidence_status": null,
+        "provenance_ref": "prov.capacity.days",
+        "source": "FILE",
+        "unit": "day/year",
+        "value": "365"
+      },
+      "operating_hours_per_day": {
+        "evidence_ids": [],
+        "evidence_status": null,
+        "provenance_ref": "prov.capacity.hours",
+        "source": "POLICY",
+        "unit": "h/day",
+        "value": "22"
+      }
+    },
+    "procurement": {
+      "acquisition": "PURCHASE",
+      "blockers": [],
+      "commercial_policy_version": "hackathon-commercial-policy-v1",
+      "evaluation_date": "2026-09-23",
+      "grounds": [
+        {
+          "code": "explicit-currency-assumption",
+          "evidence_ids": [],
+          "message": "Explicit contest demo currency assumption; source currency remains UNKNOWN",
+          "outcome": "APPLIED"
+        }
+      ],
+      "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+      "money": {
+        "cash_gross_rub": "3000000.00",
+        "operation": "IDENTITY",
+        "provenance_refs": [
+          "price-v4-row-0020",
+          "assumption.demo-rub-v1"
+        ],
+        "raw_money": {
+          "currency": "UNKNOWN",
+          "raw_amount": "3000000.00",
+          "schema_version": "commercial-money-v1",
+          "scope": {
+            "boundary": "BARE_EQUIPMENT",
+            "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+            "position_id": "catalog-v4-row-0020",
+            "procurement_option_id": "price-v4-row-0020",
+            "region": "RU"
+          },
+          "source": {
+            "evidence_ids": [
+              "evidence.price-v4-row-0020"
+            ],
+            "kind": "ORGANIZER_DATASET",
+            "observed_on": "2026-09-15",
+            "source_id": "price-v4-row-0020",
+            "valid_until": null
+          },
+          "tax_basis": "CASH_GROSS_RUB",
+          "vat_rate": null,
+          "zero_semantics": null
+        },
+        "status": "RESOLVED"
+      },
+      "position_id": "catalog-v4-row-0020",
+      "procurement_ready": false,
+      "procurement_status": "UNVERIFIED",
+      "responsibilities": [
+        {
+          "area": "HARDWARE",
+          "evidence_ids": [],
+          "responsible_party": "CUSTOMER"
+        },
+        {
+          "area": "MAINTENANCE",
+          "evidence_ids": [],
+          "responsible_party": "CUSTOMER"
+        },
+        {
+          "area": "INFRASTRUCTURE",
+          "evidence_ids": [],
+          "responsible_party": "CUSTOMER"
+        }
+      ],
+      "schema_version": "procurement-report-v1",
+      "supply_risk": "UNKNOWN",
+      "terms": {
+        "acquisition": "PURCHASE",
+        "cost_lines": [
+          {
+            "basis": {
+              "kind": "PER_ROBOT",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "100000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.charger",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "CHARGER",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.charger",
+            "timing": "CAPITAL_ONCE"
+          },
+          {
+            "basis": {
+              "kind": "PER_ROBOT",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "100000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.integration",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "INTEGRATION",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.integration",
+            "timing": "CAPITAL_ONCE"
+          },
+          {
+            "basis": {
+              "kind": "FIXED_TOTAL",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "500000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.infrastructure",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "INFRASTRUCTURE",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.infrastructure",
+            "timing": "CAPITAL_ONCE"
+          },
+          {
+            "basis": {
+              "kind": "FIXED_TOTAL",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "100000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.delivery",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "DELIVERY",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.delivery",
+            "timing": "CAPITAL_ONCE"
+          },
+          {
+            "basis": {
+              "kind": "FIXED_TOTAL",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "100000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.commissioning",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "COMMISSIONING",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.commissioning",
+            "timing": "CAPITAL_ONCE"
+          },
+          {
+            "basis": {
+              "kind": "FIXED_TOTAL",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "50000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.training",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "TRAINING",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.training",
+            "timing": "CAPITAL_ONCE"
+          },
+          {
+            "basis": {
+              "kind": "PER_ROBOT",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "50000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.service",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "SERVICE",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.service",
+            "timing": "ANNUAL"
+          },
+          {
+            "basis": {
+              "kind": "PER_ROBOT",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "10000",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.software",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": null
+              }
+            },
+            "category": "SOFTWARE",
+            "excluded_by_scenario": false,
+            "included_in": [],
+            "line_id": "budget.software",
+            "timing": "ANNUAL"
+          },
+          {
+            "basis": {
+              "kind": "FIXED_TOTAL",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "0",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.wifi",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": "EXCLUDED_BY_SCENARIO"
+              }
+            },
+            "category": "OTHER",
+            "excluded_by_scenario": true,
+            "included_in": [],
+            "line_id": "budget.wifi",
+            "timing": "CAPITAL_ONCE"
+          },
+          {
+            "basis": {
+              "kind": "FIXED_TOTAL",
+              "money": {
+                "currency": "RUB",
+                "raw_amount": "0",
+                "schema_version": "commercial-money-v1",
+                "scope": {
+                  "boundary": "SCENARIO_BUDGET",
+                  "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+                  "position_id": "catalog-v4-row-0020",
+                  "procurement_option_id": "price-v4-row-0020",
+                  "region": "RU"
+                },
+                "source": {
+                  "evidence_ids": [],
+                  "kind": "ASSUMPTION",
+                  "observed_on": null,
+                  "source_id": "synthetic.budget.spares",
+                  "valid_until": null
+                },
+                "tax_basis": "CASH_GROSS_RUB",
+                "vat_rate": null,
+                "zero_semantics": "EXCLUDED_BY_SCENARIO"
+              }
+            },
+            "category": "SPARES",
+            "excluded_by_scenario": true,
+            "included_in": [],
+            "line_id": "budget.spares",
+            "timing": "CAPITAL_ONCE"
+          }
+        ],
+        "primary_price": {
+          "currency": "UNKNOWN",
+          "raw_amount": "3000000.00",
+          "schema_version": "commercial-money-v1",
+          "scope": {
+            "boundary": "BARE_EQUIPMENT",
+            "model_id": "ecd7d582-b342-449a-b43b-66288d159a32",
+            "position_id": "catalog-v4-row-0020",
+            "procurement_option_id": "price-v4-row-0020",
+            "region": "RU"
+          },
+          "source": {
+            "evidence_ids": [
+              "evidence.price-v4-row-0020"
+            ],
+            "kind": "ORGANIZER_DATASET",
+            "observed_on": "2026-09-15",
+            "source_id": "price-v4-row-0020",
+            "valid_until": null
+          },
+          "tax_basis": "CASH_GROSS_RUB",
+          "vat_rate": null,
+          "zero_semantics": null
+        },
+        "responsibilities": [
+          {
+            "area": "HARDWARE",
+            "evidence_ids": [],
+            "responsible_party": "CUSTOMER"
+          },
+          {
+            "area": "MAINTENANCE",
+            "evidence_ids": [],
+            "responsible_party": "CUSTOMER"
+          },
+          {
+            "area": "INFRASTRUCTURE",
+            "evidence_ids": [],
+            "responsible_party": "CUSTOMER"
+          }
+        ],
+        "schema_version": "purchase-terms-v1"
+      },
+      "warnings": []
+    },
+    "project_id": "project.c15",
+    "residual_override": null,
+    "run_id": "run.c15.golden",
+    "schema_version": "purchase-cost-ledger-request-v1",
+    "tenant_id": "tenant.c15",
+    "uncertainty": "BASE",
+    "warranty_years": {
+      "evidence_ids": [
+        "evidence.prov.vendor.warranty"
+      ],
+      "evidence_status": "VERIFIED_OFFICIAL",
+      "provenance_ref": "prov.vendor.warranty",
+      "source": "VENDOR_FACT",
+      "unit": "year",
+      "value": "3"
+    }
+  },
+  "result": {
+    "annual_ledgers": [
+      {
+        "deployment_share": "1",
+        "operating_lines": [
+          {
+            "amount": "318500",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "INSURANCE",
+            "formula_id": "F18",
+            "line_id": "year.1.insurance",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.insurance-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "637000",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "CONSUMABLES",
+            "formula_id": "F18",
+            "line_id": "year.1.consumables",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.consumables-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "318500",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "REPAIR",
+            "formula_id": "F18",
+            "line_id": "year.1.repair",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.repair-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "0",
+            "basis": "PER_ROBOT",
+            "category": "SERVICE",
+            "formula_id": "F19",
+            "line_id": "year.1.service",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.service"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "105000",
+            "basis": "PER_ROBOT",
+            "category": "SOFTWARE",
+            "formula_id": "F19",
+            "line_id": "year.1.budget.software",
+            "ownership": "UNKNOWN",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.software"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "63000",
+            "basis": "fleet × monthly communication × 12 × ramp × index",
+            "category": "COMMUNICATION",
+            "formula_id": "F19",
+            "line_id": "year.1.communication",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.communication.monthly-per-robot"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "600000",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "TECHNICIANS",
+            "formula_id": "F19",
+            "line_id": "year.1.technicians",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "250000",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "CONTROL_OPERATORS",
+            "formula_id": "F19",
+            "line_id": "year.1.control-operators",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "555487.0588235294117647058825",
+            "basis": "power W→kW × H × availability × days / efficiency",
+            "category": "ENERGY",
+            "formula_id": "F20",
+            "line_id": "year.1.energy",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.power",
+              "finance.electricity-tariff",
+              "finance.energy.charging-efficiency"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          },
+          {
+            "amount": "0",
+            "basis": "new cumulative cycle crossings × fleet × price × hw × index",
+            "category": "BATTERY_REPLACEMENT",
+            "formula_id": "F21",
+            "line_id": "year.1.battery-replacement",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.autonomy",
+              "prov.vendor.battery-resource",
+              "prov.user.battery-price"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 1
+          }
+        ],
+        "operating_total": "2847487.058823529411764705882",
+        "ramp": "0.5",
+        "status": "COMPLETE",
+        "year": 1
+      },
+      {
+        "deployment_share": "1",
+        "operating_lines": [
+          {
+            "amount": "568522.5",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "INSURANCE",
+            "formula_id": "F18",
+            "line_id": "year.2.insurance",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.insurance-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "1137045",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "CONSUMABLES",
+            "formula_id": "F18",
+            "line_id": "year.2.consumables",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.consumables-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "568522.5",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "REPAIR",
+            "formula_id": "F18",
+            "line_id": "year.2.repair",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.repair-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "0",
+            "basis": "PER_ROBOT",
+            "category": "SERVICE",
+            "formula_id": "F19",
+            "line_id": "year.2.service",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.service"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "187425",
+            "basis": "PER_ROBOT",
+            "category": "SOFTWARE",
+            "formula_id": "F19",
+            "line_id": "year.2.budget.software",
+            "ownership": "UNKNOWN",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.software"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "112455",
+            "basis": "fleet × monthly communication × 12 × ramp × index",
+            "category": "COMMUNICATION",
+            "formula_id": "F19",
+            "line_id": "year.2.communication",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.communication.monthly-per-robot"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "1101600",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "TECHNICIANS",
+            "formula_id": "F19",
+            "line_id": "year.2.technicians",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "459000",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "CONTROL_OPERATORS",
+            "formula_id": "F19",
+            "line_id": "year.2.control-operators",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "1010430.96",
+            "basis": "power W→kW × H × availability × days / efficiency",
+            "category": "ENERGY",
+            "formula_id": "F20",
+            "line_id": "year.2.energy",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.power",
+              "finance.electricity-tariff",
+              "finance.energy.charging-efficiency"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          },
+          {
+            "amount": "0",
+            "basis": "new cumulative cycle crossings × fleet × price × hw × index",
+            "category": "BATTERY_REPLACEMENT",
+            "formula_id": "F21",
+            "line_id": "year.2.battery-replacement",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.autonomy",
+              "prov.vendor.battery-resource",
+              "prov.user.battery-price"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 2
+          }
+        ],
+        "operating_total": "5145000.96",
+        "ramp": "0.85",
+        "status": "COMPLETE",
+        "year": 2
+      },
+      {
+        "deployment_share": "1",
+        "operating_lines": [
+          {
+            "amount": "702292.5",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "INSURANCE",
+            "formula_id": "F18",
+            "line_id": "year.3.insurance",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.insurance-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "1404585",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "CONSUMABLES",
+            "formula_id": "F18",
+            "line_id": "year.3.consumables",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.consumables-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "702292.5",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "REPAIR",
+            "formula_id": "F18",
+            "line_id": "year.3.repair",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.repair-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "0",
+            "basis": "PER_ROBOT",
+            "category": "SERVICE",
+            "formula_id": "F19",
+            "line_id": "year.3.service",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.service"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "231525",
+            "basis": "PER_ROBOT",
+            "category": "SOFTWARE",
+            "formula_id": "F19",
+            "line_id": "year.3.budget.software",
+            "ownership": "UNKNOWN",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.software"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "138915",
+            "basis": "fleet × monthly communication × 12 × ramp × index",
+            "category": "COMMUNICATION",
+            "formula_id": "F19",
+            "line_id": "year.3.communication",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.communication.monthly-per-robot"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "1399680",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "TECHNICIANS",
+            "formula_id": "F19",
+            "line_id": "year.3.technicians",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "583200",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "CONTROL_OPERATORS",
+            "formula_id": "F19",
+            "line_id": "year.3.control-operators",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "1271954.26729411764705882353",
+            "basis": "power W→kW × H × availability × days / efficiency",
+            "category": "ENERGY",
+            "formula_id": "F20",
+            "line_id": "year.3.energy",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.power",
+              "finance.electricity-tariff",
+              "finance.energy.charging-efficiency"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          },
+          {
+            "amount": "0",
+            "basis": "new cumulative cycle crossings × fleet × price × hw × index",
+            "category": "BATTERY_REPLACEMENT",
+            "formula_id": "F21",
+            "line_id": "year.3.battery-replacement",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.autonomy",
+              "prov.vendor.battery-resource",
+              "prov.user.battery-price"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 3
+          }
+        ],
+        "operating_total": "6434444.26729411764705882353",
+        "ramp": "1",
+        "status": "COMPLETE",
+        "year": 3
+      },
+      {
+        "deployment_share": "1",
+        "operating_lines": [
+          {
+            "amount": "737407.125",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "INSURANCE",
+            "formula_id": "F18",
+            "line_id": "year.4.insurance",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.insurance-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "1474814.25",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "CONSUMABLES",
+            "formula_id": "F18",
+            "line_id": "year.4.consumables",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.consumables-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "737407.125",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "REPAIR",
+            "formula_id": "F18",
+            "line_id": "year.4.repair",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.repair-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "1215506.25",
+            "basis": "PER_ROBOT",
+            "category": "SERVICE",
+            "formula_id": "F19",
+            "line_id": "year.4.service",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.service"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "243101.25",
+            "basis": "PER_ROBOT",
+            "category": "SOFTWARE",
+            "formula_id": "F19",
+            "line_id": "year.4.budget.software",
+            "ownership": "UNKNOWN",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.software"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "145860.75",
+            "basis": "fleet × monthly communication × 12 × ramp × index",
+            "category": "COMMUNICATION",
+            "formula_id": "F19",
+            "line_id": "year.4.communication",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.communication.monthly-per-robot"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "1511654.4",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "TECHNICIANS",
+            "formula_id": "F19",
+            "line_id": "year.4.technicians",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "629856",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "CONTROL_OPERATORS",
+            "formula_id": "F19",
+            "line_id": "year.4.control-operators",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "1360991.066004705882352941177",
+            "basis": "power W→kW × H × availability × days / efficiency",
+            "category": "ENERGY",
+            "formula_id": "F20",
+            "line_id": "year.4.energy",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.power",
+              "finance.electricity-tariff",
+              "finance.energy.charging-efficiency"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          },
+          {
+            "amount": "0",
+            "basis": "new cumulative cycle crossings × fleet × price × hw × index",
+            "category": "BATTERY_REPLACEMENT",
+            "formula_id": "F21",
+            "line_id": "year.4.battery-replacement",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.autonomy",
+              "prov.vendor.battery-resource",
+              "prov.user.battery-price"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 4
+          }
+        ],
+        "operating_total": "8056598.216004705882352941177",
+        "ramp": "1",
+        "status": "COMPLETE",
+        "year": 4
+      },
+      {
+        "deployment_share": "1",
+        "operating_lines": [
+          {
+            "amount": "774277.48125",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "INSURANCE",
+            "formula_id": "F18",
+            "line_id": "year.5.insurance",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.insurance-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "1548554.9625",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "CONSUMABLES",
+            "formula_id": "F18",
+            "line_id": "year.5.consumables",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.consumables-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "774277.48125",
+            "basis": "equipment CAPEX only × share × utilization ramp × other OPEX index",
+            "category": "REPAIR",
+            "formula_id": "F18",
+            "line_id": "year.5.repair",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.repair-share"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "1276281.5625",
+            "basis": "PER_ROBOT",
+            "category": "SERVICE",
+            "formula_id": "F19",
+            "line_id": "year.5.service",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.service"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "255256.3125",
+            "basis": "PER_ROBOT",
+            "category": "SOFTWARE",
+            "formula_id": "F19",
+            "line_id": "year.5.budget.software",
+            "ownership": "UNKNOWN",
+            "reason_code": null,
+            "source_refs": [
+              "synthetic.budget.software"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "153153.7875",
+            "basis": "fleet × monthly communication × 12 × ramp × index",
+            "category": "COMMUNICATION",
+            "formula_id": "F19",
+            "line_id": "year.5.communication",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "finance.communication.monthly-per-robot"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "1632586.752",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "TECHNICIANS",
+            "formula_id": "F19",
+            "line_id": "year.5.technicians",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "680244.48",
+            "basis": "C14 count × annual direct labour × ramp × labour index",
+            "category": "CONTROL_OPERATORS",
+            "formula_id": "F19",
+            "line_id": "year.5.control-operators",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "finance.inflation.labor"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "1456260.440625035294117647059",
+            "basis": "power W→kW × H × availability × days / efficiency",
+            "category": "ENERGY",
+            "formula_id": "F20",
+            "line_id": "year.5.energy",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.power",
+              "finance.electricity-tariff",
+              "finance.energy.charging-efficiency"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          },
+          {
+            "amount": "12762815.625",
+            "basis": "new cumulative cycle crossings × fleet × price × hw × index",
+            "category": "BATTERY_REPLACEMENT",
+            "formula_id": "F21",
+            "line_id": "year.5.battery-replacement",
+            "ownership": "CUSTOMER",
+            "reason_code": null,
+            "source_refs": [
+              "prov.vendor.autonomy",
+              "prov.vendor.battery-resource",
+              "prov.user.battery-price"
+            ],
+            "status": "COMPLETE",
+            "timing": "ANNUAL",
+            "unit": "RUB",
+            "year": 5
+          }
+        ],
+        "operating_total": "21313708.88512503529411764706",
+        "ramp": "1",
+        "status": "COMPLETE",
+        "year": 5
+      }
+    ],
+    "battery_events": [
+      {
+        "amount": "0",
+        "cumulative_cycles": "351.3125",
+        "events_per_robot": 0,
+        "year": 1
+      },
+      {
+        "amount": "0",
+        "cumulative_cycles": "948.54375",
+        "events_per_robot": 0,
+        "year": 2
+      },
+      {
+        "amount": "0",
+        "cumulative_cycles": "1651.16875",
+        "events_per_robot": 0,
+        "year": 3
+      },
+      {
+        "amount": "0",
+        "cumulative_cycles": "2353.79375",
+        "events_per_robot": 0,
+        "year": 4
+      },
+      {
+        "amount": "12762815.625",
+        "cumulative_cycles": "3056.41875",
+        "events_per_robot": 1,
+        "year": 5
+      }
+    ],
+    "capex_amortizable": "66550000",
+    "capex_cashflow": "73205000",
+    "capex_gross": "73205000",
+    "capital_lines": [
+      {
+        "amount": "63000000",
+        "basis": "fleet × C13 resolved price × hardware multiplier",
+        "category": "ROBOT",
+        "formula_id": "F16",
+        "line_id": "capital.robots",
+        "ownership": "CUSTOMER",
+        "reason_code": null,
+        "source_refs": [
+          "price-v4-row-0020",
+          "assumption.demo-rub-v1"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "700000",
+        "basis": "ceil(fleet × charger_ratio)=7 × unit price × hardware multiplier",
+        "category": "CHARGER",
+        "formula_id": "F16",
+        "line_id": "capital.budget.charger",
+        "ownership": "UNKNOWN",
+        "reason_code": null,
+        "source_refs": [
+          "synthetic.budget.charger"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "2100000",
+        "basis": "fleet × per-robot integration × hardware multiplier",
+        "category": "INTEGRATION",
+        "formula_id": "F16",
+        "line_id": "capital.budget.integration",
+        "ownership": "UNKNOWN",
+        "reason_code": null,
+        "source_refs": [
+          "synthetic.budget.integration"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "500000",
+        "basis": "FIXED_TOTAL × hardware multiplier",
+        "category": "INFRASTRUCTURE",
+        "formula_id": "F16",
+        "line_id": "capital.budget.infrastructure",
+        "ownership": "CUSTOMER",
+        "reason_code": null,
+        "source_refs": [
+          "synthetic.budget.infrastructure"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "100000",
+        "basis": "FIXED_TOTAL",
+        "category": "DELIVERY",
+        "formula_id": "F17",
+        "line_id": "capital.budget.delivery",
+        "ownership": "UNKNOWN",
+        "reason_code": null,
+        "source_refs": [
+          "synthetic.budget.delivery"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "100000",
+        "basis": "FIXED_TOTAL",
+        "category": "COMMISSIONING",
+        "formula_id": "F17",
+        "line_id": "capital.budget.commissioning",
+        "ownership": "UNKNOWN",
+        "reason_code": null,
+        "source_refs": [
+          "synthetic.budget.commissioning"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "50000",
+        "basis": "FIXED_TOTAL",
+        "category": "TRAINING",
+        "formula_id": "F17",
+        "line_id": "capital.budget.training",
+        "ownership": "UNKNOWN",
+        "reason_code": null,
+        "source_refs": [
+          "synthetic.budget.training"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "0",
+        "basis": "FIXED_TOTAL",
+        "category": "OTHER",
+        "formula_id": "F17",
+        "line_id": "capital.budget.wifi",
+        "ownership": "UNKNOWN",
+        "reason_code": "explicitly-excluded",
+        "source_refs": [
+          "synthetic.budget.wifi"
+        ],
+        "status": "EXCLUDED",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "0",
+        "basis": "FIXED_TOTAL",
+        "category": "SPARES",
+        "formula_id": "F17",
+        "line_id": "capital.budget.spares",
+        "ownership": "UNKNOWN",
+        "reason_code": "explicitly-excluded",
+        "source_refs": [
+          "synthetic.budget.spares"
+        ],
+        "status": "EXCLUDED",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      },
+      {
+        "amount": "6655000",
+        "basis": "all resolved capital lines × scenario reserve",
+        "category": "RESERVE",
+        "formula_id": "F17",
+        "line_id": "capital.reserve",
+        "ownership": "CUSTOMER",
+        "reason_code": null,
+        "source_refs": [
+          "scenario.base.capex-reserve"
+        ],
+        "status": "COMPLETE",
+        "timing": "CAPITAL_ONCE",
+        "unit": "RUB",
+        "year": 0
+      }
+    ],
+    "commercial_policy_version": "hackathon-commercial-policy-v1",
+    "engine_version": "purchase-cost-ledger-v1",
+    "equipment_capex": "63700000",
+    "fleet_count": 21,
+    "input_revision": "revision.c15",
+    "issues": [],
+    "policy_overlay_version": "hackathon-calculation-policy-v1+v2b-c15",
+    "project_id": "project.c15",
+    "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+    "registry_version": "hackathon-calculation-parameter-registry-v1",
+    "replay": {
+      "canonical_input_digest": "sha256:8972ba0e49169f1ac2a7409e623ca35fa2b4ead02e1ffbea4726f72aec0f1a75",
+      "capacity_result_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "labour_trace_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "trace_content_digest": "sha256:2a01278041c02df7dc5011a3a5939e2624c4159e13efa2fbcb9219a46c6235c4"
+    },
+    "reserve": "6655000",
+    "run_id": "run.c15.golden",
+    "schema_version": "purchase-cost-ledger-v1",
+    "status": "COMPLETE",
+    "tenant_id": "tenant.c15",
+    "terminal_residual": "18900000",
+    "trace": [
+      {
+        "formula_id": "F16",
+        "inputs": [
+          "fleet_count",
+          "procurement.money.cash_gross_rub",
+          "scenario.capex_multiplier"
+        ],
+        "node_id": "node.f16.robots",
+        "output": "capital.robots",
+        "rounding": "NONE",
+        "source_refs": [
+          "price-v4-row-0020",
+          "assumption.demo-rub-v1"
+        ],
+        "unit": "RUB",
+        "value": "63000000"
+      },
+      {
+        "formula_id": "F16",
+        "inputs": [
+          "budget.charger",
+          "fleet_count"
+        ],
+        "node_id": "node.f16.budget.charger",
+        "output": "capital.budget.charger",
+        "rounding": "CEIL",
+        "source_refs": [
+          "synthetic.budget.charger"
+        ],
+        "unit": "RUB",
+        "value": "700000"
+      },
+      {
+        "formula_id": "F16",
+        "inputs": [
+          "budget.integration",
+          "fleet_count"
+        ],
+        "node_id": "node.f16.budget.integration",
+        "output": "capital.budget.integration",
+        "rounding": "NONE",
+        "source_refs": [
+          "synthetic.budget.integration"
+        ],
+        "unit": "RUB",
+        "value": "2100000"
+      },
+      {
+        "formula_id": "F16",
+        "inputs": [
+          "budget.infrastructure",
+          "fleet_count"
+        ],
+        "node_id": "node.f16.budget.infrastructure",
+        "output": "capital.budget.infrastructure",
+        "rounding": "NONE",
+        "source_refs": [
+          "synthetic.budget.infrastructure"
+        ],
+        "unit": "RUB",
+        "value": "500000"
+      },
+      {
+        "formula_id": "F17",
+        "inputs": [
+          "budget.delivery",
+          "fleet_count"
+        ],
+        "node_id": "node.f17.budget.delivery",
+        "output": "capital.budget.delivery",
+        "rounding": "NONE",
+        "source_refs": [
+          "synthetic.budget.delivery"
+        ],
+        "unit": "RUB",
+        "value": "100000"
+      },
+      {
+        "formula_id": "F17",
+        "inputs": [
+          "budget.commissioning",
+          "fleet_count"
+        ],
+        "node_id": "node.f17.budget.commissioning",
+        "output": "capital.budget.commissioning",
+        "rounding": "NONE",
+        "source_refs": [
+          "synthetic.budget.commissioning"
+        ],
+        "unit": "RUB",
+        "value": "100000"
+      },
+      {
+        "formula_id": "F17",
+        "inputs": [
+          "budget.training",
+          "fleet_count"
+        ],
+        "node_id": "node.f17.budget.training",
+        "output": "capital.budget.training",
+        "rounding": "NONE",
+        "source_refs": [
+          "synthetic.budget.training"
+        ],
+        "unit": "RUB",
+        "value": "50000"
+      },
+      {
+        "formula_id": "F17",
+        "inputs": [
+          "capital.robots",
+          "capital.budget.charger",
+          "capital.budget.integration",
+          "capital.budget.infrastructure",
+          "capital.budget.delivery",
+          "capital.budget.commissioning",
+          "capital.budget.training",
+          "capital.budget.wifi",
+          "capital.budget.spares"
+        ],
+        "node_id": "node.f17.reserve",
+        "output": "capital.reserve",
+        "rounding": "NONE",
+        "source_refs": [
+          "scenario.base.capex-reserve"
+        ],
+        "unit": "RUB",
+        "value": "6655000"
+      },
+      {
+        "formula_id": "F18",
+        "inputs": [
+          "year.1.insurance",
+          "year.1.consumables",
+          "year.1.repair"
+        ],
+        "node_id": "node.f18.year-1",
+        "output": "year.1.f18-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.consumables-share",
+          "finance.insurance-share",
+          "finance.repair-share"
+        ],
+        "unit": "RUB",
+        "value": "1274000"
+      },
+      {
+        "formula_id": "F19",
+        "inputs": [
+          "year.1.service",
+          "year.1.budget.software",
+          "year.1.communication",
+          "year.1.technicians",
+          "year.1.control-operators"
+        ],
+        "node_id": "node.f19.year-1",
+        "output": "year.1.f19-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.communication.monthly-per-robot",
+          "finance.inflation.labor",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "synthetic.budget.service",
+          "synthetic.budget.software"
+        ],
+        "unit": "RUB",
+        "value": "1018000"
+      },
+      {
+        "formula_id": "F20",
+        "inputs": [
+          "year.1.energy"
+        ],
+        "node_id": "node.f20.year-1",
+        "output": "year.1.f20-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.electricity-tariff",
+          "finance.energy.charging-efficiency",
+          "prov.vendor.power"
+        ],
+        "unit": "RUB",
+        "value": "555487.0588235294117647058825"
+      },
+      {
+        "formula_id": "F21",
+        "inputs": [
+          "year.1.battery-replacement"
+        ],
+        "node_id": "node.f21.year-1",
+        "output": "year.1.f21-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "prov.user.battery-price",
+          "prov.vendor.autonomy",
+          "prov.vendor.battery-resource"
+        ],
+        "unit": "RUB",
+        "value": "0"
+      },
+      {
+        "formula_id": "F18",
+        "inputs": [
+          "year.2.insurance",
+          "year.2.consumables",
+          "year.2.repair"
+        ],
+        "node_id": "node.f18.year-2",
+        "output": "year.2.f18-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.consumables-share",
+          "finance.insurance-share",
+          "finance.repair-share"
+        ],
+        "unit": "RUB",
+        "value": "2274090"
+      },
+      {
+        "formula_id": "F19",
+        "inputs": [
+          "year.2.service",
+          "year.2.budget.software",
+          "year.2.communication",
+          "year.2.technicians",
+          "year.2.control-operators"
+        ],
+        "node_id": "node.f19.year-2",
+        "output": "year.2.f19-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.communication.monthly-per-robot",
+          "finance.inflation.labor",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "synthetic.budget.service",
+          "synthetic.budget.software"
+        ],
+        "unit": "RUB",
+        "value": "1860480"
+      },
+      {
+        "formula_id": "F20",
+        "inputs": [
+          "year.2.energy"
+        ],
+        "node_id": "node.f20.year-2",
+        "output": "year.2.f20-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.electricity-tariff",
+          "finance.energy.charging-efficiency",
+          "prov.vendor.power"
+        ],
+        "unit": "RUB",
+        "value": "1010430.96"
+      },
+      {
+        "formula_id": "F21",
+        "inputs": [
+          "year.2.battery-replacement"
+        ],
+        "node_id": "node.f21.year-2",
+        "output": "year.2.f21-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "prov.user.battery-price",
+          "prov.vendor.autonomy",
+          "prov.vendor.battery-resource"
+        ],
+        "unit": "RUB",
+        "value": "0"
+      },
+      {
+        "formula_id": "F18",
+        "inputs": [
+          "year.3.insurance",
+          "year.3.consumables",
+          "year.3.repair"
+        ],
+        "node_id": "node.f18.year-3",
+        "output": "year.3.f18-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.consumables-share",
+          "finance.insurance-share",
+          "finance.repair-share"
+        ],
+        "unit": "RUB",
+        "value": "2809170"
+      },
+      {
+        "formula_id": "F19",
+        "inputs": [
+          "year.3.service",
+          "year.3.budget.software",
+          "year.3.communication",
+          "year.3.technicians",
+          "year.3.control-operators"
+        ],
+        "node_id": "node.f19.year-3",
+        "output": "year.3.f19-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.communication.monthly-per-robot",
+          "finance.inflation.labor",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "synthetic.budget.service",
+          "synthetic.budget.software"
+        ],
+        "unit": "RUB",
+        "value": "2353320"
+      },
+      {
+        "formula_id": "F20",
+        "inputs": [
+          "year.3.energy"
+        ],
+        "node_id": "node.f20.year-3",
+        "output": "year.3.f20-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.electricity-tariff",
+          "finance.energy.charging-efficiency",
+          "prov.vendor.power"
+        ],
+        "unit": "RUB",
+        "value": "1271954.26729411764705882353"
+      },
+      {
+        "formula_id": "F21",
+        "inputs": [
+          "year.3.battery-replacement"
+        ],
+        "node_id": "node.f21.year-3",
+        "output": "year.3.f21-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "prov.user.battery-price",
+          "prov.vendor.autonomy",
+          "prov.vendor.battery-resource"
+        ],
+        "unit": "RUB",
+        "value": "0"
+      },
+      {
+        "formula_id": "F18",
+        "inputs": [
+          "year.4.insurance",
+          "year.4.consumables",
+          "year.4.repair"
+        ],
+        "node_id": "node.f18.year-4",
+        "output": "year.4.f18-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.consumables-share",
+          "finance.insurance-share",
+          "finance.repair-share"
+        ],
+        "unit": "RUB",
+        "value": "2949628.5"
+      },
+      {
+        "formula_id": "F19",
+        "inputs": [
+          "year.4.service",
+          "year.4.budget.software",
+          "year.4.communication",
+          "year.4.technicians",
+          "year.4.control-operators"
+        ],
+        "node_id": "node.f19.year-4",
+        "output": "year.4.f19-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.communication.monthly-per-robot",
+          "finance.inflation.labor",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "synthetic.budget.service",
+          "synthetic.budget.software"
+        ],
+        "unit": "RUB",
+        "value": "3745978.65"
+      },
+      {
+        "formula_id": "F20",
+        "inputs": [
+          "year.4.energy"
+        ],
+        "node_id": "node.f20.year-4",
+        "output": "year.4.f20-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.electricity-tariff",
+          "finance.energy.charging-efficiency",
+          "prov.vendor.power"
+        ],
+        "unit": "RUB",
+        "value": "1360991.066004705882352941177"
+      },
+      {
+        "formula_id": "F21",
+        "inputs": [
+          "year.4.battery-replacement"
+        ],
+        "node_id": "node.f21.year-4",
+        "output": "year.4.f21-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "prov.user.battery-price",
+          "prov.vendor.autonomy",
+          "prov.vendor.battery-resource"
+        ],
+        "unit": "RUB",
+        "value": "0"
+      },
+      {
+        "formula_id": "F18",
+        "inputs": [
+          "year.5.insurance",
+          "year.5.consumables",
+          "year.5.repair"
+        ],
+        "node_id": "node.f18.year-5",
+        "output": "year.5.f18-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.consumables-share",
+          "finance.insurance-share",
+          "finance.repair-share"
+        ],
+        "unit": "RUB",
+        "value": "3097109.925"
+      },
+      {
+        "formula_id": "F19",
+        "inputs": [
+          "year.5.service",
+          "year.5.budget.software",
+          "year.5.communication",
+          "year.5.technicians",
+          "year.5.control-operators"
+        ],
+        "node_id": "node.f19.year-5",
+        "output": "year.5.f19-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.communication.monthly-per-robot",
+          "finance.inflation.labor",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "synthetic.budget.service",
+          "synthetic.budget.software"
+        ],
+        "unit": "RUB",
+        "value": "3997522.8945"
+      },
+      {
+        "formula_id": "F20",
+        "inputs": [
+          "year.5.energy"
+        ],
+        "node_id": "node.f20.year-5",
+        "output": "year.5.f20-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.electricity-tariff",
+          "finance.energy.charging-efficiency",
+          "prov.vendor.power"
+        ],
+        "unit": "RUB",
+        "value": "1456260.440625035294117647059"
+      },
+      {
+        "formula_id": "F21",
+        "inputs": [
+          "year.5.battery-replacement"
+        ],
+        "node_id": "node.f21.year-5",
+        "output": "year.5.f21-total",
+        "rounding": "NONE",
+        "source_refs": [
+          "prov.user.battery-price",
+          "prov.vendor.autonomy",
+          "prov.vendor.battery-resource"
+        ],
+        "unit": "RUB",
+        "value": "12762815.625"
+      },
+      {
+        "formula_id": "F22",
+        "inputs": [
+          "capital.robots",
+          "horizon",
+          "asset.life",
+          "asset.liquidity"
+        ],
+        "node_id": "node.f22.residual",
+        "output": "terminal.residual",
+        "rounding": "NONE",
+        "source_refs": [
+          "finance.asset-life.amr",
+          "finance.asset-liquidity.amr"
+        ],
+        "unit": "RUB",
+        "value": "18900000"
+      }
+    ]
+  }
+}

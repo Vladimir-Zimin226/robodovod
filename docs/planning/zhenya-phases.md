@@ -11,7 +11,8 @@ C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
 C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23,
 C10 **COMPLETE** 2026-09-23, C11 **COMPLETE** 2026-09-23,
 C12 **COMPLETE** 2026-09-23, C13 **COMPLETE** 2026-09-23,
-C14 **COMPLETE** 2026-09-23; C15–C29 пока **PLANNED**.
+C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23;
+C16–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -462,7 +463,11 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 
 ## C15 — `economics/purchase-cost-ledger-v1`
 
-Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[purchase cost ledger v1](purchase-cost-ledger-v1.md).
+
+Решения: `hackathon-calculation-policy-v1` +
+`hackathon-calculation-policy-v1+v2b-c15`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
 
 - **Цель / источники:** R03 §3.1–3.4, R02 scenario tables, R08, R13 bases.

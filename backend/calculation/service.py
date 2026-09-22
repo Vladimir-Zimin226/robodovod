@@ -28,6 +28,7 @@ from calculation.executability import (
     registry_payload,
 )
 from calculation.labour import LabourAnalysisRequestV1, LabourResultV1, calculate_role_labour
+from calculation.economics.purchase import PurchaseCostLedgerV1, PurchaseLedgerRequestV1, calculate_purchase_ledger
 from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
 from calculation_contracts import (
     CalculationTrace,
@@ -306,3 +307,9 @@ def analyze_role_labour(request: LabourAnalysisRequestV1) -> LabourResultV1:
     """Versioned C14 boundary; supplied C07-C11 projections stay read-only."""
 
     return calculate_role_labour(request)
+
+
+def analyze_purchase_costs(request: PurchaseLedgerRequestV1) -> PurchaseCostLedgerV1:
+    """Versioned C15 boundary; C13/C14 snapshots remain immutable inputs."""
+
+    return calculate_purchase_ledger(request)
