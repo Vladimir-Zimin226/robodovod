@@ -29,6 +29,7 @@ export default function App() {
   const [inputProvenance, setInputProvenance] = useState({});
   const [projectFileContext, setProjectFileContext] = useState(null);
   const calculationSequence = useRef(0);
+  const intakeV2Snapshot = useRef(null);
 
   useEffect(() => {
     fetch(`${API}/api/auth/me`, { credentials: 'include' })
@@ -97,6 +98,7 @@ export default function App() {
     setSaveState('');
     setInputProvenance({});
     setProjectFileContext(null);
+    intakeV2Snapshot.current = null;
   };
 
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
@@ -201,6 +203,7 @@ export default function App() {
               }) : project);
             }}
             onReady={handleReady}
+            onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; }}
           />
         ) : phase === 'catalog' ? (
           <CatalogScreen objectType={objectType || 'other'} onContinue={() => setPhase(result ? 'results' : 'onboarding')} />

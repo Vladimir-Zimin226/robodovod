@@ -5,7 +5,8 @@
 Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к исполнению в
 [policy v1](calculation-policy-decisions-v1.md); отдельного ответа Жени не требуется. Новые пути ниже — предложения для
 реализации, не утверждение о существующих файлах. C01 **COMPLETE** 2026-09-20,
-C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22; C04–C29 пока **PLANNED**.
+C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22,
+C04 **COMPLETE** 2026-09-22; C05–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -127,6 +128,12 @@ catalog/runtime и формулы не изменены. Отчёт:
 - **Вне этапа:** расчёт N/NPV, UI, новый формат исходного organizer dataset.
 
 ## C04 — `frontend/process-role-intake-v2`
+
+Статус: **COMPLETE** (2026-09-22). Добавлен отдельный v2 frontend flow для
+28 process blocks и object-scoped roles, raw C03 serialization, revision/stale
+protection, assumption confirmation и server normalization trace. Legacy v1
+forms/runs не изменены; backend endpoint не активирован. Отчёт:
+[frontend process-role intake v2](frontend-process-role-intake-v2.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

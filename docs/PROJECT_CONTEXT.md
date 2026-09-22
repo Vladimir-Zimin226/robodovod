@@ -252,7 +252,14 @@ typed units, USER/FILE/LLM raw provenance, monthly gross salary без default
 и compatibility adapter из существующего file import v1. Отчёт:
 [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md).
 
-Следующая малая итерация — **`frontend/process-role-intake-v2`** (C04).
+Этап **`frontend/process-role-intake-v2`** (C04) завершён: новый frontend
+flow показывает object→process blocks→roles, сериализует только
+raw C03 inputs, хранит input revision/override events, отклоняет
+stale responses и показывает server-derived provenance. Legacy v1 forms
+и runs сохранены. Отчёт:
+[frontend process-role intake v2](planning/frontend-process-role-intake-v2.md).
+
+Следующая малая итерация — **`engine/applicability-constraints-v2`** (C05).
 `engine/capacity-formula-trace` остаётся C07 после registry, normalization,
 constraints и executability audit. Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый

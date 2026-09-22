@@ -610,7 +610,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C01 COMPLETE | `contracts/calculation-semantics-v1` — единицы, статусы, conflict decisions, trace skeleton | Этот аудит |
 | C02 COMPLETE | `data/calculation-parameter-registry-v1` — versioned constants/policies | C01 |
 | C03 COMPLETE | `intake/process-role-normalization-v2` — backend intake/roles/units | C01–02 |
-| C04 | `frontend/process-role-intake-v2` — формы, input provenance, validation | C03 |
+| C04 COMPLETE | `frontend/process-role-intake-v2` — формы, input provenance, validation | C03 |
 | C05 | `engine/applicability-constraints-v2` — общий constraint service | C01–03 |
 | C06 | `catalog/formula-executability-audit-v3` — dependency closure по каждому profile | C02–03,C05 |
 | C07 | `engine/capacity-formula-trace` — transport/delivery pure capacity | C06, policy K02–04 |

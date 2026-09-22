@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ParamsPanel from './ParamsPanel';
 import ZonalPanel from './ZonalPanel';
 import ProjectFileIntake from './ProjectFileIntake';
+import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -19,7 +20,7 @@ const PROCESS_DEFAULTS = {
   other: ['transport', 'pallets'],
 };
 
-export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, onFileApplied, onReady }) {
+export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, onFileApplied, onReady, onIntakeV2Normalized }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', text: WELCOME[objectType] || WELCOME.other },
   ]);
@@ -151,6 +152,17 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
           >
             🗂 По зонам
           </button>
+          {objectType !== 'other' && <button
+            type="button"
+            onClick={() => setMode('process-role-v2')}
+            className={`px-4 py-1.5 text-sm rounded-lg transition ${
+              mode === 'process-role-v2'
+                ? 'bg-white shadow font-semibold text-slate-800'
+                : 'text-slate-600 hover:text-slate-800'
+            }`}
+          >
+            ⚙ Процессы и роли v2
+          </button>}
         </div>
 
         {mode === 'zonal' && (
@@ -195,7 +207,9 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
         </div>
       </div>
 
-      {mode === 'whole' ? (
+      {mode === 'process-role-v2' ? (
+        <ProcessRoleIntakeV2 key={objectType} objectType={objectType} onNormalized={onIntakeV2Normalized} />
+      ) : mode === 'whole' ? (
         <ParamsPanel
           collected={collected}
           setManual={setManual}
