@@ -291,7 +291,14 @@ availability, output policy 20 box/pallet и synthetic assumption provenance.
 Catalog pool не расширен. Отчёт:
 [palletizing capacity trace v1](planning/palletizing-capacity-trace-v1.md).
 
-Следующая малая итерация — **`contracts/process-profile-coverage-v1`** (C10).
+Этап **`contracts/process-profile-coverage-v1`** (C10) завершён: versioned
+каталог покрывает ровно 28 K19-процессов и маршрутизирует применимые scopes в
+C07–C09; REFERENCE_ONLY и CONSTRAINT_ONLY имеют явные причины/requirements,
+а generic USER_CYCLE доступен только как USER/FILE opt-in. Membership 21/24,
+production API, frontend и registry v1 не менялись. Отчёт:
+[process profile coverage v1](planning/process-profile-coverage-v1.md).
+
+Следующая малая итерация — **`api/capacity-analysis-snapshots-v2`** (C11).
 Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
 расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой

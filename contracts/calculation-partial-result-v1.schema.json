@@ -401,6 +401,7 @@
         "m/s",
         "kg/unit",
         "unit/trip",
+        "unit/cycle",
         "1",
         "%",
         "RUB",

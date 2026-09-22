@@ -1,0 +1,195 @@
+{
+  "$defs": {
+    "ProcessCode": {
+      "enum": [
+        "warehouse_receiving_shipping",
+        "warehouse_storage",
+        "warehouse_picking",
+        "warehouse_palletizing",
+        "warehouse_cleaning",
+        "warehouse_inventory",
+        "airport_baggage",
+        "airport_catering",
+        "airport_fuelling",
+        "airport_internal_logistics",
+        "airport_terminal_cleaning",
+        "airport_apron_cleaning",
+        "airport_waste",
+        "airport_inspection",
+        "airport_passenger_assistance",
+        "airport_ground_service",
+        "clinic_food",
+        "clinic_linen",
+        "clinic_medicines",
+        "clinic_biomaterials",
+        "clinic_sterile_sets",
+        "clinic_consumables",
+        "clinic_waste_a",
+        "clinic_waste_b",
+        "clinic_results",
+        "clinic_cleaning",
+        "clinic_inventory",
+        "clinic_safety_requirements"
+      ],
+      "title": "ProcessCode",
+      "type": "string"
+    },
+    "ProcessScope": {
+      "enum": [
+        "TRANSPORT_CYCLE",
+        "DELIVERY_CYCLE",
+        "CLEANING_AREA",
+        "FIXED_CELL",
+        "REFERENCE_ONLY",
+        "SCENARIO_ONLY",
+        "CONSTRAINT_ONLY"
+      ],
+      "title": "ProcessScope",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "applicable_checks": {
+      "items": {
+        "enum": [
+          "object-kind",
+          "process-scope",
+          "cargo",
+          "payload",
+          "aisle",
+          "lift-height",
+          "ceiling-clearance",
+          "route-floors",
+          "temperature",
+          "noise",
+          "airside",
+          "apron",
+          "restricted-zone",
+          "sanitization",
+          "class-b-containment",
+          "cleanable-surface",
+          "material-disinfection",
+          "access-protocols",
+          "passport-availability",
+          "floor-flatness",
+          "floor-covering",
+          "slope",
+          "outdoor",
+          "availability",
+          "integrations",
+          "life-warning",
+          "budget-warning",
+          "charging-warning",
+          "density-warning"
+        ],
+        "type": "string"
+      },
+      "title": "Applicable Checks",
+      "type": "array"
+    },
+    "declared_scope": {
+      "$ref": "#/$defs/ProcessScope"
+    },
+    "disposition": {
+      "enum": [
+        "TRANSPORT",
+        "CLEANING",
+        "PALLETIZING",
+        "USER_CYCLE",
+        "REFERENCE_ONLY",
+        "CONSTRAINT_ONLY",
+        "NOT_APPLICABLE"
+      ],
+      "title": "Disposition",
+      "type": "string"
+    },
+    "engine": {
+      "anyOf": [
+        {
+          "enum": [
+            "C07_TRANSPORT",
+            "C08_CLEANING",
+            "C09_PALLETIZING",
+            "C10_USER_CYCLE"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Engine"
+    },
+    "formula_ids": {
+      "items": {
+        "enum": [
+          "F01",
+          "F02",
+          "F03",
+          "F04",
+          "F05",
+          "F06",
+          "F07"
+        ],
+        "type": "string"
+      },
+      "title": "Formula Ids",
+      "type": "array"
+    },
+    "process_code": {
+      "$ref": "#/$defs/ProcessCode"
+    },
+    "process_id": {
+      "minLength": 1,
+      "title": "Process Id",
+      "type": "string"
+    },
+    "reason_code": {
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "required_inputs": {
+      "items": {
+        "enum": [
+          "DEMAND",
+          "SCHEDULE",
+          "ROUTE",
+          "BATCH",
+          "AREA",
+          "FREQUENCY",
+          "CELL_RATE",
+          "DISCOVERY_INPUTS",
+          "CONSTRAINT_CONTEXT"
+        ],
+        "type": "string"
+      },
+      "title": "Required Inputs",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "process-route-decision-v1",
+      "default": "process-route-decision-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "user_cycle_opt_in": {
+      "title": "User Cycle Opt In",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "process_id",
+    "process_code",
+    "declared_scope",
+    "disposition",
+    "engine",
+    "formula_ids",
+    "required_inputs",
+    "applicable_checks",
+    "reason_code",
+    "user_cycle_opt_in"
+  ],
+  "title": "ProcessRouteDecisionV1",
+  "type": "object"
+}

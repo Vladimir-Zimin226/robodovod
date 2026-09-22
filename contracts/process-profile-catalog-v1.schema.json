@@ -1,0 +1,411 @@
+{
+  "$defs": {
+    "ObjectKind": {
+      "enum": [
+        "WAREHOUSE",
+        "AIRPORT",
+        "CLINIC"
+      ],
+      "title": "ObjectKind",
+      "type": "string"
+    },
+    "ProcessCode": {
+      "enum": [
+        "warehouse_receiving_shipping",
+        "warehouse_storage",
+        "warehouse_picking",
+        "warehouse_palletizing",
+        "warehouse_cleaning",
+        "warehouse_inventory",
+        "airport_baggage",
+        "airport_catering",
+        "airport_fuelling",
+        "airport_internal_logistics",
+        "airport_terminal_cleaning",
+        "airport_apron_cleaning",
+        "airport_waste",
+        "airport_inspection",
+        "airport_passenger_assistance",
+        "airport_ground_service",
+        "clinic_food",
+        "clinic_linen",
+        "clinic_medicines",
+        "clinic_biomaterials",
+        "clinic_sterile_sets",
+        "clinic_consumables",
+        "clinic_waste_a",
+        "clinic_waste_b",
+        "clinic_results",
+        "clinic_cleaning",
+        "clinic_inventory",
+        "clinic_safety_requirements"
+      ],
+      "title": "ProcessCode",
+      "type": "string"
+    },
+    "ProcessProfileUIV1": {
+      "additionalProperties": false,
+      "properties": {
+        "demand_label_key": {
+          "minLength": 1,
+          "title": "Demand Label Key",
+          "type": "string"
+        },
+        "description_key": {
+          "minLength": 1,
+          "title": "Description Key",
+          "type": "string"
+        },
+        "label_key": {
+          "minLength": 1,
+          "title": "Label Key",
+          "type": "string"
+        },
+        "show_capacity_action": {
+          "title": "Show Capacity Action",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "label_key",
+        "description_key",
+        "demand_label_key",
+        "show_capacity_action"
+      ],
+      "title": "ProcessProfileUIV1",
+      "type": "object"
+    },
+    "ProcessProfileV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_quantity_kinds": {
+          "items": {
+            "$ref": "#/$defs/ProcessQuantityKind"
+          },
+          "minItems": 1,
+          "title": "Allowed Quantity Kinds",
+          "type": "array"
+        },
+        "applicable_checks": {
+          "items": {
+            "enum": [
+              "object-kind",
+              "process-scope",
+              "cargo",
+              "payload",
+              "aisle",
+              "lift-height",
+              "ceiling-clearance",
+              "route-floors",
+              "temperature",
+              "noise",
+              "airside",
+              "apron",
+              "restricted-zone",
+              "sanitization",
+              "class-b-containment",
+              "cleanable-surface",
+              "material-disinfection",
+              "access-protocols",
+              "passport-availability",
+              "floor-flatness",
+              "floor-covering",
+              "slope",
+              "outdoor",
+              "availability",
+              "integrations",
+              "life-warning",
+              "budget-warning",
+              "charging-warning",
+              "density-warning"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Applicable Checks",
+          "type": "array"
+        },
+        "capacity_handler": {
+          "enum": [
+            "TRANSPORT",
+            "CLEANING",
+            "PALLETIZING",
+            "NONE"
+          ],
+          "title": "Capacity Handler",
+          "type": "string"
+        },
+        "decision_refs": {
+          "items": {
+            "enum": [
+              "K15",
+              "K19"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "default_role_codes": {
+          "items": {
+            "$ref": "#/$defs/RoleCode"
+          },
+          "title": "Default Role Codes",
+          "type": "array"
+        },
+        "error_codes": {
+          "items": {
+            "pattern": "^error\\.missing-(?:demand|schedule|route|batch|area|frequency|cell-rate|discovery-inputs|constraint-context)$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Error Codes",
+          "type": "array"
+        },
+        "formula_ids": {
+          "items": {
+            "enum": [
+              "F01",
+              "F02",
+              "F03",
+              "F04",
+              "F05",
+              "F06",
+              "F07"
+            ],
+            "type": "string"
+          },
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "has_fot_savings": {
+          "title": "Has Fot Savings",
+          "type": "boolean"
+        },
+        "microstage_id": {
+          "pattern": "^C10\\.(?:0[1-9]|1[0-9]|2[0-8])$",
+          "title": "Microstage Id",
+          "type": "string"
+        },
+        "note": {
+          "minLength": 1,
+          "title": "Note",
+          "type": "string"
+        },
+        "object_kind": {
+          "$ref": "#/$defs/ObjectKind"
+        },
+        "process_code": {
+          "$ref": "#/$defs/ProcessCode"
+        },
+        "required_inputs": {
+          "items": {
+            "enum": [
+              "DEMAND",
+              "SCHEDULE",
+              "ROUTE",
+              "BATCH",
+              "AREA",
+              "FREQUENCY",
+              "CELL_RATE",
+              "DISCOVERY_INPUTS",
+              "CONSTRAINT_CONTEXT"
+            ],
+            "type": "string"
+          },
+          "title": "Required Inputs",
+          "type": "array"
+        },
+        "requirement_codes": {
+          "items": {
+            "pattern": "^requirement\\.(?:demand|schedule|route|batch|area|frequency|cell-rate|discovery-inputs|constraint-context)$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Requirement Codes",
+          "type": "array"
+        },
+        "scope": {
+          "$ref": "#/$defs/ProcessScope"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "ui": {
+          "$ref": "#/$defs/ProcessProfileUIV1"
+        },
+        "unsupported_reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unsupported Reason Code"
+        },
+        "user_cycle_allowed": {
+          "title": "User Cycle Allowed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "microstage_id",
+        "process_code",
+        "object_kind",
+        "scope",
+        "capacity_handler",
+        "default_role_codes",
+        "allowed_quantity_kinds",
+        "has_fot_savings",
+        "formula_ids",
+        "required_inputs",
+        "applicable_checks",
+        "requirement_codes",
+        "error_codes",
+        "user_cycle_allowed",
+        "ui",
+        "source_refs",
+        "decision_refs",
+        "note"
+      ],
+      "title": "ProcessProfileV1",
+      "type": "object"
+    },
+    "ProcessQuantityKind": {
+      "enum": [
+        "PALLET",
+        "BOX",
+        "CASE",
+        "CART",
+        "DELIVERY",
+        "PORTION",
+        "KILOGRAM",
+        "SAMPLE",
+        "SET",
+        "BIN",
+        "ITEM",
+        "SQUARE_METER",
+        "PICK",
+        "DIGITAL_FLOW"
+      ],
+      "title": "ProcessQuantityKind",
+      "type": "string"
+    },
+    "ProcessScope": {
+      "enum": [
+        "TRANSPORT_CYCLE",
+        "DELIVERY_CYCLE",
+        "CLEANING_AREA",
+        "FIXED_CELL",
+        "REFERENCE_ONLY",
+        "SCENARIO_ONLY",
+        "CONSTRAINT_ONLY"
+      ],
+      "title": "ProcessScope",
+      "type": "string"
+    },
+    "RoleCode": {
+      "enum": [
+        "forklift_driver",
+        "loader",
+        "storekeeper",
+        "picker",
+        "sorter",
+        "packer",
+        "cleaner",
+        "inventory_worker",
+        "baggage_handler",
+        "trolley_operator",
+        "special_equipment_driver",
+        "terminal_cleaner",
+        "perron_cleaner",
+        "runway_inspector",
+        "security_guard",
+        "passenger_assistant",
+        "courier",
+        "ramp_worker",
+        "ground_support_worker",
+        "catering_worker",
+        "laundry_worker",
+        "sanitary",
+        "porter",
+        "lab_assistant",
+        "sterile_supply_worker",
+        "consumable_worker",
+        "lab_result_courier",
+        "tech_support",
+        "control_operator"
+      ],
+      "title": "RoleCode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "candidate_pool_models": {
+      "const": 21,
+      "default": 21,
+      "title": "Candidate Pool Models",
+      "type": "integer"
+    },
+    "candidate_pool_positions": {
+      "const": 24,
+      "default": 24,
+      "title": "Candidate Pool Positions",
+      "type": "integer"
+    },
+    "catalog_version": {
+      "const": "calculation-process-catalog-v1",
+      "default": "calculation-process-catalog-v1",
+      "title": "Catalog Version",
+      "type": "string"
+    },
+    "policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "default": "hackathon-calculation-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "pool_membership_changed": {
+      "const": false,
+      "default": false,
+      "title": "Pool Membership Changed",
+      "type": "boolean"
+    },
+    "process_projection_version": {
+      "const": "calculation-process-projection-v2",
+      "default": "calculation-process-projection-v2",
+      "title": "Process Projection Version",
+      "type": "string"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/ProcessProfileV1"
+      },
+      "maxItems": 28,
+      "minItems": 28,
+      "title": "Profiles",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "process-profile-catalog-v1",
+      "default": "process-profile-catalog-v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "profiles"
+  ],
+  "title": "ProcessProfileCatalogV1",
+  "type": "object"
+}

@@ -1,0 +1,17 @@
+{
+  "coverage": "0.96",
+  "effective_units_per_hour": "48",
+  "formula_ids": [
+    "F01",
+    "F03",
+    "F04",
+    "F07"
+  ],
+  "nominal_units_per_hour": "60",
+  "operating_hours_per_day": "20",
+  "overloaded": true,
+  "recommended_fleet": 2,
+  "required_units_per_hour": "50",
+  "selected_fleet": 1,
+  "utilization": "1.041666666666666666666666667"
+}

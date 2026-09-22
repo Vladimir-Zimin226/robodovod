@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C09 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C10 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -20,7 +20,8 @@ Executability audit C06 — в
 C07 — в [transport capacity formula trace v1](planning/transport-capacity-formula-trace-v1.md).
 C08 — в [cleaning capacity trace v1](planning/cleaning-capacity-trace-v1.md).
 C09 — в [palletizing capacity trace v1](planning/palletizing-capacity-trace-v1.md).
-Следующий этап — C10; production runtime activation не выполнялась.
+C10 — в [process profile coverage v1](planning/process-profile-coverage-v1.md).
+Следующий этап — C11; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -621,10 +622,10 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C04 COMPLETE | `frontend/process-role-intake-v2` — формы, input provenance, validation | C03 |
 | C05 COMPLETE | `engine/applicability-constraints-v2` — общий constraint service | C01–03 |
 | C06 COMPLETE | `catalog/formula-executability-audit-v3` — dependency closure по каждому profile | C02–03,C05 |
-| C07 | `engine/capacity-formula-trace` — transport/delivery pure capacity | C06, policy K02–04 |
-| C08 | `engine/cleaning-capacity-trace` — cleaning units/capacity | C06, trace infrastructure C07 |
-| C09 | `engine/palletizing-capacity-trace` — fixed-cell math, без расширения pool | C06–07, picks mapping |
-| C10 | `contracts/process-profile-coverage-v1` — все28scopes поpolicy§3 | C03,C07–09; K19 |
+| C07 COMPLETE | `engine/capacity-formula-trace` — transport/delivery pure capacity | C06, policy K02–04 |
+| C08 COMPLETE | `engine/cleaning-capacity-trace` — cleaning units/capacity | C06, trace infrastructure C07 |
+| C09 COMPLETE | `engine/palletizing-capacity-trace` — fixed-cell math, без расширения pool | C06–07, picks mapping |
+| C10 COMPLETE | `contracts/process-profile-coverage-v1` — все28scopes поpolicy§3 | C03,C07–09; K19 |
 | C11 | `api/capacity-analysis-snapshots-v2` — независимый API и immutable trace | C05–10 |
 | C12 | `frontend/capacity-results-trace` — partial results и объяснение N | C04,C11 |
 | C13 | `procurement/commercial-inputs-v1` — цены/НДС/условия, отдельные gates | C01–03 |

@@ -1,0 +1,58 @@
+{
+  "candidate_pool_models": 21,
+  "candidate_pool_positions": 24,
+  "catalog_digest": "sha256:eaff6b38cddc3041ecd5385894178d68228abe2de38b717c81e51cc7b503ce47",
+  "catalog_version": "calculation-process-catalog-v1",
+  "handler_counts": {
+    "CLEANING": 4,
+    "NONE": 9,
+    "PALLETIZING": 1,
+    "TRANSPORT": 14
+  },
+  "microstages": [
+    "C10.01",
+    "C10.02",
+    "C10.03",
+    "C10.04",
+    "C10.05",
+    "C10.06",
+    "C10.07",
+    "C10.08",
+    "C10.09",
+    "C10.10",
+    "C10.11",
+    "C10.12",
+    "C10.13",
+    "C10.14",
+    "C10.15",
+    "C10.16",
+    "C10.17",
+    "C10.18",
+    "C10.19",
+    "C10.20",
+    "C10.21",
+    "C10.22",
+    "C10.23",
+    "C10.24",
+    "C10.25",
+    "C10.26",
+    "C10.27",
+    "C10.28"
+  ],
+  "object_counts": {
+    "AIRPORT": 10,
+    "CLINIC": 12,
+    "WAREHOUSE": 6
+  },
+  "pool_membership_changed": false,
+  "profile_count": 28,
+  "schema_version": "process-profile-coverage-v1",
+  "scope_counts": {
+    "CLEANING_AREA": 4,
+    "CONSTRAINT_ONLY": 1,
+    "DELIVERY_CYCLE": 9,
+    "FIXED_CELL": 1,
+    "REFERENCE_ONLY": 8,
+    "TRANSPORT_CYCLE": 5
+  }
+}

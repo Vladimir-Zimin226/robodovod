@@ -188,6 +188,7 @@ class Unit(StrEnum):
     METER_PER_SECOND = "m/s"
     KILOGRAM_PER_UNIT = "kg/unit"
     UNIT_PER_TRIP = "unit/trip"
+    UNIT_PER_CYCLE = "unit/cycle"
     DIMENSIONLESS = "1"
     PERCENT = "%"
     RUB = "RUB"
@@ -236,6 +237,7 @@ UNIT_KINDS: dict[str, QuantityKind] = {
     "m/s": QuantityKind.SPEED,
     "kg/unit": QuantityKind.RATE,
     "unit/trip": QuantityKind.RATE,
+    "unit/cycle": QuantityKind.RATE,
     "1": QuantityKind.FRACTION,
     "%": QuantityKind.FRACTION,
     "RUB": QuantityKind.MONEY,
@@ -270,6 +272,7 @@ class QuantityName(StrEnum):
     GEOMETRY_BATCH_LIMIT = "geometry_batch_limit"
     UNITS_PER_TRIP = "units_per_trip"
     CYCLE_TIME = "cycle_time"
+    UNITS_PER_CYCLE = "units_per_cycle"
     TRIPS_PER_HOUR = "trips_per_hour"
     SECONDS_PER_HOUR = "seconds_per_hour"
     REQUIRED_CAPACITY = "required_capacity"
@@ -317,6 +320,7 @@ NORMALIZED_UNITS: dict[str, Unit] = {
     QuantityName.GEOMETRY_BATCH_LIMIT: Unit.UNIT_PER_TRIP,
     QuantityName.UNITS_PER_TRIP: Unit.UNIT_PER_TRIP,
     QuantityName.CYCLE_TIME: Unit.SECOND,
+    QuantityName.UNITS_PER_CYCLE: Unit.UNIT_PER_CYCLE,
     QuantityName.TRIPS_PER_HOUR: Unit.TRIP_PER_HOUR,
     QuantityName.SECONDS_PER_HOUR: Unit.SECOND_PER_HOUR,
     QuantityName.REQUIRED_CAPACITY: Unit.UNIT_PER_HOUR,

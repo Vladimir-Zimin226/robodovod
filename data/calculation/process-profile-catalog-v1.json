@@ -1,0 +1,1811 @@
+{
+  "candidate_pool_models": 21,
+  "candidate_pool_positions": 24,
+  "catalog_version": "calculation-process-catalog-v1",
+  "policy_version": "hackathon-calculation-policy-v1",
+  "pool_membership_changed": false,
+  "process_projection_version": "calculation-process-projection-v2",
+  "profiles": [
+    {
+      "allowed_quantity_kinds": [
+        "PALLET"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "forklift_driver",
+        "loader"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.01",
+      "note": "Inbound/outbound stay separate; only total fleet may sum their daily pallet demand.",
+      "object_kind": "WAREHOUSE",
+      "process_code": "warehouse_receiving_shipping",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "TRANSPORT_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.01"
+      ],
+      "ui": {
+        "demand_label_key": "process.warehouse_receiving_shipping.demand",
+        "description_key": "process.warehouse_receiving_shipping.description",
+        "label_key": "process.warehouse_receiving_shipping.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "PALLET"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "lift-height",
+        "ceiling-clearance"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "storekeeper"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.02",
+      "note": "Vertical/lift storage has no accepted physical formula; floor cycle requires explicit USER_CYCLE.",
+      "object_kind": "WAREHOUSE",
+      "process_code": "warehouse_storage",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.02"
+      ],
+      "ui": {
+        "demand_label_key": "process.warehouse_storage.demand",
+        "description_key": "process.warehouse_storage.description",
+        "label_key": "process.warehouse_storage.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-warehouse-storage-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "PICK",
+        "BOX"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "picker",
+        "sorter"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.03",
+      "note": "Full picking is reference-only; a transport suboperation is configured separately.",
+      "object_kind": "WAREHOUSE",
+      "process_code": "warehouse_picking",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.03"
+      ],
+      "ui": {
+        "demand_label_key": "process.warehouse_picking.demand",
+        "description_key": "process.warehouse_picking.description",
+        "label_key": "process.warehouse_picking.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-warehouse-picking-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "PALLET",
+        "CASE"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "availability"
+      ],
+      "capacity_handler": "PALLETIZING",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "packer"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-cell-rate"
+      ],
+      "formula_ids": [
+        "F01",
+        "F06",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.04",
+      "note": "F06 covers pallet output; packaging motion remains outside the formula.",
+      "object_kind": "WAREHOUSE",
+      "process_code": "warehouse_palletizing",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "CELL_RATE"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.cell-rate"
+      ],
+      "scope": "FIXED_CELL",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.04"
+      ],
+      "ui": {
+        "demand_label_key": "process.warehouse_palletizing.demand",
+        "description_key": "process.warehouse_palletizing.description",
+        "label_key": "process.warehouse_palletizing.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "SQUARE_METER"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cleanable-surface",
+        "floor-covering",
+        "noise",
+        "availability"
+      ],
+      "capacity_handler": "CLEANING",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "cleaner"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-area",
+        "error.missing-frequency"
+      ],
+      "formula_ids": [
+        "F01",
+        "F05",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.05",
+      "note": "C08 requires explicit area and frequency.",
+      "object_kind": "WAREHOUSE",
+      "process_code": "warehouse_cleaning",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "AREA",
+        "FREQUENCY"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.area",
+        "requirement.frequency"
+      ],
+      "scope": "CLEANING_AREA",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.05"
+      ],
+      "ui": {
+        "demand_label_key": "process.warehouse_cleaning.demand",
+        "description_key": "process.warehouse_cleaning.description",
+        "label_key": "process.warehouse_cleaning.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "ITEM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "inventory_worker"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.06",
+      "note": "Scan quantity/rate is preserved for discovery; no accepted inventory formula.",
+      "object_kind": "WAREHOUSE",
+      "process_code": "warehouse_inventory",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.06"
+      ],
+      "ui": {
+        "demand_label_key": "process.warehouse_inventory.demand",
+        "description_key": "process.warehouse_inventory.description",
+        "label_key": "process.warehouse_inventory.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-warehouse-inventory-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "ITEM",
+        "CART"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "airside",
+        "restricted-zone"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "baggage_handler"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.07",
+      "note": "Bags per cart and route are explicit; item and cart dimensions are not interchangeable.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_baggage",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "TRANSPORT_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.07"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_baggage.demand",
+        "description_key": "process.airport_baggage.description",
+        "label_key": "process.airport_baggage.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "PORTION",
+        "BOX",
+        "KILOGRAM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "airside",
+        "restricted-zone"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "trolley_operator"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.08",
+      "note": "Portion/box/weight per cart requires explicit dimensional conversion.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_catering",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "TRANSPORT_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.08"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_catering.demand",
+        "description_key": "process.airport_catering.description",
+        "label_key": "process.airport_catering.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "DELIVERY"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "airside",
+        "apron",
+        "restricted-zone"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "special_equipment_driver"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.09",
+      "note": "Fuel volume/rate/safety has no accepted fleet formula.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_fuelling",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.09"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_fuelling.demand",
+        "description_key": "process.airport_fuelling.description",
+        "label_key": "process.airport_fuelling.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-airport-fuelling-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "CART",
+        "DELIVERY"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "airside",
+        "restricted-zone"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "trolley_operator"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.10",
+      "note": "C07 applies only after explicit cargo, batch, and route mapping.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_internal_logistics",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "TRANSPORT_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.10"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_internal_logistics.demand",
+        "description_key": "process.airport_internal_logistics.description",
+        "label_key": "process.airport_internal_logistics.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "SQUARE_METER"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cleanable-surface",
+        "floor-covering",
+        "noise",
+        "availability",
+        "restricted-zone"
+      ],
+      "capacity_handler": "CLEANING",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "terminal_cleaner"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-area",
+        "error.missing-frequency"
+      ],
+      "formula_ids": [
+        "F01",
+        "F05",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.11",
+      "note": "The 51000 m2 robotized area is explicitly derived from 85000 × 0.6.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_terminal_cleaning",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "AREA",
+        "FREQUENCY"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.area",
+        "requirement.frequency"
+      ],
+      "scope": "CLEANING_AREA",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.11"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_terminal_cleaning.demand",
+        "description_key": "process.airport_terminal_cleaning.description",
+        "label_key": "process.airport_terminal_cleaning.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "SQUARE_METER"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cleanable-surface",
+        "floor-covering",
+        "noise",
+        "availability",
+        "airside",
+        "apron",
+        "outdoor"
+      ],
+      "capacity_handler": "CLEANING",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "perron_cleaner"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-area",
+        "error.missing-frequency"
+      ],
+      "formula_ids": [
+        "F01",
+        "F05",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.12",
+      "note": "C08 needs outdoor/apron-compatible facts and requirements.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_apron_cleaning",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "AREA",
+        "FREQUENCY"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.area",
+        "requirement.frequency"
+      ],
+      "scope": "CLEANING_AREA",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.12"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_apron_cleaning.demand",
+        "description_key": "process.airport_apron_cleaning.description",
+        "label_key": "process.airport_apron_cleaning.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "KILOGRAM",
+        "BIN"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "airside",
+        "restricted-zone"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "trolley_operator"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.13",
+      "note": "Kilograms per bin/trip are explicit; no mass-to-bin guess.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_waste",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "TRANSPORT_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.13"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_waste.demand",
+        "description_key": "process.airport_waste.description",
+        "label_key": "process.airport_waste.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "ITEM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "airside",
+        "apron",
+        "outdoor"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "runway_inspector",
+        "security_guard"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.14",
+      "note": "Scan coverage/rate is unknown; BAS remains outside the pool.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_inspection",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.14"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_inspection.demand",
+        "description_key": "process.airport_inspection.description",
+        "label_key": "process.airport_inspection.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-airport-inspection-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "DELIVERY"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "restricted-zone"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "passenger_assistant",
+        "courier"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.15",
+      "note": "Passenger service and SLA have no accepted physical capacity formula.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_passenger_assistance",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.15"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_passenger_assistance.demand",
+        "description_key": "process.airport_passenger_assistance.description",
+        "label_key": "process.airport_passenger_assistance.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-airport-passenger-assistance-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "DELIVERY"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "airside",
+        "apron"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "ramp_worker",
+        "ground_support_worker"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.16",
+      "note": "Ground service is an operation set; transport suboperations are separate processes.",
+      "object_kind": "AIRPORT",
+      "process_code": "airport_ground_service",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.16"
+      ],
+      "ui": {
+        "demand_label_key": "process.airport_ground_service.demand",
+        "description_key": "process.airport_ground_service.description",
+        "label_key": "process.airport_ground_service.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-airport-ground-service-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "PORTION"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone",
+        "sanitization"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "catering_worker"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.17",
+      "note": "Portions per cart are explicit; SLA 20 minutes is evaluated later.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_food",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.17"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_food.demand",
+        "description_key": "process.clinic_food.description",
+        "label_key": "process.clinic_food.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "KILOGRAM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone",
+        "sanitization"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "laundry_worker"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.18",
+      "note": "Clean and dirty flows remain separate; kg per container is explicit.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_linen",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.18"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_linen.demand",
+        "description_key": "process.clinic_linen.description",
+        "label_key": "process.clinic_linen.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "DELIVERY",
+        "ITEM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone",
+        "access-protocols"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "sanitary",
+        "porter"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.19",
+      "note": "Deliveries/day or items/container need explicit batch and route.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_medicines",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.19"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_medicines.demand",
+        "description_key": "process.clinic_medicines.description",
+        "label_key": "process.clinic_medicines.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "SAMPLE"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone",
+        "sanitization",
+        "access-protocols"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "lab_assistant"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.20",
+      "note": "Samples per container are explicit; SLA 30 minutes is evaluated later.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_biomaterials",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.20"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_biomaterials.demand",
+        "description_key": "process.clinic_biomaterials.description",
+        "label_key": "process.clinic_biomaterials.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "SET"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone",
+        "sanitization"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "sterile_supply_worker"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.21",
+      "note": "Sets per container are explicit and sterilization scope is checked.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_sterile_sets",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.21"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_sterile_sets.demand",
+        "description_key": "process.clinic_sterile_sets.description",
+        "label_key": "process.clinic_sterile_sets.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "ITEM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "consumable_worker"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.22",
+      "note": "Item batch and route are explicit.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_consumables",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.22"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_consumables.demand",
+        "description_key": "process.clinic_consumables.description",
+        "label_key": "process.clinic_consumables.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "KILOGRAM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone",
+        "sanitization",
+        "material-disinfection"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "sanitary",
+        "porter"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.23",
+      "note": "Kilograms per container and sanitation are explicit.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_waste_a",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.23"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_waste_a.demand",
+        "description_key": "process.clinic_waste_a.description",
+        "label_key": "process.clinic_waste_a.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "KILOGRAM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability",
+        "restricted-zone",
+        "sanitization",
+        "class-b-containment",
+        "material-disinfection"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "sanitary",
+        "porter"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.24",
+      "note": "Class-B containment/sanitization applies; explosion protection is not assumed.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_waste_b",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.24"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_waste_b.demand",
+        "description_key": "process.clinic_waste_b.description",
+        "label_key": "process.clinic_waste_b.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "DELIVERY",
+        "DIGITAL_FLOW"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cargo",
+        "payload",
+        "aisle",
+        "route-floors",
+        "temperature",
+        "slope",
+        "availability"
+      ],
+      "capacity_handler": "TRANSPORT",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "lab_result_courier"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-route",
+        "error.missing-batch"
+      ],
+      "formula_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.25",
+      "note": "Physical delivery can use C07; digital flow has no physical fleet.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_results",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "ROUTE",
+        "BATCH"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.route",
+        "requirement.batch"
+      ],
+      "scope": "DELIVERY_CYCLE",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.25"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_results.demand",
+        "description_key": "process.clinic_results.description",
+        "label_key": "process.clinic_results.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "SQUARE_METER"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "cleanable-surface",
+        "floor-covering",
+        "noise",
+        "availability",
+        "restricted-zone",
+        "sanitization",
+        "material-disinfection"
+      ],
+      "capacity_handler": "CLEANING",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "cleaner"
+      ],
+      "error_codes": [
+        "error.missing-demand",
+        "error.missing-schedule",
+        "error.missing-area",
+        "error.missing-frequency"
+      ],
+      "formula_ids": [
+        "F01",
+        "F05",
+        "F07"
+      ],
+      "has_fot_savings": true,
+      "microstage_id": "C10.26",
+      "note": "C08 applies with noise, time, cleanable-surface and material requirements.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_cleaning",
+      "required_inputs": [
+        "DEMAND",
+        "SCHEDULE",
+        "AREA",
+        "FREQUENCY"
+      ],
+      "requirement_codes": [
+        "requirement.demand",
+        "requirement.schedule",
+        "requirement.area",
+        "requirement.frequency"
+      ],
+      "scope": "CLEANING_AREA",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.26"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_cleaning.demand",
+        "description_key": "process.clinic_cleaning.description",
+        "label_key": "process.clinic_cleaning.label",
+        "show_capacity_action": true
+      },
+      "unsupported_reason_code": null,
+      "user_cycle_allowed": false
+    },
+    {
+      "allowed_quantity_kinds": [
+        "ITEM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [
+        "inventory_worker"
+      ],
+      "error_codes": [
+        "error.missing-discovery-inputs"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": true,
+      "microstage_id": "C10.27",
+      "note": "Scan throughput is not available; discovery and constraints remain visible.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_inventory",
+      "required_inputs": [
+        "DISCOVERY_INPUTS"
+      ],
+      "requirement_codes": [
+        "requirement.discovery-inputs"
+      ],
+      "scope": "REFERENCE_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.27"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_inventory.demand",
+        "description_key": "process.clinic_inventory.description",
+        "label_key": "process.clinic_inventory.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "unsupported-clinic-inventory-physical-profile",
+      "user_cycle_allowed": true
+    },
+    {
+      "allowed_quantity_kinds": [
+        "ITEM"
+      ],
+      "applicable_checks": [
+        "object-kind",
+        "process-scope",
+        "passport-availability",
+        "restricted-zone",
+        "sanitization",
+        "class-b-containment",
+        "cleanable-surface",
+        "material-disinfection",
+        "access-protocols"
+      ],
+      "capacity_handler": "NONE",
+      "decision_refs": [
+        "K15",
+        "K19"
+      ],
+      "default_role_codes": [],
+      "error_codes": [
+        "error.missing-constraint-context"
+      ],
+      "formula_ids": [],
+      "has_fot_savings": false,
+      "microstage_id": "C10.28",
+      "note": "Safety requirements constrain other processes and never size an independent fleet.",
+      "object_kind": "CLINIC",
+      "process_code": "clinic_safety_requirements",
+      "required_inputs": [
+        "CONSTRAINT_CONTEXT"
+      ],
+      "requirement_codes": [
+        "requirement.constraint-context"
+      ],
+      "scope": "CONSTRAINT_ONLY",
+      "source_refs": [
+        "POLICY_V1:K19",
+        "R10:intake",
+        "R11:logic",
+        "C10.28"
+      ],
+      "ui": {
+        "demand_label_key": "process.clinic_safety_requirements.demand",
+        "description_key": "process.clinic_safety_requirements.description",
+        "label_key": "process.clinic_safety_requirements.label",
+        "show_capacity_action": false
+      },
+      "unsupported_reason_code": "constraint-only-no-fleet",
+      "user_cycle_allowed": false
+    }
+  ],
+  "schema_version": "process-profile-catalog-v1"
+}

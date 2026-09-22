@@ -8,8 +8,8 @@ Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к
 C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22,
 C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22,
 C06 **COMPLETE** 2026-09-22, C07 **COMPLETE** 2026-09-23,
-C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23;
-C10–C29 пока **PLANNED**.
+C08 **COMPLETE** 2026-09-23, C09 **COMPLETE** 2026-09-23,
+C10 **COMPLETE** 2026-09-23; C11–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -282,6 +282,9 @@ membership. Отчёт: [formula executability audit v3](formula-executability-a
 - **Вне этапа:** manipulator motion/safety simulation, новые vendor facts, economics.
 
 ## C10 — `contracts/process-profile-coverage-v1`
+
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[process profile coverage v1](process-profile-coverage-v1.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
