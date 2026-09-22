@@ -1,0 +1,110 @@
+{
+  "schema_version": "formula-executability-profiles-v3",
+  "profiles_version": "formula-executability-profiles-v3",
+  "policy_version": "hackathon-calculation-policy-v1",
+  "registry_version": "hackathon-calculation-parameter-registry-v1",
+  "constraint_rules_version": "calculation-constraint-rules-v2",
+  "profiles": [
+    {
+      "profile_id": "CLEANING_AREA_V1", "equipment_class": "CLEANING", "process_scopes": ["CLEANING_AREA"],
+      "catalog_facts": [
+        {"requirement_id":"fact.cleaning-rate","field_path":"capacity.cleaning_rate_m2_h","expected_units":["m2/h"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"formula_ids":["F05"]}
+      ],
+      "scenario_inputs": [
+        {"requirement_id":"input.cleaning-area","input_path":"process.cleaning_area_m2","expected_units":["m2"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"required":true,"formula_ids":["F05"]},
+        {"requirement_id":"input.cleaning-frequency","input_path":"process.cleaning_frequency_per_day","expected_units":["1/day"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"required":true,"formula_ids":["F05"]},
+        {"requirement_id":"input.selected-fleet","input_path":"run.selected_fleet_units","expected_units":["robot"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":false,"formula_ids":["F07"]},
+        {"requirement_id":"input.shift-hours","input_path":"process.shift_hours","expected_units":["h"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]},
+        {"requirement_id":"input.shifts-per-day","input_path":"process.shifts_per_day","expected_units":["shift"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]}
+      ],
+      "policy_inputs": [
+        {"requirement_id":"policy.availability","parameter_ids":["scenario.base.availability","scenario.optimistic.availability","scenario.pessimistic.availability"],"expected_unit":"1","formula_ids":["F05"]}
+      ],
+      "formulas": [
+        {"formula_id":"F01","output_id":"derived.operating-hours","input_ids":["input.shift-hours","input.shifts-per-day"]},
+        {"formula_id":"F05","output_id":"derived.recommended-fleet","input_ids":["derived.operating-hours","fact.cleaning-rate","input.cleaning-area","input.cleaning-frequency","policy.availability"]},
+        {"formula_id":"F07","output_id":"derived.coverage","input_ids":["derived.recommended-fleet","input.selected-fleet"]}
+      ]
+    },
+    {
+      "profile_id": "DELIVERY_CYCLE_V1", "equipment_class": "SERVICE_DELIVERY", "process_scopes": ["DELIVERY_CYCLE"],
+      "catalog_facts": [
+        {"requirement_id":"fact.max-speed","field_path":"specs.max_speed","expected_units":["m/s"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"formula_ids":["F02"]},
+        {"requirement_id":"fact.payload","field_path":"specs.payload","expected_units":["kg"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"formula_ids":["F03"]}
+      ],
+      "scenario_inputs": [
+        {"requirement_id":"input.demand","input_path":"process.demand_per_day","expected_units":["delivery/day","portion/day","kg/day","sample/day","set/day","bin/day","item/day"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":true,"formula_ids":["F04"]},
+        {"requirement_id":"input.exchange-total","input_path":"process.exchange_total_time_s","expected_units":["s"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":true,"formula_ids":["F02"]},
+        {"requirement_id":"input.one-way-distance","input_path":"process.one_way_distance_m","expected_units":["m"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":true,"formula_ids":["F02"]},
+        {"requirement_id":"input.selected-fleet","input_path":"run.selected_fleet_units","expected_units":["robot"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":false,"formula_ids":["F07"]},
+        {"requirement_id":"input.shift-hours","input_path":"process.shift_hours","expected_units":["h"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]},
+        {"requirement_id":"input.shifts-per-day","input_path":"process.shifts_per_day","expected_units":["shift"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]},
+        {"requirement_id":"input.units-per-trip","input_path":"process.units_per_trip","expected_units":["unit/trip"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"required":true,"formula_ids":["F03"]}
+      ],
+      "policy_inputs": [
+        {"requirement_id":"policy.availability","parameter_ids":["scenario.base.availability","scenario.optimistic.availability","scenario.pessimistic.availability"],"expected_unit":"1","formula_ids":["F04"]},
+        {"requirement_id":"policy.intraday-peak","parameter_ids":["scenario.base.intraday-peak","scenario.optimistic.intraday-peak","scenario.pessimistic.intraday-peak"],"expected_unit":"1","formula_ids":["F04"]},
+        {"requirement_id":"policy.peak-reserve","parameter_ids":["scenario.base.peak-reserve","scenario.optimistic.peak-reserve","scenario.pessimistic.peak-reserve"],"expected_unit":"1","formula_ids":["F04"]},
+        {"requirement_id":"policy.seconds-per-hour","parameter_ids":["unit.seconds-per-hour"],"expected_unit":"s/h","formula_ids":["F03"]}
+      ],
+      "formulas": [
+        {"formula_id":"F01","output_id":"derived.operating-hours","input_ids":["input.shift-hours","input.shifts-per-day"]},
+        {"formula_id":"F02","output_id":"derived.cycle-time","input_ids":["fact.max-speed","input.exchange-total","input.one-way-distance"]},
+        {"formula_id":"F03","output_id":"derived.nominal-capacity","input_ids":["derived.cycle-time","fact.payload","input.units-per-trip","policy.seconds-per-hour"]},
+        {"formula_id":"F04","output_id":"derived.recommended-fleet","input_ids":["derived.nominal-capacity","derived.operating-hours","input.demand","policy.availability","policy.intraday-peak","policy.peak-reserve"]},
+        {"formula_id":"F07","output_id":"derived.coverage","input_ids":["derived.recommended-fleet","input.selected-fleet"]}
+      ]
+    },
+    {
+      "profile_id": "PALLETIZING_THROUGHPUT_V1", "equipment_class": "FIXED_PALLETIZING", "process_scopes": ["FIXED_CELL"],
+      "catalog_facts": [
+        {"requirement_id":"fact.cell-rate","field_path":"specs.throughput","expected_units":["pick/min"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"formula_ids":["F06"]}
+      ],
+      "scenario_inputs": [
+        {"requirement_id":"input.demand","input_path":"process.demand_per_day","expected_units":["pallet/day"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":true,"formula_ids":["F06"]},
+        {"requirement_id":"input.selected-fleet","input_path":"run.selected_fleet_units","expected_units":["robot"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":false,"formula_ids":["F07"]},
+        {"requirement_id":"input.shift-hours","input_path":"process.shift_hours","expected_units":["h"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]},
+        {"requirement_id":"input.shifts-per-day","input_path":"process.shifts_per_day","expected_units":["shift"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]}
+      ],
+      "policy_inputs": [
+        {"requirement_id":"policy.availability","parameter_ids":["scenario.base.availability","scenario.optimistic.availability","scenario.pessimistic.availability"],"expected_unit":"1","formula_ids":["F06"]},
+        {"requirement_id":"policy.boxes-per-pallet","parameter_ids":["default.palletizing.boxes-per-pallet"],"expected_unit":"box/pallet","formula_ids":["F06"]},
+        {"requirement_id":"policy.cell-efficiency","parameter_ids":["labor.palletizing.cell-efficiency"],"expected_unit":"1","formula_ids":["F06"]}
+      ],
+      "formulas": [
+        {"formula_id":"F01","output_id":"derived.operating-hours","input_ids":["input.shift-hours","input.shifts-per-day"]},
+        {"formula_id":"F06","output_id":"derived.recommended-fleet","input_ids":["derived.operating-hours","fact.cell-rate","input.demand","policy.availability","policy.boxes-per-pallet","policy.cell-efficiency"]},
+        {"formula_id":"F07","output_id":"derived.coverage","input_ids":["derived.recommended-fleet","input.selected-fleet"]}
+      ]
+    },
+    {
+      "profile_id": "TRANSPORT_CYCLE_V1", "equipment_class": "MOBILE_TRANSPORT", "process_scopes": ["TRANSPORT_CYCLE"],
+      "catalog_facts": [
+        {"requirement_id":"fact.max-speed","field_path":"specs.max_speed","expected_units":["m/s"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"formula_ids":["F02"]},
+        {"requirement_id":"fact.payload","field_path":"specs.payload","expected_units":["kg"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"formula_ids":["F03"]}
+      ],
+      "scenario_inputs": [
+        {"requirement_id":"input.demand","input_path":"process.demand_per_day","expected_units":["pallet/day","box/day","case/day","cart/day","kg/day","bin/day","item/day"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":true,"formula_ids":["F04"]},
+        {"requirement_id":"input.exchange-total","input_path":"process.exchange_total_time_s","expected_units":["s"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":true,"formula_ids":["F02"]},
+        {"requirement_id":"input.one-way-distance","input_path":"process.one_way_distance_m","expected_units":["m"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":true,"formula_ids":["F02"]},
+        {"requirement_id":"input.selected-fleet","input_path":"run.selected_fleet_units","expected_units":["robot"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":false},"required":false,"formula_ids":["F07"]},
+        {"requirement_id":"input.shift-hours","input_path":"process.shift_hours","expected_units":["h"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]},
+        {"requirement_id":"input.shifts-per-day","input_path":"process.shifts_per_day","expected_units":["shift"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true,"maximum":"24"},"required":true,"formula_ids":["F01"]},
+        {"requirement_id":"input.units-per-trip","input_path":"process.units_per_trip","expected_units":["unit/trip"],"domain":{"numeric":true,"minimum":"0","exclusive_minimum":true},"required":true,"formula_ids":["F03"]}
+      ],
+      "policy_inputs": [
+        {"requirement_id":"policy.availability","parameter_ids":["scenario.base.availability","scenario.optimistic.availability","scenario.pessimistic.availability"],"expected_unit":"1","formula_ids":["F04"]},
+        {"requirement_id":"policy.intraday-peak","parameter_ids":["scenario.base.intraday-peak","scenario.optimistic.intraday-peak","scenario.pessimistic.intraday-peak"],"expected_unit":"1","formula_ids":["F04"]},
+        {"requirement_id":"policy.peak-reserve","parameter_ids":["scenario.base.peak-reserve","scenario.optimistic.peak-reserve","scenario.pessimistic.peak-reserve"],"expected_unit":"1","formula_ids":["F04"]},
+        {"requirement_id":"policy.seconds-per-hour","parameter_ids":["unit.seconds-per-hour"],"expected_unit":"s/h","formula_ids":["F03"]}
+      ],
+      "formulas": [
+        {"formula_id":"F01","output_id":"derived.operating-hours","input_ids":["input.shift-hours","input.shifts-per-day"]},
+        {"formula_id":"F02","output_id":"derived.cycle-time","input_ids":["fact.max-speed","input.exchange-total","input.one-way-distance"]},
+        {"formula_id":"F03","output_id":"derived.nominal-capacity","input_ids":["derived.cycle-time","fact.payload","input.units-per-trip","policy.seconds-per-hour"]},
+        {"formula_id":"F04","output_id":"derived.recommended-fleet","input_ids":["derived.nominal-capacity","derived.operating-hours","input.demand","policy.availability","policy.intraday-peak","policy.peak-reserve"]},
+        {"formula_id":"F07","output_id":"derived.coverage","input_ids":["derived.recommended-fleet","input.selected-fleet"]}
+      ]
+    }
+  ]
+}

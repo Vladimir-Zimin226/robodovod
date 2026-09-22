@@ -1,0 +1,318 @@
+{
+  "$defs": {
+    "CatalogFactRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/NumericDomain"
+        },
+        "expected_units": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Expected Units",
+          "type": "array"
+        },
+        "field_path": {
+          "pattern": "^(specs|capacity)\\.",
+          "title": "Field Path",
+          "type": "string"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "requirement_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Requirement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "field_path",
+        "expected_units",
+        "domain",
+        "formula_ids"
+      ],
+      "title": "CatalogFactRequirement",
+      "type": "object"
+    },
+    "ExecutabilityProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_facts": {
+          "items": {
+            "$ref": "#/$defs/CatalogFactRequirement"
+          },
+          "title": "Catalog Facts",
+          "type": "array"
+        },
+        "equipment_class": {
+          "minLength": 1,
+          "title": "Equipment Class",
+          "type": "string"
+        },
+        "formulas": {
+          "items": {
+            "$ref": "#/$defs/FormulaDependency"
+          },
+          "minItems": 1,
+          "title": "Formulas",
+          "type": "array"
+        },
+        "policy_inputs": {
+          "items": {
+            "$ref": "#/$defs/PolicyRequirement"
+          },
+          "title": "Policy Inputs",
+          "type": "array"
+        },
+        "process_scopes": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Process Scopes",
+          "type": "array"
+        },
+        "profile_id": {
+          "minLength": 1,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "scenario_inputs": {
+          "items": {
+            "$ref": "#/$defs/ScenarioRequirement"
+          },
+          "title": "Scenario Inputs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "profile_id",
+        "equipment_class",
+        "process_scopes",
+        "catalog_facts",
+        "scenario_inputs",
+        "policy_inputs",
+        "formulas"
+      ],
+      "title": "ExecutabilityProfile",
+      "type": "object"
+    },
+    "FormulaDependency": {
+      "additionalProperties": false,
+      "properties": {
+        "formula_id": {
+          "pattern": "^F0[1-7]$",
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "input_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Input Ids",
+          "type": "array"
+        },
+        "output_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Output Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "formula_id",
+        "output_id",
+        "input_ids"
+      ],
+      "title": "FormulaDependency",
+      "type": "object"
+    },
+    "NumericDomain": {
+      "additionalProperties": false,
+      "properties": {
+        "exclusive_minimum": {
+          "default": false,
+          "title": "Exclusive Minimum",
+          "type": "boolean"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "numeric": {
+          "default": true,
+          "title": "Numeric",
+          "type": "boolean"
+        }
+      },
+      "title": "NumericDomain",
+      "type": "object"
+    },
+    "PolicyRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_unit": {
+          "minLength": 1,
+          "title": "Expected Unit",
+          "type": "string"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "parameter_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Parameter Ids",
+          "type": "array"
+        },
+        "requirement_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Requirement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "parameter_ids",
+        "expected_unit",
+        "formula_ids"
+      ],
+      "title": "PolicyRequirement",
+      "type": "object"
+    },
+    "ScenarioRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "$ref": "#/$defs/NumericDomain"
+        },
+        "expected_units": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Expected Units",
+          "type": "array"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "input_path": {
+          "minLength": 1,
+          "title": "Input Path",
+          "type": "string"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "requirement_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Requirement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "input_path",
+        "expected_units",
+        "domain",
+        "required",
+        "formula_ids"
+      ],
+      "title": "ScenarioRequirement",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "constraint_rules_version": {
+      "const": "calculation-constraint-rules-v2",
+      "title": "Constraint Rules Version",
+      "type": "string"
+    },
+    "policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/ExecutabilityProfile"
+      },
+      "minItems": 1,
+      "title": "Profiles",
+      "type": "array"
+    },
+    "profiles_version": {
+      "const": "formula-executability-profiles-v3",
+      "title": "Profiles Version",
+      "type": "string"
+    },
+    "registry_version": {
+      "const": "hackathon-calculation-parameter-registry-v1",
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "formula-executability-profiles-v3",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "profiles_version",
+    "policy_version",
+    "registry_version",
+    "constraint_rules_version",
+    "profiles"
+  ],
+  "title": "ExecutabilityProfilesV3",
+  "type": "object"
+}

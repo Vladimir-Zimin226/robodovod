@@ -265,9 +265,15 @@ PASS/FAIL/UNKNOWN/ASSUMED/N_A checks и единый v2 eligibility report дл�
 readiness/execution. Legacy v1 runtime сохранён. Отчёт:
 [applicability constraints v2](planning/applicability-constraints-v2.md).
 
-Следующая малая итерация — **`catalog/formula-executability-audit-v3`** (C06).
-`engine/capacity-formula-trace` остаётся C07 после registry, normalization,
-constraints и executability audit. Нынешний `/api/calculate` требует legacy
+Этап **`catalog/formula-executability-audit-v3`** (C06) завершён: добавлены
+versioned dependency profiles F01–F07, evidence/unit/domain resolver,
+раздельные catalog/run statuses, golden full-audit 187/223 и exact pool diff.
+Membership остался 21/24, БАС не допущены. Отчёт:
+[formula executability audit v3](planning/formula-executability-audit-v3.md).
+
+Следующая малая итерация — **`engine/capacity-formula-trace`** (C07).
+C07 использует завершённые registry, normalization, constraints и
+executability audit. Нынешний `/api/calculate` требует legacy
 Robot/economics; materialized CapacityRuntimeDTO ещё не образует независимый
 расчётный endpoint. Calculation readiness не гарантирует исполнимость каждой
 формулы при конкретном input и не означает deployment readiness.
@@ -288,7 +294,7 @@ fte_cost; full baseline/scenario cashflows с отдельным tax mode; purch
 21/24 сохраняется как baseline до отдельного доказанного и согласованного
 изменения membership; 187/223 discovery и отсутствие БАС в pool проверяются.
 
-Реализованы аддитивные этапы C01–C05 и их целевые schema/serialization/data
+Реализованы аддитивные этапы C01–C06 и их целевые schema/serialization/data
 tests. Формулы, production API/UI, versioned catalog и runtime slots не
 менялись.
 

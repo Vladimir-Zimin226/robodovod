@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "DependencyResolution": {
+      "additionalProperties": false,
+      "properties": {
+        "field_or_path": {
+          "title": "Field Or Path",
+          "type": "string"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "reason_code": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "requirement_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "CATALOG_FACT",
+            "SCENARIO_INPUT",
+            "POLICY_PARAMETER"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "RESOLVED_SAFE_FACT",
+            "REQUIRED_SCENARIO_INPUT",
+            "OPTIONAL_SCENARIO_INPUT",
+            "RESOLVED_SCENARIO_INPUT",
+            "RESOLVED_POLICY",
+            "MISSING_SAFE_FACT",
+            "INVALID_UNIT",
+            "INVALID_DOMAIN",
+            "MISSING_SCENARIO_INPUT",
+            "MISSING_POLICY_PARAMETER"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "source_kind",
+        "status",
+        "field_or_path",
+        "formula_ids",
+        "reason_code"
+      ],
+      "title": "DependencyResolution",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "blocker_codes": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Blocker Codes",
+      "type": "array"
+    },
+    "dependencies": {
+      "items": {
+        "$ref": "#/$defs/DependencyResolution"
+      },
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "position_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Position Id"
+    },
+    "profile_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Profile Id"
+    },
+    "schema_version": {
+      "const": "formula-run-executability-v3",
+      "default": "formula-run-executability-v3",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "EXECUTABLE",
+        "MISSING_INPUT",
+        "NEEDS_VALIDATION",
+        "BLOCKED",
+        "UNSUPPORTED_PROFILE"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "model_id",
+    "position_id",
+    "profile_id",
+    "status",
+    "dependencies",
+    "blocker_codes"
+  ],
+  "title": "RunExecutabilityResult",
+  "type": "object"
+}

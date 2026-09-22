@@ -14,8 +14,8 @@ from decimal import Decimal
 from typing import Any, Protocol
 
 from catalog_models import (
-    CatalogPositionEnrichment,
     CatalogMediaAsset,
+    CatalogPositionEnrichment,
     CatalogPositionMedia,
     CatalogSourceRow,
     EquipmentApplicability,
@@ -27,6 +27,7 @@ from database import Database
 from models import Robot
 from sqlalchemy import select, text
 from storage_models import CatalogActivation, CatalogVersion
+
 
 class CatalogRepositoryError(RuntimeError):
     """Raised when a requested catalog snapshot cannot be loaded safely."""
@@ -91,6 +92,20 @@ class CapacityRuntimeDTO:
 
 
 @dataclass(frozen=True)
+class FormulaExecutabilityCatalogDTO:
+    """Cost-free repository projection consumed by the C06 resolver."""
+
+    model_id: str
+    position_id: str | None
+    name: str
+    system_family: str
+    profile_id: str | None
+    readiness_v2_status: str
+    calculation_model_fields: tuple[str, ...]
+    vendor_facts: tuple[CatalogFactDTO, ...]
+
+
+@dataclass(frozen=True)
 class CatalogModelDTO:
     id: str
     source_namespace: str
@@ -125,6 +140,20 @@ class CatalogModelDTO:
         """Return an isolated mutable value for the existing calculation core."""
 
         return copy.deepcopy(self.runtime_robot)
+
+    def formula_executability_dto(
+        self, *, position_id: str | None = None
+    ) -> FormulaExecutabilityCatalogDTO:
+        return FormulaExecutabilityCatalogDTO(
+            model_id=self.id,
+            position_id=position_id,
+            name=self.name,
+            system_family=self.system_family,
+            profile_id=self.capacity_runtime.calculation_profile,
+            readiness_v2_status=self.capacity_runtime.calculation_readiness_status,
+            calculation_model_fields=self.capacity_runtime.calculation_model_fields,
+            vendor_facts=self.capacity_runtime.vendor_facts,
+        )
 
 
 @dataclass(frozen=True)
@@ -171,6 +200,9 @@ class CatalogPositionDTO:
 
     def runtime_dict(self) -> dict[str, Any] | None:
         return copy.deepcopy(self.runtime_robot)
+
+    def formula_executability_dto(self) -> FormulaExecutabilityCatalogDTO:
+        return self.model.formula_executability_dto(position_id=self.id)
 
 
 @dataclass(frozen=True)

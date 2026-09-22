@@ -1,0 +1,91 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "added_model_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Added Model Ids",
+      "type": "array"
+    },
+    "added_position_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Added Position Ids",
+      "type": "array"
+    },
+    "baseline_contract_version": {
+      "const": "runtime-calculation-readiness-contract-v2",
+      "title": "Baseline Contract Version",
+      "type": "string"
+    },
+    "baseline_model_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Baseline Model Ids",
+      "type": "array"
+    },
+    "baseline_position_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Baseline Position Ids",
+      "type": "array"
+    },
+    "candidate_contract_version": {
+      "const": "formula-executability-profiles-v3",
+      "title": "Candidate Contract Version",
+      "type": "string"
+    },
+    "candidate_model_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Candidate Model Ids",
+      "type": "array"
+    },
+    "candidate_position_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Candidate Position Ids",
+      "type": "array"
+    },
+    "removed_model_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Removed Model Ids",
+      "type": "array"
+    },
+    "removed_position_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Removed Position Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "catalog-formula-executability-pool-diff-v3",
+      "default": "catalog-formula-executability-pool-diff-v3",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "baseline_contract_version",
+    "candidate_contract_version",
+    "baseline_model_ids",
+    "candidate_model_ids",
+    "added_model_ids",
+    "removed_model_ids",
+    "baseline_position_ids",
+    "candidate_position_ids",
+    "added_position_ids",
+    "removed_position_ids"
+  ],
+  "title": "ExecutabilityPoolDiffV3",
+  "type": "object"
+}

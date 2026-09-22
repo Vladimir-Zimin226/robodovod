@@ -6,8 +6,8 @@ Rxx/Fxx/Gxx/Kxx/Qxx определены в нём. Все K/Q приняты к
 [policy v1](calculation-policy-decisions-v1.md); отдельного ответа Жени не требуется. Новые пути ниже — предложения для
 реализации, не утверждение о существующих файлах. C01 **COMPLETE** 2026-09-20,
 C02 **COMPLETE** 2026-09-22, C03 **COMPLETE** 2026-09-22,
-C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22;
-C06–C29 пока **PLANNED**.
+C04 **COMPLETE** 2026-09-22, C05 **COMPLETE** 2026-09-22,
+C06 **COMPLETE** 2026-09-22; C07–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -184,6 +184,10 @@ readiness/execution. Отчёт: [applicability constraints v2](applicability-co
 - **Вне этапа:** score, deployment certification, formula execution, изменения v1.
 
 ## C06 — `catalog/formula-executability-audit-v3`
+
+Статус: **COMPLETE**, 2026-09-22. Добавлены versioned dependency profiles,
+catalog/run resolvers, full-audit 187/223 и exact pool diff 21/24 без изменения
+membership. Отчёт: [formula executability audit v3](formula-executability-audit-v3.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

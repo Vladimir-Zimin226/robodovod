@@ -1,0 +1,539 @@
+{
+  "$defs": {
+    "AuditInvariantsV3": {
+      "additionalProperties": false,
+      "properties": {
+        "bas_in_candidate_pool": {
+          "const": false,
+          "title": "Bas In Candidate Pool",
+          "type": "boolean"
+        },
+        "economics_required": {
+          "const": false,
+          "title": "Economics Required",
+          "type": "boolean"
+        },
+        "formulas_executed": {
+          "const": false,
+          "title": "Formulas Executed",
+          "type": "boolean"
+        },
+        "pool_membership_changed": {
+          "const": false,
+          "title": "Pool Membership Changed",
+          "type": "boolean"
+        },
+        "robot_cost_fields_read": {
+          "const": false,
+          "title": "Robot Cost Fields Read",
+          "type": "boolean"
+        },
+        "runtime_activation_changed": {
+          "const": false,
+          "title": "Runtime Activation Changed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "formulas_executed",
+        "economics_required",
+        "robot_cost_fields_read",
+        "runtime_activation_changed",
+        "pool_membership_changed",
+        "bas_in_candidate_pool"
+      ],
+      "title": "AuditInvariantsV3",
+      "type": "object"
+    },
+    "CatalogExecutabilityResult": {
+      "additionalProperties": false,
+      "properties": {
+        "assumptions": {
+          "items": {
+            "$ref": "#/$defs/ExecutabilityAssumption"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "available_facts": {
+          "items": {
+            "$ref": "#/$defs/DependencyResolution"
+          },
+          "title": "Available Facts",
+          "type": "array"
+        },
+        "blockers": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Blockers",
+          "type": "array"
+        },
+        "catalog_status": {
+          "enum": [
+            "CATALOG_EXECUTABLE",
+            "MISSING_SAFE_FACT",
+            "INVALID_FACT",
+            "UNKNOWN_IDENTITY",
+            "UNSUPPORTED_PROFILE",
+            "NOT_EQUIPMENT"
+          ],
+          "title": "Catalog Status",
+          "type": "string"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "model_id": {
+          "title": "Model Id",
+          "type": "string"
+        },
+        "policy_bindings": {
+          "items": {
+            "$ref": "#/$defs/DependencyResolution"
+          },
+          "title": "Policy Bindings",
+          "type": "array"
+        },
+        "position_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Position Id"
+        },
+        "profile_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Profile Id"
+        },
+        "required_scenario_inputs": {
+          "items": {
+            "$ref": "#/$defs/DependencyResolution"
+          },
+          "title": "Required Scenario Inputs",
+          "type": "array"
+        },
+        "run_executability": {
+          "const": "NOT_EVALUATED",
+          "default": "NOT_EVALUATED",
+          "title": "Run Executability",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "catalog-formula-executability-result-v3",
+          "default": "catalog-formula-executability-result-v3",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "unsupported_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unsupported Reason"
+        }
+      },
+      "required": [
+        "model_id",
+        "position_id",
+        "profile_id",
+        "catalog_status",
+        "formula_ids",
+        "available_facts",
+        "required_scenario_inputs",
+        "policy_bindings",
+        "assumptions",
+        "blockers"
+      ],
+      "title": "CatalogExecutabilityResult",
+      "type": "object"
+    },
+    "DependencyResolution": {
+      "additionalProperties": false,
+      "properties": {
+        "field_or_path": {
+          "title": "Field Or Path",
+          "type": "string"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "reason_code": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "requirement_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "CATALOG_FACT",
+            "SCENARIO_INPUT",
+            "POLICY_PARAMETER"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "RESOLVED_SAFE_FACT",
+            "REQUIRED_SCENARIO_INPUT",
+            "OPTIONAL_SCENARIO_INPUT",
+            "RESOLVED_SCENARIO_INPUT",
+            "RESOLVED_POLICY",
+            "MISSING_SAFE_FACT",
+            "INVALID_UNIT",
+            "INVALID_DOMAIN",
+            "MISSING_SCENARIO_INPUT",
+            "MISSING_POLICY_PARAMETER"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "source_kind",
+        "status",
+        "field_or_path",
+        "formula_ids",
+        "reason_code"
+      ],
+      "title": "DependencyResolution",
+      "type": "object"
+    },
+    "ExecutabilityAssumption": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Assumption Id",
+          "type": "string"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "permitted_scope": {
+          "minLength": 1,
+          "title": "Permitted Scope",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "vendor_fact": {
+          "const": false,
+          "default": false,
+          "title": "Vendor Fact",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "assumption_id",
+        "permitted_scope",
+        "formula_ids",
+        "source_refs"
+      ],
+      "title": "ExecutabilityAssumption",
+      "type": "object"
+    },
+    "ExecutabilityAuditItemV3": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "model_id": {
+          "title": "Model Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/CatalogExecutabilityResult"
+        },
+        "source_row_number": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source Row Number"
+        },
+        "system_family": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "System Family"
+        }
+      },
+      "required": [
+        "id",
+        "model_id",
+        "name",
+        "source_row_number",
+        "system_family",
+        "result"
+      ],
+      "title": "ExecutabilityAuditItemV3",
+      "type": "object"
+    },
+    "ExecutabilityPoolDiffV3": {
+      "additionalProperties": false,
+      "properties": {
+        "added_model_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Added Model Ids",
+          "type": "array"
+        },
+        "added_position_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Added Position Ids",
+          "type": "array"
+        },
+        "baseline_contract_version": {
+          "const": "runtime-calculation-readiness-contract-v2",
+          "title": "Baseline Contract Version",
+          "type": "string"
+        },
+        "baseline_model_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Baseline Model Ids",
+          "type": "array"
+        },
+        "baseline_position_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Baseline Position Ids",
+          "type": "array"
+        },
+        "candidate_contract_version": {
+          "const": "formula-executability-profiles-v3",
+          "title": "Candidate Contract Version",
+          "type": "string"
+        },
+        "candidate_model_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Model Ids",
+          "type": "array"
+        },
+        "candidate_position_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidate Position Ids",
+          "type": "array"
+        },
+        "removed_model_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Removed Model Ids",
+          "type": "array"
+        },
+        "removed_position_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Removed Position Ids",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "catalog-formula-executability-pool-diff-v3",
+          "default": "catalog-formula-executability-pool-diff-v3",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseline_contract_version",
+        "candidate_contract_version",
+        "baseline_model_ids",
+        "candidate_model_ids",
+        "added_model_ids",
+        "removed_model_ids",
+        "baseline_position_ids",
+        "candidate_position_ids",
+        "added_position_ids",
+        "removed_position_ids"
+      ],
+      "title": "ExecutabilityPoolDiffV3",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "catalog_code": {
+      "const": "organizer-catalog-v4",
+      "title": "Catalog Code",
+      "type": "string"
+    },
+    "counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Counts",
+      "type": "object"
+    },
+    "deterministic_order": {
+      "const": "models:model_id;positions:source_row_number",
+      "title": "Deterministic Order",
+      "type": "string"
+    },
+    "inputs_sha256": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Inputs Sha256",
+      "type": "object"
+    },
+    "invariants": {
+      "$ref": "#/$defs/AuditInvariantsV3"
+    },
+    "model_status_counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Model Status Counts",
+      "type": "object"
+    },
+    "models": {
+      "items": {
+        "$ref": "#/$defs/ExecutabilityAuditItemV3"
+      },
+      "title": "Models",
+      "type": "array"
+    },
+    "pool_diff": {
+      "$ref": "#/$defs/ExecutabilityPoolDiffV3"
+    },
+    "position_status_counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Position Status Counts",
+      "type": "object"
+    },
+    "positions": {
+      "items": {
+        "$ref": "#/$defs/ExecutabilityAuditItemV3"
+      },
+      "title": "Positions",
+      "type": "array"
+    },
+    "profiles_version": {
+      "const": "formula-executability-profiles-v3",
+      "title": "Profiles Version",
+      "type": "string"
+    },
+    "readiness_contract_version": {
+      "const": "runtime-calculation-readiness-contract-v2",
+      "title": "Readiness Contract Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "catalog-formula-executability-audit-v3",
+      "default": "catalog-formula-executability-audit-v3",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "profiles_version",
+    "readiness_contract_version",
+    "catalog_code",
+    "deterministic_order",
+    "inputs_sha256",
+    "counts",
+    "model_status_counts",
+    "position_status_counts",
+    "invariants",
+    "pool_diff",
+    "models",
+    "positions"
+  ],
+  "title": "FormulaExecutabilityAuditV3",
+  "type": "object"
+}
