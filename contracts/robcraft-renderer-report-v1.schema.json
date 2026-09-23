@@ -1,0 +1,433 @@
+{
+  "$defs": {
+    "RobCraftEnergyV1": {
+      "additionalProperties": false,
+      "properties": {
+        "economics_status": {
+          "const": "NOT_COMPARABLE_TO_RUB_OR_KWH",
+          "title": "Economics Status",
+          "type": "string"
+        },
+        "unit": {
+          "const": "ARBITRARY_RENDERER_UNIT",
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "economics_status"
+      ],
+      "title": "RobCraftEnergyV1",
+      "type": "object"
+    },
+    "RobCraftGeometryStatusV1": {
+      "additionalProperties": false,
+      "properties": {
+        "analytical_distance_unit": {
+          "anyOf": [
+            {
+              "const": "m",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Analytical Distance Unit"
+        },
+        "analytical_distance_value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Analytical Distance Value"
+        },
+        "analytical_route_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Analytical Route Ref"
+        },
+        "base_revision_id": {
+          "pattern": "^calc_[0-9a-f]{16}$",
+          "title": "Base Revision Id",
+          "type": "string"
+        },
+        "economics_status": {
+          "const": "UNCHANGED",
+          "title": "Economics Status",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "PROVIDED",
+            "SYNTHETIC",
+            "UNKNOWN",
+            "REPRESENTATIVE"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "BASE",
+            "MODIFIED"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "status",
+        "base_revision_id",
+        "economics_status",
+        "analytical_route_ref",
+        "analytical_distance_value",
+        "analytical_distance_unit"
+      ],
+      "title": "RobCraftGeometryStatusV1",
+      "type": "object"
+    },
+    "RobCraftMeasurementBasisV1": {
+      "additionalProperties": false,
+      "properties": {
+        "elapsed_seconds": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Elapsed Seconds",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "LIVE_RENDERER_WINDOW",
+            "C23_MEASUREMENT_WINDOW"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "measurement_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measurement Days"
+        },
+        "operating_hours_per_day": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Operating Hours Per Day",
+          "type": "string"
+        },
+        "operating_window_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Operating Window Refs",
+          "type": "array"
+        },
+        "warmup_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Warmup Days"
+        }
+      },
+      "required": [
+        "kind",
+        "elapsed_seconds",
+        "operating_hours_per_day",
+        "operating_window_refs"
+      ],
+      "title": "RobCraftMeasurementBasisV1",
+      "type": "object"
+    },
+    "RobCraftModelStatusV1": {
+      "additionalProperties": false,
+      "properties": {
+        "charging": {
+          "const": "VISUAL_DEMO_ONLY_NOT_ANALYTICAL",
+          "title": "Charging",
+          "type": "string"
+        },
+        "engineering_claim": {
+          "const": "CONCEPTUAL_VISUALIZATION_NOT_CERTIFICATION",
+          "title": "Engineering Claim",
+          "type": "string"
+        },
+        "failures": {
+          "const": "VISUAL_DEMO_ONLY_NOT_ANALYTICAL",
+          "title": "Failures",
+          "type": "string"
+        },
+        "sla": {
+          "const": "NOT_EVALUATED_USE_C23_REPORT",
+          "title": "Sla",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sla",
+        "failures",
+        "charging",
+        "engineering_claim"
+      ],
+      "title": "RobCraftModelStatusV1",
+      "type": "object"
+    },
+    "RobCraftObservedMetricsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "average_queue_seconds": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Average Queue Seconds",
+          "type": "string"
+        },
+        "completed_units": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Completed Units",
+          "type": "string"
+        },
+        "queued_jobs": {
+          "minimum": 0,
+          "title": "Queued Jobs",
+          "type": "integer"
+        },
+        "throughput_unit": {
+          "minLength": 1,
+          "title": "Throughput Unit",
+          "type": "string"
+        },
+        "throughput_units_per_hour": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Throughput Units Per Hour",
+          "type": "string"
+        }
+      },
+      "required": [
+        "completed_units",
+        "throughput_units_per_hour",
+        "throughput_unit",
+        "queued_jobs",
+        "average_queue_seconds"
+      ],
+      "title": "RobCraftObservedMetricsV1",
+      "type": "object"
+    },
+    "RobCraftReportBindingsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "authoritative_report_digest": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Authoritative Report Digest"
+        },
+        "authoritative_report_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Authoritative Report Id"
+        },
+        "scenario_revision_id": {
+          "pattern": "^calc_[0-9a-f]{16}$",
+          "title": "Scenario Revision Id",
+          "type": "string"
+        },
+        "scenario_seed": {
+          "title": "Scenario Seed",
+          "type": "string"
+        },
+        "scenario_spec_version": {
+          "enum": [
+            "scenario-spec-v1",
+            "scenario-spec-v2"
+          ],
+          "title": "Scenario Spec Version",
+          "type": "string"
+        },
+        "scheduler_seed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Scheduler Seed"
+        }
+      },
+      "required": [
+        "scenario_revision_id",
+        "scenario_spec_version",
+        "scenario_seed",
+        "authoritative_report_id",
+        "authoritative_report_digest",
+        "scheduler_seed"
+      ],
+      "title": "RobCraftReportBindingsV1",
+      "type": "object"
+    },
+    "RobCraftReportVersionsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "event_profile_version": {
+          "const": "robcraft-visual-events-v1",
+          "title": "Event Profile Version",
+          "type": "string"
+        },
+        "renderer_engine_version": {
+          "const": "robcraft-time-step-v1",
+          "title": "Renderer Engine Version",
+          "type": "string"
+        },
+        "report_version": {
+          "const": "robcraft-renderer-report-v1",
+          "title": "Report Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "renderer_engine_version",
+        "event_profile_version",
+        "report_version"
+      ],
+      "title": "RobCraftReportVersionsV1",
+      "type": "object"
+    },
+    "RobCraftUtilizationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "moving_basis": {
+          "const": "ROBOT_MOVING_TIME_OVER_RENDERER_ELAPSED_FLEET_TIME",
+          "title": "Moving Basis",
+          "type": "string"
+        },
+        "moving_percent": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Moving Percent",
+          "type": "string"
+        },
+        "productive_percent": {
+          "title": "Productive Percent",
+          "type": "null"
+        },
+        "productive_status": {
+          "const": "NOT_EVALUATED_LOCAL_TIME_STEP",
+          "title": "Productive Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "moving_percent",
+        "moving_basis",
+        "productive_percent",
+        "productive_status"
+      ],
+      "title": "RobCraftUtilizationV1",
+      "type": "object"
+    }
+  },
+  "$id": "https://robomera.local/contracts/robcraft-renderer-report-v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "bindings": {
+      "$ref": "#/$defs/RobCraftReportBindingsV1"
+    },
+    "energy": {
+      "$ref": "#/$defs/RobCraftEnergyV1"
+    },
+    "geometry": {
+      "$ref": "#/$defs/RobCraftGeometryStatusV1"
+    },
+    "limitations": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "measurement_basis": {
+      "$ref": "#/$defs/RobCraftMeasurementBasisV1"
+    },
+    "model_status": {
+      "$ref": "#/$defs/RobCraftModelStatusV1"
+    },
+    "observed": {
+      "$ref": "#/$defs/RobCraftObservedMetricsV1"
+    },
+    "schema_version": {
+      "const": "robcraft-renderer-report-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "const": "LOCAL_VISUAL_OBSERVATION_ONLY",
+      "title": "Status",
+      "type": "string"
+    },
+    "utilization": {
+      "$ref": "#/$defs/RobCraftUtilizationV1"
+    },
+    "versions": {
+      "$ref": "#/$defs/RobCraftReportVersionsV1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "bindings",
+    "versions",
+    "measurement_basis",
+    "geometry",
+    "observed",
+    "utilization",
+    "energy",
+    "model_status",
+    "limitations"
+  ],
+  "title": "Robomera RobCraft RendererReport v1",
+  "type": "object"
+}

@@ -1,0 +1,20 @@
+{
+  "authoritative_observed_per_hour": "2112.5",
+  "authoritative_report_digest": "sha256:992bc8dd68cfcd2cdf5976948aeebc60a90a0beae233c476f723f15ee69e847b",
+  "authoritative_report_id": "report.eab3893289f13f4c",
+  "denominator": "C23_OBSERVED_CAPACITY",
+  "deviation_percent": "12.42603550295857988165680473",
+  "economics_status": "UNCHANGED",
+  "geometry_status": "MODIFIED",
+  "reasons": [
+    "deviation-strictly-greater-than-10-percent"
+  ],
+  "renderer_observed_per_hour": "1850",
+  "renderer_report_version": "robcraft-renderer-report-v1",
+  "scenario_revision_id": "calc_fe6611cc9a672595",
+  "schema_version": "robcraft-kpi-comparison-v1",
+  "status": "DEVIATION",
+  "unit": "m2/h",
+  "warning": true,
+  "warning_threshold_percent": "10"
+}

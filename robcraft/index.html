@@ -38,11 +38,11 @@
       </div>
       <div id="report-panel" class="report-panel hidden">
         <small>ОПЕРАЦИОННЫЙ ОТЧЁТ</small><strong>ЭФФЕКТИВНОСТЬ СЦЕНАРИЯ</strong>
-        <div class="report-kpis"><div><span>Производительность</span><b id="report-throughput">—</b><em>заданий/час</em></div><div><span>Средний цикл</span><b id="report-cycle">—</b><em>секунд</em></div><div><span>Доступность</span><b id="report-availability">—</b><em>парка</em></div><div><span>Энергия / рейс</span><b id="report-energy">—</b><em>условных ед.</em></div></div>
-        <div class="report-bar"><label>Полезное движение <span id="report-utilization-label">—</span></label><i><b id="report-utilization-bar"></b></i></div>
-        <div class="report-bar"><label>Доступность парка <span id="report-availability-label">—</span></label><i><b id="report-availability-bar"></b></i></div>
+        <div class="report-kpis"><div><span>Локальный throughput</span><b id="report-throughput">—</b><em>заданий/час · не KPI C23</em></div><div><span>Средний visual cycle</span><b id="report-cycle">—</b><em>секунд</em></div><div><span>Visual uptime</span><b id="report-availability">—</b><em>не availability KPI</em></div><div><span>Энергия / рейс</span><b id="report-energy">—</b><em>условных ед. · не кВт·ч/₽</em></div></div>
+        <div class="report-bar"><label>Движение (не productive utilization) <span id="report-utilization-label">—</span></label><i><b id="report-utilization-bar"></b></i></div>
+        <div class="report-bar"><label>Visual uptime (demo faults) <span id="report-availability-label">—</span></label><i><b id="report-availability-bar"></b></i></div>
         <div class="report-breakdown"><span>Завершено <b id="report-completed">—</b></span><span>В очереди <b id="report-queued">—</b></span><span>Простой <b id="report-downtime">—</b></span></div>
-        <div class="report-insight"><small>ВЫВОД СИМУЛЯЦИИ</small><p id="report-insight">Собираем телеметрию…</p></div>
+        <div class="report-insight"><small>ОГРАНИЧЕНИЯ ЛОКАЛЬНОЙ ТЕЛЕМЕТРИИ</small><p id="report-insight">Собираем visual-only телеметрию…</p></div>
         <button id="report-export" type="button">↓ ЭКСПОРТИРОВАТЬ JSON</button>
       </div>
       <div id="pause-note" class="pause-note hidden">ПАУЗА<br><small>кликните по миру, чтобы продолжить · G — генератор</small></div>

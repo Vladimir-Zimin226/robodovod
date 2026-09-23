@@ -8,6 +8,7 @@ import {
   parseSimulationBundle,
   reduceTimeline,
 } from '../simulation2dModel';
+import RobCraftFrame from './RobCraftFrame';
 
 const STATUS_LABELS = {
   STOPPED: 'Остановлено', RUNNING: 'Воспроизведение', PAUSED: 'Пауза',
@@ -183,6 +184,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             <div><h3>Ограничения отчёта</h3><ul>{report.limitations.map((item) => <li key={item}>{item}</li>)}</ul></div>
             <div><h3>Геометрия и экономика</h3><p>{presentation.bundle.spec.finance === null ? 'Capacity-only: финансовый snapshot не предоставлен; визуализация полностью доступна.' : 'Finance binding показан только как immutable reference; браузер не считает деньги.'}</p><p>Synthetic coordinates используются только для показа и не переписывают analytical route/distance.</p></div>
           </div>
+          <RobCraftFrame scenarioSpec={active.request.scenario_spec} simulationReport={report} compact />
         </>
       )}
     </section>

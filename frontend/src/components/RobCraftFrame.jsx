@@ -1,24 +1,33 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { parentMessage, parseRobCraftMessage } from '../robcraftProtocol';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { negotiateScenarioSpec, parentMessage, parseRobCraftMessage } from '../robcraftProtocol';
 
 const LOAD_TIMEOUT_MS = 12000;
 
-export default function RobCraftFrame({ scenarioSpec, compact = false }) {
+export default function RobCraftFrame({ scenarioSpec, simulationReport = null, compact = false }) {
   const iframeRef = useRef(null);
   const requestCounter = useRef(0);
   const activeRequest = useRef(null);
   const [ready, setReady] = useState(false);
+  const [capabilities, setCapabilities] = useState([]);
   const [appliedRevision, setAppliedRevision] = useState(null);
   const [error, setError] = useState(null);
   const [cameraMode, setCameraMode] = useState('AUTOPILOT');
   const [editorEnabled, setEditorEnabled] = useState(false);
   const [scenePatch, setScenePatch] = useState({ status: 'CLEAN', summary: null, zoneId: null });
   const [manualNotice, setManualNotice] = useState(null);
+  const [rendererReport, setRendererReport] = useState(null);
   const revisionId = scenarioSpec?.revision_id || null;
+  const reportDigest = simulationReport?.replay?.report_content_digest || 'no-report';
+  const bindingKey = revisionId ? `${revisionId}:${reportDigest}` : null;
+  const negotiationError = useMemo(() => {
+    if (!ready || !scenarioSpec) return null;
+    try { negotiateScenarioSpec(scenarioSpec, capabilities); return null; } catch (failure) { return failure.message; }
+  }, [ready, scenarioSpec, capabilities]);
+  const visibleError = error || negotiationError;
   const visualizationOnly = Boolean(scenarioSpec?.zones?.some((zone) =>
     zone.status === 'NO_ACCEPTABLE_ECONOMICS'
       && scenarioSpec.fleet?.some((item) => item.zone_id === zone.id)));
-  const synchronizing = Boolean(revisionId && appliedRevision !== revisionId && !error);
+  const synchronizing = Boolean(bindingKey && appliedRevision !== bindingKey && !visibleError);
 
   const post = (message) => {
     iframeRef.current?.contentWindow?.postMessage(message, window.location.origin);
@@ -30,11 +39,13 @@ export default function RobCraftFrame({ scenarioSpec, compact = false }) {
       try {
         const message = parseRobCraftMessage(event.data);
         if (message.type === 'ROBCRAFT_READY') {
+          setCapabilities(message.payload.capabilities);
           setReady(true);
           setAppliedRevision(null);
           setEditorEnabled(false);
           setScenePatch({ status: 'CLEAN', summary: null, zoneId: null });
           setError(null);
+          setRendererReport(null);
           return;
         }
         if (message.type === 'ROBCRAFT_ERROR') {
@@ -63,10 +74,18 @@ export default function RobCraftFrame({ scenarioSpec, compact = false }) {
           setScenePatch({ status: message.payload.status, summary: message.payload.summary, zoneId: message.payload.zone_id });
           return;
         }
+        if (message.type === 'ROBCRAFT_REPORT') {
+          if (current.reportDigest !== 'no-report' && message.payload.bindings.authoritative_report_digest !== current.reportDigest) {
+            setError('RobCraft вернул отчёт для устаревшего C23 report digest.');
+            return;
+          }
+          setRendererReport(message.payload);
+          return;
+        }
         if (message.payload.status === 'PREPARED') {
           post(parentMessage('APPLY_REVISION', current.revisionId, current.requestId));
         } else {
-          setAppliedRevision(current.revisionId);
+          setAppliedRevision(current.bindingKey);
           setError(null);
         }
       } catch (protocolError) {
@@ -78,12 +97,13 @@ export default function RobCraftFrame({ scenarioSpec, compact = false }) {
   }, []);
 
   useLayoutEffect(() => {
-    if (!ready || !scenarioSpec || !revisionId || appliedRevision === revisionId) return;
+    if (!ready || !scenarioSpec || !revisionId || appliedRevision === bindingKey) return;
+    if (negotiationError) return;
     requestCounter.current += 1;
     const requestId = `request_${Date.now()}_${requestCounter.current}`;
-    activeRequest.current = { requestId, revisionId };
-    post(parentMessage('LOAD_SCENARIO', revisionId, requestId, { scenario_spec: scenarioSpec }));
-  }, [ready, scenarioSpec, revisionId, appliedRevision]);
+    activeRequest.current = { requestId, revisionId, reportDigest, bindingKey };
+    post(parentMessage('LOAD_SCENARIO', revisionId, requestId, { scenario_spec: scenarioSpec, simulation_report: simulationReport }));
+  }, [ready, capabilities, negotiationError, scenarioSpec, simulationReport, revisionId, reportDigest, bindingKey, appliedRevision]);
 
   useEffect(() => {
     if (!synchronizing) return undefined;
@@ -124,17 +144,26 @@ export default function RobCraftFrame({ scenarioSpec, compact = false }) {
           onLoad={() => setError(null)}
           onError={() => setError('Не удалось загрузить RobCraft. Экономический расчёт остаётся доступен.')}
         />
-        {(synchronizing || !scenarioSpec) && !error && (
+        {(synchronizing || !scenarioSpec) && !visibleError && (
           <div className="absolute inset-0 grid place-items-center bg-slate-950/95 px-6 text-center text-sm text-slate-300">
             {scenarioSpec ? 'Синхронизируем 3D-сцену с расчётом…' : 'Для этого результата нет ScenarioSpec.'}
           </div>
         )}
-        {error && (
+        {visibleError && (
           <div className="absolute inset-0 grid place-items-center bg-slate-950 px-6 text-center">
-            <div><div className="text-sm font-semibold text-amber-300">3D-сцена недоступна</div><p className="mt-2 max-w-xl text-xs leading-5 text-slate-400">{error}</p></div>
+            <div><div className="text-sm font-semibold text-amber-300">3D-сцена недоступна</div><p className="mt-2 max-w-xl text-xs leading-5 text-slate-400">{visibleError}</p></div>
           </div>
         )}
       </div>
+      {rendererReport && (
+        <div className="border-t border-white/10 bg-slate-950 px-4 py-3 text-[11px] leading-5 text-slate-300">
+          <strong className="text-sky-300">LOCAL VISUAL OBSERVATION ONLY</strong>
+          {' · '}t={Number(rendererReport.measurement_basis.elapsed_seconds).toFixed(1)} s
+          {' · '}moving {Number(rendererReport.utilization.moving_percent).toFixed(1)}% (не productive utilization)
+          {' · '}throughput {Number(rendererReport.observed.throughput_units_per_hour).toFixed(1)} {rendererReport.observed.throughput_unit} (не KPI C23)
+          <div className="text-amber-300">SLA: NOT_EVALUATED · energy: arbitrary renderer units · failures/charging: visual demo only · не инженерная сертификация.</div>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parseWarehouseScenarioSpec } from '../src/integration/scenario-spec.js';
+import { parseScenarioSpec, parseWarehouseScenarioSpec } from '../src/integration/scenario-spec.js';
 import { generateWorldFromScenarioSpec } from '../src/world/generator.js';
-import { createSimulation, getSimulationReport, updateSimulation } from '../src/simulation.js';
+import { buildRendererReport, createSimulation, getSimulationReport, updateSimulation } from '../src/simulation.js';
 
 const fixtureUrl = new URL('../../contracts/fixtures/scenario-spec-v1.golden.json', import.meta.url);
 const golden = JSON.parse(readFileSync(fixtureUrl, 'utf8'));
+const v2FixtureUrl = new URL('../../contracts/fixtures/scenario-spec-v2.capacity-only-cleaner.golden.json', import.meta.url);
+const v2Golden = JSON.parse(readFileSync(v2FixtureUrl, 'utf8'));
+const c23FixtureUrl = new URL('../../contracts/fixtures/simulation-report-v1.capacity-only.golden.json', import.meta.url);
+const c23Golden = JSON.parse(readFileSync(c23FixtureUrl, 'utf8'));
 
 function scenarioVariant({ quantity = 1, demandPerDay = 800, unitsPerTrip = 1, exchangeTimeS = 45 } = {}) {
   const spec = structuredClone(golden);
@@ -110,7 +114,7 @@ test('экономически неприемлемый технический �
 
 test('неизвестная версия, лишние поля и неподдерживаемый процесс отклоняются явно', () => {
   assert.throws(
-    () => parseWarehouseScenarioSpec({ ...golden, schema_version: 'scenario-spec-v2' }),
+    () => parseWarehouseScenarioSpec({ ...golden, schema_version: 'scenario-spec-v3' }),
     /Неподдерживаемая версия/
   );
   assert.throws(
@@ -129,6 +133,53 @@ test('неизвестная версия, лишние поля и неподд
   const inconsistentDemand = structuredClone(golden);
   inconsistentDemand.task_profiles[0].demand_per_day += 1;
   assert.throws(() => parseWarehouseScenarioSpec(inconsistentDemand), /Спрос task_profile/);
+});
+
+test('ScenarioSpec v2 использует operating window вместо 24h shortcut и не считает finance', () => {
+  const spec = structuredClone(v2Golden);
+  spec.operating_windows[0].duration.value = '8';
+  const before = JSON.stringify(spec);
+  const parsed = parseScenarioSpec(spec);
+  const scenario = parsed.zones[0].scenario;
+  assert.equal(scenario.operatingHoursPerDay, 8);
+  assert.equal(scenario.taskIntervalS, 8 * 3600 * 100 / 51000);
+  assert.equal(scenario.financeStatus, 'NOT_PROVIDED');
+  assert.equal(scenario.geometryMode, 'SYNTHETIC');
+  assert.equal(JSON.stringify(spec), before);
+  assert.ok(Object.isFrozen(parsed.spec));
+
+  const scene = generateWorldFromScenarioSpec(spec);
+  const simulation = createSimulation(scene);
+  const report = getSimulationReport(simulation);
+  assert.equal(report.tasks.requiredUnitsPerHour, 6375);
+  assert.equal(report.fleet.utilizationBasis, 'MOVING_TIME');
+  assert.equal(report.fleet.productiveUtilizationStatus, 'NOT_EVALUATED_LOCAL_TIME_STEP');
+});
+
+test('provided analytical route survives representative rendering and renderer report is honestly bound', () => {
+  const spec = structuredClone(v2Golden);
+  spec.zones[0] = { ...spec.zones[0], geometry_source: 'PROVIDED', geometry_ref: 'geometry.zone.terminal', assumption_ref: null };
+  spec.routes.push({ route_id: 'route.terminal', geometry_source: 'PROVIDED', one_way_distance: { value: '123', unit: 'm', quantity_kind: 'DISTANCE', numeric_encoding: 'DECIMAL_STRING' }, geometry_ref: 'geometry.route.terminal', assumption_ref: null });
+  spec.tasks[0].route_ref = 'route.terminal';
+  const scene = generateWorldFromScenarioSpec(spec);
+  const simulation = createSimulation(scene);
+  const renderer = buildRendererReport(simulation, c23Golden);
+  assert.equal(scene.scenario.analyticalRoute.one_way_distance.value, '123');
+  assert.equal(spec.routes[0].one_way_distance.value, '123');
+  assert.equal(renderer.bindings.authoritative_report_digest, c23Golden.replay.report_content_digest);
+  assert.equal(renderer.geometry.source, 'PROVIDED');
+  assert.equal(renderer.geometry.analytical_distance_value, '123');
+  assert.equal(renderer.energy.unit, 'ARBITRARY_RENDERER_UNIT');
+  assert.equal(renderer.model_status.sla, 'NOT_EVALUATED_USE_C23_REPORT');
+  assert.equal(renderer.utilization.productive_percent, null);
+});
+
+test('ScenarioSpec v2 rejects unknown fields without implicit downgrade', () => {
+  assert.throws(() => parseScenarioSpec({ ...v2Golden, renderer_internal: {} }), /неизвестные поля/);
+  const nested = structuredClone(v2Golden);
+  nested.tasks[0].batch.renderer_internal = true;
+  assert.throws(() => parseScenarioSpec(nested), /неизвестные поля/);
+  assert.throws(() => parseScenarioSpec({ ...v2Golden, schema_version: 'scenario-spec-v3' }), /Неподдерживаемая версия/);
 });
 
 test('golden-парки 1…12 выполняют задания без длительного operational deadlock', () => {

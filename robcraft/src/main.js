@@ -4,7 +4,7 @@ import { CameraDirector } from './camera-director.js';
 import { generateWorld, generateWorldsFromScenarioSpec } from './world/generator.js';
 import { configFromUrl, configToQuery, normalizeConfig } from './world/config.js';
 import { parseWorldDescription } from './world/prompt-parser.js';
-import { createSimulation, getSimulationReport, triggerSimulationEvent, updateSimulation } from './simulation.js';
+import { buildRendererReport, createSimulation, getSimulationReport, triggerSimulationEvent, updateSimulation } from './simulation.js';
 import { AudioEngine } from './audio.js';
 import { BUILD_CATALOG, pickEntity, rayGroundPoint, SceneEditorModel } from './editor/editor.js';
 import { canPlaceSolid, circleIntersectsSolid } from './editor/collisions.js';
@@ -68,6 +68,7 @@ let zoneSessions = [];
 let scenarioZoneEntries = [];
 let activeZoneIndex = 0;
 let zoneRotationElapsed = 0;
+let authoritativeSimulationReport = null;
 const audioEngine = new AudioEngine();
 
 function cameraSnapshot(reason = 'STATE_CHANGED') {
@@ -136,14 +137,15 @@ function requestManualPointerLock() {
   });
 }
 
-function prepareEmbeddedScenario(spec) {
+function prepareEmbeddedScenario(spec, simulationReport = null) {
   const generated = generateWorldsFromScenarioSpec(spec);
   if (!generated.zones.some(zone => zone.supported)) {
     throw new TypeError(`Нет поддерживаемых 3D-зон: ${generated.zones.map(zone => `${zone.zone.name} — ${zone.reason}`).join('; ')}`);
   }
   return {
     generated,
-    fingerprint: scenarioVisualFingerprint(spec)
+    fingerprint: scenarioVisualFingerprint(spec),
+    authoritativeReport: simulationReport
   };
 }
 
@@ -228,6 +230,7 @@ function applyEmbeddedScenario(candidate) {
     document.exitPointerLock?.();
   }
   visualFingerprint = candidate.fingerprint;
+  authoritativeSimulationReport = candidate.authoritativeReport;
   simulation.sceneModified = scenePatchHasChanges(sceneEditor.history.present);
   simulation.baseRevisionId = sceneEditor.history.present.base.revision_id || null;
   player.enabled = metadataOnly && !wasEditing && previousCameraState === 'MANUAL_FIRST_PERSON';
@@ -279,6 +282,7 @@ function announceEditorState() {
 
 function announceScenePatch() {
   embeddedBridge?.scenePatchChanged(currentScenePatchState());
+  embeddedBridge?.rendererReportChanged();
 }
 
 function showError(error) {
@@ -562,12 +566,8 @@ function toggleAnalytics() {
 }
 
 function reportInsight(report) {
-  if (report.geometry.status === 'MODIFIED') return 'Результат получен на изменённой геометрии. Экономические показатели расчётной ревизии не пересчитывались.';
-  if (report.tasks.queued > Math.max(2, report.fleetSize * 2)) return 'Очередь растёт быстрее пропускной способности. Нужен дополнительный AMR или более короткий транспортный цикл.';
-  if (report.fleet.availabilityPercent < 96) return 'Основное ограничение — доступность оборудования. Стоит проверить резервный AMR и регламент восстановления.';
-  if (report.safety.reservationWaitSeconds > report.elapsedSeconds * .35) return 'Заметная часть времени теряется на пересечениях. Рекомендуется развести встречные потоки или добавить односторонние участки.';
-  if (report.fleet.utilizationPercent < 24 && report.tasks.queued === 0) return 'Парк имеет существенный запас мощности. Можно проверить вариант с меньшим числом роботов.';
-  return 'Парк справляется с текущим потоком без выраженного узкого места. Для проверки запаса мощности включите пик спроса.';
+  const geometry = report.geometry.status === 'MODIFIED' ? 'Геометрия изменена; расчётная ревизия и экономика не пересчитывались. ' : '';
+  return `${geometry}Это локальная телеметрия визуального time-step loop. Capacity, productive utilization, SLA, очередь и экономика подтверждаются только связанным C23 SimulationReport.`;
 }
 
 function updateReport(report) {
@@ -723,7 +723,7 @@ function rebuildInspectionTargets() {
       label: object.meta.label,
       stationType: object.type
     }));
-  const zone = scene.scenarioSpec?.zones?.find(item => item.id === scene.scenario?.zoneId);
+  const zone = scene.scenarioSpec?.zones?.find(item => (item.id || item.zone_id) === scene.scenario?.zoneId);
   const zoneTarget = zone ? [{
     entityType: 'zone',
     position: [0, 1.2, scene.layout?.crossAisleZ ?? 0],
@@ -748,22 +748,30 @@ function stationCard(station) {
 
 function zoneCard(target) {
   const zone = target.zone;
-  const fleet = scene.scenarioSpec.fleet.find(item => item.zone_id === zone.id);
-  const task = scene.scenarioSpec.task_profiles.find(item => item.zone_id === zone.id);
-  return `<h3>${safeText(zone.name)}</h3><div class="status">● КОНЦЕПТУАЛЬНАЯ ЗОНА</div><dl>
-    <dt>Процесс</dt><dd>${safeText(zone.process_type)}</dd>
-    <dt>Спрос</dt><dd>${zone.demand_per_day} ед./день</dd>
-    <dt>Рейс</dt><dd>${task?.units_per_trip || '—'} ед.</dd>
-    <dt>Парк</dt><dd>${fleet ? `${fleet.quantity} × ${safeText(fleet.equipment_model_id)}` : 'Не выбран'}</dd>
-    <dt>Высвобождение</dt><dd>${scene.scenarioSpec.economics.fte_released} FTE</dd>
+  const zoneId = zone.id || zone.zone_id;
+  const fleet = scene.scenarioSpec.fleet.find(item => item.zone_id === zoneId);
+  const task = scene.scenarioSpec.task_profiles?.find(item => item.zone_id === zoneId) || scene.scenarioSpec.tasks?.find(item => item.zone_id === zoneId);
+  const demand = zone.demand_per_day ?? task?.demand?.value ?? '—';
+  const batch = task?.units_per_trip ?? task?.batch?.units_per_cycle?.value ?? '—';
+  const quantity = fleet?.quantity ?? fleet?.selected_fleet;
+  const model = fleet?.equipment_model_id ?? fleet?.model_id;
+  const finance = scene.scenarioSpec.schema_version === 'scenario-spec-v2'
+    ? (scene.scenarioSpec.finance === null ? 'Не предоставлен (capacity-only)' : 'Immutable snapshot; см. расчёт')
+    : `${scene.scenarioSpec.economics.fte_released} FTE`;
+  return `<h3>${safeText(zone.name || zone.label)}</h3><div class="status">● КОНЦЕПТУАЛЬНАЯ ЗОНА</div><dl>
+    <dt>Процесс</dt><dd>${safeText(zone.process_type || scene.scenario.processType)}</dd>
+    <dt>Спрос</dt><dd>${demand} ${safeText(task?.demand?.unit || 'ед./день')}</dd>
+    <dt>Рейс</dt><dd>${batch} ед.</dd>
+    <dt>Парк</dt><dd>${fleet ? `${quantity} × ${safeText(model)}` : 'Не выбран'}</dd>
+    <dt>Финансы</dt><dd>${finance}</dd>
     <dt>Смены / штат</dt><dd>см. расчёт</dd>
     <dt>Проход</dt><dd>${zone.aisle_width_m ?? '—'} м</dd>
-    <dt>Ограничения</dt><dd>${safeText(scene.scenarioSpec.warnings[0] || scene.scenarioSpec.facility.geometry_status)}</dd></dl>`;
+    <dt>Ограничения</dt><dd>${safeText(scene.scenarioSpec.warnings[0] || scene.scenarioSpec.facility?.geometry_status || 'см. authoritative report')}</dd></dl>`;
 }
 
 function inspectionKey(entity) {
   if (!entity) return null;
-  if (entity.entityType === 'zone') return `zone:${entity.zone.id}`;
+  if (entity.entityType === 'zone') return `zone:${entity.zone.id || entity.zone.zone_id}`;
   if (entity.entityType === 'station') return `station:${entity.stationType}:${entity.label}`;
   return `${entity.entityType || 'robot'}:${entity.id}`;
 }
@@ -819,7 +827,8 @@ try {
         return currentEditorState();
       },
       getEditorState: () => currentEditorState(),
-      getScenePatchState: () => currentScenePatchState()
+      getScenePatchState: () => currentScenePatchState(),
+      getRendererReport: () => buildRendererReport(simulation, authoritativeSimulationReport)
     });
   } else {
     const initial = configFromUrl(location.search);

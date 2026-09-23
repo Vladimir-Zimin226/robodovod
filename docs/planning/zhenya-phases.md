@@ -16,7 +16,8 @@ C16 **COMPLETE** 2026-09-23, C17 **COMPLETE** 2026-09-23,
 C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
 C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
-C24 **COMPLETE** 2026-09-23; C25–C30 пока **PLANNED**.
+C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23;
+C26–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -736,7 +737,7 @@ frontend не рассчитываются. Отчёт:
   progress≤60 sprofileverified, >10%warningvisible per approved comparison.
 - **Вне этапа:** RobCraft migration, improved economic recommendation fromanimation.
 
-## C25 — `robcraft/scenario-v2-reconciliation`
+## C25 — `robcraft/scenario-v2-reconciliation` — **COMPLETE 2026-09-23**
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
@@ -758,6 +759,18 @@ frontend не рассчитываются. Отчёт:
   revision protocol regression passes, live loop doesn'tcalculatefinance.
 - **Вне этапа:** replacing RobCraft physics with asserted engineering model,
   motion optimization without specification.
+
+Реализованы strict v1/v2 RobCraft adapter без downgrade и v2 cadence по
+operating windows вместо 24h shortcut. Versioned renderer report связан с
+scenario revision/seed и C23 report ID/digest/seed; moving utilization,
+arbitrary energy, visual failure/charging и `NOT_EVALUATED` SLA маркируются
+отдельно и не становятся capacity/finance доказательством. Backend comparison
+adapter сравнивает throughput только на одинаковой C23 measurement basis и
+даёт warning строго при >10%. Same-origin/source, two-phase и stale
+LOAD/PREPARED/APPLY guards сохранены и расширены generation guard. Добавлены
+strict schemas, geometry-modified goldens и drift builder. ScenarioSpec v1,
+C23/C24, old runs, registry/catalog membership и production runtime неизменны.
+Отчёт: [RobCraft ScenarioSpec v2 reconciliation](robcraft-scenario-v2-reconciliation.md).
 
 ## C26 — `report/calculation-evidence-exports`
 

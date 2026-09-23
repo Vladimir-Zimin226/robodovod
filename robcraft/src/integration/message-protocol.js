@@ -32,10 +32,16 @@ export function parseParentMessage(value) {
   }
   assertPlainObject(value.payload, 'RobCraftMessage.payload');
   if (value.type === 'LOAD_SCENARIO') {
-    assertExactFields(value.payload, new Set(['scenario_spec']), 'LOAD_SCENARIO.payload');
+    assertExactFields(value.payload, new Set(['scenario_spec', 'simulation_report']), 'LOAD_SCENARIO.payload');
     assertPlainObject(value.payload.scenario_spec, 'LOAD_SCENARIO.payload.scenario_spec');
     if (value.payload.scenario_spec.revision_id !== value.revision_id) {
       throw new TypeError('revision_id сообщения и ScenarioSpec не совпадают');
+    }
+    if (value.payload.simulation_report !== undefined && value.payload.simulation_report !== null) {
+      assertPlainObject(value.payload.simulation_report, 'LOAD_SCENARIO.payload.simulation_report');
+      if (value.payload.simulation_report.schema_version !== 'simulation-report-v1') throw new TypeError('LOAD_SCENARIO поддерживает только SimulationReport v1');
+      if (value.payload.simulation_report.scenario_revision_id !== value.revision_id) throw new TypeError('SimulationReport и ScenarioSpec revision не совпадают');
+      if (!/^sha256:[0-9a-f]{64}$/.test(value.payload.simulation_report.replay?.report_content_digest || '')) throw new TypeError('SimulationReport report digest имеет неверный формат');
     }
   } else if (value.type === 'APPLY_REVISION') {
     assertExactFields(value.payload, new Set(), 'APPLY_REVISION.payload');
@@ -59,11 +65,12 @@ export function childMessage(type, revisionId, requestId, payload = {}) {
   };
 }
 
-export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState }) {
-  if (windowObject.parent === windowObject) return { dispose() {}, cameraModeChanged() {}, editorModeChanged() {}, scenePatchChanged() {} };
+export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState, getRendererReport }) {
+  if (windowObject.parent === windowObject) return { dispose() {}, cameraModeChanged() {}, editorModeChanged() {}, scenePatchChanged() {}, rendererReportChanged() {} };
   const origin = windowObject.location.origin;
   let prepared = null;
   let applied = null;
+  let loadGeneration = 0;
 
   const send = message => windowObject.parent.postMessage(message, origin);
   const fail = (error, source = {}) => send(childMessage(
@@ -101,6 +108,11 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
       summary: state.summary || { objects: 0, created: 0, deleted: 0, robots: 0 }
     }));
   };
+  const rendererReportChanged = () => {
+    if (!applied || !getRendererReport) return;
+    const report = getRendererReport(applied.candidate);
+    send(childMessage('ROBCRAFT_REPORT', applied.revisionId, applied.requestId, report));
+  };
 
   const listener = async event => {
     if (event.origin !== origin || event.source !== windowObject.parent) return;
@@ -108,18 +120,23 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
     try {
       message = parseParentMessage(event.data);
       if (message.type === 'LOAD_SCENARIO') {
-        const candidate = await prepare(message.payload.scenario_spec);
-        prepared = { revisionId: message.revision_id, requestId: message.request_id, candidate };
+        const generation = ++loadGeneration;
+        prepared = null;
+        const candidate = await prepare(message.payload.scenario_spec, message.payload.simulation_report ?? null);
+        if (generation !== loadGeneration) return;
+        prepared = { revisionId: message.revision_id, requestId: message.request_id, candidate, generation };
         send(childMessage('SCENARIO_LOADED', message.revision_id, message.request_id, { status: 'PREPARED' }));
         return;
       }
       if (message.type === 'APPLY_REVISION') {
-        if (!prepared || prepared.revisionId !== message.revision_id || prepared.requestId !== message.request_id) {
+        if (!prepared || prepared.generation !== loadGeneration || prepared.revisionId !== message.revision_id || prepared.requestId !== message.request_id) {
           throw new TypeError('Ревизия не подготовлена или уже устарела');
         }
-        await apply(prepared.candidate);
-        applied = prepared;
+        const candidate = prepared;
         prepared = null;
+        await apply(candidate.candidate);
+        if (candidate.generation !== loadGeneration) return;
+        applied = candidate;
         send(childMessage('SCENARIO_LOADED', applied.revisionId, applied.requestId, { status: 'APPLIED' }));
         const state = getCameraState?.();
         if (state) cameraModeChanged(state.mode, 'REVISION_APPLIED', state.pointerLocked);
@@ -127,6 +144,7 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
         if (editorState) editorModeChanged(editorState);
         const patchState = getScenePatchState?.();
         if (patchState) scenePatchChanged(patchState);
+        rendererReportChanged();
         return;
       }
       if (!applied || applied.revisionId !== message.revision_id || applied.requestId !== message.request_id) {
@@ -145,11 +163,12 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
   };
 
   windowObject.addEventListener('message', listener);
-  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
+  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'scenario-spec-v2', 'simulation-report-v1-binding', 'robcraft-renderer-report-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
   return {
     dispose: () => windowObject.removeEventListener('message', listener),
     cameraModeChanged,
     editorModeChanged,
-    scenePatchChanged
+    scenePatchChanged,
+    rendererReportChanged
   };
 }

@@ -1,0 +1,123 @@
+{
+  "$id": "https://robomera.local/contracts/robcraft-kpi-comparison-v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "authoritative_observed_per_hour": {
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "title": "Authoritative Observed Per Hour",
+      "type": "string"
+    },
+    "authoritative_report_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Authoritative Report Digest",
+      "type": "string"
+    },
+    "authoritative_report_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Authoritative Report Id",
+      "type": "string"
+    },
+    "denominator": {
+      "const": "C23_OBSERVED_CAPACITY",
+      "default": "C23_OBSERVED_CAPACITY",
+      "title": "Denominator",
+      "type": "string"
+    },
+    "deviation_percent": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Deviation Percent"
+    },
+    "economics_status": {
+      "const": "UNCHANGED",
+      "title": "Economics Status",
+      "type": "string"
+    },
+    "geometry_status": {
+      "enum": [
+        "BASE",
+        "MODIFIED"
+      ],
+      "title": "Geometry Status",
+      "type": "string"
+    },
+    "reasons": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    },
+    "renderer_observed_per_hour": {
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "title": "Renderer Observed Per Hour",
+      "type": "string"
+    },
+    "renderer_report_version": {
+      "const": "robcraft-renderer-report-v1",
+      "title": "Renderer Report Version",
+      "type": "string"
+    },
+    "scenario_revision_id": {
+      "pattern": "^calc_[0-9a-f]{16}$",
+      "title": "Scenario Revision Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "robcraft-kpi-comparison-v1",
+      "default": "robcraft-kpi-comparison-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "CONSISTENT",
+        "DEVIATION",
+        "NOT_COMPARABLE",
+        "INPUT_MISMATCH"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "unit": {
+      "minLength": 1,
+      "title": "Unit",
+      "type": "string"
+    },
+    "warning": {
+      "title": "Warning",
+      "type": "boolean"
+    },
+    "warning_threshold_percent": {
+      "const": "10",
+      "default": "10",
+      "title": "Warning Threshold Percent",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scenario_revision_id",
+    "authoritative_report_id",
+    "authoritative_report_digest",
+    "renderer_report_version",
+    "status",
+    "authoritative_observed_per_hour",
+    "renderer_observed_per_hour",
+    "unit",
+    "deviation_percent",
+    "warning",
+    "reasons",
+    "geometry_status",
+    "economics_status"
+  ],
+  "title": "Robomera RobCraft KPI Comparison v1",
+  "type": "object"
+}

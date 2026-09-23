@@ -81,3 +81,23 @@ test('validates editor and revision-bound ScenePatch notifications', () => {
   assert.equal(patch.payload.status, 'MODIFIED');
   assert.throws(() => parseRobCraftMessage({ ...patch, payload: { ...patch.payload, economics_status: 'RECALCULATED' } }), /ScenePatch/);
 });
+
+test('accepts an honest renderer report and rejects fake SLA or extra finance', () => {
+  const payload = {
+    schema_version: 'robcraft-renderer-report-v1', status: 'LOCAL_VISUAL_OBSERVATION_ONLY',
+    bindings: { scenario_revision_id: revision, scenario_spec_version: 'scenario-spec-v2', scenario_seed: 'scenario-0123456789abcdef', authoritative_report_id: 'report.test', authoritative_report_digest: `sha256:${'a'.repeat(64)}`, scheduler_seed: 42 },
+    versions: { renderer_engine_version: 'robcraft-time-step-v1', event_profile_version: 'robcraft-visual-events-v1', report_version: 'robcraft-renderer-report-v1' },
+    measurement_basis: { kind: 'LIVE_RENDERER_WINDOW', elapsed_seconds: '12.5', operating_hours_per_day: '8', operating_window_refs: ['window.shift'], warmup_days: null, measurement_days: null },
+    geometry: { source: 'PROVIDED', status: 'MODIFIED', base_revision_id: revision, economics_status: 'UNCHANGED', analytical_route_ref: 'route.main', analytical_distance_value: '123', analytical_distance_unit: 'm' },
+    observed: { completed_units: '10', throughput_units_per_hour: '2880', throughput_unit: 'unit/h', queued_jobs: 1, average_queue_seconds: '2.5' },
+    utilization: { moving_percent: '50', moving_basis: 'ROBOT_MOVING_TIME_OVER_RENDERER_ELAPSED_FLEET_TIME', productive_percent: null, productive_status: 'NOT_EVALUATED_LOCAL_TIME_STEP' },
+    energy: { value: '7', unit: 'ARBITRARY_RENDERER_UNIT', economics_status: 'NOT_COMPARABLE_TO_RUB_OR_KWH' },
+    model_status: { sla: 'NOT_EVALUATED_USE_C23_REPORT', failures: 'VISUAL_DEMO_ONLY_NOT_ANALYTICAL', charging: 'VISUAL_DEMO_ONLY_NOT_ANALYTICAL', engineering_claim: 'CONCEPTUAL_VISUALIZATION_NOT_CERTIFICATION' },
+    limitations: ['use-c23-report-for-capacity-queue-sla-and-finance'],
+  };
+  const message = { schema_version: 'robcraft-message-v1', type: 'ROBCRAFT_REPORT', revision_id: revision, request_id: 'request_report', payload };
+  assert.equal(parseRobCraftMessage(message).payload.status, 'LOCAL_VISUAL_OBSERVATION_ONLY');
+  assert.throws(() => parseRobCraftMessage({ ...message, payload: { ...payload, model_status: { ...payload.model_status, sla: 'PASS' } } }), /SLA\/engineering/);
+  assert.throws(() => parseRobCraftMessage({ ...message, payload: { ...payload, finance: {} } }), /неизвестные поля/);
+  assert.throws(() => parseRobCraftMessage({ ...message, revision_id: 'calc_ffffffffffffffff' }), /не связан/);
+});

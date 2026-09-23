@@ -30,12 +30,17 @@ function assertNumberArray(value, lengths, path) {
 
 export function scenarioVisualFingerprint(spec) {
   const source = JSON.stringify({
+    schema_version: spec.schema_version,
     template: spec.template,
     seed: spec.seed,
     facility: spec.facility,
+    profile: spec.profile,
+    operating_windows: spec.operating_windows,
     zones: spec.zones,
+    routes: spec.routes,
     fleet: spec.fleet,
-    task_profiles: spec.task_profiles
+    task_profiles: spec.task_profiles,
+    tasks: spec.tasks
   });
   let hash = 2166136261;
   for (let index = 0; index < source.length; index += 1) {

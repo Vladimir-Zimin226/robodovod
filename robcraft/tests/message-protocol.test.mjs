@@ -20,6 +20,33 @@ test('validates the message envelope and revision consistency', () => {
   assert.throws(() => parseParentMessage(envelope('SET_CAMERA_MODE', { mode: 'EDITOR' })), /режим камеры/);
   assert.equal(parseParentMessage(envelope('SET_EDITOR_MODE', { enabled: true })).payload.enabled, true);
   assert.throws(() => parseParentMessage(envelope('SET_EDITOR_MODE', { enabled: 'yes' })), /boolean/);
+  assert.throws(() => parseParentMessage(envelope('LOAD_SCENARIO', {
+    scenario_spec: scenario,
+    simulation_report: { schema_version: 'simulation-report-v1', scenario_revision_id: 'calc_ffffffffffffffff', replay: { report_content_digest: `sha256:${'a'.repeat(64)}` } },
+  })), /revision/);
+});
+
+test('returns a revision-bound renderer report after the two-phase apply', async () => {
+  const sent = [];
+  const listeners = new Map();
+  const parent = { postMessage: message => sent.push(message) };
+  const fakeWindow = {
+    parent, location: { origin: 'http://same-origin.test' },
+    addEventListener: (name, listener) => listeners.set(name, listener), removeEventListener: () => {},
+  };
+  const report = { schema_version: 'simulation-report-v1', scenario_revision_id: revision, replay: { report_content_digest: `sha256:${'a'.repeat(64)}` } };
+  installParentBridge(fakeWindow, {
+    prepare: async (spec, simulationReport) => ({ spec, simulationReport }),
+    apply: async () => {},
+    getRendererReport: candidate => ({ schema_version: 'robcraft-renderer-report-v1', status: 'LOCAL_VISUAL_OBSERVATION_ONLY', bound: candidate.simulationReport.replay.report_content_digest }),
+  });
+  await listeners.get('message')({ origin: fakeWindow.location.origin, source: parent, data: envelope('LOAD_SCENARIO', { scenario_spec: { revision_id: revision }, simulation_report: report }) });
+  await listeners.get('message')({ origin: fakeWindow.location.origin, source: parent, data: envelope('APPLY_REVISION') });
+  const returned = sent.find(message => message.type === 'ROBCRAFT_REPORT');
+  assert.equal(returned.revision_id, revision);
+  assert.equal(returned.request_id, requestId);
+  assert.equal(returned.payload.bound, report.replay.report_content_digest);
+  assert.ok(sent[0].payload.capabilities.includes('scenario-spec-v2'));
 });
 
 test('editor control and ScenePatch status are revision-bound', async () => {
@@ -100,6 +127,29 @@ test('rejects apply for a stale request', async () => {
   });
   assert.equal(sent.at(-1).type, 'ROBCRAFT_ERROR');
   assert.match(sent.at(-1).payload.message, /не подготовлена|устарела/);
+});
+
+test('a slow stale LOAD cannot overwrite the latest PREPARED revision', async () => {
+  const sent = [];
+  const listeners = new Map();
+  const parent = { postMessage: message => sent.push(message) };
+  const fakeWindow = {
+    parent, location: { origin: 'http://same-origin.test' },
+    addEventListener: (name, listener) => listeners.set(name, listener), removeEventListener: () => {},
+  };
+  let resolveOld;
+  installParentBridge(fakeWindow, {
+    prepare: spec => spec.marker === 'old' ? new Promise(resolve => { resolveOld = () => resolve(spec); }) : Promise.resolve(spec),
+    apply: async () => {},
+  });
+  const oldLoad = listeners.get('message')({ origin: fakeWindow.location.origin, source: parent, data: { ...envelope('LOAD_SCENARIO', { scenario_spec: { revision_id: revision, marker: 'old' } }), request_id: 'request_old' } });
+  await listeners.get('message')({ origin: fakeWindow.location.origin, source: parent, data: { ...envelope('LOAD_SCENARIO', { scenario_spec: { revision_id: revision, marker: 'new' } }), request_id: 'request_new' } });
+  resolveOld();
+  await oldLoad;
+  const preparedMessages = sent.filter(message => message.type === 'SCENARIO_LOADED' && message.payload.status === 'PREPARED');
+  assert.deepEqual(preparedMessages.map(message => message.request_id), ['request_new']);
+  await listeners.get('message')({ origin: fakeWindow.location.origin, source: parent, data: { ...envelope('APPLY_REVISION'), request_id: 'request_old' } });
+  assert.equal(sent.at(-1).type, 'ROBCRAFT_ERROR');
 });
 
 test('camera control is revision-bound and reports pointer-lock state', async () => {

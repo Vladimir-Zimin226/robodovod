@@ -410,8 +410,17 @@ digest, seed и simulation time. Synthetic/provided geometry маркирует�
 не добавлены. Отчёт:
 [visualization 2D SimulationReport](planning/visualization-2d-simulation-report.md).
 
-Следующая малая итерация — **`robcraft/scenario-v2-reconciliation`** (C25):
-отдельный ScenarioSpec v2 adapter/report comparison без изменения C24 2D.
+Этап **`robcraft/scenario-v2-reconciliation`** (C25) завершён: RobCraft
+принимает ScenarioSpec v1/v2 без downgrade, использует v2 operating windows,
+сохраняет analytical route/finance snapshot и возвращает отдельный visual-only
+renderer report, связанный с revision и C23 digest. Backend сравнивает его с
+C23 только на одинаковой measurement basis и предупреждает строго при >10%;
+moving utilization, arbitrary energy, visual faults/charging и SLA
+`NOT_EVALUATED` не выдаются за расчётные KPI. Same-origin/source, two-phase и
+stale message protections сохранены. Отчёт:
+[RobCraft ScenarioSpec v2 reconciliation](planning/robcraft-scenario-v2-reconciliation.md).
+
+Следующая малая итерация — **`report/calculation-evidence-exports`** (C26).
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

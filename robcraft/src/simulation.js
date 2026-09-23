@@ -489,6 +489,7 @@ export function getSimulationReport(simulation) {
   const chargingTime = simulation.robots.reduce((sum, robot) => sum + robot.chargingTime, 0);
   const idleTime = simulation.robots.reduce((sum, robot) => sum + robot.idleTime, 0);
   return {
+    status: 'LOCAL_VISUAL_OBSERVATION_ONLY',
     capturedAtSimulationSecond: simulation.elapsed,
     elapsedSeconds: simulation.elapsed,
     fleetSize: simulation.robots.length,
@@ -509,7 +510,7 @@ export function getSimulationReport(simulation) {
       completedUnits: simulation.completedUnits,
       throughputPerHour: simulation.elapsed > 0 ? simulation.trips * 3600 / simulation.elapsed : 0,
       throughputUnitsPerHour: simulation.elapsed > 0 ? simulation.completedUnits * 3600 / simulation.elapsed : 0,
-      requiredUnitsPerHour: simulation.demandPerDay / 24,
+      requiredUnitsPerHour: simulation.demandPerDay / Math.max(.001, simulation.operatingHoursPerDay),
       unitsPerTrip: simulation.unitsPerTrip,
       unservedDemandTasks: simulation.unservedDemandTasks,
       averageCycleSeconds: average(completed.map(task => task.cycleTime ?? 0)),
@@ -517,6 +518,9 @@ export function getSimulationReport(simulation) {
     },
     fleet: {
       utilizationPercent: movingTime / fleetTime * 100,
+      utilizationBasis: 'MOVING_TIME',
+      productiveUtilizationPercent: null,
+      productiveUtilizationStatus: 'NOT_EVALUATED_LOCAL_TIME_STEP',
       availabilityPercent: Math.max(0, 100 - simulation.totalDowntime / fleetTime * 100),
       movingSeconds: movingTime,
       chargingSeconds: chargingTime,
@@ -525,7 +529,9 @@ export function getSimulationReport(simulation) {
     },
     energy: {
       consumedUnits: energyUsed,
-      unitsPerCompletedTask: simulation.trips ? energyUsed / simulation.trips : 0
+      unitsPerCompletedTask: simulation.trips ? energyUsed / simulation.trips : 0,
+      unit: 'ARBITRARY_RENDERER_UNIT',
+      economicsStatus: 'NOT_COMPARABLE_TO_RUB_OR_KWH'
     },
     safety: {
       detours: simulation.detours,
@@ -543,7 +549,9 @@ export function getSimulationReport(simulation) {
     incidents: {
       demandWaves: simulation.demandWaves,
       faults: simulation.faults,
-      resolved: simulation.faultsResolved
+      resolved: simulation.faultsResolved,
+      failureModelStatus: 'VISUAL_DEMO_ONLY_NOT_ANALYTICAL',
+      chargingModelStatus: 'VISUAL_DEMO_ONLY_NOT_ANALYTICAL'
     },
     robots: simulation.robots.map(robot => ({
       id: robot.id,
@@ -563,6 +571,88 @@ export function getSimulationReport(simulation) {
       lidarReplans: robot.lidarReplans
     }))
   };
+}
+
+export function buildRendererReport(simulation, authoritativeReport = null) {
+  if (authoritativeReport !== null) {
+    if (authoritativeReport?.schema_version !== 'simulation-report-v1') throw new TypeError('RobCraft принимает только SimulationReport v1');
+    if (authoritativeReport.scenario_revision_id !== simulation.revisionId) throw new TypeError('SimulationReport и RobCraft scenario revision не совпадают');
+    if (!/^sha256:[0-9a-f]{64}$/.test(authoritativeReport.replay?.report_content_digest || '')) throw new TypeError('SimulationReport report digest имеет неверный формат');
+  }
+  const local = getSimulationReport(simulation);
+  const decimalString = value => {
+    if (!Number.isFinite(value)) throw new TypeError('Renderer report содержит нечисловое значение');
+    const fixed = value.toFixed(9).replace(/\.?0+$/, '');
+    return fixed === '-0' || fixed === '' ? '0' : fixed;
+  };
+  const throughputUnit = authoritativeReport?.capacity?.unit
+    || (simulation.demandUnit?.endsWith('/day') ? `${simulation.demandUnit.slice(0, -4)}/h` : 'renderer-unit/h');
+  const analyticalRoute = simulation.analyticalRoute;
+  return Object.freeze({
+    schema_version: 'robcraft-renderer-report-v1',
+    status: 'LOCAL_VISUAL_OBSERVATION_ONLY',
+    bindings: Object.freeze({
+      scenario_revision_id: simulation.revisionId,
+      scenario_spec_version: simulation.scenarioSchemaVersion,
+      scenario_seed: simulation.scenarioSeed,
+      authoritative_report_id: authoritativeReport?.report_id || null,
+      authoritative_report_digest: authoritativeReport?.replay?.report_content_digest || null,
+      scheduler_seed: authoritativeReport?.time_basis?.seed ?? null
+    }),
+    versions: Object.freeze({
+      renderer_engine_version: 'robcraft-time-step-v1',
+      event_profile_version: 'robcraft-visual-events-v1',
+      report_version: 'robcraft-renderer-report-v1'
+    }),
+    measurement_basis: Object.freeze({
+      kind: 'LIVE_RENDERER_WINDOW',
+      elapsed_seconds: decimalString(local.elapsedSeconds),
+      operating_hours_per_day: decimalString(simulation.operatingHoursPerDay),
+      operating_window_refs: Object.freeze([...(simulation.operatingWindowRefs || [])]),
+      warmup_days: null,
+      measurement_days: null
+    }),
+    geometry: Object.freeze({
+      source: simulation.geometryMode || 'REPRESENTATIVE',
+      status: local.geometry.status,
+      base_revision_id: local.geometry.baseRevisionId,
+      economics_status: 'UNCHANGED',
+      analytical_route_ref: analyticalRoute?.route_id || null,
+      analytical_distance_value: analyticalRoute?.one_way_distance?.value || null,
+      analytical_distance_unit: analyticalRoute?.one_way_distance?.unit || null
+    }),
+    observed: Object.freeze({
+      completed_units: decimalString(local.tasks.completedUnits),
+      throughput_units_per_hour: decimalString(local.tasks.throughputUnitsPerHour),
+      throughput_unit: throughputUnit,
+      queued_jobs: local.tasks.queued,
+      average_queue_seconds: decimalString(local.tasks.averageQueueSeconds)
+    }),
+    utilization: Object.freeze({
+      moving_percent: decimalString(local.fleet.utilizationPercent),
+      moving_basis: 'ROBOT_MOVING_TIME_OVER_RENDERER_ELAPSED_FLEET_TIME',
+      productive_percent: null,
+      productive_status: 'NOT_EVALUATED_LOCAL_TIME_STEP'
+    }),
+    energy: Object.freeze({
+      value: decimalString(local.energy.consumedUnits),
+      unit: 'ARBITRARY_RENDERER_UNIT',
+      economics_status: 'NOT_COMPARABLE_TO_RUB_OR_KWH'
+    }),
+    model_status: Object.freeze({
+      sla: 'NOT_EVALUATED_USE_C23_REPORT',
+      failures: 'VISUAL_DEMO_ONLY_NOT_ANALYTICAL',
+      charging: 'VISUAL_DEMO_ONLY_NOT_ANALYTICAL',
+      engineering_claim: 'CONCEPTUAL_VISUALIZATION_NOT_CERTIFICATION'
+    }),
+    limitations: Object.freeze([
+      'live-window-not-c23-measurement-window',
+      'moving-utilization-is-not-productive-utilization',
+      'energy-is-arbitrary-renderer-unit',
+      'failures-and-charging-are-visual-demo-only',
+      'use-c23-report-for-capacity-queue-sla-and-finance'
+    ])
+  });
 }
 
 function generateTaskDemand(simulation) {
@@ -930,6 +1020,12 @@ export function createSimulation(scene) {
     equipmentModelId: scene.scenario?.equipmentModelId || null,
     demandPerDay: scene.scenario?.demandPerDay || 0,
     unitsPerTrip: scene.scenario?.unitsPerTrip || 1,
+    demandUnit: scene.scenario?.demandUnit || null,
+    operatingHoursPerDay: scene.scenario?.operatingHoursPerDay || 24,
+    operatingWindowRefs: scene.scenario?.operatingWindowRefs || [],
+    scenarioSchemaVersion: scene.scenario?.scenarioSchemaVersion || scene.scenarioSpec?.schema_version || null,
+    scenarioSeed: scene.scenario?.scenarioSeed || scene.scenarioSpec?.seed || null,
+    analyticalRoute: scene.scenario?.analyticalRoute || null,
     detours: 0, safetyStops: 0, totalWaitingTime: 0,
     trafficReservations: new Map(), activeReservations: 0, trafficConflicts: 0, totalReservationWait: 0,
     events: [], nextEventId: 1, demandWaves: 0, faults: 0, faultsResolved: 0, totalDowntime: 0,

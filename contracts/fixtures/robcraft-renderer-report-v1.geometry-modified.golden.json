@@ -1,0 +1,66 @@
+{
+  "bindings": {
+    "authoritative_report_digest": "sha256:992bc8dd68cfcd2cdf5976948aeebc60a90a0beae233c476f723f15ee69e847b",
+    "authoritative_report_id": "report.eab3893289f13f4c",
+    "scenario_revision_id": "calc_fe6611cc9a672595",
+    "scenario_seed": "scenario-7f8b86a3c2db426a",
+    "scenario_spec_version": "scenario-spec-v2",
+    "scheduler_seed": 42
+  },
+  "energy": {
+    "economics_status": "NOT_COMPARABLE_TO_RUB_OR_KWH",
+    "unit": "ARBITRARY_RENDERER_UNIT",
+    "value": "314.25"
+  },
+  "geometry": {
+    "analytical_distance_unit": null,
+    "analytical_distance_value": null,
+    "analytical_route_ref": null,
+    "base_revision_id": "calc_fe6611cc9a672595",
+    "economics_status": "UNCHANGED",
+    "source": "SYNTHETIC",
+    "status": "MODIFIED"
+  },
+  "limitations": [
+    "moving-utilization-is-not-productive-utilization",
+    "energy-is-arbitrary-renderer-unit",
+    "failures-and-charging-are-visual-demo-only",
+    "use-c23-report-for-capacity-queue-sla-and-finance"
+  ],
+  "measurement_basis": {
+    "elapsed_seconds": "86400",
+    "kind": "C23_MEASUREMENT_WINDOW",
+    "measurement_days": 1,
+    "operating_hours_per_day": "24",
+    "operating_window_refs": [
+      "window.day"
+    ],
+    "warmup_days": 1
+  },
+  "model_status": {
+    "charging": "VISUAL_DEMO_ONLY_NOT_ANALYTICAL",
+    "engineering_claim": "CONCEPTUAL_VISUALIZATION_NOT_CERTIFICATION",
+    "failures": "VISUAL_DEMO_ONLY_NOT_ANALYTICAL",
+    "sla": "NOT_EVALUATED_USE_C23_REPORT"
+  },
+  "observed": {
+    "average_queue_seconds": "120",
+    "completed_units": "44400",
+    "queued_jobs": 66,
+    "throughput_unit": "m2/h",
+    "throughput_units_per_hour": "1850"
+  },
+  "schema_version": "robcraft-renderer-report-v1",
+  "status": "LOCAL_VISUAL_OBSERVATION_ONLY",
+  "utilization": {
+    "moving_basis": "ROBOT_MOVING_TIME_OVER_RENDERER_ELAPSED_FLEET_TIME",
+    "moving_percent": "47.5",
+    "productive_percent": null,
+    "productive_status": "NOT_EVALUATED_LOCAL_TIME_STEP"
+  },
+  "versions": {
+    "event_profile_version": "robcraft-visual-events-v1",
+    "renderer_engine_version": "robcraft-time-step-v1",
+    "report_version": "robcraft-renderer-report-v1"
+  }
+}
