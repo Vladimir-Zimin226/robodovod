@@ -476,6 +476,16 @@ scripts. Эти артефакты не разрешают synthetic fallback и
 неработающего runtime. Точный runbook:
 [production deployment](PRODUCTION_DEPLOYMENT.md).
 
+Аудит локальных материалов организаторов 2026-09-24 уточнил границу C30:
+Excel содержит прямо обозначенные demo-значения для типового склада, а
+документ с решениями — примеры моделей. Официальные публичные ТТХ MULE/Ronavi
+дополняют материалы, но не заменяют паспорт выбранной комплектации, vendor
+availability и фактические параметры объекта. Эти данные можно использовать
+для предварительного расчёта с раскрытыми допущениями, не для скрытого
+`ELIGIBLE`/deployment-ready. Кроме доказательной базы, остаются независимые
+разрывы production UI → C11 → economics v2; полный traffic switch запрещён.
+Подробности: [integration gap](planning/production-calculation-integration-gap.md).
+
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
 его tax, replacement, allocation, sensitivity, simulation, export и rollout
