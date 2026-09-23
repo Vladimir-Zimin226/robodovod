@@ -145,7 +145,11 @@ def summarize_capacity_snapshot(snapshot: CatalogSnapshotDTO, policy: CapacitySo
         calculation_ready_with_assumptions_positions=position_statuses["CALCULATION_READY_WITH_ASSUMPTIONS"],
         deployment_ready_models=sum(item.capacity_runtime.deployment_readiness_status == "DEPLOYMENT_READY" for item in snapshot.models),
         deployment_ready_positions=sum(item.model.capacity_runtime.deployment_readiness_status == "DEPLOYMENT_READY" for item in snapshot.positions),
-        forbidden_family_models=sum(item.system_family in forbidden for item in snapshot.models),
+        # Forbidden-family policy applies to the selectable calculation pool,
+        # not to discovery-only rows retained in the full organizer catalog.
+        forbidden_family_models=sum(
+            item.system_family in forbidden for item in snapshot.calculation_ready_models()
+        ),
     )
 
 

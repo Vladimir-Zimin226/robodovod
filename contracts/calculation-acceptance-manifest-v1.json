@@ -1,0 +1,47 @@
+{
+  "schema_version": "calculation-acceptance-manifest-v1",
+  "policy_version": "hackathon-calculation-policy-v1",
+  "acceptance_stage": "C29",
+  "object_fixtures": {
+    "WAREHOUSE": {"path": "contracts/fixtures/calculation-intake-v2.warehouse.json", "sha256": "ebd6191d9ae78d7c0ba10125749774a30ea1790d2dddd15e48f100c66ff44b2f"},
+    "AIRPORT": {"path": "contracts/fixtures/calculation-intake-v2.airport.json", "sha256": "b252278911fea87d2e02d98c91e2e8eaed26e05a087adfbd8d5160c303aa001b"},
+    "CLINIC": {"path": "contracts/fixtures/calculation-intake-v2.clinic.json", "sha256": "dda298e91cfc587ffb8483595b8fb93d41cd5a5062052b146005ef718b11d801"}
+  },
+  "release_fixtures": [
+    {"path": "contracts/fixtures/capacity-analysis-v2.synthetic.golden.json", "sha256": "f856f364cc6424f0a71006a2138745d00db42a6690b9d237d258ecc7722ec487"},
+    {"path": "contracts/fixtures/financial-result-v1.warehouse.golden.json", "sha256": "c18989c40806f1ea35c6841b9a2fdfe16eb602440f4cae5a0b917d274c8112ef"},
+    {"path": "contracts/fixtures/raas-financial-result-v1.warehouse.golden.json", "sha256": "70df2558442f8036bbd5925929525e30c6233a27d5b5623e7f2acb54f17bc834"},
+    {"path": "contracts/fixtures/sensitivity-v1.golden.json", "sha256": "fccd7ba91c18d03cc0d6076afd276d2b58f9c73803338db51a0a68fb6195a8e9"},
+    {"path": "contracts/fixtures/simulation-report-v1.capacity-only.golden.json", "sha256": "51162107b60b55062d7cc579414b7fd18b9b4bb7bac9d3711230bad2989327ca"},
+    {"path": "contracts/fixtures/scenario-spec-v2.capacity-only-cleaner.golden.json", "sha256": "8252d86f233d0e0014827af218d011cde43d3ffd31ab6a8267d39a3eab5b84c7"},
+    {"path": "contracts/fixtures/economics-dual-run-report-v1.golden.json", "sha256": "a2c3cba2dfa2258998de29315be05c1946753e1f2c33b1b0bc58696a6cccf193"},
+    {"path": "contracts/fixtures/capacity-catalog-dual-run-report-v1.golden.json", "sha256": "c7fa23bcbf63b3ab14676bfc8be9190750c58e195d8fb31736f59a11520da4be"},
+    {"path": "frontend/tests/fixtures/commercial-scenarios-v2.golden.json", "sha256": "120b16c3c8f81edb20a9a4c41161d82acae9d5a4cff6d99f436c8adbf63d6e66"}
+  ],
+  "reference_coverage": {
+    "R00": ["backend/test_calculation_registry.py", "backend/test_evidence_export.py"],
+    "R01": ["backend/test_procurement_commercial.py", "backend/test_catalog_formula_executability_v3.py"],
+    "R02": ["backend/test_calculation_registry.py", "backend/test_financial_cashflows.py"],
+    "R03": ["backend/test_transport_capacity.py", "backend/test_financial_cashflows.py"],
+    "R04": ["backend/test_calculation_contracts.py", "backend/test_calculation_registry.py"],
+    "R05": ["backend/test_calculation_intake.py"],
+    "R06": ["backend/test_calculation_registry.py", "backend/test_readiness.py"],
+    "R07": ["backend/test_economics_runtime_migration.py"],
+    "R08": ["backend/test_catalog_formula_executability_v3.py", "backend/test_capacity_analysis_service.py"],
+    "R09": ["backend/test_calculation_constraints.py"],
+    "R10": ["backend/test_calculation_intake.py", "frontend/tests/process-role-intake-v2.test.mjs"],
+    "R11": ["backend/test_calculation_intake.py", "backend/test_process_profile_coverage.py"],
+    "R12": ["backend/test_simulation_report_v1.py", "backend/test_robcraft_reconciliation.py", "frontend/tests/simulation-2d.test.mjs"],
+    "R13": ["backend/test_financial_cashflows.py", "backend/test_multiprocess_allocation.py"]
+  },
+  "accepted_decisions": {"K": [1, 29], "Q": [1, 12]},
+  "performance_profile": {
+    "cpu": "4 vCPU",
+    "memory_gib": 8,
+    "external_services": "OFFLINE",
+    "concurrent_economics_users": 50,
+    "economics_request_seconds_max": 10,
+    "simulation_seconds_max": 60,
+    "golden_repetitions": 5
+  }
+}

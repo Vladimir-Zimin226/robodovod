@@ -12,9 +12,14 @@ from test_catalog_runtime import _snapshot
 
 
 def test_capacity_v2_route_is_bound_to_dedicated_capacity_snapshot():
+    routes = list(main.app.routes)
+    for included in main.app.routes:
+        original = getattr(included, "original_router", None)
+        if original is not None:
+            routes.extend(original.routes)
     route = next(
         item
-        for item in main.app.routes
+        for item in routes
         if getattr(item, "path", None) == "/api/v2/capacity-analyses"
         and "POST" in getattr(item, "methods", set())
     )

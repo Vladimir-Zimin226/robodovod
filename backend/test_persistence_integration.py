@@ -4,6 +4,7 @@ import json
 import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -43,6 +44,7 @@ from persistence_models import (
 from project_file_intake import build_csv_template
 from storage_models import Base, CatalogVersion
 from test_capacity_analysis_service import request as capacity_request, snapshot as capacity_snapshot
+from test_robot_fixtures import synthetic_snapshot
 
 
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
@@ -65,6 +67,7 @@ TABLES_0006 = {"project_file_imports"}
 TABLES_0010 = {"analysis_run_economics_versions", "economics_route_activations"}
 PASSWORD_A = "correct horse battery staple"
 PASSWORD_B = "another secure passphrase"
+TEST_RUNTIME_CATALOG_ID = uuid.UUID("00000000-0000-0000-0000-000000000029")
 
 
 def _config() -> Config:
@@ -93,6 +96,21 @@ def migrated_database():
 @pytest.fixture(autouse=True)
 def clean_persistence(migrated_database, tmp_path, monkeypatch):
     monkeypatch.setenv("PROJECT_FILE_STORAGE_ROOT", str(tmp_path / "uploads"))
+
+    class LegacyRuntimeSource:
+        def load_runtime(self):
+            snapshot = synthetic_snapshot()
+            return replace(
+                snapshot,
+                version=replace(
+                    snapshot.version,
+                    id=str(TEST_RUNTIME_CATALOG_ID),
+                    code="c29-test-runtime-v1",
+                    status="PUBLISHED",
+                ),
+            )
+
+    monkeypatch.setattr(main, "_CATALOG_RUNTIME", LegacyRuntimeSource())
     with migrated_database.begin() as connection:
         connection.execute(
             text(
@@ -101,9 +119,16 @@ def clean_persistence(migrated_database, tmp_path, monkeypatch):
                 "RESTART IDENTITY CASCADE"
             )
         )
-        connection.execute(
-            text("DELETE FROM catalog_versions WHERE code LIKE 'persistence-test-%'")
-        )
+        connection.execute(text(
+            "DELETE FROM catalog_versions WHERE code LIKE 'persistence-test-%' "
+            "OR code IN ('economics-c28-test', 'c29-test-runtime-v1')"
+        ))
+        connection.execute(text(
+            "INSERT INTO catalog_versions "
+            "(id, code, status, schema_version, content_sha256, created_at, updated_at, validated_at, published_at) "
+            "VALUES (:id, 'c29-test-runtime-v1', 'PUBLISHED', 'test-only-v1', :sha, "
+            "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+        ), {"id": TEST_RUNTIME_CATALOG_ID, "sha": "c" * 64})
     dispose_database()
     yield
     dispose_database()
@@ -315,7 +340,7 @@ def test_rerun_creates_a_new_record_from_stored_input():
         assert second["input_snapshot"] == first["input_snapshot"]
 
 
-def test_economics_route_activation_and_rollback_change_no_run_data():
+def test_economics_route_activation_and_rollback_change_no_run_data(migrated_database):
     report = EconomicsDualRunReportV1.model_validate_json(
         (Path(__file__).resolve().parents[1] / "contracts/fixtures/economics-dual-run-report-v1.golden.json").read_text(
             encoding="utf-8"
@@ -341,7 +366,7 @@ def test_v2_new_run_is_server_computed_csrf_scoped_and_version_mapped():
         db.add(CatalogVersion(
             id=catalog_id, code="economics-c28-test", status="PUBLISHED",
             schema_version="test", content_sha256="b" * 64,
-            validated_at=now, published_at=now,
+            created_at=now, updated_at=now, validated_at=now, published_at=now,
         ))
         db.commit()
     report = EconomicsDualRunReportV1.model_validate_json(
@@ -412,7 +437,7 @@ def test_capacity_run_is_independent_immutable_and_tenant_scoped(monkeypatch, mi
     catalog = capacity_snapshot()
 
     class CapacitySource:
-        def load_discovery(self):
+        def load_capacity(self):
             return catalog
 
         def load_runtime(self):
@@ -424,7 +449,7 @@ def test_capacity_run_is_independent_immutable_and_tenant_scoped(monkeypatch, mi
         db.add(CatalogVersion(
             id=uuid.UUID(catalog.version.id), code=catalog.version.code,
             status="PUBLISHED", schema_version="4", content_sha256="a" * 64,
-            validated_at=now, published_at=now,
+            created_at=now, updated_at=now, validated_at=now, published_at=now,
         ))
         db.commit()
     with TestClient(main.app) as owner:
@@ -471,7 +496,7 @@ def test_capacity_run_is_independent_immutable_and_tenant_scoped(monkeypatch, mi
 
 def test_capacity_endpoint_returns_503_without_published_source(monkeypatch):
     class MissingCapacitySource:
-        def load_discovery(self):
+        def load_capacity(self):
             from catalog_runtime import CatalogRuntimeConfigurationError
             raise CatalogRuntimeConfigurationError("missing")
 

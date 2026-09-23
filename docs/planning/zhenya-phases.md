@@ -18,7 +18,7 @@ C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
 C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
 C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23,
-C28 **COMPLETE** 2026-09-23; C29–C30 пока **PLANNED**.
+C28–C29 **COMPLETE** 2026-09-23; C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -880,6 +880,9 @@ catalog membership, C27 и production runtime не изменены; migration/a
 
 ## C29 — `qa/calculation-migration-acceptance`
 
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[calculation migration acceptance](qa-calculation-migration-acceptance.md).
+
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
 
@@ -902,6 +905,13 @@ catalog membership, C27 и production runtime не изменены; migration/a
   в тест, документированное уточнение T/A/K или принятый scope.
 - **Вне этапа:** weakening evidence tohitdeadline, unexplained scope reduction,
   pretending simulation is deployment certification.
+
+Итог: pinned acceptance manifest связывает R00–R13, три object fixtures и
+release goldens; exact 28 scopes, пять deterministic replays, offline/50-user
+performance gates, полный backend+PostgreSQL, frontend и backup/restore прошли.
+Найденные immutable-run, capacity-policy и cross-version media defects
+исправлены без изменения registry v1, membership или historical snapshots.
+Production activation не выполнялась.
 
 ## C30 — `ops/production-domain-deployment-v1`
 

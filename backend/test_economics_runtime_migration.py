@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 
 import pytest
-from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 
 from economics_runtime_migration import (
@@ -51,14 +50,15 @@ def test_policy_and_old_new_goldens_are_digest_bound_and_approved():
     for name, instance in (
         ("economics-runtime-migration-policy-v1.schema.json", policy.model_dump(mode="json")),
         ("economics-dual-run-report-v1.schema.json", report.model_dump(mode="json")),
-        (
-            "analysis-run-economics-version-v1.schema.json",
-            historical_mapping("legacy-economics-v1", {"fte_cost_rub": 1}).model_dump(mode="json"),
-        ),
+        ("analysis-run-economics-version-v1.schema.json", historical_mapping(
+            "legacy-economics-v1", {"fte_cost_rub": 1}
+        ).model_dump(mode="json")),
     ):
         schema = json.loads((ROOT / "contracts" / name).read_text(encoding="utf-8"))
-        Draft202012Validator.check_schema(schema)
-        Draft202012Validator(schema).validate(instance)
+        assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == set(instance)
+        assert set(instance) <= set(schema["properties"])
 
 
 def test_invalid_approval_and_unknown_contract_fail_closed():

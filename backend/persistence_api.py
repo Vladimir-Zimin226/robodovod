@@ -1326,6 +1326,11 @@ def create_persistence_router(
             raise HTTPException(status_code=503, detail="runtime catalog unavailable")
         catalog_snapshot = resolve_catalog()
         input_snapshot = payload.input
+        try:
+            execution = calculate_economics_v2(payload.input, catalog_snapshot)
+        except Exception:
+            logger.exception("Economics v2 calculation failed before persistence")
+            raise HTTPException(status_code=500, detail="economics v2 calculation failed") from None
         run = AnalysisRun(
             id=uuid.uuid4(), project_id=project.id, scenario_id=scenario.id,
             parent_run_id=(source.id if source is not None else None),
@@ -1333,9 +1338,9 @@ def create_persistence_router(
             input_snapshot=input_snapshot, input_sha256=_canonical_sha256(input_snapshot),
             catalog_version_id=uuid.UUID(catalog_snapshot.version.id),
             catalog_version_code=catalog_snapshot.version.code,
-            rules_version="economics-v2-pending", economics_version=V2_VERSION,
-            object_profile_version="economics-v2-pending",
-            application_version="economics-v2-pending", diagnostics={},
+            rules_version=execution.rules_version, economics_version=V2_VERSION,
+            object_profile_version=execution.object_profile_version,
+            application_version=execution.application_version, diagnostics={},
         )
         mapping = historical_mapping(V2_VERSION, input_snapshot)
         db.add(run)
@@ -1350,23 +1355,11 @@ def create_persistence_router(
         run.status = "RUNNING"
         run.started_at = utcnow()
         db.commit()
-        try:
-            execution = calculate_economics_v2(payload.input, catalog_snapshot)
-        except Exception:
-            logger.exception("Economics v2 calculation failed (run_id=%s)", run.id)
-            run.status = "FAILED"
-            run.finished_at = utcnow()
-            run.diagnostics = {"error_code": "ECONOMICS_V2_ERROR"}
-            db.commit()
-            raise HTTPException(status_code=500, detail="economics v2 calculation failed") from None
         run.result_snapshot = execution.result_snapshot
         run.result_sha256 = _canonical_sha256(execution.result_snapshot)
         run.scenario_spec_snapshot = execution.scenario_spec_snapshot
         run.scenario_spec_sha256 = _canonical_sha256(execution.scenario_spec_snapshot)
         run.revision_id = execution.revision_id
-        run.rules_version = execution.rules_version
-        run.object_profile_version = execution.object_profile_version
-        run.application_version = execution.application_version
         run.diagnostics = execution.diagnostics
         run.status = "SUCCEEDED"
         run.finished_at = utcnow()

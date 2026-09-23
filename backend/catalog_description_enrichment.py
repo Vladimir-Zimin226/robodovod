@@ -456,14 +456,32 @@ def _canonical_bytes(value: dict[str, Any]) -> bytes:
 
 
 def load_verified_overlay(source_dir: Path, bundle_dir: Path) -> tuple[dict[str, Any], dict[str, Any], str]:
-    """Rebuild local inputs and require byte-identical committed derived data."""
+    """Rebuild local inputs and verify the committed semantic overlay."""
 
     expected_overlay, expected_report = build_overlay(source_dir, bundle_dir)
     overlay_path, report_path = bundle_dir / OVERLAY_NAME, bundle_dir / REPORT_NAME
     if not overlay_path.is_file() or not report_path.is_file():
         raise CatalogDescriptionError("committed description overlay/report is missing")
     overlay_bytes = overlay_path.read_bytes()
-    if overlay_bytes != _canonical_bytes(expected_overlay):
+    try:
+        committed_overlay = json.loads(overlay_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise CatalogDescriptionError("committed description overlay is invalid") from exc
+
+    # PDF image containers emitted by pypdf/Pillow are not stable across
+    # supported library versions.  The media importer verifies the original
+    # PDF digest and the bytes extracted in this process, so compare all
+    # durable transcription/provenance fields while binding the import to the
+    # locally extracted asset hashes below.
+    def without_media_hashes(value: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(value)
+        normalized["entries"] = [
+            {key: item for key, item in entry.items() if key != "media_sha256"}
+            for entry in value.get("entries", [])
+        ]
+        return normalized
+
+    if without_media_hashes(committed_overlay) != without_media_hashes(expected_overlay):
         raise CatalogDescriptionError("committed description overlay differs from verified local inputs")
     if report_path.read_bytes() != _canonical_bytes(expected_report):
         raise CatalogDescriptionError("committed description report differs from verified local inputs")

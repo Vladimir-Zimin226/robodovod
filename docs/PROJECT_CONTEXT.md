@@ -454,8 +454,18 @@ dual-run golden объясняет различия G06/G07/G12/G21–G32/G34/G3
 runtime не активировались. Отчёт:
 [economics runtime migration](planning/catalog-economics-runtime-migration.md).
 
-Следующая малая итерация — **`qa/calculation-migration-acceptance`** (C29).
-C29 в C28 не начинался.
+Этап **`qa/calculation-migration-acceptance`** (C29) завершён. Pinned release
+manifest связывает R00–R13, три object fixtures, exact 28 K19 scopes и ключевые
+goldens по SHA-256. Пять повторов warehouse golden path, offline runtime и 50
+параллельных economics executions прошли policy limits. Полные backend,
+PostgreSQL, frontend, schema/security и backup/restore gates зелёные. Найденные
+дефекты capacity policy scope, immutable v2 version binding и cross-version
+media verification исправлены без rewrite старых runs, изменения registry v1,
+catalog membership или production activation. Отчёт:
+[calculation migration acceptance](planning/qa-calculation-migration-acceptance.md).
+
+Следующая итерация — **`ops/production-domain-deployment-v1`** (C30), только по
+отдельной явной команде владельца. C30 в C29 не начинался.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
