@@ -53,6 +53,7 @@ from pydantic import BaseModel
 from readiness import ReadinessReport, ReadinessRequest, evaluate_readiness
 from scenario_spec import build_scenario_spec
 from simulation import generate_simulation
+from simulation_api import create_simulation_router
 from sqlalchemy import select
 from storage_models import CatalogVersion
 
@@ -850,3 +851,4 @@ app.include_router(
         analyze_capacity_for_catalog=analyze_capacity,
     )
 )
+app.include_router(create_simulation_router())

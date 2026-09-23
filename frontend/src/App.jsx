@@ -10,6 +10,7 @@ import { AdminUsersScreen, AuthScreen, ProjectsScreen } from './components/Persi
 import { readCsrfCookie } from './persistenceApi';
 import { isCapacityAnalysisResponse } from './capacityResultsModel';
 import { isCommercialScenariosBundle } from './commercialScenariosModel';
+import Simulation2DReport from './components/Simulation2DReport';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -242,7 +243,9 @@ export default function App() {
                 {saveState && !['saving', 'saved'].includes(saveState) && <small>{saveState}</small>}
               </div>
             )}
-            {isCapacityAnalysisResponse(result) ? (
+            {result?.schema_version === 'simulation-2d-bundle-v1' ? (
+              <Simulation2DReport key={result.request?.request_id || result.run_id} request={result.request} initialReport={result.report} scenarios={result.scenarios} />
+            ) : isCapacityAnalysisResponse(result) ? (
               <CapacityResultsTrace response={result} onRestart={restart} />
             ) : isCommercialScenariosBundle(result) ? (
               <CommercialScenariosV2 key={result.run_id} bundle={result} onRestart={restart} onRecalculate={() => setPhase('intake')} />

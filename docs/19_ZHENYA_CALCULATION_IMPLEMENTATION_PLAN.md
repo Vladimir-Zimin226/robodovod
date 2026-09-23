@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C23 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C24 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -34,7 +34,8 @@ C20 — в [economics sensitivity v1](planning/sensitivity-v1.md).
 C21 — в [frontend commercial scenarios v2](planning/frontend-commercial-scenarios-v2.md).
 C22 — в [ScenarioSpec v2](planning/scenario-spec-v2.md).
 C23 — в [simulation scheduling KPI report v1](planning/simulation-scheduling-kpi-report-v1.md).
-Следующий этап — C24; production runtime activation не выполнялась.
+C24 — в [visualization 2D SimulationReport](planning/visualization-2d-simulation-report.md).
+Следующий этап — C25; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -652,7 +653,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C21 COMPLETE | `frontend/commercial-scenarios-v2` — финансовые сценарии и сверка | C12,C13,C18–20 |
 | C22 COMPLETE | `contracts/scenario-spec-v2` — capacity snapshot и optional finance | C11; при наличии finance C18 |
 | C23 COMPLETE | `simulation/scheduling-kpi-report-v1` — event model, SLA и report | C22 + policy K18/§4 |
-| C24 | `visualization/2d-simulation-report` — обязательная 2D | C23 |
+| C24 COMPLETE | `visualization/2d-simulation-report` — обязательная 2D | C23 |
 | C25 | `robcraft/scenario-v2-reconciliation` — v2 adapter и KPI comparison | C22–23 |
 | C26 | `report/calculation-evidence-exports` — PDF/XLSX/CSV из run | C21,C24–25 |
 | C27 | `catalog/capacity-runtime-dual-run-rollout` — независимый capacity rollout | C11–12; можно сразу после них, не ждать economics |

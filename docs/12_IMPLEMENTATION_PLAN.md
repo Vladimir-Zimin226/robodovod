@@ -431,13 +431,18 @@ Gate: все три коммерческих сценария сравнимы �
 
 ### Этап 8 — обязательная 2D и SimulationReport
 
+Статус: C23 scheduler/report и C24 обязательная offline 2D завершены; RobCraft
+reconciliation остаётся отдельным C25.
+
 - 2D читает тот же ScenarioSpec: zones, routes, fleet, operations и charging.
 - Controls: start/stop или pause, restart, speed и scenario selection.
 - Фиксированные seed, warm-up и measurement window.
-- 2D и RobCraft возвращают versioned SimulationReport во frontend.
-- Сопоставляются required/observed throughput, queue, utilization,
-  availability, downtime и safety stops.
-- Verdict только VERIFIED/BORDERLINE/NOT_CONFIRMED; симуляция не меняет
+- 2D читает versioned SimulationReport v1 C23; RobCraft report adapter — C25.
+- Сопоставляются required/expected/observed throughput, queue/wait,
+  productive/busy/nonproductive utilization и conditional SLA. Failure и
+  charging distributions без входов не выдумываются.
+- Verdict соответствует C23: CONSISTENT/DEVIATION/OVERLOADED/
+  CONDITIONAL_MODEL/NOT_EVALUATED; симуляция не меняет
   экономическую рекомендацию без нового AnalysisRun.
 - Сохраняются PNG/SVG и telemetry JSON; ScenePatch остаётся revision-bound.
 
@@ -511,8 +516,8 @@ Gate: golden path проходит пять раз подряд локально
     process coverage C10, capacity API/snapshots C11 и results UI C12.
 20. C13–C20 — отдельно commercial/procurement inputs, labour, purchase cost
     ledger, full CF/reconciliation, RaaS, shared allocation, ranking, sensitivity.
-    C13–C23 реализованы; следующий этап — C24
-    `visualization/2d-simulation-report`.
+    C13–C24 реализованы; следующий этап — C25
+    `robcraft/scenario-v2-reconciliation`.
 21. C21–C25 — financial UI, ScenarioSpec v2, утверждённая scheduling/SLA модель,
     обязательная 2D и отдельный RobCraft adapter/report.
 22. C26–C28 — exports, capacity rollout и отдельная economics migration.

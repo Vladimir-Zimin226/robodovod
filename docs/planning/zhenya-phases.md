@@ -15,8 +15,8 @@ C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23,
 C16 **COMPLETE** 2026-09-23, C17 **COMPLETE** 2026-09-23,
 C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
 C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
-C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23;
-C24–C30 пока **PLANNED**.
+C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
+C24 **COMPLETE** 2026-09-23; C25–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -710,6 +710,14 @@ frontend и 2D остаются C24. Отчёт:
   automatic economics mutation, calibrated industrial digital twin.
 
 ## C24 — `visualization/2d-simulation-report`
+
+Статус: **COMPLETE** (2026-09-23). Реализованы authenticated/CSRF
+run/progress/cancel adapter над C23, strict revision-bound polling contract,
+offline SVG zones/routes/fleet/operations, deterministic controls/timeline,
+authoritative C23 KPI/SLA/limitations и golden capture. Synthetic/provided
+geometry не меняет analytical route; finance и fake failure/charging/SLA во
+frontend не рассчитываются. Отчёт:
+[visualization 2D SimulationReport](visualization-2d-simulation-report.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

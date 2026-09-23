@@ -400,8 +400,18 @@ diagnostic limits. Failure rates не выдумываются, availability н�
 дважды, а отчёт явно не является инженерной сертификацией. C22 и старые runs
 неизменны. Отчёт: [simulation scheduling KPI report v1](planning/simulation-scheduling-kpi-report-v1.md).
 
-Следующая малая итерация — **`visualization/2d-simulation-report`** (C24):
-API/progress consumer и обязательная 2D-визуализация поверх C23 service.
+Этап **`visualization/2d-simulation-report`** (C24) завершён: добавлены
+authenticated/CSRF lifecycle API run/progress/cancel поверх неизменного C23
+service, strict polling state и обязательный offline SVG consumer ScenarioSpec
+v2 + SimulationReport v1. Детерминированный timeline, controls, KPI/SLA/
+limitations, >10% warning и visual events связаны с scenario/report revision,
+digest, seed и simulation time. Synthetic/provided geometry маркируется явно и
+не меняет analytical route; fake failure/charging/SLA и browser business math
+не добавлены. Отчёт:
+[visualization 2D SimulationReport](planning/visualization-2d-simulation-report.md).
+
+Следующая малая итерация — **`robcraft/scenario-v2-reconciliation`** (C25):
+отдельный ScenarioSpec v2 adapter/report comparison без изменения C24 2D.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
