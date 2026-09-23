@@ -5,6 +5,30 @@ export const DEMO_MODELS = Object.freeze({
   '446c5207-a099-45e0-b615-afd60de08589': 'MARK 2 SE · демонстрационный профиль',
 });
 
+// These are author-authored demo notes, not manufacturer passports or C05 evidence.
+// Keep the visible caveats alongside the model picker so they cannot be missed.
+export const DEMO_PROFILES = Object.freeze({
+  'ecd7d582-b342-449a-b43b-66288d159a32': Object.freeze({
+    sourceLabel: 'СМ Роботикс · MULE', sourceUrl: 'https://sm-robotics.ru/',
+    published: 'Производитель: грузоподъёмность до 1 500 кг, скорость до 1,3 м/с.',
+    assumptions: 'Типовой склад организаторов: 800 кг/паллету, 2 000 паллет/сутки, 2×11 ч; плечо 120 м и предзаполненный обмен 90 с — отдельные редактируемые допущения сценария.',
+    unknown: 'Не проверены техпаспорт комплектации, проход, пол, доступность в смене, фактический обмен и условия поставки.',
+  }),
+  '5760e938-9a43-45a7-b8e8-f4f2e6383930': Object.freeze({
+    sourceLabel: 'Ронави Роботикс · H1500', sourceUrl: 'https://ronavi-robotics.ru/catalogue/h1500',
+    conflictUrl: 'https://ronavi-robotics.ru/media/kak-rabotaet-robotizirovannaya-zona-na-sklade-vostok-servis',
+    published: 'Производитель: до 1 500 кг и минимальный проезд 750 мм; разные страницы указывают 1,3 и 1,5 м/с.',
+    assumptions: 'Типовой склад организаторов и плечо 120 м; подходящий модуль для паллет, цикл обмена и скорость выбранной комплектации требуют подтверждения.',
+    unknown: 'Не проверены техпаспорт и оснастка, эксплуатационная доступность, условия пола и цена комплектации.',
+  }),
+  '446c5207-a099-45e0-b615-afd60de08589': Object.freeze({
+    sourceLabel: 'Р2Б · MARK 2 SE', sourceUrl: 'https://r2b.company/mark2se',
+    published: 'Производитель: примерно 600–700 м²/ч в реальных условиях; 600 м²/ч — консервативная оценка для демо.',
+    assumptions: 'Активная зона 10 000 м² — типовое значение организаторов; одна уборка в сутки — допущение сценария.',
+    unknown: 'Не проверены паспорт комплектации, покрытие и ровность, доступность, шум, сервис и расходники.',
+  }),
+});
+
 const quantity = (name, value, unit, kind, provenanceRef) => ({
   status: 'KNOWN', name, raw_value: String(value), raw_unit: unit,
   normalized_value: String(value), unit, quantity_kind: kind,

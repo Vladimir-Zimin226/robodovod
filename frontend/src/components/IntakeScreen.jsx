@@ -26,7 +26,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
   ]);
   const [input, setInput] = useState(initialPrompt);
   const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState(initialCollected?.mode || (objectType === 'other' ? 'whole' : 'process-role-v2'));
+  const [mode, setMode] = useState(objectType === 'other' ? 'whole' : 'process-role-v2');
   const [zones, setZones] = useState(initialCollected?.zones || []);
   const [collected, setCollected] = useState(
     initialCollected || {
@@ -140,7 +140,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
                 : 'text-slate-600 hover:text-slate-800'
             }`}
           >
-            🏭 Весь объект
+            🏭 Весь объект · старый расчёт
           </button>
           <button
             onClick={() => setMode('zonal')}
@@ -150,7 +150,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
                 : 'text-slate-600 hover:text-slate-800'
             }`}
           >
-            🗂 По зонам
+            🗂 По зонам · старый расчёт
           </button>
           {objectType !== 'other' && <button
             type="button"

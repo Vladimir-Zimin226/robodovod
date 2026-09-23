@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildDemoCapacityRequest, demoCandidates } from '../src/demoCapacityFlow.js';
+import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../src/demoCapacityFlow.js';
 import { createWarehouseDemoDraft, confirmRoleAssumption, serializeDraft } from '../src/processRoleIntakeV2.js';
 
 const mule = {
@@ -31,6 +31,14 @@ test('demo candidates stay within authored model identities and physical profile
   assert.deepEqual(demoCandidates([mule, cleaner], 'TRANSPORT_CYCLE'), [mule]);
   assert.deepEqual(demoCandidates([mule, cleaner], 'CLEANING_AREA'), [cleaner]);
   assert.deepEqual(demoCandidates([mule, cleaner], 'REFERENCE_ONLY'), []);
+});
+
+test('every selectable demo identity has visible source, assumptions and unknowns', () => {
+  assert.deepEqual(Object.keys(DEMO_PROFILES).sort(), Object.keys(DEMO_MODELS).sort());
+  for (const profile of Object.values(DEMO_PROFILES)) {
+    assert.match(profile.sourceUrl, /^https:\/\//);
+    assert.ok(profile.published && profile.assumptions && profile.unknown);
+  }
 });
 
 test('preliminary request requires acknowledgement, project and explicit exchange', () => {

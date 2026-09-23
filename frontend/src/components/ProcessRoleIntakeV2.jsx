@@ -10,7 +10,7 @@ import {
   validateDraft,
 } from '../processRoleIntakeV2';
 import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
-import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS } from '../demoCapacityFlow';
+import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../demoCapacityFlow';
 import { readCsrfCookie } from '../persistenceApi';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -210,6 +210,7 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
               {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.model_id]} · позиция {item.source_row_number}</option>)}
             </select>
           </label>
+          {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.model_id]} />}
           {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
           {selectedProcess?.scope === 'CLEANING_AREA' && <p className="text-xs text-slate-600">Демо-допущение: одна уборка указанной площади в сутки.</p>}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
@@ -218,6 +219,18 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
       </section>}
     </aside>
   );
+}
+
+function DemoProfile({ profile }) {
+  if (!profile) return null;
+  return <details className="border border-amber-200 bg-amber-50 rounded-lg p-3 text-xs" open>
+    <summary className="font-semibold cursor-pointer">Авторский демо-профиль · не техпаспорт изготовителя</summary>
+    <p className="mt-2"><a className="underline text-blue-700" href={profile.sourceUrl} target="_blank" rel="noreferrer">{profile.sourceLabel} · опубликованные характеристики</a>: {profile.published}</p>
+    {profile.conflictUrl && <p className="mt-1"><a className="underline text-blue-700" href={profile.conflictUrl} target="_blank" rel="noreferrer">Второй источник изготовителя с отличающейся скоростью</a></p>}
+    <p className="mt-2"><strong>Допущения:</strong> {profile.assumptions}</p>
+    <p className="mt-2"><strong>Неизвестно:</strong> {profile.unknown}</p>
+    <p className="mt-2 font-semibold text-amber-900">C05: требуется проверка. Результат не подтверждает пригодность к внедрению.</p>
+  </details>;
 }
 
 function NumberField({ label, value, onChange }) {
