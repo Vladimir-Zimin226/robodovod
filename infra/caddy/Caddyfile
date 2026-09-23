@@ -1,0 +1,25 @@
+{
+	email {$ACME_EMAIL:}
+}
+
+www.robodovod.ru {
+	redir https://robodovod.ru{uri} permanent
+}
+
+robodovod.ru {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+		-Server
+	}
+
+	@backend path /api/* /health /ready
+	reverse_proxy @backend backend:8000
+	reverse_proxy frontend:80
+}

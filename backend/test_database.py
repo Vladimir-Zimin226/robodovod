@@ -10,6 +10,7 @@ def test_liveness_does_not_require_database_url(monkeypatch):
     dispose_database()
 
     assert main.root()["status"] == "ok"
+    assert main.health() == {"status": "ok"}
 
 
 def test_database_url_is_required_without_disclosing_environment(monkeypatch):

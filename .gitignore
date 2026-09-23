@@ -28,6 +28,7 @@ robcraft/*-smoke.png
 .env
 .env.*
 !.env.example
+!.env.production.example
 .envrc
 .npmrc
 .pypirc

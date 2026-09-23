@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import argparse
+import json
+import sys
 import uuid
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from auth import utcnow
-from database import Database
+from database import Database, DatabaseSettings
 from economics_runtime_migration import (
     EconomicsDualRunReportV1,
     EconomicsMigrationError,
@@ -152,3 +156,61 @@ def rollback_economics_route(
         raise
     except (IntegrityError, SQLAlchemyError) as exc:
         raise EconomicsMigrationError("economics route rollback failed database checks") from exc
+
+
+def economics_route_status(database: Database) -> dict[str, object]:
+    with database.session() as session:
+        active = session.scalar(
+            select(EconomicsRouteActivation).where(
+                EconomicsRouteActivation.deactivated_at.is_(None)
+            )
+        )
+        return {
+            "active_version": active.economics_version if active is not None else None,
+            "activation_id": str(active.id) if active is not None else None,
+            "history_count": int(
+                session.scalar(select(func.count()).select_from(EconomicsRouteActivation)) or 0
+            ),
+        }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Manage the versioned economics route")
+    commands = parser.add_subparsers(dest="command", required=True)
+    activate = commands.add_parser("activate")
+    activate.add_argument("--approval-report", type=Path, required=True)
+    activate.add_argument("--actor", default="economics-route-cli")
+    rollback = commands.add_parser("rollback")
+    rollback.add_argument("--actor", default="economics-route-cli")
+    commands.add_parser("status")
+    args = parser.parse_args(argv)
+
+    try:
+        database = Database(DatabaseSettings.from_environment())
+        try:
+            if args.command == "activate":
+                report = EconomicsDualRunReportV1.model_validate_json(
+                    args.approval_report.read_text(encoding="utf-8")
+                )
+                result: object = activate_economics_route(
+                    database, report, actor_subject=args.actor
+                )
+            elif args.command == "rollback":
+                result = rollback_economics_route(database, actor_subject=args.actor)
+            else:
+                result = economics_route_status(database)
+        finally:
+            database.dispose()
+    except Exception as exc:  # noqa: BLE001
+        error_name = type(exc).__name__
+        if not isinstance(exc, EconomicsMigrationError):
+            error_name = "EconomicsMigrationError"
+        print(f"economics route operation failed: {error_name}", file=sys.stderr)
+        return 2
+    payload = asdict(result) if hasattr(result, "__dataclass_fields__") else result
+    print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

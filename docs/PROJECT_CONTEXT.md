@@ -467,6 +467,15 @@ catalog membership или production activation. Отчёт:
 Следующая итерация — **`ops/production-domain-deployment-v1`** (C30), только по
 отдельной явной команде владельца. C30 в C29 не начинался.
 
+C30 начат 2026-09-23 по явной команде владельца, но production traffic switch
+поставлен на HOLD: `main.app` пока не wiring economics-v2 executor, а fresh
+organizer catalog не содержит legacy runtime robots. Подготовлены internal-only
+production Compose, pinned Caddy automatic TLS, secure-cookie/origin settings,
+root-contract-aware backend image, liveness endpoint и backup/restore/smoke
+scripts. Эти артефакты не разрешают synthetic fallback или activation
+неработающего runtime. Точный runbook:
+[production deployment](PRODUCTION_DEPLOYMENT.md).
+
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
 его tax, replacement, allocation, sensitivity, simulation, export и rollout

@@ -151,6 +151,11 @@ def root():
     return {"service": "РобоМера", "version": "3.9.0", "status": "ok"}
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/ready")
 def readiness():
     try:

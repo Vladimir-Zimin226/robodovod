@@ -915,8 +915,11 @@ Production activation не выполнялась.
 
 ## C30 — `ops/production-domain-deployment-v1`
 
-Статус: **PLANNED**. Исполнитель — агент; production activation выполняется
-только по явной команде владельца после полного C29 gate.
+Статус: **IN PROGRESS / TRAFFIC SWITCH HOLD**, 2026-09-23. Исполнитель — агент.
+Production preflight выявил отсутствие wired economics-v2 executor в
+`main.app` и отсутствие legacy `runtime_robots` в fresh organizer catalog.
+Infrastructure artifacts подготовлены, но activation запрещена до исправления
+и повторного C29 gate. Runbook: [production deployment](../PRODUCTION_DEPLOYMENT.md).
 
 - **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
   с Ubuntu 24.04 LTS по `robodovod.ru` и `www.robodovod.ru`; серверный baseline,

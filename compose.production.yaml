@@ -1,0 +1,101 @@
+services:
+  db:
+    ports: !reset []
+    networks: [data]
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    logging: &production-logging
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}
+
+  migrate:
+    networks: [data]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+    logging: *production-logging
+
+  backend:
+    command:
+      - python
+      - -m
+      - uvicorn
+      - main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --proxy-headers
+      - --forwarded-allow-ips=*
+    ports: !reset []
+    networks: [data, edge]
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    environment:
+      SESSION_COOKIE_SECURE: "true"
+      APP_ALLOWED_ORIGINS: "https://robodovod.ru,https://www.robodovod.ru"
+    mem_limit: 2g
+    cpus: 2.0
+    logging: *production-logging
+
+  frontend:
+    ports: !reset []
+    networks: [edge]
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 0.50
+    logging: *production-logging
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    environment:
+      ACME_EMAIL: "${ACME_EMAIL:?Set ACME_EMAIL in .env.production}"
+    depends_on:
+      backend: {condition: service_healthy}
+      frontend: {condition: service_healthy}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    networks: [edge]
+    restart: unless-stopped
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    mem_limit: 256m
+    cpus: 0.50
+    logging: *production-logging
+
+  catalog-import: &data-tool
+    networks: [data]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+    logging: *production-logging
+
+  catalog-dual-run: *data-tool
+  catalog-activation: *data-tool
+  catalog-media:
+    networks: [data]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+    logging: *production-logging
+  catalog-description: *data-tool
+  admin-bootstrap: *data-tool
+  persistence-maintenance: *data-tool
+  economics-activation: *data-tool
+
+networks:
+  edge:
+  data:
+    internal: true
+
+volumes:
+  caddy_data:
+  caddy_config:
