@@ -452,6 +452,9 @@ Gate: визуализация не декоративна, но и не наз�
 
 ### Этап 9 — отчёты и минимальная admin-актуализация
 
+Статус: snapshot-driven PDF/CSV evidence export C26 завершён. Admin catalog
+актуализация остаётся отдельной последующей работой и в C26 не выполнялась.
+
 - PDF: inputs/provenance, selection/rejections, configuration, formulas,
   commercial scenarios, sensitivity, SimulationReport, versions и limitations.
 - Excel: Inputs, Selection, Scenarios, CashFlow, Sensitivity, Sources; либо
@@ -517,11 +520,11 @@ Gate: golden path проходит пять раз подряд локально
     process coverage C10, capacity API/snapshots C11 и results UI C12.
 20. C13–C20 — отдельно commercial/procurement inputs, labour, purchase cost
     ledger, full CF/reconciliation, RaaS, shared allocation, ranking, sensitivity.
-    C13–C25 реализованы; следующий этап — C26
-    `report/calculation-evidence-exports`.
+    C13–C26 реализованы; следующий этап — C27
+    `catalog/capacity-runtime-dual-run-rollout`.
 21. C21–C25 — financial UI, ScenarioSpec v2, утверждённая scheduling/SLA модель,
     обязательная 2D и отдельный RobCraft adapter/report.
-22. C26–C28 — exports, capacity rollout и отдельная economics migration.
+22. C26 — exports реализован; C27–C28 — capacity rollout и отдельная economics migration.
     Capacity rollout C27 можно выполнить после C12, не дожидаясь экономики.
 23. `admin/catalog-draft-publish` — самостоятельная работа верхнего roadmap.
 24. C29 `qa/calculation-migration-acceptance` и оставшиеся

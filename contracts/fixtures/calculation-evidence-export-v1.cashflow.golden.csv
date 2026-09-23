@@ -1,0 +1,7 @@
+﻿path,value,source_ref,status
+cash_flow[0].net_cash_flow_rub,-3000000.00,trace.node.cashflow.0,AVAILABLE
+cash_flow[0].source_ref,trace.node.cashflow.0,trace.node.cashflow.0,AVAILABLE
+cash_flow[0].year,0,trace.node.cashflow.0,AVAILABLE
+cash_flow[1].net_cash_flow_rub,1250000.00,trace.node.cashflow.1,AVAILABLE
+cash_flow[1].source_ref,trace.node.cashflow.1,trace.node.cashflow.1,AVAILABLE
+cash_flow[1].year,1,trace.node.cashflow.1,AVAILABLE

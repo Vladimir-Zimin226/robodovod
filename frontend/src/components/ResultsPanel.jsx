@@ -68,7 +68,6 @@ export default function ResultsPanel({
     discount: Math.round((userInput.discount_rate || 0.15) * 100),
     fleet: undefined,
   });
-  const [pdfBusy, setPdfBusy] = useState(false);
   const [extraProcesses, setExtraProcesses] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [expandedExtra, setExpandedExtra] = useState(null);
@@ -265,18 +264,6 @@ export default function ResultsPanel({
   const fleetLabel = form.fleet
     ? `${form.fleet} шт · ручной`
     : `${recommendedQty} шт · авто`;
-
-  const handlePdf = async () => {
-    setPdfBusy(true);
-    try {
-      const m = await import('../utils/generateReport');
-      await m.generateReport(result, userInput, extraProcesses);
-    } catch (e) {
-      alert('Ошибка PDF: ' + e.message);
-    } finally {
-      setPdfBusy(false);
-    }
-  };
 
   const updateStaff = (newStaff) => {
     const s = Math.max(1, newStaff || 1);
@@ -831,24 +818,6 @@ export default function ResultsPanel({
           </div>
         )}
 
-        <div className="flex justify-center pt-2 pb-4">
-          <button
-            onClick={handlePdf}
-            disabled={pdfBusy}
-            className={`rounded-xl px-8 py-3 text-sm font-semibold flex items-center gap-2 transition ${
-              pdfBusy
-                ? 'bg-slate-300 text-slate-500 cursor-wait'
-                : 'bg-slate-800 text-white hover:bg-slate-900'
-            }`}
-          >
-            <span className="text-lg">📄</span>
-            {pdfBusy
-              ? 'Генерация PDF…'
-              : hasMultiple
-                ? 'Скачать комбинированное ТЭО (PDF)'
-                : 'Скачать предварительное ТЭО (PDF)'}
-          </button>
-        </div>
         </section>
       </main>
 

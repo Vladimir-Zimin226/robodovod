@@ -55,7 +55,6 @@ export default function ZonalResults({
 }) {
   const [expandedZone, setExpandedZone] = useState(result.zones?.[0]?.zone_id);
   const [scenario, setScenario] = useState('base');
-  const [pdfBusy, setPdfBusy] = useState(false);
 
   const [shared, setShared] = useState(() => ({
     fteMonth: Math.round((userInput.fte_cost_rub || 1249920) / 15.624 / 1000),
@@ -145,20 +144,6 @@ export default function ZonalResults({
   const updateZone = (id, k, v) => {
     setZoneParams((zp) => ({ ...zp, [id]: { ...zp[id], [k]: v } }));
     setDirty(true);
-  };
-
-  const handlePdf = async () => {
-    if (!result || !result.combined) return;
-    setPdfBusy(true);
-    try {
-      const m = await import('../utils/generateZonalReport');
-      await m.generateZonalReport(result, userInputRef.current || userInput);
-    } catch (e) {
-      console.error('PDF error:', e);
-      alert('Ошибка PDF: ' + e.message);
-    } finally {
-      setPdfBusy(false);
-    }
   };
 
   if (!result || result.mode !== 'zonal' || !result.combined) {
@@ -701,20 +686,6 @@ export default function ZonalResults({
             className="rounded-xl px-6 py-3 text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300"
           >
             🔄 Новый расчёт
-          </button>
-          <button
-            onClick={handlePdf}
-            disabled={pdfBusy}
-            className={`rounded-xl px-8 py-3 text-sm font-semibold flex items-center gap-2 transition ${
-              pdfBusy
-                ? 'bg-slate-300 text-slate-500 cursor-wait'
-                : 'bg-slate-800 text-white hover:bg-slate-900'
-            }`}
-          >
-            <span className="text-lg">📄</span>
-            {pdfBusy
-              ? 'Генерация PDF…'
-              : `Скачать отчёт по ${c.zones_count} зонам (PDF)`}
           </button>
         </div>
         </section>

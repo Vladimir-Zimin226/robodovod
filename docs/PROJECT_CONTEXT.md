@@ -420,7 +420,19 @@ moving utilization, arbitrary energy, visual faults/charging и SLA
 stale message protections сохранены. Отчёт:
 [RobCraft ScenarioSpec v2 reconciliation](planning/robcraft-scenario-v2-reconciliation.md).
 
-Следующая малая итерация — **`report/calculation-evidence-exports`** (C26).
+Этап **`report/calculation-evidence-exports`** (C26) завершён: успешный
+immutable AnalysisRun экспортируется owner-scoped API в deterministic ZIP со
+strict manifest, offline searchable PDF, девятью CSV-разделами и полным
+`Snapshot.json`. Persisted checksums проверяются до выдачи, archive связан с
+manifest digest, missing finance/simulation остаются видимыми как
+`NOT_AVAILABLE`, а spreadsheet formulas нейтрализуются без изменения decimal
+amounts. Frontend не пересчитывает отчёт и показывает run/revision/digest и
+availability разделов. Отчёт:
+[calculation evidence exports](planning/calculation-evidence-exports.md).
+
+Следующая малая итерация — **`catalog/capacity-runtime-dual-run-rollout`**
+(C27). C27 в C26 не начинался; catalog activation и production runtime не
+изменялись.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

@@ -834,6 +834,7 @@ def calculate_with_catalog(
 # Persistence resolves the snapshot before creating the run and reuses that
 # exact immutable value for calculation and version references.
 from persistence_api import create_persistence_router  # noqa: E402
+from evidence_export_api import create_evidence_export_router  # noqa: E402
 
 app.include_router(
     create_persistence_router(
@@ -852,3 +853,4 @@ app.include_router(
     )
 )
 app.include_router(create_simulation_router())
+app.include_router(create_evidence_export_router())

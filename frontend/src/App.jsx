@@ -11,6 +11,7 @@ import { readCsrfCookie } from './persistenceApi';
 import { isCapacityAnalysisResponse } from './capacityResultsModel';
 import { isCommercialScenariosBundle } from './commercialScenariosModel';
 import Simulation2DReport from './components/Simulation2DReport';
+import EvidenceExportPanel from './components/EvidenceExportPanel';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -30,6 +31,7 @@ export default function App() {
   const [intakePrompt, setIntakePrompt] = useState('');
   const [user, setUser] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
+  const [activeRun, setActiveRun] = useState(null);
   const [saveState, setSaveState] = useState('');
   const [inputProvenance, setInputProvenance] = useState({});
   const [projectFileContext, setProjectFileContext] = useState(null);
@@ -44,6 +46,7 @@ export default function App() {
   }, []);
 
   const recalc = async (inp, provenance = inputProvenance, fileContext = projectFileContext) => {
+    setActiveRun(null);
     calculationSequence.current += 1;
     const sequence = calculationSequence.current;
     const apiInput = Object.fromEntries(
@@ -100,6 +103,7 @@ export default function App() {
     setObjectType(null);
     setPreset(null);
     setResult(null);
+    setActiveRun(null);
     setSaveState('');
     setInputProvenance({});
     setProjectFileContext(null);
@@ -168,6 +172,7 @@ export default function App() {
         body: JSON.stringify({ scenario_id: scenario.id, input: apiInput }),
       });
       if (!response.ok) throw new Error('Не удалось сохранить расчёт');
+      setActiveRun(await response.json());
       setSaveState('saved');
     } catch (error) {
       setSaveState(error.message);
@@ -221,9 +226,10 @@ export default function App() {
           />
         ) : phase === 'projects' ? (
           <ProjectsScreen
-            onOpenProject={(project) => { setActiveProject(project); setPhase('onboarding'); }}
+            onOpenProject={(project) => { setActiveProject(project); setActiveRun(null); setPhase('onboarding'); }}
             onOpenRun={(run, project) => {
               setActiveProject(project);
+              setActiveRun(run);
               setUserInput(run.input_snapshot);
               setResult(run.result_snapshot);
               setPhase('results');
@@ -256,6 +262,9 @@ export default function App() {
                 onRecalc={(input) => { setSaveState(''); recalc(input, inputProvenance, projectFileContext); }}
                 onRestart={restart}
               />
+            )}
+            {activeRun && activeProject && (
+              <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />
             )}
           </>
         )}

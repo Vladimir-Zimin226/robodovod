@@ -16,8 +16,8 @@ C16 **COMPLETE** 2026-09-23, C17 **COMPLETE** 2026-09-23,
 C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
 C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
-C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23;
-C26–C30 пока **PLANNED**.
+C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
+C26 **COMPLETE** 2026-09-23; C27–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -772,7 +772,7 @@ strict schemas, geometry-modified goldens и drift builder. ScenarioSpec v1,
 C23/C24, old runs, registry/catalog membership и production runtime неизменны.
 Отчёт: [RobCraft ScenarioSpec v2 reconciliation](robcraft-scenario-v2-reconciliation.md).
 
-## C26 — `report/calculation-evidence-exports`
+## C26 — `report/calculation-evidence-exports` — **COMPLETE 2026-09-23**
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
@@ -792,6 +792,22 @@ C23/C24, old runs, registry/catalog membership и production runtime неизм�
 - **Acceptance / зависимости:** C21,C24–25; reviewer can reconstruct key metrics,
   missing commercial facts not omitted, no leaked private inputs acrossusers.
 - **Вне этапа:** admin catalog editing, scrapedresearch, marketingclaims.
+
+Реализован deterministic snapshot-only builder: перед экспортом он сверяет
+persisted SHA-256 всех частей успешного AnalysisRun и выпускает strict manifest,
+offline text-extractable PDF, CSV-разделы Inputs/Selection/Scenarios/CashFlow/
+Sensitivity/Sources/Trace/Simulation/Versions и полный `Snapshot.json` в ZIP.
+Каждая CSV-строка имеет source/trace либо immutable snapshot reference;
+отсутствующие разделы сохраняются как `NOT_AVAILABLE`. Формульные spreadsheet
+cells обезвреживаются, decimal amounts сохраняются без пересчёта. Owner-scoped
+GET API скрывает чужой run тем же 404 и связывает ZIP с manifest digest.
+Frontend показывает availability/digest/status и только скачивает серверный
+артефакт; прежние report utils сведены к adapter без finance/capacity math,
+remote fonts удалены. Golden contract/capture и targeted Python/Node tests
+покрывают integrity, PDF/CSV, capacity-only old run, malicious cells,
+tenant isolation, stale/error/unknown-field и digest binding. C21/C24/C25,
+старые runs, registry/catalog membership и production runtime не менялись.
+Отчёт: [calculation evidence exports](calculation-evidence-exports.md).
 
 ## C27 — `catalog/capacity-runtime-dual-run-rollout`
 
