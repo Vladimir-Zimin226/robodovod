@@ -1,0 +1,84 @@
+{
+  "$id": "https://robomera.local/contracts/capacity-source-status-v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "catalog_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Catalog Code"
+    },
+    "fallback_mode": {
+      "const": "FAIL_CLOSED",
+      "default": "FAIL_CLOSED",
+      "title": "Fallback Mode",
+      "type": "string"
+    },
+    "policy_version": {
+      "const": "capacity-runtime-rollout-policy-v1",
+      "default": "capacity-runtime-rollout-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "pool_models": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Pool Models"
+    },
+    "pool_positions": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Pool Positions"
+    },
+    "reason_code": {
+      "enum": [
+        "ACTIVE_APPROVED_SOURCE",
+        "CAPACITY_SOURCE_NOT_ACTIVE",
+        "CAPACITY_SOURCE_INVALID"
+      ],
+      "title": "Reason Code",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "capacity-source-status-v1",
+      "default": "capacity-source-status-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "ACTIVE",
+        "UNAVAILABLE",
+        "INVALID"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "status",
+    "reason_code",
+    "catalog_code",
+    "pool_models",
+    "pool_positions"
+  ],
+  "title": "CapacitySourceStatusV1",
+  "type": "object"
+}

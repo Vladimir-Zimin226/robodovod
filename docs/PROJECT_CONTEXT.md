@@ -36,7 +36,8 @@ One-liner: **от производственного процесса до об�
 Ниже перечислены реализованные подсистемы; это не утверждение, что нынешний
 capacity pool уже подключён к полному end-to-end расчёту:
 
-- FastAPI backend с versioned PostgreSQL repository и раздельными discovery/runtime slots;
+- FastAPI backend с versioned PostgreSQL repository и раздельными
+  discovery/runtime/capacity slots;
 - React 19 + Vite frontend;
 - интервью на YandexGPT при наличии ключей и regex/fallback без них;
 - пресеты для склада, аэропорта и клиники;
@@ -430,9 +431,18 @@ amounts. Frontend не пересчитывает отчёт и показыва
 availability разделов. Отчёт:
 [calculation evidence exports](planning/calculation-evidence-exports.md).
 
-Следующая малая итерация — **`catalog/capacity-runtime-dual-run-rollout`**
-(C27). C27 в C26 не начинался; catalog activation и production runtime не
-изменялись.
+Этап **`catalog/capacity-runtime-dual-run-rollout`** (C27) завершён: C11 route
+читает только отдельный fail-closed capacity slot, утверждённый strict policy и
+dual-run report. Policy фиксирует опубликованный content digest, 187/223,
+capacity pool 21/24, split 6/15 моделей и отсутствие BAS; unmatched difference
+блокирует activation. Policy/report digest и rollback mode/target сохраняются
+аддитивной migration 0009. В frontend добавлена только версия capacity source,
+без новой арифметики. Текущая и production DB не мигрировались и capacity slot
+не активировался. Отчёт:
+[capacity runtime dual-run rollout](planning/catalog-capacity-runtime-dual-run-rollout.md).
+
+Следующая малая итерация — **`catalog/economics-runtime-migration`** (C28).
+C28 в C27 не начинался; historical runs и legacy economics остаются неизменны.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

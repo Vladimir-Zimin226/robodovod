@@ -17,6 +17,7 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
             <p className="text-xs text-slate-500">Capacity snapshot · revision {model.revision}</p>
             <h1 className="text-2xl font-semibold">Производительность и требуемый парк</h1>
             <p className="text-sm text-slate-600 mt-1">Процесс: {model.processId}</p>
+            <p className="text-xs text-slate-500 mt-1">Capacity source: {model.versions?.catalog_version_id || 'NOT_AVAILABLE'}</p>
           </div>
           <div className="text-right">
             <span className="inline-flex rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-sm font-semibold">{model.statusLabel}</span>

@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C26 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C27 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -37,7 +37,8 @@ C23 — в [simulation scheduling KPI report v1](planning/simulation-scheduling-
 C24 — в [visualization 2D SimulationReport](planning/visualization-2d-simulation-report.md).
 C25 — в [RobCraft ScenarioSpec v2 reconciliation](planning/robcraft-scenario-v2-reconciliation.md).
 C26 — в [calculation evidence exports](planning/calculation-evidence-exports.md).
-Следующий этап — C27; production runtime activation не выполнялась.
+C27 — в [capacity runtime dual-run rollout](planning/catalog-capacity-runtime-dual-run-rollout.md).
+Следующий этап — C28; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -658,7 +659,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C24 COMPLETE | `visualization/2d-simulation-report` — обязательная 2D | C23 |
 | C25 COMPLETE | `robcraft/scenario-v2-reconciliation` — v2 adapter и KPI comparison | C22–23 |
 | C26 COMPLETE | `report/calculation-evidence-exports` — PDF/CSV bundle из immutable run | C21,C24–25 |
-| C27 | `catalog/capacity-runtime-dual-run-rollout` — независимый capacity rollout | C11–12; можно сразу после них, не ждать economics |
+| C27 COMPLETE | `catalog/capacity-runtime-dual-run-rollout` — независимый capacity rollout | C11–12; можно сразу после них, не ждать economics |
 | C28 | `catalog/economics-runtime-migration` — полный v2 rollout, legacy isolation | C21,C26–27; replay/rollback |
 | C29 | `qa/calculation-migration-acceptance` — сквозная приёмка | C28; scope T1/policy§3 |
 | C30 | `ops/production-domain-deployment-v1` — production-развёртывание `robodovod.ru` | C29; release/operations gate |

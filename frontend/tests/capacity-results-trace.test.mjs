@@ -109,5 +109,6 @@ test('create adapter preserves revision and CSRF while the component has no arit
   const source = await readFile(new URL('../src/components/CapacityResultsTrace.jsx', import.meta.url), 'utf8');
   assert.match(source, /Участвует в расчёте|participationLabel/);
   assert.match(source, /не пересчитывает формулы/);
+  assert.match(source, /Capacity source/);
   assert.doesNotMatch(source, /Math\.|parseFloat|parseInt|Number\(/);
 });

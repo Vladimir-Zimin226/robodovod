@@ -269,6 +269,21 @@ class CatalogActivation(Base):
             "deactivated_at IS NULL OR deactivated_at >= activated_at",
             name="ck_catalog_activations_timestamp_order",
         ),
+        CheckConstraint(
+            "(slot = 'capacity' AND rollout_policy_version IS NOT NULL "
+            "AND approval_report_sha256 IS NOT NULL "
+            "AND rollback_mode IN ('DEACTIVATE', 'RESTORE_VERSION') "
+            "AND ((rollback_mode = 'DEACTIVATE' AND rollback_catalog_version_id IS NULL) "
+            "OR (rollback_mode = 'RESTORE_VERSION' AND rollback_catalog_version_id IS NOT NULL))) OR "
+            "(slot <> 'capacity' AND rollout_policy_version IS NULL "
+            "AND approval_report_sha256 IS NULL AND rollback_mode IS NULL "
+            "AND rollback_catalog_version_id IS NULL)",
+            name="ck_catalog_activations_capacity_approval",
+        ),
+        CheckConstraint(
+            f"approval_report_sha256 IS NULL OR approval_report_sha256 ~ '{SHA256_CHECK}'",
+            name="ck_catalog_activations_approval_sha256",
+        ),
         Index(
             "uq_catalog_activations_active_slot",
             "slot",
@@ -291,3 +306,10 @@ class CatalogActivation(Base):
     )
     deactivated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     actor_subject: Mapped[str | None] = mapped_column(Text)
+    rollout_policy_version: Mapped[str | None] = mapped_column(Text)
+    approval_report_sha256: Mapped[str | None] = mapped_column(Text)
+    rollback_mode: Mapped[str | None] = mapped_column(Text)
+    rollback_catalog_version_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("catalog_versions.id", ondelete="RESTRICT"),
+    )

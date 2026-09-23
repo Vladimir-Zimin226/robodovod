@@ -520,12 +520,13 @@ Gate: golden path проходит пять раз подряд локально
     process coverage C10, capacity API/snapshots C11 и results UI C12.
 20. C13–C20 — отдельно commercial/procurement inputs, labour, purchase cost
     ledger, full CF/reconciliation, RaaS, shared allocation, ranking, sensitivity.
-    C13–C26 реализованы; следующий этап — C27
-    `catalog/capacity-runtime-dual-run-rollout`.
+    C13–C27 реализованы; следующий этап — C28
+    `catalog/economics-runtime-migration`.
 21. C21–C25 — financial UI, ScenarioSpec v2, утверждённая scheduling/SLA модель,
     обязательная 2D и отдельный RobCraft adapter/report.
-22. C26 — exports реализован; C27–C28 — capacity rollout и отдельная economics migration.
-    Capacity rollout C27 можно выполнить после C12, не дожидаясь экономики.
+22. C26 exports и C27 независимый capacity rollout реализованы; C28 —
+    отдельная economics migration. C27 добавил fail-closed capacity slot,
+    approved dual-run и persisted rollback, не активируя production DB.
 23. `admin/catalog-draft-publish` — самостоятельная работа верхнего roadmap.
 24. C29 `qa/calculation-migration-acceptance` и оставшиеся
     `qa/security-performance-deploy`/operations gates.

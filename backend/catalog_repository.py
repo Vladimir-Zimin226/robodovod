@@ -41,6 +41,7 @@ class CatalogVersionDTO:
     code: str
     status: str
     schema_version: str
+    content_sha256: str | None = None
 
 
 @dataclass(frozen=True)
@@ -749,6 +750,7 @@ class PostgresCatalogRepository:
                     code=version.code,
                     status=version.status,
                     schema_version=version.schema_version,
+                    content_sha256=version.content_sha256,
                 ),
                 models=tuple(models),
                 positions=tuple(positions),
@@ -760,7 +762,7 @@ class ActivatedCatalogRepository:
 
     def __init__(self, database: Database, slot: str) -> None:
         normalized = slot.strip()
-        if normalized not in {"discovery", "runtime"}:
+        if normalized not in {"capacity", "discovery", "runtime"}:
             raise CatalogRepositoryError("catalog activation slot is unsupported")
         self._database = database
         self._slot = normalized

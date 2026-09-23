@@ -86,6 +86,14 @@ def _discovery_snapshot() -> CatalogSnapshotDTO:
         raise HTTPException(503, "discovery catalog unavailable") from None
 
 
+def _capacity_snapshot() -> CatalogSnapshotDTO:
+    try:
+        return _CATALOG_RUNTIME.load_capacity()
+    except CatalogRuntimeConfigurationError as exc:
+        logger.error("Configured capacity catalog is unavailable: %s", exc.reason_code)
+        raise HTTPException(503, "capacity source unavailable") from None
+
+
 def _robots_by_category(robots: list[dict[str, Any]]):
     return {
         category: {
@@ -388,8 +396,10 @@ def catalog_status():
             "catalog_status": None,
             "selectable_count": 0,
         }
+    capacity = _CATALOG_RUNTIME.capacity_status()
     return {
         "runtime": runtime_status,
+        "capacity": capacity.model_dump(mode="json"),
         "discovery": {
             "source": "activated",
             "catalog_code": discovery.version.code,
@@ -848,7 +858,7 @@ app.include_router(
             **context,
         ),
         resolve_object_profile_version=official_profile_version,
-        resolve_capacity_catalog=_discovery_snapshot,
+        resolve_capacity_catalog=_capacity_snapshot,
         analyze_capacity_for_catalog=analyze_capacity,
     )
 )

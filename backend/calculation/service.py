@@ -100,6 +100,7 @@ def capacity_version_bindings(snapshot: CatalogSnapshotDTO) -> VersionBindings:
             "id": snapshot.version.id,
             "code": snapshot.version.code,
             "status": snapshot.version.status,
+            "content_sha256": snapshot.version.content_sha256,
             "process_catalog_digest": process_coverage["catalog_digest"],
         }),
         capacity_projection_version="formula-executability-profiles-v3",

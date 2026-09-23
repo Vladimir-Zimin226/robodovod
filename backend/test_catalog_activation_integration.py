@@ -18,6 +18,7 @@ from catalog_activation import (
     validate_catalog_version,
 )
 from catalog_importer import run_catalog_import
+from catalog_capacity_rollout import CapacityDualRunReportV1, validate_capacity_source
 from catalog_repository import ActivatedCatalogRepository
 from database import Database, DatabaseSettings
 from fastapi.testclient import TestClient
@@ -162,6 +163,8 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
             "catalog_status": None,
             "selectable_count": 0,
         }
+        assert status_response.json()["capacity"]["status"] == "UNAVAILABLE"
+        assert status_response.json()["capacity"]["fallback_mode"] == "FAIL_CLOSED"
         assert status_response.json()["discovery"] == {
             "source": "activated",
             "catalog_code": "organizer-catalog-v4",
@@ -249,3 +252,31 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
         assert version is not None and version.published_at is not None
         assert len(activations) == 2
         assert all(activation.deactivated_at is not None for activation in activations)
+
+
+def test_capacity_activation_requires_approval_and_persists_rollback(activation_database):
+    with pytest.raises(CatalogActivationError, match="approved dual-run"):
+        activate_catalog_version(
+            activation_database, "organizer-catalog-v4",
+            slot="capacity", actor_subject="integration-test",
+        )
+    report = CapacityDualRunReportV1.model_validate_json(
+        (Path(__file__).resolve().parents[1] / "contracts/fixtures/capacity-catalog-dual-run-report-v1.golden.json").read_text(encoding="utf-8")
+    )
+    activated = activate_catalog_version(
+        activation_database, "organizer-catalog-v4",
+        slot="capacity", actor_subject="integration-test",
+        capacity_approval=report,
+    )
+    assert activated.changed is True
+    assert activated.approval_report_digest == report.report_digest
+    assert activated.rollback_mode == "DEACTIVATE"
+    assert activated.rollback_catalog_code is None
+    snapshot = ActivatedCatalogRepository(activation_database, "capacity").load()
+    summary = validate_capacity_source(snapshot)
+    assert summary.calculation_pool_models == 21
+    status = next(item for item in catalog_activation_status(activation_database)["active"] if item["slot"] == "capacity")
+    assert status["approval_report_digest"] == report.report_digest
+    assert status["rollback_mode"] == "DEACTIVATE"
+    assert status["rollback_catalog_code"] is None
+    assert deactivate_catalog_slot(activation_database, slot="capacity").changed is True

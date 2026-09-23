@@ -128,3 +128,45 @@ def test_runtime_repository_errors_are_sanitized(monkeypatch):
     monkeypatch.setattr(catalog_runtime, "ActivatedCatalogRepository", MissingRepository)
     with pytest.raises(CatalogRuntimeConfigurationError, match="runtime catalog"):
         CatalogRuntime(lambda: object()).load_runtime()
+
+
+def test_capacity_uses_its_own_slot_and_never_falls_back(monkeypatch):
+    expected = _snapshot(populated=True)
+
+    class CapacityRepository:
+        def __init__(self, database, slot):
+            assert slot == "capacity"
+
+        def load(self):
+            return expected
+
+    monkeypatch.setattr(catalog_runtime, "ActivatedCatalogRepository", CapacityRepository)
+    monkeypatch.setattr(catalog_runtime, "validate_capacity_source", lambda snapshot: None)
+    runtime = CatalogRuntime(lambda: object())
+    assert runtime.load_capacity() is expected
+    assert runtime.capacity_status().status == "ACTIVE"
+
+
+def test_capacity_missing_or_invalid_is_versioned_and_fail_closed(monkeypatch):
+    class MissingRepository:
+        def __init__(self, database, slot):
+            assert slot == "capacity"
+
+        def load(self):
+            raise CatalogRepositoryError("private detail")
+
+    monkeypatch.setattr(catalog_runtime, "ActivatedCatalogRepository", MissingRepository)
+    runtime = CatalogRuntime(lambda: object())
+    with pytest.raises(CatalogRuntimeConfigurationError) as error:
+        runtime.load_capacity()
+    assert error.value.reason_code == "CAPACITY_SOURCE_NOT_ACTIVE"
+    assert runtime.capacity_status().model_dump() == {
+        "schema_version": "capacity-source-status-v1",
+        "policy_version": "capacity-runtime-rollout-policy-v1",
+        "status": "UNAVAILABLE",
+        "reason_code": "CAPACITY_SOURCE_NOT_ACTIVE",
+        "catalog_code": None,
+        "pool_models": None,
+        "pool_positions": None,
+        "fallback_mode": "FAIL_CLOSED",
+    }

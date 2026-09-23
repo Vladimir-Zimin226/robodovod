@@ -1,0 +1,78 @@
+{
+  "approval_status": "APPROVED",
+  "blocker_codes": [],
+  "candidate_catalog_code": "organizer-catalog-v4",
+  "candidate_summary": {
+    "calculation_pool_models": 21,
+    "calculation_pool_positions": 24,
+    "calculation_ready_models": 6,
+    "calculation_ready_positions": 6,
+    "calculation_ready_with_assumptions_models": 15,
+    "calculation_ready_with_assumptions_positions": 18,
+    "deployment_ready_models": 0,
+    "deployment_ready_positions": 0,
+    "forbidden_family_models": 0,
+    "models": 187,
+    "positions": 223
+  },
+  "comparison_counts": {
+    "INTENDED_DIFFERENCE": 2,
+    "MATCH": 2,
+    "UNMATCHED_DIFFERENCE": 0
+  },
+  "comparisons": [
+    {
+      "candidate": "formula-executability-profiles-v3",
+      "classification": "INTENDED_DIFFERENCE",
+      "comparison_id": "version.readiness-contract",
+      "decision_refs": [
+        "K29"
+      ],
+      "gap_refs": [
+        "G48"
+      ],
+      "group": "VERSION_BINDING",
+      "reason": "formula executability adds evidence-gated profiles without changing pool membership",
+      "reference": "runtime-calculation-readiness-contract-v2"
+    },
+    {
+      "candidate": "capacity-only projection with facts, assumptions and profile version",
+      "classification": "INTENDED_DIFFERENCE",
+      "comparison_id": "projection.capacity-reader",
+      "decision_refs": [
+        "K29"
+      ],
+      "gap_refs": [
+        "G48"
+      ],
+      "group": "PROJECTION",
+      "reason": "the dedicated reader exposes approved capacity evidence and never constructs legacy Robot economics",
+      "reference": "discovery snapshot with readiness labels"
+    }
+  ],
+  "policy_digest": "sha256:f1bdcc30ce5a8136f4e091f377da6da310c540e4e22e15fb4b72f4ca937f0eb1",
+  "policy_version": "capacity-runtime-rollout-policy-v1",
+  "reference_catalog_code": "organizer-catalog-v4",
+  "reference_summary": {
+    "calculation_pool_models": 21,
+    "calculation_pool_positions": 24,
+    "calculation_ready_models": 6,
+    "calculation_ready_positions": 6,
+    "calculation_ready_with_assumptions_models": 15,
+    "calculation_ready_with_assumptions_positions": 18,
+    "deployment_ready_models": 0,
+    "deployment_ready_positions": 0,
+    "forbidden_family_models": 0,
+    "models": 187,
+    "positions": 223
+  },
+  "report_digest": "sha256:ddad80a679645b3bca4e4d273d01911adee6ae2d3a7f655e945d946f5dfb6052",
+  "schema_version": "capacity-catalog-dual-run-report-v1",
+  "source_digests": {
+    "capacity_runtime": "sha256:4d881d60513ba84f617d4a8bd6a288333f76a4055147534e9ff2dcf66e830f5b",
+    "catalog_manifest": "sha256:794a87964aaf46a9df2877a9df34ef58d18d5033fedce4d65e1622e7d6f2ff54",
+    "formula_executability_audit": "sha256:6b552ecc78b64e18727608daf8733a5caf61454172bcc9601c17b24f00eda013",
+    "formula_executability_pool_diff": "sha256:28b341825fcb0621db6c8228c0a07c8ae7354893997fdb9caef6c585d3e8fc8b",
+    "readiness_audit": "sha256:46c3d6cd2679af0c8c30c6372fdcb49b3cefcf2b2f26b8284a81787d53c88ded"
+  }
+}

@@ -10,10 +10,19 @@ from catalog_repository import (
     CatalogSnapshotDTO,
 )
 from database import Database, DatabaseConfigurationError, get_database
+from catalog_capacity_rollout import (
+    CapacityRolloutPolicyError,
+    CapacitySourceStatusV1,
+    validate_capacity_source,
+)
 
 
 class CatalogRuntimeConfigurationError(RuntimeError):
     """Raised when a configured runtime snapshot is unavailable or unsafe."""
+
+    def __init__(self, message: str, *, reason_code: str = "CATALOG_SOURCE_UNAVAILABLE"):
+        super().__init__(message)
+        self.reason_code = reason_code
 
 
 class CatalogRuntime:
@@ -47,3 +56,44 @@ class CatalogRuntime:
             raise CatalogRuntimeConfigurationError(
                 "activated discovery catalog is unavailable"
             ) from exc
+
+    def load_capacity(self) -> CatalogSnapshotDTO:
+        """Load only the separately approved capacity source; never fall back."""
+
+        try:
+            snapshot = ActivatedCatalogRepository(
+                self._database_factory(), "capacity"
+            ).load()
+        except (CatalogRepositoryError, DatabaseConfigurationError) as exc:
+            raise CatalogRuntimeConfigurationError(
+                "activated capacity catalog is unavailable",
+                reason_code="CAPACITY_SOURCE_NOT_ACTIVE",
+            ) from exc
+        try:
+            validate_capacity_source(snapshot)
+        except CapacityRolloutPolicyError as exc:
+            raise CatalogRuntimeConfigurationError(
+                "activated capacity catalog violates rollout policy",
+                reason_code="CAPACITY_SOURCE_INVALID",
+            ) from exc
+        return snapshot
+
+    def capacity_status(self) -> CapacitySourceStatusV1:
+        try:
+            snapshot = self.load_capacity()
+        except CatalogRuntimeConfigurationError as exc:
+            invalid = exc.reason_code == "CAPACITY_SOURCE_INVALID"
+            return CapacitySourceStatusV1(
+                status="INVALID" if invalid else "UNAVAILABLE",
+                reason_code="CAPACITY_SOURCE_INVALID" if invalid else "CAPACITY_SOURCE_NOT_ACTIVE",
+                catalog_code=None,
+                pool_models=None,
+                pool_positions=None,
+            )
+        return CapacitySourceStatusV1(
+            status="ACTIVE",
+            reason_code="ACTIVE_APPROVED_SOURCE",
+            catalog_code=snapshot.version.code,
+            pool_models=len(snapshot.calculation_ready_models()),
+            pool_positions=len(snapshot.calculation_ready_positions()),
+        )

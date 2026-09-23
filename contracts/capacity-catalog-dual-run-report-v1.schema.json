@@ -1,0 +1,236 @@
+{
+  "$defs": {
+    "CapacityPoolSummaryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation_pool_models": {
+          "minimum": 0,
+          "title": "Calculation Pool Models",
+          "type": "integer"
+        },
+        "calculation_pool_positions": {
+          "minimum": 0,
+          "title": "Calculation Pool Positions",
+          "type": "integer"
+        },
+        "calculation_ready_models": {
+          "minimum": 0,
+          "title": "Calculation Ready Models",
+          "type": "integer"
+        },
+        "calculation_ready_positions": {
+          "minimum": 0,
+          "title": "Calculation Ready Positions",
+          "type": "integer"
+        },
+        "calculation_ready_with_assumptions_models": {
+          "minimum": 0,
+          "title": "Calculation Ready With Assumptions Models",
+          "type": "integer"
+        },
+        "calculation_ready_with_assumptions_positions": {
+          "minimum": 0,
+          "title": "Calculation Ready With Assumptions Positions",
+          "type": "integer"
+        },
+        "deployment_ready_models": {
+          "minimum": 0,
+          "title": "Deployment Ready Models",
+          "type": "integer"
+        },
+        "deployment_ready_positions": {
+          "minimum": 0,
+          "title": "Deployment Ready Positions",
+          "type": "integer"
+        },
+        "forbidden_family_models": {
+          "minimum": 0,
+          "title": "Forbidden Family Models",
+          "type": "integer"
+        },
+        "models": {
+          "minimum": 0,
+          "title": "Models",
+          "type": "integer"
+        },
+        "positions": {
+          "minimum": 0,
+          "title": "Positions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "models",
+        "positions",
+        "calculation_pool_models",
+        "calculation_pool_positions",
+        "calculation_ready_models",
+        "calculation_ready_positions",
+        "calculation_ready_with_assumptions_models",
+        "calculation_ready_with_assumptions_positions",
+        "deployment_ready_models",
+        "deployment_ready_positions",
+        "forbidden_family_models"
+      ],
+      "title": "CapacityPoolSummaryV1",
+      "type": "object"
+    },
+    "CapacityRolloutDifferenceV1": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate": {
+          "title": "Candidate"
+        },
+        "classification": {
+          "enum": [
+            "INTENDED_DIFFERENCE",
+            "UNMATCHED_DIFFERENCE"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "comparison_id": {
+          "title": "Comparison Id",
+          "type": "string"
+        },
+        "decision_refs": {
+          "items": {
+            "pattern": "^K[0-9]{2}$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "gap_refs": {
+          "items": {
+            "pattern": "^G[0-9]{2}$",
+            "type": "string"
+          },
+          "title": "Gap Refs",
+          "type": "array"
+        },
+        "group": {
+          "enum": [
+            "MEMBERSHIP",
+            "PROJECTION",
+            "VERSION_BINDING"
+          ],
+          "title": "Group",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "reference": {
+          "title": "Reference"
+        }
+      },
+      "required": [
+        "comparison_id",
+        "group",
+        "classification",
+        "reference",
+        "candidate",
+        "gap_refs",
+        "decision_refs",
+        "reason"
+      ],
+      "title": "CapacityRolloutDifferenceV1",
+      "type": "object"
+    }
+  },
+  "$id": "https://robomera.local/contracts/capacity-catalog-dual-run-report-v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "approval_status": {
+      "enum": [
+        "APPROVED",
+        "BLOCKED"
+      ],
+      "title": "Approval Status",
+      "type": "string"
+    },
+    "blocker_codes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Blocker Codes",
+      "type": "array"
+    },
+    "candidate_catalog_code": {
+      "title": "Candidate Catalog Code",
+      "type": "string"
+    },
+    "candidate_summary": {
+      "$ref": "#/$defs/CapacityPoolSummaryV1"
+    },
+    "comparison_counts": {
+      "additionalProperties": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "title": "Comparison Counts",
+      "type": "object"
+    },
+    "comparisons": {
+      "items": {
+        "$ref": "#/$defs/CapacityRolloutDifferenceV1"
+      },
+      "title": "Comparisons",
+      "type": "array"
+    },
+    "policy_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Policy Digest",
+      "type": "string"
+    },
+    "policy_version": {
+      "const": "capacity-runtime-rollout-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "reference_catalog_code": {
+      "title": "Reference Catalog Code",
+      "type": "string"
+    },
+    "reference_summary": {
+      "$ref": "#/$defs/CapacityPoolSummaryV1"
+    },
+    "report_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Report Digest",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "capacity-catalog-dual-run-report-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_digests": {
+      "additionalProperties": {
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Source Digests",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "policy_version",
+    "policy_digest",
+    "reference_catalog_code",
+    "candidate_catalog_code",
+    "reference_summary",
+    "candidate_summary",
+    "comparisons",
+    "comparison_counts",
+    "approval_status",
+    "blocker_codes",
+    "source_digests",
+    "report_digest"
+  ],
+  "title": "CapacityDualRunReportV1",
+  "type": "object"
+}

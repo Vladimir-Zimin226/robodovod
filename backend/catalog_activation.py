@@ -15,14 +15,19 @@ from typing import Any, Literal
 from catalog_import_contract import CatalogBundleError, load_catalog_bundle
 from catalog_importer import DEFAULT_BUNDLE
 from catalog_repository import CatalogRepositoryError, PostgresCatalogRepository
+from catalog_capacity_rollout import (
+    CapacityDualRunReportV1,
+    CapacityRolloutPolicyError,
+    validate_capacity_approval,
+)
 from database import Database, DatabaseSettings
 from object_profiles import ObjectProfileError, load_official_profiles
 from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from storage_models import CatalogActivation, CatalogVersion, ImportRun
 
-CatalogSlot = Literal["discovery", "runtime"]
-ALLOWED_SLOTS = {"discovery", "runtime"}
+CatalogSlot = Literal["capacity", "discovery", "runtime"]
+ALLOWED_SLOTS = {"capacity", "discovery", "runtime"}
 
 
 class CatalogActivationError(RuntimeError):
@@ -44,6 +49,12 @@ class ActivationResult:
     activation_id: str | None
     changed: bool
     runtime_ready_models: int | None = None
+    capacity_ready_models: int | None = None
+    capacity_ready_positions: int | None = None
+    rollout_policy_version: str | None = None
+    approval_report_digest: str | None = None
+    rollback_mode: str | None = None
+    rollback_catalog_code: str | None = None
 
 
 def _now() -> datetime:
@@ -262,12 +273,16 @@ def activate_catalog_version(
     *,
     slot: CatalogSlot,
     actor_subject: str | None,
+    capacity_approval: CapacityDualRunReportV1 | None = None,
+    rollback_catalog_code: str | None = None,
 ) -> ActivationResult:
     if slot not in ALLOWED_SLOTS:
         raise CatalogActivationError("catalog activation slot is unsupported")
     actor = actor_subject.strip() if actor_subject else None
     if actor_subject is not None and not actor:
         raise CatalogActivationError("activation actor cannot be empty")
+    if slot != "capacity" and (capacity_approval is not None or rollback_catalog_code is not None):
+        raise CatalogActivationError("capacity approval metadata is valid only for capacity slot")
 
     try:
         snapshot = PostgresCatalogRepository(database, catalog_code).load()
@@ -275,7 +290,16 @@ def activate_catalog_version(
         raise CatalogActivationError("catalog snapshot could not be loaded") from exc
     if snapshot.version.status != "PUBLISHED":
         raise CatalogActivationError("catalog activation requires a PUBLISHED version")
+    if slot == "capacity":
+        if capacity_approval is None:
+            raise CatalogActivationError("capacity activation requires an approved dual-run report")
+        try:
+            validate_capacity_approval(capacity_approval, snapshot)
+        except CapacityRolloutPolicyError as exc:
+            raise CatalogActivationError("capacity activation policy rejected candidate") from exc
     runtime_ready = len(snapshot.runtime_robots())
+    capacity_ready_models = len(snapshot.calculation_ready_models())
+    capacity_ready_positions = len(snapshot.calculation_ready_positions())
     if slot == "runtime" and runtime_ready == 0:
         raise CatalogActivationError(
             "runtime activation requires at least one evidence-backed runtime model"
@@ -305,13 +329,42 @@ def activate_catalog_version(
                 .with_for_update()
             )
             if current is not None and current.catalog_version_id == version.id:
+                if slot == "capacity" and (
+                    current.approval_report_sha256 != capacity_approval.report_digest.removeprefix("sha256:")
+                    or current.rollout_policy_version != capacity_approval.policy_version
+                ):
+                    raise CatalogActivationError("active capacity source uses another approval")
+                rollback = session.get(CatalogVersion, current.rollback_catalog_version_id) if current.rollback_catalog_version_id else None
                 return ActivationResult(
                     slot=slot,
                     catalog_code=catalog_code,
                     activation_id=str(current.id),
                     changed=False,
                     runtime_ready_models=runtime_ready,
+                    capacity_ready_models=capacity_ready_models if slot == "capacity" else None,
+                    capacity_ready_positions=capacity_ready_positions if slot == "capacity" else None,
+                    rollout_policy_version=current.rollout_policy_version,
+                    approval_report_digest=(f"sha256:{current.approval_report_sha256}" if current.approval_report_sha256 else None),
+                    rollback_mode=current.rollback_mode,
+                    rollback_catalog_code=rollback.code if rollback else None,
                 )
+            rollback_version = None
+            rollback_mode = None
+            if slot == "capacity":
+                if current is not None:
+                    rollback_version = session.get(CatalogVersion, current.catalog_version_id)
+                    rollback_mode = "RESTORE_VERSION"
+                elif rollback_catalog_code:
+                    rollback_version = session.scalar(
+                        select(CatalogVersion).where(CatalogVersion.code == rollback_catalog_code)
+                    )
+                    rollback_mode = "RESTORE_VERSION"
+                else:
+                    rollback_mode = "DEACTIVATE"
+                if rollback_mode == "RESTORE_VERSION" and (
+                    rollback_version is None or rollback_version.status != "PUBLISHED"
+                ):
+                    raise CatalogActivationError("capacity activation requires a published rollback target")
             now = _now()
             if current is not None:
                 current.deactivated_at = now
@@ -322,6 +375,10 @@ def activate_catalog_version(
                 catalog_version_id=version.id,
                 activated_at=now,
                 actor_subject=actor,
+                rollout_policy_version=(capacity_approval.policy_version if slot == "capacity" else None),
+                approval_report_sha256=(capacity_approval.report_digest.removeprefix("sha256:") if slot == "capacity" else None),
+                rollback_mode=rollback_mode,
+                rollback_catalog_version_id=(rollback_version.id if rollback_version else None),
             )
             session.add(activation)
             session.commit()
@@ -331,6 +388,12 @@ def activate_catalog_version(
                 activation_id=str(activation.id),
                 changed=True,
                 runtime_ready_models=runtime_ready,
+                capacity_ready_models=capacity_ready_models if slot == "capacity" else None,
+                capacity_ready_positions=capacity_ready_positions if slot == "capacity" else None,
+                rollout_policy_version=(capacity_approval.policy_version if slot == "capacity" else None),
+                approval_report_digest=(capacity_approval.report_digest if slot == "capacity" else None),
+                rollback_mode=rollback_mode,
+                rollback_catalog_code=(rollback_version.code if rollback_version else None),
             )
     except CatalogActivationError:
         raise
@@ -395,6 +458,16 @@ def catalog_activation_status(database: Database) -> dict[str, Any]:
                     "catalog_status": version.status,
                     "activation_id": str(activation.id),
                     "activated_at": activation.activated_at.isoformat(),
+                    "rollout_policy_version": activation.rollout_policy_version,
+                    "approval_report_digest": (
+                        f"sha256:{activation.approval_report_sha256}"
+                        if activation.approval_report_sha256 else None
+                    ),
+                    "rollback_mode": activation.rollback_mode,
+                    "rollback_catalog_code": (
+                        session.get(CatalogVersion, activation.rollback_catalog_version_id).code
+                        if activation.rollback_catalog_version_id else None
+                    ),
                 }
                 for activation, version in rows
             ],
@@ -417,6 +490,8 @@ def main(argv: list[str] | None = None) -> int:
     activate.add_argument("--catalog-code", default="organizer-catalog-v4")
     activate.add_argument("--slot", choices=sorted(ALLOWED_SLOTS), required=True)
     activate.add_argument("--actor", default="catalog-activation-cli")
+    activate.add_argument("--approval-report", type=Path)
+    activate.add_argument("--rollback-catalog-code")
     deactivate = subparsers.add_parser("deactivate")
     deactivate.add_argument("--slot", choices=sorted(ALLOWED_SLOTS), required=True)
     subparsers.add_parser("status")
@@ -434,11 +509,18 @@ def main(argv: list[str] | None = None) -> int:
                     database, args.catalog_code, args.bundle
                 )
             elif args.command == "activate":
+                approval = None
+                if args.approval_report is not None:
+                    approval = CapacityDualRunReportV1.model_validate_json(
+                        args.approval_report.read_text(encoding="utf-8")
+                    )
                 result = activate_catalog_version(
                     database,
                     args.catalog_code,
                     slot=args.slot,
                     actor_subject=args.actor,
+                    capacity_approval=approval,
+                    rollback_catalog_code=args.rollback_catalog_code,
                 )
             elif args.command == "deactivate":
                 result = deactivate_catalog_slot(database, slot=args.slot)

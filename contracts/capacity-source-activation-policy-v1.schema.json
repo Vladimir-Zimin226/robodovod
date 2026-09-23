@@ -1,0 +1,100 @@
+{
+  "$id": "https://robomera.local/contracts/capacity-source-activation-policy-v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "activation_requires_approved_report": {
+      "const": true,
+      "title": "Activation Requires Approved Report",
+      "type": "boolean"
+    },
+    "capacity_runtime_version": {
+      "const": "organizer-catalog-v4-capacity-runtime-v1",
+      "title": "Capacity Runtime Version",
+      "type": "string"
+    },
+    "catalog_code": {
+      "const": "organizer-catalog-v4",
+      "title": "Catalog Code",
+      "type": "string"
+    },
+    "catalog_content_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Catalog Content Digest",
+      "type": "string"
+    },
+    "expected_counts": {
+      "additionalProperties": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "title": "Expected Counts",
+      "type": "object"
+    },
+    "fallback_mode": {
+      "const": "FAIL_CLOSED",
+      "title": "Fallback Mode",
+      "type": "string"
+    },
+    "forbidden_system_families": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Forbidden System Families",
+      "type": "array"
+    },
+    "model_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Model Ids",
+      "type": "array"
+    },
+    "policy_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Policy Digest",
+      "type": "string"
+    },
+    "policy_version": {
+      "const": "capacity-runtime-rollout-policy-v1",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "position_source_keys": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Position Source Keys",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "capacity-source-activation-policy-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_digests": {
+      "additionalProperties": {
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Source Digests",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "policy_version",
+    "catalog_code",
+    "capacity_runtime_version",
+    "catalog_content_digest",
+    "fallback_mode",
+    "activation_requires_approved_report",
+    "expected_counts",
+    "model_ids",
+    "position_source_keys",
+    "forbidden_system_families",
+    "source_digests",
+    "policy_digest"
+  ],
+  "title": "CapacitySourceActivationPolicyV1",
+  "type": "object"
+}

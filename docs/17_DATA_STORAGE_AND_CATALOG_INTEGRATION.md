@@ -637,3 +637,14 @@ S3/object storage, неподтверждённые ТТХ, CAD/BIM и един�
 Нельзя откладывать СУБД,
 project/run persistence, evidence gate, официальный intake, обязательную 2D,
 commercial scenarios, exports и минимальную административную актуализацию.
+
+## 15. C27: отдельная capacity activation boundary
+
+C27 добавляет аддитивный slot `capacity`, не меняя `discovery` и legacy
+`runtime`. Activation допускается только для опубликованного snapshot с точным
+content digest, pool membership/counts и approved deterministic dual-run
+report. Запись activation хранит policy version, report digest и rollback
+mode/target. Первый switch откатывается деактивацией, последующий — возвратом к
+предыдущей опубликованной версии. Применение migration и activation в текущей
+или production DB не входит в C27. Подробности:
+[capacity runtime dual-run rollout](planning/catalog-capacity-runtime-dual-run-rollout.md).

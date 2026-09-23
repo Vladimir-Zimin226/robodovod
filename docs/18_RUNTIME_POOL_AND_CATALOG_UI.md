@@ -89,3 +89,14 @@ registry/intake/constraints/executability audit; capacity trace остаётся
 Числа 21/24 — baseline этой поставки, не неизменный лимит будущего pool.
 Любое изменение требует отдельного evidence-backed audit, versioned diff,
 тестов и согласования; полный discovery 187/223 не сокращается.
+
+## C27 rollout binding
+
+Baseline 187/223 и 21/24 теперь закреплён
+`capacity-source-activation-policy-v1`: 6 ready + 15 ready-with-assumptions
+моделей, 6 + 18 позиций, 0 BAS и 0 deployment-ready. C11 capacity analysis
+читает отдельный slot `capacity` и fail-closed при его отсутствии/невалидности;
+fallback на discovery или legacy Robot запрещён. UI лишь показывает version
+фактически связанного server snapshot и не вычисляет capacity/economics.
+Golden dual-run и rollback protocol описаны в
+[отчёте C27](planning/catalog-capacity-runtime-dual-run-rollout.md).

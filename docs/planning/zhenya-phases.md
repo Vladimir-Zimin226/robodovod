@@ -17,7 +17,8 @@ C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
 C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
 C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
-C26 **COMPLETE** 2026-09-23; C27–C30 пока **PLANNED**.
+C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23;
+C28–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -810,6 +811,16 @@ tenant isolation, stale/error/unknown-field и digest binding. C21/C24/C25,
 Отчёт: [calculation evidence exports](calculation-evidence-exports.md).
 
 ## C27 — `catalog/capacity-runtime-dual-run-rollout`
+
+Статус: **COMPLETE**, 2026-09-23. Реализованы strict activation policy/status,
+отдельный fail-closed capacity slot и reader, C11 route binding, deterministic
+golden dual-run с G48/K29 classifications и блокировкой unmatched differences.
+Policy закрепляет 187/223, pool 21/24, split 6/15 моделей и 6/18 позиций,
+отсутствие BAS/deployment-ready. Approved activation сохраняет policy/report
+digest и честный rollback (`DEACTIVATE` для первого switch,
+`RESTORE_VERSION` для следующего). Production/текущая DB не активировалась;
+economics, legacy runs и membership не менялись. Отчёт:
+[capacity runtime dual-run rollout](catalog-capacity-runtime-dual-run-rollout.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
