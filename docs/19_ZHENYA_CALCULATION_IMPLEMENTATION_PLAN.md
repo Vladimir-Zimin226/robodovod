@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C19 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C20 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -30,7 +30,8 @@ C16 — в [full cashflows and reconciliation v1](planning/full-cashflows-reconc
 C17 — в [RaaS cashflows v1](planning/raas-cashflows-v1.md).
 C18 — в [multiprocess allocation v1](planning/multiprocess-allocation-v1.md).
 C19 — в [ranking v2](planning/ranking-v2.md).
-Следующий этап — C20; production runtime activation не выполнялась.
+C20 — в [economics sensitivity v1](planning/sensitivity-v1.md).
+Следующий этап — C21; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -644,7 +645,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C17 COMPLETE | `economics/raas-cashflows-v1` — второй acquisition mode | C13,C16; K21 |
 | C18 COMPLETE | `economics/multiprocess-allocation-v1` — общий объект и role pools | C14–17; K17 |
 | C19 COMPLETE | `engine/ranking-v2` — R03 score после CF и gates | C05–06,C18; K14–16 |
-| C20 | `economics/sensitivity-v1` — price/volume/labour deltas | C18–19 |
+| C20 COMPLETE | `economics/sensitivity-v1` — price/volume/labour deltas | C18–19 |
 | C21 | `frontend/commercial-scenarios-v2` — финансовые сценарии и сверка | C12,C13,C18–20 |
 | C22 | `contracts/scenario-spec-v2` — capacity snapshot и optional finance | C11; при наличии finance C18 |
 | C23 | `simulation/scheduling-kpi-report-v1` — event model, SLA и report | C22 + policy K18/§4 |

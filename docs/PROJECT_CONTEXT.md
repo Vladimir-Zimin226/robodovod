@@ -367,9 +367,17 @@ V2-D закрепил exact versioned C05 rule IDs (29 в текущей rules v
 integrations — как advisory applicability component. Отчёт:
 [ranking v2](planning/ranking-v2.md).
 
-Следующая малая итерация — **`economics/sensitivity-v1`** (C20). Frontend,
-catalog membership, capacity snapshots, старые runs и production runtime
-activation в C19 не менялись.
+Этап **`economics/sensitivity-v1`** (C20) завершён: strict immutable bundle
+связывает C18 baseline, C19 selection и шесть USER-provenance tornado overrides
+price/volume/salary ровно ±10%. Каждый исполняемый вариант повторно вызывает
+canonical C18 engine без дублирования финансовой арифметики; blocked variant не
+получает синтетический result. Capacity snapshots для price/salary неизменны,
+volume может создать traceable fleet/headcount step. Отчёт:
+[economics sensitivity v1](planning/sensitivity-v1.md).
+
+Следующая малая итерация — **`frontend/commercial-scenarios-v2`** (C21).
+Frontend, catalog membership, старые runs и production runtime activation в
+C20 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

@@ -1,0 +1,2399 @@
+{
+  "$defs": {
+    "AllocationMetricV1": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "NOT_REACHED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "RUB",
+            "YEAR"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+              "type": "string"
+            },
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "status",
+        "value",
+        "unit"
+      ],
+      "title": "AllocationMetricV1",
+      "type": "object"
+    },
+    "AllocationReplayV1": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_input_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Canonical Input Digest",
+          "type": "string"
+        },
+        "labour_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Labour Result Digest",
+          "type": "string"
+        },
+        "source_result_digests": {
+          "items": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Source Result Digests",
+          "type": "array"
+        },
+        "trace_content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Trace Content Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_input_digest",
+        "labour_result_digest",
+        "source_result_digests",
+        "trace_content_digest"
+      ],
+      "title": "AllocationReplayV1",
+      "type": "object"
+    },
+    "AllocationResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_people": {
+          "minimum": 0,
+          "title": "Allocated People",
+          "type": "integer"
+        },
+        "method": {
+          "enum": [
+            "EXPLICIT_LARGEST_REMAINDER",
+            "PERSON_SHIFTS_LARGEST_REMAINDER"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "role_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Role Id",
+          "type": "string"
+        },
+        "weight": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Weight",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role_id",
+        "process_id",
+        "allocated_people",
+        "method",
+        "weight",
+        "provenance_ref"
+      ],
+      "title": "AllocationResultV1",
+      "type": "object"
+    },
+    "AllocationTraceNodeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "input_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Refs",
+          "type": "array"
+        },
+        "node_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "ALLOCATE_SITE_CAPITAL",
+            "ALLOCATE_OBJECT_FOT",
+            "ALLOCATE_SHARED_COST",
+            "COMBINE_CASHFLOW",
+            "PROJECT_METRIC"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "output_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Output Ref",
+          "type": "string"
+        },
+        "rounding": {
+          "default": "NONE",
+          "enum": [
+            "NONE",
+            "HALF_EVEN_CENT_LARGEST_REMAINDER"
+          ],
+          "title": "Rounding",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "RUB",
+            "PERSON",
+            "YEAR"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "node_id",
+        "operation",
+        "input_refs",
+        "output_ref",
+        "value",
+        "unit"
+      ],
+      "title": "AllocationTraceNodeV1",
+      "type": "object"
+    },
+    "AllocationVersionBindingsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation_policy_version": {
+          "const": "hackathon-calculation-policy-v1",
+          "default": "hackathon-calculation-policy-v1",
+          "title": "Calculation Policy Version",
+          "type": "string"
+        },
+        "engine_version": {
+          "const": "multiprocess-allocation-v1",
+          "default": "multiprocess-allocation-v1",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "labour_policy_overlay_version": {
+          "const": "hackathon-calculation-policy-v1+v2a-c14",
+          "default": "hackathon-calculation-policy-v1+v2a-c14",
+          "title": "Labour Policy Overlay Version",
+          "type": "string"
+        },
+        "precision_policy_version": {
+          "const": "decimal-context-28-half-even-v1",
+          "default": "decimal-context-28-half-even-v1",
+          "title": "Precision Policy Version",
+          "type": "string"
+        },
+        "registry_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Registry Digest",
+          "type": "string"
+        },
+        "registry_version": {
+          "const": "hackathon-calculation-parameter-registry-v1",
+          "title": "Registry Version",
+          "type": "string"
+        },
+        "request_version": {
+          "const": "multiprocess-allocation-request-v1",
+          "default": "multiprocess-allocation-request-v1",
+          "title": "Request Version",
+          "type": "string"
+        },
+        "result_version": {
+          "const": "multiprocess-allocation-result-v1",
+          "default": "multiprocess-allocation-result-v1",
+          "title": "Result Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "registry_version",
+        "registry_digest"
+      ],
+      "title": "AllocationVersionBindingsV1",
+      "type": "object"
+    },
+    "AnnualRoleStaffingV1": {
+      "additionalProperties": false,
+      "properties": {
+        "ramp": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Ramp",
+          "type": "string"
+        },
+        "released": {
+          "minimum": 0,
+          "title": "Released",
+          "type": "integer"
+        },
+        "remaining": {
+          "minimum": 0,
+          "title": "Remaining",
+          "type": "integer"
+        },
+        "year": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "ramp",
+        "released",
+        "remaining"
+      ],
+      "title": "AnnualRoleStaffingV1",
+      "type": "object"
+    },
+    "CapacitySensitivityBindingV1": {
+      "additionalProperties": false,
+      "properties": {
+        "demand_unit": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Demand Unit",
+          "type": "string"
+        },
+        "demand_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Demand Value",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Result Digest",
+          "type": "string"
+        },
+        "result_version": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Result Version",
+          "type": "string"
+        },
+        "selected_fleet": {
+          "minimum": 0,
+          "title": "Selected Fleet",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "process_id",
+        "result_version",
+        "result_digest",
+        "selected_fleet",
+        "demand_value",
+        "demand_unit",
+        "provenance_ref"
+      ],
+      "title": "CapacitySensitivityBindingV1",
+      "type": "object"
+    },
+    "DirectAnnualCashflowV1": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Baseline Cf",
+          "type": "string"
+        },
+        "scenario_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Scenario Cf",
+          "type": "string"
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "baseline_cf",
+        "scenario_cf"
+      ],
+      "title": "DirectAnnualCashflowV1",
+      "type": "object"
+    },
+    "DiscountRateV1": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "FILE",
+            "POLICY"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "unit": {
+          "const": "1",
+          "default": "1",
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "source",
+        "provenance_ref"
+      ],
+      "title": "DiscountRateV1",
+      "type": "object"
+    },
+    "ForkliftLedgerV1": {
+      "additionalProperties": false,
+      "properties": {
+        "base_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Base Count"
+        },
+        "remaining": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Remaining"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "ROLE_DERIVED",
+            "UNKNOWN",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "withdrawn": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Withdrawn"
+        }
+      },
+      "required": [
+        "status",
+        "base_count",
+        "withdrawn",
+        "remaining",
+        "source"
+      ],
+      "title": "ForkliftLedgerV1",
+      "type": "object"
+    },
+    "LabourReplayV1": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_input_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Canonical Input Digest",
+          "type": "string"
+        },
+        "capacity_result_digests": {
+          "items": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Capacity Result Digests",
+          "type": "array"
+        },
+        "trace_content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Trace Content Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_input_digest",
+        "capacity_result_digests",
+        "trace_content_digest"
+      ],
+      "title": "LabourReplayV1",
+      "type": "object"
+    },
+    "LabourResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocations": {
+          "items": {
+            "$ref": "#/$defs/AllocationResultV1"
+          },
+          "title": "Allocations",
+          "type": "array"
+        },
+        "finance_status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Finance Status",
+          "type": "string"
+        },
+        "forklifts": {
+          "$ref": "#/$defs/ForkliftLedgerV1"
+        },
+        "input_revision": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Input Revision",
+          "type": "string"
+        },
+        "issues": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "labour_status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Labour Status",
+          "type": "string"
+        },
+        "object_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "object_kind": {
+          "$ref": "#/$defs/ObjectKind"
+        },
+        "operating_staff": {
+          "$ref": "#/$defs/SiteOperatingStaffV1"
+        },
+        "processes": {
+          "items": {
+            "$ref": "#/$defs/ProcessLabourResultV1"
+          },
+          "title": "Processes",
+          "type": "array"
+        },
+        "project_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "replay": {
+          "$ref": "#/$defs/LabourReplayV1"
+        },
+        "roles": {
+          "items": {
+            "$ref": "#/$defs/RoleLabourResultV1"
+          },
+          "title": "Roles",
+          "type": "array"
+        },
+        "run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "role-labour-result-v1",
+          "default": "role-labour-result-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "tenant_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "total_additional_control": {
+          "minimum": 0,
+          "title": "Total Additional Control",
+          "type": "integer"
+        },
+        "total_deficit": {
+          "minimum": 0,
+          "title": "Total Deficit",
+          "type": "integer"
+        },
+        "total_released": {
+          "minimum": 0,
+          "title": "Total Released",
+          "type": "integer"
+        },
+        "total_surplus": {
+          "minimum": 0,
+          "title": "Total Surplus",
+          "type": "integer"
+        },
+        "total_transferred": {
+          "minimum": 0,
+          "title": "Total Transferred",
+          "type": "integer"
+        },
+        "trace": {
+          "items": {
+            "$ref": "#/$defs/LabourTraceNodeV1"
+          },
+          "title": "Trace",
+          "type": "array"
+        },
+        "versions": {
+          "$ref": "#/$defs/LabourVersionBindingsV1"
+        }
+      },
+      "required": [
+        "run_id",
+        "project_id",
+        "tenant_id",
+        "input_revision",
+        "object_id",
+        "object_kind",
+        "labour_status",
+        "finance_status",
+        "processes",
+        "roles",
+        "allocations",
+        "operating_staff",
+        "forklifts",
+        "total_deficit",
+        "total_surplus",
+        "total_released",
+        "total_transferred",
+        "total_additional_control",
+        "trace",
+        "issues",
+        "versions",
+        "replay"
+      ],
+      "title": "LabourResultV1",
+      "type": "object"
+    },
+    "LabourTraceNodeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "formula_id": {
+          "enum": [
+            "F08",
+            "F09",
+            "F10",
+            "F11",
+            "F12",
+            "F13",
+            "F14",
+            "F15"
+          ],
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "formula_version": {
+          "const": "calculation-formulas-v1",
+          "default": "calculation-formulas-v1",
+          "title": "Formula Version",
+          "type": "string"
+        },
+        "input_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Refs",
+          "type": "array"
+        },
+        "node_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "output_name": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Output Name",
+          "type": "string"
+        },
+        "output_value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Output Value"
+        },
+        "provenance_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "rounding": {
+          "default": "NONE",
+          "enum": [
+            "NONE",
+            "FLOOR",
+            "CEIL"
+          ],
+          "title": "Rounding",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "enum": [
+              "R03",
+              "POLICY_V1",
+              "POLICY_V2A"
+            ],
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node_id",
+        "formula_id",
+        "source_refs",
+        "input_refs",
+        "output_name",
+        "output_value",
+        "unit"
+      ],
+      "title": "LabourTraceNodeV1",
+      "type": "object"
+    },
+    "LabourVersionBindingsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation_policy_version": {
+          "const": "hackathon-calculation-policy-v1",
+          "default": "hackathon-calculation-policy-v1",
+          "title": "Calculation Policy Version",
+          "type": "string"
+        },
+        "capacity_projection_version": {
+          "const": "capacity-labour-projection-v1",
+          "default": "capacity-labour-projection-v1",
+          "title": "Capacity Projection Version",
+          "type": "string"
+        },
+        "engine_version": {
+          "const": "role-labour-baseline-v1",
+          "default": "role-labour-baseline-v1",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "intake_version": {
+          "const": "calculation-intake-normalization-v2",
+          "default": "calculation-intake-normalization-v2",
+          "title": "Intake Version",
+          "type": "string"
+        },
+        "precision_policy_version": {
+          "const": "decimal-context-28-half-even-v1",
+          "default": "decimal-context-28-half-even-v1",
+          "title": "Precision Policy Version",
+          "type": "string"
+        },
+        "process_catalog_version": {
+          "const": "calculation-process-catalog-v1",
+          "default": "calculation-process-catalog-v1",
+          "title": "Process Catalog Version",
+          "type": "string"
+        },
+        "registry_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Registry Digest",
+          "type": "string"
+        },
+        "registry_version": {
+          "const": "hackathon-calculation-parameter-registry-v1",
+          "title": "Registry Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "role-labour-result-v1",
+          "default": "role-labour-result-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "v2a_policy_overlay_version": {
+          "const": "hackathon-calculation-policy-v1+v2a-c14",
+          "default": "hackathon-calculation-policy-v1+v2a-c14",
+          "title": "V2A Policy Overlay Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "registry_version",
+        "registry_digest"
+      ],
+      "title": "LabourVersionBindingsV1",
+      "type": "object"
+    },
+    "MoneyBreakdownV1": {
+      "additionalProperties": false,
+      "properties": {
+        "annual_direct": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Annual Direct",
+          "type": "string"
+        },
+        "annual_fixed_overhead": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Annual Fixed Overhead",
+          "type": "string"
+        },
+        "annual_full": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Annual Full",
+          "type": "string"
+        },
+        "annual_gross": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Annual Gross",
+          "type": "string"
+        },
+        "monthly_gross": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Monthly Gross",
+          "type": "string"
+        },
+        "salary_provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Salary Provenance Ref",
+          "type": "string"
+        },
+        "unit": {
+          "const": "RUB/person/year",
+          "default": "RUB/person/year",
+          "title": "Unit",
+          "type": "string"
+        },
+        "zero_cost_role": {
+          "title": "Zero Cost Role",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "monthly_gross",
+        "annual_gross",
+        "annual_direct",
+        "annual_full",
+        "annual_fixed_overhead",
+        "salary_provenance_ref",
+        "zero_cost_role"
+      ],
+      "title": "MoneyBreakdownV1",
+      "type": "object"
+    },
+    "MultiprocessAllocationRequestV1": {
+      "additionalProperties": false,
+      "properties": {
+        "cohort_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Cohort Id",
+          "type": "string"
+        },
+        "configurations": {
+          "items": {
+            "$ref": "#/$defs/SelectedConfigurationV1"
+          },
+          "title": "Configurations",
+          "type": "array"
+        },
+        "discount_rate": {
+          "$ref": "#/$defs/DiscountRateV1"
+        },
+        "input_revision": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Input Revision",
+          "type": "string"
+        },
+        "labour_result": {
+          "$ref": "#/$defs/LabourResultV1"
+        },
+        "labour_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Labour Result Digest",
+          "type": "string"
+        },
+        "object_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "multiprocess-allocation-request-v1",
+          "default": "multiprocess-allocation-request-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "shared_annual_costs": {
+          "items": {
+            "$ref": "#/$defs/SharedAnnualCostV1"
+          },
+          "title": "Shared Annual Costs",
+          "type": "array"
+        },
+        "shared_site_capital": {
+          "$ref": "#/$defs/SharedSiteCapitalV1"
+        },
+        "tenant_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uncertainty": {
+          "enum": [
+            "PESSIMISTIC",
+            "BASE",
+            "OPTIMISTIC"
+          ],
+          "title": "Uncertainty",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "project_id",
+        "tenant_id",
+        "input_revision",
+        "object_id",
+        "cohort_id",
+        "uncertainty",
+        "configurations",
+        "labour_result",
+        "labour_result_digest",
+        "shared_site_capital",
+        "shared_annual_costs",
+        "discount_rate"
+      ],
+      "title": "MultiprocessAllocationRequestV1",
+      "type": "object"
+    },
+    "MultiprocessAllocationResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "annual_ledgers": {
+          "items": {
+            "$ref": "#/$defs/ProjectAnnualLedgerV1"
+          },
+          "title": "Annual Ledgers",
+          "type": "array"
+        },
+        "cohort_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Cohort Id",
+          "type": "string"
+        },
+        "control_required_once": {
+          "minimum": 0,
+          "title": "Control Required Once",
+          "type": "integer"
+        },
+        "discounted_payback": {
+          "$ref": "#/$defs/AllocationMetricV1"
+        },
+        "horizon_years": {
+          "maximum": 15,
+          "minimum": 5,
+          "title": "Horizon Years",
+          "type": "integer"
+        },
+        "initial_baseline_cf": {
+          "const": "0.00",
+          "default": "0.00",
+          "title": "Initial Baseline Cf",
+          "type": "string"
+        },
+        "initial_scenario_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Initial Scenario Cf",
+          "type": "string"
+        },
+        "input_revision": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Input Revision",
+          "type": "string"
+        },
+        "npv_base": {
+          "$ref": "#/$defs/AllocationMetricV1"
+        },
+        "npv_project": {
+          "$ref": "#/$defs/AllocationMetricV1"
+        },
+        "npv_scenario": {
+          "$ref": "#/$defs/AllocationMetricV1"
+        },
+        "object_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "processes": {
+          "items": {
+            "$ref": "#/$defs/ProcessAllocationResultV1"
+          },
+          "title": "Processes",
+          "type": "array"
+        },
+        "project_capex_cashflow": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Project Capex Cashflow",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "replay": {
+          "$ref": "#/$defs/AllocationReplayV1"
+        },
+        "role_conservation": {
+          "items": {
+            "$ref": "#/$defs/RoleConservationV1"
+          },
+          "title": "Role Conservation",
+          "type": "array"
+        },
+        "run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "multiprocess-allocation-result-v1",
+          "default": "multiprocess-allocation-result-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "shared_capex_cashflow": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Shared Capex Cashflow",
+          "type": "string"
+        },
+        "simple_payback": {
+          "$ref": "#/$defs/AllocationMetricV1"
+        },
+        "status": {
+          "const": "COMPLETE",
+          "default": "COMPLETE",
+          "title": "Status",
+          "type": "string"
+        },
+        "technicians_required_once": {
+          "minimum": 0,
+          "title": "Technicians Required Once",
+          "type": "integer"
+        },
+        "tenant_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "total_released_people": {
+          "minimum": 0,
+          "title": "Total Released People",
+          "type": "integer"
+        },
+        "trace": {
+          "items": {
+            "$ref": "#/$defs/AllocationTraceNodeV1"
+          },
+          "title": "Trace",
+          "type": "array"
+        },
+        "unallocated_role_people": {
+          "minimum": 0,
+          "title": "Unallocated Role People",
+          "type": "integer"
+        },
+        "versions": {
+          "$ref": "#/$defs/AllocationVersionBindingsV1"
+        }
+      },
+      "required": [
+        "run_id",
+        "project_id",
+        "tenant_id",
+        "input_revision",
+        "object_id",
+        "cohort_id",
+        "horizon_years",
+        "processes",
+        "role_conservation",
+        "unallocated_role_people",
+        "total_released_people",
+        "control_required_once",
+        "technicians_required_once",
+        "shared_capex_cashflow",
+        "project_capex_cashflow",
+        "initial_scenario_cf",
+        "annual_ledgers",
+        "npv_base",
+        "npv_scenario",
+        "npv_project",
+        "simple_payback",
+        "discounted_payback",
+        "trace",
+        "versions",
+        "replay"
+      ],
+      "title": "MultiprocessAllocationResultV1",
+      "type": "object"
+    },
+    "ObjectKind": {
+      "enum": [
+        "WAREHOUSE",
+        "AIRPORT",
+        "CLINIC"
+      ],
+      "title": "ObjectKind",
+      "type": "string"
+    },
+    "ProcessAllocationResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition": {
+          "enum": [
+            "PURCHASE",
+            "RAAS"
+          ],
+          "title": "Acquisition",
+          "type": "string"
+        },
+        "allocated_role_people": {
+          "minimum": 0,
+          "title": "Allocated Role People",
+          "type": "integer"
+        },
+        "allocated_shared_capex_cashflow": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Allocated Shared Capex Cashflow",
+          "type": "string"
+        },
+        "annual_ledgers": {
+          "items": {
+            "$ref": "#/$defs/ProcessAnnualAllocationV1"
+          },
+          "title": "Annual Ledgers",
+          "type": "array"
+        },
+        "capital_allocation_basis": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Capital Allocation Basis",
+          "type": "string"
+        },
+        "capital_allocation_method": {
+          "enum": [
+            "DIRECT_CAPITAL_LARGEST_REMAINDER",
+            "EQUAL_ZERO_DENOMINATOR"
+          ],
+          "title": "Capital Allocation Method",
+          "type": "string"
+        },
+        "combined_capex_cashflow": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Combined Capex Cashflow",
+          "type": "string"
+        },
+        "configuration_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Configuration Id",
+          "type": "string"
+        },
+        "model_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "position_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Position Id",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "released_role_people": {
+          "minimum": 0,
+          "title": "Released Role People",
+          "type": "integer"
+        },
+        "source_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Source Result Digest",
+          "type": "string"
+        },
+        "source_run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Source Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "configuration_id",
+        "process_id",
+        "model_id",
+        "position_id",
+        "acquisition",
+        "source_run_id",
+        "source_result_digest",
+        "capital_allocation_basis",
+        "capital_allocation_method",
+        "allocated_shared_capex_cashflow",
+        "combined_capex_cashflow",
+        "allocated_role_people",
+        "released_role_people",
+        "annual_ledgers"
+      ],
+      "title": "ProcessAllocationResultV1",
+      "type": "object"
+    },
+    "ProcessAnnualAllocationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_baseline_fot": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Allocated Baseline Fot",
+          "type": "string"
+        },
+        "allocated_scenario_fot": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Allocated Scenario Fot",
+          "type": "string"
+        },
+        "allocated_shared_baseline_cost": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Allocated Shared Baseline Cost",
+          "type": "string"
+        },
+        "allocated_shared_scenario_cost": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Allocated Shared Scenario Cost",
+          "type": "string"
+        },
+        "combined_baseline_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Combined Baseline Cf",
+          "type": "string"
+        },
+        "combined_scenario_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Combined Scenario Cf",
+          "type": "string"
+        },
+        "differential_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Differential Cf",
+          "type": "string"
+        },
+        "direct_baseline_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Direct Baseline Cf",
+          "type": "string"
+        },
+        "direct_scenario_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Direct Scenario Cf",
+          "type": "string"
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "direct_baseline_cf",
+        "direct_scenario_cf",
+        "allocated_baseline_fot",
+        "allocated_scenario_fot",
+        "allocated_shared_baseline_cost",
+        "allocated_shared_scenario_cost",
+        "combined_baseline_cf",
+        "combined_scenario_cf",
+        "differential_cf"
+      ],
+      "title": "ProcessAnnualAllocationV1",
+      "type": "object"
+    },
+    "ProcessLabourResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_people": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allocated People"
+        },
+        "applied": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Applied"
+        },
+        "capacity_coverage": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capacity Coverage"
+        },
+        "deficit_growth": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deficit Growth"
+        },
+        "manual_unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manual Unit"
+        },
+        "manual_units_per_shift": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manual Units Per Shift"
+        },
+        "operating_hours_per_day": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operating Hours Per Day"
+        },
+        "person_shifts": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Person Shifts"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "reason_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "released": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Released"
+        },
+        "required_people": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required People"
+        },
+        "robot_people": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Robot People"
+        },
+        "robot_replacement": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Robot Replacement"
+        },
+        "role_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Role Id"
+        },
+        "rotation_factor": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rotation Factor"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "NO_FOT_BENEFIT",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "transferred": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transferred"
+        }
+      },
+      "required": [
+        "process_id",
+        "role_id",
+        "status"
+      ],
+      "title": "ProcessLabourResultV1",
+      "type": "object"
+    },
+    "ProjectAnnualLedgerV1": {
+      "additionalProperties": false,
+      "properties": {
+        "combined_baseline_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Combined Baseline Cf",
+          "type": "string"
+        },
+        "combined_scenario_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Combined Scenario Cf",
+          "type": "string"
+        },
+        "differential_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Differential Cf",
+          "type": "string"
+        },
+        "object_baseline_fot": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Object Baseline Fot",
+          "type": "string"
+        },
+        "object_scenario_fot": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Object Scenario Fot",
+          "type": "string"
+        },
+        "process_direct_baseline_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Process Direct Baseline Cf",
+          "type": "string"
+        },
+        "process_direct_scenario_cf": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Process Direct Scenario Cf",
+          "type": "string"
+        },
+        "shared_baseline_cost": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Shared Baseline Cost",
+          "type": "string"
+        },
+        "shared_scenario_cost": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Shared Scenario Cost",
+          "type": "string"
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "process_direct_baseline_cf",
+        "process_direct_scenario_cf",
+        "object_baseline_fot",
+        "object_scenario_fot",
+        "shared_baseline_cost",
+        "shared_scenario_cost",
+        "combined_baseline_cf",
+        "combined_scenario_cf",
+        "differential_cf"
+      ],
+      "title": "ProjectAnnualLedgerV1",
+      "type": "object"
+    },
+    "RoleCode": {
+      "enum": [
+        "forklift_driver",
+        "loader",
+        "storekeeper",
+        "picker",
+        "sorter",
+        "packer",
+        "cleaner",
+        "inventory_worker",
+        "baggage_handler",
+        "trolley_operator",
+        "special_equipment_driver",
+        "terminal_cleaner",
+        "perron_cleaner",
+        "runway_inspector",
+        "security_guard",
+        "passenger_assistant",
+        "courier",
+        "ramp_worker",
+        "ground_support_worker",
+        "catering_worker",
+        "laundry_worker",
+        "sanitary",
+        "porter",
+        "lab_assistant",
+        "sterile_supply_worker",
+        "consumable_worker",
+        "lab_result_courier",
+        "tech_support",
+        "control_operator"
+      ],
+      "title": "RoleCode",
+      "type": "string"
+    },
+    "RoleConservationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_people": {
+          "minimum": 0,
+          "title": "Allocated People",
+          "type": "integer"
+        },
+        "conserved": {
+          "const": true,
+          "default": true,
+          "title": "Conserved",
+          "type": "boolean"
+        },
+        "headcount": {
+          "minimum": 0,
+          "title": "Headcount",
+          "type": "integer"
+        },
+        "released": {
+          "minimum": 0,
+          "title": "Released",
+          "type": "integer"
+        },
+        "remaining": {
+          "minimum": 0,
+          "title": "Remaining",
+          "type": "integer"
+        },
+        "role_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Role Id",
+          "type": "string"
+        },
+        "transferred": {
+          "minimum": 0,
+          "title": "Transferred",
+          "type": "integer"
+        },
+        "unallocated_people": {
+          "minimum": 0,
+          "title": "Unallocated People",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "role_id",
+        "headcount",
+        "allocated_people",
+        "unallocated_people",
+        "transferred",
+        "released",
+        "remaining"
+      ],
+      "title": "RoleConservationV1",
+      "type": "object"
+    },
+    "RoleLabourResultV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_people": {
+          "minimum": 0,
+          "title": "Allocated People",
+          "type": "integer"
+        },
+        "annual_deficit_cost": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Annual Deficit Cost"
+        },
+        "annual_staffing": {
+          "items": {
+            "$ref": "#/$defs/AnnualRoleStaffingV1"
+          },
+          "title": "Annual Staffing",
+          "type": "array"
+        },
+        "deficit": {
+          "minimum": 0,
+          "title": "Deficit",
+          "type": "integer"
+        },
+        "deficit_cost_source": {
+          "enum": [
+            "EXPLICIT",
+            "DEFAULT_ANNUAL_DIRECT",
+            "DISABLED",
+            "INCOMPLETE"
+          ],
+          "title": "Deficit Cost Source",
+          "type": "string"
+        },
+        "deficit_growth": {
+          "minimum": 0,
+          "title": "Deficit Growth",
+          "type": "integer"
+        },
+        "headcount": {
+          "minimum": 0,
+          "title": "Headcount",
+          "type": "integer"
+        },
+        "money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoneyBreakdownV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "released": {
+          "minimum": 0,
+          "title": "Released",
+          "type": "integer"
+        },
+        "remaining": {
+          "minimum": 0,
+          "title": "Remaining",
+          "type": "integer"
+        },
+        "required_people": {
+          "minimum": 0,
+          "title": "Required People",
+          "type": "integer"
+        },
+        "role_code": {
+          "$ref": "#/$defs/RoleCode"
+        },
+        "role_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Role Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "surplus": {
+          "minimum": 0,
+          "title": "Surplus",
+          "type": "integer"
+        },
+        "transferred": {
+          "minimum": 0,
+          "title": "Transferred",
+          "type": "integer"
+        },
+        "unallocated_people": {
+          "minimum": 0,
+          "title": "Unallocated People",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "role_id",
+        "role_code",
+        "status",
+        "headcount",
+        "required_people",
+        "deficit",
+        "surplus",
+        "allocated_people",
+        "unallocated_people",
+        "transferred",
+        "released",
+        "remaining",
+        "deficit_growth",
+        "money",
+        "deficit_cost_source",
+        "annual_deficit_cost",
+        "annual_staffing"
+      ],
+      "title": "RoleLabourResultV1",
+      "type": "object"
+    },
+    "SelectedConfigurationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition": {
+          "enum": [
+            "PURCHASE",
+            "RAAS"
+          ],
+          "title": "Acquisition",
+          "type": "string"
+        },
+        "allocation_basis_direct_capital": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Allocation Basis Direct Capital",
+          "type": "string"
+        },
+        "annual_cashflows": {
+          "items": {
+            "$ref": "#/$defs/DirectAnnualCashflowV1"
+          },
+          "title": "Annual Cashflows",
+          "type": "array"
+        },
+        "cashflow_basis": {
+          "const": "PRIMARY_PRETAX",
+          "title": "Cashflow Basis",
+          "type": "string"
+        },
+        "configuration_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Configuration Id",
+          "type": "string"
+        },
+        "direct_capex_cashflow": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Direct Capex Cashflow",
+          "type": "string"
+        },
+        "excludes_object_shared_costs": {
+          "const": true,
+          "default": true,
+          "title": "Excludes Object Shared Costs",
+          "type": "boolean"
+        },
+        "model_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "position_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Position Id",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "projection_version": {
+          "const": "process-direct-financial-projection-v1",
+          "default": "process-direct-financial-projection-v1",
+          "title": "Projection Version",
+          "type": "string"
+        },
+        "source_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Source Result Digest",
+          "type": "string"
+        },
+        "source_result_version": {
+          "enum": [
+            "financial-result-v1",
+            "raas-financial-result-v1"
+          ],
+          "title": "Source Result Version",
+          "type": "string"
+        },
+        "source_run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Source Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "configuration_id",
+        "process_id",
+        "model_id",
+        "position_id",
+        "acquisition",
+        "source_run_id",
+        "source_result_version",
+        "source_result_digest",
+        "cashflow_basis",
+        "direct_capex_cashflow",
+        "allocation_basis_direct_capital",
+        "annual_cashflows"
+      ],
+      "title": "SelectedConfigurationV1",
+      "type": "object"
+    },
+    "SensitivityOverrideV1": {
+      "additionalProperties": false,
+      "properties": {
+        "base_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Base Value",
+          "type": "string"
+        },
+        "delta_fraction": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Delta Fraction",
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "LOWER",
+            "UPPER"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "parameter_id": {
+          "enum": [
+            "EQUIPMENT_PRICE",
+            "OPERATION_VOLUME",
+            "ROLE_SALARY"
+          ],
+          "title": "Parameter Id",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "scope_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "source": {
+          "const": "USER",
+          "default": "USER",
+          "title": "Source",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "variant_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Variant Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "parameter_id",
+        "direction",
+        "delta_fraction",
+        "scope_id",
+        "base_value",
+        "variant_value",
+        "unit",
+        "provenance_ref"
+      ],
+      "title": "SensitivityOverrideV1",
+      "type": "object"
+    },
+    "SensitivityVariantInputV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocation_request": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MultiprocessAllocationRequestV1"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "blocker_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Blocker Codes",
+          "type": "array"
+        },
+        "capacity_bindings": {
+          "items": {
+            "$ref": "#/$defs/CapacitySensitivityBindingV1"
+          },
+          "title": "Capacity Bindings",
+          "type": "array"
+        },
+        "derived_run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Derived Run Id",
+          "type": "string"
+        },
+        "override": {
+          "$ref": "#/$defs/SensitivityOverrideV1"
+        },
+        "rerun_engines": {
+          "items": {
+            "enum": [
+              "capacity-analysis-service-v2",
+              "role-labour-baseline-v1",
+              "purchase-cost-ledger-v1",
+              "full-cashflows-reconciliation-v1",
+              "multiprocess-allocation-v1"
+            ],
+            "type": "string"
+          },
+          "title": "Rerun Engines",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "EXECUTABLE",
+            "BLOCKED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "variant_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Variant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "variant_id",
+        "derived_run_id",
+        "status",
+        "override",
+        "capacity_bindings",
+        "rerun_engines"
+      ],
+      "title": "SensitivityVariantInputV1",
+      "type": "object"
+    },
+    "SharedAnnualCostV1": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_cost": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Baseline Cost",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "scenario_cost": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Scenario Cost",
+          "type": "string"
+        },
+        "scope": {
+          "const": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+          "default": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+          "title": "Scope",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "FILE",
+            "POLICY"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "baseline_cost",
+        "scenario_cost",
+        "source",
+        "provenance_ref"
+      ],
+      "title": "SharedAnnualCostV1",
+      "type": "object"
+    },
+    "SharedSiteCapitalV1": {
+      "additionalProperties": false,
+      "properties": {
+        "capex_amortizable": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Capex Amortizable",
+          "type": "string"
+        },
+        "capex_cashflow": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Capex Cashflow",
+          "type": "string"
+        },
+        "capex_gross": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+          "title": "Capex Gross",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "scope": {
+          "const": "ONE_SITE_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+          "default": "ONE_SITE_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+          "title": "Scope",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "FILE",
+            "POLICY"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capex_gross",
+        "capex_amortizable",
+        "capex_cashflow",
+        "source",
+        "provenance_ref"
+      ],
+      "title": "SharedSiteCapitalV1",
+      "type": "object"
+    },
+    "SiteOperatingStaffV1": {
+      "additionalProperties": false,
+      "properties": {
+        "control_additional": {
+          "minimum": 0,
+          "title": "Control Additional",
+          "type": "integer"
+        },
+        "control_money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoneyBreakdownV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "control_required": {
+          "minimum": 0,
+          "title": "Control Required",
+          "type": "integer"
+        },
+        "control_transferred": {
+          "minimum": 0,
+          "title": "Control Transferred",
+          "type": "integer"
+        },
+        "reason_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "simultaneous_shifts": {
+          "minimum": 0,
+          "title": "Simultaneous Shifts",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "technician_money": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoneyBreakdownV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "technicians_required": {
+          "minimum": 0,
+          "title": "Technicians Required",
+          "type": "integer"
+        },
+        "total_selected_fleet": {
+          "minimum": 0,
+          "title": "Total Selected Fleet",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_selected_fleet",
+        "simultaneous_shifts",
+        "control_required",
+        "control_transferred",
+        "control_additional",
+        "technicians_required",
+        "control_money",
+        "technician_money",
+        "status"
+      ],
+      "title": "SiteOperatingStaffV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "baseline_allocation_request": {
+      "$ref": "#/$defs/MultiprocessAllocationRequestV1"
+    },
+    "baseline_allocation_result": {
+      "$ref": "#/$defs/MultiprocessAllocationResultV1"
+    },
+    "baseline_allocation_result_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Baseline Allocation Result Digest",
+      "type": "string"
+    },
+    "baseline_capacity_bindings": {
+      "items": {
+        "$ref": "#/$defs/CapacitySensitivityBindingV1"
+      },
+      "title": "Baseline Capacity Bindings",
+      "type": "array"
+    },
+    "object_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Object Id",
+      "type": "string"
+    },
+    "parent_run_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Parent Run Id",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "ranking_result_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Ranking Result Digest",
+      "type": "string"
+    },
+    "ranking_result_version": {
+      "const": "ranking-result-v2",
+      "default": "ranking-result-v2",
+      "title": "Ranking Result Version",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "sensitivity-request-v1",
+      "default": "sensitivity-request-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_candidate_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Selected Candidate Id",
+      "type": "string"
+    },
+    "selected_configuration_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Selected Configuration Id",
+      "type": "string"
+    },
+    "tenant_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "variants": {
+      "items": {
+        "$ref": "#/$defs/SensitivityVariantInputV1"
+      },
+      "title": "Variants",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "parent_run_id",
+    "project_id",
+    "tenant_id",
+    "object_id",
+    "baseline_allocation_request",
+    "baseline_allocation_result",
+    "baseline_allocation_result_digest",
+    "ranking_result_digest",
+    "selected_candidate_id",
+    "selected_configuration_id",
+    "baseline_capacity_bindings",
+    "variants"
+  ],
+  "title": "SensitivityRequestV1",
+  "type": "object"
+}

@@ -36,6 +36,7 @@ from calculation.economics.allocation import (
 from calculation.economics.cashflow import FinancialAnalysisRequestV1, FinancialResultV1, calculate_financial_result
 from calculation.economics.purchase import PurchaseCostLedgerV1, PurchaseLedgerRequestV1, calculate_purchase_ledger
 from calculation.economics.raas import RaasAnalysisRequestV1, RaasFinancialResultV1, calculate_raas_financials
+from calculation.economics.sensitivity import SensitivityRequestV1, SensitivityResultV1, calculate_sensitivity
 from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
 from calculation.ranking import RankingRequestV2, RankingResultV2, calculate_ranking
 from calculation_contracts import (
@@ -345,3 +346,9 @@ def analyze_ranking(request: RankingRequestV2) -> RankingResultV2:
     """Versioned C19 boundary over C05/C06 and frozen C18 cohort bindings."""
 
     return calculate_ranking(request)
+
+
+def analyze_sensitivity(request: SensitivityRequestV1) -> SensitivityResultV1:
+    """Versioned C20 boundary over immutable C18/C19 bindings."""
+
+    return calculate_sensitivity(request)

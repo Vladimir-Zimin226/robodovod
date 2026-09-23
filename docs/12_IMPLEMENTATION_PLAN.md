@@ -511,8 +511,8 @@ Gate: golden path проходит пять раз подряд локально
     process coverage C10, capacity API/snapshots C11 и results UI C12.
 20. C13–C20 — отдельно commercial/procurement inputs, labour, purchase cost
     ledger, full CF/reconciliation, RaaS, shared allocation, ranking, sensitivity.
-    C13–C19 реализованы; следующий расчётный этап — C20
-    `economics/sensitivity-v1`.
+    C13–C20 реализованы; следующий этап — C21
+    `frontend/commercial-scenarios-v2`.
 21. C21–C25 — financial UI, ScenarioSpec v2, утверждённая scheduling/SLA модель,
     обязательная 2D и отдельный RobCraft adapter/report.
 22. C26–C28 — exports, capacity rollout и отдельная economics migration.
