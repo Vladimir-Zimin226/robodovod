@@ -918,6 +918,10 @@ Production activation не выполнялась.
 Статус: **IN PROGRESS / TRAFFIC SWITCH HOLD**, 2026-09-23. Исполнитель — агент.
 Production preflight выявил отсутствие wired economics-v2 executor в
 `main.app` и отсутствие legacy `runtime_robots` в fresh organizer catalog.
+Дополнительный integration audit 2026-09-24 установил, что frontend v2 только
+нормализует ввод, а production C05 оставляет C11 capacity `BLOCKED` до
+подтверждения фактов/условий объекта. Подробности:
+[production calculation integration gap](production-calculation-integration-gap.md).
 Infrastructure artifacts подготовлены, но activation запрещена до исправления
 и повторного C29 gate. Runbook: [production deployment](../PRODUCTION_DEPLOYMENT.md).
 

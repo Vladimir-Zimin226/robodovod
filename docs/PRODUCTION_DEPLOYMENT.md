@@ -2,7 +2,7 @@
 
 Статус: **C30 IN PROGRESS / TRAFFIC SWITCH HOLD**, 2026-09-24.
 
-Production activation запрещена до закрытия двух runtime blockers из раздела
+Production activation запрещена до закрытия runtime blockers из раздела
 1. Все команды ниже разделены на безопасную подготовку и намеренно закрытый
 traffic switch. Project name: `robodovod-prod`; installation root:
 `/opt/robodovod`; environment: `.env.production` с mode `600`.
@@ -18,6 +18,12 @@ traffic switch. Project name: `robodovod-prod`; installation root:
    `runtime_robots`. Его корректно можно активировать для `discovery` и
    `capacity`, но нельзя для legacy `runtime`; старые `/api/calculate` и
    `/analysis-runs` на fresh DB fail closed.
+3. Новый frontend пока выполняет только нормализацию; production C11 вызывает
+   conservative C05 и даёт `NEEDS_VALIDATION`/`BLOCKED`, даже если модель входит
+   в capacity pool. Approved bundle содержит 0 deployment-ready моделей.
+   Положительный C11 unit golden использует тестовый `ELIGIBLE` provider.
+
+Технический разбор: [production calculation integration gap](planning/production-calculation-integration-gap.md).
 
 До отдельного исправления и повторного C29 gate запрещены команды `caddy up`,
 catalog `runtime` activation и economics route activation. Нельзя подменять
