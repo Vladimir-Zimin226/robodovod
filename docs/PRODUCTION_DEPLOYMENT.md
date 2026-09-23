@@ -1,6 +1,6 @@
 # Production deployment — robodovod.ru
 
-Статус: **C30 IN PROGRESS / TRAFFIC SWITCH HOLD**, 2026-09-23.
+Статус: **C30 IN PROGRESS / TRAFFIC SWITCH HOLD**, 2026-09-24.
 
 Production activation запрещена до закрытия двух runtime blockers из раздела
 1. Все команды ниже разделены на безопасную подготовку и намеренно закрытый
@@ -25,7 +25,7 @@ catalog `runtime` activation и economics route activation. Нельзя под�
 
 ## 2. Локальная публикация release — после снятия HOLD
 
-```powershell
+```cmd
 git status --short
 git switch main
 git pull --ff-only origin main
@@ -33,7 +33,7 @@ git merge --ff-only ops/production-domain-deployment-v1
 git tag -a v0.4.0 -m "Robodovod production release v0.4.0"
 git push origin main
 git push origin v0.4.0
-git rev-parse v0.4.0^{}
+git rev-list -n 1 v0.4.0
 ```
 
 Если `--ff-only` невозможен, не создавать merge вручную: опубликовать branch,
@@ -41,18 +41,22 @@ git rev-parse v0.4.0^{}
 
 ## 3. Read-only preflight VDS — можно выполнить сейчас
 
-С клиентского ПК:
+С клиентского ПК в `cmd.exe`:
 
-```powershell
+```cmd
 ssh -o BatchMode=yes -o ConnectTimeout=10 robodovod "hostname; nproc; free -h; df -h / /opt; docker version; docker compose version"
-ssh robodovod "sudo ufw status verbose; sudo ss -lntup"
+ssh -tt robodovod "sudo ufw status verbose && sudo ss -lntup && sudo docker info --format '{{.ServerVersion}}'"
 ssh robodovod "cd /opt/robodovod && git status --short && git rev-parse HEAD && stat -c '%a %n' .env"
 ```
 
 Ожидается clean server tree, `.env` mode `600`, открыты только 22/80/443,
-5432/8000/5173 не слушают public interface. Из текущей Codex-среды SSH
-23.09.2026 завершился timeout; это не доказательство недоступности с ПК
-владельца, но server preflight ещё не принят.
+5432/8000/5173 не слушают public interface. `-tt` даёт `sudo` терминал для
+интерактивного ввода пароля; пароль не нужно присылать и нельзя помещать в
+команду. 24.09.2026 с клиентского ПК подтверждены 4 vCPU, 7.8 GiB RAM,
+74 GiB свободного места, Compose v5.5.1, clean checkout на
+`19cbcbca8325aed6a0182a8d359522795d5a910f` и `.env` mode `600`.
+Docker daemon, UFW и listening ports ещё не проверены: обычный SSH вызов
+`sudo` не получил TTY, одно подключение к SSH завершилось timeout.
 
 ## 4. Подготовка server checkout — можно выполнить без запуска
 
@@ -63,13 +67,15 @@ ssh robodovod
 cd /opt/robodovod
 git status --short
 git fetch --prune --tags origin
-git verify-tag v0.4.0
+test "$(git cat-file -t v0.4.0)" = tag
 git show --no-patch --decorate v0.4.0
 git checkout --detach v0.4.0
 git rev-parse HEAD
 ```
 
-Полученный hash должен совпасть с локальным `git rev-parse v0.4.0^{}`.
+Полученный hash должен совпасть с локальным `git rev-list -n 1 v0.4.0`.
+`git verify-tag` подходит только для подписанного тега; приведённая выше
+команда создаёт обычный annotated tag.
 
 ## 5. Production secrets
 
@@ -113,7 +119,7 @@ Caddy публикует TCP 80/443 и UDP 443. Network `data` internal-only.
 
 ## 7. Backup и restore drill
 
-Перед любой migration существующей БД:
+Перед migration существующей и уже инициализированной БД:
 
 ```bash
 cd /opt/robodovod
@@ -122,6 +128,12 @@ sudo docker compose --env-file .env.production -f compose.yaml -f compose.produc
 DOCKER='sudo docker' BACKUP_DIR=/var/backups/robodovod ./scripts/production/backup.sh
 DOCKER='sudo docker' ./scripts/production/restore-drill.sh /var/backups/robodovod/postgres-YYYYMMDDTHHMMSSZ.dump
 ```
+
+На действительно пустой установке restore drill до migration не пройдёт:
+в dump ещё нет Alembic revision и 31 таблицы. Сначала выполните migration из
+раздела 8, затем backup и restore drill по тем же командам. Наличие или
+отсутствие прежней БД подтвердить до запуска по Docker volumes и server state;
+существующий volume нельзя считать пустым по одному лишь отсутствию приложения.
 
 Скопировать dump, uploads archive и checksum manifest в зашифрованное off-host
 хранилище. Наличие локального файла без restore drill не считается backup.
@@ -176,16 +188,16 @@ curl -fsSI https://www.robodovod.ru/
 ./scripts/production/smoke.sh
 ```
 
-С клиентского ПК проверить закрытые порты:
+С клиентского ПК в `cmd.exe` проверить закрытые порты:
 
-```powershell
-Test-NetConnection robodovod.ru -Port 443
-Test-NetConnection robodovod.ru -Port 5432
-Test-NetConnection robodovod.ru -Port 8000
-Test-NetConnection robodovod.ru -Port 5173
+```cmd
+powershell -NoProfile -Command "Test-NetConnection robodovod.ru -Port 443 -InformationLevel Quiet"
+powershell -NoProfile -Command "Test-NetConnection robodovod.ru -Port 5432 -InformationLevel Quiet"
+powershell -NoProfile -Command "Test-NetConnection robodovod.ru -Port 8000 -InformationLevel Quiet"
+powershell -NoProfile -Command "Test-NetConnection robodovod.ru -Port 5173 -InformationLevel Quiet"
 ```
 
-Для последних трёх ожидается `TcpTestSucceeded: False`.
+Ожидается `True` для 443 и `False` для последних трёх.
 
 ## 10. Application rollback
 
