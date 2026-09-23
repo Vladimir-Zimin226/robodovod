@@ -55,8 +55,11 @@ ssh robodovod "cd /opt/robodovod && git status --short && git rev-parse HEAD && 
 команду. 24.09.2026 с клиентского ПК подтверждены 4 vCPU, 7.8 GiB RAM,
 74 GiB свободного места, Compose v5.5.1, clean checkout на
 `19cbcbca8325aed6a0182a8d359522795d5a910f` и `.env` mode `600`.
-Docker daemon, UFW и listening ports ещё не проверены: обычный SSH вызов
-`sudo` не получил TTY, одно подключение к SSH завершилось timeout.
+Повторный интерактивный preflight подтвердил UFW active/default deny incoming,
+allow только 22/80/443 для IPv4/IPv6, лишь SSH на public listening sockets,
+Docker daemon 29.8.1. `docker volume ls` и `docker ps -a` не вывели записей;
+этот VDS не содержит прежнего Docker stack или volume. Security group Selectel
+и текущие публичные DNS ответы остаются отдельными внешними проверками.
 
 ## 4. Подготовка server checkout — можно выполнить без запуска
 
@@ -129,7 +132,7 @@ DOCKER='sudo docker' BACKUP_DIR=/var/backups/robodovod ./scripts/production/back
 DOCKER='sudo docker' ./scripts/production/restore-drill.sh /var/backups/robodovod/postgres-YYYYMMDDTHHMMSSZ.dump
 ```
 
-На действительно пустой установке restore drill до migration не пройдёт:
+На подтверждённой пустой установке restore drill до migration не пройдёт:
 в dump ещё нет Alembic revision и 31 таблицы. Сначала выполните migration из
 раздела 8, затем backup и restore drill по тем же командам. Наличие или
 отсутствие прежней БД подтвердить до запуска по Docker volumes и server state;
