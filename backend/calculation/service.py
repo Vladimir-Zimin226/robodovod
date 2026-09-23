@@ -30,6 +30,7 @@ from calculation.executability import (
 from calculation.labour import LabourAnalysisRequestV1, LabourResultV1, calculate_role_labour
 from calculation.economics.cashflow import FinancialAnalysisRequestV1, FinancialResultV1, calculate_financial_result
 from calculation.economics.purchase import PurchaseCostLedgerV1, PurchaseLedgerRequestV1, calculate_purchase_ledger
+from calculation.economics.raas import RaasAnalysisRequestV1, RaasFinancialResultV1, calculate_raas_financials
 from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
 from calculation_contracts import (
     CalculationTrace,
@@ -320,3 +321,9 @@ def analyze_financials(request: FinancialAnalysisRequestV1) -> FinancialResultV1
     """Versioned C16 boundary over immutable C14/C15 snapshots."""
 
     return calculate_financial_result(request)
+
+
+def analyze_raas_financials(request: RaasAnalysisRequestV1) -> RaasFinancialResultV1:
+    """Versioned C17 RaaS boundary; C13-C16 snapshots stay immutable."""
+
+    return calculate_raas_financials(request)

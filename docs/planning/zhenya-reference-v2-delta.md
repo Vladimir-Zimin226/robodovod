@@ -193,6 +193,23 @@ runs сохранены:
   один раз через annual C15 ledger. ROI назван `roi_on_capex_cashflow`, а
   исключённый K13 profitability-TCO не возвращается.
 
+### V2-B–C — применение в C17
+
+C17 не меняет исходы gates, а фиксирует их исполнение overlay
+`hackathon-calculation-policy-v1+v2bc-c17`:
+
+- **ZV2-11 — ADOPTED_IN_POLICY_V2:** customer/vendor infrastructure ownership
+  применяется явно; `UNKNOWN/SHARED/INTEGRATOR` не получает fallback и оставляет
+  finance `INCOMPLETE`.
+- **ZV2-15 — ADOPTED_IN_POLICY_V2:** phased/all-fleet меняет только payment
+  deployment; utilization-dependent customer OPEX использует C15 ramp один раз.
+- **ZV2-18 — ADOPTED_IN_POLICY_V2:** `TCO_RaaS = customer infrastructure gross
+  + customer OPEX + payment`; residual, robot replacement и battery replacement
+  для vendor-owned RaaS равны нулю, ROI имеет имя `roi_on_raas_tco`.
+
+ZV2-12 остаётся `REJECTED_WITH_REASON` для default VAT 20%; C17 использует gross
+cash basis и не объявляет scenario tariff подтверждённой vendor offer.
+
 Каждый gate должен завершаться одним из результатов: `ADOPTED_IN_POLICY_V2`,
 `DEFERRED_POST_MVP` или `REJECTED_WITH_REASON`. Отсутствие решения не меняет
 policy v1 и не останавливает более ранние независимые этапы.

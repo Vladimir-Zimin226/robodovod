@@ -1,0 +1,733 @@
+{
+  "$defs": {
+    "MetricValueV1": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "NOT_REACHED",
+            "N_A",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "RUB",
+            "PERCENT",
+            "YEAR"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "status",
+        "value",
+        "unit"
+      ],
+      "title": "MetricValueV1",
+      "type": "object"
+    },
+    "RaasAnnualLedgerV1": {
+      "additionalProperties": false,
+      "properties": {
+        "customer_opex": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Customer Opex"
+        },
+        "depreciation": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Depreciation"
+        },
+        "differential_cf": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Differential Cf"
+        },
+        "ebit_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebit Base"
+        },
+        "ebit_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebit Scenario"
+        },
+        "ebitda_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebitda Base"
+        },
+        "ebitda_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ebitda Scenario"
+        },
+        "primary_cf_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Primary Cf Base"
+        },
+        "primary_cf_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Primary Cf Scenario"
+        },
+        "raas_payment": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raas Payment"
+        },
+        "ramp": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Ramp",
+          "type": "string"
+        },
+        "severance": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Severance"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "supplement_cf_base": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supplement Cf Base"
+        },
+        "supplement_cf_scenario": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supplement Cf Scenario"
+        },
+        "tax_base": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaxLineV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tax_scenario": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TaxLineV1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "year": {
+          "maximum": 15,
+          "minimum": 1,
+          "title": "Year",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "year",
+        "ramp",
+        "customer_opex",
+        "raas_payment",
+        "ebitda_base",
+        "ebitda_scenario",
+        "depreciation",
+        "ebit_base",
+        "ebit_scenario",
+        "severance",
+        "primary_cf_base",
+        "primary_cf_scenario",
+        "differential_cf",
+        "tax_base",
+        "tax_scenario",
+        "supplement_cf_base",
+        "supplement_cf_scenario",
+        "status"
+      ],
+      "title": "RaasAnnualLedgerV1",
+      "type": "object"
+    },
+    "RaasReplayV1": {
+      "additionalProperties": false,
+      "properties": {
+        "canonical_input_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Canonical Input Digest",
+          "type": "string"
+        },
+        "capacity_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Capacity Result Digest",
+          "type": "string"
+        },
+        "comparator_request_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Comparator Request Digest",
+          "type": "string"
+        },
+        "comparator_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Comparator Result Digest",
+          "type": "string"
+        },
+        "procurement_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Procurement Digest",
+          "type": "string"
+        },
+        "trace_content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Trace Content Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "canonical_input_digest",
+        "comparator_request_digest",
+        "comparator_result_digest",
+        "procurement_digest",
+        "capacity_result_digest",
+        "trace_content_digest"
+      ],
+      "title": "RaasReplayV1",
+      "type": "object"
+    },
+    "RaasTraceNodeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "formula_id": {
+          "const": "F32",
+          "title": "Formula Id",
+          "type": "string"
+        },
+        "input_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Refs",
+          "type": "array"
+        },
+        "node_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Node Id",
+          "type": "string"
+        },
+        "output": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Output",
+          "type": "string"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "unit": {
+          "enum": [
+            "RUB",
+            "1"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "node_id",
+        "formula_id",
+        "input_refs",
+        "output",
+        "value",
+        "unit"
+      ],
+      "title": "RaasTraceNodeV1",
+      "type": "object"
+    },
+    "RaasZeroedLineV1": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "const": "0",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Amount"
+        },
+        "area": {
+          "enum": [
+            "HARDWARE",
+            "CHARGING",
+            "INTEGRATION",
+            "MAINTENANCE",
+            "SOFTWARE",
+            "BATTERY",
+            "RESIDUAL"
+          ],
+          "title": "Area",
+          "type": "string"
+        },
+        "line_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Line Id",
+          "type": "string"
+        },
+        "reason_code": {
+          "enum": [
+            "VENDOR_RESPONSIBILITY",
+            "RAAS_NO_OWNED_ASSET",
+            "RESPONSIBILITY_NOT_VENDOR"
+          ],
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "responsible_party": {
+          "enum": [
+            "CUSTOMER",
+            "VENDOR",
+            "INTEGRATOR",
+            "SHARED",
+            "UNKNOWN"
+          ],
+          "title": "Responsible Party",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "ZEROED",
+            "INCOMPLETE"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "line_id",
+        "area",
+        "status",
+        "amount",
+        "reason_code",
+        "responsible_party",
+        "source_refs"
+      ],
+      "title": "RaasZeroedLineV1",
+      "type": "object"
+    },
+    "TaxLineV1": {
+      "additionalProperties": false,
+      "properties": {
+        "loss_close": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Loss Close",
+          "type": "string"
+        },
+        "loss_open": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Loss Open",
+          "type": "string"
+        },
+        "loss_used": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Loss Used",
+          "type": "string"
+        },
+        "tax": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Tax",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tax",
+        "loss_open",
+        "loss_used",
+        "loss_close"
+      ],
+      "title": "TaxLineV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "annual_ledgers": {
+      "items": {
+        "$ref": "#/$defs/RaasAnnualLedgerV1"
+      },
+      "title": "Annual Ledgers",
+      "type": "array"
+    },
+    "calculation_policy_version": {
+      "const": "hackathon-calculation-policy-v1",
+      "default": "hackathon-calculation-policy-v1",
+      "title": "Calculation Policy Version",
+      "type": "string"
+    },
+    "capex_infrastructure_amortizable": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Capex Infrastructure Amortizable"
+    },
+    "capex_infrastructure_gross": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Capex Infrastructure Gross"
+    },
+    "commercial_policy_version": {
+      "const": "hackathon-commercial-policy-v1",
+      "default": "hackathon-commercial-policy-v1",
+      "title": "Commercial Policy Version",
+      "type": "string"
+    },
+    "cumulative_effect": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "deployment_mode": {
+      "anyOf": [
+        {
+          "enum": [
+            "ALL_FLEET",
+            "PHASED"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Deployment Mode"
+    },
+    "discounted_payback": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "engine_version": {
+      "const": "raas-cashflows-v1",
+      "default": "raas-cashflows-v1",
+      "title": "Engine Version",
+      "type": "string"
+    },
+    "fleet_count": {
+      "minimum": 0,
+      "title": "Fleet Count",
+      "type": "integer"
+    },
+    "infrastructure_owner": {
+      "enum": [
+        "CUSTOMER",
+        "VENDOR",
+        "INTEGRATOR",
+        "SHARED",
+        "UNKNOWN"
+      ],
+      "title": "Infrastructure Owner",
+      "type": "string"
+    },
+    "initial_primary_cf_scenario": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Initial Primary Cf Scenario"
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "issues": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+        "type": "string"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "npv_base": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "npv_project": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "npv_scenario": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "policy_overlay_version": {
+      "const": "hackathon-calculation-policy-v1+v2bc-c17",
+      "default": "hackathon-calculation-policy-v1+v2bc-c17",
+      "title": "Policy Overlay Version",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "registry_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Registry Digest",
+      "type": "string"
+    },
+    "registry_version": {
+      "const": "hackathon-calculation-parameter-registry-v1",
+      "title": "Registry Version",
+      "type": "string"
+    },
+    "replay": {
+      "$ref": "#/$defs/RaasReplayV1"
+    },
+    "roi_on_raas_tco": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "run_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "raas-financial-result-v1",
+      "default": "raas-financial-result-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "simple_payback": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "status": {
+      "enum": [
+        "COMPLETE",
+        "INCOMPLETE"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "tco_raas": {
+      "$ref": "#/$defs/MetricValueV1"
+    },
+    "tenant_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "trace": {
+      "items": {
+        "$ref": "#/$defs/RaasTraceNodeV1"
+      },
+      "title": "Trace",
+      "type": "array"
+    },
+    "uncertainty": {
+      "enum": [
+        "PESSIMISTIC",
+        "BASE",
+        "OPTIMISTIC"
+      ],
+      "title": "Uncertainty",
+      "type": "string"
+    },
+    "zeroed_lines": {
+      "items": {
+        "$ref": "#/$defs/RaasZeroedLineV1"
+      },
+      "title": "Zeroed Lines",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "project_id",
+    "tenant_id",
+    "input_revision",
+    "status",
+    "fleet_count",
+    "uncertainty",
+    "deployment_mode",
+    "infrastructure_owner",
+    "capex_infrastructure_gross",
+    "capex_infrastructure_amortizable",
+    "initial_primary_cf_scenario",
+    "zeroed_lines",
+    "annual_ledgers",
+    "npv_base",
+    "npv_scenario",
+    "npv_project",
+    "simple_payback",
+    "discounted_payback",
+    "cumulative_effect",
+    "roi_on_raas_tco",
+    "tco_raas",
+    "issues",
+    "trace",
+    "registry_version",
+    "registry_digest",
+    "replay"
+  ],
+  "title": "RaasFinancialResultV1",
+  "type": "object"
+}

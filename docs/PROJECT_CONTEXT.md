@@ -343,8 +343,14 @@ C14/C15/capacity snapshots связаны immutable digests; missing finance о�
 `INCOMPLETE`. V2-C закрыт versioned overlay. Отчёт:
 [full cashflows and reconciliation v1](planning/full-cashflows-reconciliation-v1.md).
 
-Следующая малая итерация — **`economics/raas-cashflows-v1`** (C17). Frontend,
-RaaS, ranking и production runtime activation в C16 не менялись.
+Этап **`economics/raas-cashflows-v1`** (C17) завершён: добавлены strict F32
+RaaS contracts, responsibility-aware zeroing, customer infrastructure CAPEX,
+phased/all-fleet payment, full pretax/tax cashflows и RaaS NPV/payback/TCO/ROI.
+Unknown responsibility/terms остаются `INCOMPLETE`; C13–C16 snapshots immutable.
+Отчёт: [RaaS cashflows v1](planning/raas-cashflows-v1.md).
+
+Следующая малая итерация — **`economics/multiprocess-allocation-v1`** (C18).
+Frontend, ranking и production runtime activation в C17 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
