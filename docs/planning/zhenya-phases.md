@@ -14,8 +14,8 @@ C12 **COMPLETE** 2026-09-23, C13 **COMPLETE** 2026-09-23,
 C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23,
 C16 **COMPLETE** 2026-09-23, C17 **COMPLETE** 2026-09-23,
 C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
-C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23;
-C22–C30 пока **PLANNED**.
+C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
+C22 **COMPLETE** 2026-09-23; C23–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -650,6 +650,12 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 - **Вне этапа:** simulation, exports implementation, realpayments/procurement actions.
 
 ## C22 — `contracts/scenario-spec-v2`
+
+Статус: **COMPLETE** (2026-09-23). Реализован отдельный strict ScenarioSpec v2
+из immutable C11 request/result/trace, с полными version bindings, semantic
+revision, capacity-only contract и explicit nullable C18 finance binding.
+ScenarioSpec v1 и его builder не изменены; RobCraft v2 adapter остаётся C25.
+Отчёт: [scenario-spec-v2.md](scenario-spec-v2.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

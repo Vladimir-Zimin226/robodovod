@@ -1,4 +1,5 @@
 export const ROBCRAFT_MESSAGE_VERSION = 'robcraft-message-v1';
+const SCENARIO_SPEC_VERSIONS = new Set(['scenario-spec-v1', 'scenario-spec-v2']);
 
 const CHILD_TYPES = new Set(['ROBCRAFT_READY', 'SCENARIO_LOADED', 'CAMERA_MODE_CHANGED', 'EDITOR_MODE_CHANGED', 'SCENE_PATCH_CHANGED', 'ROBCRAFT_ERROR']);
 const ROOT_FIELDS = new Set(['schema_version', 'type', 'revision_id', 'request_id', 'payload']);
@@ -24,7 +25,7 @@ export function parseRobCraftMessage(value) {
   if (value.type === 'ROBCRAFT_READY') {
     if (value.revision_id !== null || value.request_id !== null) throw new TypeError('ROBCRAFT_READY не должен содержать ревизию');
     exact(value.payload, new Set(['capabilities']), 'ROBCRAFT_READY.payload');
-    if (!Array.isArray(value.payload.capabilities)) throw new TypeError('capabilities должен быть массивом');
+    if (!Array.isArray(value.payload.capabilities) || value.payload.capabilities.some((item) => typeof item !== 'string')) throw new TypeError('capabilities должен быть массивом строк');
   } else {
     const bootstrapError = value.type === 'ROBCRAFT_ERROR' && value.revision_id === null && value.request_id === null;
     if (!bootstrapError && !/^calc_[0-9a-f]{16}$/.test(value.revision_id || '')) throw new TypeError('revision_id имеет неверный формат');
@@ -50,6 +51,20 @@ export function parseRobCraftMessage(value) {
     }
   }
   return value;
+}
+
+export function negotiateScenarioSpec(scenarioSpec, capabilities) {
+  plainObject(scenarioSpec, 'ScenarioSpec');
+  if (!SCENARIO_SPEC_VERSIONS.has(scenarioSpec.schema_version)) {
+    throw new TypeError(`Неподдерживаемая версия ScenarioSpec: ${scenarioSpec.schema_version ?? 'не указана'}`);
+  }
+  if (!Array.isArray(capabilities) || capabilities.some((item) => typeof item !== 'string')) {
+    throw new TypeError('RobCraft capabilities должен быть массивом строк');
+  }
+  if (!capabilities.includes(scenarioSpec.schema_version)) {
+    throw new TypeError(`RobCraft не объявил поддержку ${scenarioSpec.schema_version}`);
+  }
+  return scenarioSpec;
 }
 
 export function parentMessage(type, revisionId, requestId, payload = {}) {

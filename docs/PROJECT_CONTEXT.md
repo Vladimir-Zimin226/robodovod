@@ -383,8 +383,18 @@ VAT, ranking или deltas; любое изменение input инвалиди
 Capacity и legacy saved-run viewers сохранены. Отчёт:
 [frontend commercial scenarios v2](planning/frontend-commercial-scenarios-v2.md).
 
-Следующая малая итерация — **`contracts/scenario-spec-v2`** (C22). Catalog
-membership, старые runs и production runtime activation в C21 не менялись.
+Этап **`contracts/scenario-spec-v2`** (C22) завершён: добавлен strict
+ScenarioSpec v2 поверх immutable C11 capacity snapshot с typed demand,
+operating windows, batch/exchange semantics, fleet/route bindings, полными
+calculation version bindings и явным nullable C18 finance binding. Revision
+покрывает всё семантическое тело и меняется при изменении version bindings;
+capacity-only cleaning fixture не требует payload или экономики. ScenarioSpec
+v1, старые runs, catalog membership и production runtime не менялись. Отчёт:
+[ScenarioSpec v2](planning/scenario-spec-v2.md).
+
+Следующая малая итерация — **`simulation/scheduling-kpi-report-v1`** (C23).
+Она реализует deterministic event scheduler/SLA и SimulationReport v1 по K18;
+2D UI остаётся отдельным C24.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

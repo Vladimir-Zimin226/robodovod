@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { parentMessage, parseRobCraftMessage } from '../src/robcraftProtocol.js';
+import { negotiateScenarioSpec, parentMessage, parseRobCraftMessage } from '../src/robcraftProtocol.js';
 
 const revision = 'calc_0123456789abcdef';
 
@@ -36,6 +36,15 @@ test('creates a revision-bound parent message', () => {
     schema_version: 'robcraft-message-v1', type: 'APPLY_REVISION',
     revision_id: revision, request_id: 'request_2', payload: {},
   });
+});
+
+test('negotiates ScenarioSpec versions without an implicit downgrade', () => {
+  const v1 = { schema_version: 'scenario-spec-v1', revision_id: revision };
+  const v2 = { schema_version: 'scenario-spec-v2', revision_id: revision };
+  assert.equal(negotiateScenarioSpec(v1, ['scenario-spec-v1']), v1);
+  assert.equal(negotiateScenarioSpec(v2, ['scenario-spec-v1', 'scenario-spec-v2']), v2);
+  assert.throws(() => negotiateScenarioSpec(v2, ['scenario-spec-v1']), /не объявил поддержку/);
+  assert.throws(() => negotiateScenarioSpec({ ...v2, schema_version: 'scenario-spec-v3' }, ['scenario-spec-v3']), /Неподдерживаемая версия/);
 });
 
 test('accepts a revisionless bootstrap error for WebGL fallback', () => {
