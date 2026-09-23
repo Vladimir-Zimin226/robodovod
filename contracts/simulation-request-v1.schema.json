@@ -1,0 +1,1273 @@
+{
+  "$defs": {
+    "QuantityKind": {
+      "enum": [
+        "TIME",
+        "DISTANCE",
+        "MASS",
+        "AREA",
+        "COUNT",
+        "FLOW",
+        "SPEED",
+        "RATE",
+        "FRACTION",
+        "MONEY",
+        "ENERGY",
+        "POWER",
+        "UNIT_DEFINITION"
+      ],
+      "title": "QuantityKind",
+      "type": "string"
+    },
+    "ResultQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "numeric_encoding": {
+          "const": "DECIMAL_STRING",
+          "default": "DECIMAL_STRING",
+          "title": "Numeric Encoding",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit",
+        "quantity_kind"
+      ],
+      "title": "ResultQuantity",
+      "type": "object"
+    },
+    "ScenarioAnalysisBindingV2": {
+      "additionalProperties": false,
+      "properties": {
+        "capacity_request_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Capacity Request Digest",
+          "type": "string"
+        },
+        "capacity_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Capacity Result Digest",
+          "type": "string"
+        },
+        "capacity_run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Capacity Run Id",
+          "type": "string"
+        },
+        "capacity_trace_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Capacity Trace Digest",
+          "type": "string"
+        },
+        "input_revision": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Input Revision",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "tenant_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "tenant_id",
+        "capacity_run_id",
+        "input_revision",
+        "capacity_request_digest",
+        "capacity_result_digest",
+        "capacity_trace_digest"
+      ],
+      "title": "ScenarioAnalysisBindingV2",
+      "type": "object"
+    },
+    "ScenarioAssumptionV2": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Assumption Id",
+          "type": "string"
+        },
+        "message": {
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "assumption_id",
+        "version",
+        "provenance_ref",
+        "scope",
+        "message"
+      ],
+      "title": "ScenarioAssumptionV2",
+      "type": "object"
+    },
+    "ScenarioBatchV2": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "semantics": {
+          "enum": [
+            "PHYSICAL_BATCH",
+            "AREA_MICROTASK",
+            "ONE_OUTPUT_UNIT"
+          ],
+          "title": "Semantics",
+          "type": "string"
+        },
+        "units_per_cycle": {
+          "$ref": "#/$defs/ResultQuantity"
+        }
+      },
+      "required": [
+        "semantics",
+        "units_per_cycle",
+        "provenance_ref"
+      ],
+      "title": "ScenarioBatchV2",
+      "type": "object"
+    },
+    "ScenarioExchangeV2": {
+      "additionalProperties": false,
+      "properties": {
+        "load_time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "mode": {
+          "enum": [
+            "TOTAL",
+            "SPLIT",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "total_time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "unload_time": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "ScenarioExchangeV2",
+      "type": "object"
+    },
+    "ScenarioFinanceBindingV2": {
+      "additionalProperties": false,
+      "properties": {
+        "acquisition": {
+          "enum": [
+            "PURCHASE",
+            "RAAS"
+          ],
+          "title": "Acquisition",
+          "type": "string"
+        },
+        "cohort_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Cohort Id",
+          "type": "string"
+        },
+        "horizon_years": {
+          "maximum": 15,
+          "minimum": 5,
+          "title": "Horizon Years",
+          "type": "integer"
+        },
+        "npv_project": {
+          "$ref": "#/$defs/ScenarioFinanceMetricV2"
+        },
+        "project_capex_cashflow": {
+          "$ref": "#/$defs/ScenarioFinanceMetricV2"
+        },
+        "simple_payback": {
+          "$ref": "#/$defs/ScenarioFinanceMetricV2"
+        },
+        "source_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Source Result Digest",
+          "type": "string"
+        },
+        "source_run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Source Run Id",
+          "type": "string"
+        },
+        "source_schema_version": {
+          "const": "multiprocess-allocation-result-v1",
+          "title": "Source Schema Version",
+          "type": "string"
+        },
+        "uncertainty": {
+          "enum": [
+            "PESSIMISTIC",
+            "BASE",
+            "OPTIMISTIC"
+          ],
+          "title": "Uncertainty",
+          "type": "string"
+        },
+        "versions": {
+          "$ref": "#/$defs/ScenarioFinanceVersionsV2"
+        }
+      },
+      "required": [
+        "source_schema_version",
+        "source_run_id",
+        "source_result_digest",
+        "cohort_id",
+        "acquisition",
+        "uncertainty",
+        "horizon_years",
+        "project_capex_cashflow",
+        "npv_project",
+        "simple_payback",
+        "versions"
+      ],
+      "title": "ScenarioFinanceBindingV2",
+      "type": "object"
+    },
+    "ScenarioFinanceMetricV2": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "NOT_REACHED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "RUB",
+            "YEAR"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "status",
+        "value",
+        "unit"
+      ],
+      "title": "ScenarioFinanceMetricV2",
+      "type": "object"
+    },
+    "ScenarioFinanceVersionsV2": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation_policy_version": {
+          "const": "hackathon-calculation-policy-v1",
+          "title": "Calculation Policy Version",
+          "type": "string"
+        },
+        "engine_version": {
+          "const": "multiprocess-allocation-v1",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "labour_policy_overlay_version": {
+          "const": "hackathon-calculation-policy-v1+v2a-c14",
+          "title": "Labour Policy Overlay Version",
+          "type": "string"
+        },
+        "precision_policy_version": {
+          "const": "decimal-context-28-half-even-v1",
+          "title": "Precision Policy Version",
+          "type": "string"
+        },
+        "registry_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Registry Digest",
+          "type": "string"
+        },
+        "registry_version": {
+          "const": "hackathon-calculation-parameter-registry-v1",
+          "title": "Registry Version",
+          "type": "string"
+        },
+        "result_version": {
+          "const": "multiprocess-allocation-result-v1",
+          "title": "Result Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine_version",
+        "result_version",
+        "calculation_policy_version",
+        "labour_policy_overlay_version",
+        "registry_version",
+        "registry_digest",
+        "precision_policy_version"
+      ],
+      "title": "ScenarioFinanceVersionsV2",
+      "type": "object"
+    },
+    "ScenarioFleetBindingV2": {
+      "additionalProperties": false,
+      "properties": {
+        "coverage": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "effective_capacity": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "fleet_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Fleet Id",
+          "type": "string"
+        },
+        "model_id": {
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "nominal_capacity": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "overloaded": {
+          "title": "Overloaded",
+          "type": "boolean"
+        },
+        "position_id": {
+          "minLength": 1,
+          "title": "Position Id",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "raw_load_ratio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recommended_fleet": {
+          "minimum": 0,
+          "title": "Recommended Fleet",
+          "type": "integer"
+        },
+        "selected_fleet": {
+          "minimum": 0,
+          "title": "Selected Fleet",
+          "type": "integer"
+        },
+        "utilization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "zone_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Zone Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fleet_id",
+        "zone_id",
+        "process_id",
+        "model_id",
+        "position_id",
+        "selected_fleet",
+        "recommended_fleet",
+        "nominal_capacity",
+        "effective_capacity",
+        "coverage",
+        "raw_load_ratio",
+        "utilization",
+        "overloaded"
+      ],
+      "title": "ScenarioFleetBindingV2",
+      "type": "object"
+    },
+    "ScenarioOperatingWindowV2": {
+      "additionalProperties": false,
+      "properties": {
+        "duration": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "FILE",
+            "PRESET",
+            "POLICY"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "start_time": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "timezone": {
+          "minLength": 1,
+          "title": "Timezone",
+          "type": "string"
+        },
+        "window_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Window Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "window_id",
+        "start_time",
+        "duration",
+        "timezone",
+        "source",
+        "provenance_ref"
+      ],
+      "title": "ScenarioOperatingWindowV2",
+      "type": "object"
+    },
+    "ScenarioProfileV2": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation_profile": {
+          "enum": [
+            "TRANSPORT_CYCLE_V1",
+            "DELIVERY_CYCLE_V1",
+            "CLEANING_AREA_V1",
+            "PALLETIZING_CELL_V1",
+            "USER_CYCLE_V1",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Calculation Profile",
+          "type": "string"
+        },
+        "capacity_status": {
+          "enum": [
+            "COMPLETE",
+            "WITH_ASSUMPTIONS",
+            "BLOCKED",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Capacity Status",
+          "type": "string"
+        },
+        "process_code": {
+          "minLength": 1,
+          "title": "Process Code",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "process_scope": {
+          "enum": [
+            "TRANSPORT_CYCLE",
+            "DELIVERY_CYCLE",
+            "CLEANING_AREA",
+            "FIXED_CELL",
+            "SCENARIO_ONLY",
+            "REFERENCE_ONLY",
+            "CONSTRAINT_ONLY"
+          ],
+          "title": "Process Scope",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "minLength": 1,
+          "title": "Quantity Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "process_id",
+        "process_code",
+        "process_scope",
+        "calculation_profile",
+        "quantity_kind",
+        "capacity_status"
+      ],
+      "title": "ScenarioProfileV2",
+      "type": "object"
+    },
+    "ScenarioRouteBindingV2": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assumption Ref"
+        },
+        "geometry_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Geometry Ref"
+        },
+        "geometry_source": {
+          "enum": [
+            "PROVIDED",
+            "SYNTHETIC",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Geometry Source",
+          "type": "string"
+        },
+        "one_way_distance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResultQuantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "route_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Route Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "route_id",
+        "geometry_source"
+      ],
+      "title": "ScenarioRouteBindingV2",
+      "type": "object"
+    },
+    "ScenarioSpecV2": {
+      "additionalProperties": false,
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/ScenarioAnalysisBindingV2"
+        },
+        "assumptions": {
+          "items": {
+            "$ref": "#/$defs/ScenarioAssumptionV2"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "finance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScenarioFinanceBindingV2"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fleet": {
+          "items": {
+            "$ref": "#/$defs/ScenarioFleetBindingV2"
+          },
+          "title": "Fleet",
+          "type": "array"
+        },
+        "operating_windows": {
+          "items": {
+            "$ref": "#/$defs/ScenarioOperatingWindowV2"
+          },
+          "minItems": 1,
+          "title": "Operating Windows",
+          "type": "array"
+        },
+        "profile": {
+          "$ref": "#/$defs/ScenarioProfileV2"
+        },
+        "revision_id": {
+          "pattern": "^calc_[0-9a-f]{16}$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "routes": {
+          "items": {
+            "$ref": "#/$defs/ScenarioRouteBindingV2"
+          },
+          "title": "Routes",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "scenario-spec-v2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seed": {
+          "pattern": "^scenario-[0-9a-f]{16}$",
+          "title": "Seed",
+          "type": "string"
+        },
+        "source": {
+          "const": "capacity-analysis",
+          "title": "Source",
+          "type": "string"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/ScenarioTaskV2"
+          },
+          "title": "Tasks",
+          "type": "array"
+        },
+        "template": {
+          "enum": [
+            "warehouse",
+            "airport",
+            "hospital"
+          ],
+          "title": "Template",
+          "type": "string"
+        },
+        "trace_node_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Trace Node Refs",
+          "type": "array"
+        },
+        "versions": {
+          "$ref": "#/$defs/ScenarioVersionBindingsV2"
+        },
+        "warnings": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "zones": {
+          "items": {
+            "$ref": "#/$defs/ScenarioZoneV2"
+          },
+          "minItems": 1,
+          "title": "Zones",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "revision_id",
+        "source",
+        "template",
+        "seed",
+        "analysis",
+        "versions",
+        "profile",
+        "operating_windows",
+        "zones",
+        "routes",
+        "fleet",
+        "tasks",
+        "finance",
+        "assumptions",
+        "trace_node_refs",
+        "warnings"
+      ],
+      "title": "ScenarioSpecV2",
+      "type": "object"
+    },
+    "ScenarioTaskV2": {
+      "additionalProperties": false,
+      "properties": {
+        "batch": {
+          "$ref": "#/$defs/ScenarioBatchV2"
+        },
+        "demand": {
+          "$ref": "#/$defs/ResultQuantity"
+        },
+        "exchange": {
+          "$ref": "#/$defs/ScenarioExchangeV2"
+        },
+        "operating_window_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Operating Window Refs",
+          "type": "array"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "route_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Route Ref"
+        },
+        "task_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Task Id",
+          "type": "string"
+        },
+        "zone_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Zone Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "zone_id",
+        "process_id",
+        "demand",
+        "operating_window_refs",
+        "exchange",
+        "batch"
+      ],
+      "title": "ScenarioTaskV2",
+      "type": "object"
+    },
+    "ScenarioVersionBindingsV2": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation": {
+          "$ref": "#/$defs/VersionBindings"
+        },
+        "capacity_result_version": {
+          "const": "capacity-result-v1",
+          "title": "Capacity Result Version",
+          "type": "string"
+        },
+        "capacity_trace_version": {
+          "const": "calculation-trace-v1",
+          "title": "Capacity Trace Version",
+          "type": "string"
+        },
+        "scenario_contract_version": {
+          "const": "scenario-spec-v2",
+          "title": "Scenario Contract Version",
+          "type": "string"
+        },
+        "scenario_policy_version": {
+          "const": "scenario-spec-policy-v2",
+          "title": "Scenario Policy Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scenario_contract_version",
+        "scenario_policy_version",
+        "capacity_result_version",
+        "capacity_trace_version",
+        "calculation"
+      ],
+      "title": "ScenarioVersionBindingsV2",
+      "type": "object"
+    },
+    "ScenarioZoneV2": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assumption Ref"
+        },
+        "geometry_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Geometry Ref"
+        },
+        "geometry_source": {
+          "enum": [
+            "PROVIDED",
+            "SYNTHETIC",
+            "UNKNOWN"
+          ],
+          "title": "Geometry Source",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "zone_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Zone Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "zone_id",
+        "label",
+        "geometry_source"
+      ],
+      "title": "ScenarioZoneV2",
+      "type": "object"
+    },
+    "SimulationLimitsV1": {
+      "additionalProperties": false,
+      "properties": {
+        "max_fleet": {
+          "const": 100,
+          "title": "Max Fleet",
+          "type": "integer"
+        },
+        "max_jobs_per_day": {
+          "const": 10000,
+          "title": "Max Jobs Per Day",
+          "type": "integer"
+        },
+        "max_runtime_seconds": {
+          "const": 60,
+          "title": "Max Runtime Seconds",
+          "type": "integer"
+        },
+        "progress_event_batch": {
+          "const": 1000,
+          "title": "Progress Event Batch",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_jobs_per_day",
+        "max_fleet",
+        "max_runtime_seconds",
+        "progress_event_batch"
+      ],
+      "title": "SimulationLimitsV1",
+      "type": "object"
+    },
+    "SimulationResourceV1": {
+      "additionalProperties": false,
+      "properties": {
+        "capacity": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "resource_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "FILE",
+            "PROVIDED_GEOMETRY"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "LOAD",
+            "OUTBOUND",
+            "WORK",
+            "UNLOAD",
+            "RETURN"
+          ],
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "resource_id",
+        "stage",
+        "capacity",
+        "source",
+        "provenance_ref"
+      ],
+      "title": "SimulationResourceV1",
+      "type": "object"
+    },
+    "SimulationSlaV1": {
+      "additionalProperties": false,
+      "properties": {
+        "minutes": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Minutes",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        },
+        "target_fraction": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Target Fraction",
+          "type": "string"
+        }
+      },
+      "required": [
+        "minutes",
+        "target_fraction",
+        "provenance_ref"
+      ],
+      "title": "SimulationSlaV1",
+      "type": "object"
+    },
+    "Unit": {
+      "enum": [
+        "s",
+        "h",
+        "day",
+        "m",
+        "kg",
+        "m2",
+        "unit",
+        "person",
+        "robot",
+        "shift",
+        "trip",
+        "unit/day",
+        "pallet/day",
+        "box/day",
+        "case/day",
+        "cart/day",
+        "delivery/day",
+        "portion/day",
+        "kg/day",
+        "sample/day",
+        "set/day",
+        "bin/day",
+        "item/day",
+        "pick/day",
+        "m2/day",
+        "unit/h",
+        "trip/h",
+        "s/h",
+        "min/h",
+        "1/day",
+        "m2/h",
+        "unit/min",
+        "pick/min",
+        "pick/h",
+        "pallet/min",
+        "box/pallet",
+        "m/s",
+        "kg/unit",
+        "unit/trip",
+        "unit/cycle",
+        "1",
+        "%",
+        "RUB",
+        "RUB/person/month",
+        "kWh",
+        "W"
+      ],
+      "title": "Unit",
+      "type": "string"
+    },
+    "VersionBindings": {
+      "additionalProperties": false,
+      "properties": {
+        "calculation_policy_version": {
+          "const": "hackathon-calculation-policy-v1",
+          "title": "Calculation Policy Version",
+          "type": "string"
+        },
+        "capacity_projection_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Capacity Projection Digest",
+          "type": "string"
+        },
+        "capacity_projection_version": {
+          "minLength": 1,
+          "title": "Capacity Projection Version",
+          "type": "string"
+        },
+        "catalog_content_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Catalog Content Digest",
+          "type": "string"
+        },
+        "catalog_version_id": {
+          "minLength": 1,
+          "title": "Catalog Version Id",
+          "type": "string"
+        },
+        "commercial_policy_version": {
+          "const": "hackathon-commercial-policy-v1",
+          "title": "Commercial Policy Version",
+          "type": "string"
+        },
+        "constraint_rules_version": {
+          "enum": [
+            "calculation-constraints-v1",
+            "calculation-constraint-rules-v2"
+          ],
+          "title": "Constraint Rules Version",
+          "type": "string"
+        },
+        "formula_bundle_version": {
+          "const": "calculation-formulas-v1",
+          "title": "Formula Bundle Version",
+          "type": "string"
+        },
+        "precision_policy_version": {
+          "const": "decimal-context-28-half-even-v1",
+          "title": "Precision Policy Version",
+          "type": "string"
+        },
+        "process_catalog_version": {
+          "const": "calculation-process-catalog-v1",
+          "title": "Process Catalog Version",
+          "type": "string"
+        },
+        "registry_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Registry Digest",
+          "type": "string"
+        },
+        "registry_version": {
+          "enum": [
+            "calculation-parameter-registry-v1",
+            "hackathon-calculation-parameter-registry-v1"
+          ],
+          "title": "Registry Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catalog_version_id",
+        "catalog_content_digest",
+        "capacity_projection_version",
+        "capacity_projection_digest",
+        "registry_version",
+        "registry_digest",
+        "process_catalog_version",
+        "formula_bundle_version",
+        "constraint_rules_version",
+        "commercial_policy_version",
+        "precision_policy_version",
+        "calculation_policy_version"
+      ],
+      "title": "VersionBindings",
+      "type": "object"
+    }
+  },
+  "$id": "https://robomera.local/contracts/simulation-request-v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "limits": {
+      "$ref": "#/$defs/SimulationLimitsV1"
+    },
+    "mode": {
+      "enum": [
+        "DAILY",
+        "PEAK_STRESS"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "peak_factor": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Peak Factor"
+    },
+    "project_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "resources": {
+      "items": {
+        "$ref": "#/$defs/SimulationResourceV1"
+      },
+      "title": "Resources",
+      "type": "array"
+    },
+    "scenario_spec": {
+      "$ref": "#/$defs/ScenarioSpecV2"
+    },
+    "schema_version": {
+      "const": "simulation-request-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sla": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SimulationSlaV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "tenant_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "tenant_id",
+    "project_id",
+    "scenario_spec",
+    "mode",
+    "resources",
+    "limits"
+  ],
+  "title": "Robomera SimulationRequest v1",
+  "type": "object"
+}

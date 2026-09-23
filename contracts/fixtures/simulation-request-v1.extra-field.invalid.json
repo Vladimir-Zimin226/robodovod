@@ -1,0 +1,183 @@
+{
+  "limits": {
+    "max_fleet": 100,
+    "max_jobs_per_day": 10000,
+    "max_runtime_seconds": 60,
+    "progress_event_batch": 1000
+  },
+  "mode": "DAILY",
+  "peak_factor": null,
+  "project_id": "project.c22.cleaner",
+  "request_id": "request.c23.capacity-only",
+  "resources": [],
+  "scenario_spec": {
+    "analysis": {
+      "capacity_request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "capacity_result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "capacity_run_id": "run.c22.cleaner",
+      "capacity_trace_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "input_revision": "revision.c22.cleaner",
+      "project_id": "project.c22.cleaner",
+      "tenant_id": "tenant.c22"
+    },
+    "assumptions": [
+      {
+        "assumption_id": "assumption.synthetic-geometry",
+        "message": "Синтетическая геометрия не заменяет расчётный маршрут или обследование объекта.",
+        "provenance_ref": "prov.synthetic-geometry",
+        "scope": "VISUALIZATION_ONLY",
+        "version": "synthetic-geometry-v1"
+      }
+    ],
+    "finance": null,
+    "fleet": [
+      {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "53760"
+        },
+        "fleet_id": "fleet.process.airport.cleaning",
+        "model_id": "model.cleaner",
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "76800"
+        },
+        "overloaded": false,
+        "position_id": "position.cleaner",
+        "process_id": "process.airport.cleaning",
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9486607142857142857142857143"
+        },
+        "recommended_fleet": 4,
+        "selected_fleet": 4,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9486607142857142857142857143"
+        },
+        "zone_id": "zone.terminal"
+      }
+    ],
+    "operating_windows": [
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "24"
+        },
+        "provenance_ref": "prov.schedule",
+        "source": "PRESET",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "0"
+        },
+        "timezone": "Europe/Moscow",
+        "window_id": "window.day"
+      }
+    ],
+    "profile": {
+      "calculation_profile": "CLEANING_AREA_V1",
+      "capacity_status": "WITH_ASSUMPTIONS",
+      "process_code": "airport_terminal_cleaning",
+      "process_id": "process.airport.cleaning",
+      "process_scope": "CLEANING_AREA",
+      "quantity_kind": "SQUARE_METER"
+    },
+    "revision_id": "calc_fe6611cc9a672595",
+    "routes": [],
+    "schema_version": "scenario-spec-v2",
+    "seed": "scenario-7f8b86a3c2db426a",
+    "source": "capacity-analysis",
+    "tasks": [
+      {
+        "batch": {
+          "provenance_ref": "prov.simulation-area-batch",
+          "semantics": "AREA_MICROTASK",
+          "units_per_cycle": {
+            "numeric_encoding": "DECIMAL_STRING",
+            "quantity_kind": "AREA",
+            "unit": "m2",
+            "value": "100"
+          }
+        },
+        "demand": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "51000"
+        },
+        "exchange": {
+          "load_time": null,
+          "mode": "NOT_APPLICABLE",
+          "total_time": null,
+          "unload_time": null
+        },
+        "operating_window_refs": [
+          "window.day"
+        ],
+        "process_id": "process.airport.cleaning",
+        "route_ref": null,
+        "task_id": "task.process.airport.cleaning",
+        "zone_id": "zone.terminal"
+      }
+    ],
+    "template": "airport",
+    "trace_node_refs": [
+      "node.f05.cleaning-rate",
+      "node.f07.coverage"
+    ],
+    "versions": {
+      "calculation": {
+        "calculation_policy_version": "hackathon-calculation-policy-v1",
+        "capacity_projection_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "capacity_projection_version": "formula-executability-profiles-v3",
+        "catalog_content_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "catalog_version_id": "catalog.c22",
+        "commercial_policy_version": "hackathon-commercial-policy-v1",
+        "constraint_rules_version": "calculation-constraint-rules-v2",
+        "formula_bundle_version": "calculation-formulas-v1",
+        "precision_policy_version": "decimal-context-28-half-even-v1",
+        "process_catalog_version": "calculation-process-catalog-v1",
+        "registry_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "registry_version": "hackathon-calculation-parameter-registry-v1"
+      },
+      "capacity_result_version": "capacity-result-v1",
+      "capacity_trace_version": "calculation-trace-v1",
+      "scenario_contract_version": "scenario-spec-v2",
+      "scenario_policy_version": "scenario-spec-policy-v2"
+    },
+    "warnings": [
+      "Финансовый snapshot отсутствует; capacity остаётся воспроизводимым."
+    ],
+    "zones": [
+      {
+        "assumption_ref": "assumption.synthetic-geometry",
+        "geometry_ref": null,
+        "geometry_source": "SYNTHETIC",
+        "label": "Терминал",
+        "zone_id": "zone.terminal"
+      }
+    ]
+  },
+  "scheduler_hint": "browser-local",
+  "schema_version": "simulation-request-v1",
+  "sla": null,
+  "tenant_id": "tenant.c22"
+}

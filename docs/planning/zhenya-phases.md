@@ -15,7 +15,8 @@ C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23,
 C16 **COMPLETE** 2026-09-23, C17 **COMPLETE** 2026-09-23,
 C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
 C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
-C22 **COMPLETE** 2026-09-23; C23–C30 пока **PLANNED**.
+C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23;
+C24–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -678,6 +679,12 @@ ScenarioSpec v1 и его builder не изменены; RobCraft v2 adapter о�
 - **Вне этапа:** scheduler algorithms, new geometry UI, activation.
 
 ## C23 — `simulation/scheduling-kpi-report-v1`
+
+Статус: **COMPLETE** (2026-09-23). Реализованы strict SimulationRequest/Report
+v1, deterministic microsecond queue/calendar kernel, явные KPI/SLA/limits,
+typed progress/cancel/timeout и reproducible schemas/golden fixtures. API,
+frontend и 2D остаются C24. Отчёт:
+[simulation-scheduling-kpi-report-v1.md](simulation-scheduling-kpi-report-v1.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

@@ -392,9 +392,16 @@ capacity-only cleaning fixture не требует payload или экономи
 v1, старые runs, catalog membership и production runtime не менялись. Отчёт:
 [ScenarioSpec v2](planning/scenario-spec-v2.md).
 
-Следующая малая итерация — **`simulation/scheduling-kpi-report-v1`** (C23).
-Она реализует deterministic event scheduler/SLA и SimulationReport v1 по K18;
-2D UI остаётся отдельным C24.
+Этап **`simulation/scheduling-kpi-report-v1`** (C23) завершён: добавлены strict
+SimulationRequest/Report v1 и отдельный deterministic microsecond scheduler с
+явными calendar/warmup/measurement/grace, queue/wait/utilization/SLA,
+capacity-deviation denominator, replay digests, progress/cancel/timeout и
+diagnostic limits. Failure rates не выдумываются, availability не применяется
+дважды, а отчёт явно не является инженерной сертификацией. C22 и старые runs
+неизменны. Отчёт: [simulation scheduling KPI report v1](planning/simulation-scheduling-kpi-report-v1.md).
+
+Следующая малая итерация — **`visualization/2d-simulation-report`** (C24):
+API/progress consumer и обязательная 2D-визуализация поверх C23 service.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

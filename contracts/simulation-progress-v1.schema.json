@@ -1,0 +1,34 @@
+{
+  "$id": "https://robomera.local/contracts/simulation-progress-v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "processed_events": {
+      "minimum": 0,
+      "title": "Processed Events",
+      "type": "integer"
+    },
+    "request_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "simulation-progress-v1",
+      "default": "simulation-progress-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "total_events": {
+      "minimum": 0,
+      "title": "Total Events",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "request_id",
+    "processed_events",
+    "total_events"
+  ],
+  "title": "Robomera SimulationProgress v1",
+  "type": "object"
+}
