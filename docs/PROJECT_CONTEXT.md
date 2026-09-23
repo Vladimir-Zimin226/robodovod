@@ -349,8 +349,16 @@ phased/all-fleet payment, full pretax/tax cashflows и RaaS NPV/payback/TCO/ROI.
 Unknown responsibility/terms остаются `INCOMPLETE`; C13–C16 snapshots immutable.
 Отчёт: [RaaS cashflows v1](planning/raas-cashflows-v1.md).
 
-Следующая малая итерация — **`economics/multiprocess-allocation-v1`** (C18).
-Frontend, ranking и production runtime activation в C17 не менялись.
+Этап **`economics/multiprocess-allocation-v1`** (C18) завершён: добавлены
+strict SelectedConfiguration/cohort contracts, exact-cent K17 allocation
+shared site CAPEX, object-level C14 role/FOT conservation, combined annual
+cashflows и project NPV/payback с deterministic trace/replay. Shared roles,
+control-post и technical staff учитываются один раз; process projections явно
+исключают object-shared статьи. Отчёт:
+[multiprocess allocation v1](planning/multiprocess-allocation-v1.md).
+
+Следующая малая итерация — **`engine/ranking-v2`** (C19). Frontend, catalog
+membership, старые runs и production runtime activation в C18 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

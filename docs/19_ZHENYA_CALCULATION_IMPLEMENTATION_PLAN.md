@@ -9,7 +9,7 @@
 Рабочее дерево в начале аудита было чистым. Применимых `AGENTS.md` в дереве
 проекта и его родительских каталогах не найдено.
 
-Статус исполнения 2026-09-23: **C01–C17 COMPLETE**. Контракты C01 описаны в
+Статус исполнения 2026-09-23: **C01–C18 COMPLETE**. Контракты C01 описаны в
 [calculation semantics contract v1](planning/calculation-semantics-contract-v1.md),
 реестр C02 — в [calculation parameter registry v1](planning/calculation-parameter-registry-v1.md),
 intake C03 — в [calculation intake normalization v2](planning/calculation-intake-normalization-v2.md),
@@ -28,7 +28,8 @@ C14 — в [role labour baseline v1](planning/role-labor-baseline-v1.md).
 C15 — в [purchase cost ledger v1](planning/purchase-cost-ledger-v1.md).
 C16 — в [full cashflows and reconciliation v1](planning/full-cashflows-reconciliation-v1.md).
 C17 — в [RaaS cashflows v1](planning/raas-cashflows-v1.md).
-Следующий этап — C18; production runtime activation не выполнялась.
+C18 — в [multiprocess allocation v1](planning/multiprocess-allocation-v1.md).
+Следующий этап — C19; production runtime activation не выполнялась.
 
 Поставка Жени `Референсы/reference v2` от 2026-09-22 прочитана и сохранена как
 [deferred delta-register](planning/zhenya-reference-v2-delta.md). Она существенно
@@ -640,7 +641,7 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C15 COMPLETE | `economics/purchase-cost-ledger-v1` — capital и operating статьи | C02,C13–14; K09–11 |
 | C16 COMPLETE | `economics/full-cashflows-reconciliation-v1` — налоги/CF/метрики | C15; K09,K12–13 |
 | C17 COMPLETE | `economics/raas-cashflows-v1` — второй acquisition mode | C13,C16; K21 |
-| C18 | `economics/multiprocess-allocation-v1` — общий объект и role pools | C14–17; K17 |
+| C18 COMPLETE | `economics/multiprocess-allocation-v1` — общий объект и role pools | C14–17; K17 |
 | C19 | `engine/ranking-v2` — R03 score после CF и gates | C05–06,C18; K14–16 |
 | C20 | `economics/sensitivity-v1` — price/volume/labour deltas | C18–19 |
 | C21 | `frontend/commercial-scenarios-v2` — финансовые сценарии и сверка | C12,C13,C18–20 |

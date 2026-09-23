@@ -28,6 +28,11 @@ from calculation.executability import (
     registry_payload,
 )
 from calculation.labour import LabourAnalysisRequestV1, LabourResultV1, calculate_role_labour
+from calculation.economics.allocation import (
+    MultiprocessAllocationRequestV1,
+    MultiprocessAllocationResultV1,
+    calculate_multiprocess_allocation,
+)
 from calculation.economics.cashflow import FinancialAnalysisRequestV1, FinancialResultV1, calculate_financial_result
 from calculation.economics.purchase import PurchaseCostLedgerV1, PurchaseLedgerRequestV1, calculate_purchase_ledger
 from calculation.economics.raas import RaasAnalysisRequestV1, RaasFinancialResultV1, calculate_raas_financials
@@ -327,3 +332,9 @@ def analyze_raas_financials(request: RaasAnalysisRequestV1) -> RaasFinancialResu
     """Versioned C17 RaaS boundary; C13-C16 snapshots stay immutable."""
 
     return calculate_raas_financials(request)
+
+
+def analyze_multiprocess_allocation(request: MultiprocessAllocationRequestV1) -> MultiprocessAllocationResultV1:
+    """Versioned C18 boundary over immutable C14 and C16/C17 projections."""
+
+    return calculate_multiprocess_allocation(request)

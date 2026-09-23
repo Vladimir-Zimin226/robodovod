@@ -1,0 +1,1885 @@
+{
+  "invalid": [
+    {
+      "case": "tenant-mismatch",
+      "error_contains": "identity/revision mismatch",
+      "request": {
+        "cohort_id": "cohort.c18.anchor-01",
+        "configurations": [
+          {
+            "acquisition": "PURCHASE",
+            "allocation_basis_direct_capital": "8000000",
+            "annual_cashflows": [
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 1
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 2
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 3
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 4
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 5
+              }
+            ],
+            "cashflow_basis": "PRIMARY_PRETAX",
+            "configuration_id": "config.internal",
+            "direct_capex_cashflow": "10000000",
+            "excludes_object_shared_costs": true,
+            "model_id": "model.alpha",
+            "position_id": "position.alpha",
+            "process_id": "process.internal",
+            "projection_version": "process-direct-financial-projection-v1",
+            "source_result_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_result_version": "financial-result-v1",
+            "source_run_id": "run.c16.process.internal"
+          },
+          {
+            "acquisition": "PURCHASE",
+            "allocation_basis_direct_capital": "24000000",
+            "annual_cashflows": [
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 1
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 2
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 3
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 4
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 5
+              }
+            ],
+            "cashflow_basis": "PRIMARY_PRETAX",
+            "configuration_id": "config.waste",
+            "direct_capex_cashflow": "30000000",
+            "excludes_object_shared_costs": true,
+            "model_id": "model.beta",
+            "position_id": "position.beta",
+            "process_id": "process.waste",
+            "projection_version": "process-direct-financial-projection-v1",
+            "source_result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "source_result_version": "financial-result-v1",
+            "source_run_id": "run.c16.process.waste"
+          }
+        ],
+        "discount_rate": {
+          "provenance_ref": "finance.discount.default-rate",
+          "source": "POLICY",
+          "unit": "1",
+          "value": "0.15"
+        },
+        "input_revision": "revision.c18",
+        "labour_result": {
+          "allocations": [
+            {
+              "allocated_people": 10,
+              "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+              "process_id": "process.internal",
+              "provenance_ref": "policy.k17.person-shifts",
+              "role_id": "role.trolley",
+              "weight": "3"
+            },
+            {
+              "allocated_people": 10,
+              "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+              "process_id": "process.waste",
+              "provenance_ref": "policy.k17.person-shifts",
+              "role_id": "role.trolley",
+              "weight": "3"
+            }
+          ],
+          "finance_status": "COMPLETE",
+          "forklifts": {
+            "base_count": null,
+            "remaining": null,
+            "source": "NOT_APPLICABLE",
+            "status": "NOT_APPLICABLE",
+            "withdrawn": null
+          },
+          "input_revision": "revision.c18",
+          "issues": [],
+          "labour_status": "COMPLETE",
+          "object_id": "object.c18",
+          "object_kind": "AIRPORT",
+          "operating_staff": {
+            "control_additional": 0,
+            "control_money": {
+              "annual_direct": "1562400",
+              "annual_fixed_overhead": "297600",
+              "annual_full": "1860000",
+              "annual_gross": "1200000",
+              "monthly_gross": "100000",
+              "salary_provenance_ref": "prov.salary.role.control",
+              "unit": "RUB/person/year",
+              "zero_cost_role": false
+            },
+            "control_required": 3,
+            "control_transferred": 3,
+            "reason_codes": [],
+            "simultaneous_shifts": 3,
+            "status": "COMPLETE",
+            "technician_money": {
+              "annual_direct": "1562400",
+              "annual_fixed_overhead": "297600",
+              "annual_full": "1860000",
+              "annual_gross": "1200000",
+              "monthly_gross": "100000",
+              "salary_provenance_ref": "prov.salary.role.tech",
+              "unit": "RUB/person/year",
+              "zero_cost_role": false
+            },
+            "technicians_required": 1,
+            "total_selected_fleet": 7
+          },
+          "processes": [
+            {
+              "allocated_people": 10,
+              "applied": 5,
+              "capacity_coverage": "0.8",
+              "deficit_growth": 0,
+              "manual_unit": "cart/shift",
+              "manual_units_per_shift": "100",
+              "operating_hours_per_day": "24",
+              "person_shifts": 3,
+              "process_id": "process.internal",
+              "reason_codes": [],
+              "released": 3,
+              "required_people": 7,
+              "robot_people": 5,
+              "robot_replacement": 5,
+              "role_id": "role.trolley",
+              "rotation_factor": "2.0601",
+              "status": "COMPLETE",
+              "transferred": 2
+            },
+            {
+              "allocated_people": 10,
+              "applied": 4,
+              "capacity_coverage": "0.6",
+              "deficit_growth": 0,
+              "manual_unit": "bin/shift",
+              "manual_units_per_shift": "100",
+              "operating_hours_per_day": "24",
+              "person_shifts": 3,
+              "process_id": "process.waste",
+              "reason_codes": [],
+              "released": 3,
+              "required_people": 7,
+              "robot_people": 4,
+              "robot_replacement": 4,
+              "role_id": "role.trolley",
+              "rotation_factor": "2.0601",
+              "status": "COMPLETE",
+              "transferred": 1
+            }
+          ],
+          "project_id": "project.c18",
+          "replay": {
+            "canonical_input_digest": "sha256:9e20c0666474b1f5965c194bc33791419030d52ef4b416a524da8265b24c4bcd",
+            "capacity_result_digests": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "trace_content_digest": "sha256:3f864c2a7a16de4f4641861c183a89f1cb0b610e2cc552fb337724a3d80c221e"
+          },
+          "roles": [
+            {
+              "allocated_people": 20,
+              "annual_deficit_cost": "0",
+              "annual_staffing": [
+                {
+                  "ramp": "0.5",
+                  "released": 3,
+                  "remaining": 17,
+                  "year": 1
+                },
+                {
+                  "ramp": "0.85",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 2
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 3
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 4
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 5
+                }
+              ],
+              "deficit": 0,
+              "deficit_cost_source": "DEFAULT_ANNUAL_DIRECT",
+              "deficit_growth": 0,
+              "headcount": 20,
+              "money": {
+                "annual_direct": "1562400",
+                "annual_fixed_overhead": "297600",
+                "annual_full": "1860000",
+                "annual_gross": "1200000",
+                "monthly_gross": "100000",
+                "salary_provenance_ref": "prov.salary.role.trolley",
+                "unit": "RUB/person/year",
+                "zero_cost_role": false
+              },
+              "reason_codes": [],
+              "released": 6,
+              "remaining": 14,
+              "required_people": 14,
+              "role_code": "trolley_operator",
+              "role_id": "role.trolley",
+              "status": "COMPLETE",
+              "surplus": 6,
+              "transferred": 3,
+              "unallocated_people": 0
+            }
+          ],
+          "run_id": "run.c18.labour",
+          "schema_version": "role-labour-result-v1",
+          "tenant_id": "tenant.c18",
+          "total_additional_control": 0,
+          "total_deficit": 0,
+          "total_released": 6,
+          "total_surplus": 6,
+          "total_transferred": 3,
+          "trace": [
+            {
+              "formula_id": "F08",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.demand",
+                "process.schedule",
+                "process.route_distance"
+              ],
+              "node_id": "process.internal.f08",
+              "output_name": "manual_units_per_shift",
+              "output_value": "100",
+              "provenance_refs": [
+                "prov.manual"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "cart/shift"
+            },
+            {
+              "formula_id": "F09",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f08",
+                "process.schedule"
+              ],
+              "node_id": "process.internal.f09",
+              "output_name": "required_people",
+              "output_value": "7",
+              "provenance_refs": [
+                "registry.labor.staffing.vacation-factor",
+                "registry.labor.nonproductive-loss.airport"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F08",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.demand",
+                "process.schedule",
+                "process.route_distance"
+              ],
+              "node_id": "process.waste.f08",
+              "output_name": "manual_units_per_shift",
+              "output_value": "100",
+              "provenance_refs": [
+                "prov.manual"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "bin/shift"
+            },
+            {
+              "formula_id": "F09",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f08",
+                "process.schedule"
+              ],
+              "node_id": "process.waste.f09",
+              "output_name": "required_people",
+              "output_value": "7",
+              "provenance_refs": [
+                "registry.labor.staffing.vacation-factor",
+                "registry.labor.nonproductive-loss.airport"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F11",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f09",
+                "capacity.coverage",
+                "role.allocation"
+              ],
+              "node_id": "process.internal.f11",
+              "output_name": "robot_replacement",
+              "output_value": "5",
+              "provenance_refs": [
+                "capacity.process.internal"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F12",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f11",
+                "replacement_limit"
+              ],
+              "node_id": "process.internal.f12",
+              "output_name": "applied",
+              "output_value": "5",
+              "provenance_refs": [
+                "policy.k06.replacement-limit"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F11",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f09",
+                "capacity.coverage",
+                "role.allocation"
+              ],
+              "node_id": "process.waste.f11",
+              "output_name": "robot_replacement",
+              "output_value": "4",
+              "provenance_refs": [
+                "capacity.process.waste"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F12",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f11",
+                "replacement_limit"
+              ],
+              "node_id": "process.waste.f12",
+              "output_name": "applied",
+              "output_value": "4",
+              "provenance_refs": [
+                "policy.k06.replacement-limit"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F13",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.applied",
+                "scenario.supervision-share",
+                "schedule.simultaneous-shifts"
+              ],
+              "node_id": "site.f13.control",
+              "output_name": "control_required",
+              "output_value": "3",
+              "provenance_refs": [
+                "registry.scenario.base.supervision-share",
+                "registry.labor.control.minimum-per-shift"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F10",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "role.monthly_gross_salary"
+              ],
+              "node_id": "role.trolley.f10",
+              "output_name": "annual_direct",
+              "output_value": "1562400",
+              "provenance_refs": [
+                "prov.salary.role.trolley"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "RUB/person/year"
+            },
+            {
+              "formula_id": "F15",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "role.required_people",
+                "role.headcount",
+                "role.deficit_cost"
+              ],
+              "node_id": "role.trolley.f15",
+              "output_name": "annual_deficit_cost",
+              "output_value": "0",
+              "provenance_refs": [],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "RUB/year"
+            },
+            {
+              "formula_id": "F13",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "capacity.selected_fleet",
+                "labor.technical.robots-per-fte"
+              ],
+              "node_id": "site.f13.technicians",
+              "output_name": "technicians_required",
+              "output_value": "1",
+              "provenance_refs": [
+                "registry.labor.technical.robots-per-fte"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F14",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "base_forklift_count",
+                "role.forklift_driver.released",
+                "schedule.simultaneous_shifts"
+              ],
+              "node_id": "site.f14.forklifts",
+              "output_name": "forklifts_withdrawn",
+              "output_value": null,
+              "provenance_refs": [
+                "policy.k08"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "unit"
+            }
+          ],
+          "versions": {
+            "calculation_policy_version": "hackathon-calculation-policy-v1",
+            "capacity_projection_version": "capacity-labour-projection-v1",
+            "engine_version": "role-labour-baseline-v1",
+            "intake_version": "calculation-intake-normalization-v2",
+            "precision_policy_version": "decimal-context-28-half-even-v1",
+            "process_catalog_version": "calculation-process-catalog-v1",
+            "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+            "registry_version": "hackathon-calculation-parameter-registry-v1",
+            "schema_version": "role-labour-result-v1",
+            "v2a_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14"
+          }
+        },
+        "labour_result_digest": "sha256:1cd35ace71d10a0e43ab55e3909049fedba4ea2fdbc0ba06da30e59bcb2bc0d4",
+        "object_id": "object.c18",
+        "project_id": "project.c18",
+        "run_id": "run.c18.golden",
+        "schema_version": "multiprocess-allocation-request-v1",
+        "shared_annual_costs": [
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.1",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 1
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.2",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 2
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.3",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 3
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.4",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 4
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.5",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 5
+          }
+        ],
+        "shared_site_capital": {
+          "capex_amortizable": "9000000",
+          "capex_cashflow": "10000000",
+          "capex_gross": "10000000",
+          "provenance_ref": "prov.c18.shared-site-capital",
+          "scope": "ONE_SITE_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+          "source": "USER"
+        },
+        "tenant_id": "tenant.other",
+        "uncertainty": "BASE"
+      }
+    },
+    {
+      "case": "duplicate-process",
+      "error_contains": "identities must be unique",
+      "request": {
+        "cohort_id": "cohort.c18.anchor-01",
+        "configurations": [
+          {
+            "acquisition": "PURCHASE",
+            "allocation_basis_direct_capital": "8000000",
+            "annual_cashflows": [
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 1
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 2
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 3
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 4
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 5
+              }
+            ],
+            "cashflow_basis": "PRIMARY_PRETAX",
+            "configuration_id": "config.internal",
+            "direct_capex_cashflow": "10000000",
+            "excludes_object_shared_costs": true,
+            "model_id": "model.alpha",
+            "position_id": "position.alpha",
+            "process_id": "process.internal",
+            "projection_version": "process-direct-financial-projection-v1",
+            "source_result_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_result_version": "financial-result-v1",
+            "source_run_id": "run.c16.process.internal"
+          },
+          {
+            "acquisition": "PURCHASE",
+            "allocation_basis_direct_capital": "24000000",
+            "annual_cashflows": [
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 1
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 2
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 3
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 4
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 5
+              }
+            ],
+            "cashflow_basis": "PRIMARY_PRETAX",
+            "configuration_id": "config.waste",
+            "direct_capex_cashflow": "30000000",
+            "excludes_object_shared_costs": true,
+            "model_id": "model.beta",
+            "position_id": "position.beta",
+            "process_id": "process.internal",
+            "projection_version": "process-direct-financial-projection-v1",
+            "source_result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "source_result_version": "financial-result-v1",
+            "source_run_id": "run.c16.process.waste"
+          }
+        ],
+        "discount_rate": {
+          "provenance_ref": "finance.discount.default-rate",
+          "source": "POLICY",
+          "unit": "1",
+          "value": "0.15"
+        },
+        "input_revision": "revision.c18",
+        "labour_result": {
+          "allocations": [
+            {
+              "allocated_people": 10,
+              "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+              "process_id": "process.internal",
+              "provenance_ref": "policy.k17.person-shifts",
+              "role_id": "role.trolley",
+              "weight": "3"
+            },
+            {
+              "allocated_people": 10,
+              "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+              "process_id": "process.waste",
+              "provenance_ref": "policy.k17.person-shifts",
+              "role_id": "role.trolley",
+              "weight": "3"
+            }
+          ],
+          "finance_status": "COMPLETE",
+          "forklifts": {
+            "base_count": null,
+            "remaining": null,
+            "source": "NOT_APPLICABLE",
+            "status": "NOT_APPLICABLE",
+            "withdrawn": null
+          },
+          "input_revision": "revision.c18",
+          "issues": [],
+          "labour_status": "COMPLETE",
+          "object_id": "object.c18",
+          "object_kind": "AIRPORT",
+          "operating_staff": {
+            "control_additional": 0,
+            "control_money": {
+              "annual_direct": "1562400",
+              "annual_fixed_overhead": "297600",
+              "annual_full": "1860000",
+              "annual_gross": "1200000",
+              "monthly_gross": "100000",
+              "salary_provenance_ref": "prov.salary.role.control",
+              "unit": "RUB/person/year",
+              "zero_cost_role": false
+            },
+            "control_required": 3,
+            "control_transferred": 3,
+            "reason_codes": [],
+            "simultaneous_shifts": 3,
+            "status": "COMPLETE",
+            "technician_money": {
+              "annual_direct": "1562400",
+              "annual_fixed_overhead": "297600",
+              "annual_full": "1860000",
+              "annual_gross": "1200000",
+              "monthly_gross": "100000",
+              "salary_provenance_ref": "prov.salary.role.tech",
+              "unit": "RUB/person/year",
+              "zero_cost_role": false
+            },
+            "technicians_required": 1,
+            "total_selected_fleet": 7
+          },
+          "processes": [
+            {
+              "allocated_people": 10,
+              "applied": 5,
+              "capacity_coverage": "0.8",
+              "deficit_growth": 0,
+              "manual_unit": "cart/shift",
+              "manual_units_per_shift": "100",
+              "operating_hours_per_day": "24",
+              "person_shifts": 3,
+              "process_id": "process.internal",
+              "reason_codes": [],
+              "released": 3,
+              "required_people": 7,
+              "robot_people": 5,
+              "robot_replacement": 5,
+              "role_id": "role.trolley",
+              "rotation_factor": "2.0601",
+              "status": "COMPLETE",
+              "transferred": 2
+            },
+            {
+              "allocated_people": 10,
+              "applied": 4,
+              "capacity_coverage": "0.6",
+              "deficit_growth": 0,
+              "manual_unit": "bin/shift",
+              "manual_units_per_shift": "100",
+              "operating_hours_per_day": "24",
+              "person_shifts": 3,
+              "process_id": "process.waste",
+              "reason_codes": [],
+              "released": 3,
+              "required_people": 7,
+              "robot_people": 4,
+              "robot_replacement": 4,
+              "role_id": "role.trolley",
+              "rotation_factor": "2.0601",
+              "status": "COMPLETE",
+              "transferred": 1
+            }
+          ],
+          "project_id": "project.c18",
+          "replay": {
+            "canonical_input_digest": "sha256:9e20c0666474b1f5965c194bc33791419030d52ef4b416a524da8265b24c4bcd",
+            "capacity_result_digests": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "trace_content_digest": "sha256:3f864c2a7a16de4f4641861c183a89f1cb0b610e2cc552fb337724a3d80c221e"
+          },
+          "roles": [
+            {
+              "allocated_people": 20,
+              "annual_deficit_cost": "0",
+              "annual_staffing": [
+                {
+                  "ramp": "0.5",
+                  "released": 3,
+                  "remaining": 17,
+                  "year": 1
+                },
+                {
+                  "ramp": "0.85",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 2
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 3
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 4
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 5
+                }
+              ],
+              "deficit": 0,
+              "deficit_cost_source": "DEFAULT_ANNUAL_DIRECT",
+              "deficit_growth": 0,
+              "headcount": 20,
+              "money": {
+                "annual_direct": "1562400",
+                "annual_fixed_overhead": "297600",
+                "annual_full": "1860000",
+                "annual_gross": "1200000",
+                "monthly_gross": "100000",
+                "salary_provenance_ref": "prov.salary.role.trolley",
+                "unit": "RUB/person/year",
+                "zero_cost_role": false
+              },
+              "reason_codes": [],
+              "released": 6,
+              "remaining": 14,
+              "required_people": 14,
+              "role_code": "trolley_operator",
+              "role_id": "role.trolley",
+              "status": "COMPLETE",
+              "surplus": 6,
+              "transferred": 3,
+              "unallocated_people": 0
+            }
+          ],
+          "run_id": "run.c18.labour",
+          "schema_version": "role-labour-result-v1",
+          "tenant_id": "tenant.c18",
+          "total_additional_control": 0,
+          "total_deficit": 0,
+          "total_released": 6,
+          "total_surplus": 6,
+          "total_transferred": 3,
+          "trace": [
+            {
+              "formula_id": "F08",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.demand",
+                "process.schedule",
+                "process.route_distance"
+              ],
+              "node_id": "process.internal.f08",
+              "output_name": "manual_units_per_shift",
+              "output_value": "100",
+              "provenance_refs": [
+                "prov.manual"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "cart/shift"
+            },
+            {
+              "formula_id": "F09",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f08",
+                "process.schedule"
+              ],
+              "node_id": "process.internal.f09",
+              "output_name": "required_people",
+              "output_value": "7",
+              "provenance_refs": [
+                "registry.labor.staffing.vacation-factor",
+                "registry.labor.nonproductive-loss.airport"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F08",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.demand",
+                "process.schedule",
+                "process.route_distance"
+              ],
+              "node_id": "process.waste.f08",
+              "output_name": "manual_units_per_shift",
+              "output_value": "100",
+              "provenance_refs": [
+                "prov.manual"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "bin/shift"
+            },
+            {
+              "formula_id": "F09",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f08",
+                "process.schedule"
+              ],
+              "node_id": "process.waste.f09",
+              "output_name": "required_people",
+              "output_value": "7",
+              "provenance_refs": [
+                "registry.labor.staffing.vacation-factor",
+                "registry.labor.nonproductive-loss.airport"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F11",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f09",
+                "capacity.coverage",
+                "role.allocation"
+              ],
+              "node_id": "process.internal.f11",
+              "output_name": "robot_replacement",
+              "output_value": "5",
+              "provenance_refs": [
+                "capacity.process.internal"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F12",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f11",
+                "replacement_limit"
+              ],
+              "node_id": "process.internal.f12",
+              "output_name": "applied",
+              "output_value": "5",
+              "provenance_refs": [
+                "policy.k06.replacement-limit"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F11",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f09",
+                "capacity.coverage",
+                "role.allocation"
+              ],
+              "node_id": "process.waste.f11",
+              "output_name": "robot_replacement",
+              "output_value": "4",
+              "provenance_refs": [
+                "capacity.process.waste"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F12",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f11",
+                "replacement_limit"
+              ],
+              "node_id": "process.waste.f12",
+              "output_name": "applied",
+              "output_value": "4",
+              "provenance_refs": [
+                "policy.k06.replacement-limit"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F13",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.applied",
+                "scenario.supervision-share",
+                "schedule.simultaneous-shifts"
+              ],
+              "node_id": "site.f13.control",
+              "output_name": "control_required",
+              "output_value": "3",
+              "provenance_refs": [
+                "registry.scenario.base.supervision-share",
+                "registry.labor.control.minimum-per-shift"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F10",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "role.monthly_gross_salary"
+              ],
+              "node_id": "role.trolley.f10",
+              "output_name": "annual_direct",
+              "output_value": "1562400",
+              "provenance_refs": [
+                "prov.salary.role.trolley"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "RUB/person/year"
+            },
+            {
+              "formula_id": "F15",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "role.required_people",
+                "role.headcount",
+                "role.deficit_cost"
+              ],
+              "node_id": "role.trolley.f15",
+              "output_name": "annual_deficit_cost",
+              "output_value": "0",
+              "provenance_refs": [],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "RUB/year"
+            },
+            {
+              "formula_id": "F13",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "capacity.selected_fleet",
+                "labor.technical.robots-per-fte"
+              ],
+              "node_id": "site.f13.technicians",
+              "output_name": "technicians_required",
+              "output_value": "1",
+              "provenance_refs": [
+                "registry.labor.technical.robots-per-fte"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F14",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "base_forklift_count",
+                "role.forklift_driver.released",
+                "schedule.simultaneous_shifts"
+              ],
+              "node_id": "site.f14.forklifts",
+              "output_name": "forklifts_withdrawn",
+              "output_value": null,
+              "provenance_refs": [
+                "policy.k08"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "unit"
+            }
+          ],
+          "versions": {
+            "calculation_policy_version": "hackathon-calculation-policy-v1",
+            "capacity_projection_version": "capacity-labour-projection-v1",
+            "engine_version": "role-labour-baseline-v1",
+            "intake_version": "calculation-intake-normalization-v2",
+            "precision_policy_version": "decimal-context-28-half-even-v1",
+            "process_catalog_version": "calculation-process-catalog-v1",
+            "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+            "registry_version": "hackathon-calculation-parameter-registry-v1",
+            "schema_version": "role-labour-result-v1",
+            "v2a_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14"
+          }
+        },
+        "labour_result_digest": "sha256:1cd35ace71d10a0e43ab55e3909049fedba4ea2fdbc0ba06da30e59bcb2bc0d4",
+        "object_id": "object.c18",
+        "project_id": "project.c18",
+        "run_id": "run.c18.golden",
+        "schema_version": "multiprocess-allocation-request-v1",
+        "shared_annual_costs": [
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.1",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 1
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.2",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 2
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.3",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 3
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.4",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 4
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.5",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 5
+          }
+        ],
+        "shared_site_capital": {
+          "capex_amortizable": "9000000",
+          "capex_cashflow": "10000000",
+          "capex_gross": "10000000",
+          "provenance_ref": "prov.c18.shared-site-capital",
+          "scope": "ONE_SITE_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+          "source": "USER"
+        },
+        "tenant_id": "tenant.c18",
+        "uncertainty": "BASE"
+      }
+    },
+    {
+      "case": "process-projection-includes-shared",
+      "error_contains": "Input should be True",
+      "request": {
+        "cohort_id": "cohort.c18.anchor-01",
+        "configurations": [
+          {
+            "acquisition": "PURCHASE",
+            "allocation_basis_direct_capital": "8000000",
+            "annual_cashflows": [
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 1
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 2
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 3
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 4
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "40000000",
+                "year": 5
+              }
+            ],
+            "cashflow_basis": "PRIMARY_PRETAX",
+            "configuration_id": "config.internal",
+            "direct_capex_cashflow": "10000000",
+            "excludes_object_shared_costs": false,
+            "model_id": "model.alpha",
+            "position_id": "position.alpha",
+            "process_id": "process.internal",
+            "projection_version": "process-direct-financial-projection-v1",
+            "source_result_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "source_result_version": "financial-result-v1",
+            "source_run_id": "run.c16.process.internal"
+          },
+          {
+            "acquisition": "PURCHASE",
+            "allocation_basis_direct_capital": "24000000",
+            "annual_cashflows": [
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 1
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 2
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 3
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 4
+              },
+              {
+                "baseline_cf": "0",
+                "scenario_cf": "50000000",
+                "year": 5
+              }
+            ],
+            "cashflow_basis": "PRIMARY_PRETAX",
+            "configuration_id": "config.waste",
+            "direct_capex_cashflow": "30000000",
+            "excludes_object_shared_costs": true,
+            "model_id": "model.beta",
+            "position_id": "position.beta",
+            "process_id": "process.waste",
+            "projection_version": "process-direct-financial-projection-v1",
+            "source_result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "source_result_version": "financial-result-v1",
+            "source_run_id": "run.c16.process.waste"
+          }
+        ],
+        "discount_rate": {
+          "provenance_ref": "finance.discount.default-rate",
+          "source": "POLICY",
+          "unit": "1",
+          "value": "0.15"
+        },
+        "input_revision": "revision.c18",
+        "labour_result": {
+          "allocations": [
+            {
+              "allocated_people": 10,
+              "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+              "process_id": "process.internal",
+              "provenance_ref": "policy.k17.person-shifts",
+              "role_id": "role.trolley",
+              "weight": "3"
+            },
+            {
+              "allocated_people": 10,
+              "method": "PERSON_SHIFTS_LARGEST_REMAINDER",
+              "process_id": "process.waste",
+              "provenance_ref": "policy.k17.person-shifts",
+              "role_id": "role.trolley",
+              "weight": "3"
+            }
+          ],
+          "finance_status": "COMPLETE",
+          "forklifts": {
+            "base_count": null,
+            "remaining": null,
+            "source": "NOT_APPLICABLE",
+            "status": "NOT_APPLICABLE",
+            "withdrawn": null
+          },
+          "input_revision": "revision.c18",
+          "issues": [],
+          "labour_status": "COMPLETE",
+          "object_id": "object.c18",
+          "object_kind": "AIRPORT",
+          "operating_staff": {
+            "control_additional": 0,
+            "control_money": {
+              "annual_direct": "1562400",
+              "annual_fixed_overhead": "297600",
+              "annual_full": "1860000",
+              "annual_gross": "1200000",
+              "monthly_gross": "100000",
+              "salary_provenance_ref": "prov.salary.role.control",
+              "unit": "RUB/person/year",
+              "zero_cost_role": false
+            },
+            "control_required": 3,
+            "control_transferred": 3,
+            "reason_codes": [],
+            "simultaneous_shifts": 3,
+            "status": "COMPLETE",
+            "technician_money": {
+              "annual_direct": "1562400",
+              "annual_fixed_overhead": "297600",
+              "annual_full": "1860000",
+              "annual_gross": "1200000",
+              "monthly_gross": "100000",
+              "salary_provenance_ref": "prov.salary.role.tech",
+              "unit": "RUB/person/year",
+              "zero_cost_role": false
+            },
+            "technicians_required": 1,
+            "total_selected_fleet": 7
+          },
+          "processes": [
+            {
+              "allocated_people": 10,
+              "applied": 5,
+              "capacity_coverage": "0.8",
+              "deficit_growth": 0,
+              "manual_unit": "cart/shift",
+              "manual_units_per_shift": "100",
+              "operating_hours_per_day": "24",
+              "person_shifts": 3,
+              "process_id": "process.internal",
+              "reason_codes": [],
+              "released": 3,
+              "required_people": 7,
+              "robot_people": 5,
+              "robot_replacement": 5,
+              "role_id": "role.trolley",
+              "rotation_factor": "2.0601",
+              "status": "COMPLETE",
+              "transferred": 2
+            },
+            {
+              "allocated_people": 10,
+              "applied": 4,
+              "capacity_coverage": "0.6",
+              "deficit_growth": 0,
+              "manual_unit": "bin/shift",
+              "manual_units_per_shift": "100",
+              "operating_hours_per_day": "24",
+              "person_shifts": 3,
+              "process_id": "process.waste",
+              "reason_codes": [],
+              "released": 3,
+              "required_people": 7,
+              "robot_people": 4,
+              "robot_replacement": 4,
+              "role_id": "role.trolley",
+              "rotation_factor": "2.0601",
+              "status": "COMPLETE",
+              "transferred": 1
+            }
+          ],
+          "project_id": "project.c18",
+          "replay": {
+            "canonical_input_digest": "sha256:9e20c0666474b1f5965c194bc33791419030d52ef4b416a524da8265b24c4bcd",
+            "capacity_result_digests": [
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+              "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            ],
+            "trace_content_digest": "sha256:3f864c2a7a16de4f4641861c183a89f1cb0b610e2cc552fb337724a3d80c221e"
+          },
+          "roles": [
+            {
+              "allocated_people": 20,
+              "annual_deficit_cost": "0",
+              "annual_staffing": [
+                {
+                  "ramp": "0.5",
+                  "released": 3,
+                  "remaining": 17,
+                  "year": 1
+                },
+                {
+                  "ramp": "0.85",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 2
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 3
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 4
+                },
+                {
+                  "ramp": "1",
+                  "released": 6,
+                  "remaining": 14,
+                  "year": 5
+                }
+              ],
+              "deficit": 0,
+              "deficit_cost_source": "DEFAULT_ANNUAL_DIRECT",
+              "deficit_growth": 0,
+              "headcount": 20,
+              "money": {
+                "annual_direct": "1562400",
+                "annual_fixed_overhead": "297600",
+                "annual_full": "1860000",
+                "annual_gross": "1200000",
+                "monthly_gross": "100000",
+                "salary_provenance_ref": "prov.salary.role.trolley",
+                "unit": "RUB/person/year",
+                "zero_cost_role": false
+              },
+              "reason_codes": [],
+              "released": 6,
+              "remaining": 14,
+              "required_people": 14,
+              "role_code": "trolley_operator",
+              "role_id": "role.trolley",
+              "status": "COMPLETE",
+              "surplus": 6,
+              "transferred": 3,
+              "unallocated_people": 0
+            }
+          ],
+          "run_id": "run.c18.labour",
+          "schema_version": "role-labour-result-v1",
+          "tenant_id": "tenant.c18",
+          "total_additional_control": 0,
+          "total_deficit": 0,
+          "total_released": 6,
+          "total_surplus": 6,
+          "total_transferred": 3,
+          "trace": [
+            {
+              "formula_id": "F08",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.demand",
+                "process.schedule",
+                "process.route_distance"
+              ],
+              "node_id": "process.internal.f08",
+              "output_name": "manual_units_per_shift",
+              "output_value": "100",
+              "provenance_refs": [
+                "prov.manual"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "cart/shift"
+            },
+            {
+              "formula_id": "F09",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f08",
+                "process.schedule"
+              ],
+              "node_id": "process.internal.f09",
+              "output_name": "required_people",
+              "output_value": "7",
+              "provenance_refs": [
+                "registry.labor.staffing.vacation-factor",
+                "registry.labor.nonproductive-loss.airport"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F08",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.demand",
+                "process.schedule",
+                "process.route_distance"
+              ],
+              "node_id": "process.waste.f08",
+              "output_name": "manual_units_per_shift",
+              "output_value": "100",
+              "provenance_refs": [
+                "prov.manual"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "bin/shift"
+            },
+            {
+              "formula_id": "F09",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f08",
+                "process.schedule"
+              ],
+              "node_id": "process.waste.f09",
+              "output_name": "required_people",
+              "output_value": "7",
+              "provenance_refs": [
+                "registry.labor.staffing.vacation-factor",
+                "registry.labor.nonproductive-loss.airport"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F11",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f09",
+                "capacity.coverage",
+                "role.allocation"
+              ],
+              "node_id": "process.internal.f11",
+              "output_name": "robot_replacement",
+              "output_value": "5",
+              "provenance_refs": [
+                "capacity.process.internal"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F12",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.internal.f11",
+                "replacement_limit"
+              ],
+              "node_id": "process.internal.f12",
+              "output_name": "applied",
+              "output_value": "5",
+              "provenance_refs": [
+                "policy.k06.replacement-limit"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F11",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f09",
+                "capacity.coverage",
+                "role.allocation"
+              ],
+              "node_id": "process.waste.f11",
+              "output_name": "robot_replacement",
+              "output_value": "4",
+              "provenance_refs": [
+                "capacity.process.waste"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F12",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.waste.f11",
+                "replacement_limit"
+              ],
+              "node_id": "process.waste.f12",
+              "output_name": "applied",
+              "output_value": "4",
+              "provenance_refs": [
+                "policy.k06.replacement-limit"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F13",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "process.applied",
+                "scenario.supervision-share",
+                "schedule.simultaneous-shifts"
+              ],
+              "node_id": "site.f13.control",
+              "output_name": "control_required",
+              "output_value": "3",
+              "provenance_refs": [
+                "registry.scenario.base.supervision-share",
+                "registry.labor.control.minimum-per-shift"
+              ],
+              "rounding": "FLOOR",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F10",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "role.monthly_gross_salary"
+              ],
+              "node_id": "role.trolley.f10",
+              "output_name": "annual_direct",
+              "output_value": "1562400",
+              "provenance_refs": [
+                "prov.salary.role.trolley"
+              ],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "RUB/person/year"
+            },
+            {
+              "formula_id": "F15",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "role.required_people",
+                "role.headcount",
+                "role.deficit_cost"
+              ],
+              "node_id": "role.trolley.f15",
+              "output_name": "annual_deficit_cost",
+              "output_value": "0",
+              "provenance_refs": [],
+              "rounding": "NONE",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "RUB/year"
+            },
+            {
+              "formula_id": "F13",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "capacity.selected_fleet",
+                "labor.technical.robots-per-fte"
+              ],
+              "node_id": "site.f13.technicians",
+              "output_name": "technicians_required",
+              "output_value": "1",
+              "provenance_refs": [
+                "registry.labor.technical.robots-per-fte"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1",
+                "POLICY_V2A"
+              ],
+              "unit": "person"
+            },
+            {
+              "formula_id": "F14",
+              "formula_version": "calculation-formulas-v1",
+              "input_refs": [
+                "base_forklift_count",
+                "role.forklift_driver.released",
+                "schedule.simultaneous_shifts"
+              ],
+              "node_id": "site.f14.forklifts",
+              "output_name": "forklifts_withdrawn",
+              "output_value": null,
+              "provenance_refs": [
+                "policy.k08"
+              ],
+              "rounding": "CEIL",
+              "source_refs": [
+                "R03",
+                "POLICY_V1"
+              ],
+              "unit": "unit"
+            }
+          ],
+          "versions": {
+            "calculation_policy_version": "hackathon-calculation-policy-v1",
+            "capacity_projection_version": "capacity-labour-projection-v1",
+            "engine_version": "role-labour-baseline-v1",
+            "intake_version": "calculation-intake-normalization-v2",
+            "precision_policy_version": "decimal-context-28-half-even-v1",
+            "process_catalog_version": "calculation-process-catalog-v1",
+            "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+            "registry_version": "hackathon-calculation-parameter-registry-v1",
+            "schema_version": "role-labour-result-v1",
+            "v2a_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14"
+          }
+        },
+        "labour_result_digest": "sha256:1cd35ace71d10a0e43ab55e3909049fedba4ea2fdbc0ba06da30e59bcb2bc0d4",
+        "object_id": "object.c18",
+        "project_id": "project.c18",
+        "run_id": "run.c18.golden",
+        "schema_version": "multiprocess-allocation-request-v1",
+        "shared_annual_costs": [
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.1",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 1
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.2",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 2
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.3",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 3
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.4",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 4
+          },
+          {
+            "baseline_cost": "100000",
+            "provenance_ref": "prov.c18.shared-annual.5",
+            "scenario_cost": "200000",
+            "scope": "ONE_SITE_NON_LABOUR_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+            "source": "USER",
+            "year": 5
+          }
+        ],
+        "shared_site_capital": {
+          "capex_amortizable": "9000000",
+          "capex_cashflow": "10000000",
+          "capex_gross": "10000000",
+          "provenance_ref": "prov.c18.shared-site-capital",
+          "scope": "ONE_SITE_EXCLUDED_FROM_PROCESS_PROJECTIONS",
+          "source": "USER"
+        },
+        "tenant_id": "tenant.c18",
+        "uncertainty": "BASE"
+      }
+    }
+  ]
+}
