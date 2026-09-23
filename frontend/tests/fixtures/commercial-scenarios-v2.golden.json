@@ -1,0 +1,1220 @@
+{
+  "schema_version": "commercial-scenarios-bundle-v2",
+  "run_id": "run.c21.golden",
+  "project_id": "project.c21",
+  "tenant_id": "tenant.c21",
+  "input_revision": "revision.c21",
+  "roles": [
+    {
+      "role_id": "role.operator",
+      "role_code": "warehouse_operator",
+      "headcount": "20",
+      "monthly_gross_salary": {
+        "status": "KNOWN",
+        "value": "100000",
+        "unit": "RUB/person/month",
+        "source": "USER",
+        "provenance_ref": "input.salary.operator"
+      }
+    },
+    {
+      "role_id": "role.tech",
+      "role_code": "tech_support",
+      "headcount": "1",
+      "monthly_gross_salary": {
+        "status": "MISSING",
+        "value": null,
+        "unit": "RUB/person/month",
+        "source": null,
+        "provenance_ref": null
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "scenario.purchase.pessimistic",
+      "acquisition": "PURCHASE",
+      "uncertainty": "PESSIMISTIC",
+      "procurement": {
+        "source_schema_version": "procurement-report-v1",
+        "source_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "acquisition": "PURCHASE",
+        "procurement_status": "VERIFIED",
+        "procurement_ready": true,
+        "blockers": [],
+        "supply_risk": "LOW",
+        "money": {
+          "status": "RESOLVED",
+          "cash_gross_rub": "3000000.00",
+          "raw_money": {
+            "raw_amount": "3000000.00",
+            "currency": "RUB",
+            "tax_basis": "CASH_GROSS_RUB",
+            "vat_rate": null,
+            "source": {
+              "source_id": "input.purchase-price"
+            }
+          }
+        }
+      },
+      "financial": {
+        "source_schema_version": "financial-result-v1",
+        "source_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "status": "COMPLETE",
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "5100000.00",
+          "unit": "RUB"
+        },
+        "simple_payback": {
+          "status": "COMPLETE",
+          "value": "2.75",
+          "unit": "YEAR"
+        },
+        "discounted_payback": {
+          "status": "COMPLETE",
+          "value": "3.40",
+          "unit": "YEAR"
+        },
+        "annual_ledgers": [
+          {
+            "year": 1,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "-1500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.pessimistic.year-1"
+            ]
+          },
+          {
+            "year": 2,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.pessimistic.year-2"
+            ]
+          },
+          {
+            "year": 3,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.pessimistic.year-3"
+            ]
+          },
+          {
+            "year": 4,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.pessimistic.year-4"
+            ]
+          },
+          {
+            "year": 5,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.pessimistic.year-5"
+            ]
+          }
+        ]
+      },
+      "allocation": {
+        "source_schema_version": "multiprocess-allocation-result-v1",
+        "source_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "role_conservation": [
+          {
+            "role_id": "role.operator",
+            "headcount": 20,
+            "released": 10,
+            "remaining": 10
+          },
+          {
+            "role_id": "role.tech",
+            "headcount": 1,
+            "released": 0,
+            "remaining": 1
+          }
+        ],
+        "control_required_once": 3,
+        "technicians_required_once": 1
+      },
+      "recommendation": {
+        "status": "ALTERNATIVE",
+        "candidate_id": null,
+        "reason_codes": [
+          "not-selected-by-server-ranking"
+        ]
+      },
+      "expenses": [
+        {
+          "line_id": "equipment",
+          "label": "Оборудование",
+          "amount": "15000000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.capex-equipment"
+        },
+        {
+          "line_id": "service",
+          "label": "Сервис",
+          "amount": "900000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.annual-service"
+        },
+        {
+          "line_id": "roles",
+          "label": "Object FOT",
+          "amount": "18748800.00",
+          "status": "COMPLETE",
+          "source_ref": "allocation.object-fot"
+        }
+      ],
+      "assumptions": [
+        {
+          "assumption_id": "discount",
+          "label": "Discount rate",
+          "value": "0.15",
+          "unit": "1",
+          "provenance_ref": "finance.discount.default-rate"
+        },
+        {
+          "assumption_id": "uncertainty",
+          "label": "Uncertainty profile",
+          "value": "PESSIMISTIC",
+          "unit": "profile",
+          "provenance_ref": "scenario.pessimistic"
+        }
+      ],
+      "source_refs": [
+        "R03:F23-F32",
+        "run.purchase.pessimistic"
+      ]
+    },
+    {
+      "scenario_id": "scenario.purchase.base",
+      "acquisition": "PURCHASE",
+      "uncertainty": "BASE",
+      "procurement": {
+        "source_schema_version": "procurement-report-v1",
+        "source_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "acquisition": "PURCHASE",
+        "procurement_status": "VERIFIED",
+        "procurement_ready": true,
+        "blockers": [],
+        "supply_risk": "LOW",
+        "money": {
+          "status": "RESOLVED",
+          "cash_gross_rub": "3000000.00",
+          "raw_money": {
+            "raw_amount": "3000000.00",
+            "currency": "RUB",
+            "tax_basis": "CASH_GROSS_RUB",
+            "vat_rate": null,
+            "source": {
+              "source_id": "input.purchase-price"
+            }
+          }
+        }
+      },
+      "financial": {
+        "source_schema_version": "financial-result-v1",
+        "source_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "status": "COMPLETE",
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "6600000.00",
+          "unit": "RUB"
+        },
+        "simple_payback": {
+          "status": "COMPLETE",
+          "value": "2.75",
+          "unit": "YEAR"
+        },
+        "discounted_payback": {
+          "status": "COMPLETE",
+          "value": "3.40",
+          "unit": "YEAR"
+        },
+        "annual_ledgers": [
+          {
+            "year": 1,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "0.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.base.year-1"
+            ]
+          },
+          {
+            "year": 2,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.base.year-2"
+            ]
+          },
+          {
+            "year": 3,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.base.year-3"
+            ]
+          },
+          {
+            "year": 4,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.base.year-4"
+            ]
+          },
+          {
+            "year": 5,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.base.year-5"
+            ]
+          }
+        ]
+      },
+      "allocation": {
+        "source_schema_version": "multiprocess-allocation-result-v1",
+        "source_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "role_conservation": [
+          {
+            "role_id": "role.operator",
+            "headcount": 20,
+            "released": 10,
+            "remaining": 10
+          },
+          {
+            "role_id": "role.tech",
+            "headcount": 1,
+            "released": 0,
+            "remaining": 1
+          }
+        ],
+        "control_required_once": 3,
+        "technicians_required_once": 1
+      },
+      "recommendation": {
+        "status": "RECOMMENDED",
+        "candidate_id": "candidate.purchase.base",
+        "reason_codes": []
+      },
+      "expenses": [
+        {
+          "line_id": "equipment",
+          "label": "Оборудование",
+          "amount": "15000000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.capex-equipment"
+        },
+        {
+          "line_id": "service",
+          "label": "Сервис",
+          "amount": "900000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.annual-service"
+        },
+        {
+          "line_id": "roles",
+          "label": "Object FOT",
+          "amount": "18748800.00",
+          "status": "COMPLETE",
+          "source_ref": "allocation.object-fot"
+        }
+      ],
+      "assumptions": [
+        {
+          "assumption_id": "discount",
+          "label": "Discount rate",
+          "value": "0.15",
+          "unit": "1",
+          "provenance_ref": "finance.discount.default-rate"
+        },
+        {
+          "assumption_id": "uncertainty",
+          "label": "Uncertainty profile",
+          "value": "BASE",
+          "unit": "profile",
+          "provenance_ref": "scenario.base"
+        }
+      ],
+      "source_refs": [
+        "R03:F23-F32",
+        "run.purchase.base"
+      ]
+    },
+    {
+      "scenario_id": "scenario.purchase.optimistic",
+      "acquisition": "PURCHASE",
+      "uncertainty": "OPTIMISTIC",
+      "procurement": {
+        "source_schema_version": "procurement-report-v1",
+        "source_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "acquisition": "PURCHASE",
+        "procurement_status": "VERIFIED",
+        "procurement_ready": true,
+        "blockers": [],
+        "supply_risk": "LOW",
+        "money": {
+          "status": "RESOLVED",
+          "cash_gross_rub": "3000000.00",
+          "raw_money": {
+            "raw_amount": "3000000.00",
+            "currency": "RUB",
+            "tax_basis": "CASH_GROSS_RUB",
+            "vat_rate": null,
+            "source": {
+              "source_id": "input.purchase-price"
+            }
+          }
+        }
+      },
+      "financial": {
+        "source_schema_version": "financial-result-v1",
+        "source_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "status": "COMPLETE",
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "8400000.00",
+          "unit": "RUB"
+        },
+        "simple_payback": {
+          "status": "COMPLETE",
+          "value": "2.75",
+          "unit": "YEAR"
+        },
+        "discounted_payback": {
+          "status": "COMPLETE",
+          "value": "3.40",
+          "unit": "YEAR"
+        },
+        "annual_ledgers": [
+          {
+            "year": 1,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "1800000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.optimistic.year-1"
+            ]
+          },
+          {
+            "year": 2,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.optimistic.year-2"
+            ]
+          },
+          {
+            "year": 3,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.optimistic.year-3"
+            ]
+          },
+          {
+            "year": 4,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.optimistic.year-4"
+            ]
+          },
+          {
+            "year": 5,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "18000000.00",
+            "differential_cf": "30000000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.purchase.optimistic.year-5"
+            ]
+          }
+        ]
+      },
+      "allocation": {
+        "source_schema_version": "multiprocess-allocation-result-v1",
+        "source_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "role_conservation": [
+          {
+            "role_id": "role.operator",
+            "headcount": 20,
+            "released": 12,
+            "remaining": 8
+          },
+          {
+            "role_id": "role.tech",
+            "headcount": 1,
+            "released": 0,
+            "remaining": 1
+          }
+        ],
+        "control_required_once": 3,
+        "technicians_required_once": 1
+      },
+      "recommendation": {
+        "status": "ALTERNATIVE",
+        "candidate_id": null,
+        "reason_codes": [
+          "not-selected-by-server-ranking"
+        ]
+      },
+      "expenses": [
+        {
+          "line_id": "equipment",
+          "label": "Оборудование",
+          "amount": "15000000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.capex-equipment"
+        },
+        {
+          "line_id": "service",
+          "label": "Сервис",
+          "amount": "900000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.annual-service"
+        },
+        {
+          "line_id": "roles",
+          "label": "Object FOT",
+          "amount": "18748800.00",
+          "status": "COMPLETE",
+          "source_ref": "allocation.object-fot"
+        }
+      ],
+      "assumptions": [
+        {
+          "assumption_id": "discount",
+          "label": "Discount rate",
+          "value": "0.15",
+          "unit": "1",
+          "provenance_ref": "finance.discount.default-rate"
+        },
+        {
+          "assumption_id": "uncertainty",
+          "label": "Uncertainty profile",
+          "value": "OPTIMISTIC",
+          "unit": "profile",
+          "provenance_ref": "scenario.optimistic"
+        }
+      ],
+      "source_refs": [
+        "R03:F23-F32",
+        "run.purchase.optimistic"
+      ]
+    },
+    {
+      "scenario_id": "scenario.raas.pessimistic",
+      "acquisition": "RAAS",
+      "uncertainty": "PESSIMISTIC",
+      "procurement": {
+        "source_schema_version": "procurement-report-v1",
+        "source_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "acquisition": "RAAS",
+        "procurement_status": "UNVERIFIED",
+        "procurement_ready": false,
+        "blockers": [
+          "COMMERCIAL_TERMS_UNVERIFIED"
+        ],
+        "supply_risk": "UNKNOWN",
+        "money": {
+          "status": "RESOLVED",
+          "cash_gross_rub": "180000.00",
+          "raw_money": {
+            "raw_amount": "180000.00",
+            "currency": "RUB",
+            "tax_basis": "CASH_GROSS_RUB",
+            "vat_rate": null,
+            "source": {
+              "source_id": "input.raas-rate"
+            }
+          }
+        }
+      },
+      "financial": {
+        "source_schema_version": "raas-financial-result-v1",
+        "source_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "status": "INCOMPLETE",
+        "npv_project": {
+          "status": "INCOMPLETE",
+          "value": null,
+          "unit": "RUB"
+        },
+        "simple_payback": {
+          "status": "INCOMPLETE",
+          "value": null,
+          "unit": "YEAR"
+        },
+        "discounted_payback": {
+          "status": "INCOMPLETE",
+          "value": null,
+          "unit": "YEAR"
+        },
+        "annual_ledgers": [
+          {
+            "year": 1,
+            "primary_cf_base": null,
+            "primary_cf_scenario": null,
+            "differential_cf": null,
+            "status": "INCOMPLETE",
+            "source_refs": [
+              "trace.raas.pessimistic.year-1"
+            ]
+          },
+          {
+            "year": 2,
+            "primary_cf_base": null,
+            "primary_cf_scenario": null,
+            "differential_cf": null,
+            "status": "INCOMPLETE",
+            "source_refs": [
+              "trace.raas.pessimistic.year-2"
+            ]
+          },
+          {
+            "year": 3,
+            "primary_cf_base": null,
+            "primary_cf_scenario": null,
+            "differential_cf": null,
+            "status": "INCOMPLETE",
+            "source_refs": [
+              "trace.raas.pessimistic.year-3"
+            ]
+          },
+          {
+            "year": 4,
+            "primary_cf_base": null,
+            "primary_cf_scenario": null,
+            "differential_cf": null,
+            "status": "INCOMPLETE",
+            "source_refs": [
+              "trace.raas.pessimistic.year-4"
+            ]
+          },
+          {
+            "year": 5,
+            "primary_cf_base": null,
+            "primary_cf_scenario": null,
+            "differential_cf": null,
+            "status": "INCOMPLETE",
+            "source_refs": [
+              "trace.raas.pessimistic.year-5"
+            ]
+          }
+        ]
+      },
+      "allocation": {
+        "source_schema_version": "multiprocess-allocation-result-v1",
+        "source_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "role_conservation": [
+          {
+            "role_id": "role.operator",
+            "headcount": 20,
+            "released": 10,
+            "remaining": 10
+          },
+          {
+            "role_id": "role.tech",
+            "headcount": 1,
+            "released": 0,
+            "remaining": 1
+          }
+        ],
+        "control_required_once": 3,
+        "technicians_required_once": 1
+      },
+      "recommendation": {
+        "status": "INCOMPLETE",
+        "candidate_id": null,
+        "reason_codes": [
+          "procurement-not-ready"
+        ]
+      },
+      "expenses": [
+        {
+          "line_id": "equipment",
+          "label": "Оборудование",
+          "amount": null,
+          "status": "NOT_APPLICABLE",
+          "source_ref": "financial.capex-equipment"
+        },
+        {
+          "line_id": "service",
+          "label": "RaaS payment",
+          "amount": "10800000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.annual-service"
+        },
+        {
+          "line_id": "roles",
+          "label": "Object FOT",
+          "amount": null,
+          "status": "INCOMPLETE",
+          "source_ref": "allocation.object-fot"
+        }
+      ],
+      "assumptions": [
+        {
+          "assumption_id": "discount",
+          "label": "Discount rate",
+          "value": "0.15",
+          "unit": "1",
+          "provenance_ref": "finance.discount.default-rate"
+        },
+        {
+          "assumption_id": "uncertainty",
+          "label": "Uncertainty profile",
+          "value": "PESSIMISTIC",
+          "unit": "profile",
+          "provenance_ref": "scenario.pessimistic"
+        }
+      ],
+      "source_refs": [
+        "R03:F23-F32",
+        "run.raas.pessimistic"
+      ]
+    },
+    {
+      "scenario_id": "scenario.raas.base",
+      "acquisition": "RAAS",
+      "uncertainty": "BASE",
+      "procurement": {
+        "source_schema_version": "procurement-report-v1",
+        "source_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "acquisition": "RAAS",
+        "procurement_status": "UNVERIFIED",
+        "procurement_ready": false,
+        "blockers": [
+          "COMMERCIAL_TERMS_UNVERIFIED"
+        ],
+        "supply_risk": "UNKNOWN",
+        "money": {
+          "status": "RESOLVED",
+          "cash_gross_rub": "180000.00",
+          "raw_money": {
+            "raw_amount": "180000.00",
+            "currency": "RUB",
+            "tax_basis": "CASH_GROSS_RUB",
+            "vat_rate": null,
+            "source": {
+              "source_id": "input.raas-rate"
+            }
+          }
+        }
+      },
+      "financial": {
+        "source_schema_version": "raas-financial-result-v1",
+        "source_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "status": "COMPLETE",
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "1200000.00",
+          "unit": "RUB"
+        },
+        "simple_payback": {
+          "status": "COMPLETE",
+          "value": "2.75",
+          "unit": "YEAR"
+        },
+        "discounted_payback": {
+          "status": "COMPLETE",
+          "value": "3.40",
+          "unit": "YEAR"
+        },
+        "annual_ledgers": [
+          {
+            "year": 1,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "0.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.base.year-1"
+            ]
+          },
+          {
+            "year": 2,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.base.year-2"
+            ]
+          },
+          {
+            "year": 3,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.base.year-3"
+            ]
+          },
+          {
+            "year": 4,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.base.year-4"
+            ]
+          },
+          {
+            "year": 5,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.base.year-5"
+            ]
+          }
+        ]
+      },
+      "allocation": {
+        "source_schema_version": "multiprocess-allocation-result-v1",
+        "source_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "role_conservation": [
+          {
+            "role_id": "role.operator",
+            "headcount": 20,
+            "released": 10,
+            "remaining": 10
+          },
+          {
+            "role_id": "role.tech",
+            "headcount": 1,
+            "released": 0,
+            "remaining": 1
+          }
+        ],
+        "control_required_once": 3,
+        "technicians_required_once": 1
+      },
+      "recommendation": {
+        "status": "ALTERNATIVE",
+        "candidate_id": null,
+        "reason_codes": [
+          "procurement-not-ready"
+        ]
+      },
+      "expenses": [
+        {
+          "line_id": "equipment",
+          "label": "Оборудование",
+          "amount": null,
+          "status": "NOT_APPLICABLE",
+          "source_ref": "financial.capex-equipment"
+        },
+        {
+          "line_id": "service",
+          "label": "RaaS payment",
+          "amount": "10800000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.annual-service"
+        },
+        {
+          "line_id": "roles",
+          "label": "Object FOT",
+          "amount": "18748800.00",
+          "status": "COMPLETE",
+          "source_ref": "allocation.object-fot"
+        }
+      ],
+      "assumptions": [
+        {
+          "assumption_id": "discount",
+          "label": "Discount rate",
+          "value": "0.15",
+          "unit": "1",
+          "provenance_ref": "finance.discount.default-rate"
+        },
+        {
+          "assumption_id": "uncertainty",
+          "label": "Uncertainty profile",
+          "value": "BASE",
+          "unit": "profile",
+          "provenance_ref": "scenario.base"
+        }
+      ],
+      "source_refs": [
+        "R03:F23-F32",
+        "run.raas.base"
+      ]
+    },
+    {
+      "scenario_id": "scenario.raas.optimistic",
+      "acquisition": "RAAS",
+      "uncertainty": "OPTIMISTIC",
+      "procurement": {
+        "source_schema_version": "procurement-report-v1",
+        "source_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "acquisition": "RAAS",
+        "procurement_status": "UNVERIFIED",
+        "procurement_ready": false,
+        "blockers": [
+          "COMMERCIAL_TERMS_UNVERIFIED"
+        ],
+        "supply_risk": "UNKNOWN",
+        "money": {
+          "status": "RESOLVED",
+          "cash_gross_rub": "180000.00",
+          "raw_money": {
+            "raw_amount": "180000.00",
+            "currency": "RUB",
+            "tax_basis": "CASH_GROSS_RUB",
+            "vat_rate": null,
+            "source": {
+              "source_id": "input.raas-rate"
+            }
+          }
+        }
+      },
+      "financial": {
+        "source_schema_version": "raas-financial-result-v1",
+        "source_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "status": "COMPLETE",
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "3000000.00",
+          "unit": "RUB"
+        },
+        "simple_payback": {
+          "status": "COMPLETE",
+          "value": "2.75",
+          "unit": "YEAR"
+        },
+        "discounted_payback": {
+          "status": "COMPLETE",
+          "value": "3.40",
+          "unit": "YEAR"
+        },
+        "annual_ledgers": [
+          {
+            "year": 1,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "1800000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.optimistic.year-1"
+            ]
+          },
+          {
+            "year": 2,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.optimistic.year-2"
+            ]
+          },
+          {
+            "year": 3,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.optimistic.year-3"
+            ]
+          },
+          {
+            "year": 4,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.optimistic.year-4"
+            ]
+          },
+          {
+            "year": 5,
+            "primary_cf_base": "-12000000.00",
+            "primary_cf_scenario": "14500000.00",
+            "differential_cf": "26500000.00",
+            "status": "COMPLETE",
+            "source_refs": [
+              "trace.raas.optimistic.year-5"
+            ]
+          }
+        ]
+      },
+      "allocation": {
+        "source_schema_version": "multiprocess-allocation-result-v1",
+        "source_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "project_id": "project.c21",
+        "tenant_id": "tenant.c21",
+        "input_revision": "revision.c21",
+        "role_conservation": [
+          {
+            "role_id": "role.operator",
+            "headcount": 20,
+            "released": 12,
+            "remaining": 8
+          },
+          {
+            "role_id": "role.tech",
+            "headcount": 1,
+            "released": 0,
+            "remaining": 1
+          }
+        ],
+        "control_required_once": 3,
+        "technicians_required_once": 1
+      },
+      "recommendation": {
+        "status": "ALTERNATIVE",
+        "candidate_id": null,
+        "reason_codes": [
+          "procurement-not-ready"
+        ]
+      },
+      "expenses": [
+        {
+          "line_id": "equipment",
+          "label": "Оборудование",
+          "amount": null,
+          "status": "NOT_APPLICABLE",
+          "source_ref": "financial.capex-equipment"
+        },
+        {
+          "line_id": "service",
+          "label": "RaaS payment",
+          "amount": "10800000.00",
+          "status": "COMPLETE",
+          "source_ref": "financial.annual-service"
+        },
+        {
+          "line_id": "roles",
+          "label": "Object FOT",
+          "amount": "18748800.00",
+          "status": "COMPLETE",
+          "source_ref": "allocation.object-fot"
+        }
+      ],
+      "assumptions": [
+        {
+          "assumption_id": "discount",
+          "label": "Discount rate",
+          "value": "0.15",
+          "unit": "1",
+          "provenance_ref": "finance.discount.default-rate"
+        },
+        {
+          "assumption_id": "uncertainty",
+          "label": "Uncertainty profile",
+          "value": "OPTIMISTIC",
+          "unit": "profile",
+          "provenance_ref": "scenario.optimistic"
+        }
+      ],
+      "source_refs": [
+        "R03:F23-F32",
+        "run.raas.optimistic"
+      ]
+    }
+  ],
+  "sensitivity": {
+    "source_schema_version": "sensitivity-result-v1",
+    "source_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+    "project_id": "project.c21",
+    "tenant_id": "tenant.c21",
+    "variants": [
+      {
+        "variant_id": "variant.equipment_price.lower",
+        "override": {
+          "parameter_id": "EQUIPMENT_PRICE",
+          "direction": "LOWER"
+        },
+        "status": "COMPLETE",
+        "npv_project": {
+          "delta_value": "1000000.00",
+          "unit": "RUB"
+        },
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ]
+      },
+      {
+        "variant_id": "variant.equipment_price.upper",
+        "override": {
+          "parameter_id": "EQUIPMENT_PRICE",
+          "direction": "UPPER"
+        },
+        "status": "COMPLETE",
+        "npv_project": {
+          "delta_value": "-1000000.00",
+          "unit": "RUB"
+        },
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ]
+      },
+      {
+        "variant_id": "variant.operation_volume.lower",
+        "override": {
+          "parameter_id": "OPERATION_VOLUME",
+          "direction": "LOWER"
+        },
+        "status": "COMPLETE",
+        "npv_project": {
+          "delta_value": "1000000.00",
+          "unit": "RUB"
+        },
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ]
+      },
+      {
+        "variant_id": "variant.operation_volume.upper",
+        "override": {
+          "parameter_id": "OPERATION_VOLUME",
+          "direction": "UPPER"
+        },
+        "status": "COMPLETE",
+        "npv_project": {
+          "delta_value": "-1000000.00",
+          "unit": "RUB"
+        },
+        "step_reasons": [
+          "discrete-fleet-step",
+          "no-headcount-step"
+        ]
+      },
+      {
+        "variant_id": "variant.role_salary.lower",
+        "override": {
+          "parameter_id": "ROLE_SALARY",
+          "direction": "LOWER"
+        },
+        "status": "COMPLETE",
+        "npv_project": {
+          "delta_value": "1000000.00",
+          "unit": "RUB"
+        },
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ]
+      },
+      {
+        "variant_id": "variant.role_salary.upper",
+        "override": {
+          "parameter_id": "ROLE_SALARY",
+          "direction": "UPPER"
+        },
+        "status": "COMPLETE",
+        "npv_project": {
+          "delta_value": "-1000000.00",
+          "unit": "RUB"
+        },
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ]
+      }
+    ]
+  },
+  "ranking": {
+    "source_schema_version": "ranking-result-v2",
+    "source_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "technical_recommendation": {
+      "status": "RECOMMENDED",
+      "candidate_id": "candidate.purchase.base",
+      "reason_codes": []
+    },
+    "financial_recommendation": {
+      "status": "RECOMMENDED",
+      "candidate_id": "candidate.purchase.base",
+      "reason_codes": []
+    }
+  },
+  "versions": {
+    "procurement": "procurement-report-v1",
+    "finance_purchase": "financial-result-v1",
+    "finance_raas": "raas-financial-result-v1",
+    "allocation": "multiprocess-allocation-result-v1",
+    "ranking": "ranking-result-v2",
+    "sensitivity": "sensitivity-result-v1"
+  },
+  "limitations": [
+    "Это расчётный сценарий, не коммерческое предложение.",
+    "VAT rate не выводится из gross price.",
+    "Simulation и procurement actions не выполняются в C21."
+  ]
+}

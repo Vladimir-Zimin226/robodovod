@@ -3,11 +3,13 @@ import OnboardingScreen from './OnboardingScreen';
 import IntakeScreen from './components/IntakeScreen';
 import ResultsPanel from './components/ResultsPanel';
 import CapacityResultsTrace from './components/CapacityResultsTrace';
+import CommercialScenariosV2 from './components/CommercialScenariosV2';
 import CatalogScreen from './components/CatalogScreen';
 import { AppShell } from './components/AppShell';
 import { AdminUsersScreen, AuthScreen, ProjectsScreen } from './components/PersistenceScreens';
 import { readCsrfCookie } from './persistenceApi';
 import { isCapacityAnalysisResponse } from './capacityResultsModel';
+import { isCommercialScenariosBundle } from './commercialScenariosModel';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -242,6 +244,8 @@ export default function App() {
             )}
             {isCapacityAnalysisResponse(result) ? (
               <CapacityResultsTrace response={result} onRestart={restart} />
+            ) : isCommercialScenariosBundle(result) ? (
+              <CommercialScenariosV2 key={result.run_id} bundle={result} onRestart={restart} onRecalculate={() => setPhase('intake')} />
             ) : (
               <ResultsPanel
                 result={result}

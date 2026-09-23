@@ -375,9 +375,16 @@ canonical C18 engine без дублирования финансовой ари
 volume может создать traceable fleet/headcount step. Отчёт:
 [economics sensitivity v1](planning/sensitivity-v1.md).
 
-Следующая малая итерация — **`frontend/commercial-scenarios-v2`** (C21).
-Frontend, catalog membership, старые runs и production runtime activation в
-C20 не менялись.
+Этап **`frontend/commercial-scenarios-v2`** (C21) завершён: добавлен strict
+presentation bundle и отдельный UI для PURCHASE/RaaS × трёх uncertainty
+profiles, commercial inputs, role monthly gross, procurement/finance statuses,
+cashflow/source drilldown и C20 sensitivity. Browser не рассчитывает деньги,
+VAT, ranking или deltas; любое изменение input инвалидирует старый result.
+Capacity и legacy saved-run viewers сохранены. Отчёт:
+[frontend commercial scenarios v2](planning/frontend-commercial-scenarios-v2.md).
+
+Следующая малая итерация — **`contracts/scenario-spec-v2`** (C22). Catalog
+membership, старые runs и production runtime activation в C21 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

@@ -14,7 +14,8 @@ C12 **COMPLETE** 2026-09-23, C13 **COMPLETE** 2026-09-23,
 C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23,
 C16 **COMPLETE** 2026-09-23, C17 **COMPLETE** 2026-09-23,
 C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
-C20 **COMPLETE** 2026-09-23; C21–C29 пока **PLANNED**.
+C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23;
+C22–C29 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -625,6 +626,9 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 - **Вне этапа:** MonteCarlo/probability distributions absent inreference, UI.
 
 ## C21 — `frontend/commercial-scenarios-v2`
+
+Статус: **COMPLETE**, 2026-09-23. Отчёт:
+[frontend commercial scenarios v2](frontend-commercial-scenarios-v2.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.

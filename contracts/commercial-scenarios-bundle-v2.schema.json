@@ -1,0 +1,815 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "commercial-scenarios-bundle-v2.schema.json",
+  "title": "CommercialScenariosBundleV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "project_id",
+    "tenant_id",
+    "input_revision",
+    "roles",
+    "scenarios",
+    "sensitivity",
+    "ranking",
+    "versions",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "commercial-scenarios-bundle-v2"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/role"
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "sensitivity": {
+      "$ref": "#/$defs/sensitivity"
+    },
+    "ranking": {
+      "$ref": "#/$defs/ranking"
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "minProperties": 1
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "salary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "value",
+        "unit",
+        "source",
+        "provenance_ref"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "KNOWN",
+            "MISSING"
+          ]
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unit": {
+          "const": "RUB/person/month"
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role_id",
+        "role_code",
+        "headcount",
+        "monthly_gross_salary"
+      ],
+      "properties": {
+        "role_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role_code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "headcount": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        },
+        "monthly_gross_salary": {
+          "$ref": "#/$defs/salary"
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "NOT_REACHED",
+            "N_A",
+            "INCOMPLETE"
+          ]
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unit": {
+          "enum": [
+            "RUB",
+            "YEAR",
+            "PERCENT"
+          ]
+        }
+      }
+    },
+    "rawSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rawMoney": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_amount",
+        "currency",
+        "tax_basis",
+        "vat_rate",
+        "source"
+      ],
+      "properties": {
+        "raw_amount": {
+          "type": "string",
+          "minLength": 1
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tax_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vat_rate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/rawSource"
+        }
+      }
+    },
+    "money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "cash_gross_rub",
+        "raw_money"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cash_gross_rub": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "raw_money": {
+          "$ref": "#/$defs/rawMoney"
+        }
+      }
+    },
+    "procurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_schema_version",
+        "source_digest",
+        "acquisition",
+        "procurement_status",
+        "procurement_ready",
+        "blockers",
+        "supply_risk",
+        "money"
+      ],
+      "properties": {
+        "source_schema_version": {
+          "const": "procurement-report-v1"
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "acquisition": {
+          "enum": [
+            "PURCHASE",
+            "RAAS"
+          ]
+        },
+        "procurement_status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "procurement_ready": {
+          "type": "boolean"
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "supply_risk": {
+          "type": "string",
+          "minLength": 1
+        },
+        "money": {
+          "$ref": "#/$defs/money"
+        }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "year",
+        "primary_cf_base",
+        "primary_cf_scenario",
+        "differential_cf",
+        "status",
+        "source_refs"
+      ],
+      "properties": {
+        "year": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 15
+        },
+        "primary_cf_base": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "primary_cf_scenario": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "differential_cf": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "financial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_schema_version",
+        "source_digest",
+        "project_id",
+        "tenant_id",
+        "input_revision",
+        "status",
+        "npv_project",
+        "simple_payback",
+        "discounted_payback",
+        "annual_ledgers"
+      ],
+      "properties": {
+        "source_schema_version": {
+          "enum": [
+            "financial-result-v1",
+            "raas-financial-result-v1"
+          ]
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE"
+          ]
+        },
+        "npv_project": {
+          "$ref": "#/$defs/metric"
+        },
+        "simple_payback": {
+          "$ref": "#/$defs/metric"
+        },
+        "discounted_payback": {
+          "$ref": "#/$defs/metric"
+        },
+        "annual_ledgers": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "$ref": "#/$defs/ledger"
+          }
+        }
+      }
+    },
+    "roleConservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role_id",
+        "headcount",
+        "released",
+        "remaining"
+      ],
+      "properties": {
+        "role_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "headcount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "released": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remaining": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "allocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_schema_version",
+        "source_digest",
+        "project_id",
+        "tenant_id",
+        "input_revision",
+        "role_conservation",
+        "control_required_once",
+        "technicians_required_once"
+      ],
+      "properties": {
+        "source_schema_version": {
+          "const": "multiprocess-allocation-result-v1"
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role_conservation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/roleConservation"
+          }
+        },
+        "control_required_once": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "technicians_required_once": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "candidate_id",
+        "reason_codes"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "expense": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "line_id",
+        "label",
+        "amount",
+        "status",
+        "source_ref"
+      ],
+      "properties": {
+        "line_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "amount": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "assumption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assumption_id",
+        "label",
+        "value",
+        "unit",
+        "provenance_ref"
+      ],
+      "properties": {
+        "assumption_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "acquisition",
+        "uncertainty",
+        "procurement",
+        "financial",
+        "allocation",
+        "recommendation",
+        "expenses",
+        "assumptions",
+        "source_refs"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "acquisition": {
+          "enum": [
+            "PURCHASE",
+            "RAAS"
+          ]
+        },
+        "uncertainty": {
+          "enum": [
+            "PESSIMISTIC",
+            "BASE",
+            "OPTIMISTIC"
+          ]
+        },
+        "procurement": {
+          "$ref": "#/$defs/procurement"
+        },
+        "financial": {
+          "$ref": "#/$defs/financial"
+        },
+        "allocation": {
+          "$ref": "#/$defs/allocation"
+        },
+        "recommendation": {
+          "$ref": "#/$defs/recommendation"
+        },
+        "expenses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/expense"
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/assumption"
+          }
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameter_id",
+        "direction"
+      ],
+      "properties": {
+        "parameter_id": {
+          "enum": [
+            "EQUIPMENT_PRICE",
+            "OPERATION_VOLUME",
+            "ROLE_SALARY"
+          ]
+        },
+        "direction": {
+          "enum": [
+            "LOWER",
+            "UPPER"
+          ]
+        }
+      }
+    },
+    "sensitivityDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "delta_value",
+        "unit"
+      ],
+      "properties": {
+        "delta_value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unit": {
+          "const": "RUB"
+        }
+      }
+    },
+    "sensitivityVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "variant_id",
+        "override",
+        "status",
+        "npv_project",
+        "step_reasons"
+      ],
+      "properties": {
+        "variant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "override": {
+          "$ref": "#/$defs/override"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "BLOCKED"
+          ]
+        },
+        "npv_project": {
+          "$ref": "#/$defs/sensitivityDelta"
+        },
+        "step_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "sensitivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_schema_version",
+        "source_digest",
+        "project_id",
+        "tenant_id",
+        "variants"
+      ],
+      "properties": {
+        "source_schema_version": {
+          "const": "sensitivity-result-v1"
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "variants": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/sensitivityVariant"
+          }
+        }
+      }
+    },
+    "recommendationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "candidate_id",
+        "reason_codes"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidate_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_schema_version",
+        "source_digest",
+        "technical_recommendation",
+        "financial_recommendation"
+      ],
+      "properties": {
+        "source_schema_version": {
+          "const": "ranking-result-v2"
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "technical_recommendation": {
+          "$ref": "#/$defs/recommendationSummary"
+        },
+        "financial_recommendation": {
+          "$ref": "#/$defs/recommendationSummary"
+        }
+      }
+    }
+  }
+}
