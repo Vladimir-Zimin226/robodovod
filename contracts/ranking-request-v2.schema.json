@@ -1,0 +1,797 @@
+{
+  "$defs": {
+    "CohortAllocationBindingV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocation_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Allocation Result Digest",
+          "type": "string"
+        },
+        "allocation_result_version": {
+          "const": "multiprocess-allocation-result-v1",
+          "default": "multiprocess-allocation-result-v1",
+          "title": "Allocation Result Version",
+          "type": "string"
+        },
+        "allocation_run_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Allocation Run Id",
+          "type": "string"
+        },
+        "anchor_configuration_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Anchor Configuration Id",
+          "type": "string"
+        },
+        "cohort_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Cohort Id",
+          "type": "string"
+        },
+        "weights_frozen": {
+          "const": true,
+          "default": true,
+          "title": "Weights Frozen",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cohort_id",
+        "allocation_run_id",
+        "allocation_result_digest",
+        "anchor_configuration_id"
+      ],
+      "title": "CohortAllocationBindingV1",
+      "type": "object"
+    },
+    "ConstraintCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "applicable": {
+          "title": "Applicable",
+          "type": "boolean"
+        },
+        "available": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConstraintValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "check_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Check Id",
+          "type": "string"
+        },
+        "decision_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        },
+        "localization_key": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Localization Key",
+          "type": "string"
+        },
+        "reason_code": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "required": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConstraintValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rule_version": {
+          "title": "Rule Version",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": true,
+          "title": "Scope",
+          "type": "object"
+        },
+        "severity": {
+          "enum": [
+            "CRITICAL",
+            "WARNING",
+            "ADVISORY"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "UNKNOWN",
+            "ASSUMED",
+            "N_A"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "rule_version",
+        "applicable",
+        "severity",
+        "status",
+        "reason_code",
+        "scope",
+        "source_refs",
+        "decision_refs",
+        "localization_key"
+      ],
+      "title": "ConstraintCheck",
+      "type": "object"
+    },
+    "ConstraintReportV2": {
+      "additionalProperties": false,
+      "properties": {
+        "blocker_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Blocker Codes",
+          "type": "array"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/ConstraintCheck"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "eligibility": {
+          "enum": [
+            "ELIGIBLE",
+            "NEEDS_VALIDATION",
+            "BLOCKED"
+          ],
+          "title": "Eligibility",
+          "type": "string"
+        },
+        "input_revision": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Input Revision",
+          "type": "string"
+        },
+        "model_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "policy_version": {
+          "const": "hackathon-calculation-policy-v1",
+          "default": "hackathon-calculation-policy-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "position_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Position Id",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "rules_version": {
+          "const": "calculation-constraint-rules-v2",
+          "default": "calculation-constraint-rules-v2",
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "constraint-report-v2",
+          "default": "constraint-report-v2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "validation_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Validation Codes",
+          "type": "array"
+        },
+        "warning_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Warning Codes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "input_revision",
+        "process_id",
+        "model_id",
+        "position_id",
+        "eligibility",
+        "checks",
+        "blocker_codes",
+        "validation_codes",
+        "warning_codes"
+      ],
+      "title": "ConstraintReportV2",
+      "type": "object"
+    },
+    "ConstraintValue": {
+      "additionalProperties": false,
+      "properties": {
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "title": "Value"
+        }
+      },
+      "required": [
+        "value",
+        "source_ref"
+      ],
+      "title": "ConstraintValue",
+      "type": "object"
+    },
+    "DataFieldStatusV1": {
+      "additionalProperties": false,
+      "properties": {
+        "field_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "importance": {
+          "enum": [
+            "CRITICAL",
+            "IMPORTANT",
+            "USEFUL"
+          ],
+          "title": "Importance",
+          "type": "string"
+        },
+        "matching_safe": {
+          "title": "Matching Safe",
+          "type": "boolean"
+        },
+        "provenance_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provenance Ref"
+        },
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "UNVERIFIED",
+            "MISSING",
+            "N_A"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field_id",
+        "importance",
+        "status",
+        "matching_safe"
+      ],
+      "title": "DataFieldStatusV1",
+      "type": "object"
+    },
+    "DependencyResolution": {
+      "additionalProperties": false,
+      "properties": {
+        "field_or_path": {
+          "title": "Field Or Path",
+          "type": "string"
+        },
+        "formula_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Formula Ids",
+          "type": "array"
+        },
+        "reason_code": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "requirement_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Requirement Id",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "CATALOG_FACT",
+            "SCENARIO_INPUT",
+            "POLICY_PARAMETER"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "RESOLVED_SAFE_FACT",
+            "REQUIRED_SCENARIO_INPUT",
+            "OPTIONAL_SCENARIO_INPUT",
+            "RESOLVED_SCENARIO_INPUT",
+            "RESOLVED_POLICY",
+            "MISSING_SAFE_FACT",
+            "INVALID_UNIT",
+            "INVALID_DOMAIN",
+            "MISSING_SCENARIO_INPUT",
+            "MISSING_POLICY_PARAMETER"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "requirement_id",
+        "source_kind",
+        "status",
+        "field_or_path",
+        "formula_ids",
+        "reason_code"
+      ],
+      "title": "DependencyResolution",
+      "type": "object"
+    },
+    "IntegrationCoverageV1": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Provenance Refs",
+          "type": "array"
+        },
+        "required_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Required Ids",
+          "type": "array"
+        },
+        "supported_matching_safe_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Supported Matching Safe Ids",
+          "type": "array"
+        },
+        "unknown_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Unknown Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "required_ids",
+        "supported_matching_safe_ids",
+        "unknown_ids",
+        "provenance_refs"
+      ],
+      "title": "IntegrationCoverageV1",
+      "type": "object"
+    },
+    "PenaltyContextV1": {
+      "additionalProperties": false,
+      "properties": {
+        "demand_per_day": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Demand Per Day",
+          "type": "string"
+        },
+        "demand_provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Demand Provenance Ref",
+          "type": "string"
+        },
+        "equipment_class": {
+          "enum": [
+            "AMR",
+            "FORKLIFT",
+            "SHUTTLE",
+            "FIXED_CELL",
+            "MANIPULATOR",
+            "CLEANER",
+            "OTHER"
+          ],
+          "title": "Equipment Class",
+          "type": "string"
+        },
+        "quantity_kind": {
+          "enum": [
+            "PALLET",
+            "BOX",
+            "CASE",
+            "CART",
+            "DELIVERY",
+            "PORTION",
+            "KG",
+            "SAMPLE",
+            "SET",
+            "BIN",
+            "ITEM",
+            "M2",
+            "PICK"
+          ],
+          "title": "Quantity Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "equipment_class",
+        "quantity_kind",
+        "demand_per_day",
+        "demand_provenance_ref"
+      ],
+      "title": "PenaltyContextV1",
+      "type": "object"
+    },
+    "RankingCandidateV2": {
+      "additionalProperties": false,
+      "properties": {
+        "allocation_result_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Allocation Result Digest",
+          "type": "string"
+        },
+        "candidate_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "configuration_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Configuration Id",
+          "type": "string"
+        },
+        "constraint_report": {
+          "$ref": "#/$defs/ConstraintReportV2"
+        },
+        "constraint_report_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Constraint Report Digest",
+          "type": "string"
+        },
+        "data_fields": {
+          "items": {
+            "$ref": "#/$defs/DataFieldStatusV1"
+          },
+          "title": "Data Fields",
+          "type": "array"
+        },
+        "executability": {
+          "$ref": "#/$defs/RunExecutabilityResult"
+        },
+        "executability_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Executability Digest",
+          "type": "string"
+        },
+        "finance_status": {
+          "enum": [
+            "COMPLETE",
+            "INCOMPLETE"
+          ],
+          "title": "Finance Status",
+          "type": "string"
+        },
+        "integrations": {
+          "$ref": "#/$defs/IntegrationCoverageV1"
+        },
+        "model_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "npv_project": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,2})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Npv Project"
+        },
+        "penalty_context": {
+          "$ref": "#/$defs/PenaltyContextV1"
+        },
+        "position_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Position Id",
+          "type": "string"
+        },
+        "trl": {
+          "$ref": "#/$defs/TrlFactV1"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "configuration_id",
+        "model_id",
+        "position_id",
+        "constraint_report",
+        "constraint_report_digest",
+        "executability",
+        "executability_digest",
+        "trl",
+        "integrations",
+        "data_fields",
+        "penalty_context",
+        "finance_status",
+        "npv_project",
+        "allocation_result_digest"
+      ],
+      "title": "RankingCandidateV2",
+      "type": "object"
+    },
+    "RunExecutabilityResult": {
+      "additionalProperties": false,
+      "properties": {
+        "blocker_codes": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Blocker Codes",
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "$ref": "#/$defs/DependencyResolution"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "model_id": {
+          "title": "Model Id",
+          "type": "string"
+        },
+        "position_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Position Id"
+        },
+        "profile_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Profile Id"
+        },
+        "schema_version": {
+          "const": "formula-run-executability-v3",
+          "default": "formula-run-executability-v3",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "EXECUTABLE",
+            "MISSING_INPUT",
+            "NEEDS_VALIDATION",
+            "BLOCKED",
+            "UNSUPPORTED_PROFILE"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_id",
+        "position_id",
+        "profile_id",
+        "status",
+        "dependencies",
+        "blocker_codes"
+      ],
+      "title": "RunExecutabilityResult",
+      "type": "object"
+    },
+    "TrlFactV1": {
+      "additionalProperties": false,
+      "properties": {
+        "matching_safe": {
+          "title": "Matching Safe",
+          "type": "boolean"
+        },
+        "provenance_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provenance Ref"
+        },
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "UNKNOWN",
+            "N_A"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "maximum": 9,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "status",
+        "matching_safe"
+      ],
+      "title": "TrlFactV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "candidates": {
+      "items": {
+        "$ref": "#/$defs/RankingCandidateV2"
+      },
+      "title": "Candidates",
+      "type": "array"
+    },
+    "cohort": {
+      "$ref": "#/$defs/CohortAllocationBindingV1"
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "process_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Process Id",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "run_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "ranking-request-v2",
+      "default": "ranking-request-v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "project_id",
+    "tenant_id",
+    "input_revision",
+    "process_id",
+    "cohort",
+    "candidates"
+  ],
+  "title": "RankingRequestV2",
+  "type": "object"
+}

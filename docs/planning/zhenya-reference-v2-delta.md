@@ -210,6 +210,27 @@ C17 не меняет исходы gates, а фиксирует их испол�
 ZV2-12 остаётся `REJECTED_WITH_REASON` для default VAT 20%; C17 использует gross
 cash basis и не объявляет scenario tariff подтверждённой vendor offer.
 
+### V2-D — решение C19
+
+Gate завершён 2026-09-23 overlay
+`hackathon-calculation-policy-v1+v2d-c19`; policy/registry v1, старые runs и
+исторические C05 reports не переписаны:
+
+- **ZV2-13 — ADOPTED_IN_POLICY_V2 в части integration scoring.** Integrations
+  закреплены как advisory applicability component. Missing/unknown integration
+  уменьшает score, но не создаёт hard fail и не превращает unverified evidence
+  в matching-safe capability.
+- **ZV2-13 — REJECTED_WITH_REASON в части литерального счётчика 23.** Поставка
+  одновременно указывает 23 и 31, поэтому ни одно число не используется как
+  скрытый runtime gate. Canonical set задаётся точным упорядоченным набором
+  stable check IDs активной `calculation-constraint-rules-v2`; на момент C19
+  это 29 правил. Изменение состава требует новой rules/policy version.
+- **ZV2-14 — ADOPTED_IN_POLICY_V2.** Fleet density ниже 30 m²/robot остаётся
+  object-level warning без hard fail и без score penalty.
+
+C19 связывает exact C05/C06 digests и frozen C18 cohort, применяет eligibility
+до score и отделяет technical recommendation от financial recommendation.
+
 Каждый gate должен завершаться одним из результатов: `ADOPTED_IN_POLICY_V2`,
 `DEFERRED_POST_MVP` или `REJECTED_WITH_REASON`. Отсутствие решения не меняет
 policy v1 и не останавливает более ранние независимые этапы.

@@ -357,8 +357,19 @@ control-post и technical staff учитываются один раз; process 
 исключают object-shared статьи. Отчёт:
 [multiprocess allocation v1](planning/multiprocess-allocation-v1.md).
 
-Следующая малая итерация — **`engine/ranking-v2`** (C19). Frontend, catalog
-membership, старые runs и production runtime activation в C18 не менялись.
+Этап **`engine/ranking-v2`** (C19) завершён: eligibility C05/C06 применяется до
+score, C18 NPV нормализуется только внутри frozen process cohort, а technical и
+financial recommendations разделены. Добавлены explicit K14 curves, R08/K16
+data completeness, deterministic ties, full formula/provenance trace и replay
+bindings. Hard fail не получает score; incomplete finance не получает full
+score; all-negative cohort не выдаёт положительную финансовую рекомендацию.
+V2-D закрепил exact versioned C05 rule IDs (29 в текущей rules v2), а
+integrations — как advisory applicability component. Отчёт:
+[ranking v2](planning/ranking-v2.md).
+
+Следующая малая итерация — **`economics/sensitivity-v1`** (C20). Frontend,
+catalog membership, capacity snapshots, старые runs и production runtime
+activation в C19 не менялись.
 
 Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

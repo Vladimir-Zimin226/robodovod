@@ -37,6 +37,7 @@ from calculation.economics.cashflow import FinancialAnalysisRequestV1, Financial
 from calculation.economics.purchase import PurchaseCostLedgerV1, PurchaseLedgerRequestV1, calculate_purchase_ledger
 from calculation.economics.raas import RaasAnalysisRequestV1, RaasFinancialResultV1, calculate_raas_financials
 from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
+from calculation.ranking import RankingRequestV2, RankingResultV2, calculate_ranking
 from calculation_contracts import (
     CalculationTrace,
     CapacityAnalysisRequest,
@@ -338,3 +339,9 @@ def analyze_multiprocess_allocation(request: MultiprocessAllocationRequestV1) ->
     """Versioned C18 boundary over immutable C14 and C16/C17 projections."""
 
     return calculate_multiprocess_allocation(request)
+
+
+def analyze_ranking(request: RankingRequestV2) -> RankingResultV2:
+    """Versioned C19 boundary over C05/C06 and frozen C18 cohort bindings."""
+
+    return calculate_ranking(request)
