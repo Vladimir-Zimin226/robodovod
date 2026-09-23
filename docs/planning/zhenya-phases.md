@@ -15,7 +15,7 @@ C14 **COMPLETE** 2026-09-23, C15 **COMPLETE** 2026-09-23,
 C16 **COMPLETE** 2026-09-23, C17 **COMPLETE** 2026-09-23,
 C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
 C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23;
-C22–C29 пока **PLANNED**.
+C22–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -35,8 +35,9 @@ policy v1. C03–C11 продолжаются по K01–K29. Контрольн
 получают новую policy/registry version; completed C01/C02 и старые runs не
 переписываются.
 
-Полнота исполнения: C01–C29, включая tax, replacement, allocation, sensitivity,
-simulation, exports, rollout и migration acceptance, обязательны в полном
+Полнота исполнения: C01–C30, включая tax, replacement, allocation, sensitivity,
+simulation, exports, rollout, migration acceptance и production deployment,
+обязательны в полном
 объёме их карточек. Scope discipline запрещает только неуправляемое усложнение
 сверх плана. Ни один существующий acceptance gate не ослабляется; уточнения
 `reference v2` добавляются только через V2-A–V2-D с новой версией policy/data.
@@ -828,6 +829,43 @@ C29 принимает все28scopes по policy§3 и warehouse full flow. Ф�
 - **Вне этапа:** weakening evidence tohitdeadline, unexplained scope reduction,
   pretending simulation is deployment certification.
 
+## C30 — `ops/production-domain-deployment-v1`
+
+Статус: **PLANNED**. Исполнитель — агент; production activation выполняется
+только по явной команде владельца после полного C29 gate.
+
+- **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
+  с Ubuntu 24.04 LTS по `robodovod.ru` и `www.robodovod.ru`; серверный baseline,
+  DNS, SSH и read-only GitHub deploy key сверяются с локальным `DEPLOY.md`.
+- **Release:** deploy только annotated tag или явно записанного commit из
+  защищённого `main`; feature-ветки и незафиксированный server worktree запрещены.
+- **Контейнеры / сеть:** versioned production Compose/override, PostgreSQL и
+  backend во внутренней сети без public host ports; наружу только 80/443 через
+  reverse proxy. Dev-порты 5432/8000/5173 не публикуются.
+- **TLS / домен:** валидный автоматически обновляемый сертификат для apex+www,
+  HTTP→HTTPS, корректные forwarded headers, secure cookies/CSRF и security headers.
+- **Секреты / данные:** production `.env` создаётся только на сервере с mode600,
+  секреты не входят в image/Git/log; persistent volumes и uploads имеют
+  документированное владение, retention и off-host backup.
+- **Миграции:** one-shot migration до traffic switch, pre-deploy backup,
+  fail-closed при ошибке и проверенный restore в disposable environment;
+  immutable historical runs не переписываются.
+- **Operations:** health/readiness, restart policy, resource limits, log
+  rotation, disk/database monitoring, unattended security updates и минимальные
+  alerts; security group Selectel дублирует host firewall.
+- **Rollout / rollback:** preflight config/build, migration gate, smoke без
+  тестовых bypass, фиксация deployed/previous commit; rollback приложения
+  отрепетирован без destructive volume/database commands.
+- **Тесты:** production Compose config, clean-host build, migration/restore,
+  restart VDS, apex/www DNS+TLS+redirect, external HTTP smoke, закрытые
+  5432/8000/5173, tenant/CSRF/upload regressions и rollback drill.
+- **Acceptance / зависимости:** C29 полностью COMPLETE; release доступен через
+  HTTPS, переживает reboot, health зелёный, backup восстановим, секреты не
+  отслеживаются Git, runbook содержит точные команды и наблюдаемые результаты.
+- **Вне этапа:** изменение расчётных формул/policy/catalog membership, rewrite
+  старых runs, ослабление evidence/security gates и ручное редактирование
+  production database в обход migrations.
+
 ## Как считать план завершённым
 
 Завершение C29 — warehouse полный поток по T1/T3/T4, три типа объектов
@@ -839,4 +877,6 @@ E2E с полными явными scenario inputs работает offline; с�
 не выдаётся за коммерческое предложение. Старые runs воспроизводятся.
 Тестовые/evidence/security gates остаются обязательными: агент исправляет
 нарушения, а не обходит их. Review модельных assumptions проводится после
-реализации и оформляется policy v2. Runtime данные не меняются в этой сессии.
+реализации и оформляется policy v2. Полный план завершается C30 после
+воспроизводимого production deployment и operations acceptance; добавление
+карточки C30 само по себе не разрешает activation в текущей сессии.

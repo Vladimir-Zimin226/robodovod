@@ -519,9 +519,13 @@ Gate: golden path проходит пять раз подряд локально
 23. `admin/catalog-draft-publish` — самостоятельная работа верхнего roadmap.
 24. C29 `qa/calculation-migration-acceptance` и оставшиеся
     `qa/security-performance-deploy`/operations gates.
+25. C30 `ops/production-domain-deployment-v1` — отдельная публикация принятого
+    release на Selectel VDS: production Compose, закрытые внутренние порты,
+    DNS/TLS для apex+www, secrets, migrations, backup/restore, observability и
+    проверенный rollback. Production activation допускается только после C29.
 
 Точные имена всех веток, dependencies, migrations и acceptance gates:
-[карточки C01–C29](planning/zhenya-phases.md). Для 28 process blocks указаны
+[карточки C01–C30](planning/zhenya-phases.md). Для 28 process blocks указаны
 отдельные microstages C10.01–C10.28; scope каждого блока определён
 [policy v1](planning/calculation-policy-decisions-v1.md): supported formula,
 scenario-only cycle, reference-only или constraints. Ответ Жени не требуется. Прежние укрупнённые

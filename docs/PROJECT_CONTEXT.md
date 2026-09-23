@@ -386,10 +386,18 @@ Capacity и legacy saved-run viewers сохранены. Отчёт:
 Следующая малая итерация — **`contracts/scenario-spec-v2`** (C22). Catalog
 membership, старые runs и production runtime activation в C21 не менялись.
 
-Все C01–C29 и их acceptance gates обязательны к последовательной реализации.
+Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
 его tax, replacement, allocation, sensitivity, simulation, export и rollout
 этапы не упрощаются и не переводятся в optional.
+
+После расчётной приёмки C29 добавлен отдельный C30
+**`ops/production-domain-deployment-v1`**: публикация принятого release на
+Selectel VDS для `robodovod.ru`/`www.robodovod.ru`, production Compose,
+TLS/reverse proxy, secrets, migrations, backup/restore, observability и
+rollback. Сервер предварительно подготовлен, но application production
+activation до C30 не выполняется. Локальные operational details хранятся в
+неотслеживаемом `DEPLOY.md` и не являются частью repository artifacts.
 
 Главные изменения целевого канона: полный exchange учитывается один раз,
 peak×reserve отделён от availability; роли и USER gross salary вместо единого

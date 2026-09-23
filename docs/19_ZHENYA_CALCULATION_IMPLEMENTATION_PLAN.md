@@ -65,7 +65,7 @@ v1: K01–K29 остаются основой, C03 не блокируется. 
 DTO и schema C01 реализованы аддитивно; остальные модули ниже остаются
 запланированными. Production поведение и runtime slots не меняются.
 
-Полнота исполнения: все этапы C01–C29 и все acceptance gates этого плана
+Полнота исполнения: все этапы C01–C30 и все acceptance gates этого плана
 обязательны. Они не переводятся в optional и не сокращаются из-за объёма или
 сложности. Контроль scope означает только запрет бесконтрольно добавлять новую
 логику сверх плана: уточнения `reference v2` сначала проходят назначенный
@@ -656,11 +656,13 @@ owner/evidence/schema validation. Ветки Cxx — рекомендуемые 
 | C27 | `catalog/capacity-runtime-dual-run-rollout` — независимый capacity rollout | C11–12; можно сразу после них, не ждать economics |
 | C28 | `catalog/economics-runtime-migration` — полный v2 rollout, legacy isolation | C21,C26–27; replay/rollback |
 | C29 | `qa/calculation-migration-acceptance` — сквозная приёмка | C28; scope T1/policy§3 |
+| C30 | `ops/production-domain-deployment-v1` — production-развёртывание `robodovod.ru` | C29; release/operations gate |
 
 Порядок C13–20 и C22–25 допускает независимые ветки по зависимостям.
 C10 реализует принятые28scopes, включая REFERENCE_ONLY и CONSTRAINT_ONLY.
-Неизвестные физические алгоритмы не являются release dependency. После C29
-можно расширять их отдельными versioned профилями; сейчас обязательны T1–T4.
+Неизвестные физические алгоритмы не являются release dependency. C29 завершает
+приёмку расчётного контура, C30 — его контролируемую публикацию; после C30 их
+можно расширять отдельными versioned профилями. Сейчас обязательны T1–T4.
 
 ### 7.1. Подробный scope `engine/capacity-formula-trace`
 
