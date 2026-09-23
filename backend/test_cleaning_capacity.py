@@ -141,6 +141,24 @@ def test_golden_airport_area_derivation_and_byte_stable_replay():
     assert canonical_json_bytes(result) == canonical_json_bytes(calculate_cleaning_capacity(request()))
 
 
+def test_preliminary_cleaning_retains_unverified_constraints_and_trace_warning():
+    candidate_value = candidate()
+    run = evaluate_run_executability(
+        candidate_value, scenario(), "NEEDS_VALIDATION", registry_payload(),
+        allow_preliminary=True,
+    )
+    value = request().model_copy(deep=True)
+    value.executability = run
+    value.constraints = value.constraints.model_copy(update={
+        "eligibility": "NEEDS_VALIDATION", "validation_codes": ["passport-availability"],
+    })
+    result = calculate_cleaning_capacity(value)
+    assert result.capacity.status == "WITH_ASSUMPTIONS"
+    assert result.capacity.value.recommended_fleet == 4
+    assert result.trace.assumptions[0].assumption_id == "preliminary-applicability-unverified"
+    assert result.trace.issues[0].code == "demo-applicability-unverified"
+
+
 @pytest.mark.parametrize("selected,coverage,overloaded", [
     (3, "0.9882352941176470588235294118", True), (4, "1", False), (5, "1", False)])
 def test_manual_cleaning_fleet_uses_actual_daily_capacity(selected, coverage, overloaded):

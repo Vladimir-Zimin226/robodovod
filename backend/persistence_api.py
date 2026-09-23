@@ -585,6 +585,7 @@ def create_persistence_router(
     resolve_object_profile_version: Callable[[], str] | None = None,
     resolve_capacity_catalog: Callable[[], Any] | None = None,
     analyze_capacity_for_catalog: Callable[[CapacityAnalysisRequest, Any, str], CapacityExecutionSnapshotV2] | None = None,
+    resolve_economics_catalog: Callable[[], Any] | None = None,
     resolve_economics_version: Callable[[], str] | None = None,
     calculate_economics_v2: Callable[[dict[str, Any], Any], EconomicsV2ExecutionV1] | None = None,
 ) -> APIRouter:
@@ -1322,9 +1323,10 @@ def create_persistence_router(
             )
         except EconomicsMigrationError:
             raise HTTPException(status_code=503, detail="economics v2 route unavailable") from None
-        if resolve_catalog is None:
-            raise HTTPException(status_code=503, detail="runtime catalog unavailable")
-        catalog_snapshot = resolve_catalog()
+        economics_catalog_resolver = resolve_economics_catalog or resolve_catalog
+        if economics_catalog_resolver is None:
+            raise HTTPException(status_code=503, detail="economics catalog unavailable")
+        catalog_snapshot = economics_catalog_resolver()
         input_snapshot = payload.input
         try:
             execution = calculate_economics_v2(payload.input, catalog_snapshot)

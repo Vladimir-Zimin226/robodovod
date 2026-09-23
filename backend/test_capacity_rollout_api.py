@@ -28,6 +28,18 @@ def test_capacity_v2_route_is_bound_to_dedicated_capacity_snapshot():
     assert bindings["resolve_capacity_catalog"] is not main._discovery_snapshot
 
 
+def test_economics_v2_is_bound_to_capacity_catalog_not_empty_legacy_runtime():
+    routes = list(main.app.routes)
+    for included in main.app.routes:
+        original = getattr(included, "original_router", None)
+        if original is not None:
+            routes.extend(original.routes)
+    route = next(item for item in routes if getattr(item, "path", None)
+                 == "/api/v2/projects/{project_id}/economics-runs" and "POST" in getattr(item, "methods", set()))
+    bindings = inspect.getclosurevars(route.endpoint).nonlocals
+    assert bindings["resolve_economics_catalog"] is main._capacity_snapshot
+
+
 def test_capacity_snapshot_error_is_sanitized_and_keeps_reason_out_of_response(monkeypatch):
     class InvalidRuntime:
         def load_capacity(self):

@@ -20,13 +20,13 @@ const PROCESS_DEFAULTS = {
   other: ['transport', 'pallets'],
 };
 
-export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, onFileApplied, onReady, onIntakeV2Normalized }) {
+export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, onFileApplied, onReady, onIntakeV2Normalized, onCapacityResult }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', text: WELCOME[objectType] || WELCOME.other },
   ]);
   const [input, setInput] = useState(initialPrompt);
   const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState(initialCollected?.mode || 'whole');
+  const [mode, setMode] = useState(initialCollected?.mode || (objectType === 'other' ? 'whole' : 'process-role-v2'));
   const [zones, setZones] = useState(initialCollected?.zones || []);
   const [collected, setCollected] = useState(
     initialCollected || {
@@ -173,7 +173,11 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
           </div>
         )}
 
-        <div className="flex-1 overflow-auto space-y-3">
+        {mode === 'process-role-v2' ? <div className="flex-1 rounded-xl border bg-white p-5 text-sm text-slate-700 space-y-3">
+          <h2 className="font-semibold">Новый расчётный путь</h2>
+          <p>Заполните процесс и роли справа. Сервер нормализует ввод, затем считает физическую производительность выбранной модели и сохраняет неизменяемый run.</p>
+          <p className="text-amber-800">Пока доступен предварительный capacity-расчёт. Полная экономика покупки и RaaS будет включена только после серверной интеграции и повторной приёмки. AI-чат старого расчёта здесь отключён.</p>
+        </div> : <><div className="flex-1 overflow-auto space-y-3">
           {messages.map((m, i) => (
             <div
               key={i}
@@ -204,11 +208,11 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
           >
             Отправить
           </button>
-        </div>
+        </div></>}
       </div>
 
       {mode === 'process-role-v2' ? (
-        <ProcessRoleIntakeV2 key={objectType} objectType={objectType} onNormalized={onIntakeV2Normalized} />
+        <ProcessRoleIntakeV2 key={objectType} objectType={objectType} activeProject={activeProject} onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />
       ) : mode === 'whole' ? (
         <ParamsPanel
           collected={collected}

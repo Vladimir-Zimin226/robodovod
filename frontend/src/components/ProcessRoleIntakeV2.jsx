@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   createDraft,
+  createWarehouseDemoDraft,
   createNormalizationClient,
   confirmRoleAssumption,
   setRoleActive,
@@ -8,6 +9,9 @@ import {
   updateRole,
   validateDraft,
 } from '../processRoleIntakeV2';
+import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
+import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS } from '../demoCapacityFlow';
+import { readCsrfCookie } from '../persistenceApi';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -34,14 +38,21 @@ const statusFor = (process, issues, response) => {
   return ['Готов к нормализации', 'text-green-600'];
 };
 
-export default function ProcessRoleIntakeV2({ objectType, onNormalized }) {
+export default function ProcessRoleIntakeV2({ objectType, activeProject, onNormalized, onCapacityResult }) {
   const [draft, setDraft] = useState(() => createDraft(objectType));
   const [expanded, setExpanded] = useState(null);
   const [result, setResult] = useState(null);
   const [state, setState] = useState('');
   const [error, setError] = useState('');
+  const [positions, setPositions] = useState([]);
+  const [processId, setProcessId] = useState('');
+  const [positionId, setPositionId] = useState('');
+  const [exchangeSeconds, setExchangeSeconds] = useState('');
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [capacityBusy, setCapacityBusy] = useState(false);
   const latestRevision = useRef(draft.inputRevision);
   const normalizationClient = useRef(null);
+  const capacityClient = useRef(createCapacityAnalysisClient());
   useEffect(() => {
     latestRevision.current = draft.inputRevision;
   }, [draft.inputRevision]);
@@ -52,10 +63,31 @@ export default function ProcessRoleIntakeV2({ objectType, onNormalized }) {
       () => latestRevision.current,
     );
   }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`${API}/api/catalog/models?calculation_participation=participating`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((payload) => setPositions(payload.items || []))
+      .catch((catalogError) => {
+        if (catalogError.name !== 'AbortError') setError('Каталог расчётных моделей пока недоступен.');
+      });
+    return () => controller.abort();
+  }, []);
 
   const issues = useMemo(() => validateDraft(draft), [draft]);
   const blockers = issues.filter((item) => item.severity === 'BLOCKER');
   const activeCount = draft.processes.filter((item) => item.active).length;
+  const normalizedIsCurrent = result?.response?.input_revision === draft.inputRevision;
+  const activeProcesses = normalizedIsCurrent
+    ? result.response.normalized_processes.filter((item) => item.active &&
+      ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(item.scope))
+    : [];
+  const selectedProcess = activeProcesses.find((item) => item.process_id === processId) || activeProcesses[0];
+  const candidatePositions = demoCandidates(positions, selectedProcess?.scope);
+  const selectedPosition = candidatePositions.find((item) => item.position_id === positionId);
 
   const normalize = async () => {
     if (blockers.length || activeCount === 0) return;
@@ -64,12 +96,33 @@ export default function ProcessRoleIntakeV2({ objectType, onNormalized }) {
     try {
       const normalized = await normalizationClient.current(draft);
       setResult(normalized);
+      setProcessId(normalized.response.normalized_processes.find((item) => item.active &&
+        ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(item.scope))?.process_id || '');
+      setPositionId('');
       onNormalized?.(normalized);
       setState('ready');
     } catch (requestError) {
       if (requestError.code === 'STALE_INTAKE_RESPONSE') return;
       setError(requestError.message || 'Не удалось проверить ввод');
       setState('');
+    }
+  };
+
+  const runCapacity = async () => {
+    setError('');
+    setCapacityBusy(true);
+    try {
+      const payload = buildDemoCapacityRequest({
+        normalized: result, projectId: activeProject?.id, processId: selectedProcess?.process_id,
+        position: selectedPosition, exchangeSeconds, acknowledged,
+      });
+      const response = await capacityClient.current.create(payload, readCsrfCookie());
+      if (latestRevision.current !== payload.input_revision) return;
+      onCapacityResult?.(response, payload);
+    } catch (runError) {
+      if (runError.code !== 'STALE_CAPACITY_RESPONSE') setError(runError.message || 'Расчёт недоступен');
+    } finally {
+      setCapacityBusy(false);
     }
   };
 
@@ -81,6 +134,14 @@ export default function ProcessRoleIntakeV2({ objectType, onNormalized }) {
           <span className="text-[10px] rounded bg-blue-50 text-blue-700 px-2 py-1">{draft.schemaVersion}</span>
         </div>
         <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Единицы и производные величины проверяет сервер.</p>
+        {objectType === 'retail' && <button type="button" className="mt-2 text-xs underline text-blue-700" onClick={() => {
+          setDraft(createWarehouseDemoDraft());
+          setExchangeSeconds('90');
+          setAcknowledged(false);
+          setResult(null);
+          setError('');
+        }}>Загрузить типовой склад организаторов</button>}
+        {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">120 м плеча и 90 сек. обмена — отдельные демо-допущения; зарплату gross подтвердите в роли.</p>}
       </header>
 
       <div className="space-y-2">
@@ -110,7 +171,7 @@ export default function ProcessRoleIntakeV2({ objectType, onNormalized }) {
                     return <div key={roleCode} className="mt-2 border rounded bg-white p-2">
                       <label className="flex gap-2 text-xs"><input type="checkbox" checked={Boolean(role)} onChange={(event) => setDraft((current) => setRoleActive(current, process.code, roleCode, event.target.checked))} />{ROLE_LABELS[roleCode] || roleCode}</label>
                       {role && <div className="grid grid-cols-2 gap-2 mt-2">
-                        <NumberField label="Численность, person" value={role.headcount} onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value }))} />
+                        <NumberField label="Численность, person" value={role.headcount} onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value, headcountSource: 'USER' }))} />
                         <NumberField label="Зарплата gross, RUB/person/month" value={role.salary} onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
                         {role.salarySource === 'ASSUMPTION' && !role.salaryConfirmed && <label className="col-span-2 text-[10px] text-amber-700"><input type="checkbox" className="mr-1" onChange={(event) => event.target.checked && setDraft((current) => confirmRoleAssumption(current, role.roleId))} />Подтверждаю это допущение для revision</label>}
                         {!role.salary && <p className="col-span-2 text-[10px] text-amber-700">Без monthly gross salary техническая проверка возможна, а labour/finance останутся incomplete.</p>}
@@ -133,6 +194,28 @@ export default function ProcessRoleIntakeV2({ objectType, onNormalized }) {
       <button type="button" disabled={state === 'loading' || activeCount === 0 || blockers.length > 0} onClick={normalize} className="w-full rounded-xl py-3 mt-3 text-sm font-semibold bg-blue-600 text-white disabled:bg-slate-200 disabled:text-slate-400">
         {state === 'loading' ? 'Проверяем…' : 'Проверить ввод v2'}
       </button>
+      {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт v2">
+        <h3 className="text-sm font-semibold">Предварительный расчёт v2</h3>
+        <p className="text-xs text-amber-800">Демо-профиль не является паспортом изготовителя. Неизвестные проверки C05 останутся в результате; число роботов не означает готовность к закупке.</p>
+        {!activeProject && <p className="text-xs text-amber-800">Для immutable run войдите в аккаунт и откройте проект.</p>}
+        {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">Для этого процесса нет физической формулы C07/C08.</p> : <>
+          <label className="block text-xs">Процесс
+            <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); }}>
+              {activeProcesses.map((item) => <option key={item.process_id} value={item.process_id}>{item.process_code}</option>)}
+            </select>
+          </label>
+          <label className="block text-xs">Модель из активного capacity-каталога
+            <select className="w-full border rounded px-2 py-1" value={positionId} onChange={(event) => setPositionId(event.target.value)}>
+              <option value="">Выберите модель</option>
+              {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.model_id]} · позиция {item.source_row_number}</option>)}
+            </select>
+          </label>
+          {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
+          {selectedProcess?.scope === 'CLEANING_AREA' && <p className="text-xs text-slate-600">Демо-допущение: одна уборка указанной площади в сутки.</p>}
+          <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
+          <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !activeProject || !selectedPosition || !acknowledged} onClick={runCapacity}>{capacityBusy ? 'Считаем…' : 'Рассчитать и сохранить v2'}</button>
+        </>}
+      </section>}
     </aside>
   );
 }

@@ -10,6 +10,8 @@ from pydantic import Field, model_validator
 from calculation.constraints import ConstraintReportV2
 from calculation.executability import DependencyResolution, RunExecutabilityResult
 from calculation_contracts import (
+    AssumptionProvenance,
+    AssumptionUse,
     CalculationTrace,
     CapacityAnalysisResponse,
     CapacityResult,
@@ -236,7 +238,11 @@ def _terminal(
 def calculate_cleaning_capacity(request: CleaningCapacityRequestV1) -> CapacityAnalysisResponse:
     if not request.process.active:
         return _terminal(request, status="NOT_APPLICABLE")
-    if request.executability.status != "EXECUTABLE":
+    preliminary = (
+        request.executability.status == "PRELIMINARY_EXECUTABLE"
+        and request.constraints.eligibility == "NEEDS_VALIDATION"
+    )
+    if request.executability.status not in {"EXECUTABLE", "PRELIMINARY_EXECUTABLE"}:
         blocker_reason = (
             "MISSING_SAFE_FACT"
             if any(code.startswith("fact.") for code in request.executability.blocker_codes)
@@ -247,7 +253,7 @@ def calculate_cleaning_capacity(request: CleaningCapacityRequestV1) -> CapacityA
             status="BLOCKED",
             issue=_issue("c08-executability-blocked", blocker_reason, "C06 cleaning dependency closure is not executable"),
         )
-    if request.constraints.eligibility != "ELIGIBLE":
+    if request.constraints.eligibility != "ELIGIBLE" and not preliminary:
         return _terminal(
             request,
             status="BLOCKED",
@@ -324,6 +330,31 @@ def calculate_cleaning_capacity(request: CleaningCapacityRequestV1) -> CapacityA
                 decision_refs=["K04", "K27"],
             )
         )
+    demo_assumptions = []
+    demo_warnings = []
+    if preliminary:
+        demo_provenance = AssumptionProvenance(
+            provenance_id="prov.assumption.preliminary-applicability",
+            assumption_id="preliminary-applicability-unverified",
+            assumption_version="demo-v1",
+            rationale="C05 critical unknowns remain; numerical result is an acknowledged demo estimate, not deployment eligibility",
+            permitted_scope=str(request.process.scope), confirmation_state="USER_CONFIRMED",
+        )
+        provenance.append(demo_provenance)
+        demo_assumptions.append(AssumptionUse(
+            assumption_id=demo_provenance.assumption_id,
+            assumption_version=demo_provenance.assumption_version,
+            provenance_ref=demo_provenance.provenance_id,
+            rationale=demo_provenance.rationale,
+            permitted_scope=demo_provenance.permitted_scope,
+            mode="DEFAULT", raw_user_override=None, applicable_scenario="ALL",
+            confirmation_state="USER_CONFIRMED",
+        ))
+        demo_warnings.append(ContractIssue(
+            code="demo-applicability-unverified", reason="MISSING_SAFE_FACT", severity="WARNING",
+            field_refs=["constraints.validation_codes"], decision_refs=["K15"],
+            message="Preliminary calculation only; critical C05 checks need validation before procurement or deployment",
+        ))
     area_provenance = area_inputs[0].provenance_ref
     if request.area_source.mode == "SHARE_OF_TOTAL":
         area_provenance = "prov.derived.cleaning-area"
@@ -411,8 +442,9 @@ def calculate_cleaning_capacity(request: CleaningCapacityRequestV1) -> CapacityA
     )
     capacity = CapacityResult(
         process_id=request.process.process_id,
-        status="COMPLETE",
+        status="WITH_ASSUMPTIONS" if preliminary else "COMPLETE",
         value=values,
+        warnings=demo_warnings,
         trace_ref=f"trace.{request.run_id}",
     )
     trace = CalculationTrace(
@@ -431,17 +463,19 @@ def calculate_cleaning_capacity(request: CleaningCapacityRequestV1) -> CapacityA
         inputs=inputs,
         formula_nodes=nodes,
         intermediates=intermediates,
+        assumptions=demo_assumptions,
         constraints=constraints,
         roundings=[rounding],
         results=[
             TraceResult(
                 result_id="result.effective-cleaning-fleet-capacity",
-                status="COMPLETE",
+                status="WITH_ASSUMPTIONS" if preliminary else "COMPLETE",
                 value=values.effective_capacity,
                 supporting_node_ids=["node.f07"],
                 capacity_basis="EFFECTIVE",
             )
         ],
+        issues=demo_warnings,
         replay=ReplayBinding(
             canonical_input_digest=semantic_digest(request), trace_content_digest=ZERO_DIGEST
         ),

@@ -258,7 +258,8 @@ def analyze_capacity(
     constraints = constraint_provider(request, position)
     candidate = candidate_from_repository(position.formula_executability_dto())
     executability = evaluate_run_executability(
-        candidate, _scenario_values(request), constraints.eligibility, registry_payload()
+        candidate, _scenario_values(request), constraints.eligibility, registry_payload(),
+        allow_preliminary=request.execution_mode == "PRELIMINARY_DEMO",
     )
     if route.disposition in {"REFERENCE_ONLY", "CONSTRAINT_ONLY", "NOT_APPLICABLE"}:
         response = _terminal_response(

@@ -494,6 +494,41 @@ def test_capacity_run_is_independent_immutable_and_tenant_scoped(monkeypatch, mi
             transaction.rollback()
 
 
+def test_preliminary_capacity_run_requires_csrf_and_reopens_with_c05_unknowns(monkeypatch):
+    catalog = capacity_snapshot()
+
+    class CapacitySource:
+        def load_capacity(self):
+            return catalog
+
+    monkeypatch.setattr(main, "_CATALOG_RUNTIME", CapacitySource())
+    now = datetime.now(timezone.utc)
+    with get_database().session() as db:
+        db.add(CatalogVersion(
+            id=uuid.UUID(catalog.version.id), code=catalog.version.code,
+            status="PUBLISHED", schema_version="4", content_sha256="a" * 64,
+            created_at=now, updated_at=now, validated_at=now, published_at=now,
+        ))
+        db.commit()
+    with TestClient(main.app) as owner:
+        _, headers = _register(owner, "demo-capacity-owner@example.com")
+        project = _create_project(owner, headers)
+        payload = capacity_request().model_dump(mode="json")
+        payload.update(project_id=project["id"], execution_mode="PRELIMINARY_DEMO",
+                       demo_assumptions_confirmed=True)
+        assert owner.post("/api/v2/capacity-analyses", json=payload).status_code == 403
+        created = owner.post("/api/v2/capacity-analyses", headers=headers, json=payload)
+        assert created.status_code == 201, created.text
+        result = created.json()
+        assert result["capacity"]["status"] == "WITH_ASSUMPTIONS"
+        assert result["capacity"]["value"]["recommended_fleet"] > 0
+        assert any(check["status"] == "UNKNOWN" for check in result["trace"]["constraints"])
+        assert owner.get(f"/api/v2/capacity-analyses/{result['run_id']}").json() == result
+    with TestClient(main.app) as intruder:
+        _register(intruder, "demo-capacity-intruder@example.com", PASSWORD_B)
+        assert intruder.get(f"/api/v2/capacity-analyses/{result['run_id']}").status_code == 404
+
+
 def test_capacity_endpoint_returns_503_without_published_source(monkeypatch):
     class MissingCapacitySource:
         def load_capacity(self):

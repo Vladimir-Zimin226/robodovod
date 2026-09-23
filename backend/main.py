@@ -865,6 +865,7 @@ app.include_router(
         resolve_object_profile_version=official_profile_version,
         resolve_capacity_catalog=_capacity_snapshot,
         analyze_capacity_for_catalog=analyze_capacity,
+        resolve_economics_catalog=_capacity_snapshot,
     )
 )
 app.include_router(create_simulation_router())

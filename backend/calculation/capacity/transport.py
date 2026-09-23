@@ -209,9 +209,13 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
         return CapacityAnalysisResponse(run_id=request.run_id, input_revision=request.process.input_revision,
             capacity=CapacityResult(process_id=request.process.process_id, status="NOT_APPLICABLE", value=None,
                                     trace_ref=f"trace.{request.run_id}"), trace=trace)
-    if request.executability.status != "EXECUTABLE":
+    preliminary = (
+        request.executability.status == "PRELIMINARY_EXECUTABLE"
+        and request.constraints.eligibility == "NEEDS_VALIDATION"
+    )
+    if request.executability.status not in {"EXECUTABLE", "PRELIMINARY_EXECUTABLE"}:
         return _blocked(request, "c07-executability-blocked", "C06 dependency closure is not executable")
-    if request.constraints.eligibility != "ELIGIBLE":
+    if request.constraints.eligibility != "ELIGIBLE" and not preliminary:
         return _blocked(request, "c07-constraint-blocked", "C05 constraints are not eligible")
     try:
         if request.process.schedule is None or not isinstance(request.process.demand, KnownQuantity):
@@ -299,6 +303,29 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
         batch_prov = policy_prov
     assumptions: list[AssumptionUse] = []
     warnings: list[ContractIssue] = []
+    if preliminary:
+        assumption_prov = AssumptionProvenance(
+            provenance_id="prov.assumption.preliminary-applicability",
+            assumption_id="preliminary-applicability-unverified",
+            assumption_version="demo-v1",
+            rationale="C05 critical unknowns remain; numerical result is an acknowledged demo estimate, not deployment eligibility",
+            permitted_scope=str(request.process.scope), confirmation_state="USER_CONFIRMED",
+        )
+        provenance.append(assumption_prov)
+        assumptions.append(AssumptionUse(
+            assumption_id=assumption_prov.assumption_id,
+            assumption_version=assumption_prov.assumption_version,
+            provenance_ref=assumption_prov.provenance_id,
+            rationale=assumption_prov.rationale,
+            permitted_scope=assumption_prov.permitted_scope,
+            mode="DEFAULT", raw_user_override=None, applicable_scenario="ALL",
+            confirmation_state="USER_CONFIRMED",
+        ))
+        warnings.append(ContractIssue(
+            code="demo-applicability-unverified", reason="MISSING_SAFE_FACT", severity="WARNING",
+            field_refs=["constraints.validation_codes"], decision_refs=["K15"],
+            message="Preliminary calculation only; critical C05 checks need validation before procurement or deployment",
+        ))
     if proxy:
         assumption_prov = AssumptionProvenance(provenance_id="prov.assumption.speed-proxy",
             assumption_id="safe-max-speed-optimistic-proxy", assumption_version="K02-v1",

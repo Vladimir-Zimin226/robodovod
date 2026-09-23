@@ -130,6 +130,47 @@ def test_default_constraints_fail_closed_but_preserve_same_revision():
     assert result.constraints.input_revision == result.response.input_revision == "revision.c11.v1"
 
 
+def test_acknowledged_demo_calculates_without_claiming_c05_eligibility():
+    raw = request().model_dump(mode="json")
+    raw.update(execution_mode="PRELIMINARY_DEMO", demo_assumptions_confirmed=True)
+    demo = CapacityAnalysisRequest.model_validate(raw)
+    first = analyze_capacity(demo, snapshot(), "run.c11.demo")
+    second = analyze_capacity(demo, snapshot(), "run.c11.demo")
+    assert first.constraints.eligibility == "NEEDS_VALIDATION"
+    assert "passport-availability" in first.constraints.validation_codes
+    assert first.executability.status == "PRELIMINARY_EXECUTABLE"
+    assert first.response.capacity.status == "WITH_ASSUMPTIONS"
+    assert first.response.capacity.value.recommended_fleet > 0
+    assert any(x.code == "demo-applicability-unverified" for x in first.response.capacity.warnings)
+    assert canonical_json_bytes(first.response) == canonical_json_bytes(second.response)
+
+
+def test_unacknowledged_demo_request_is_rejected():
+    raw = request().model_dump(mode="json")
+    raw["execution_mode"] = "PRELIMINARY_DEMO"
+    with pytest.raises(ValueError, match="acknowledgement"):
+        CapacityAnalysisRequest.model_validate(raw)
+
+
+def test_demo_never_overrides_known_critical_failure_or_missing_dependency():
+    raw = request().model_dump(mode="json")
+    raw.update(execution_mode="PRELIMINARY_DEMO", demo_assumptions_confirmed=True)
+    demo = CapacityAnalysisRequest.model_validate(raw)
+
+    def failed_constraints(value, position):
+        report = eligible_constraints(value, position)
+        return report.model_copy(update={"eligibility": "BLOCKED", "blocker_codes": ["payload"]})
+
+    failed = analyze_capacity(demo, snapshot(), "run.c11.demo-failed", constraint_provider=failed_constraints)
+    assert failed.executability.status == "BLOCKED"
+    assert failed.response.capacity.status == "BLOCKED"
+
+    raw["process"]["exchange"] = None
+    missing = analyze_capacity(CapacityAnalysisRequest.model_validate(raw), snapshot(), "run.c11.demo-missing")
+    assert missing.executability.status == "NEEDS_VALIDATION"
+    assert missing.response.capacity.status == "BLOCKED"
+
+
 def test_reference_only_and_identity_mismatch_are_explicit():
     result = analyze_capacity(request(code="warehouse_inventory"), snapshot(), "run.c11.reference")
     assert result.route.disposition == "REFERENCE_ONLY"

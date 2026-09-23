@@ -486,6 +486,14 @@ availability и фактические параметры объекта. Эти
 разрывы production UI → C11 → economics v2; полный traffic switch запрещён.
 Подробности: [integration gap](planning/production-calculation-integration-gap.md).
 
+По явному разрешению владельца начат отдельный предварительный demo-route:
+три авторских [профиля моделей](planning/demo-model-profiles-v1.md) отделяют
+публичные ТТХ от допущений; v2-ввод по умолчанию открывает сохранённый C11
+capacity run после подтверждения условий. Строгий C05 и исторические runs
+сохранены. Это **не завершает** production economics orchestrator C13–C21,
+повторную приёмку и C30 traffic switch; legacy new-run route пока нельзя
+выключать, не оставив пользователя без полного финансового расчёта.
+
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:
 его tax, replacement, allocation, sensitivity, simulation, export и rollout

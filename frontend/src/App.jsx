@@ -217,6 +217,13 @@ export default function App() {
             }}
             onReady={handleReady}
             onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; }}
+            onCapacityResult={(response, request) => {
+              setResult(response);
+              setUserInput(request);
+              setActiveRun({ id: response.run_id, run_kind: 'CAPACITY_ANALYSIS' });
+              setSaveState('saved');
+              setPhase('results');
+            }}
           />
         ) : phase === 'catalog' ? (
           <CatalogScreen objectType={objectType || 'other'} onContinue={() => setPhase(result ? 'results' : 'onboarding')} />

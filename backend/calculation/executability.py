@@ -209,7 +209,7 @@ class RunExecutabilityResult(StrictContractModel):
     model_id: str
     position_id: str | None
     profile_id: str | None
-    status: Literal["EXECUTABLE", "MISSING_INPUT", "NEEDS_VALIDATION", "BLOCKED", "UNSUPPORTED_PROFILE"]
+    status: Literal["EXECUTABLE", "PRELIMINARY_EXECUTABLE", "MISSING_INPUT", "NEEDS_VALIDATION", "BLOCKED", "UNSUPPORTED_PROFILE"]
     dependencies: list[DependencyResolution]
     blocker_codes: list[StableId]
 
@@ -461,6 +461,7 @@ def evaluate_run_executability(
     constraint_eligibility: Literal["ELIGIBLE", "NEEDS_VALIDATION", "BLOCKED"],
     registry: dict[str, Any],
     profiles: ExecutabilityProfilesV3 | None = None,
+    *, allow_preliminary: bool = False,
 ) -> RunExecutabilityResult:
     profiles = profiles or load_executability_profiles()
     catalog = audit_catalog_candidate(candidate, registry, profiles)
@@ -513,7 +514,7 @@ def evaluate_run_executability(
     if constraint_eligibility == "BLOCKED":
         return RunExecutabilityResult(model_id=candidate.model_id, position_id=candidate.position_id, profile_id=candidate.profile_id, status="BLOCKED", dependencies=dependencies, blocker_codes=["constraint-report-blocked"])
     if constraint_eligibility == "NEEDS_VALIDATION":
-        return RunExecutabilityResult(model_id=candidate.model_id, position_id=candidate.position_id, profile_id=candidate.profile_id, status="NEEDS_VALIDATION", dependencies=dependencies, blocker_codes=["constraint-report-needs-validation", *blockers])
+        return RunExecutabilityResult(model_id=candidate.model_id, position_id=candidate.position_id, profile_id=candidate.profile_id, status="PRELIMINARY_EXECUTABLE" if allow_preliminary and not blockers else "NEEDS_VALIDATION", dependencies=dependencies, blocker_codes=["constraint-report-needs-validation", *blockers])
     return RunExecutabilityResult(model_id=candidate.model_id, position_id=candidate.position_id, profile_id=candidate.profile_id, status="MISSING_INPUT" if blockers else "EXECUTABLE", dependencies=dependencies, blocker_codes=blockers)
 
 

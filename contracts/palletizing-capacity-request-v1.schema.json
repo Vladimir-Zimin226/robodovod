@@ -1031,6 +1031,7 @@
         "status": {
           "enum": [
             "EXECUTABLE",
+            "PRELIMINARY_EXECUTABLE",
             "MISSING_INPUT",
             "NEEDS_VALIDATION",
             "BLOCKED",

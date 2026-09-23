@@ -7,24 +7,29 @@ runs.
 
 ## Исполняемый путь сейчас
 
-1. Основной экран `frontend/src/App.jsx:recalc` вызывает legacy
+1. Исторический `recalc` в `frontend/src/App.jsx` вызывает legacy
    `POST /api/calculate`; `saveAnalysis` выбирает legacy `/analysis-runs` для
-   результата этого пути. Пустой fresh DB не имеет `runtime` slot, а
+   результата этого пути. Новый процессно-ролевой ввод теперь открыт по
+   умолчанию для трёх поддержанных объектов и может создать C11 capacity run,
+   но переход к полной экономике пока не реализован. Пустой fresh DB не имеет `runtime` slot, а
    `organizer-catalog-v4` не содержит `runtime_robots`. Активация этого каталога
    в `runtime` правильно отвергается.
-2. Экран «Процессы и роли v2» делает только
-   `POST /api/v2/calculation-intake/normalize`. Он не выбирает capacity position
-   и не создаёт capacity/economics run.
+2. Экран «Процессы и роли v2» нормализует ввод, выбирает одну из трёх
+   документированных демо-моделей в активном capacity-каталоге и сохраняет
+   immutable C11 run через `/api/v2/capacity-analyses`. Для транспортного
+   процесса требуется явное время обмена; складской пресет раскрывает
+   допущения. C13–C21 economics run он пока **не создаёт**.
 3. Persistence v2 API требует `resolve_economics_version` и
    `calculate_economics_v2`; `main.app` их не передаёт. Тест API подставляет
    fixture executor, который возвращает готовый commercial bundle; такого
    production orchestrator в репозитории нет.
-4. Даже прямой вызов production C11 с готовым capacity-кандидатом использует
-   `conservative_constraints`. Он знает только object/process scope и даёт
-   `NEEDS_VALIDATION`, в частности для обязательных проверок technical passport
-   и availability. `analyze_capacity` в этом состоянии возвращает `BLOCKED`.
-   Положительный C11 golden явно подменяет provider на тестовый `ELIGIBLE`.
-   Это допустимый unit test формул, но не доказательство исполнимости на VDS.
+4. Строгий production C11 по умолчанию продолжает использовать
+   `conservative_constraints`: unknown passport/availability дают
+   `NEEDS_VALIDATION`, и обычный `VERIFIED` run остаётся `BLOCKED`.
+   Добавленный по просьбе владельца `PRELIMINARY_DEMO` требует явного
+   подтверждения, не меняет C05, не проходит известный `FAIL` или неполную
+   dependency closure и возвращает только `WITH_ASSUMPTIONS` с warning/trace.
+   Это численная предварительная оценка, не deployment eligibility.
 
 Дополнительно исходный backend image не содержал committed snapshots
 `data/calculation` и `data/review/process-profile-coverage-v1.json`. Dockerfile
@@ -71,6 +76,9 @@ AMR в легенде Excel — типовой KPI/допущение, а не v
 явными допущениями и provenance, но не закрывают C05 до `ELIGIBLE` для
 публичного утверждения пригодности конкретной модели к конкретному объекту.
 Отдельно остаются технические разрывы UI → C11 → C13–C21, описанные выше.
+Три авторские карточки с source/assumption/unknown разделением:
+[demo-model-profiles-v1](demo-model-profiles-v1.md). Это не паспорта
+изготовителей.
 
 ## Что требуется для полноценного выпуска
 
@@ -79,9 +87,11 @@ AMR в легенде Excel — типовой KPI/допущение, а не v
   требования объекта с provenance, провести C05 до `ELIGIBLE` без test provider.
   Текущий `catalog_capacity_runtime.json` намеренно фиксирует
   `deployment_ready_models=0`; выдавать его за deployment-ready нельзя.
-- Подключить UI к нормализованным процессам, отдельному capacity slot и
-  server-owned C11 endpoint. Для неизвестных фактов показывать `BLOCKED` или
-  `PARTIAL` с причиной, не подставлять скрытые значения.
+- Проверить новый UI → C11 путь на actual activated organizer catalog и
+  повторить browser-level smoke. Отдельная test DB с synthetic published
+  capacity source прошла CSRF/tenant/reopen; это не production activation.
+- Для неизвестных фактов продолжать показывать `BLOCKED` либо честный
+  `WITH_ASSUMPTIONS` в подтверждённом demo-mode. Не подставлять скрытые значения.
 - Реализовать production orchestrator C13–C21 поверх неизменных validated
   snapshots и явных user inputs. Создавать commercial bundle и ScenarioSpec v2
   на сервере, затем подключить versioned economics route. Fixture bundle не

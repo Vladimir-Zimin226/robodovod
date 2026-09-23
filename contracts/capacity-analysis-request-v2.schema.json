@@ -1065,6 +1065,20 @@
       ],
       "default": null
     },
+    "demo_assumptions_confirmed": {
+      "default": false,
+      "title": "Demo Assumptions Confirmed",
+      "type": "boolean"
+    },
+    "execution_mode": {
+      "default": "VERIFIED",
+      "enum": [
+        "VERIFIED",
+        "PRELIMINARY_DEMO"
+      ],
+      "title": "Execution Mode",
+      "type": "string"
+    },
     "input_revision": {
       "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
       "title": "Input Revision",

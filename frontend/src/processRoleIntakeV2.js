@@ -67,10 +67,28 @@ export function createDraft(objectType, sequence = 1) {
       days: '',
       distance: '',
       batch: '',
+      fieldSources: {},
     })),
     roles: [],
     overrideEvents: [],
   };
+}
+
+export function createWarehouseDemoDraft() {
+  let draft = createDraft('retail');
+  draft = updateProcess(draft, 'warehouse_receiving_shipping', {
+    active: true, demand: '2000', shifts: '2', hours: '11', days: '365',
+    distance: '120', batch: '1',
+    fieldSources: {
+      demand: 'ASSUMPTION', shifts: 'ASSUMPTION', hours: 'ASSUMPTION',
+      days: 'ASSUMPTION', distance: 'ASSUMPTION', batch: 'ASSUMPTION',
+    },
+  });
+  draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);
+  return updateRole(draft, `${draft.objectId}.forklift_driver`, {
+    headcount: '25', headcountSource: 'ASSUMPTION',
+    salary: '120000', salarySource: 'ASSUMPTION', salaryConfirmed: false,
+  });
 }
 
 function revise(draft, patch) {
@@ -80,7 +98,14 @@ function revise(draft, patch) {
 
 export function updateProcess(draft, processCode, patch) {
   return revise(draft, {
-    processes: draft.processes.map((item) => item.code === processCode ? { ...item, ...patch } : item),
+    processes: draft.processes.map((item) => {
+      if (item.code !== processCode) return item;
+      const fieldSources = { ...item.fieldSources };
+      for (const key of ['demand', 'shifts', 'hours', 'days', 'distance', 'batch']) {
+        if (Object.hasOwn(patch, key)) fieldSources[key] = 'USER';
+      }
+      return { ...item, ...patch, fieldSources: { ...fieldSources, ...(patch.fieldSources || {}) } };
+    }),
   });
 }
 
@@ -95,7 +120,7 @@ export function setRoleActive(draft, processCode, roleCode, active) {
       ? { ...item, processIds: [...new Set([...item.processIds, process.processId])] }
       : item);
   } else if (active) {
-    roles = [...draft.roles, { roleId, roleCode, processIds: [process.processId], headcount: '', salary: '', salarySource: 'USER', salaryConfirmed: true }];
+    roles = [...draft.roles, { roleId, roleCode, processIds: [process.processId], headcount: '', headcountSource: 'USER', salary: '', salarySource: 'USER', salaryConfirmed: true }];
   } else if (existing) {
     roles = draft.roles
       .map((item) => item.roleId === roleId
@@ -181,21 +206,21 @@ export function serializeDraft(draft) {
       active: process.active,
       activation_source: process.activationSource,
       quantity_kind: process.quantityKind,
-      demand: quantity(process.demand, process.unit),
+      demand: quantity(process.demand, process.unit, process.fieldSources?.demand || 'USER'),
       schedule: process.shifts !== '' || process.hours !== '' || process.days !== '' ? {
-        shifts_per_day: quantity(process.shifts, 'shift'),
-        shift_hours: quantity(process.hours, 'h'),
-        days_per_year: quantity(process.days, 'day'),
+        shifts_per_day: quantity(process.shifts, 'shift', process.fieldSources?.shifts || 'USER'),
+        shift_hours: quantity(process.hours, 'h', process.fieldSources?.hours || 'USER'),
+        days_per_year: quantity(process.days, 'day', process.fieldSources?.days || 'USER'),
       } : null,
-      route_distance: quantity(process.distance, 'm'),
-      explicit_batch: quantity(process.batch, 'unit/trip'),
+      route_distance: quantity(process.distance, 'm', process.fieldSources?.distance || 'USER'),
+      explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER'),
       role_refs: draft.roles.filter((role) => role.processIds.includes(process.processId)).map((role) => role.roleId),
     })),
     roles: draft.roles.map((role) => ({
       role_id: role.roleId,
       object_scope: draft.objectKind,
       role_code: role.roleCode,
-      headcount: quantity(role.headcount, 'person'),
+      headcount: quantity(role.headcount, 'person', role.headcountSource || 'USER'),
       monthly_gross_salary: quantity(role.salary, 'RUB/person/month', role.salarySource, role.salaryConfirmed),
       process_ids: role.processIds,
     })),

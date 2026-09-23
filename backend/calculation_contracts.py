@@ -731,6 +731,8 @@ class CapacityAnalysisRequest(StrictContractModel):
     position_id: Annotated[str, Field(min_length=1)]
     acquisition: Literal["PURCHASE", "RAAS"]
     uncertainty: Literal["PESSIMISTIC", "BASE", "OPTIMISTIC"]
+    execution_mode: Literal["VERIFIED", "PRELIMINARY_DEMO"] = "VERIFIED"
+    demo_assumptions_confirmed: bool = False
     selected_fleet: KnownQuantity | None = None
     operating_speed: KnownQuantity | None = None
     cleaning_area: KnownQuantity | None = None
@@ -739,6 +741,10 @@ class CapacityAnalysisRequest(StrictContractModel):
 
     @model_validator(mode="after")
     def validate_execution_inputs(self) -> "CapacityAnalysisRequest":
+        if self.execution_mode == "PRELIMINARY_DEMO" and not self.demo_assumptions_confirmed:
+            raise ValueError("preliminary demo requires explicit acknowledgement")
+        if self.execution_mode == "VERIFIED" and self.demo_assumptions_confirmed:
+            raise ValueError("demo acknowledgement is valid only in preliminary mode")
         if self.input_revision != self.process.input_revision:
             raise ValueError("request and process input_revision must match")
         expected = (
