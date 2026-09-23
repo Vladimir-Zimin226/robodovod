@@ -87,6 +87,18 @@ def test_snapshot_tampering_is_rejected_before_export():
         build_evidence_export(EvidenceRunSnapshotV1.model_validate(source))
 
 
+def test_legacy_and_v2_version_bindings_export_without_recalculation():
+    legacy = golden_run()
+    legacy_package = build_evidence_export(legacy)
+    source = legacy.model_dump(mode="json")
+    source["versions"]["economics"] = "economics-runtime-v2"
+    v2 = EvidenceRunSnapshotV1.model_validate(source)
+    v2_package = build_evidence_export(v2)
+    assert legacy_package.manifest.versions["economics"] == legacy.versions["economics"]
+    assert v2_package.manifest.versions["economics"] == "economics-runtime-v2"
+    assert v2_package.manifest.source_snapshot_digests == legacy_package.manifest.source_snapshot_digests
+
+
 def test_api_is_owner_scoped_and_binds_bundle_to_manifest_digest():
     owner = uuid.uuid4()
     project = uuid.UUID(golden_run().project_id)

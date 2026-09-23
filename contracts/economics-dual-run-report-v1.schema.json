@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "economics-dual-run-report-v1.schema.json",
+  "title": "Economics dual-run report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_version", "policy_digest", "legacy_fixture_digest", "candidate_fixture_digest", "differences", "comparison_counts", "approval_status", "blocker_codes", "report_digest"],
+  "properties": {
+    "schema_version": {"const": "economics-dual-run-report-v1"},
+    "policy_version": {"const": "economics-runtime-migration-policy-v1"},
+    "policy_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "legacy_fixture_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "candidate_fixture_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "differences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["comparison_id", "classification", "legacy_value", "candidate_value", "comparable_basis", "numeric_delta", "gap_refs", "reason"],
+        "properties": {
+          "comparison_id": {"type": "string", "minLength": 1},
+          "classification": {"enum": ["INTENDED_DIFFERENCE", "UNMATCHED_DIFFERENCE"]},
+          "legacy_value": {},
+          "candidate_value": {},
+          "comparable_basis": {"type": "boolean"},
+          "numeric_delta": {"type": ["string", "null"]},
+          "gap_refs": {"type": "array", "items": {"type": "string", "pattern": "^G[0-9]{2}$"}, "uniqueItems": true},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "comparison_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["INTENDED_DIFFERENCE", "UNMATCHED_DIFFERENCE"],
+      "properties": {
+        "INTENDED_DIFFERENCE": {"type": "integer", "minimum": 0},
+        "UNMATCHED_DIFFERENCE": {"type": "integer", "minimum": 0}
+      }
+    },
+    "approval_status": {"enum": ["APPROVED", "BLOCKED"]},
+    "blocker_codes": {"type": "array", "items": {"type": "string"}},
+    "report_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

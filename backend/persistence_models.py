@@ -408,6 +408,104 @@ class AnalysisRun(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class AnalysisRunEconomicsVersion(Base):
+    """Additive C28 mapping; the AnalysisRun snapshot remains untouched."""
+
+    __tablename__ = "analysis_run_economics_versions"
+    __table_args__ = (
+        CheckConstraint(
+            "execution_route IN ('LEGACY_V1', 'ECONOMICS_V2')",
+            name="ck_run_economics_versions_route",
+        ),
+        CheckConstraint(
+            "economics_version IN ('legacy-economics-v1', 'economics-runtime-v2')",
+            name="ck_run_economics_versions_version",
+        ),
+        CheckConstraint(
+            "viewer_version IN ('legacy-snapshot-viewer-v1', 'commercial-scenarios-viewer-v2')",
+            name="ck_run_economics_versions_viewer",
+        ),
+        CheckConstraint(
+            "replay_mode IN ('SAVED_SNAPSHOT_ONLY', 'DETERMINISTIC_V2')",
+            name="ck_run_economics_versions_replay",
+        ),
+        CheckConstraint(
+            "rerun_mode = 'CREATE_NEW_RUN_ON_ACTIVE_ROUTE'",
+            name="ck_run_economics_versions_rerun",
+        ),
+        CheckConstraint(
+            "fte_basis_status IN ('NOT_APPLICABLE', 'UNKNOWN_LEGACY_BASIS', 'EXPLICIT_GROSS', 'MISSING_GROSS')",
+            name="ck_run_economics_versions_fte_basis",
+        ),
+        CheckConstraint(
+            "(execution_route = 'LEGACY_V1' AND economics_version = 'legacy-economics-v1' "
+            "AND viewer_version = 'legacy-snapshot-viewer-v1' "
+            "AND replay_mode = 'SAVED_SNAPSHOT_ONLY' "
+            "AND fte_basis_status IN ('NOT_APPLICABLE', 'UNKNOWN_LEGACY_BASIS')) OR "
+            "(execution_route = 'ECONOMICS_V2' AND economics_version = 'economics-runtime-v2' "
+            "AND viewer_version = 'commercial-scenarios-viewer-v2' "
+            "AND replay_mode = 'DETERMINISTIC_V2' "
+            "AND fte_basis_status IN ('EXPLICIT_GROSS', 'MISSING_GROSS'))",
+            name="ck_run_economics_versions_consistent",
+        ),
+    )
+
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("analysis_runs.id", ondelete="CASCADE"), primary_key=True
+    )
+    execution_route: Mapped[str] = mapped_column(Text, nullable=False)
+    economics_version: Mapped[str] = mapped_column(Text, nullable=False)
+    viewer_version: Mapped[str] = mapped_column(Text, nullable=False)
+    replay_mode: Mapped[str] = mapped_column(Text, nullable=False)
+    rerun_mode: Mapped[str] = mapped_column(Text, nullable=False)
+    fte_basis_status: Mapped[str] = mapped_column(Text, nullable=False)
+    migration_notice: Mapped[str] = mapped_column(Text, nullable=False)
+    mapped_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class EconomicsRouteActivation(Base):
+    __tablename__ = "economics_route_activations"
+    __table_args__ = (
+        CheckConstraint(
+            "economics_version IN ('legacy-economics-v1', 'economics-runtime-v2')",
+            name="ck_economics_route_activations_version",
+        ),
+        CheckConstraint(
+            "rollback_economics_version IN ('legacy-economics-v1', 'economics-runtime-v2')",
+            name="ck_economics_route_activations_rollback",
+        ),
+        CheckConstraint(
+            f"approval_report_sha256 ~ '{SHA256_CHECK}'",
+            name="ck_economics_route_activations_approval_sha",
+        ),
+        CheckConstraint(
+            "deactivated_at IS NULL OR deactivated_at >= activated_at",
+            name="ck_economics_route_activations_time_order",
+        ),
+        Index(
+            "uq_economics_route_activations_active",
+            text("(1)"),
+            unique=True,
+            postgresql_where=text("deactivated_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    economics_version: Mapped[str] = mapped_column(Text, nullable=False)
+    policy_version: Mapped[str] = mapped_column(Text, nullable=False)
+    approval_report_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    rollback_economics_version: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_subject: Mapped[str | None] = mapped_column(Text)
+    activated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    deactivated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class AuditEntry(Base):
     __tablename__ = "audit_entries"
     __table_args__ = (

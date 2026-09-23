@@ -520,15 +520,16 @@ Gate: golden path проходит пять раз подряд локально
     process coverage C10, capacity API/snapshots C11 и results UI C12.
 20. C13–C20 — отдельно commercial/procurement inputs, labour, purchase cost
     ledger, full CF/reconciliation, RaaS, shared allocation, ranking, sensitivity.
-    C13–C27 реализованы; следующий этап — C28
-    `catalog/economics-runtime-migration`.
+    C13–C28 реализованы; следующий этап — C29
+    `qa/calculation-migration-acceptance`.
 21. C21–C25 — financial UI, ScenarioSpec v2, утверждённая scheduling/SLA модель,
     обязательная 2D и отдельный RobCraft adapter/report.
-22. C26 exports и C27 независимый capacity rollout реализованы; C28 —
-    отдельная economics migration. C27 добавил fail-closed capacity slot,
-    approved dual-run и persisted rollback, не активируя production DB.
+22. C26 exports, C27 независимый capacity rollout и C28 economics migration
+    реализованы. C28 добавил immutable historical mapping, snapshot-only legacy
+    replay, approved Gxx dual-run и route-only rollback, не активируя
+    production DB/runtime и не удаляя legacy implementation.
 23. `admin/catalog-draft-publish` — самостоятельная работа верхнего roadmap.
-24. C29 `qa/calculation-migration-acceptance` и оставшиеся
+24. Следующий этап: C29 `qa/calculation-migration-acceptance` и оставшиеся
     `qa/security-performance-deploy`/operations gates.
 25. C30 `ops/production-domain-deployment-v1` — отдельная публикация принятого
     release на Selectel VDS: production Compose, закрытые внутренние порты,

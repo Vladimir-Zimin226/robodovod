@@ -1,0 +1,46 @@
+{
+  "schema_version": "economics-dual-run-report-v1",
+  "policy_version": "economics-runtime-migration-policy-v1",
+  "policy_digest": "sha256:b5ec3cd6407aef120b97aefcd70c1b4a10dfb84bee6625cadade38d29dd5df48",
+  "legacy_fixture_digest": "sha256:537a8a3683384ea3a48c13b5cb48f2b1adb0df43923a4cb532f5bfdfd092522f",
+  "candidate_fixture_digest": "sha256:120b16c3c8f81edb20a9a4c41161d82acae9d5a4cff6d99f436c8adbf63d6e66",
+  "differences": [
+    {
+      "comparison_id": "labour.cost-basis",
+      "classification": "INTENDED_DIFFERENCE",
+      "legacy_value": "fte_cost_rub with implicit fallback/burden",
+      "candidate_value": "explicit monthly gross plus payroll charges",
+      "comparable_basis": false,
+      "numeric_delta": null,
+      "gap_refs": ["G06", "G07", "G39", "G52"],
+      "reason": "Legacy fte_cost has no proven gross basis; values are intentionally not subtracted."
+    },
+    {
+      "comparison_id": "capacity.formulas-and-constraints",
+      "classification": "INTENDED_DIFFERENCE",
+      "legacy_value": "legacy operating-hour clamp and constraint path",
+      "candidate_value": "versioned C06-C12 capacity and constraint trace",
+      "comparable_basis": false,
+      "numeric_delta": null,
+      "gap_refs": ["G12", "G34", "G48"],
+      "reason": "Capacity inputs and formulas differ by contract, so a numeric economics delta would be misleading."
+    },
+    {
+      "comparison_id": "commercial.lifecycle-scenarios-and-trace",
+      "classification": "INTENDED_DIFFERENCE",
+      "legacy_value": "legacy scenario economics, rounding, ranking and payback sentinels",
+      "candidate_value": "C13-C21/C26 versioned procurement, cashflow, allocation, ranking, sensitivity and evidence",
+      "comparable_basis": false,
+      "numeric_delta": null,
+      "gap_refs": ["G21", "G22", "G23", "G24", "G25", "G26", "G27", "G28", "G29", "G30", "G31", "G32", "G36", "G47"],
+      "reason": "The v2 contract changes scenario composition, money semantics, allocation, ranking and provenance."
+    }
+  ],
+  "comparison_counts": {
+    "INTENDED_DIFFERENCE": 3,
+    "UNMATCHED_DIFFERENCE": 0
+  },
+  "approval_status": "APPROVED",
+  "blocker_codes": [],
+  "report_digest": "sha256:0853e369cee3099e76066a13ed04bc82b3d669c0e9c8f6d48ccff6160eaec880"
+}

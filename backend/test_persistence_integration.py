@@ -6,6 +6,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from alembic import command
@@ -13,8 +14,9 @@ from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
 from fastapi.testclient import TestClient
+from fastapi import FastAPI
 from sqlalchemy import create_engine, func, inspect, select, text
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 import catalog_models  # noqa: F401
 import main
@@ -22,8 +24,22 @@ import persistence_models  # noqa: F401
 from auth import SESSION_COOKIE
 from bootstrap_admin import BootstrapError, bootstrap_admin
 from database import dispose_database, get_database
-from persistence_api import purge_expired_tombstones
-from persistence_models import AnalysisRun, AuditEntry, ProjectFile, ProjectFileImport, Scenario, User
+from economics_route_activation import (
+    activate_economics_route,
+    resolve_active_economics_version,
+    rollback_economics_route,
+)
+from economics_runtime_migration import EconomicsDualRunReportV1, EconomicsV2ExecutionV1
+from persistence_api import create_persistence_router, purge_expired_tombstones
+from persistence_models import (
+    AnalysisRun,
+    AnalysisRunEconomicsVersion,
+    AuditEntry,
+    ProjectFile,
+    ProjectFileImport,
+    Scenario,
+    User,
+)
 from project_file_intake import build_csv_template
 from storage_models import Base, CatalogVersion
 from test_capacity_analysis_service import request as capacity_request, snapshot as capacity_snapshot
@@ -46,6 +62,7 @@ TABLES_0003 = {
     "project_deletion_jobs",
 }
 TABLES_0006 = {"project_file_imports"}
+TABLES_0010 = {"analysis_run_economics_versions", "economics_route_activations"}
 PASSWORD_A = "correct horse battery staple"
 PASSWORD_B = "another secure passphrase"
 
@@ -64,7 +81,7 @@ def migrated_database():
     try:
         command.downgrade(_config(), "base")
         command.upgrade(_config(), "head")
-        assert TABLES_0003 | TABLES_0006 <= set(inspect(engine).get_table_names())
+        assert TABLES_0003 | TABLES_0006 | TABLES_0010 <= set(inspect(engine).get_table_names())
         command.upgrade(_config(), "head")
         yield engine
     finally:
@@ -80,6 +97,7 @@ def clean_persistence(migrated_database, tmp_path, monkeypatch):
         connection.execute(
             text(
                 "TRUNCATE users, audit_entries, project_deletion_jobs "
+                ", economics_route_activations "
                 "RESTART IDENTITY CASCADE"
             )
         )
@@ -116,7 +134,7 @@ def _analysis_input() -> dict:
 
 
 def test_0003_upgrade_and_orm_metadata_match(migrated_database):
-    assert TABLES_0003 | TABLES_0006 <= set(inspect(migrated_database).get_table_names())
+    assert TABLES_0003 | TABLES_0006 | TABLES_0010 <= set(inspect(migrated_database).get_table_names())
     with migrated_database.connect() as connection:
         context = MigrationContext.configure(connection)
         assert compare_metadata(context, Base.metadata) == []
@@ -191,6 +209,9 @@ def test_owner_predicate_hides_projects_and_runs_from_another_user():
         assert intruder.get(
             f"/api/projects/{project['id']}/analysis-runs/{run['id']}"
         ).status_code == 404
+        assert intruder.get(
+            f"/api/projects/{project['id']}/analysis-runs/{run['id']}/legacy-replay"
+        ).status_code == 404
 
 
 def test_run_snapshot_is_immutable_and_survives_new_catalog_version(migrated_database):
@@ -204,6 +225,8 @@ def test_run_snapshot_is_immutable_and_survives_new_catalog_version(migrated_dat
             json={"scenario_id": scenario["id"], "input": _analysis_input()},
         )
         assert created.status_code == 201, created.text
+        assert created.headers["deprecation"] == "true"
+        assert "successor-version" in created.headers["link"]
         snapshot = created.json()
         readiness = snapshot["result_snapshot"]["readiness_report"]
         assert readiness["schema_version"] == "readiness-report-v1"
@@ -226,6 +249,14 @@ def test_run_snapshot_is_immutable_and_survives_new_catalog_version(migrated_dat
         assert reopened.status_code == 200
         assert reopened.json()["result_snapshot"] == snapshot["result_snapshot"]
         assert reopened.json()["checksums"] == snapshot["checksums"]
+        assert reopened.json()["economics_runtime"]["replay_mode"] == "SAVED_SNAPSHOT_ONLY"
+        replay = client.get(
+            f"/api/projects/{project['id']}/analysis-runs/{snapshot['id']}/legacy-replay"
+        )
+        assert replay.status_code == 200
+        assert replay.json()["result_snapshot"] == snapshot["result_snapshot"]
+        assert replay.json()["result_sha256"] == snapshot["checksums"]["result"]
+        assert replay.json()["route"]["mutates_source_run"] is False
 
     with migrated_database.connect() as connection:
         transaction = connection.begin()
@@ -235,6 +266,23 @@ def test_run_snapshot_is_immutable_and_survives_new_catalog_version(migrated_dat
                     text(
                         "UPDATE analysis_runs SET result_snapshot = '{\"changed\": true}'::jsonb "
                         "WHERE id = :id"
+                    ),
+                    {"id": snapshot["id"]},
+                )
+        finally:
+            transaction.rollback()
+    with get_database().session() as db:
+        mapping = db.get(AnalysisRunEconomicsVersion, uuid.UUID(snapshot["id"]))
+        assert mapping is not None
+        assert mapping.fte_basis_status == "UNKNOWN_LEGACY_BASIS"
+    with migrated_database.connect() as connection:
+        transaction = connection.begin()
+        try:
+            with pytest.raises(SQLAlchemyError):
+                connection.execute(
+                    text(
+                        "UPDATE analysis_run_economics_versions "
+                        "SET viewer_version = 'commercial-scenarios-viewer-v2' WHERE run_id = :id"
                     ),
                     {"id": snapshot["id"]},
                 )
@@ -252,15 +300,112 @@ def test_rerun_creates_a_new_record_from_stored_input():
             headers=headers,
             json={"scenario_id": scenario["id"], "input": _analysis_input()},
         ).json()
+        assert client.post(
+            f"/api/projects/{project['id']}/analysis-runs/{first['id']}/rerun"
+        ).status_code == 403
         second_response = client.post(
             f"/api/projects/{project['id']}/analysis-runs/{first['id']}/rerun",
             headers=headers,
         )
         assert second_response.status_code == 201, second_response.text
+        assert second_response.headers["deprecation"] == "true"
         second = second_response.json()
         assert second["id"] != first["id"]
         assert second["parent_run_id"] == first["id"]
         assert second["input_snapshot"] == first["input_snapshot"]
+
+
+def test_economics_route_activation_and_rollback_change_no_run_data():
+    report = EconomicsDualRunReportV1.model_validate_json(
+        (Path(__file__).resolve().parents[1] / "contracts/fixtures/economics-dual-run-report-v1.golden.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    activated = activate_economics_route(get_database(), report, actor_subject="c28-test")
+    assert activated.economics_version == "economics-runtime-v2"
+    assert resolve_active_economics_version(get_database()) == "economics-runtime-v2"
+    assert activated.rollback_economics_version == "legacy-economics-v1"
+    rolled_back = rollback_economics_route(get_database(), actor_subject="c28-test")
+    assert rolled_back.economics_version == "legacy-economics-v1"
+    assert resolve_active_economics_version(get_database()) == "legacy-economics-v1"
+    with migrated_database.connect() as connection:
+        assert connection.scalar(text("SELECT count(*) FROM analysis_runs")) == 0
+        history = connection.scalar(text("SELECT count(*) FROM economics_route_activations"))
+        assert history == 2
+
+
+def test_v2_new_run_is_server_computed_csrf_scoped_and_version_mapped():
+    catalog_id = uuid.uuid4()
+    now = datetime.now(timezone.utc)
+    with get_database().session() as db:
+        db.add(CatalogVersion(
+            id=catalog_id, code="economics-c28-test", status="PUBLISHED",
+            schema_version="test", content_sha256="b" * 64,
+            validated_at=now, published_at=now,
+        ))
+        db.commit()
+    report = EconomicsDualRunReportV1.model_validate_json(
+        (Path(__file__).resolve().parents[1] / "contracts/fixtures/economics-dual-run-report-v1.golden.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    activate_economics_route(get_database(), report, actor_subject="c28-api-test")
+    commercial = json.loads(
+        (Path(__file__).resolve().parents[1] / "frontend/tests/fixtures/commercial-scenarios-v2.golden.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    scenario_spec = json.loads(
+        (Path(__file__).resolve().parents[1] / "contracts/fixtures/scenario-spec-v2.capacity-only-cleaner.golden.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    def execute_v2(input_snapshot, _catalog):
+        assert "fte_cost_rub" not in input_snapshot
+        return EconomicsV2ExecutionV1(
+            result_snapshot=commercial,
+            scenario_spec_snapshot=scenario_spec,
+            revision_id=scenario_spec["revision_id"],
+            rules_version="economics-rules-v2",
+            object_profile_version="calculation-intake-v2",
+            application_version="c28-test",
+            diagnostics={"route": "ECONOMICS_V2"},
+        )
+
+    test_app = FastAPI()
+    test_app.include_router(create_persistence_router(
+        lambda _: (_ for _ in ()).throw(AssertionError("legacy executor called")),
+        resolve_catalog=lambda: SimpleNamespace(
+            version=SimpleNamespace(id=str(catalog_id), code="economics-c28-test")
+        ),
+        resolve_economics_version=lambda: resolve_active_economics_version(get_database()),
+        calculate_economics_v2=execute_v2,
+    ))
+    with TestClient(test_app) as client:
+        _, headers = _register(client, "v2-owner@example.com")
+        project = _create_project(client, headers)
+        scenario = next(item for item in project["scenarios"] if item["slot"] == "BASE")
+        endpoint = f"/api/v2/projects/{project['id']}/economics-runs"
+        payload = {
+            "scenario_id": scenario["id"],
+            "input": {"roles": [{"monthly_gross_salary": {"status": "KNOWN", "value": "100000"}}]},
+        }
+        assert client.post(endpoint, json=payload).status_code == 403
+        rejected = client.post(
+            endpoint, headers=headers,
+            json={"scenario_id": scenario["id"], "input": {"fte_cost_rub": 1200000}},
+        )
+        assert rejected.status_code == 422
+        created = client.post(endpoint, headers=headers, json=payload)
+        assert created.status_code == 201, created.text
+        run = created.json()
+        assert run["versions"]["economics"] == "economics-runtime-v2"
+        assert run["economics_runtime"]["viewer_version"] == "commercial-scenarios-viewer-v2"
+        assert run["economics_runtime"]["fte_basis_status"] == "EXPLICIT_GROSS"
+        reopened = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}")
+        assert reopened.status_code == 200
+        assert reopened.json()["result_snapshot"] == commercial
 
 
 def test_capacity_run_is_independent_immutable_and_tenant_scoped(monkeypatch, migrated_database):
@@ -493,6 +638,7 @@ def test_project_delete_removes_files_and_payload_then_purges_tombstone(tmp_path
         assert client.get(f"/api/projects/{project['id']}").status_code == 404
 
     with get_database().session() as db:
+        assert db.get(AnalysisRunEconomicsVersion, uuid.UUID(run.json()["id"])) is None
         tombstone = db.scalar(
             select(AuditEntry).where(
                 AuditEntry.event_type == "PROJECT_DELETED",

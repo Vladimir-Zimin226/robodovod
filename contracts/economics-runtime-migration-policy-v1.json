@@ -1,0 +1,23 @@
+{
+  "schema_version": "economics-runtime-migration-policy-v1",
+  "policy_version": "economics-runtime-migration-policy-v1",
+  "new_run_route": "economics-runtime-v2",
+  "legacy_version": "legacy-economics-v1",
+  "fallback_mode": "FAIL_CLOSED",
+  "activation_requires_approved_dual_run": true,
+  "historical_view_mode": "SAVED_SNAPSHOT_ONLY",
+  "legacy_replay_mode": "SAVED_SNAPSHOT_ONLY",
+  "rerun_mode": "CREATE_NEW_RUN_ON_ACTIVE_ROUTE",
+  "unknown_fte_basis_action": "REQUIRE_EXPLICIT_GROSS_INPUT",
+  "rollback_mode": "ROUTE_CONFIGURATION_ONLY",
+  "deprecated_routes": [
+    "POST /api/projects/{project_id}/analysis-runs",
+    "POST /api/projects/{project_id}/analysis-runs/{run_id}/rerun"
+  ],
+  "required_gap_refs": [
+    "G06", "G07", "G12", "G21", "G22", "G23", "G24", "G25", "G26",
+    "G27", "G28", "G29", "G30", "G31", "G32", "G34", "G36", "G39",
+    "G47", "G48", "G52"
+  ],
+  "policy_digest": "sha256:b5ec3cd6407aef120b97aefcd70c1b4a10dfb84bee6625cadade38d29dd5df48"
+}

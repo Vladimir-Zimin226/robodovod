@@ -33,8 +33,17 @@ from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
 from calculation.service import CapacityExecutionSnapshotV2, capacity_version_bindings
 from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisResponse, ContractIssue
+from economics_runtime_migration import (
+    EconomicsMigrationError,
+    EconomicsV2ExecutionV1,
+    V2_VERSION,
+    historical_mapping,
+    route_operation,
+    verify_snapshot,
+)
 from persistence_models import (
     AnalysisRun,
+    AnalysisRunEconomicsVersion,
     AuditEntry,
     Project,
     ProjectDeletionJob,
@@ -186,6 +195,26 @@ class AnalysisCreateRequest(ApiModel):
     input: UserInput
 
 
+class EconomicsV2CreateRequest(ApiModel):
+    scenario_id: uuid.UUID
+    source_run_id: uuid.UUID | None = None
+    input: dict[str, Any]
+
+    @field_validator("input")
+    @classmethod
+    def reject_legacy_fte_cost(cls, value: dict[str, Any]) -> dict[str, Any]:
+        def contains_legacy_fte(node: Any) -> bool:
+            if isinstance(node, dict):
+                return "fte_cost_rub" in node or any(contains_legacy_fte(item) for item in node.values())
+            if isinstance(node, list):
+                return any(contains_legacy_fte(item) for item in node)
+            return False
+
+        if contains_legacy_fte(value):
+            raise ValueError("fte_cost_rub cannot be migrated without an explicit gross basis")
+        return value
+
+
 def _user_dict(user: User) -> dict[str, Any]:
     return {
         "id": user.id,
@@ -260,7 +289,40 @@ def _file_dict(db: Session, item: ProjectFile) -> dict[str, Any]:
     }
 
 
-def _run_dict(run: AnalysisRun, *, include_snapshots: bool) -> dict[str, Any]:
+def _mapping_dict(mapping: AnalysisRunEconomicsVersion) -> dict[str, Any]:
+    return {
+        "schema_version": "analysis-run-economics-version-v1",
+        "execution_route": mapping.execution_route,
+        "economics_version": mapping.economics_version,
+        "viewer_version": mapping.viewer_version,
+        "replay_mode": mapping.replay_mode,
+        "rerun_mode": mapping.rerun_mode,
+        "fte_basis_status": mapping.fte_basis_status,
+        "migration_notice": mapping.migration_notice,
+    }
+
+
+def _run_dict(
+    run: AnalysisRun, *, include_snapshots: bool, db: Session | None = None
+) -> dict[str, Any]:
+    economics_runtime = None
+    if run.run_kind == "FULL_ANALYSIS":
+        stored_mapping = db.get(AnalysisRunEconomicsVersion, run.id) if db is not None else None
+        if stored_mapping is not None:
+            economics_runtime = _mapping_dict(stored_mapping)
+        elif db is None:
+            try:
+                mapping = historical_mapping(run.economics_version, run.input_snapshot)
+                economics_runtime = mapping.model_dump(mode="json")
+            except EconomicsMigrationError:
+                pass
+        if economics_runtime is None:
+            economics_runtime = {
+                "schema_version": "analysis-run-economics-version-v1",
+                "execution_route": "UNSUPPORTED",
+                "economics_version": run.economics_version,
+                "migration_notice": "Economics version mapping is unavailable; snapshot remains read-only.",
+            }
     value = {
         "id": run.id,
         "project_id": run.project_id,
@@ -284,6 +346,7 @@ def _run_dict(run: AnalysisRun, *, include_snapshots: bool) -> dict[str, Any]:
             "version_bindings": run.version_bindings_sha256,
         },
         "diagnostics": run.diagnostics,
+        "economics_runtime": economics_runtime,
         "created_at": run.created_at,
         "started_at": run.started_at,
         "finished_at": run.finished_at,
@@ -522,6 +585,8 @@ def create_persistence_router(
     resolve_object_profile_version: Callable[[], str] | None = None,
     resolve_capacity_catalog: Callable[[], Any] | None = None,
     analyze_capacity_for_catalog: Callable[[CapacityAnalysisRequest, Any, str], CapacityExecutionSnapshotV2] | None = None,
+    resolve_economics_version: Callable[[], str] | None = None,
+    calculate_economics_v2: Callable[[dict[str, Any], Any], EconomicsV2ExecutionV1] | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
@@ -1082,6 +1147,19 @@ def create_persistence_router(
             diagnostics={},
         )
         db.add(run)
+        mapping = historical_mapping(ECONOMICS_VERSION, input_snapshot)
+        db.add(
+            AnalysisRunEconomicsVersion(
+                run_id=run.id,
+                execution_route=mapping.execution_route,
+                economics_version=mapping.economics_version,
+                viewer_version=mapping.viewer_version,
+                replay_mode=mapping.replay_mode,
+                rerun_mode=mapping.rerun_mode,
+                fte_basis_status=mapping.fte_basis_status,
+                migration_notice=mapping.migration_notice,
+            )
+        )
         db.commit()
         run.status = "RUNNING"
         run.started_at = utcnow()
@@ -1157,10 +1235,12 @@ def create_persistence_router(
     @router.post(
         "/projects/{project_id}/analysis-runs",
         status_code=status.HTTP_201_CREATED,
+        deprecated=True,
     )
     def create_analysis_run(
         project_id: uuid.UUID,
         payload: AnalysisCreateRequest,
+        response: Response,
         context: AuthContext = Depends(require_csrf),
         db: Session = Depends(database_session),
     ):
@@ -1183,7 +1263,117 @@ def create_persistence_router(
             aggregate={"run_id": str(run.id)},
         )
         db.commit()
-        return _run_dict(run, include_snapshots=True)
+        response.headers["Deprecation"] = "true"
+        response.headers["Link"] = (
+            f'</api/v2/projects/{project_id}/economics-runs>; rel="successor-version"'
+        )
+        return _run_dict(run, include_snapshots=True, db=db)
+
+    @router.post(
+        "/v2/projects/{project_id}/economics-runs",
+        status_code=status.HTTP_201_CREATED,
+    )
+    def create_economics_v2_run(
+        project_id: uuid.UUID,
+        payload: EconomicsV2CreateRequest,
+        context: AuthContext = Depends(require_csrf),
+        db: Session = Depends(database_session),
+    ):
+        """Persist a server-computed v2 result only through an approved active route."""
+
+        project = _owned_project(db, project_id, context.user.id)
+        scenario = db.scalar(
+            select(Scenario).where(
+                Scenario.id == payload.scenario_id, Scenario.project_id == project.id
+            )
+        )
+        if scenario is None:
+            raise HTTPException(status_code=404, detail="scenario not found")
+        if resolve_economics_version is None or calculate_economics_v2 is None:
+            raise HTTPException(status_code=503, detail="economics v2 route unavailable")
+        try:
+            active_version = resolve_economics_version()
+            source = None
+            source_mapping = None
+            if payload.source_run_id is not None:
+                source = db.scalar(
+                    select(AnalysisRun).where(
+                        AnalysisRun.id == payload.source_run_id,
+                        AnalysisRun.project_id == project.id,
+                        AnalysisRun.run_kind == "FULL_ANALYSIS",
+                    )
+                )
+                if source is None:
+                    raise HTTPException(status_code=404, detail="source analysis run not found")
+                source_mapping = historical_mapping(
+                    source.economics_version, source.input_snapshot
+                )
+                stored_source_mapping = db.get(AnalysisRunEconomicsVersion, source.id)
+                if (
+                    stored_source_mapping is None
+                    or _mapping_dict(stored_source_mapping)
+                    != source_mapping.model_dump(mode="json")
+                ):
+                    raise EconomicsMigrationError("source economics version mapping mismatch")
+            route_operation(
+                "RERUN" if source is not None else "NEW_RUN",
+                source=source_mapping,
+                active_version=active_version,
+            )
+        except EconomicsMigrationError:
+            raise HTTPException(status_code=503, detail="economics v2 route unavailable") from None
+        if resolve_catalog is None:
+            raise HTTPException(status_code=503, detail="runtime catalog unavailable")
+        catalog_snapshot = resolve_catalog()
+        input_snapshot = payload.input
+        run = AnalysisRun(
+            id=uuid.uuid4(), project_id=project.id, scenario_id=scenario.id,
+            parent_run_id=(source.id if source is not None else None),
+            run_kind="FULL_ANALYSIS", status="PENDING",
+            input_snapshot=input_snapshot, input_sha256=_canonical_sha256(input_snapshot),
+            catalog_version_id=uuid.UUID(catalog_snapshot.version.id),
+            catalog_version_code=catalog_snapshot.version.code,
+            rules_version="economics-v2-pending", economics_version=V2_VERSION,
+            object_profile_version="economics-v2-pending",
+            application_version="economics-v2-pending", diagnostics={},
+        )
+        mapping = historical_mapping(V2_VERSION, input_snapshot)
+        db.add(run)
+        db.add(AnalysisRunEconomicsVersion(
+            run_id=run.id, execution_route=mapping.execution_route,
+            economics_version=mapping.economics_version,
+            viewer_version=mapping.viewer_version, replay_mode=mapping.replay_mode,
+            rerun_mode=mapping.rerun_mode, fte_basis_status=mapping.fte_basis_status,
+            migration_notice=mapping.migration_notice,
+        ))
+        db.commit()
+        run.status = "RUNNING"
+        run.started_at = utcnow()
+        db.commit()
+        try:
+            execution = calculate_economics_v2(payload.input, catalog_snapshot)
+        except Exception:
+            logger.exception("Economics v2 calculation failed (run_id=%s)", run.id)
+            run.status = "FAILED"
+            run.finished_at = utcnow()
+            run.diagnostics = {"error_code": "ECONOMICS_V2_ERROR"}
+            db.commit()
+            raise HTTPException(status_code=500, detail="economics v2 calculation failed") from None
+        run.result_snapshot = execution.result_snapshot
+        run.result_sha256 = _canonical_sha256(execution.result_snapshot)
+        run.scenario_spec_snapshot = execution.scenario_spec_snapshot
+        run.scenario_spec_sha256 = _canonical_sha256(execution.scenario_spec_snapshot)
+        run.revision_id = execution.revision_id
+        run.rules_version = execution.rules_version
+        run.object_profile_version = execution.object_profile_version
+        run.application_version = execution.application_version
+        run.diagnostics = execution.diagnostics
+        run.status = "SUCCEEDED"
+        run.finished_at = utcnow()
+        _audit(db, "ECONOMICS_V2_RUN_SUCCEEDED", actor_id=context.user.id,
+               project_id=project.id, aggregate={"run_id": str(run.id)})
+        db.commit()
+        return _run_dict(run, include_snapshots=True, db=db)
 
     @router.post(
         "/v2/capacity-analyses",
@@ -1321,7 +1511,7 @@ def create_persistence_router(
             .where(AnalysisRun.project_id == project_id)
             .order_by(AnalysisRun.created_at.desc(), AnalysisRun.id)
         ).all()
-        return {"items": [_run_dict(run, include_snapshots=False) for run in runs]}
+        return {"items": [_run_dict(run, include_snapshots=False, db=db) for run in runs]}
 
     @router.get("/projects/{project_id}/analysis-runs/{run_id}")
     def get_analysis_run(
@@ -1338,15 +1528,56 @@ def create_persistence_router(
         )
         if run is None:
             raise HTTPException(status_code=404, detail="analysis run not found")
-        return _run_dict(run, include_snapshots=True)
+        return _run_dict(run, include_snapshots=True, db=db)
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/legacy-replay")
+    def replay_legacy_analysis(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        """Replay means returning the verified saved legacy snapshot, never recalculation."""
+
+        _owned_project(db, project_id, context.user.id)
+        run = db.scalar(
+            select(AnalysisRun).where(
+                AnalysisRun.id == run_id,
+                AnalysisRun.project_id == project_id,
+                AnalysisRun.run_kind == "FULL_ANALYSIS",
+                AnalysisRun.economics_version == ECONOMICS_VERSION,
+            )
+        )
+        if run is None:
+            raise HTTPException(status_code=404, detail="legacy analysis run not found")
+        try:
+            stored_mapping = db.get(AnalysisRunEconomicsVersion, run.id)
+            if stored_mapping is None or stored_mapping.execution_route != "LEGACY_V1":
+                raise EconomicsMigrationError("legacy economics version mapping is unavailable")
+            mapping = historical_mapping(run.economics_version, run.input_snapshot)
+            if _mapping_dict(stored_mapping) != mapping.model_dump(mode="json"):
+                raise EconomicsMigrationError("legacy economics version mapping mismatch")
+            decision = route_operation("LEGACY_REPLAY", source=mapping)
+            snapshot = verify_snapshot(run.result_snapshot, run.result_sha256)
+        except EconomicsMigrationError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from None
+        return {
+            "route": decision.model_dump(mode="json"),
+            "mapping": mapping.model_dump(mode="json"),
+            "run_id": run.id,
+            "result_sha256": run.result_sha256,
+            "result_snapshot": snapshot,
+        }
 
     @router.post(
         "/projects/{project_id}/analysis-runs/{run_id}/rerun",
         status_code=status.HTTP_201_CREATED,
+        deprecated=True,
     )
     def rerun_analysis(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
+        response: Response,
         context: AuthContext = Depends(require_csrf),
         db: Session = Depends(database_session),
     ):
@@ -1360,6 +1591,8 @@ def create_persistence_router(
             raise HTTPException(status_code=404, detail="analysis run not found")
         if source.run_kind != "FULL_ANALYSIS":
             raise HTTPException(status_code=409, detail="run kind requires its versioned endpoint")
+        if source.economics_version != ECONOMICS_VERSION:
+            raise HTTPException(status_code=409, detail="economics v2 rerun requires its versioned endpoint")
         scenario = db.get(Scenario, source.scenario_id) if source.scenario_id else None
         if scenario is None or scenario.project_id != project.id:
             raise HTTPException(status_code=409, detail="source scenario is unavailable")
@@ -1379,6 +1612,10 @@ def create_persistence_router(
             aggregate={"run_id": str(run.id), "parent_run_id": str(source.id)},
         )
         db.commit()
-        return _run_dict(run, include_snapshots=True)
+        response.headers["Deprecation"] = "true"
+        response.headers["Link"] = (
+            f'</api/v2/projects/{project_id}/economics-runs>; rel="successor-version"'
+        )
+        return _run_dict(run, include_snapshots=True, db=db)
 
     return router

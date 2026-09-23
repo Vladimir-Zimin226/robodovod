@@ -441,8 +441,21 @@ capacity pool 21/24, split 6/15 моделей и отсутствие BAS; unma
 не активировался. Отчёт:
 [capacity runtime dual-run rollout](planning/catalog-capacity-runtime-dual-run-rollout.md).
 
-Следующая малая итерация — **`catalog/economics-runtime-migration`** (C28).
-C28 в C27 не начинался; historical runs и legacy economics остаются неизменны.
+Этап **`catalog/economics-runtime-migration`** (C28) завершён. Strict policy
+фиксирует v2 для новых активированных routes, fail-closed отсутствие active
+route, explicit rerun в новый run и snapshot-only historical/legacy replay.
+Аддитивная migration 0010 создаёт immutable version mapping и append-only
+route activation history; backfill не меняет `analysis_runs` и маркирует
+старый `fte_cost_rub` как unknown basis без преобразования в gross. Approved
+dual-run golden объясняет различия G06/G07/G12/G21–G32/G34/G36/G39/G47/G48/G52;
+для несопоставимых basis числовой delta намеренно отсутствует. Frontend
+выбирает legacy/v2 viewer по mapping и показывает migration notice, exports
+остаются snapshot-driven. Legacy implementation сохранена. Production DB и
+runtime не активировались. Отчёт:
+[economics runtime migration](planning/catalog-economics-runtime-migration.md).
+
+Следующая малая итерация — **`qa/calculation-migration-acceptance`** (C29).
+C29 в C28 не начинался.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

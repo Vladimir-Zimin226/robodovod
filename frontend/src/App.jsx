@@ -165,7 +165,10 @@ export default function App() {
     );
     setSaveState('saving');
     try {
-      const response = await fetch(`${API}/api/projects/${activeProject.id}/analysis-runs`, {
+      const endpoint = isCommercialScenariosBundle(result)
+        ? `/api/v2/projects/${activeProject.id}/economics-runs`
+        : `/api/projects/${activeProject.id}/analysis-runs`;
+      const response = await fetch(`${API}${endpoint}`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
@@ -264,7 +267,12 @@ export default function App() {
               />
             )}
             {activeRun && activeProject && (
-              <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />
+              <>
+                {activeRun.economics_runtime?.migration_notice && (
+                  <div className="save-run-bar" role="status">{activeRun.economics_runtime.migration_notice}</div>
+                )}
+                <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />
+              </>
             )}
           </>
         )}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "analysis-run-economics-version-v1.schema.json",
+  "title": "Analysis run economics version mapping v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "execution_route", "economics_version", "viewer_version", "replay_mode", "rerun_mode", "fte_basis_status", "migration_notice"],
+  "properties": {
+    "schema_version": {"const": "analysis-run-economics-version-v1"},
+    "execution_route": {"enum": ["LEGACY_V1", "ECONOMICS_V2"]},
+    "economics_version": {"enum": ["legacy-economics-v1", "economics-runtime-v2"]},
+    "viewer_version": {"enum": ["legacy-snapshot-viewer-v1", "commercial-scenarios-viewer-v2"]},
+    "replay_mode": {"enum": ["SAVED_SNAPSHOT_ONLY", "DETERMINISTIC_V2"]},
+    "rerun_mode": {"const": "CREATE_NEW_RUN_ON_ACTIVE_ROUTE"},
+    "fte_basis_status": {"enum": ["NOT_APPLICABLE", "UNKNOWN_LEGACY_BASIS", "EXPLICIT_GROSS", "MISSING_GROSS"]},
+    "migration_notice": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"execution_route": {"const": "LEGACY_V1"}}},
+      "then": {
+        "properties": {
+          "economics_version": {"const": "legacy-economics-v1"},
+          "viewer_version": {"const": "legacy-snapshot-viewer-v1"},
+          "replay_mode": {"const": "SAVED_SNAPSHOT_ONLY"},
+          "fte_basis_status": {"enum": ["NOT_APPLICABLE", "UNKNOWN_LEGACY_BASIS"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"execution_route": {"const": "ECONOMICS_V2"}}},
+      "then": {
+        "properties": {
+          "economics_version": {"const": "economics-runtime-v2"},
+          "viewer_version": {"const": "commercial-scenarios-viewer-v2"},
+          "replay_mode": {"const": "DETERMINISTIC_V2"},
+          "fte_basis_status": {"enum": ["EXPLICIT_GROSS", "MISSING_GROSS"]}
+        }
+      }
+    }
+  ]
+}

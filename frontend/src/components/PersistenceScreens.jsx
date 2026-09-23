@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { persistenceRequest as request, readCsrfCookie } from '../persistenceApi';
 import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
+import { economicsRunView } from '../economicsRunModel';
 
 export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
   const [mode, setMode] = useState('login');
@@ -168,6 +169,7 @@ export function ProjectsScreen({ onOpenProject, onOpenRun }) {
       const opened = run.run_kind === 'CAPACITY_ANALYSIS'
         ? { ...run, input_snapshot: null, result_snapshot: await capacityClient.read(run.id, run.revision_id) }
         : await request(`/api/projects/${projectId}/analysis-runs/${run.id}`);
+      if (opened.run_kind === 'FULL_ANALYSIS') economicsRunView(opened);
       onOpenRun(opened, projects.find((project) => project.id === projectId));
     } catch (err) {
       setError(err.message);
@@ -207,7 +209,7 @@ export function ProjectsScreen({ onOpenProject, onOpenRun }) {
                 {(runs[project.id] || []).length === 0 && <p>Сохранённых расчётов нет.</p>}
                 {(runs[project.id] || []).map((run) => (
                   <button key={run.id} onClick={() => openRun(project.id, run)}>
-                    <strong>{run.run_kind === 'CAPACITY_ANALYSIS' ? 'CAPACITY' : run.status}</strong><span>{new Date(run.created_at).toLocaleString('ru-RU')}</span><small>{run.versions.catalog}</small>
+                    <strong>{run.run_kind === 'CAPACITY_ANALYSIS' ? 'CAPACITY' : economicsRunView(run)?.label}</strong><span>{new Date(run.created_at).toLocaleString('ru-RU')}</span><small>{run.versions.catalog}</small>
                   </button>
                 ))}
               </div>

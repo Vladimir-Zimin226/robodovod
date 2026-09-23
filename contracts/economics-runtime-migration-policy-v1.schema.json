@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "economics-runtime-migration-policy-v1.schema.json",
+  "title": "Economics runtime migration policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "policy_version", "new_run_route", "legacy_version",
+    "fallback_mode", "activation_requires_approved_dual_run", "historical_view_mode",
+    "legacy_replay_mode", "rerun_mode", "unknown_fte_basis_action", "rollback_mode",
+    "deprecated_routes", "required_gap_refs", "policy_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "economics-runtime-migration-policy-v1"},
+    "policy_version": {"const": "economics-runtime-migration-policy-v1"},
+    "new_run_route": {"const": "economics-runtime-v2"},
+    "legacy_version": {"const": "legacy-economics-v1"},
+    "fallback_mode": {"const": "FAIL_CLOSED"},
+    "activation_requires_approved_dual_run": {"const": true},
+    "historical_view_mode": {"const": "SAVED_SNAPSHOT_ONLY"},
+    "legacy_replay_mode": {"const": "SAVED_SNAPSHOT_ONLY"},
+    "rerun_mode": {"const": "CREATE_NEW_RUN_ON_ACTIVE_ROUTE"},
+    "unknown_fte_basis_action": {"const": "REQUIRE_EXPLICIT_GROSS_INPUT"},
+    "rollback_mode": {"const": "ROUTE_CONFIGURATION_ONLY"},
+    "deprecated_routes": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "required_gap_refs": {"type": "array", "items": {"type": "string", "pattern": "^G[0-9]{2}$"}, "minItems": 1, "uniqueItems": true},
+    "policy_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  }
+}

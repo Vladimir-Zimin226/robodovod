@@ -17,8 +17,8 @@ C18 **COMPLETE** 2026-09-23, C19 **COMPLETE** 2026-09-23,
 C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
 C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
-C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23;
-C28–C30 пока **PLANNED**.
+C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23,
+C28 **COMPLETE** 2026-09-23; C29–C30 пока **PLANNED**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -844,6 +844,19 @@ economics, legacy runs и membership не менялись. Отчёт:
   full project completion. Может выполняться сразу после C12.
 
 ## C28 — `catalog/economics-runtime-migration`
+
+Статус: **COMPLETE**, 2026-09-23. Добавлены strict migration policy,
+fail-closed route decision, immutable per-run version mapping и отдельный
+snapshot-only legacy replay. Migration 0010 backfill-ит только mapping для
+старых `FULL_ANALYSIS`, не изменяя `analysis_runs`; неизвестный basis
+`fte_cost_rub` получает `UNKNOWN_LEGACY_BASIS`, а не вымышленный gross.
+Активация v2 требует approved old/new dual-run report со всеми Gxx и хранит
+append-only rollback configuration. Rollback меняет route, не snapshots.
+Legacy endpoints явно deprecated, historical viewer выбирается по сохранённой
+версии, exports остаются snapshot-driven. Legacy `economics.py`, registry v1,
+catalog membership, C27 и production runtime не изменены; migration/activation
+на production не выполнялись. Отчёт:
+[economics runtime migration](catalog-economics-runtime-migration.md).
 
 Решения: `hackathon-calculation-policy-v1`; исполнитель — агент.
 Внешние ответы и расширение pool не являются входом этапа.
