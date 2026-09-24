@@ -521,8 +521,11 @@
       "$ref": "#/$defs/MetricValueV1"
     },
     "engine_version": {
-      "const": "full-cashflows-reconciliation-v1",
-      "default": "full-cashflows-reconciliation-v1",
+      "default": "full-cashflows-reconciliation-v2",
+      "enum": [
+        "full-cashflows-reconciliation-v1",
+        "full-cashflows-reconciliation-v2"
+      ],
       "title": "Engine Version",
       "type": "string"
     },

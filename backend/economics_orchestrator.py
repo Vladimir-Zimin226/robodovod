@@ -113,7 +113,7 @@ from scenario_spec_v2 import (
     build_scenario_spec_v2,
 )
 
-ORCHESTRATOR_VERSION = "production-economics-orchestrator-v1"
+ORCHESTRATOR_VERSION = "production-economics-orchestrator-v2"
 RULES_VERSION = "calculation-rules-c13-c21-v1"
 UNCERTAINTIES = ("PESSIMISTIC", "BASE", "OPTIMISTIC")
 ACQUISITIONS = ("PURCHASE", "RAAS")
@@ -1026,7 +1026,7 @@ def _sensitivity(
                 primary_price = variant_value
                 engines = [
                     "purchase-cost-ledger-v1",
-                    "full-cashflows-reconciliation-v1",
+                    "full-cashflows-reconciliation-v2",
                     "multiprocess-allocation-v1",
                 ]
             elif parameter == "ROLE_SALARY":
@@ -1044,7 +1044,7 @@ def _sensitivity(
                 engines = [
                     "role-labour-baseline-v1",
                     "purchase-cost-ledger-v1",
-                    "full-cashflows-reconciliation-v1",
+                    "full-cashflows-reconciliation-v2",
                     "multiprocess-allocation-v1",
                 ]
             else:
@@ -1076,7 +1076,7 @@ def _sensitivity(
                     "capacity-analysis-service-v2",
                     "role-labour-baseline-v1",
                     "purchase-cost-ledger-v1",
-                    "full-cashflows-reconciliation-v1",
+                    "full-cashflows-reconciliation-v2",
                     "multiprocess-allocation-v1",
                 ]
             artifact = _scenario_artifacts(

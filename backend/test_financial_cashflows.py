@@ -25,12 +25,35 @@ def request() -> FinancialAnalysisRequestV1:
 
 def test_golden_replay_full_ledgers_and_r13_49_rules():
     data = fixture()
-    first = analyze_financials(FinancialAnalysisRequestV1.model_validate(data["request"]))
-    second = calculate_financial_result(FinancialAnalysisRequestV1.model_validate(data["request"]))
+    first = calculate_financial_result(FinancialAnalysisRequestV1.model_validate(data["request"]), engine_version="full-cashflows-reconciliation-v1")
+    second = calculate_financial_result(FinancialAnalysisRequestV1.model_validate(data["request"]), engine_version="full-cashflows-reconciliation-v1")
     assert first.model_dump(mode="json") == data["result"] == second.model_dump(mode="json")
     assert first.status == "COMPLETE"
     assert [item.rule_id for item in first.reconciliation] == [f"R13-{i:02d}" for i in range(1, 50)]
     assert first.replay.capacity_result_digest == data["request"]["labour_result"]["replay"]["capacity_result_digests"][0]
+
+
+def test_c14_aggregate_deficit_is_counted_once_in_v2_and_v1_remains_replayable():
+    source = request()
+    role = source.labour_result.roles[0]
+    assert role.deficit == 7
+    assert Decimal(role.annual_deficit_cost) == Decimal("10936800")
+    old = calculate_financial_result(source, engine_version="full-cashflows-reconciliation-v1")
+    fixed = analyze_financials(source)
+    def deficit_line(result, suffix):
+        lines = result.annual_ledgers[0].base_lines if suffix == "base-deficit" else result.annual_ledgers[0].scenario_lines
+        return Decimal(next(line.amount for line in lines if line.line_id.endswith(suffix)))
+    assert deficit_line(old, "base-deficit") == Decimal("76557600")
+    assert deficit_line(fixed, "base-deficit") == Decimal("10936800")
+    assert deficit_line(fixed, "scenario-remaining-deficit") == Decimal("10936800") * Decimal(4) / Decimal(7)
+    assert fixed.engine_version == "full-cashflows-reconciliation-v2"
+    assert fixed.npv_project.value != old.npv_project.value
+
+
+def test_corrected_v2_golden_is_exact_and_keeps_old_fixture_unchanged():
+    data = json.loads((ROOT / "contracts/fixtures/financial-result-v2.warehouse.golden.json").read_text(encoding="utf-8"))
+    result = analyze_financials(FinancialAnalysisRequestV1.model_validate(data["request"]))
+    assert result.model_dump(mode="json") == data["result"]
 
 
 def test_npv_signs_use_scenario_minus_base():

@@ -49,11 +49,14 @@ def encoded(value: object) -> str:
 
 def outputs() -> dict[Path, str]:
     request = build_request()
-    result = calculate_financial_result(request)
+    # The v1 golden is immutable evidence for historical replay.
+    result = calculate_financial_result(request, engine_version="full-cashflows-reconciliation-v1")
+    corrected = calculate_financial_result(request)
     return {
         ROOT / "contracts/financial-analysis-request-v1.schema.json": encoded(FinancialAnalysisRequestV1.model_json_schema()),
         ROOT / "contracts/financial-result-v1.schema.json": encoded(FinancialResultV1.model_json_schema()),
         ROOT / "contracts/fixtures/financial-result-v1.warehouse.golden.json": encoded({"request": request.model_dump(mode="json"), "result": result.model_dump(mode="json")}),
+        ROOT / "contracts/fixtures/financial-result-v2.warehouse.golden.json": encoded({"request": request.model_dump(mode="json"), "result": corrected.model_dump(mode="json")}),
     }
 
 

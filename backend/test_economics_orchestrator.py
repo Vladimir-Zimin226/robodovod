@@ -287,7 +287,7 @@ def test_production_orchestrator_uses_capacity_and_catalog_without_fixture_bundl
     }
     assert "fixture" not in str(first.diagnostics).lower()
     projection = {
-        "schema_version": "production-economics-orchestrator-acceptance-v1",
+        "schema_version": "production-economics-orchestrator-acceptance-v2",
         "execution_digest": semantic_digest(first),
         "result_digest": semantic_digest(bundle),
         "scenario_spec_digest": semantic_digest(first.scenario_spec_snapshot),
@@ -312,11 +312,19 @@ def test_production_orchestrator_uses_capacity_and_catalog_without_fixture_bundl
             for item in bundle["sensitivity"]["variants"]
         ],
         "limitations": bundle["limitations"],
+        "scenario_financials": [
+            {
+                "scenario_id": item["scenario_id"],
+                "npv": item["financial"]["npv_project"]["value"],
+                "payback": item["financial"]["simple_payback"]["value"],
+            }
+            for item in bundle["scenarios"]
+        ],
     }
     assert projection == json.loads(
         (
             Path(__file__).resolve().parents[1]
-            / "contracts/fixtures/production-economics-orchestrator-v1.golden.json"
+            / "contracts/fixtures/production-economics-orchestrator-v2.golden.json"
         ).read_text(encoding="utf-8")
     )
 

@@ -1,0 +1,102 @@
+{
+  "application_version": "production-economics-orchestrator-v2",
+  "execution_digest": "sha256:27ef276a13f279b34040fd4d367e534219e3d83c65bf9f1bee896ff9a2b326ab",
+  "limitations": [
+    "Это предварительный расчёт, не коммерческое предложение и не рекомендация к закупке.",
+    "Цена организаторов и пользовательские условия не подтверждают availability или procurement readiness.",
+    "Авторский demo-профиль не является техпаспортом; C05 NEEDS_VALIDATION сохраняется.",
+    "Нулевые и включённые статьи приняты только по явным подтверждениям этого run."
+  ],
+  "procurement_statuses": [
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED"
+  ],
+  "recommendation_statuses": [
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE"
+  ],
+  "result_digest": "sha256:dd2219b35017a2cad56bde6e0dead12beafa291dbfefe1e957c7b629c0a4706e",
+  "rules_version": "calculation-rules-c13-c21-v1",
+  "scenario_financials": [
+    {
+      "npv": "27575123.02",
+      "payback": "2.79",
+      "scenario_id": "scenario.purchase.pessimistic"
+    },
+    {
+      "npv": "51307863.76",
+      "payback": "2.01",
+      "scenario_id": "scenario.purchase.base"
+    },
+    {
+      "npv": "70456659.19",
+      "payback": "1.51",
+      "scenario_id": "scenario.purchase.optimistic"
+    },
+    {
+      "npv": "3367105.54",
+      "payback": "0.00",
+      "scenario_id": "scenario.raas.pessimistic"
+    },
+    {
+      "npv": "21069820.68",
+      "payback": "0.00",
+      "scenario_id": "scenario.raas.base"
+    },
+    {
+      "npv": "37690077.93",
+      "payback": "0.00",
+      "scenario_id": "scenario.raas.optimistic"
+    }
+  ],
+  "scenario_keys": [
+    "PURCHASE:PESSIMISTIC",
+    "PURCHASE:BASE",
+    "PURCHASE:OPTIMISTIC",
+    "RAAS:PESSIMISTIC",
+    "RAAS:BASE",
+    "RAAS:OPTIMISTIC"
+  ],
+  "scenario_spec_digest": "sha256:5900933715f02c120d819f8448b0c5e51916749f285462aa1fcda67ae7c48237",
+  "schema_version": "production-economics-orchestrator-acceptance-v2",
+  "sensitivity": [
+    {
+      "delta_value": "3672089.97",
+      "status": "COMPLETE",
+      "variant_id": "variant.equipment_price.lower"
+    },
+    {
+      "delta_value": "-3672089.97",
+      "status": "COMPLETE",
+      "variant_id": "variant.equipment_price.upper"
+    },
+    {
+      "delta_value": "4165829.74",
+      "status": "COMPLETE",
+      "variant_id": "variant.operation_volume.lower"
+    },
+    {
+      "delta_value": "-4165829.73",
+      "status": "COMPLETE",
+      "variant_id": "variant.operation_volume.upper"
+    },
+    {
+      "delta_value": "-7816124.90",
+      "status": "COMPLETE",
+      "variant_id": "variant.role_salary.lower"
+    },
+    {
+      "delta_value": "7816124.91",
+      "status": "COMPLETE",
+      "variant_id": "variant.role_salary.upper"
+    }
+  ]
+}

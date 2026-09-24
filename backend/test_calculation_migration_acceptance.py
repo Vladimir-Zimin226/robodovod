@@ -61,7 +61,7 @@ def test_golden_path_repeats_five_times_and_engines_remain_offline_and_determini
     expected_simulation = _load("contracts/fixtures/simulation-report-v1.capacity-only.golden.json")
     for _ in range(5):
         economy_started = time.monotonic()
-        economy = calculate_financial_result(financial_request).model_dump(mode="json")
+        economy = calculate_financial_result(financial_request, engine_version="full-cashflows-reconciliation-v1").model_dump(mode="json")
         assert time.monotonic() - economy_started <= 10
         simulation_started = time.monotonic()
         simulation = run_simulation(simulation_request)
@@ -78,7 +78,7 @@ def test_50_concurrent_economics_users_are_deterministic_within_request_sla():
 
     def execute(_: int) -> tuple[float, dict]:
         started = time.monotonic()
-        result = calculate_financial_result(request).model_dump(mode="json")
+        result = calculate_financial_result(request, engine_version="full-cashflows-reconciliation-v1").model_dump(mode="json")
         return time.monotonic() - started, result
 
     with ThreadPoolExecutor(max_workers=50) as pool:

@@ -216,7 +216,7 @@ class FinancialResultV1(StrictContractModel):
     precision_policy_version: Literal["decimal-context-28-half-even-v1"] = "decimal-context-28-half-even-v1"
     purchase_ledger_version: Literal["purchase-cost-ledger-v1"] = "purchase-cost-ledger-v1"
     labour_result_version: Literal["role-labour-result-v1"] = "role-labour-result-v1"
-    engine_version: Literal["full-cashflows-reconciliation-v1"] = "full-cashflows-reconciliation-v1"
+    engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2"] = "full-cashflows-reconciliation-v2"
     replay: FinancialReplayV1
 
 
@@ -257,7 +257,8 @@ def _reconciliation(complete: bool) -> list[ReconciliationFindingV1]:
 
 
 def calculate_financial_result(request: FinancialAnalysisRequestV1,
-                               registry: CalculationParameterRegistryV1 | None = None) -> FinancialResultV1:
+                               registry: CalculationParameterRegistryV1 | None = None,
+                               *, engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2"] = "full-cashflows-reconciliation-v2") -> FinancialResultV1:
     registry = registry or load_registry()
     purchase = request.purchase_ledger
     labour = request.labour_result
@@ -303,10 +304,13 @@ def calculate_financial_result(request: FinancialAnalysisRequestV1,
             if role.annual_deficit_cost is None and role.deficit > 0:
                 role_missing = True
             else:
-                deficit_unit = _d(role.annual_deficit_cost or "0")
-                deficit_base += Decimal(role.deficit) * deficit_unit * labor_factor
+                # C14 F15 is already the annual cost for the whole deficit.
+                # The v1 branch is retained solely for exact historical replay.
+                deficit_total = _d(role.annual_deficit_cost or "0")
+                deficit_base += (Decimal(role.deficit) * deficit_total if engine_version == "full-cashflows-reconciliation-v1" else deficit_total) * labor_factor
                 remaining_deficit = max(0, role.deficit - int((Decimal(role.deficit_growth) * _ramp(role, year)).to_integral_value(rounding=ROUND_FLOOR)))
-                deficit_scenario += Decimal(remaining_deficit) * deficit_unit * labor_factor
+                scenario_deficit = (Decimal(remaining_deficit) * deficit_total if engine_version == "full-cashflows-reconciliation-v1" else (deficit_total * Decimal(remaining_deficit) / Decimal(role.deficit) if role.deficit else Decimal(0)))
+                deficit_scenario += scenario_deficit * labor_factor
             released = _released(role, year)
             increment = max(0, released - previous_released[role.role_id])
             previous_released[role.role_id] = released
@@ -450,7 +454,8 @@ def calculate_financial_result(request: FinancialAnalysisRequestV1,
         roi_on_capex_cashflow=roi_result, net_benefit_after_investment=net_result,
         tco_purchase_gross=tco_gross_result, tco_purchase_net_of_residual=tco_net_result,
         issues=sorted(issues), reconciliation=_reconciliation(complete), trace=trace,
-        registry_version=registry.registry_version, registry_digest=registry.registry_digest, replay=replay)
+        registry_version=registry.registry_version, registry_digest=registry.registry_digest,
+        engine_version=engine_version, replay=replay)
     payload = result.model_dump(mode="json")
     payload["replay"]["trace_content_digest"] = None
     result.replay.trace_content_digest = _digest(payload)
