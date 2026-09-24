@@ -71,3 +71,37 @@ export function buildEconomicsRunRequest({ values, capacityRequest, project, sce
     },
   };
 }
+
+// Partial inputs preserve an empty field as unknown. Validation and branch
+// readiness are owned by the server and saved with the resulting run.
+export function buildPartialEconomicsRunRequest({ values, capacityRequest, project, scenario }) {
+  if (!project?.id || !scenario?.id || !capacityRequest?.input_revision || !values.capacityRunId) {
+    throw new Error('Откройте сохранённый расчёт мощности C11 и сценарий проекта.');
+  }
+  const optional = (value) => String(value ?? '').trim() || null;
+  const fields = {
+    evaluation_date: optional(values.evaluationDate), horizon_years: optional(values.horizonYears),
+    discount_rate: optional(values.discountRate),
+    primary_role_id: optional(values.primaryRoleId) || capacityRequest.process?.role_refs?.[0] || null,
+    manual_units_per_shift: capacityRequest.process?.scope === 'CLEANING_AREA' ? null : optional(values.manualUnitsPerShift),
+    role_salaries_confirmed_as_monthly_gross: values.grossConfirm === true,
+    control_headcount: optional(values.controlHeadcount), control_monthly_gross: optional(values.controlMonthlyGross),
+    technician_headcount: optional(values.technicianHeadcount), technician_monthly_gross: optional(values.technicianMonthlyGross),
+    organizer_price_currency_rub_confirmed: values.currencyConfirm === true,
+    implementation_cost_total_gross: optional(values.implementationCost), annual_service_per_robot_gross: optional(values.annualService),
+    warranty_years: optional(values.warrantyYears), average_power_w: optional(values.averagePowerW),
+    initial_battery_in_robot_price_confirmed: values.initialBatteryConfirm === true,
+    battery_replacements_in_service_confirmed: values.batteryServiceConfirm === true,
+    shared_site_capital_gross: optional(values.sharedSiteCapital), shared_annual_cost_gross: optional(values.sharedAnnualCost),
+    raas_monthly_per_robot_gross: optional(values.raasMonthly), raas_contract_months: optional(values.raasContractMonths),
+    raas_infrastructure_owner: optional(values.raasInfrastructureOwner), raas_vendor_scope_confirmed: values.raasScopeConfirm === true,
+    start_seconds_from_midnight: optional(values.startSeconds), timezone: optional(values.timezone),
+  };
+  const field_sources = Object.fromEntries(
+    Object.entries(values.sources || {}).filter(([, source]) => ['USER', 'ASSUMPTION'].includes(source)),
+  );
+  return {
+    scenario_id: scenario.id, capacity_run_id: values.capacityRunId,
+    input: { schema_version: 'economics-explicit-inputs-v2', input_revision: capacityRequest.input_revision, ...fields, field_sources },
+  };
+}

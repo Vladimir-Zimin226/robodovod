@@ -610,6 +610,25 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
             for item in created["result_snapshot"]["scenarios"]
         )
 
+        partial_input = economics_inputs()
+        partial_input["schema_version"] = "economics-explicit-inputs-v2"
+        partial_input["raas_monthly_per_robot_gross"] = None
+        partial_response = owner.post(endpoint, headers=headers, json={
+            "scenario_id": scenario["id"], "capacity_run_id": capacity["run_id"],
+            "input": partial_input,
+        })
+        assert partial_response.status_code == 201, partial_response.text
+        partial = partial_response.json()
+        assert partial["input_snapshot"]["schema_version"] == "economics-run-input-v3"
+        assert partial["result_snapshot"]["schema_version"] == "economics-partial-result-v1"
+        assert partial["result_snapshot"]["branches"]["purchase"]["status"] == "CALCULATED"
+        assert partial["result_snapshot"]["branches"]["raas"]["status"] == "NOT_CALCULATED"
+        assert len(partial["result_snapshot"]["scenarios"]) == 3
+        assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{partial['id']}").json()["checksums"] == partial["checksums"]
+        partial_replay = owner.post(f"{endpoint}/{partial['id']}/replay", headers=headers)
+        assert partial_replay.status_code == 200, partial_replay.text
+        assert partial_replay.json()["status"] == "MATCH"
+
         reopened = owner.get(
             f"/api/projects/{project['id']}/analysis-runs/{created['id']}"
         )

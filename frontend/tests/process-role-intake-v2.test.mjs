@@ -68,6 +68,17 @@ test('salary stays monthly gross raw input and missing salary is explicit', () =
   assert.equal(JSON.stringify(request).includes('15.624'), false);
 });
 
+test('explicit zero salary carries the required zero-cost marker', () => {
+  let draft = validWarehouseDraft();
+  draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);
+  const roleId = draft.roles[0].roleId;
+  draft = updateRole(draft, roleId, { headcount: '1', salary: '0' });
+  assert.equal(validateDraft(draft).some((item) => item.code === 'SALARY_REQUIRED'), false);
+  assert.equal(serializeDraft(draft).roles[0].zero_cost_marker, 'ZERO_COST_ROLE');
+  draft = updateRole(draft, roleId, { salary: '0.00' });
+  assert.equal(serializeDraft(draft).roles[0].zero_cost_marker, 'ZERO_COST_ROLE');
+});
+
 test('assumption confirmation creates a revision-bound override event', () => {
   let draft = validWarehouseDraft();
   draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);

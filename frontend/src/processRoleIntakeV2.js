@@ -160,6 +160,7 @@ export function confirmRoleAssumption(draft, roleId) {
 
 const DECIMAL_PATTERN = /^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
 const positive = (value) => value !== '' && DECIMAL_PATTERN.test(String(value)) && Number(value) > 0;
+const nonNegative = (value) => value !== '' && DECIMAL_PATTERN.test(String(value));
 
 export function validateDraft(draft) {
   const issues = [];
@@ -176,7 +177,7 @@ export function validateDraft(draft) {
   }
   for (const role of draft.roles) {
     if (!positive(role.headcount)) issues.push({ severity: 'BLOCKER', code: 'HEADCOUNT_REQUIRED', ref: `${role.roleId}.headcount` });
-    if (!positive(role.salary)) issues.push({ severity: 'REQUIRED_FOR_LABOUR', code: 'SALARY_REQUIRED', ref: `${role.roleId}.salary` });
+    if (!nonNegative(role.salary)) issues.push({ severity: 'REQUIRED_FOR_LABOUR', code: 'SALARY_REQUIRED', ref: `${role.roleId}.salary` });
     if (role.salarySource === 'ASSUMPTION' && !role.salaryConfirmed) issues.push({ severity: 'BLOCKER', code: 'ASSUMPTION_CONFIRMATION_REQUIRED', ref: `${role.roleId}.salary` });
   }
   return issues;
@@ -222,6 +223,7 @@ export function serializeDraft(draft) {
       role_code: role.roleCode,
       headcount: quantity(role.headcount, 'person', role.headcountSource || 'USER'),
       monthly_gross_salary: quantity(role.salary, 'RUB/person/month', role.salarySource, role.salaryConfirmed),
+      zero_cost_marker: nonNegative(role.salary) && Number(role.salary) === 0 ? 'ZERO_COST_ROLE' : null,
       process_ids: role.processIds,
     })),
   };

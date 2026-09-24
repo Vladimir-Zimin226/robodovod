@@ -82,6 +82,8 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, user, a
   }, []);
 
   const issues = useMemo(() => validateDraft(draft), [draft]);
+  const fieldIssue = (ref) => issues.find((item) => item.ref === ref)
+    || (result?.response?.input_revision === draft.inputRevision && result.response.errors?.find((item) => (item.field_refs || [item.field]).some((field) => field?.includes(ref))));
   const blockers = issues.filter((item) => item.severity === 'BLOCKER');
   const activeCount = draft.processes.filter((item) => item.active).length;
   const normalizedIsCurrent = result?.response?.input_revision === draft.inputRevision;
@@ -184,10 +186,10 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, user, a
               <div className="px-3 pb-2 flex justify-between text-[10px]"><span>{process.scope}</span><span className={statusClass}>{status}</span></div>
               {open && <div id={`panel-${process.code}`} className="border-t bg-slate-50 p-3 space-y-3">
                 <div className="grid grid-cols-3 gap-2">
-                  <NumberField label={`Объём, ${process.unit}`} value={process.demand} onChange={(value) => setDraft((current) => updateProcess(current, process.code, { demand: value }))} />
-                  <NumberField label="Смен/сут" value={process.shifts} onChange={(value) => setDraft((current) => updateProcess(current, process.code, { shifts: value }))} />
-                  <NumberField label="Часов/смена" value={process.hours} onChange={(value) => setDraft((current) => updateProcess(current, process.code, { hours: value }))} />
-                  <NumberField label="Дней/год" value={process.days} onChange={(value) => setDraft((current) => updateProcess(current, process.code, { days: value }))} />
+                  <NumberField label={`Объём, ${process.unit}`} value={process.demand} issue={fieldIssue(`${process.code}.demand`)} hint="Для мощности робота; например 2000 в сутки. Пусто — неизвестно, 0 означает отсутствие процесса." onChange={(value) => setDraft((current) => updateProcess(current, process.code, { demand: value }))} />
+                  <NumberField label="Смен/сут" value={process.shifts} issue={fieldIssue(`${process.code}.schedule`)} hint="Для доступного времени; например 2. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.code, { shifts: value }))} />
+                  <NumberField label="Часов/смена" value={process.hours} issue={fieldIssue(`${process.code}.schedule`)} hint="Для доступного времени; например 8. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.code, { hours: value }))} />
+                  <NumberField label="Дней/год" value={process.days} issue={fieldIssue(`${process.code}.schedule`)} hint="Для годовой загрузки; например 250. Источник — календарь работы." onChange={(value) => setDraft((current) => updateProcess(current, process.code, { days: value }))} />
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField label="Плечо, m" value={process.distance} onChange={(value) => setDraft((current) => updateProcess(current, process.code, { distance: value }))} />}
                   {['BOX', 'CASE', 'KILOGRAM', 'SAMPLE', 'SET', 'BIN', 'ITEM', 'PORTION'].includes(process.quantityKind) && <NumberField label="Единиц/рейс" value={process.batch} onChange={(value) => setDraft((current) => updateProcess(current, process.code, { batch: value }))} />}
                 </div>
@@ -197,8 +199,8 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, user, a
                     return <div key={roleCode} className="mt-2 border rounded bg-white p-2">
                       <label className="flex gap-2 text-xs"><input type="checkbox" checked={Boolean(role)} onChange={(event) => setDraft((current) => setRoleActive(current, process.code, roleCode, event.target.checked))} />{ROLE_LABELS[roleCode] || roleCode}</label>
                       {role && <div className="grid grid-cols-2 gap-2 mt-2">
-                        <NumberField label="Численность, person" value={role.headcount} onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value, headcountSource: 'USER' }))} />
-                        <NumberField label="Зарплата gross, RUB/person/month" value={role.salary} onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
+                        <NumberField label="Численность, чел." value={role.headcount} issue={fieldIssue(`${role.roleId}.headcount`)} hint="Для технической и трудовой модели; например 25. Источник — штатное расписание." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value, headcountSource: 'USER' }))} />
+                        <NumberField label="Зарплата gross, ₽/чел./мес." value={role.salary} issue={fieldIssue(`${role.roleId}.salary`)} hint="Для ФОТ и NPV; например 120000. Пусто — экономика неизвестна, 0 — подтверждённая бесплатная роль. Источник — ФОТ." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
                         {role.salarySource === 'ASSUMPTION' && !role.salaryConfirmed && <label className="col-span-2 text-[10px] text-amber-700"><input type="checkbox" className="mr-1" onChange={(event) => event.target.checked && setDraft((current) => confirmRoleAssumption(current, role.roleId))} />Подтверждаю это допущение для revision</label>}
                         {!role.salary && <p className="col-span-2 text-[10px] text-amber-700">Без monthly gross salary техническая проверка возможна, а labour/finance останутся incomplete.</p>}
                       </div>}
@@ -262,8 +264,9 @@ function DemoProfile({ profile }) {
   </details>;
 }
 
-function NumberField({ label, value, onChange }) {
-  return <label className="text-[11px] text-slate-600">{label}<input type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} className="w-full border rounded px-2 py-1 text-sm" /></label>;
+function NumberField({ label, value, onChange, issue, hint }) {
+  return <label className="text-[11px] text-slate-600">{label}<input type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={Boolean(issue)} className="w-full border rounded px-2 py-1 text-sm" />
+    {hint && <small className="block">{hint}</small>}{issue && <small className="block text-red-700" role="alert">{issue.message || issue.code}: укажите допустимое значение или проверьте единицу.</small>}</label>;
 }
 
 function NormalizationTrace({ result }) {

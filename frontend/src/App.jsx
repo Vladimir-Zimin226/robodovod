@@ -14,6 +14,7 @@ import { isCommercialScenariosBundle } from './commercialScenariosModel';
 import Simulation2DReport from './components/Simulation2DReport';
 import EvidenceExportPanel from './components/EvidenceExportPanel';
 import EconomicsInputsV2 from './components/EconomicsInputsV2';
+import PartialEconomicsResult from './components/PartialEconomicsResult';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
@@ -392,7 +393,7 @@ export default function App() {
           <AdminUsersScreen />
         ) : (
           <>
-            {user && activeProject && result && !isCapacityAnalysisResponse(result) && (
+            {user && activeProject && result && !isCapacityAnalysisResponse(result) && !isCommercialScenariosBundle(result) && result.schema_version !== 'economics-partial-result-v1' && (
               <div className="save-run-bar">
                 <span>Проект: <strong>{activeProject.name}</strong> · базовый сценарий</span>
                 <button className="primary-action" disabled={saveState === 'saving' || saveState === 'saved'} onClick={saveAnalysis}>
@@ -417,6 +418,12 @@ export default function App() {
                   }}
                 />
               </>
+            ) : result?.schema_version === 'economics-partial-result-v1' ? (
+              <PartialEconomicsResult result={result} run={activeRun} project={activeProject} onComplete={(run) => {
+                setActiveRun(run);
+                setResult(run.result_snapshot);
+                setSaveState('saved');
+              }} />
             ) : isCommercialScenariosBundle(result) ? (
               <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} onRestart={restart} onRecalculate={openCalculation} />
             ) : (
@@ -432,7 +439,7 @@ export default function App() {
                 {activeRun.economics_runtime?.migration_notice && (
                   <div className="save-run-bar" role="status">{activeRun.economics_runtime.migration_notice}</div>
                 )}
-                <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />
+                {result?.schema_version !== 'economics-partial-result-v1' && <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />}
               </>
             )}
           </>

@@ -34,7 +34,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, Upl
 from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
 from calculation.service import CapacityExecutionSnapshotV2, capacity_version_bindings
-from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisResponse, ContractIssue
+from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisResponse, ContractIssue, KnownQuantity
 from economics_runtime_migration import (
     EconomicsMigrationError,
     EconomicsV2ExecutionV1,
@@ -44,6 +44,7 @@ from economics_runtime_migration import (
     verify_snapshot,
 )
 from economics_orchestrator import EconomicsExecutionContextV1
+from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, execute_partial_economics_v2
 from persistence_models import (
     AnalysisRun,
     AnalysisRunEconomicsVersion,
@@ -1407,8 +1408,13 @@ def create_persistence_router(
             raise HTTPException(status_code=404, detail="scenario not found")
         if resolve_economics_version is None or calculate_economics_v2 is None:
             raise HTTPException(status_code=503, detail="economics v2 route unavailable")
-        if require_economics_capacity_source and payload.capacity_run_id is None:
-            raise HTTPException(status_code=422, detail="capacity_run_id is required for economics v2")
+        if (require_economics_capacity_source or payload.input.get("schema_version") == PARTIAL_INPUT_VERSION) and payload.capacity_run_id is None:
+            return JSONResponse(status_code=422, content={
+                "schema_version": "economics-partial-error-v1",
+                "issues": [{"field": "capacity_run_id", "code": "MISSING_INPUT",
+                            "message": "Нужен сохранённый расчёт мощности C11.",
+                            "next_step": "Сначала сохраните технический расчёт C11."}],
+            })
         try:
             active_version = resolve_economics_version()
             source = None
@@ -1464,15 +1470,24 @@ def create_persistence_router(
                 catalog_snapshot=catalog_snapshot,
                 economics_run_id=run_id,
             )
+        partial_input = payload.input.get("schema_version") == PARTIAL_INPUT_VERSION
         input_snapshot = {
-            "schema_version": "economics-run-input-v2",
+            "schema_version": "economics-run-input-v3" if partial_input else "economics-run-input-v2",
             "capacity_run_id": None if payload.capacity_run_id is None else str(payload.capacity_run_id),
             "source_run_id": None if payload.source_run_id is None else str(payload.source_run_id),
             "economics": payload.input,
         }
+        if partial_input and capacity_context is not None:
+            pool = capacity_context.capacity_request.role_pool
+            input_snapshot["capacity_role_salaries_complete"] = bool(pool is not None and all(
+                isinstance(role.monthly_gross_salary, KnownQuantity)
+                for role in pool.roles if role.role_code not in {"control_operator", "tech_support"}
+            ))
         try:
             execution = (
-                calculate_economics_v2(payload.input, catalog_snapshot, capacity_context)
+                execute_partial_economics_v2(payload.input, catalog_snapshot, capacity_context)
+                if partial_input and capacity_context is not None
+                else calculate_economics_v2(payload.input, catalog_snapshot, capacity_context)
                 if capacity_context is not None
                 else calculate_economics_v2(payload.input, catalog_snapshot)
             )
@@ -1566,7 +1581,7 @@ def create_persistence_router(
                 raise EconomicsMigrationError("saved economics snapshot checksum mismatch")
             envelope = run.input_snapshot
             if (
-                envelope.get("schema_version") != "economics-run-input-v2"
+                envelope.get("schema_version") not in {"economics-run-input-v2", "economics-run-input-v3"}
                 or not isinstance(envelope.get("economics"), dict)
                 or not isinstance(envelope.get("capacity_run_id"), str)
             ):
@@ -1587,8 +1602,10 @@ def create_persistence_router(
             economics_run_id=run.id,
         )
         try:
-            execution = calculate_economics_v2(
-                envelope["economics"], catalog_snapshot, capacity_context
+            execution = (
+                execute_partial_economics_v2(envelope["economics"], catalog_snapshot, capacity_context)
+                if envelope["schema_version"] == "economics-run-input-v3"
+                else calculate_economics_v2(envelope["economics"], catalog_snapshot, capacity_context)
             )
         except ValueError:
             raise HTTPException(

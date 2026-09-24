@@ -1,0 +1,134 @@
+import pytest
+
+from calculation.service import analyze_capacity
+from economics_orchestrator import EconomicsExecutionContextV1
+from economics_partial import execute_partial_economics_v2
+from economics_runtime_migration import historical_mapping
+from test_economics_orchestrator import _capacity_request, _inputs, _snapshot
+
+
+def _context():
+    snapshot = _snapshot()
+    request = _capacity_request()
+    capacity = analyze_capacity(request, snapshot, "run.capacity.partial")
+    return snapshot, EconomicsExecutionContextV1(
+        run_id="run.economics.partial",
+        project_id=request.project_id,
+        tenant_id="tenant.partial",
+        capacity_request=request,
+        capacity_response=capacity.response,
+        constraint_report=capacity.constraints.model_dump(mode="json"),
+        executability=capacity.executability.model_dump(mode="json"),
+    )
+
+
+def _input():
+    return {**_inputs(), "schema_version": "economics-explicit-inputs-v2"}
+
+
+def test_empty_inputs_save_capacity_and_no_false_finance():
+    snapshot, context = _context()
+    result = execute_partial_economics_v2(
+        {"schema_version": "economics-explicit-inputs-v2", "input_revision": context.capacity_request.input_revision},
+        snapshot, context,
+    ).result_snapshot
+    assert result["schema_version"] == "economics-partial-result-v1"
+    assert result["branches"]["capacity"]["status"] == "AVAILABLE"
+    assert result["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert result["branches"]["raas"]["status"] == "NOT_CALCULATED"
+    assert result["scenarios"] == []
+    assert len(result["scenario_statuses"]) == 6
+    assert all(item["npv_project"] is None for item in result["scenario_statuses"])
+    assert result["c05"]["procurement_ready"] is False
+    assert "raas_monthly_per_robot_gross" in result["branches"]["raas"]["required_fields"]
+
+
+def test_purchase_calculates_without_raas_tariff_or_recommendation():
+    snapshot, context = _context()
+    raw = _input()
+    raw["raas_monthly_per_robot_gross"] = None
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["branches"]["purchase"]["status"] == "CALCULATED"
+    assert result["branches"]["raas"]["status"] == "NOT_CALCULATED"
+    assert len(result["scenarios"]) == 3
+    assert {item["acquisition"] for item in result["scenarios"]} == {"PURCHASE"}
+    assert all(item["recommendation"]["status"] == "NOT_CALCULATED" for item in result["scenarios"])
+    assert all(item["procurement"]["procurement_ready"] is False for item in result["scenarios"])
+    assert all(item["npv_project"] is None for item in result["scenario_statuses"] if item["acquisition"] == "RAAS")
+
+
+def test_labour_calculates_without_purchase_inputs():
+    snapshot, context = _context()
+    raw = _input()
+    raw["implementation_cost_total_gross"] = None
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["branches"]["labour"]["status"] == "CALCULATED"
+    assert result["labour"]["status"] == "COMPLETE"
+    assert result["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert result["scenarios"] == []
+
+
+def test_partial_mapping_does_not_call_missing_gross_explicit():
+    raw = _input()
+    raw["control_monthly_gross"] = None
+    mapping = historical_mapping("economics-runtime-v2", {
+        "schema_version": "economics-run-input-v3", "economics": raw,
+    })
+    assert mapping.fte_basis_status == "MISSING_GROSS"
+    raw["control_monthly_gross"] = "100000"
+    with_capacity_gross = historical_mapping("economics-runtime-v2", {
+        "schema_version": "economics-run-input-v3", "economics": raw,
+        "capacity_role_salaries_complete": True,
+    })
+    assert with_capacity_gross.fte_basis_status == "EXPLICIT_GROSS"
+
+
+def test_invalid_money_and_units_do_not_become_zero():
+    snapshot, context = _context()
+    raw = _input()
+    raw.update(average_power_w="100 kW", annual_service_per_robot_gross="-1",
+               shared_site_capital_gross="0", raas_monthly_per_robot_gross=None)
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["scenarios"] == []
+    assert {"average_power_w", "annual_service_per_robot_gross"} <= {
+        item["field"] for item in result["issues"] if item["code"] == "INVALID_VALUE"
+    }
+    assert "shared_site_capital_gross" not in result["branches"]["purchase"]["required_fields"]
+
+
+def test_honest_range_is_saved_without_choosing_a_midpoint():
+    snapshot, context = _context()
+    raw = _input()
+    raw["implementation_cost_total_gross"] = "500000..800000"
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["input_ranges"]["implementation_cost_total_gross"] == {"min": "500000", "max": "800000"}
+    assert result["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert result["scenarios"] == []
+    assert any(item["code"] == "RANGE_ONLY" for item in result["issues"])
+
+
+def test_complete_v2_inputs_use_existing_full_engine():
+    snapshot, context = _context()
+    result = execute_partial_economics_v2(_input(), snapshot, context)
+    assert result.result_snapshot["schema_version"] == "commercial-scenarios-bundle-v2"
+    assert len(result.result_snapshot["scenarios"]) == 6
+
+
+def test_partial_replay_is_deterministic_and_keeps_c05():
+    snapshot, context = _context()
+    raw = _input()
+    raw["raas_monthly_per_robot_gross"] = None
+    first = execute_partial_economics_v2(raw, snapshot, context)
+    second = execute_partial_economics_v2(raw, snapshot, context)
+    assert first.model_dump(mode="json") == second.model_dump(mode="json")
+    assert first.result_snapshot["c05"]["eligibility"] == "NEEDS_VALIDATION"
+    assert first.result_snapshot["c05"]["procurement_ready"] is False
+@pytest.mark.parametrize("field", [key for key in _input() if key not in {"schema_version", "input_revision"}])
+def test_each_optional_omission_has_a_structured_result(field):
+    snapshot, context = _context()
+    raw = _input()
+    raw[field] = None
+    execution = execute_partial_economics_v2(raw, snapshot, context)
+    assert execution.result_snapshot["schema_version"] in {
+        "economics-partial-result-v1", "commercial-scenarios-bundle-v2"
+    }

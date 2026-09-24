@@ -95,10 +95,15 @@ class EconomicsV2ExecutionV1(StrictContractModel):
 
     @model_validator(mode="after")
     def validate_versions(self) -> "EconomicsV2ExecutionV1":
-        if self.result_snapshot.get("schema_version") != "commercial-scenarios-bundle-v2":
-            raise ValueError("v2 execution requires commercial scenarios bundle v2")
-        if self.scenario_spec_snapshot.get("schema_version") != "scenario-spec-v2":
-            raise ValueError("v2 execution requires ScenarioSpec v2")
+        versions = (
+            self.result_snapshot.get("schema_version"),
+            self.scenario_spec_snapshot.get("schema_version"),
+        )
+        if versions not in {
+            ("commercial-scenarios-bundle-v2", "scenario-spec-v2"),
+            ("economics-partial-result-v1", "scenario-spec-partial-v1"),
+        }:
+            raise ValueError("v2 execution requires a matching result/scenario-spec version")
         return self
 
 
@@ -186,8 +191,8 @@ def historical_mapping(
         def contains_gross(value: Any) -> bool:
             if isinstance(value, dict):
                 return any(
-                    key in {"monthly_gross", "monthly_gross_salary"}
-                    or key.endswith("_monthly_gross")
+                    (child is not None and (key in {"monthly_gross", "monthly_gross_salary"}
+                    or key.endswith("_monthly_gross")))
                     or contains_gross(child)
                     for key, child in value.items()
                 )
@@ -195,12 +200,23 @@ def historical_mapping(
                 return any(contains_gross(child) for child in value)
             return False
 
+        economics_input = input_snapshot.get("economics", {})
+        partial_basis_complete = (
+            input_snapshot.get("schema_version") != "economics-run-input-v3"
+            or (
+                isinstance(economics_input, dict)
+                and economics_input.get("role_salaries_confirmed_as_monthly_gross") is True
+                and economics_input.get("control_monthly_gross") is not None
+                and economics_input.get("technician_monthly_gross") is not None
+                and input_snapshot.get("capacity_role_salaries_complete") is True
+            )
+        )
         return EconomicsVersionMappingV1(
             execution_route="ECONOMICS_V2",
             economics_version=V2_VERSION,
             viewer_version="commercial-scenarios-viewer-v2",
             replay_mode="DETERMINISTIC_V2",
-            fte_basis_status=("EXPLICIT_GROSS" if contains_gross(input_snapshot) else "MISSING_GROSS"),
+            fte_basis_status=("EXPLICIT_GROSS" if partial_basis_complete and contains_gross(input_snapshot) else "MISSING_GROSS"),
             migration_notice="This run already uses the versioned economics runtime.",
         )
     raise EconomicsMigrationError("unsupported economics version")

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildEconomicsRunRequest } from '../src/economicsInputV2.js';
+import { buildEconomicsRunRequest, buildPartialEconomicsRunRequest } from '../src/economicsInputV2.js';
 
 const values = {
   capacityRunId: '00000000-0000-0000-0000-000000000001', evaluationDate: '2026-09-24',
@@ -39,4 +39,26 @@ test('does not silently accept unknown commercial basis', () => {
     values: { ...values, annualService: '' }, capacityRequest,
     project: { id: 'project.1' }, scenario: { id: 'scenario.1' },
   }), /сервис gross/);
+});
+
+test('partial request distinguishes unknown, confirmed zero and assumptions', () => {
+  const result = buildPartialEconomicsRunRequest({
+    values: { ...values, annualService: '', sharedSiteCapital: '0', raasMonthly: '',
+      sources: { shared_site_capital_gross: 'ASSUMPTION' } },
+    capacityRequest, project: { id: 'project.1' }, scenario: { id: 'scenario.1' },
+  });
+  assert.equal(result.input.schema_version, 'economics-explicit-inputs-v2');
+  assert.equal(result.input.annual_service_per_robot_gross, null);
+  assert.equal(result.input.raas_monthly_per_robot_gross, null);
+  assert.equal(result.input.shared_site_capital_gross, '0');
+  assert.equal(result.input.field_sources.shared_site_capital_gross, 'ASSUMPTION');
+  assert.equal('fte_cost_rub' in result.input, false);
+});
+
+test('partial request preserves a user range for server-side no-midpoint handling', () => {
+  const result = buildPartialEconomicsRunRequest({
+    values: { ...values, implementationCost: '500000..800000' },
+    capacityRequest, project: { id: 'project.1' }, scenario: { id: 'scenario.1' },
+  });
+  assert.equal(result.input.implementation_cost_total_gross, '500000..800000');
 });
