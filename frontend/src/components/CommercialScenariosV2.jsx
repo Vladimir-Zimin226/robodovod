@@ -5,6 +5,8 @@ import {
   createCommercialSession,
   formatServerMoney,
 } from '../commercialScenariosModel';
+import { buildEconomicsSimulationRequest } from '../economicsSimulationRequest';
+import Simulation2DReport from './Simulation2DReport';
 
 const STATUS_LABELS = {
   COMPLETE: 'Рассчитано', INCOMPLETE: 'Недостаточно данных',
@@ -12,10 +14,13 @@ const STATUS_LABELS = {
   ALTERNATIVE: 'Альтернатива', NO_POSITIVE_CASE: 'Нет положительного кейса',
 };
 
-export default function CommercialScenariosV2({ bundle, onRecalculate, onRestart }) {
+export default function CommercialScenariosV2({ bundle, scenarioSpec, onRecalculate, onRestart }) {
   const initial = useMemo(() => createCommercialSession(bundle), [bundle]);
   const [session, setSession] = useState(initial);
   const [scenarioKey, setScenarioKey] = useState('PURCHASE:BASE');
+  const simulationRequest = useMemo(
+    () => buildEconomicsSimulationRequest(bundle, scenarioSpec), [bundle, scenarioSpec],
+  );
 
   const edit = (field, value) => setSession((current) => applyCommercialInputEdit(current, field, value));
   const scenario = session.result?.scenarios.find((item) => item.key === scenarioKey) || null;
@@ -28,7 +33,10 @@ export default function CommercialScenariosV2({ bundle, onRecalculate, onRestart
           <h1>Покупка и RaaS</h1>
           <p>Шесть серверных сценариев. Интерфейс не пересчитывает финансовые показатели.</p>
         </div>
-        <button type="button" onClick={onRestart}>Новый расчёт</button>
+        <div className="commercial-header-actions">
+          {simulationRequest && <a href="#visualization">К 2D и 3D</a>}
+          <button type="button" onClick={onRestart}>Новый расчёт</button>
+        </div>
       </header>
 
       <section className="commercial-inputs" aria-label="Коммерческие исходные данные">
@@ -82,6 +90,11 @@ export default function CommercialScenariosV2({ bundle, onRecalculate, onRestart
             <dl>{Object.entries(session.result.versions).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}</dl>
             <ul>{session.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
           </section>
+
+          {simulationRequest && <div className="commercial-visualization">
+            <p>2D и 3D используют ScenarioSpec этого immutable run. Для C23 не заданы SLA и мощности погрузочных ресурсов; геометрия синтетическая и не является проектом площадки. Отчёт C23 хранится в памяти API и после перезапуска сервера запускается заново.</p>
+            <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} />
+          </div>}
         </>
       )}
     </main>

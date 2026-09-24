@@ -35,7 +35,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
   };
 
   return (
-    <section className="panel p-4 space-y-3" aria-label="Доказательный экспорт расчёта">
+    <section className="evidence-export-v2 panel p-4 space-y-3" aria-label="Доказательный экспорт расчёта">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="font-semibold">Доказательный экспорт</h2>

@@ -10,7 +10,7 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
   );
 
   return (
-    <main className="max-w-6xl mx-auto p-6 space-y-5" aria-label="Результат расчёта производительности">
+    <main className="capacity-results-v2 max-w-6xl mx-auto p-6 space-y-5" aria-label="Результат расчёта производительности">
       <header className="bg-white border rounded-2xl p-5">
         <div className="flex flex-wrap justify-between gap-3">
           <div>

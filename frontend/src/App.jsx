@@ -337,7 +337,7 @@ export default function App() {
                 />
               </>
             ) : isCommercialScenariosBundle(result) ? (
-              <CommercialScenariosV2 key={result.run_id} bundle={result} onRestart={restart} onRecalculate={() => setPhase('intake')} />
+              <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} onRestart={restart} onRecalculate={() => setPhase('intake')} />
             ) : (
               <ResultsPanel
                 result={result}

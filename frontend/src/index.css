@@ -243,6 +243,7 @@ button:disabled { cursor: not-allowed; }
 .commercial-header { margin-top: 0; background: linear-gradient(135deg,rgba(76,207,227,.08),rgba(147,237,67,.035)),var(--bg-panel); }
 .commercial-header span { color: var(--cyan); font-size: 8px; font-weight: 800; letter-spacing: .1em; }.commercial-header h1 { margin: 5px 0; font-size: clamp(24px,3vw,38px); }.commercial-header p,.commercial-section-title p { margin: 0; color: var(--text-secondary); font-size: 9px; }
 .commercial-header button,.commercial-stale button { min-height: 38px; padding: 0 14px; border: 1px solid var(--border-medium); border-radius: 6px; background: var(--bg-panel-2); color: var(--text-primary); font-size: 9px; font-weight: 750; }
+.commercial-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }.commercial-header-actions a { display: inline-flex; min-height: 38px; align-items: center; padding: 0 14px; border: 1px solid rgba(147,237,67,.45); border-radius: 6px; color: var(--lime); font-size: 10px; font-weight: 750; text-decoration: none; }.commercial-header-actions a:hover { background: rgba(147,237,67,.08); }
 .commercial-section-title { margin-bottom: 14px; }.commercial-section-title > div { display: flex; align-items: center; gap: 9px; }.commercial-section-title > div > span { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid rgba(147,237,67,.28); border-radius: 6px; color: var(--lime); font-size: 8px; font-weight: 800; }.commercial-section-title h2 { margin: 0; font-size: 16px; }.commercial-section-title p { max-width: 490px; text-align: right; }
 .commercial-input-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; }.commercial-input-grid label { display: grid; gap: 5px; }.commercial-input-grid label > span { color: var(--text-muted); font-size: 8px; }.commercial-input-grid input { min-width: 0; height: 38px; padding: 0 10px; border: 1px solid var(--border-medium); border-radius: 5px; background: var(--bg-input); color: var(--text-primary); font-size: 10px; }.commercial-input-grid input[readonly] { color: var(--text-muted); }
 .commercial-warning,.commercial-note { margin: 12px 0 0; padding: 9px 11px; border-left: 2px solid #d9b572; background: rgba(84,59,19,.11); color: #dfc28c; font-size: 9px; }.commercial-stale { align-items: center; margin-top: 12px; padding: 12px; border: 1px solid rgba(217,181,114,.28); border-radius: 7px; background: rgba(84,59,19,.13); }.commercial-stale p { margin: 3px 0 0; color: var(--text-muted); font-size: 9px; }
@@ -251,6 +252,42 @@ button:disabled { cursor: not-allowed; }
 .commercial-ledger-grid { display: grid; grid-template-columns: 1.45fr 1fr; gap: 10px; margin-top: 10px; }.commercial-ledger-grid h3 { margin-bottom: 10px; }.commercial-table-wrap { overflow-x: auto; }.commercial-table-wrap table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 8px; }.commercial-table-wrap th,.commercial-table-wrap td { padding: 8px; border-bottom: 1px solid var(--border-subtle); text-align: left; }.commercial-table-wrap th { color: var(--text-muted); }.commercial-expenses { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }.commercial-expenses li { align-items: center; padding-bottom: 7px; border-bottom: 1px solid var(--border-subtle); }.commercial-expenses span { display: grid; gap: 2px; }.commercial-expenses strong,.commercial-expenses b { font-size: 9px; }.commercial-expenses small { color: var(--text-muted); font-size: 7px; }.commercial-expenses b { color: var(--lime); }.commercial-ledger-grid details { padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }.commercial-ledger-grid summary { cursor: pointer; font-size: 9px; }.commercial-ledger-grid details p,.commercial-ledger-grid details code { margin: 4px 0 0; color: var(--text-muted); font-size: 8px; }
 .commercial-tornado { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }.commercial-tornado > div { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 3px 14px; padding: 10px 12px; }.commercial-tornado .direction-lower { border-left: 3px solid var(--cyan); }.commercial-tornado .direction-upper { border-right: 3px solid #d9b572; }.commercial-tornado span,.commercial-tornado strong { font-size: 9px; }.commercial-tornado strong { color: var(--lime); }.commercial-tornado small { grid-column: 1/-1; color: var(--text-muted); font-size: 7px; }
 .commercial-trace dl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin: 0; }.commercial-trace dl div { padding: 9px; }.commercial-trace dt { color: var(--text-muted); font-size: 7px; }.commercial-trace dd { margin: 4px 0 0; overflow-wrap: anywhere; font-size: 8px; }.commercial-trace ul { color: var(--text-secondary); font-size: 9px; }
+
+/* C11 and C13–C21 live inside the dark application shell, including reopened runs. */
+.capacity-results-v2 { color: var(--text-primary); }
+.capacity-results-v2 .bg-white,.capacity-results-v2 .bg-slate-50 { border-color: var(--border-subtle); background: var(--bg-panel); }
+.capacity-results-v2 .text-slate-500 { color: var(--text-muted); }
+.capacity-results-v2 .text-slate-600 { color: var(--text-secondary); }
+.capacity-results-v2 .text-amber-700 { color: #dfc28c; }
+.capacity-results-v2 h1,.capacity-results-v2 h2,.capacity-results-v2 strong,.capacity-results-v2 summary { color: var(--text-primary); }
+.capacity-results-v2 .bg-blue-50 { border: 1px solid rgba(147,237,67,.35); background: rgba(147,237,67,.09); color: var(--lime); }
+.capacity-results-v2 details { border-color: var(--border-medium); background: var(--bg-input); }
+.capacity-results-v2 details[open] { border-color: rgba(76,207,227,.35); }
+.capacity-results-v2 code { color: var(--cyan); overflow-wrap: anywhere; }
+.capacity-results-v2 [aria-label="Парк и производительность"] article { background: var(--bg-panel-2); }
+.capacity-results-v2 [aria-label="Парк и производительность"] article p:last-child { color: var(--lime); }
+
+.economics-inputs-v2 { border-color: var(--border-medium); background: var(--bg-panel); color: var(--text-primary); box-shadow: 0 20px 48px rgba(0,0,0,.2); }
+.economics-inputs-v2 > header { padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); }
+.economics-inputs-v2 > section { padding: 16px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-panel-2); }
+.economics-inputs-v2 h2,.economics-inputs-v2 h3 { color: var(--text-primary); }
+.economics-inputs-v2 .text-amber-900 { color: #dfc28c; }
+.economics-inputs-v2 .text-slate-700 { color: var(--text-secondary); }
+.economics-inputs-v2 label { color: var(--text-secondary); }
+.economics-inputs-v2 input:not([type="checkbox"]),.economics-inputs-v2 select { min-width: 0; min-height: 42px; border-color: var(--border-medium); border-radius: 6px; background: var(--bg-input); color: var(--text-primary); color-scheme: dark; }
+.economics-inputs-v2 input:focus-visible,.economics-inputs-v2 select:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+.economics-inputs-v2 input[type="checkbox"] { accent-color: var(--lime); }
+.economics-inputs-v2 .text-red-700 { color: #ff9a9a; }
+.economics-inputs-v2 button[type="submit"] { background: var(--lime); color: #10200b; }
+.economics-inputs-v2 button[type="submit"]:hover:not(:disabled) { background: var(--lime-bright); }
+.economics-inputs-v2 button[type="submit"]:disabled { background: var(--border-medium); color: var(--text-muted); }
+.commercial-visualization { margin-top: 16px; }
+.commercial-visualization > p { margin: 0 0 10px; padding: 11px 14px; border-left: 2px solid #d9b572; background: rgba(84,59,19,.12); color: #dfc28c; font-size: 11px; line-height: 1.5; }
+.evidence-export-v2 { width: min(1152px,calc(100% - 48px)); margin: 0 auto 28px; border-color: var(--border-medium); background: var(--bg-panel); color: var(--text-primary); }
+.evidence-export-v2 .text-slate-500 { color: var(--text-secondary); }
+.evidence-export-v2 .text-emerald-700 { color: var(--success); }
+.evidence-export-v2 .text-amber-700 { color: #dfc28c; }
+.evidence-export-v2 .text-red-700 { color: #ff9a9a; }
 
 @media (max-width: 1439px) {
   .robodovod-app { grid-template-columns: 190px minmax(0,1fr); }

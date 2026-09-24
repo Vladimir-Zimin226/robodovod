@@ -50,10 +50,10 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
 
   if (!project || !scenario || !capacityRunId) return null;
   const roleRefs = capacityRequest?.process?.role_refs || [];
-  return <form className="mx-auto my-6 max-w-6xl rounded-2xl border border-amber-300 bg-white p-5 shadow-sm space-y-5" onSubmit={submit} aria-label="Экономика C13–C21">
+  return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={submit} aria-label="Экономика C13–C21">
     <header>
       <h2 className="text-xl font-semibold">Продолжить серверный расчёт: C13–C21</h2>
-      <p className="mt-1 text-sm text-amber-900">Заполните только известные вам условия. Поля не являются техпаспортом или коммерческим предложением. Цена каталога останется organizer dataset, procurement — UNVERIFIED без подтверждённой оферты.</p>
+      <p className="mt-1 text-sm text-amber-900">Для полного C13–C21 все поля пока обязательны. Заполняйте их только известными значениями или осознанными сценарными допущениями. Это не техпаспорт и не коммерческое предложение; цена каталога останется organizer dataset, procurement — UNVERIFIED без оферты.</p>
     </header>
     <section>
       <h3 className="font-semibold">Труд и текущий процесс</h3>
