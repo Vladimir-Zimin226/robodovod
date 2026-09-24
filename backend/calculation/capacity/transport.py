@@ -7,6 +7,7 @@ legacy commercial fallback and is not wired into production endpoints.
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from typing import Literal
 
@@ -294,8 +295,21 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
     if policy_prov not in {item.provenance_id for item in provenance}:
         provenance.append(PolicyProvenance(provenance_id=policy_prov, policy_id="policy.capacity-k02-k04",
                                            policy_version="hackathon-calculation-policy-v1", decision_refs=["K02", "K03", "K04"]))
+    trace_provenance_ids = {item.provenance_id for item in provenance}
+
+    def trace_input(item: KnownQuantity) -> KnownQuantity:
+        if item.provenance_ref in trace_provenance_ids:
+            return item
+        # C01 conversion nodes belong to the preceding normalization response,
+        # not to the C11 trace's provenance graph. Bind their values to the
+        # existing normalized-process source; leave the original ref in the
+        # immutable request snapshot for replay and audit.
+        if re.fullmatch(r"conversion\.\d{4,}", item.provenance_ref):
+            return item.model_copy(update={"provenance_ref": normalized_prov})
+        raise ValueError("C11 input provenance is not registered")
+
     if explicit_q is not None and batch == decimal(explicit_q.normalized_value):
-        batch_prov = explicit_q.provenance_ref
+        batch_prov = trace_input(explicit_q).provenance_ref
     elif request.process.quantity_kind == ProcessQuantityKind.BOX:
         batch_prov = "prov.derived.batch"
         provenance.append(DerivedProvenance(provenance_id=batch_prov, parent_node_ids=["node.f03"]))
@@ -345,8 +359,8 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
         request.process.schedule.shift_hours.model_copy(update={"provenance_ref": normalized_prov}),
         request.process.demand.model_copy(update={"provenance_ref": normalized_prov}),
         request.process.route_distance.model_copy(update={"provenance_ref": normalized_prov}),
-        *(item.model_copy(update={"provenance_ref": normalized_prov}) if item.provenance_ref not in {p.provenance_id for p in provenance} else item for item in ex_inputs),
-        speed_input,
+        *(trace_input(item) for item in ex_inputs),
+        trace_input(speed_input),
         _q(QuantityName.SAFE_MAX_SPEED, max_speed, Unit.METER_PER_SECOND, QuantityKind.SPEED, speed_prov),
         _q(QuantityName.PAYLOAD, payload, Unit.KILOGRAM, QuantityKind.MASS, payload_prov),
         _q(QuantityName.UNITS_PER_TRIP, batch, Unit.UNIT_PER_TRIP, QuantityKind.RATE, batch_prov),
@@ -356,8 +370,10 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
         _q(QuantityName.SECONDS_PER_HOUR, seconds_per_hour, Unit.SECOND_PER_HOUR, QuantityKind.UNIT_DEFINITION, policy_prov),
     ]
     for optional in (item_mass_q, explicit_q, request.batch_limits.passport, request.batch_limits.geometry, request.selected_fleet):
-        if optional is not None and optional not in inputs:
-            inputs.append(optional)
+        if optional is not None:
+            bound = trace_input(optional)
+            if bound not in inputs:
+                inputs.append(bound)
 
     nodes = [
         formula_node("F01", [], ["shifts_per_day", "shift_hours"], applicability_domain="TRANSPORT_OR_DELIVERY_CYCLE"),

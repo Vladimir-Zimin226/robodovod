@@ -139,12 +139,35 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
             model_id=position.model.id,
             position_id=position.id,
         )
+        # C01 emits conversion refs; the browser preserves them in the C11
+        # request rather than inventing provenance entries in its payload.
+        capacity_input["process"]["demand"]["provenance_ref"] = "conversion.0001"
+        capacity_input["process"]["schedule"]["shifts_per_day"]["provenance_ref"] = "conversion.0002"
+        capacity_input["process"]["schedule"]["shift_hours"]["provenance_ref"] = "conversion.0003"
+        capacity_input["process"]["route_distance"]["provenance_ref"] = "conversion.0005"
+        capacity_input["process"]["explicit_batch"]["provenance_ref"] = "conversion.0006"
         capacity_response = client.post(
             "/api/v2/capacity-analyses", headers=headers, json=capacity_input
         )
         assert capacity_response.status_code == 201, capacity_response.text
         capacity = capacity_response.json()
         assert capacity["capacity"]["status"] == "WITH_ASSUMPTIONS"
+        assert capacity["trace"]["replay"]["canonical_input_digest"]
+        assert all(
+            item["provenance_ref"] in {node["provenance_id"] for node in capacity["trace"]["provenance"]}
+            for item in capacity["trace"]["inputs"]
+        )
+        capacity_reopened = client.get(f"/api/v2/capacity-analyses/{capacity['run_id']}")
+        assert capacity_reopened.status_code == 200
+        assert capacity_reopened.json()["trace"]["replay"] == capacity["trace"]["replay"]
+        capacity_record = client.get(
+            f"/api/projects/{project['id']}/analysis-runs/{capacity['run_id']}"
+        )
+        assert capacity_record.status_code == 200
+        assert (
+            capacity_record.json()["input_snapshot"]["process"]["explicit_batch"]["provenance_ref"]
+            == "conversion.0006"
+        )
         assert any(
             check["status"] in {"UNKNOWN", "ASSUMED"}
             for check in capacity["trace"]["constraints"]

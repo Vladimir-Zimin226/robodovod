@@ -230,13 +230,13 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
 
 function DemoProfile({ profile }) {
   if (!profile) return null;
-  return <details className="border border-amber-200 bg-amber-50 rounded-lg p-3 text-xs" open>
-    <summary className="font-semibold cursor-pointer">Авторский демо-профиль · не техпаспорт изготовителя</summary>
-    <p className="mt-2"><a className="underline text-blue-700" href={profile.sourceUrl} target="_blank" rel="noreferrer">{profile.sourceLabel} · опубликованные характеристики</a>: {profile.published}</p>
-    {profile.conflictUrl && <p className="mt-1"><a className="underline text-blue-700" href={profile.conflictUrl} target="_blank" rel="noreferrer">Второй источник изготовителя с отличающейся скоростью</a></p>}
-    <p className="mt-2"><strong>Допущения:</strong> {profile.assumptions}</p>
-    <p className="mt-2"><strong>Неизвестно:</strong> {profile.unknown}</p>
-    <p className="mt-2 font-semibold text-amber-900">C05: требуется проверка. Результат не подтверждает пригодность к внедрению.</p>
+  return <details className="rounded-xl border border-lime-400/50 border-l-4 bg-[#1c2b25] p-4 text-xs text-slate-100" open>
+    <summary className="cursor-pointer font-semibold text-lime-300">Авторский демо-профиль · не техпаспорт изготовителя</summary>
+    <p className="mt-3 leading-relaxed"><a className="underline text-lime-300 underline-offset-2" href={profile.sourceUrl} target="_blank" rel="noreferrer">{profile.sourceLabel} · опубликованные характеристики</a>: {profile.published}</p>
+    {profile.conflictUrl && <p className="mt-2"><a className="underline text-lime-300 underline-offset-2" href={profile.conflictUrl} target="_blank" rel="noreferrer">Второй источник изготовителя с отличающейся скоростью</a></p>}
+    <p className="mt-3 leading-relaxed"><strong className="text-lime-200">Допущения:</strong> {profile.assumptions}</p>
+    <p className="mt-2 leading-relaxed"><strong className="text-lime-200">Неизвестно:</strong> {profile.unknown}</p>
+    <p className="mt-3 border-t border-lime-400/30 pt-3 font-semibold leading-relaxed text-amber-300">C05: требуется проверка. Результат не подтверждает пригодность к внедрению.</p>
   </details>;
 }
 

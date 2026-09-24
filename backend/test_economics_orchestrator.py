@@ -7,6 +7,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import jsonschema
+import pytest
 from calculation.service import analyze_capacity
 from calculation_contracts import (
     CapacityAnalysisRequest,
@@ -210,6 +211,35 @@ def _inputs() -> dict:
         "start_seconds_from_midnight": 0,
         "timezone": "Europe/Moscow",
     }
+
+
+def test_normalized_c01_conversion_refs_do_not_dangle_in_c11_trace():
+    """The browser sends C01 quantities with conversion IDs, not C11 provenance IDs."""
+
+    raw = _capacity_request().model_dump(mode="json")
+    process = raw["process"]
+    process["demand"]["provenance_ref"] = "conversion.0001"
+    process["schedule"]["shifts_per_day"]["provenance_ref"] = "conversion.0002"
+    process["schedule"]["shift_hours"]["provenance_ref"] = "conversion.0003"
+    process["route_distance"]["provenance_ref"] = "conversion.0005"
+    process["explicit_batch"]["provenance_ref"] = "conversion.0006"
+    request = CapacityAnalysisRequest.model_validate(raw)
+
+    execution = analyze_capacity(request, _snapshot(), "run.c01-to-c11.demo")
+    assert execution.response.capacity.status == "WITH_ASSUMPTIONS"
+    trace = execution.response.trace
+    known = {item.provenance_id for item in trace.provenance}
+    assert all(item.provenance_ref in known for item in trace.inputs)
+    assert any(item.name == "units_per_trip" for item in trace.inputs)
+
+
+def test_unregistered_non_c01_input_provenance_fails_closed():
+    raw = _capacity_request().model_dump(mode="json")
+    raw["process"]["explicit_batch"]["provenance_ref"] = "prov.unregistered"
+    request = CapacityAnalysisRequest.model_validate(raw)
+
+    with pytest.raises(ValueError, match="C11 input provenance is not registered"):
+        analyze_capacity(request, _snapshot(), "run.unknown-provenance")
 
 
 def test_production_orchestrator_uses_capacity_and_catalog_without_fixture_bundle():
