@@ -9,6 +9,7 @@ import { EvidenceExportSession, parseEvidenceManifest } from '../src/evidenceExp
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 const manifest = JSON.parse(await readFile(path.join(ROOT, 'contracts/fixtures/calculation-evidence-export-v1.golden.json'), 'utf8'));
+const manifestV2 = JSON.parse(await readFile(path.join(ROOT, 'contracts/fixtures/calculation-evidence-export-v2.golden.json'), 'utf8'));
 
 function jsonResponse(body, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => structuredClone(body) };
@@ -28,9 +29,21 @@ test('strict manifest parser binds project/run and rejects version or extra fiel
     projectId: manifest.project_id,
     runId: manifest.run_id,
   }).manifest_digest, manifest.manifest_digest);
-  assert.throws(() => parseEvidenceManifest({ ...manifest, schema_version: 'calculation-evidence-export-manifest-v2' }), /unsupported/);
+  assert.throws(() => parseEvidenceManifest({ ...manifest, schema_version: 'calculation-evidence-export-manifest-v3' }), /unsupported/);
   assert.throws(() => parseEvidenceManifest({ ...manifest, client_total: '1.00' }), /unknown or missing/);
   assert.throws(() => parseEvidenceManifest(structuredClone(manifest), { runId: 'another-run' }), /run binding/);
+  assert.equal(parseEvidenceManifest(structuredClone(manifestV2), { runId: manifestV2.run_id }).entrypoint_filename, 'НАЧНИТЕ_ЗДЕСЬ.md');
+  assert.throws(() => parseEvidenceManifest({ ...manifestV2, report_filename: 'TechnicalDump.pdf' }), /entrypoint/);
+});
+
+test('v2 browser download uses a Windows-friendly Russian filename and manifest binding', async () => {
+  const saved = [];
+  const session = new EvidenceExportSession({
+    fetchImpl: async (url) => url.endsWith('/manifest') ? jsonResponse(manifestV2) : zipResponse(manifestV2.manifest_digest),
+    saveImpl: (blob, filename) => saved.push(filename),
+  });
+  await session.download(manifestV2.project_id, manifestV2.run_id);
+  assert.equal(saved[0], `Рободовод, доказательства № ${manifestV2.run_id} от 01.01.2026.zip`);
 });
 
 test('download uses same-origin credentials and saves only a digest-bound bundle', async () => {

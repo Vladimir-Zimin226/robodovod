@@ -25,6 +25,12 @@ from calculation_contracts import Digest, StrictContractModel, semantic_digest
 
 EXPORT_POLICY_VERSION = "calculation-evidence-export-policy-v1"
 EXPORT_GENERATOR_VERSION = "snapshot-evidence-export-v1"
+EXPORT_POLICY_VERSION_V2 = "calculation-evidence-export-policy-v2"
+EXPORT_GENERATOR_VERSION_V2 = "snapshot-evidence-export-v2"
+ENTRYPOINT_FILENAME = "НАЧНИТЕ_ЗДЕСЬ.md"
+GUIDE_FILENAME = "Как_читать_разделы.md"
+READABLE_REPORT_FILENAME = "Отчёт_Рободовод.pdf"
+TECHNICAL_REPORT_FILENAME = "Технический_дамп.pdf"
 SECTION_NAMES = (
     "Inputs", "Selection", "Scenarios", "CashFlow", "Sensitivity",
     "Sources", "Trace", "Simulation", "Versions",
@@ -99,9 +105,21 @@ class EvidenceExportManifestV1(StrictContractModel):
         return self
 
 
+class EvidenceExportManifestV2(EvidenceExportManifestV1):
+    """Human-readable package; v1 stays available for historical golden replay."""
+
+    schema_version: Literal["calculation-evidence-export-manifest-v2"]
+    export_policy_version: Literal["calculation-evidence-export-policy-v2"]
+    generator_version: Literal["snapshot-evidence-export-v2"]
+    entrypoint_filename: Literal["НАЧНИТЕ_ЗДЕСЬ.md"]
+    report_filename: Literal["Отчёт_Рободовод.pdf"]
+    linked_capacity_run_id: str | None
+    linked_capacity_snapshot_digests: dict[str, Digest | None] | None
+
+
 @dataclass(frozen=True)
 class EvidenceExportPackage:
-    manifest: EvidenceExportManifestV1
+    manifest: EvidenceExportManifestV1 | EvidenceExportManifestV2
     archive: bytes
     files: dict[str, bytes]
 
@@ -395,7 +413,169 @@ def build_evidence_export(run: EvidenceRunSnapshotV1) -> EvidenceExportPackage:
     return EvidenceExportPackage(manifest=manifest, archive=archive_buffer.getvalue(), files=files)
 
 
+_SECTION_GUIDE = {
+    "Inputs": ("Какие исходные величины были сохранены.", "path, value и status; отличайте NULL от 0.", "input_snapshot этого run."),
+    "Selection": ("Какой парк или кандидат выбран и почему.", "selected_fleet, ranking, recommendation и причины отказа.", "result_snapshot и C11, если они входят в run."),
+    "Scenarios": ("Какие варианты покупки, RaaS и неопределённости есть в результате.", "acquisition, uncertainty, status и reason_codes.", "result_snapshot; отсутствующая ветка не вычислялась."),
+    "CashFlow": ("Какие денежные потоки сохранены по годам.", "year, baseline, scenario, differential и source_ref.", "финансовые ledger в result_snapshot; CSV не пересчитывает NPV."),
+    "Sensitivity": ("Какие изменения параметров были проверены.", "параметр, направление, delta NPV и причины BLOCKED.", "sensitivity в result_snapshot."),
+    "Sources": ("На каких ссылках, фактах и допущениях основан результат.", "source_ref, provenance_ref, статус источника.", "поля provenance/assumption/evidence в result_snapshot; допущение не является офертой."),
+    "Trace": ("Как связаны входы, формулы и выходы.", "node_id, formula_id, input_refs и status.", "trace_snapshot или trace-узлы result_snapshot."),
+    "Simulation": ("Есть ли C23 report внутри именно этого immutable run.", "request_id, report_digest, SLA verdict и ограничения.", "simulation_report в result_snapshot; поздние C23 artifacts хранятся отдельно по request_id."),
+    "Versions": ("Какие версии каталога и правил использованы.", "catalog, rules, economics, application, version_bindings.", "версии AnalysisRun и version_bindings_snapshot."),
+}
+
+
+def _human_guide(sections: list[EvidenceSectionV1]) -> bytes:
+    lines = [
+        "# Как читать файлы архива", "",
+        "Во всех CSV столбцы path, value, source_ref, status. Значения взяты из сохранённых снимков; экспорт не запускает расчёт.",
+        "NOT_AVAILABLE означает, что раздел отсутствует в этом run. Строка-заглушка и record_count=0 не означают ноль, сбой или подтверждённый факт.",
+        "",
+    ]
+    for section in sections:
+        purpose, fields, source = _SECTION_GUIDE[section.name]
+        lines.extend([
+            f"## {section.filename} — {section.status}", "",
+            f"Что проверяет: {purpose}",
+            f"Что смотреть: {fields}",
+            f"Откуда взято: {source}",
+            f"Записей: {section.record_count}. " + (f"Причина пустого раздела: {section.reason_code}." if section.reason_code else "Данные есть в сохранённом run."),
+            "",
+        ])
+    lines.extend([
+        "## Snapshot.json", "",
+        "Что проверяет: полный машинный снимок run без потерь от выборки CSV.",
+        "Что смотреть: input_snapshot, result_snapshot, scenario_spec_snapshot, trace_snapshot, версии и source_snapshot_digests.",
+        "Откуда взято: неизменяемый AnalysisRun; каждый исходный снимок сверен с сохранённым SHA-256.",
+        "Если есть C11_Snapshot.json, это проверенный связанный технический run с собственными входом, результатом и trace. Его run_id и digest указаны также в manifest.json.",
+        "",
+        "## C23 и подтверждение фактов", "",
+        "C23 report доказывает только результат своей сохранённой модели очереди и SLA при указанных входах. Поздние append-only C23 artifacts не включаются в этот неизменяемый пакет run; их открывают отдельно по request_id.",
+        "Расчёт и его SHA-256 доказывают воспроизводимость вычислений. Паспорт, цена, состав поставки и доступность требуют отдельного документа изготовителя или поставщика.",
+        "",
+    ])
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def _human_entrypoint(
+    run: EvidenceRunSnapshotV1,
+    digests: dict[str, str | None],
+    sections: list[EvidenceSectionV1],
+    linked: EvidenceRunSnapshotV1 | None,
+) -> bytes:
+    missing = [item.name for item in sections if item.status == "NOT_AVAILABLE"]
+    c05 = run.result_snapshot.get("c05")
+    c05_state = (c05.get("eligibility") if isinstance(c05, dict) else None) or run.diagnostics.get("constraint_eligibility")
+    capacity_label = run.run_id if run.run_kind == "CAPACITY_ANALYSIS" else linked.run_id if linked is not None else "NOT_AVAILABLE"
+    lines = [
+        "# НАЧНИТЕ ЗДЕСЬ", "",
+        f"**Отчёт № {run.run_id}** · дата сохранённого расчёта {run.finished_at:%d.%m.%Y}.",
+        f"Проект: {run.project_id}. Тип run: {run.run_kind}. Ревизия: {run.revision_id or 'NOT_AVAILABLE'}.",
+        f"Версии: правила {run.versions.get('rules') or 'NOT_AVAILABLE'}; экономика {run.versions.get('economics') or 'NOT_AVAILABLE'}; приложение {run.versions.get('application') or 'NOT_AVAILABLE'}.",
+        f"SHA-256 сохранённого результата: {digests['result']}. Полный перечень SHA-256 файлов — в manifest.json.",
+        "",
+        "## Что открывать", "",
+        f"1. **{READABLE_REPORT_FILENAME}** — читаемый русский отчёт по сохранённым значениям.",
+        f"2. **{GUIDE_FILENAME}** — что проверяет каждый CSV, какие поля смотреть и откуда они взяты.",
+        "3. **Inputs.csv → Selection.csv → Scenarios.csv → CashFlow.csv** — путь от ввода до результата; остальные CSV раскрывают чувствительность, источники, трассировку, C23 и версии.",
+        "4. **Snapshot.json** — полный машинный снимок; при наличии **C11_Snapshot.json** — связанный расчёт мощности; **manifest.json** — контрольные суммы и статусы разделов.",
+        "",
+        "## Что пакет подтверждает и что остаётся открытым", "",
+        "Пакет подтверждает сохранённые входы, результаты и версии указанного run при совпадении контрольных сумм. Он не является подтверждением характеристик или коммерческих условий поставщика.",
+        f"C05: {c05_state or 'проверьте сохранённые ограничения'}; пригодность к внедрению и закупке подтверждаются отдельно.",
+        f"Разделы без данных: {', '.join(missing) if missing else 'нет'}. NOT_AVAILABLE — нет данных в этом run, а не ноль.",
+        f"Источник C11: {capacity_label}; C23 evidence из поздних append-only artifacts проверяйте отдельно по request_id.",
+        "",
+        "## Проверка целостности", "",
+        "Сверьте run_id и дату здесь, в PDF и manifest.json. Для каждого файла кроме manifest.json сравните SHA-256 с artifacts в manifest.json.",
+        "Сам manifest.json проверяется полем manifest_digest: SHA-256 канонического JSON с временным нулевым значением этого поля.",
+        f"{TECHNICAL_REPORT_FILENAME} — старый машинный дамп для аудита; он не является главным отчётом.",
+        "",
+    ]
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def build_evidence_export_v2(
+    run: EvidenceRunSnapshotV1,
+    capacity_run: EvidenceRunSnapshotV1 | None = None,
+) -> EvidenceExportPackage:
+    """Build a deterministic, navigable archive from verified saved snapshots."""
+
+    from calculation.readable_report import build_readable_report
+
+    base = build_evidence_export(run)
+    digests = _verify_snapshots(run)
+    readable_pdf, source_digest = build_readable_report(run, capacity_run)
+    if source_digest != digests["result"]:
+        raise EvidenceExportIntegrityError("readable report source does not match run")
+    linked_digests = _verify_snapshots(capacity_run) if capacity_run is not None else None
+    files = dict(base.files)
+    files[TECHNICAL_REPORT_FILENAME] = files.pop("Report.pdf")
+    files[READABLE_REPORT_FILENAME] = readable_pdf
+    files[GUIDE_FILENAME] = _human_guide(base.manifest.sections)
+    files[ENTRYPOINT_FILENAME] = _human_entrypoint(run, digests, base.manifest.sections, capacity_run)
+    if capacity_run is not None:
+        linked_document = {
+            "schema_version": "calculation-evidence-linked-capacity-v1",
+            "run_id": capacity_run.run_id,
+            "project_id": capacity_run.project_id,
+            "snapshot_captured_at": capacity_run.finished_at.isoformat(),
+            "versions": capacity_run.versions,
+            "source_snapshot_digests": linked_digests,
+            "input_snapshot": capacity_run.input_snapshot,
+            "result_snapshot": capacity_run.result_snapshot,
+            "trace_snapshot": capacity_run.trace_snapshot,
+            "version_bindings_snapshot": capacity_run.version_bindings_snapshot,
+        }
+        files["C11_Snapshot.json"] = json.dumps(linked_document, ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+    artifacts = [
+        _artifact(name, "application/pdf" if name.endswith(".pdf") else "application/json" if name.endswith(".json") else "text/csv; charset=utf-8" if name.endswith(".csv") else "text/markdown; charset=utf-8", payload)
+        for name, payload in sorted(files.items())
+    ]
+    limitations = [
+        *base.manifest.limitations,
+        "c23-append-only-artifacts-not-in-this-run-snapshot",
+        "scenario-assumptions-are-not-vendor-confirmations",
+    ]
+    manifest_body = {
+        "schema_version": "calculation-evidence-export-manifest-v2",
+        "run_id": run.run_id,
+        "project_id": run.project_id,
+        "run_kind": run.run_kind,
+        "revision_id": run.revision_id,
+        "snapshot_captured_at": run.finished_at,
+        "export_policy_version": EXPORT_POLICY_VERSION_V2,
+        "generator_version": EXPORT_GENERATOR_VERSION_V2,
+        "versions": run.versions,
+        "source_snapshot_digests": digests,
+        "linked_capacity_run_id": capacity_run.run_id if capacity_run else None,
+        "linked_capacity_snapshot_digests": linked_digests,
+        "entrypoint_filename": ENTRYPOINT_FILENAME,
+        "report_filename": READABLE_REPORT_FILENAME,
+        "sections": base.manifest.sections,
+        "artifacts": artifacts,
+        "bundle_content_digest": semantic_digest([item.model_dump(mode="json") for item in artifacts]),
+        "limitations": limitations,
+        "manifest_digest": "sha256:" + "0" * 64,
+    }
+    manifest_body["manifest_digest"] = semantic_digest(
+        EvidenceExportManifestV2.model_construct(**manifest_body).model_dump(mode="json")
+    )
+    manifest = EvidenceExportManifestV2.model_validate(manifest_body)
+    manifest_payload = json.dumps(manifest.model_dump(mode="json"), ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+    archive_buffer = io.BytesIO()
+    with zipfile.ZipFile(archive_buffer, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for name, payload in sorted({**files, "manifest.json": manifest_payload}.items()):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, payload)
+    return EvidenceExportPackage(manifest=manifest, archive=archive_buffer.getvalue(), files=files)
+
+
 __all__ = [
-    "EvidenceExportIntegrityError", "EvidenceExportManifestV1",
+    "EvidenceExportIntegrityError", "EvidenceExportManifestV1", "EvidenceExportManifestV2",
     "EvidenceExportPackage", "EvidenceRunSnapshotV1", "build_evidence_export",
+    "build_evidence_export_v2",
 ]

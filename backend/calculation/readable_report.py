@@ -150,12 +150,22 @@ def _scenario(result: dict[str, Any], acquisition: str) -> dict[str, Any]:
 
 def _facts(scenario: dict[str, Any]) -> dict[str, Any]:
     facts = _obj(scenario.get("report_facts"))
-    return facts if facts.get("schema_version") == "calculation-report-facts-v1" else {}
+    if facts.get("schema_version") == "calculation-report-facts-v1":
+        return facts
+    # Partial runs keep the computed financial projection but omit the full
+    # report_facts contract. Read only saved values; never infer missing costs.
+    financial = _obj(scenario.get("financial"))
+    return {"project_npv": financial.get("npv_project")} if financial.get("status") == "COMPLETE" else {}
 
 
 def _cashflows(scenario: dict[str, Any]) -> list[dict[str, Any]]:
     facts = _facts(scenario)
-    return [item for item in _list(facts.get("annual_cashflows")) if isinstance(item, dict)]
+    if isinstance(facts.get("annual_cashflows"), list):
+        return [item for item in facts["annual_cashflows"] if isinstance(item, dict)]
+    financial = _obj(scenario.get("financial"))
+    return [{"year": item.get("year"), "baseline": item.get("primary_cf_base"),
+             "scenario": item.get("primary_cf_scenario"), "effect": item.get("differential_cf")}
+            for item in _list(financial.get("annual_ledgers")) if isinstance(item, dict)]
 
 
 def _text_width(value: str, size: float) -> float:
@@ -419,11 +429,12 @@ def build_readable_report(
             lines.append((f"Изменение: покупка {_with_reason(_money(p.get('effect')), finance_reason)}; аренда {_with_reason(_money(r.get('effect')), finance_reason)}.", "body"))
     else:
         lines.append((_unknown("годовые денежные потоки отсутствуют в сохранённом результате"), "body"))
+    c05 = _obj(result.get("c05"))
     eligibility = {
         "ELIGIBLE": "по сохранённой проверке препятствий не выявлено; паспорт модели и объект всё равно требуют подтверждения",
         "NEEDS_VALIDATION": "нужна проверка паспортных данных и условий объекта",
         "INELIGIBLE": "сохранённая проверка выявила препятствия для применения",
-    }.get(run.diagnostics.get("constraint_eligibility"), _unknown("статус проверки не сохранён"))
+    }.get(run.diagnostics.get("constraint_eligibility") or c05.get("eligibility"), _unknown("статус проверки не сохранён"))
     procurement = {
         "VERIFIED": "условия закупки подтверждены в сохранённом расчёте",
         "UNVERIFIED": "условия закупки поставщиком не подтверждены",

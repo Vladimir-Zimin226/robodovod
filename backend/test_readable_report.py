@@ -99,6 +99,32 @@ def test_partial_report_explains_missing_values_and_historical_error():
     assert "не известна база начисления" in text
 
 
+def test_partial_v2_report_reads_saved_purchase_finance_without_inventing_raas():
+    run, linked = _full_runs()
+    raw = run.model_dump(mode="json")
+    raw["input_snapshot"]["economics"]["raas_monthly_per_robot_gross"] = None
+    raw["checksums"]["input"] = _checksum(raw["input_snapshot"])
+    raw["result_snapshot"] = {
+        "schema_version": "economics-partial-result-v1",
+        "input_revision": "revision.report.v1",
+        "c05": {"eligibility": "NEEDS_VALIDATION", "procurement_ready": False},
+        "scenarios": [{
+            "acquisition": "PURCHASE", "uncertainty": "BASE",
+            "procurement": {"procurement_status": "UNVERIFIED"},
+            "financial": {"status": "COMPLETE", "npv_project": {"status": "COMPLETE", "value": "12345.67", "unit": "RUB"},
+                          "annual_ledgers": [{"year": 1, "primary_cf_base": "-100.00", "primary_cf_scenario": "-70.00", "differential_cf": "30.00"}]},
+        }],
+    }
+    raw["checksums"]["result"] = _checksum(raw["result_snapshot"])
+    pdf, _ = build_readable_report(EvidenceRunSnapshotV1.model_validate(raw), linked)
+    text = _text(pdf)
+    assert "12 345,67 ₽" in text
+    assert "Год 1: без роботов -100,00 ₽" in text
+    assert "нужна проверка паспортных данных" in text
+    assert "условия закупки поставщиком не подтверждены" in text
+    assert "тариф не сохранён" in text
+
+
 def test_capacity_only_report_uses_its_own_verified_snapshot():
     _, linked = _full_runs()
     pdf, _ = build_readable_report(linked)

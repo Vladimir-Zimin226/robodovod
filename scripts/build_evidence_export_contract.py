@@ -16,13 +16,17 @@ if str(BACKEND) not in sys.path:
 
 from calculation.evidence_export import (  # noqa: E402
     EvidenceExportManifestV1,
+    EvidenceExportManifestV2,
     EvidenceRunSnapshotV1,
     build_evidence_export,
+    build_evidence_export_v2,
 )
 
 SCHEMA_TARGET = ROOT / "contracts" / "calculation-evidence-export-manifest-v1.schema.json"
 MANIFEST_TARGET = ROOT / "contracts" / "fixtures" / "calculation-evidence-export-v1.golden.json"
 CASHFLOW_TARGET = ROOT / "contracts" / "fixtures" / "calculation-evidence-export-v1.cashflow.golden.csv"
+SCHEMA_V2_TARGET = ROOT / "contracts" / "calculation-evidence-export-manifest-v2.schema.json"
+MANIFEST_V2_TARGET = ROOT / "contracts" / "fixtures" / "calculation-evidence-export-v2.golden.json"
 
 
 def _checksum(value):
@@ -95,10 +99,16 @@ def expected_outputs() -> dict[Path, bytes]:
     schema["$id"] = "https://robomera.local/contracts/calculation-evidence-export-manifest-v1.schema.json"
     schema["title"] = "Robomera Calculation Evidence Export Manifest v1"
     package = build_evidence_export(golden_run())
+    schema_v2 = EvidenceExportManifestV2.model_json_schema(ref_template="#/$defs/{model}", mode="serialization")
+    schema_v2["$id"] = "https://robomera.local/contracts/calculation-evidence-export-manifest-v2.schema.json"
+    schema_v2["title"] = "Robodovod Calculation Evidence Export Manifest v2"
+    package_v2 = build_evidence_export_v2(golden_run())
     return {
         SCHEMA_TARGET: (json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8"),
         MANIFEST_TARGET: (json.dumps(package.manifest.model_dump(mode="json"), ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8"),
         CASHFLOW_TARGET: package.files["CashFlow.csv"],
+        SCHEMA_V2_TARGET: (json.dumps(schema_v2, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+        MANIFEST_V2_TARGET: (json.dumps(package_v2.manifest.model_dump(mode="json"), ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8"),
     }
 
 

@@ -6,6 +6,7 @@ const ROOT_KEYS = [
   'versions', 'source_snapshot_digests', 'sections', 'artifacts',
   'bundle_content_digest', 'limitations', 'manifest_digest',
 ];
+const ROOT_KEYS_V2 = [...ROOT_KEYS, 'entrypoint_filename', 'report_filename', 'linked_capacity_run_id', 'linked_capacity_snapshot_digests'];
 const SECTION_KEYS = ['name', 'status', 'filename', 'record_count', 'reason_code', 'source_refs'];
 const ARTIFACT_KEYS = ['filename', 'media_type', 'byte_size', 'sha256'];
 
@@ -19,11 +20,16 @@ function exactKeys(value, allowed, label) {
 }
 
 export function parseEvidenceManifest(value, expected = {}) {
-  exactKeys(value, ROOT_KEYS, 'evidence manifest');
-  if (value.schema_version !== 'calculation-evidence-export-manifest-v1') throw new Error('unsupported evidence manifest version');
+  if (!['calculation-evidence-export-manifest-v1', 'calculation-evidence-export-manifest-v2'].includes(value?.schema_version)) throw new Error('unsupported evidence manifest version');
+  const isV2 = value.schema_version === 'calculation-evidence-export-manifest-v2';
+  exactKeys(value, isV2 ? ROOT_KEYS_V2 : ROOT_KEYS, 'evidence manifest');
   if (expected.projectId && value.project_id !== expected.projectId) throw new Error('evidence project binding mismatch');
   if (expected.runId && value.run_id !== expected.runId) throw new Error('evidence run binding mismatch');
   if (!DIGEST.test(value.manifest_digest) || !DIGEST.test(value.bundle_content_digest)) throw new Error('invalid evidence digest');
+  if (!value.source_snapshot_digests || !DIGEST.test(value.source_snapshot_digests.result)
+    || Object.values(value.source_snapshot_digests).some((digest) => digest != null && !DIGEST.test(digest))) {
+    throw new Error('invalid evidence source snapshot digest');
+  }
   if (!Array.isArray(value.sections) || !Array.isArray(value.artifacts) || !Array.isArray(value.limitations)) throw new Error('invalid evidence collections');
   value.sections.forEach((section) => {
     exactKeys(section, SECTION_KEYS, 'evidence section');
@@ -33,6 +39,14 @@ export function parseEvidenceManifest(value, expected = {}) {
     exactKeys(artifact, ARTIFACT_KEYS, 'evidence artifact');
     if (!DIGEST.test(artifact.sha256)) throw new Error('invalid evidence artifact digest');
   });
+  if (isV2) {
+    if (value.entrypoint_filename !== 'НАЧНИТЕ_ЗДЕСЬ.md' || value.report_filename !== 'Отчёт_Рободовод.pdf') throw new Error('invalid evidence package entrypoint');
+    if (!value.artifacts.some((artifact) => artifact.filename === value.entrypoint_filename) || !value.artifacts.some((artifact) => artifact.filename === value.report_filename)) throw new Error('evidence package lacks its readable files');
+    if (value.linked_capacity_run_id != null && (typeof value.linked_capacity_run_id !== 'string' || !value.linked_capacity_snapshot_digests
+      || !DIGEST.test(value.linked_capacity_snapshot_digests.result)
+      || Object.values(value.linked_capacity_snapshot_digests).some((digest) => digest != null && !DIGEST.test(digest)))) throw new Error('invalid linked capacity binding');
+    if (value.linked_capacity_run_id == null && value.linked_capacity_snapshot_digests != null) throw new Error('unexpected linked capacity digests');
+  }
   return Object.freeze(value);
 }
 
@@ -52,6 +66,13 @@ function reportFilename(runId, capturedAt) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('invalid report date');
   const [year, month, day] = date.split('-');
   return `Рободовод, отчёт № ${runId} от ${day}.${month}.${year}.pdf`;
+}
+
+function archiveFilename(runId, capturedAt) {
+  const date = String(capturedAt).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('invalid archive date');
+  const [year, month, day] = date.split('-');
+  return `Рободовод, доказательства № ${runId} от ${day}.${month}.${year}.zip`;
 }
 
 export class EvidenceExportSession {
@@ -93,7 +114,9 @@ export class EvidenceExportSession {
     if (sequence !== this.sequence) throw new Error('stale evidence response');
     const blob = await bundleResponse.blob();
     if (sequence !== this.sequence) throw new Error('stale evidence response');
-    const filename = `robomera-evidence-${runId}.zip`;
+    const filename = manifest.schema_version === 'calculation-evidence-export-manifest-v2'
+      ? archiveFilename(runId, manifest.snapshot_captured_at)
+      : `robomera-evidence-${runId}.zip`;
     this.saveImpl(blob, filename);
     return manifest;
   }

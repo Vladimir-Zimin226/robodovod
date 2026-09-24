@@ -53,15 +53,15 @@ export default function EvidenceExportPanel({ projectId, runId }) {
     <section className="evidence-export-v2 panel p-4 space-y-3" aria-label="Доказательный экспорт расчёта">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-semibold">Доказательный экспорт</h2>
-          <p className="text-xs text-slate-500">PDF, CSV-разделы и полный неизменяемый snapshot — без пересчёта в браузере.</p>
+          <h2 className="font-semibold">Архив доказательств</h2>
+          <p className="text-xs text-slate-500">В ZIP откройте «НАЧНИТЕ_ЗДЕСЬ.md»: там путь к читаемому PDF, объяснение CSV и контрольные суммы. Экспорт не пересчитывает результат.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="primary-action" disabled={!manifest || status.startsWith('downloading')} onClick={downloadReport}>
             {status === 'downloading-pdf' ? 'Формируем отчёт…' : 'Скачать читаемый отчёт PDF'}
           </button>
           <button className="primary-action" disabled={!manifest || status.startsWith('downloading')} onClick={download}>
-            {status === 'downloading' ? 'Формируем архив…' : 'Скачать evidence ZIP'}
+            {status === 'downloading' ? 'Формируем архив…' : 'Скачать архив ZIP'}
           </button>
         </div>
       </div>

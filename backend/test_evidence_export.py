@@ -123,6 +123,14 @@ def test_api_is_owner_scoped_and_binds_bundle_to_manifest_digest():
     assert bundle_response.status_code == 200
     assert bundle_response.headers["x-export-manifest-digest"] == manifest_response.json()["manifest_digest"]
     assert bundle_response.headers["content-type"] == "application/zip"
+    assert manifest_response.json()["schema_version"] == "calculation-evidence-export-manifest-v2"
+    assert "filename*=UTF-8''" in bundle_response.headers["content-disposition"]
+    assert unquote(bundle_response.headers["content-disposition"].split("filename*=UTF-8''", 1)[1]) == (
+        f"Рободовод, доказательства № {run_id} от 01.01.2026.zip"
+    )
+    with zipfile.ZipFile(io.BytesIO(bundle_response.content)) as archive:
+        assert "НАЧНИТЕ_ЗДЕСЬ.md" in archive.namelist()
+        assert "Отчёт_Рободовод.pdf" in archive.namelist()
     report_response = client.get(f"{base}/report.pdf")
     assert report_response.status_code == 200
     assert report_response.headers["content-type"] == "application/pdf"
@@ -167,6 +175,12 @@ def test_report_loads_linked_capacity_with_same_owner():
     assert calls == [(uuid.UUID(run.project_id), uuid.UUID(linked.run_id), owner)]
     text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(response.content)).pages)
     assert "1 000 паллет/день" in text
+    bundle = TestClient(app).get(
+        f"/api/projects/{run.project_id}/analysis-runs/{run.run_id}/exports/evidence.zip"
+    )
+    assert bundle.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(bundle.content)) as archive:
+        assert archive.read("Отчёт_Рободовод.pdf") == response.content
 
 
 def test_manifest_rejects_unknown_version_and_extra_fields():

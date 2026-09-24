@@ -1,0 +1,214 @@
+{
+  "artifacts": [
+    {
+      "byte_size": 448,
+      "filename": "CashFlow.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:997a5596cb834ea8b261fb794067435ad0834d2ebf0f864a21bdd94988458e84"
+    },
+    {
+      "byte_size": 889,
+      "filename": "Inputs.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:aa27ec015f3541069a0533203e58b3c6b31787c9fc39b7a46a9c5aae68fb9c79"
+    },
+    {
+      "byte_size": 206,
+      "filename": "Scenarios.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:048c275d50e4639abccc2e7cab8ea66444c68877648403b43fe84c489ac36556"
+    },
+    {
+      "byte_size": 233,
+      "filename": "Selection.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:f7390254cf746371bd5b79727e12d0079e97065ffd23153288e153d6d55b4a8b"
+    },
+    {
+      "byte_size": 180,
+      "filename": "Sensitivity.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:34f9c4daf935522ca1772a9cab99c5e62f68ad983de87a6d60b6147d94c846df"
+    },
+    {
+      "byte_size": 990,
+      "filename": "Simulation.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:ee79d03e2815672e8a9e946287f7eb12cc358a5d521feab7a88ad9b771a7faba"
+    },
+    {
+      "byte_size": 2775,
+      "filename": "Snapshot.json",
+      "media_type": "application/json",
+      "sha256": "sha256:433daad281fc4709841b29c6e0ff698f3afef475e1f520612d2199be127db220"
+    },
+    {
+      "byte_size": 962,
+      "filename": "Sources.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:491b8372d61eb6b2adff612035021d42e4bce42b5e43469ab0eaf687a6537022"
+    },
+    {
+      "byte_size": 327,
+      "filename": "Trace.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:6672514b77a273a1e1c1e84c9957e0f893a745eef34eeef27ec912ec9947f4e3"
+    },
+    {
+      "byte_size": 716,
+      "filename": "Versions.csv",
+      "media_type": "text/csv; charset=utf-8",
+      "sha256": "sha256:93cda8d355fbc4e0f86e173a5c72cfecdf3e7af8e7639aa8dc8db337e8592575"
+    },
+    {
+      "byte_size": 5419,
+      "filename": "Как_читать_разделы.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "sha256": "sha256:a4138b25b8b6f4c8812fceaf839417c700eb177cb657a71786cfec1cc99b2f15"
+    },
+    {
+      "byte_size": 2892,
+      "filename": "НАЧНИТЕ_ЗДЕСЬ.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "sha256": "sha256:8df0bbec88312cf7fb115f7f822703ac6c7c620e204624b400cdd46547408437"
+    },
+    {
+      "byte_size": 404136,
+      "filename": "Отчёт_Рободовод.pdf",
+      "media_type": "application/pdf",
+      "sha256": "sha256:eff0f44c08bb2b6bd5dca2cb67643155e10b77370b0829fea5381ea3f123771e"
+    },
+    {
+      "byte_size": 11434,
+      "filename": "Технический_дамп.pdf",
+      "media_type": "application/pdf",
+      "sha256": "sha256:45c749d353c466fdab38cd6c1af0c8080c58c2caac82e3320474fdbe2b9a1175"
+    }
+  ],
+  "bundle_content_digest": "sha256:a970831f809a1aa22a710d33d21a62027031953c524a6c68764e90379ed9d6cf",
+  "entrypoint_filename": "НАЧНИТЕ_ЗДЕСЬ.md",
+  "export_policy_version": "calculation-evidence-export-policy-v2",
+  "generator_version": "snapshot-evidence-export-v2",
+  "limitations": [
+    "snapshot-only-no-live-price-refresh",
+    "missing-sections-exported-as-not-available",
+    "no-client-capacity-finance-sla-or-simulation-arithmetic",
+    "preliminary-analysis-not-engineering-certification",
+    "c23-append-only-artifacts-not-in-this-run-snapshot",
+    "scenario-assumptions-are-not-vendor-confirmations"
+  ],
+  "linked_capacity_run_id": null,
+  "linked_capacity_snapshot_digests": null,
+  "manifest_digest": "sha256:9a18af09a1d72275c5e058ab231d6d5c14f89dbd283ae8904317761681ae68c9",
+  "project_id": "00000000-0000-4000-8000-000000000001",
+  "report_filename": "Отчёт_Рободовод.pdf",
+  "revision_id": "calc_golden_c26",
+  "run_id": "00000000-0000-4000-8000-000000000026",
+  "run_kind": "FULL_ANALYSIS",
+  "schema_version": "calculation-evidence-export-manifest-v2",
+  "sections": [
+    {
+      "filename": "Inputs.csv",
+      "name": "Inputs",
+      "reason_code": null,
+      "record_count": 6,
+      "source_refs": [
+        "sha256:06e241418d530d9d4040a856c8bcab600a0fde0653e1769187d30e53504fadbc"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "Selection.csv",
+      "name": "Selection",
+      "reason_code": null,
+      "record_count": 3,
+      "source_refs": [
+        "sha256:903e2f0de2784c455307d92eb01fb1b05fcad794e0e0929f89eb662bd6207836"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "Scenarios.csv",
+      "name": "Scenarios",
+      "reason_code": null,
+      "record_count": 3,
+      "source_refs": [
+        "sha256:903e2f0de2784c455307d92eb01fb1b05fcad794e0e0929f89eb662bd6207836"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "CashFlow.csv",
+      "name": "CashFlow",
+      "reason_code": null,
+      "record_count": 6,
+      "source_refs": [
+        "sha256:903e2f0de2784c455307d92eb01fb1b05fcad794e0e0929f89eb662bd6207836"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "Sensitivity.csv",
+      "name": "Sensitivity",
+      "reason_code": null,
+      "record_count": 2,
+      "source_refs": [
+        "sha256:903e2f0de2784c455307d92eb01fb1b05fcad794e0e0929f89eb662bd6207836"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "Sources.csv",
+      "name": "Sources",
+      "reason_code": null,
+      "record_count": 7,
+      "source_refs": [
+        "sha256:903e2f0de2784c455307d92eb01fb1b05fcad794e0e0929f89eb662bd6207836"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "Trace.csv",
+      "name": "Trace",
+      "reason_code": null,
+      "record_count": 3,
+      "source_refs": [
+        "sha256:97db9822d7053b358bc2d9238f69dea700cc5c423574a8f2a3a090d2c0a0e5c9"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "Simulation.csv",
+      "name": "Simulation",
+      "reason_code": null,
+      "record_count": 5,
+      "source_refs": [
+        "sha256:903e2f0de2784c455307d92eb01fb1b05fcad794e0e0929f89eb662bd6207836"
+      ],
+      "status": "AVAILABLE"
+    },
+    {
+      "filename": "Versions.csv",
+      "name": "Versions",
+      "reason_code": null,
+      "record_count": 4,
+      "source_refs": [
+        "sha256:b6f05abb6dcdf6dbef1a4589029816d0818f72704f32e6838ea5308aeccdd994"
+      ],
+      "status": "AVAILABLE"
+    }
+  ],
+  "snapshot_captured_at": "2026-01-01T00:01:00Z",
+  "source_snapshot_digests": {
+    "input": "sha256:06e241418d530d9d4040a856c8bcab600a0fde0653e1769187d30e53504fadbc",
+    "result": "sha256:903e2f0de2784c455307d92eb01fb1b05fcad794e0e0929f89eb662bd6207836",
+    "scenario_spec": "sha256:d257ef5cb7856953d613cf9cf9c5e6bb5afe6dff3e3602d9e6ffbf1ff65b24d5",
+    "trace": "sha256:97db9822d7053b358bc2d9238f69dea700cc5c423574a8f2a3a090d2c0a0e5c9",
+    "version_bindings": "sha256:b6f05abb6dcdf6dbef1a4589029816d0818f72704f32e6838ea5308aeccdd994"
+  },
+  "versions": {
+    "catalog": "catalog-v1",
+    "economics": "economics-v2",
+    "rules": "rules-v1"
+  }
+}

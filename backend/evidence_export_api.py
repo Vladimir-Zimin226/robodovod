@@ -14,9 +14,9 @@ from sqlalchemy.orm import Session
 from auth import AuthContext, require_auth_context
 from calculation.evidence_export import (
     EvidenceExportIntegrityError,
-    EvidenceExportManifestV1,
+    EvidenceExportManifestV2,
     EvidenceRunSnapshotV1,
-    build_evidence_export,
+    build_evidence_export_v2,
 )
 from calculation.readable_report import build_readable_report
 from database import database_session
@@ -84,6 +84,21 @@ def create_evidence_export_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
+    def linked_capacity_for(
+        run: EvidenceRunSnapshotV1,
+        project_id: uuid.UUID,
+        context: AuthContext,
+        db: Session,
+    ) -> EvidenceRunSnapshotV1 | None:
+        linked_id = run.input_snapshot.get("capacity_run_id")
+        if linked_id is None:
+            return None
+        try:
+            capacity_id = uuid.UUID(str(linked_id))
+        except ValueError as exc:
+            raise EvidenceExportIntegrityError("invalid linked capacity run id") from exc
+        return capacity_loader(db, project_id, capacity_id, context.user.id)
+
     def package_for(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
@@ -95,13 +110,13 @@ def create_evidence_export_router(
             # Missing, inactive and another tenant's run deliberately look identical.
             raise HTTPException(status_code=404, detail="analysis run not found")
         try:
-            return build_evidence_export(run)
+            return build_evidence_export_v2(run, linked_capacity_for(run, project_id, context, db))
         except EvidenceExportIntegrityError as exc:
             raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
 
     @router.get(
         "/projects/{project_id}/analysis-runs/{run_id}/exports/manifest",
-        response_model=EvidenceExportManifestV1,
+        response_model=EvidenceExportManifestV2,
     )
     def get_manifest(
         project_id: uuid.UUID,
@@ -121,11 +136,13 @@ def create_evidence_export_router(
         db: Session = Depends(database_session),
     ):
         package = package_for(project_id, run_id, context, db)
+        filename = f"Рободовод, доказательства № {run_id} от {package.manifest.snapshot_captured_at:%d.%m.%Y}.zip"
+        fallback = f"Robodovod-evidence-{run_id}.zip"
         return Response(
             content=package.archive,
             media_type="application/zip",
             headers={
-                "Content-Disposition": f'attachment; filename="robomera-evidence-{run_id}.zip"',
+                "Content-Disposition": f'attachment; filename="{fallback}"; filename*=UTF-8\'\'{quote(filename, safe="")}',
                 "X-Export-Manifest-Digest": package.manifest.manifest_digest,
                 "ETag": f'"{package.manifest.manifest_digest}"',
                 "Cache-Control": "private, no-store",
@@ -143,14 +160,7 @@ def create_evidence_export_router(
         if run is None:
             raise HTTPException(status_code=404, detail="analysis run not found")
         try:
-            linked = None
-            linked_id = run.input_snapshot.get("capacity_run_id")
-            if linked_id is not None:
-                try:
-                    linked_id = uuid.UUID(str(linked_id))
-                except ValueError as exc:
-                    raise EvidenceExportIntegrityError("invalid linked capacity run id") from exc
-                linked = capacity_loader(db, project_id, linked_id, context.user.id)
+            linked = linked_capacity_for(run, project_id, context, db)
             pdf, source_digest = build_readable_report(run, linked)
         except EvidenceExportIntegrityError as exc:
             raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
