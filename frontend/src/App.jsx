@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import OnboardingScreen from './OnboardingScreen';
 import IntakeScreen from './components/IntakeScreen';
+import ProcessScreen from './components/ProcessScreen';
 import ResultsPanel from './components/ResultsPanel';
 import CapacityResultsTrace from './components/CapacityResultsTrace';
 import CommercialScenariosV2 from './components/CommercialScenariosV2';
@@ -16,6 +17,7 @@ import EconomicsInputsV2 from './components/EconomicsInputsV2';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
+import { phaseFromHash, phaseHash } from './appNavigation';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -29,8 +31,8 @@ const sessionStore = () => {
 };
 
 export default function App() {
-  const [phase, setPhase] = useState('onboarding');
-  const [objectType, setObjectType] = useState(null);
+  const [phase, setPhase] = useState(() => phaseFromHash(window.location.hash));
+  const [objectType, setObjectType] = useState(() => window.location.hash === '#calculation' ? 'other' : null);
   const [preset, setPreset] = useState(null);
   const [userInput, setUserInput] = useState(null);
   const [result, setResult] = useState(null);
@@ -47,6 +49,39 @@ export default function App() {
   const [projectFileContext, setProjectFileContext] = useState(null);
   const calculationSequence = useRef(0);
   const intakeV2Snapshot = useRef(null);
+  const catalogReturnPhase = useRef('onboarding');
+  const pendingResultTarget = useRef(null);
+
+  const showPhase = (nextPhase) => {
+    if (phase !== nextPhase) {
+      const url = new URL(window.location.href);
+      url.hash = phaseHash(nextPhase);
+      window.history.pushState({ robodovodPhase: nextPhase }, '', url);
+    }
+    setPhase(nextPhase);
+  };
+
+  useEffect(() => {
+    const restore = () => {
+      const nextPhase = phaseFromHash(window.location.hash, Boolean(result));
+      if (nextPhase === 'onboarding' && window.location.hash === '#results') {
+        const url = new URL(window.location.href);
+        url.hash = '';
+        window.history.replaceState({ robodovodPhase: 'onboarding' }, '', url);
+      }
+      setPhase(nextPhase);
+    };
+    window.addEventListener('popstate', restore);
+    return () => window.removeEventListener('popstate', restore);
+  }, [result]);
+
+  useEffect(() => {
+    if (phase !== 'results' || !pendingResultTarget.current) return undefined;
+    const target = pendingResultTarget.current;
+    pendingResultTarget.current = null;
+    const frame = window.requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [phase, result]);
 
   useEffect(() => {
     fetch(`${API}/api/auth/me`, { credentials: 'include' })
@@ -134,12 +169,12 @@ export default function App() {
     setInputProvenance(provenance);
     setProjectFileContext(fileContext);
     setUserInput(inp);
-    setPhase('results');
+    showPhase('results');
     recalc(inp, provenance, fileContext);
   };
 
   const restart = () => {
-    setPhase('onboarding');
+    showPhase('onboarding');
     setObjectType(null);
     setPreset(null);
     setResult(null);
@@ -152,38 +187,56 @@ export default function App() {
 
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
 
+  const openCalculation = () => {
+    const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
+    const nextType = savedInput?.object_type || objectType || 'other';
+    setObjectType(nextType);
+    setPreset(savedInput || (preset?.object_type === nextType ? preset : null));
+    showPhase('intake');
+  };
+
   const navigate = ({ id, target }) => {
     if (id === 'home') {
       restart();
       return;
     }
     if (id === 'process') {
-      setObjectType(objectType || 'other');
-      setPhase('intake');
+      showPhase('process');
+      return;
+    }
+    if (id === 'calculation') {
+      openCalculation();
       return;
     }
     if (id === 'library') {
-      setPhase('catalog');
+      if (phase !== 'catalog') catalogReturnPhase.current = phase;
+      showPhase('catalog');
       return;
     }
     if (id === 'projects') {
-      setPhase(user ? 'projects' : 'account');
+      showPhase(user ? 'projects' : 'account');
       return;
     }
     if (id === 'admin') {
-      setPhase(user?.role === 'ADMIN' ? 'admin' : 'account');
+      showPhase(user?.role === 'ADMIN' ? 'admin' : 'account');
       return;
     }
     if (id === 'account') {
-      setPhase('account');
+      showPhase('account');
       return;
     }
-    if (phase !== 'results') {
-      setObjectType(objectType || 'other');
-      setPhase('intake');
+    if (!result) {
+      openCalculation();
       return;
     }
-    window.requestAnimationFrame(() => document.getElementById(target || id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    pendingResultTarget.current = target || id;
+    if (phase === 'results') {
+      window.requestAnimationFrame(() => {
+        const section = pendingResultTarget.current;
+        pendingResultTarget.current = null;
+        document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    } else showPhase('results');
   };
 
   const submitCommand = (event) => {
@@ -193,7 +246,7 @@ export default function App() {
     setObjectType('other');
     setPreset(null);
     setIntakePrompt(prompt);
-    setPhase('intake');
+    showPhase('intake');
   };
 
   const saveAnalysis = async () => {
@@ -224,7 +277,7 @@ export default function App() {
 
   return (
     <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
-      {!['results', 'catalog', 'account', 'projects', 'admin'].includes(phase) && <Stepper current={currentStep} />}
+      {['onboarding', 'intake'].includes(phase) && <Stepper current={currentStep} />}
       <div className="phase-content">
         {phase === 'onboarding' ? (
           <OnboardingScreen
@@ -232,14 +285,19 @@ export default function App() {
               setObjectType(t);
               const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
               setPreset(savedInput?.object_type === t ? savedInput : null);
-              setPhase('intake');
+              showPhase('intake');
             }}
             onPreset={(t, d) => {
               setObjectType(t);
               setPreset(d);
-              setPhase('intake');
+              showPhase('intake');
             }}
           />
+        ) : phase === 'process' ? (
+          <ProcessScreen activeProject={activeProject} hasResult={Boolean(result)}
+            onStartCalculation={openCalculation}
+            onOpenCatalog={() => navigate({ id: 'library' })}
+            onReturnToResult={() => showPhase('results')} />
         ) : phase === 'intake' ? (
           <IntakeScreen
             objectType={objectType}
@@ -251,8 +309,8 @@ export default function App() {
             projectChoices={projectChoices}
             projectStatus={projectStatus}
             onChooseProject={selectActiveProject}
-            onOpenProjects={() => setPhase('projects')}
-            onOpenAccount={() => setPhase('account')}
+            onOpenProjects={() => showPhase('projects')}
+            onOpenAccount={() => showPhase('account')}
             onFileApplied={(normalized) => {
               setPreset(normalized);
               setActiveProject((project) => project ? ({
@@ -269,11 +327,12 @@ export default function App() {
               setUserInput(request);
               setActiveRun({ id: response.run_id, run_kind: 'CAPACITY_ANALYSIS' });
               setSaveState('saved');
-              setPhase('results');
+              showPhase('results');
             }}
           />
         ) : phase === 'catalog' ? (
-          <CatalogScreen objectType={objectType || 'other'} onContinue={() => setPhase(result ? 'results' : 'onboarding')} />
+          <CatalogScreen objectType={objectType || 'other'} onContinue={openCalculation}
+            onBack={() => showPhase(catalogReturnPhase.current)} />
         ) : phase === 'account' ? (
           <AuthScreen
             user={user}
@@ -283,7 +342,7 @@ export default function App() {
               setProjectStatus('loading');
               setUser(nextUser);
               setAuthChecked(true);
-              setPhase('account');
+              showPhase('account');
             }}
             onLoggedOut={() => {
               forgetProjectId(sessionStore(), user?.id);
@@ -293,17 +352,17 @@ export default function App() {
               setProjectStatus('idle');
               restart();
             }}
-            onNavigate={(target) => setPhase(target)}
+            onNavigate={showPhase}
           />
         ) : phase === 'projects' ? (
           <ProjectsScreen
-            onOpenProject={(project) => { selectActiveProject(project); setPhase('onboarding'); }}
+            onOpenProject={(project) => { selectActiveProject(project); showPhase('onboarding'); }}
             onOpenRun={(run, project) => {
               selectActiveProject(project);
               setActiveRun(run);
               setUserInput(run.input_snapshot);
               setResult(run.result_snapshot);
-              setPhase('results');
+              showPhase('results');
               setSaveState('saved');
             }}
           />
@@ -337,7 +396,7 @@ export default function App() {
                 />
               </>
             ) : isCommercialScenariosBundle(result) ? (
-              <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} onRestart={restart} onRecalculate={() => setPhase('intake')} />
+              <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} onRestart={restart} onRecalculate={openCalculation} />
             ) : (
               <ResultsPanel
                 result={result}

@@ -21,7 +21,7 @@ function readResponse(response) {
   return response.json();
 }
 
-export default function CatalogScreen({ objectType, onContinue }) {
+export default function CatalogScreen({ objectType, onContinue, onBack }) {
   const [robots, setRobots] = useState([]);
   const [catalog, setCatalog] = useState(null);
   const [hierarchy, setHierarchy] = useState([]);
@@ -118,7 +118,7 @@ export default function CatalogScreen({ objectType, onContinue }) {
           </section>;
         })}
 
-        <footer className="catalog-footer"><p>Выберите 2–3 позиции для сравнения. Только позиции с тегом «Участвует в расчёте» входят в capacity-пул; остальные доступны для discovery и сравнения.</p><button className="catalog-primary" onClick={onContinue}>Перейти к расчёту <span aria-hidden="true">→</span></button></footer>
+        <footer className="catalog-footer"><p>Выберите 2–3 позиции для сравнения. Только позиции с тегом «Участвует в расчёте» входят в capacity-пул; остальные доступны для discovery и сравнения.</p><div className="catalog-footer-actions">{onBack && <button type="button" className="secondary-action" onClick={onBack}>Назад</button>}<button type="button" className="catalog-primary" onClick={onContinue}>Перейти к расчёту <span aria-hidden="true">→</span></button></div></footer>
       </div>
       {selected.length >= 2 && <button className="catalog-compare-fab" onClick={() => setShowCompare(true)}>Сравнить позиции <span>{selected.length}</span></button>}
       {showCompare && selectedRobots.length >= 2 && <CompareDialog robots={selectedRobots} onClose={() => setShowCompare(false)} />}

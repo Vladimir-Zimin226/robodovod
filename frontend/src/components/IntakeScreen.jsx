@@ -117,7 +117,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
     <div className="intake-screen flex min-h-full">
       <div className="flex-1 flex flex-col max-w-3xl mx-auto p-6">
         <header className="mb-3">
-          <h1 className="text-xl font-bold">РобоМера — AI-аудитор</h1>
+          <h1 className="text-xl font-bold">Расчёт сценария роботизации</h1>
           <p className="text-slate-500 text-sm">
             Опишите процесс или введите параметры справа
           </p>

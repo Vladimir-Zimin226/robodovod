@@ -4,6 +4,7 @@ import AppIcon from './AppIcon';
 const NAVIGATION = [
   { id: 'home', label: 'Главная', icon: 'home' },
   { id: 'process', label: 'Процесс', icon: 'process' },
+  { id: 'calculation', label: 'Расчёт', icon: 'calculator' },
   { id: 'model', label: 'Моделирование', icon: 'cube', target: 'visualization' },
   { id: 'variants', label: 'Варианты', icon: 'chart', target: 'scenarios' },
   { id: 'economics', label: 'Экономика', icon: 'money', target: 'economics' },
@@ -13,7 +14,7 @@ const NAVIGATION = [
 export function AppShell({ phase, user, activeProject, onNavigate, command, setCommand, onCommand, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isResult = phase === 'results';
-  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'process' : phase === 'catalog' ? 'library' : phase;
+  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase;
   const initials = (user?.name || user?.email || 'Г')
     .split(/[\s@]+/)
     .filter(Boolean)
@@ -39,14 +40,14 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
         </div>
         <nav className="app-nav">
           {NAVIGATION.map((item) => (
-            <button key={item.id} onClick={() => navigate(item)} className={item.id === activeNav ? 'active' : ''}>
+            <button key={item.id} onClick={() => navigate(item)} className={item.id === activeNav ? 'active' : ''} aria-current={item.id === activeNav ? 'page' : undefined}>
               <AppIcon name={item.icon} />
               <span>{item.label}</span>
             </button>
           ))}
         </nav>
         <div className="nav-secondary">
-          <button className={activeNav === 'library' ? 'active' : ''} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>
+          <button className={activeNav === 'library' ? 'active' : ''} aria-current={activeNav === 'library' ? 'page' : undefined} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>
           {user && <button className={activeNav === 'projects' ? 'active' : ''} onClick={() => navigate({ id: 'projects' })}><AppIcon name="report" /><span>Мои проекты</span></button>}
           {user?.role === 'ADMIN' && <button className={activeNav === 'admin' ? 'active' : ''} onClick={() => navigate({ id: 'admin' })}><AppIcon name="process" /><span>Пользователи</span></button>}
         </div>
