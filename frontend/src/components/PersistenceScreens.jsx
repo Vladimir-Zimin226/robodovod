@@ -3,6 +3,7 @@ import { persistenceRequest as request, readCsrfCookie } from '../persistenceApi
 import { requestDiagnosticBundle } from '../diagnosticExportApi';
 import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { economicsRunView } from '../economicsRunModel';
+import { reopenCapacityRun } from '../reopenCapacityRun';
 
 export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
   const [mode, setMode] = useState('login');
@@ -169,7 +170,11 @@ export function ProjectsScreen({ onOpenProject, onOpenRun }) {
   const openRun = async (projectId, run) => {
     try {
       const opened = run.run_kind === 'CAPACITY_ANALYSIS'
-        ? { ...run, input_snapshot: null, result_snapshot: await capacityClient.read(run.id, run.revision_id) }
+        ? await reopenCapacityRun({
+          projectId, run,
+          readRun: (ownerProjectId, runId) => request(`/api/projects/${ownerProjectId}/analysis-runs/${runId}`),
+          readCapacity: (runId, revision) => capacityClient.read(runId, revision),
+        })
         : await request(`/api/projects/${projectId}/analysis-runs/${run.id}`);
       if (opened.run_kind === 'FULL_ANALYSIS') economicsRunView(opened);
       onOpenRun(opened, projects.find((project) => project.id === projectId));
