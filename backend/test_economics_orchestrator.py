@@ -329,8 +329,13 @@ def test_production_orchestrator_uses_capacity_and_catalog_without_fixture_bundl
     )
 
 
-@pytest.mark.parametrize("daily_demand,shift_hours", [("1000", "10"), ("2000", "11")])
-def test_saved_economics_scenario_can_run_c23_without_invented_sla_or_resources(daily_demand, shift_hours):
+@pytest.mark.parametrize("daily_demand,shift_hours,start_seconds,expected_windows", [
+    ("1000", "10", 0, [("window.primary", "0", "20")]),
+    ("2000", "11", 0, [("window.primary", "0", "22")]),
+    ("1000", "10", 28800, [("window.primary", "28800", "16"), ("window.next-day", "0", "4")]),
+    ("1000", "12", 28800, [("window.primary", "28800", "16"), ("window.next-day", "0", "8")]),
+])
+def test_saved_economics_scenario_can_run_c23_without_invented_sla_or_resources(daily_demand, shift_hours, start_seconds, expected_windows):
     snapshot = _snapshot()
     raw = _capacity_request().model_dump(mode="json")
     raw["process"]["demand"]["raw_value"] = daily_demand
@@ -348,7 +353,8 @@ def test_saved_economics_scenario_can_run_c23_without_invented_sla_or_resources(
         constraint_report=capacity.constraints.model_dump(mode="json"),
         executability=capacity.executability.model_dump(mode="json"),
     )
-    execution = execute_economics_v2(_inputs(), snapshot, context)
+    inputs = {**_inputs(), "start_seconds_from_midnight": start_seconds}
+    execution = execute_economics_v2(inputs, snapshot, context)
     simulation_request = SimulationRequestV1.model_validate({
         "schema_version": "simulation-request-v1",
         "request_id": "simulation.run.economics.visualization",
@@ -375,6 +381,10 @@ def test_saved_economics_scenario_can_run_c23_without_invented_sla_or_resources(
     assert report.scenario_revision_id == execution.scenario_spec_snapshot["revision_id"]
     assert report.sla.verdict == "NOT_EVALUATED"
     assert report.engineering_claim == "PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION"
+    assert sorted(
+        (window["window_id"], window["start_time"]["value"], window["duration"]["value"])
+        for window in execution.scenario_spec_snapshot["operating_windows"]
+    ) == sorted(expected_windows)
 
     mismatched = simulation_request.model_dump(mode="json")
     spec = mismatched["scenario_spec"]

@@ -1403,6 +1403,28 @@ def _scenario_spec(
     hours = Decimal(schedule.shifts_per_day.normalized_value) * Decimal(
         schedule.shift_hours.normalized_value
     )
+    start_seconds = Decimal(inputs.start_seconds_from_midnight)
+    seconds_per_hour = Decimal(3600)
+    day_seconds = Decimal(86400)
+    primary_hours = min(hours, (day_seconds - start_seconds) / seconds_per_hour)
+    window_parts = [("window.primary", start_seconds, primary_hours)]
+    if primary_hours < hours:
+        window_parts.append(("window.next-day", Decimal(0), hours - primary_hours))
+    operating_windows = [
+        ScenarioOperatingWindowV2(
+            window_id=window_id,
+            start_time=ResultQuantity(
+                value=format(start, "f"), unit="s", quantity_kind="TIME"
+            ),
+            duration=ResultQuantity(
+                value=format(duration, "f"), unit="h", quantity_kind="TIME"
+            ),
+            timezone=inputs.timezone,
+            source="USER",
+            provenance_ref="input.economics.operating-window",
+        )
+        for window_id, start, duration in window_parts
+    ]
     assumption_ref = "assumption.synthetic-geometry"
     zone = ScenarioZoneV2(
         zone_id=f"zone.{request.process.process_id}",
@@ -1451,22 +1473,7 @@ def _scenario_spec(
         request,
         context.capacity_response,
         tenant_id=context.tenant_id,
-        operating_windows=[
-            ScenarioOperatingWindowV2(
-                window_id="window.primary",
-                start_time=ResultQuantity(
-                    value=str(inputs.start_seconds_from_midnight),
-                    unit="s",
-                    quantity_kind="TIME",
-                ),
-                duration=ResultQuantity(
-                    value=format(hours, "f"), unit="h", quantity_kind="TIME"
-                ),
-                timezone=inputs.timezone,
-                source="USER",
-                provenance_ref="input.economics.operating-window",
-            )
-        ],
+        operating_windows=operating_windows,
         zone=zone,
         route=route,
         batch=batch,

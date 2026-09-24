@@ -20,7 +20,7 @@ export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
         method: 'POST',
         body: JSON.stringify(mode === 'login'
           ? { email: form.email, password: form.password }
-          : form),
+          : { email: form.email, password: form.password, ...(form.name.trim() ? { name: form.name.trim() } : {}) }),
       });
       onAuthenticated(payload.user, payload.csrf_token);
     } catch (err) {

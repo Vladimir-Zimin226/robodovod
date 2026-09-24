@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "backend"))
 
-from calculation.evidence_export import build_evidence_export  # noqa: E402
+from calculation.evidence_export import build_evidence_export_v2  # noqa: E402
 from calculation.readable_report import build_readable_report  # noqa: E402
 from scripts.build_evidence_export_contract import golden_run  # noqa: E402
 
@@ -36,10 +36,12 @@ def main() -> int:
     if not chrome.is_file():
         raise SystemExit(f"Chrome is missing: {chrome}")
     run = golden_run()
-    package = build_evidence_export(run)
+    package = build_evidence_export_v2(run)
     pdf, source_digest = build_readable_report(run)
     manifest = package.manifest.model_dump(mode="json")
     assert source_digest == manifest["source_snapshot_digests"]["result"]
+    year, month, day = manifest["snapshot_captured_at"][:10].split("-")
+    issued_on = f"{day}.{month}.{year}"
     module = (ROOT / "frontend/src/evidenceExportApi.js").read_bytes()
     page = f"""<!doctype html><meta charset="utf-8"><p id="result">PENDING</p>
 <script type="module">
@@ -91,8 +93,8 @@ try {{
             return run_browser(
                 server.server_port, temp, chrome,
                 {
-                    f"robomera-evidence-{run.run_id}.zip": package.archive,
-                    f"robomera-report-{run.run_id}.pdf": pdf,
+                    f"Рободовод, доказательства № {run.run_id} от {issued_on}.zip": package.archive,
+                    f"Рободовод, отчёт № {run.run_id} от {issued_on}.pdf": pdf,
                 },
             )
         finally:
