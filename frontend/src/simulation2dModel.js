@@ -36,7 +36,7 @@ export function parseSimulationBundle(request, report) {
   exact(report, REPORT_FIELDS, 'SimulationReport');
   if (request.schema_version !== 'simulation-request-v1') throw new TypeError('Неподдерживаемая версия SimulationRequest');
   if (request.scenario_spec.schema_version !== 'scenario-spec-v2') throw new TypeError('2D требует ScenarioSpec v2');
-  if (report.schema_version !== 'simulation-report-v1') throw new TypeError('Неподдерживаемая версия SimulationReport');
+  if (!['simulation-report-v1', 'simulation-report-v2'].includes(report.schema_version)) throw new TypeError('Неподдерживаемая версия SimulationReport');
   if (report.engineering_claim !== 'PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION') {
     throw new TypeError('SimulationReport содержит недопустимое инженерное утверждение');
   }
@@ -75,13 +75,17 @@ function hash(value) {
   return result >>> 0;
 }
 
-function routePoints(zone, key) {
-  const inset = 30 + hash(key) % 25;
+function routePoints(zone) {
+  const left = zone.x + 105;
+  const right = zone.x + zone.width - 105;
+  const outbound = zone.y + 115;
+  const inbound = zone.y + 165;
   return [
-    { x: zone.x + inset, y: zone.y + zone.height - inset },
-    { x: zone.x + zone.width * 0.45, y: zone.y + inset },
-    { x: zone.x + zone.width - inset, y: zone.y + zone.height * 0.55 },
-    { x: zone.x + inset, y: zone.y + zone.height - inset },
+    { x: left, y: outbound },
+    { x: right, y: outbound },
+    { x: right, y: inbound },
+    { x: left, y: inbound },
+    { x: left, y: outbound },
   ];
 }
 
@@ -118,7 +122,9 @@ export function buildSimulationScene(spec) {
       assumptionRef: route.assumption_ref,
       analyticalDistance: route.one_way_distance ? { ...route.one_way_distance } : null,
       visualOnly: true,
-      points: routePoints(zone, `${spec.seed}:${route.route_id}`),
+      originLabel: task?.exchange.mode === 'NOT_APPLICABLE' ? 'Старт участка' : 'Отправка',
+      destinationLabel: task?.exchange.mode === 'NOT_APPLICABLE' ? 'Рабочая зона' : 'Назначение',
+      points: routePoints(zone),
     };
   });
   for (const task of spec.tasks) {
@@ -133,7 +139,9 @@ export function buildSimulationScene(spec) {
       assumptionRef: zone.assumptionRef,
       analyticalDistance: null,
       visualOnly: true,
-      points: routePoints(zone, `${spec.seed}:${task.task_id}:area`),
+      originLabel: 'Старт участка',
+      destinationLabel: 'Рабочая зона',
+      points: routePoints(zone),
     });
   }
   const routeByZone = new Map(routes.map((route) => [route.zoneId, route]));

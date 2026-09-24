@@ -1,0 +1,53 @@
+{
+  "binding": {
+    "scenario_revision_id": "calc_fe6611cc9a672595",
+    "report_id": "report.19200e39097b1359",
+    "report_digest": "sha256:4d0c9e3ca63fed264911599c68a07d5a8703a395d33a8dee9691fc0e4c74c695",
+    "seed": "scenario-7f8b86a3c2db426a",
+    "simulation_time_us": 5000000
+  },
+  "geometry": [
+    {
+      "id": "zone.terminal",
+      "geometryLabel": "SYNTHETIC",
+      "geometryRef": null,
+      "assumptionRef": "assumption.synthetic-geometry"
+    }
+  ],
+  "routes": [
+    {
+      "id": "visual.task.process.airport.cleaning",
+      "geometryLabel": "SYNTHETIC",
+      "analyticalDistance": null,
+      "visualOnly": true
+    }
+  ],
+  "robots": [
+    {
+      "id": "fleet.process.airport.cleaning.1",
+      "stage": "WORK",
+      "x": 656.91,
+      "y": 195
+    },
+    {
+      "id": "fleet.process.airport.cleaning.2",
+      "stage": "WORK",
+      "x": 294.493,
+      "y": 145
+    },
+    {
+      "id": "fleet.process.airport.cleaning.3",
+      "stage": "WORK",
+      "x": 135,
+      "y": 166.3
+    },
+    {
+      "id": "fleet.process.airport.cleaning.4",
+      "stage": "WORK",
+      "x": 865,
+      "y": 170.372
+    }
+  ],
+  "sla": "NOT_EVALUATED",
+  "capacity": "CONSISTENT"
+}

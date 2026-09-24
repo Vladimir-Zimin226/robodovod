@@ -15,14 +15,21 @@ import { SimulationApiSession } from '../src/simulationApi.js';
 
 const request = JSON.parse(await readFile(new URL('../../contracts/fixtures/simulation-request-v1.capacity-only.golden.json', import.meta.url), 'utf8'));
 const report = JSON.parse(await readFile(new URL('../../contracts/fixtures/simulation-report-v1.capacity-only.golden.json', import.meta.url), 'utf8'));
-const golden = JSON.parse(await readFile(new URL('./fixtures/simulation-2d.capacity-only.golden.json', import.meta.url), 'utf8'));
+const corrected = JSON.parse(await readFile(new URL('../../contracts/fixtures/simulation-report-v2.capacity-only.golden.json', import.meta.url), 'utf8'));
+const golden = JSON.parse(await readFile(new URL('./fixtures/simulation-2d-v2.capacity-only.golden.json', import.meta.url), 'utf8'));
 
 test('capacity-only C23 report creates the deterministic golden 2D capture offline', () => {
   assert.equal(request.scenario_spec.finance, null);
-  assert.deepEqual(deterministicCapture(request, report), golden);
+  assert.deepEqual(deterministicCapture(request, corrected), golden);
   const bundle = parseSimulationBundle(request, report);
   assert.equal(bundle.report.sla.verdict, 'NOT_EVALUATED');
   assert.equal(bundle.report.engineering_claim, 'PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION');
+});
+
+test('corrected report uses demand as denominator and keeps historical reports readable', () => {
+  assert.equal(parseSimulationBundle(request, corrected).report.capacity.denominator, 'REQUIRED_DEMAND');
+  assert.equal(corrected.capacity.verdict, 'CONSISTENT');
+  assert.equal(parseSimulationBundle(request, report).report.capacity.denominator, 'EXPECTED_EFFECTIVE_FLEET_CAPACITY');
 });
 
 test('timeline start, pause, stop, restart and speed are deterministic', () => {
@@ -117,6 +124,8 @@ test('component exposes controls, bindings and honest SLA/charging labels withou
   const source = await readFile(new URL('../src/components/Simulation2DReport.jsx', import.meta.url), 'utf8');
   for (const label of ['Старт', 'Пауза', 'Стоп', 'Перезапуск', 'Скорость', 'scenario', 'report', 'seed']) assert.match(source, new RegExp(label));
   assert.match(source, /NOT_EVALUATED · SLA не оценён/);
-  assert.match(source, /агрегированный allowance/);
+  assert.match(source, /зарядка учтена агрегированно/i);
+  assert.match(source, /Координаты и движение роботов условные/);
+  assert.match(source, /Предел парка C11/);
   assert.doesNotMatch(source, /NPV|CAPEX\s*[+*/-]|payback|fleet\s*=|capacity\s*=/i);
 });

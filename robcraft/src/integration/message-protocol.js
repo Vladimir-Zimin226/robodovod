@@ -39,7 +39,7 @@ export function parseParentMessage(value) {
     }
     if (value.payload.simulation_report !== undefined && value.payload.simulation_report !== null) {
       assertPlainObject(value.payload.simulation_report, 'LOAD_SCENARIO.payload.simulation_report');
-      if (value.payload.simulation_report.schema_version !== 'simulation-report-v1') throw new TypeError('LOAD_SCENARIO поддерживает только SimulationReport v1');
+      if (!['simulation-report-v1', 'simulation-report-v2'].includes(value.payload.simulation_report.schema_version)) throw new TypeError('LOAD_SCENARIO поддерживает только SimulationReport v1/v2');
       if (value.payload.simulation_report.scenario_revision_id !== value.revision_id) throw new TypeError('SimulationReport и ScenarioSpec revision не совпадают');
       if (!/^sha256:[0-9a-f]{64}$/.test(value.payload.simulation_report.replay?.report_content_digest || '')) throw new TypeError('SimulationReport report digest имеет неверный формат');
     }

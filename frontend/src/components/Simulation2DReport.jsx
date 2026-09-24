@@ -119,9 +119,9 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     <section className="simulation-2d panel" id="visualization" aria-label="2D-симуляция и отчёт">
       <header className="simulation-2d-header">
         <div>
-          <p className="eyebrow">C23 SimulationReport v1 · offline 2D consumer</p>
-          <h2>Сценарная 2D-визуализация</h2>
-          <p>Предварительная модель, не инженерная сертификация и не цифровой двойник.</p>
+          <p className="eyebrow">C23 {report?.schema_version || 'SimulationReport'} · схема процесса</p>
+          <h2>Схема работы и расчёт очереди</h2>
+          <p>Координаты и движение роботов условные. Это схема процесса, не план объекта, телеметрия или инженерная сертификация.</p>
         </div>
         {options.length > 1 && (
           <label>Сценарий<select value={selected} onChange={(event) => selectScenario(event.target.value)}>{options.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
@@ -159,25 +159,30 @@ export default function Simulation2DReport({ request, initialReport = null, scen
 
           <div className="simulation-canvas-wrap">
             <svg viewBox={`0 0 ${presentation.scene.width} ${presentation.scene.height}`} role="img" aria-label="Зоны, маршруты, парк и операции">
+              <defs><marker id="simulation-flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#67e8f9" /></marker></defs>
               {presentation.scene.zones.map((zone) => <g key={zone.id}><rect className={`simulation-zone source-${zone.geometrySource.toLowerCase()}`} x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="16" /><text className="zone-name" x={zone.x + 16} y={zone.y + 26}>{zone.label}</text><text className="geometry-source" x={zone.x + 16} y={zone.y + 46}>{zone.geometryLabel}</text></g>)}
-              {presentation.scene.routes.map((route) => <g key={route.id}><path className="simulation-route" d={path(route.points)} /><text className="geometry-source" x={route.points[1].x + 8} y={route.points[1].y - 8}>{route.geometryLabel}{route.analyticalDistance ? ` · analytic ${route.analyticalDistance.value} ${route.analyticalDistance.unit}` : ' · visual-only path'}</text></g>)}
+              {presentation.scene.routes.map((route) => <g key={route.id}><path className="simulation-route" d={path(route.points)} markerMid="url(#simulation-flow-arrow)" /><text className="geometry-source" x={route.points[0].x - 42} y={route.points[0].y - 20}>{route.originLabel}</text><text className="geometry-source" x={route.points[1].x - 42} y={route.points[1].y - 20}>{route.destinationLabel}</text><text className="geometry-source" x={route.points[0].x} y={route.points[0].y + 74}>{route.geometryLabel}{route.analyticalDistance ? ` · расчётный путь ${route.analyticalDistance.value} ${route.analyticalDistance.unit}` : ' · длина пути неизвестна'}</text></g>)}
               {presentation.scene.charging.map((marker) => <g key={marker.id} aria-label={marker.label}><text className="charging-badge" x={marker.x} y={marker.y} textAnchor="end">↯ aggregate only</text></g>)}
               {presentation.frame.robots.map((robot) => <g key={robot.id} transform={`translate(${robot.x} ${robot.y})`}><circle className="simulation-robot" r="9" /><text className="robot-label" x="12" y="4">{robot.ordinal + 1} · {robot.stage}</text></g>)}
             </svg>
-            <div className="simulation-legend"><span><i className="legend-robot" /> fleet</span><span>↯ зарядка: только агрегированный allowance, без fake battery cycle</span></div>
+            <div className="simulation-legend"><span>→ направление потока · обратный ход по нижней линии</span><span><i className="legend-robot" /> условное положение робота</span><span>↯ зарядка учтена агрегированно; точка не задана</span></div>
+            <p className="simulation-schematic-note">Зоны и точки показаны схематично; даже PROVIDED означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, KPI берутся из отчёта C23.</p>
           </div>
 
           <div className="simulation-kpis">
-            {metric('Требуется', number(report.capacity.required_per_hour, ` ${report.capacity.unit}`))}
-            {metric('Ожидается C23', number(report.capacity.expected_effective_per_hour, ` ${report.capacity.unit}`))}
-            {metric('Наблюдается C23', number(report.capacity.observed_per_hour, ` ${report.capacity.unit}`), report.capacity.verdict)}
+            {metric('Парк', number(report.workload.fleet_units, ' роботов'))}
+            {metric('Спрос', number(report.capacity.required_per_hour, ` ${report.capacity.unit}`))}
+            {metric('Предел парка C11', number(report.capacity.expected_effective_per_hour, ` ${report.capacity.unit}`))}
+            {metric('Выполнено до конца окна', number(report.capacity.observed_per_hour, ` ${report.capacity.unit}`), report.capacity.verdict)}
+            {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Не выполнено к концу окна', number(report.capacity.demand_shortfall_per_hour, ` ${report.capacity.unit}`), `завершено с grace ${report.queue.completed_with_grace}/${report.queue.measurement_jobs} заданий`)}
+            {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Запас до предела парка', number(report.capacity.capacity_headroom_per_hour, ` ${report.capacity.unit}`), report.capacity.ceiling_verdict)}
             {metric('Очередь max', number(report.queue.maximum_jobs, ' jobs'), `mean wait ${number(report.queue.mean_wait_seconds, ' s')}`)}
             {metric('P95 ожидание', number(report.queue.p95_wait_seconds, ' s'), `turnaround ${number(report.queue.p95_turnaround_seconds, ' s')}`)}
             {metric('Загрузка busy', number(report.utilization.busy_fraction === null ? null : Number(report.utilization.busy_fraction) * 100, '%'), `productive ${number(report.utilization.productive_fraction === null ? null : Number(report.utilization.productive_fraction) * 100, '%')}`)}
           </div>
 
           {hasCapacityWarning(report) && (
-            <div className="simulation-warning" role="status">{report.capacity.verdict === 'DEVIATION' ? 'Расхождение с расчётной effective capacity превышает 10%.' : report.capacity.verdict === 'OVERLOADED' ? 'Сценарий перегружен по C23 report.' : 'Observed capacity несовместима с нулевым expected input.'} Отклонение: {number(report.capacity.deviation_percent, '%')} · denominator {report.capacity.denominator}.</div>
+            <div className="simulation-warning" role="status">{report.capacity.verdict === 'DEVIATION' ? (report.capacity.denominator === 'REQUIRED_DEMAND' ? 'К концу окна выполнено более чем на 10% меньше заданного спроса.' : 'Исторический отчёт: расхождение с максимумом парка превышает 10%.') : report.capacity.verdict === 'OVERLOADED' ? 'Спрос превышает возможности парка; очередь не закрыта к концу окна.' : 'Наблюдаемый поток несовместим с входными данными.'} Отклонение: {number(report.capacity.deviation_percent, '%')} · denominator {report.capacity.denominator}.</div>
           )}
           <div className={`simulation-sla sla-${report.sla.verdict.toLowerCase()}`}>{SLA_LABELS[report.sla.verdict]}{report.sla.on_time_fraction !== null && ` · on-time ${number(Number(report.sla.on_time_fraction) * 100, '%')}`}</div>
           <div className="simulation-notes">
