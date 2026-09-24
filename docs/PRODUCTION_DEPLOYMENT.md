@@ -34,17 +34,41 @@ reopen/export/replay, tenant isolation и CSRF проверены. HOLD тепе
 
 Synthetic catalog, fixture executor и скрытый fallback в production запрещены.
 
+### Инцидент первого импорта 2026-09-24
+
+На `v0.5.0` первый `BASE VALIDATE_ONLY` остановился с `size mismatch:
+catalog_applicability.csv`. Manifest закрепляет исходные байты двух CSV, но
+Git нормализовал встроенные CRLF при Linux checkout: `catalog_applicability.csv`
+стал 119210 вместо 119228 байт, `catalog_field_evidence.csv` — 826195 вместо
+826253. Исправление `v0.5.1` закрепляет исходные Git blobs и отключает
+нормализацию в `data/import/organizer-catalog-v4/`. Содержимое manifest, каталог
+и закупочные данные не менялись. `v0.5.0` не переписывать.
+
+До нового импорта на сервере после обновления `main` проверить:
+
+```bash
+cd /opt/robodovod
+test "$(wc -c < data/import/organizer-catalog-v4/catalog_applicability.csv)" -eq 119228
+test "$(wc -c < data/import/organizer-catalog-v4/catalog_field_evidence.csv)" -eq 826253
+printf '%s\n' \
+  '85501030ce65c20c449eb050baa2c73e0fdf44bd507bbe1272dc2c17114efa6f  data/import/organizer-catalog-v4/catalog_applicability.csv' \
+  '43cd81bfd9222c29122a2972f5709e394a0664f610fabadf7790b55858040262  data/import/organizer-catalog-v4/catalog_field_evidence.csv' | sha256sum -c -
+```
+
+Уже выполненную миграцию повторять не нужно. Не удалять volume БД и не
+исправлять CSV вручную на VDS. Неудачный `VALIDATE_ONLY` оставил audit run со
+статусом `FAILED`; повторная команда без `--request-key` создаёт новую попытку.
+
 ## 2. Локальная публикация проверенного release
 
 ```cmd
 git status --short
 git switch main
 git pull --ff-only origin main
-git merge --ff-only integration/production-calculation-flow-v2
-git tag -a v0.5.0 -m "Robodovod production calculation service v0.5.0"
-git push origin main
-git push origin v0.5.0
-git rev-list -n 1 v0.5.0
+git merge --ff-only fix/catalog-bundle-checkout-bytes
+git tag -a v0.5.1 -m "Robodovod catalog checkout fix v0.5.1"
+git push --atomic origin main refs/tags/v0.5.1
+git rev-list -n 1 v0.5.1
 ```
 
 Если `--ff-only` невозможен, не создавать merge вручную: опубликовать branch,
@@ -74,34 +98,32 @@ Docker daemon 29.8.1. `docker volume ls` и `docker ps -a` не вывели з�
 
 ## 4. Подготовка server checkout — можно выполнить без запуска
 
-После публикации тега:
+После публикации `v0.5.1`:
 
 ```bash
 ssh robodovod
 cd /opt/robodovod
 git status --short
 git fetch --prune --tags origin
-test "$(git cat-file -t v0.5.0)" = tag
-git show --no-patch --decorate v0.5.0
+test "$(git cat-file -t v0.5.1)" = tag
+git show --no-patch --decorate v0.5.1
 git switch main
 git pull --ff-only origin main
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.0)"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.1)"
 git branch --show-current
 ```
 
 Последняя команда должна вывести `main`, а проверяемый hash должен совпасть с
-локальным `git rev-list -n 1 v0.5.0`.
+локальным `git rev-list -n 1 v0.5.1`.
 `git verify-tag` подходит только для подписанного тега; приведённая выше
 команда создаёт обычный annotated tag.
 
 ## 5. Production secrets
 
-Локальный пароль БД, ранее попавший в диагностический вывод, считать
-скомпрометированным. Его нельзя переносить на VDS. До следующего локального
-запуска сменить пароль роли интерактивной `psql \password` (ввод скрыт), затем
-вручную обновить локальные `APP_DB_PASSWORD` и `DATABASE_URL` в `.env`; сам
-`.env` не печатать и не добавлять в Git. Production credentials генерируются
-независимо ниже.
+Локальный пароль БД, ранее попавший в диагностический вывод, не использовать
+на VDS. Владелец подтвердил, что production credentials сгенерированы
+независимо, и отложил локальную ротацию; она не блокирует этот deployment.
+Локальный `.env` не печатать и не добавлять в Git.
 
 На VDS, не на рабочем ПК:
 
@@ -169,6 +191,7 @@ cd /opt/robodovod
 C='sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml'
 $C up -d db
 $C run --rm migrate
+$C build catalog-import catalog-activation economics-activation admin-bootstrap
 $C run --rm catalog-import --phase BASE --mode VALIDATE_ONLY
 $C run --rm catalog-import --phase BASE --mode COMMIT
 $C run --rm catalog-import --phase ENRICHMENT --mode VALIDATE_ONLY
