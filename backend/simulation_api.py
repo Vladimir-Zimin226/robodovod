@@ -8,11 +8,12 @@ from __future__ import annotations
 
 import threading
 import uuid
+import json
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Annotated, Callable, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import ConfigDict, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -26,8 +27,12 @@ from calculation.scheduling import (
     run_simulation,
 )
 from calculation_contracts import Digest, StableId, StrictContractModel, semantic_digest
-from database import database_session
+from database import database_session, get_database
 from persistence_models import Project
+from simulation_artifacts import (
+    SimulationArtifactIntegrityError, load_artifact, owned_run,
+    save_artifact, verify_run_binding,
+)
 
 
 class SimulationRunStateV1(StrictContractModel):
@@ -86,6 +91,8 @@ class _Job:
     report: SimulationReportV1 | None = None
     error: SimulationErrorV1 | None = None
     cancel: threading.Event = field(default_factory=threading.Event)
+    on_success: Callable[[SimulationRequestV1, SimulationReportV1], None] | None = None
+    binding_id: str | None = None
 
     def __post_init__(self) -> None:
         self.progress = SimulationProgressV1(
@@ -120,16 +127,19 @@ class SimulationJobRegistry:
     def _key(tenant_id: str, request_id: str) -> tuple[str, str]:
         return tenant_id, request_id
 
-    def start(self, request: SimulationRequestV1) -> SimulationRunStateV1:
+    def start(self, request: SimulationRequestV1, *,
+              on_success: Callable[[SimulationRequestV1, SimulationReportV1], None] | None = None,
+              retry_failed: bool = False, binding_id: str | None = None) -> SimulationRunStateV1:
         key = self._key(request.tenant_id, request.request_id)
         digest = semantic_digest(request)
         with self._lock:
             existing = self._jobs.get(key)
             if existing is not None:
-                if existing.request_digest != digest:
+                if existing.request_digest != digest or existing.binding_id != binding_id:
                     raise ValueError("request_id is already bound to different content")
-                return self._snapshot(existing)
-            job = _Job(request=request, request_digest=digest)
+                if not retry_failed or existing.state not in ("FAILED", "CANCELLED"):
+                    return self._snapshot(existing)
+            job = _Job(request=request, request_digest=digest, on_success=on_success, binding_id=binding_id)
             self._jobs[key] = job
             self._executor.submit(self._execute, key)
             return self._snapshot(job)
@@ -142,6 +152,8 @@ class SimulationJobRegistry:
         def on_progress(value: SimulationProgressV1) -> None:
             with self._lock:
                 current = self._jobs[key]
+                if current is not job:
+                    return
                 if current.state == "CANCELLED":
                     return
                 if value.request_id != current.request.request_id:
@@ -161,8 +173,20 @@ class SimulationJobRegistry:
                 code="INVALID_SCENARIO",
                 message="simulation execution failed",
             )
+        if isinstance(result, SimulationReportV1) and job.on_success is not None and not job.cancel.is_set():
+            try:
+                job.on_success(job.request, result)
+            except Exception:
+                result = SimulationErrorV1(
+                    request_id=job.request.request_id,
+                    scenario_revision_id=job.request.scenario_spec.revision_id,
+                    code="INVALID_SCENARIO",
+                    message="simulation evidence persistence failed",
+                )
         with self._lock:
             current = self._jobs[key]
+            if current is not job:
+                return
             if current.state == "CANCELLED":
                 return
             if isinstance(result, SimulationReportV1):
@@ -172,15 +196,15 @@ class SimulationJobRegistry:
                 current.error = result
                 current.state = "CANCELLED" if result.code == "CANCELLED" else "FAILED"
 
-    def get(self, tenant_id: str, request_id: str) -> SimulationRunStateV1 | None:
+    def get(self, tenant_id: str, request_id: str, binding_id: str | None = None) -> SimulationRunStateV1 | None:
         with self._lock:
             job = self._jobs.get(self._key(tenant_id, request_id))
-            return None if job is None else self._snapshot(job)
+            return None if job is None or job.binding_id != binding_id else self._snapshot(job)
 
-    def cancel(self, tenant_id: str, request_id: str) -> SimulationRunStateV1 | None:
+    def cancel(self, tenant_id: str, request_id: str, binding_id: str | None = None) -> SimulationRunStateV1 | None:
         with self._lock:
             job = self._jobs.get(self._key(tenant_id, request_id))
-            if job is None:
+            if job is None or job.binding_id != binding_id:
                 return None
             if job.state in ("PENDING", "RUNNING"):
                 job.cancel.set()
@@ -227,7 +251,34 @@ def create_simulation_router(
     project_authorizer: ProjectAuthorizer = _owns_project,
 ) -> APIRouter:
     jobs = registry or SimulationJobRegistry()
+    saved_jobs = SimulationJobRegistry()
     router = APIRouter(prefix="/api/v2/simulations", tags=["simulation-v1"])
+
+    def stored_state(evidence) -> SimulationRunStateV1:
+        total = evidence.report.workload.jobs_per_day * 2
+        return SimulationRunStateV1(
+            request_id=evidence.request.request_id,
+            tenant_id=evidence.request.tenant_id,
+            project_id=evidence.request.project_id,
+            scenario_revision_id=evidence.request.scenario_spec.revision_id,
+            request_digest=evidence.request_digest,
+            state="SUCCEEDED",
+            progress=SimulationProgressV1(request_id=evidence.request.request_id, processed_events=total, total_events=total),
+            report=evidence.report,
+            error=None,
+        )
+
+    def saved_run(db: Session, context: AuthContext, project_id: uuid.UUID,
+                  run_id: uuid.UUID) -> None:
+        if owned_run(db, context.user.id, project_id, run_id) is None:
+            raise HTTPException(status_code=404, detail="saved analysis run not found")
+
+    def stored(db: Session, context: AuthContext, project_id: uuid.UUID,
+               run_id: uuid.UUID, request_id: str):
+        try:
+            return load_artifact(db, context.user.id, project_id, run_id, request_id)
+        except SimulationArtifactIntegrityError as exc:
+            raise HTTPException(status_code=409, detail="stored simulation evidence integrity check failed") from exc
 
     def authorize(
         request: SimulationRequestV1,
@@ -277,6 +328,106 @@ def create_simulation_router(
         if result is None:
             raise HTTPException(status_code=404, detail="simulation not found")
         return result
+
+    @router.post("/projects/{project_id}/analysis-runs/{run_id}",
+                 response_model=SimulationRunStateV1, status_code=status.HTTP_202_ACCEPTED)
+    def start_saved_simulation(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        payload: SimulationRequestV1,
+        context: AuthContext = Depends(require_csrf),
+        db: Session = Depends(database_session),
+    ) -> SimulationRunStateV1:
+        authorize(payload, context, db)
+        if payload.project_id != str(project_id):
+            raise HTTPException(status_code=422, detail="simulation project path mismatch")
+        run = owned_run(db, context.user.id, project_id, run_id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="saved analysis run not found")
+        try:
+            verify_run_binding(run, payload)
+        except SimulationArtifactIntegrityError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        evidence = stored(db, context, project_id, run_id, payload.request_id)
+        if evidence is not None:
+            if evidence.request_digest != semantic_digest(payload):
+                raise HTTPException(status_code=409, detail="immutable simulation request_id collision")
+            return stored_state(evidence)
+
+        def persist(request: SimulationRequestV1, report: SimulationReportV1) -> None:
+            with get_database().session() as session:
+                save_artifact(session, context.user.id, project_id, run_id, request, report)
+
+        try:
+            return saved_jobs.start(payload, on_success=persist, retry_failed=True, binding_id=str(run_id))
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/{request_id}",
+                response_model=SimulationRunStateV1)
+    def saved_simulation_progress(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        request_id: str,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ) -> SimulationRunStateV1:
+        saved_run(db, context, project_id, run_id)
+        evidence = stored(db, context, project_id, run_id, request_id)
+        if evidence is not None:
+            return stored_state(evidence)
+        state = saved_jobs.get(str(context.user.id), request_id, str(run_id))
+        if state is None or state.project_id != str(project_id):
+            raise HTTPException(status_code=404, detail="simulation not found")
+        return state
+
+    @router.post("/projects/{project_id}/analysis-runs/{run_id}/{request_id}/cancel",
+                 response_model=SimulationRunStateV1)
+    def cancel_saved_simulation(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        request_id: str,
+        context: AuthContext = Depends(require_csrf),
+        db: Session = Depends(database_session),
+    ) -> SimulationRunStateV1:
+        saved_run(db, context, project_id, run_id)
+        evidence = stored(db, context, project_id, run_id, request_id)
+        if evidence is not None:
+            return stored_state(evidence)
+        state = saved_jobs.cancel(str(context.user.id), request_id, str(run_id))
+        if state is None or state.project_id != str(project_id):
+            raise HTTPException(status_code=404, detail="simulation not found")
+        return state
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/{request_id}/evidence.json")
+    def download_simulation_evidence(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        request_id: str,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        saved_run(db, context, project_id, run_id)
+        evidence = stored(db, context, project_id, run_id, request_id)
+        if evidence is None:
+            raise HTTPException(status_code=404, detail="simulation evidence not found")
+        body = {
+            "schema_version": "simulation-artifact-v1",
+            "artifact_id": str(evidence.artifact_id),
+            "analysis_run_id": str(evidence.analysis_run_id),
+            "project_id": str(evidence.project_id),
+            "scenario_spec_digest": evidence.scenario_spec_digest,
+            "request_digest": evidence.request_digest,
+            "report_digest": evidence.report_digest,
+            "request": evidence.request.model_dump(mode="json"),
+            "report": evidence.report.model_dump(mode="json"),
+        }
+        data = (json.dumps(body, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+        return Response(content=data, media_type="application/json", headers={
+            "Content-Disposition": f'attachment; filename="robomera-simulation-{request_id}.json"',
+            "X-Simulation-Report-Digest": evidence.report_digest,
+            "Cache-Control": "private, no-store",
+        })
 
     return router
 

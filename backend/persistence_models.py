@@ -408,6 +408,34 @@ class AnalysisRun(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class SimulationArtifact(Base):
+    """Append-only C23 evidence; the parent AnalysisRun remains immutable."""
+
+    __tablename__ = "simulation_artifacts"
+    __table_args__ = (
+        UniqueConstraint("analysis_run_id", "request_id", name="uq_simulation_artifacts_run_request"),
+        CheckConstraint("artifact_version = 'simulation-artifact-v1'", name="ck_simulation_artifacts_version"),
+        CheckConstraint("jsonb_typeof(request_snapshot) = 'object'", name="ck_simulation_artifacts_request_object"),
+        CheckConstraint("jsonb_typeof(report_snapshot) = 'object'", name="ck_simulation_artifacts_report_object"),
+        CheckConstraint(f"request_sha256 ~ '{SHA256_CHECK}'", name="ck_simulation_artifacts_request_sha256"),
+        CheckConstraint(f"report_sha256 ~ '{SHA256_CHECK}'", name="ck_simulation_artifacts_report_sha256"),
+        CheckConstraint(f"scenario_spec_sha256 ~ '{SHA256_CHECK}'", name="ck_simulation_artifacts_spec_sha256"),
+        Index("ix_simulation_artifacts_run_created", "analysis_run_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    analysis_run_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("analysis_runs.id", ondelete="CASCADE"), nullable=False)
+    project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    request_id: Mapped[str] = mapped_column(Text, nullable=False)
+    artifact_version: Mapped[str] = mapped_column(Text, nullable=False, default="simulation-artifact-v1")
+    request_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    report_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    request_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    report_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    scenario_spec_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
 class AnalysisRunEconomicsVersion(Base):
     """Additive C28 mapping; the AnalysisRun snapshot remains untouched."""
 

@@ -92,8 +92,8 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, onRecalcul
           </section>
 
           {simulationRequest && <div className="commercial-visualization">
-            <p>2D и 3D используют ScenarioSpec этого immutable run. Для C23 не заданы SLA и мощности погрузочных ресурсов; геометрия синтетическая и не является проектом площадки. Отчёт C23 хранится в памяти API и после перезапуска сервера запускается заново.</p>
-            <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} />
+            <p>2D и 3D используют ScenarioSpec этого immutable run. Для C23 не заданы SLA и мощности погрузочных ресурсов; геометрия синтетическая и не является проектом площадки. Отчёт C23 сохраняется отдельным неизменяемым evidence, связанным с этим run.</p>
+            <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} analysisRunId={bundle.run_id} />
           </div>}
         </>
       )}

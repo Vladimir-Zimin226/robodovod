@@ -34,7 +34,7 @@ function path(points) {
   return points.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
 }
 
-export default function Simulation2DReport({ request, initialReport = null, scenarios = null }) {
+export default function Simulation2DReport({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
   const options = useMemo(
     () => scenarios || [{ id: request?.request_id || 'current', label: 'Текущий сценарий', request, report: initialReport }],
     [scenarios, request, initialReport],
@@ -72,6 +72,15 @@ export default function Simulation2DReport({ request, initialReport = null, scen
 
   useEffect(() => () => api.current.invalidate(), []);
 
+  useEffect(() => {
+    if (!analysisRunId || !active?.request || active.report) return undefined;
+    let current = true;
+    api.current.loadSaved(active.request, analysisRunId)
+      .then((state) => { if (current && state?.state === 'SUCCEEDED') setReport(state.report); })
+      .catch((reason) => { if (current) setError(reason.message); });
+    return () => { current = false; };
+  }, [analysisRunId, active]);
+
   const presentation = useMemo(() => {
     if (!active?.request || !report) return null;
     try {
@@ -86,7 +95,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     setError('');
     setRunState({ state: 'PENDING', progress: { processed_events: 0, total_events: 0 } });
     try {
-      const terminal = await api.current.start(active.request, (state) => setRunState(state));
+      const terminal = await api.current.start(active.request, (state) => setRunState(state), analysisRunId);
       if (terminal?.state === 'SUCCEEDED') setReport(terminal.report);
       else if (terminal?.error) setError(terminal.error.message);
     } catch (failure) {
@@ -146,6 +155,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             <span>digest <code>{presentation.frame.reportDigest.slice(0, 18)}…</code></span>
             <span>seed <code>{presentation.frame.seed}</code></span>
             <span>t={(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} s</span>
+            {analysisRunId && <a href={`/api/v2/simulations/projects/${encodeURIComponent(active.request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}/${encodeURIComponent(active.request.request_id)}/evidence.json`} download>Скачать evidence C23 JSON</a>}
           </div>
 
           <div className="simulation-controls" aria-label="Управление timeline">

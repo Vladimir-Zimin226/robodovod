@@ -1,6 +1,10 @@
 const API = import.meta.env?.VITE_API_URL || '';
 const TERMINAL = new Set(['SUCCEEDED', 'FAILED', 'CANCELLED']);
 
+function savedBase(request, analysisRunId) {
+  return `/api/v2/simulations/projects/${encodeURIComponent(request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}`;
+}
+
 function readCsrfCookie() {
   const item = document.cookie
     .split('; ')
@@ -40,11 +44,12 @@ export class SimulationApiSession {
     this.current = null;
   }
 
-  async start(request, onState = () => {}) {
+  async start(request, onState = () => {}, analysisRunId = null) {
     this.generation += 1;
     const generation = this.generation;
-    this.current = request;
-    const state = exactState(await api('/api/v2/simulations', {
+    this.current = { request, analysisRunId };
+    const base = analysisRunId ? savedBase(request, analysisRunId) : '/api/v2/simulations';
+    const state = exactState(await api(base, {
       method: 'POST',
       headers: { 'X-CSRF-Token': readCsrfCookie() },
       body: JSON.stringify(request),
@@ -52,14 +57,15 @@ export class SimulationApiSession {
     if (generation !== this.generation) return null;
     onState(state);
     if (TERMINAL.has(state.state)) return state;
-    return this.poll(request, generation, onState);
+    return this.poll(request, generation, onState, analysisRunId);
   }
 
-  async poll(request, generation, onState) {
+  async poll(request, generation, onState, analysisRunId = null) {
+    const base = analysisRunId ? savedBase(request, analysisRunId) : '/api/v2/simulations';
     while (generation === this.generation) {
       await new Promise((resolve) => setTimeout(resolve, this.pollMs));
       if (generation !== this.generation) return null;
-      const state = exactState(await api(`/api/v2/simulations/${encodeURIComponent(request.request_id)}`), request);
+      const state = exactState(await api(`${base}/${encodeURIComponent(request.request_id)}`), request);
       if (generation !== this.generation) return null;
       onState(state);
       if (TERMINAL.has(state.state)) return state;
@@ -68,13 +74,24 @@ export class SimulationApiSession {
   }
 
   async cancel() {
-    const request = this.current;
-    if (!request) return null;
+    const current = this.current;
+    if (!current) return null;
+    const { request, analysisRunId } = current;
     this.generation += 1;
     this.current = null;
-    return exactState(await api(`/api/v2/simulations/${encodeURIComponent(request.request_id)}/cancel`, {
+    const base = analysisRunId ? savedBase(request, analysisRunId) : '/api/v2/simulations';
+    return exactState(await api(`${base}/${encodeURIComponent(request.request_id)}/cancel`, {
       method: 'POST', headers: { 'X-CSRF-Token': readCsrfCookie() },
     }), request);
+  }
+
+  async loadSaved(request, analysisRunId) {
+    try {
+      return exactState(await api(`${savedBase(request, analysisRunId)}/${encodeURIComponent(request.request_id)}`), request);
+    } catch (error) {
+      if (/not found/i.test(error.message)) return null;
+      throw error;
+    }
   }
 
   invalidate() {

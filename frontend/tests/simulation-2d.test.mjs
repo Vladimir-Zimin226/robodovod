@@ -120,6 +120,30 @@ test('API session ignores a stale start response after scenario replacement', as
   assert.equal(await stale, null);
 });
 
+test('saved simulation uses run-scoped CSRF POST and reopens persisted report', async () => {
+  globalThis.document = { cookie: 'robodovod_csrf=c23-token' };
+  const requests = [];
+  const state = {
+    schema_version: 'simulation-run-state-v1', request_id: request.request_id,
+    tenant_id: request.tenant_id, project_id: request.project_id,
+    scenario_revision_id: request.scenario_spec.revision_id,
+    state: 'SUCCEEDED', report: corrected,
+  };
+  globalThis.fetch = async (url, options) => {
+    requests.push({ url, options });
+    return { ok: true, json: async () => state };
+  };
+  const session = new SimulationApiSession();
+  const result = await session.start(request, () => {}, 'run.saved.c23');
+  const reopened = await session.loadSaved(request, 'run.saved.c23');
+  assert.equal(result.report.replay.report_content_digest, corrected.replay.report_content_digest);
+  assert.equal(reopened.state, 'SUCCEEDED');
+  assert.match(requests[0].url, /\/projects\/.*\/analysis-runs\/run.saved.c23$/);
+  assert.equal(requests[0].options.headers['X-CSRF-Token'], 'c23-token');
+  assert.equal(requests[0].options.credentials, 'include');
+  assert.match(requests[1].url, /run.saved.c23\/request.c23.capacity-only$/);
+});
+
 test('component exposes controls, bindings and honest SLA/charging labels without client formulas', async () => {
   const source = await readFile(new URL('../src/components/Simulation2DReport.jsx', import.meta.url), 'utf8');
   for (const label of ['Старт', 'Пауза', 'Стоп', 'Перезапуск', 'Скорость', 'scenario', 'report', 'seed']) assert.match(source, new RegExp(label));
