@@ -385,7 +385,23 @@ def _service_model(spec: ScenarioSpecV2, calendar: _Calendar) -> tuple[Decimal, 
         raise ValueError("simulation requires a positive explicit batch")
     if not demand_unit.endswith("/day") or nominal_unit != effective_unit or not nominal_unit.endswith(("/day", "/h")):
         raise ValueError("simulation demand and capacity require comparable daily/hourly units")
-    if demand_unit.split("/", 1)[0] != batch_unit.split("/", 1)[0] or demand_unit.split("/", 1)[0] != nominal_unit.split("/", 1)[0]:
+    demand_base = demand_unit.split("/", 1)[0]
+    batch_base = batch_unit.split("/", 1)[0]
+    # The immutable C11→ScenarioSpec projection uses generic unit/cycle and
+    # unit/h for the bound task output. Interpret these only when the explicit
+    # process quantity kind agrees with the task demand (e.g. PALLET/pallet).
+    # No conversion is applied to unrelated dimensions or area microtasks.
+    profile_matches_demand = str(spec.profile.quantity_kind).lower() == demand_base
+    generic_output_count = (
+        batch_unit == "unit/cycle"
+        and task.batch.semantics in ("PHYSICAL_BATCH", "ONE_OUTPUT_UNIT")
+        and profile_matches_demand
+    )
+    generic_capacity = (
+        nominal_unit in ("unit/h", "unit/day") and profile_matches_demand
+    )
+    if ((batch_base != demand_base and not generic_output_count)
+            or (demand_base != nominal_unit.split("/", 1)[0] and not generic_capacity)):
         raise ValueError("simulation demand, batch and capacity units are not comparable")
     if effective > nominal:
         raise ValueError("effective capacity cannot exceed nominal capacity")

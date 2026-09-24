@@ -8,6 +8,7 @@ from pathlib import Path
 
 import jsonschema
 import pytest
+from calculation.scheduling import SimulationErrorV1, SimulationReportV1, SimulationRequestV1, run_simulation
 from calculation.service import analyze_capacity
 from calculation_contracts import (
     CapacityAnalysisRequest,
@@ -318,3 +319,61 @@ def test_production_orchestrator_uses_capacity_and_catalog_without_fixture_bundl
             / "contracts/fixtures/production-economics-orchestrator-v1.golden.json"
         ).read_text(encoding="utf-8")
     )
+
+
+@pytest.mark.parametrize("daily_demand,shift_hours", [("1000", "10"), ("2000", "11")])
+def test_saved_economics_scenario_can_run_c23_without_invented_sla_or_resources(daily_demand, shift_hours):
+    snapshot = _snapshot()
+    raw = _capacity_request().model_dump(mode="json")
+    raw["process"]["demand"]["raw_value"] = daily_demand
+    raw["process"]["demand"]["normalized_value"] = daily_demand
+    raw["process"]["schedule"]["shift_hours"]["raw_value"] = shift_hours
+    raw["process"]["schedule"]["shift_hours"]["normalized_value"] = shift_hours
+    request = CapacityAnalysisRequest.model_validate(raw)
+    capacity = analyze_capacity(request, snapshot, "run.capacity.visualization")
+    context = EconomicsExecutionContextV1(
+        run_id="run.economics.visualization",
+        project_id=request.project_id,
+        tenant_id="tenant.demo",
+        capacity_request=request,
+        capacity_response=capacity.response,
+        constraint_report=capacity.constraints.model_dump(mode="json"),
+        executability=capacity.executability.model_dump(mode="json"),
+    )
+    execution = execute_economics_v2(_inputs(), snapshot, context)
+    simulation_request = SimulationRequestV1.model_validate({
+        "schema_version": "simulation-request-v1",
+        "request_id": "simulation.run.economics.visualization",
+        "tenant_id": execution.result_snapshot["tenant_id"],
+        "project_id": execution.result_snapshot["project_id"],
+        "scenario_spec": execution.scenario_spec_snapshot,
+        "mode": "DAILY",
+        "peak_factor": None,
+        "sla": None,
+        "resources": [],
+        "limits": {
+            "max_jobs_per_day": 10000,
+            "max_fleet": 100,
+            "max_runtime_seconds": 60,
+            "progress_event_batch": 1000,
+        },
+    })
+    report = run_simulation(simulation_request)
+    assert isinstance(report, SimulationReportV1), (
+        simulation_request.scenario_spec.tasks[0].demand.unit,
+        simulation_request.scenario_spec.tasks[0].batch.units_per_cycle.unit,
+        simulation_request.scenario_spec.fleet[0].nominal_capacity.unit,
+    )
+    assert report.scenario_revision_id == execution.scenario_spec_snapshot["revision_id"]
+    assert report.sla.verdict == "NOT_EVALUATED"
+    assert report.engineering_claim == "PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION"
+
+    mismatched = simulation_request.model_dump(mode="json")
+    spec = mismatched["scenario_spec"]
+    spec["profile"]["quantity_kind"] = "BOX"
+    spec["revision_id"] = "calc_" + semantic_digest(
+        {key: value for key, value in spec.items() if key != "revision_id"}
+    ).removeprefix("sha256:")[:16]
+    invalid = run_simulation(SimulationRequestV1.model_validate(mismatched))
+    assert isinstance(invalid, SimulationErrorV1)
+    assert invalid.code == "INVALID_SCENARIO"
