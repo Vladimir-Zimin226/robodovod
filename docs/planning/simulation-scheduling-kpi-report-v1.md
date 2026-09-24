@@ -2,6 +2,12 @@
 
 Статус: **IMPLEMENTED**, C23 `simulation/scheduling-kpi-report-v1`, 2026-09-23.
 
+Живое уточнение 2026-09-24: при спросе 90,91 unit/h и effective fleet ceiling
+137,65 unit/h наблюдаемые 90,5 unit/h сравниваются с ceiling и ошибочно
+получают 34,25% `DEVIATION`. Проверка подгруженности и проверки обслуживания
+спроса должны быть разделены и версионированы; старый отчёт не переписывать.
+См. [план исправления](live-calculation-remediation-2026-09-24.md).
+
 ## Результат
 
 Добавлен отдельный pure backend service `deterministic-queue-v1`, который

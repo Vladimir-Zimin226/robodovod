@@ -1,6 +1,13 @@
 # Production deployment — robodovod.ru
 
-Статус: **C30 LIVE TEST / ECONOMICS + VISUALIZATION HOLD**, 2026-09-24.
+Статус: **C30 HOLD — расчёт, RobCraft и экспорт требуют исправления**, 2026-09-24.
+Существующий production `v0.5.9` отвечает `/ready` и сохранил первый
+economics run, но это не release acceptance. Найдено повторное умножение
+стоимости deficit в C16, блокировка iframe RobCraft production headers,
+ошибка browser `fetch` для evidence ZIP и неверный C23 capacity verdict при
+недогруженном парке. Не использовать текущие NPV/payback как достоверные;
+не объявлять сервис готовым и не переключать дополнительный трафик.
+План: [live calculation remediation](planning/live-calculation-remediation-2026-09-24.md).
 
 ### Обновление `v0.5.7` → `v0.5.9`: результат C11, экономика и визуализация
 

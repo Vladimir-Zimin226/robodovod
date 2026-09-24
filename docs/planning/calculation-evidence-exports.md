@@ -2,6 +2,14 @@
 
 Статус: **IMPLEMENTED**, C26 `report/calculation-evidence-exports`, 2026-09-23.
 
+Живое уточнение 2026-09-24: C26 API/builder существует, но браузерный экспорт
+`v0.5.9` не принят — `EvidenceExportSession` вызывает `Window.fetch` с неверным
+receiver (`Illegal invocation`), поэтому ZIP до API не запрашивается.
+`Report.pdf` внутри ZIP — машинный snapshot dump с `\u`-экранированием кириллицы,
+а не читаемый самостоятельный отчёт; C23 section остаётся `NOT_AVAILABLE`,
+поскольку simulation report не сохранён в AnalysisRun. См.
+[план исправления](live-calculation-remediation-2026-09-24.md).
+
 ## Результат
 
 C26 добавляет воспроизводимый evidence export только из сохранённого успешного

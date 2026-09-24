@@ -915,7 +915,9 @@ Production activation не выполнялась.
 
 ## C30 — `ops/production-domain-deployment-v1`
 
-Статус: **IN PROGRESS / ECONOMICS + VISUALIZATION HOLD**, обновлено 2026-09-24.
+Статус: **IN PROGRESS / CALCULATION + VISUALIZATION + EXPORT HOLD**, обновлено
+2026-09-24 после первого живого economics run. Детальный разбор и порядок
+исправлений: [live calculation remediation](live-calculation-remediation-2026-09-24.md).
 Исполнитель — агент. Production economics-v2 executor подключён в `main.app`;
 новый UI выполняет C11 → явные commercial inputs → C13–C21, сохраняет
 immutable run и поддерживает reopen/export/deterministic replay. Повторный C29
@@ -964,6 +966,16 @@ ScenarioSpec в серверный C23 и строгую трактовку gene
 result, но не immutable input; economics форма не могла продолжиться после
 refresh. `v0.5.9` восстанавливает оба snapshot и проверяет их project/run/
 revision binding. Отдельный live gate остаётся обязательным.
+
+После `v0.5.9` сервер успешно сохранил C13–C21 и выполнил C23, но повторная
+живая приёмка обнаружила P0-дефект денежного расчёта: C16 повторно умножает
+агрегированный C14 `annual_deficit_cost` на `deficit`. Текущие NPV/payback не
+считать подтверждёнными, старые immutable runs не переписывать. Browser fetch
+ломает evidence ZIP до API; глобальные Caddy `X-Frame-Options: DENY` и
+`frame-ancestors 'none'` блокируют встроенный RobCraft; C23 показывает
+ложную deviation при спросе ниже capacity. 2D пока синтетический, отдельный
+читаемый отчёт и сохранённый C23 evidence отсутствуют. C30 не закрывать до
+версионированного исправления, полного release acceptance и живого smoke.
 
 - **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
   с Ubuntu 24.04 LTS по `robodovod.ru` и `www.robodovod.ru`; серверный baseline,
