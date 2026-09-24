@@ -38,7 +38,7 @@ const statusFor = (process, issues, response) => {
   return ['Готов к нормализации', 'text-green-600'];
 };
 
-export default function ProcessRoleIntakeV2({ objectType, activeProject, onNormalized, onCapacityResult }) {
+export default function ProcessRoleIntakeV2({ objectType, activeProject, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
   const [draft, setDraft] = useState(() => createDraft(objectType));
   const [expanded, setExpanded] = useState(null);
   const [result, setResult] = useState(null);
@@ -148,6 +148,28 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
         {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">120 м плеча и 90 сек. обмена — отдельные демо-допущения; зарплату gross подтвердите в роли.</p>}
       </header>
 
+      {!activeProject && <section className="mb-4 rounded-lg border border-amber-400/50 bg-[#2b281d] p-3 text-xs text-amber-100" aria-label="Проект для расчёта">
+        <p className="font-semibold">Для C11 нужен открытый сохраняемый проект</p>
+        {!authChecked ? <p className="mt-1">Проверяем вход…</p> : !user ? <>
+          <p className="mt-1">Гостевой ввод можно проверить, но immutable run и полная экономика доступны после входа.</p>
+          <button type="button" className="mt-2 font-semibold text-lime-300 underline" onClick={onOpenAccount}>Войти или зарегистрироваться</button>
+        </> : projectStatus === 'loading' ? <p className="mt-1">Восстанавливаем ваш проект…</p> : projectStatus === 'error' ? <>
+          <p className="mt-1">Не удалось загрузить ваши проекты. Откройте список проектов и повторите попытку.</p>
+          <button type="button" className="mt-2 font-semibold text-lime-300 underline" onClick={onOpenProjects}>Мои проекты</button>
+        </> : projectChoices.length === 0 ? <>
+          <p className="mt-1">У вас пока нет проекта.</p>
+          <button type="button" className="mt-2 font-semibold text-lime-300 underline" onClick={onOpenProjects}>Создать проект</button>
+        </> : <label className="mt-2 block font-semibold">Выберите проект
+          <select className="mt-1 w-full rounded border border-amber-400/50 bg-[#1b2529] p-2 text-slate-100" value="" onChange={(event) => {
+            const project = projectChoices.find((item) => item.id === event.target.value);
+            if (project) onChooseProject(project);
+          }}>
+            <option value="">Выберите проект для сохранения расчёта</option>
+            {projectChoices.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+          </select>
+        </label>}
+      </section>}
+
       <div className="space-y-2">
         {draft.processes.map((process) => {
           const open = expanded === process.code;
@@ -201,7 +223,7 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
       {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт v2">
         <h3 className="text-sm font-semibold">Предварительный расчёт v2</h3>
         <p className="text-xs text-amber-800">Демо-профиль не является паспортом изготовителя. Неизвестные проверки C05 останутся в результате; число роботов не означает готовность к закупке.</p>
-        {!activeProject && <p className="text-xs text-amber-800">Для immutable run войдите в аккаунт и откройте проект.</p>}
+        {!activeProject && <p className="text-xs text-amber-800">Выберите проект в блоке выше, чтобы сохранить immutable run.</p>}
         {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">Для этого процесса нет физической формулы C07/C08.</p> : <>
           <label className="block text-xs">Процесс
             <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); }}>
@@ -221,7 +243,7 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
           {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
           {selectedProcess?.scope === 'CLEANING_AREA' && <p className="text-xs text-slate-600">Демо-допущение: одна уборка указанной площади в сутки.</p>}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
-          <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !activeProject || !selectedPosition || !acknowledged} onClick={runCapacity}>{capacityBusy ? 'Считаем…' : 'Рассчитать и сохранить v2'}</button>
+          <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить v2' : 'Сначала выберите проект'}</button>
         </>}
       </section>}
     </aside>

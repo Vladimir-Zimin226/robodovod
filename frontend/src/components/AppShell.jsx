@@ -65,7 +65,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
           </form>
           <div className="project-context">
             <AppIcon name="cube" />
-            <div><strong>{activeProject?.name || (isResult ? 'Текущий расчёт' : 'Гостевой расчёт')}</strong><span>{activeProject ? 'Сохраняемый проект' : isResult ? 'Предварительное ТЭО' : 'Россия'}</span></div>
+            <div><strong>{activeProject?.name || (user ? 'Проект не выбран' : isResult ? 'Текущий расчёт' : 'Гостевой расчёт')}</strong><span>{activeProject ? 'Сохраняемый проект' : user ? 'Выберите проект для v2' : isResult ? 'Предварительное ТЭО' : 'Россия'}</span></div>
           </div>
           <button className={`user-avatar ${activeNav === 'account' ? 'active' : ''}`} onClick={() => navigate({ id: 'account' })} aria-label={user ? `Аккаунт ${user.email}` : 'Войти или зарегистрироваться'} title={user ? user.email : 'Войти'}>{initials}</button>
           <p className="command-examples">Например: «Перемещение паллет на складе», «Упаковка готовой продукции», «Подача материалов на линию»</p>

@@ -13,6 +13,9 @@ import { isCommercialScenariosBundle } from './commercialScenariosModel';
 import Simulation2DReport from './components/Simulation2DReport';
 import EvidenceExportPanel from './components/EvidenceExportPanel';
 import EconomicsInputsV2 from './components/EconomicsInputsV2';
+import {
+  forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
+} from './projectSelection';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -21,6 +24,9 @@ const STEPS = [
 ];
 
 const API = import.meta.env.VITE_API_URL || '';
+const sessionStore = () => {
+  try { return window.sessionStorage; } catch { return null; }
+};
 
 export default function App() {
   const [phase, setPhase] = useState('onboarding');
@@ -31,7 +37,10 @@ export default function App() {
   const [command, setCommand] = useState('');
   const [intakePrompt, setIntakePrompt] = useState('');
   const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [activeProject, setActiveProject] = useState(null);
+  const [projectChoices, setProjectChoices] = useState([]);
+  const [projectStatus, setProjectStatus] = useState('loading');
   const [activeRun, setActiveRun] = useState(null);
   const [saveState, setSaveState] = useState('');
   const [inputProvenance, setInputProvenance] = useState({});
@@ -43,8 +52,38 @@ export default function App() {
     fetch(`${API}/api/auth/me`, { credentials: 'include' })
       .then((response) => response.ok ? response.json() : null)
       .then((payload) => payload && setUser(payload.user))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setAuthChecked(true));
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    const controller = new AbortController();
+    fetch(`${API}/api/projects`, { credentials: 'include', signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((payload) => {
+        if (controller.signal.aborted) return;
+        const items = Array.isArray(payload.items) ? payload.items : [];
+        const remembered = readRememberedProjectId(sessionStore(), user.id);
+        const selected = selectRestorableProject(items, remembered);
+        setProjectChoices(items);
+        setActiveProject((current) => current || selected);
+        setProjectStatus('ready');
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') setProjectStatus('error');
+      });
+    return () => controller.abort();
+  }, [user?.id]);
+
+  const selectActiveProject = (project) => {
+    setActiveProject(project);
+    setActiveRun(null);
+    rememberProjectId(sessionStore(), user?.id, project.id);
+  };
 
   const recalc = async (inp, provenance = inputProvenance, fileContext = projectFileContext) => {
     setActiveRun(null);
@@ -207,6 +246,13 @@ export default function App() {
             initialCollected={preset}
             initialPrompt={intakePrompt}
             activeProject={activeProject}
+            user={user}
+            authChecked={authChecked}
+            projectChoices={projectChoices}
+            projectStatus={projectStatus}
+            onChooseProject={selectActiveProject}
+            onOpenProjects={() => setPhase('projects')}
+            onOpenAccount={() => setPhase('account')}
             onFileApplied={(normalized) => {
               setPreset(normalized);
               setActiveProject((project) => project ? ({
@@ -231,15 +277,29 @@ export default function App() {
         ) : phase === 'account' ? (
           <AuthScreen
             user={user}
-            onAuthenticated={(nextUser) => { setUser(nextUser); setPhase('account'); }}
-            onLoggedOut={() => { setUser(null); setActiveProject(null); restart(); }}
+            onAuthenticated={(nextUser) => {
+              setActiveProject(null);
+              setProjectChoices([]);
+              setProjectStatus('loading');
+              setUser(nextUser);
+              setAuthChecked(true);
+              setPhase('account');
+            }}
+            onLoggedOut={() => {
+              forgetProjectId(sessionStore(), user?.id);
+              setUser(null);
+              setActiveProject(null);
+              setProjectChoices([]);
+              setProjectStatus('idle');
+              restart();
+            }}
             onNavigate={(target) => setPhase(target)}
           />
         ) : phase === 'projects' ? (
           <ProjectsScreen
-            onOpenProject={(project) => { setActiveProject(project); setActiveRun(null); setPhase('onboarding'); }}
+            onOpenProject={(project) => { selectActiveProject(project); setPhase('onboarding'); }}
             onOpenRun={(run, project) => {
-              setActiveProject(project);
+              selectActiveProject(project);
               setActiveRun(run);
               setUserInput(run.input_snapshot);
               setResult(run.result_snapshot);

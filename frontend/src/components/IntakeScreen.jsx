@@ -20,7 +20,7 @@ const PROCESS_DEFAULTS = {
   other: ['transport', 'pallets'],
 };
 
-export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, onFileApplied, onReady, onIntakeV2Normalized, onCapacityResult }) {
+export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, user, authChecked, projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onFileApplied, onReady, onIntakeV2Normalized, onCapacityResult }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', text: WELCOME[objectType] || WELCOME.other },
   ]);
@@ -212,7 +212,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
       </div>
 
       {mode === 'process-role-v2' ? (
-        <ProcessRoleIntakeV2 key={objectType} objectType={objectType} activeProject={activeProject} onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />
+        <ProcessRoleIntakeV2 key={objectType} objectType={objectType} activeProject={activeProject} user={user} authChecked={authChecked} projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject} onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />
       ) : mode === 'whole' ? (
         <ParamsPanel
           collected={collected}
