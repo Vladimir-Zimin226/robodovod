@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -49,6 +50,31 @@ def test_committed_bundle_matches_contract():
     assert len(bundle.external_evidence) == 156
     assert len(bundle.capacity_runtime.models) == 187
     assert sum(item.calculation_ready for item in bundle.capacity_runtime.models) == 21
+
+
+def test_git_bundle_bytes_match_manifest():
+    """A Linux checkout must retain the bytes accepted by the import manifest."""
+
+    repository = BUNDLE.parents[2]
+    if not (repository / ".git").exists():
+        pytest.skip("Git metadata is not packaged in the runtime image")
+    manifest = json.loads((BUNDLE / "manifest.json").read_text(encoding="utf-8"))
+    for entry in manifest["files"]:
+        tracked_path = f"data/import/organizer-catalog-v4/{entry['path']}"
+        blob = subprocess.run(
+            [
+                "git",
+                "-c",
+                f"safe.directory={repository.as_posix()}",
+                "show",
+                f"HEAD:{tracked_path}",
+            ],
+            cwd=repository,
+            check=True,
+            capture_output=True,
+        ).stdout
+        assert len(blob) == entry["size_bytes"], entry["path"]
+        assert hashlib.sha256(blob).hexdigest() == entry["sha256"], entry["path"]
 
 
 def test_checksum_mismatch_is_rejected(tmp_path):

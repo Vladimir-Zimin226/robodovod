@@ -1,0 +1,2 @@
+# Catalog import manifests pin exact bytes; Git must not normalize line endings.
+data/import/organizer-catalog-v4/* -text -diff
