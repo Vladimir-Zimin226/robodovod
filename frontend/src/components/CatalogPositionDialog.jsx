@@ -99,7 +99,7 @@ export default function CatalogPositionDialog({ position, official, onClose }) {
             <div className="catalog-detail-media">
               {media && !imageFailed
                 ? <img src={media.src} width={media.width} height={media.height} alt={`Официальное изображение: ${detail.name}`} onError={() => setImageFailed(true)} />
-                : <div className="catalog-media-fallback" role="img" aria-label={`Изображение ${detail.name} отсутствует`}><span>{detail.system_family || 'РТК'}</span><small>НЕТ ИЗОБРАЖЕНИЯ</small></div>}
+                : <div className="catalog-media-fallback" role="img" aria-label={imageFailed ? `Изображение ${detail.name} не загрузилось` : `Изображение ${detail.name} отсутствует`}><span>{detail.system_family || 'РТК'}</span><small>{imageFailed ? 'НЕ УДАЛОСЬ ЗАГРУЗИТЬ' : 'НЕТ ИЗОБРАЖЕНИЯ'}</small></div>}
             </div>
             <div className="catalog-detail-summary">
               <div className="catalog-detail-state-row"><div className="catalog-detail-state-tags"><span className={`catalog-detail-state ${detail.calculation_ready ? 'is-ready' : ''}`}>{detail.calculation_ready ? 'Участвует в расчёте' : 'Требует данных'}</span>{detail.calculation_requires_assumptions && <span className="catalog-detail-state is-assumption">С допущениями</span>}</div><strong>{formatCatalogPrice(detail)}</strong></div>
