@@ -42,7 +42,9 @@ Git нормализовал встроенные CRLF при Linux checkout: `c
 стал 119210 вместо 119228 байт, `catalog_field_evidence.csv` — 826195 вместо
 826253. Исправление `v0.5.1` закрепляет исходные Git blobs и отключает
 нормализацию в `data/import/organizer-catalog-v4/`. Содержимое manifest, каталог
-и закупочные данные не менялись. `v0.5.0` не переписывать.
+и закупочные данные не менялись. `v0.5.2` также исправляет выбор PostgreSQL
+admin role в backup/restore scripts. `v0.5.0` и `v0.5.1` не переписывать;
+продолжать deployment только с `v0.5.2`.
 
 До нового импорта на сервере после обновления `main` проверить:
 
@@ -65,10 +67,10 @@ printf '%s\n' \
 git status --short
 git switch main
 git pull --ff-only origin main
-git merge --ff-only fix/catalog-bundle-checkout-bytes
-git tag -a v0.5.1 -m "Robodovod catalog checkout fix v0.5.1"
-git push --atomic origin main refs/tags/v0.5.1
-git rev-list -n 1 v0.5.1
+git merge --ff-only fix/production-backup-admin-role
+git tag -a v0.5.2 -m "Robodovod deployment restore fix v0.5.2"
+git push --atomic origin main refs/tags/v0.5.2
+git rev-list -n 1 v0.5.2
 ```
 
 Если `--ff-only` невозможен, не создавать merge вручную: опубликовать branch,
@@ -98,23 +100,23 @@ Docker daemon 29.8.1. `docker volume ls` и `docker ps -a` не вывели з�
 
 ## 4. Подготовка server checkout — можно выполнить без запуска
 
-После публикации `v0.5.1`:
+После публикации `v0.5.2`:
 
 ```bash
 ssh robodovod
 cd /opt/robodovod
 git status --short
 git fetch --prune --tags origin
-test "$(git cat-file -t v0.5.1)" = tag
-git show --no-patch --decorate v0.5.1
+test "$(git cat-file -t v0.5.2)" = tag
+git show --no-patch --decorate v0.5.2
 git switch main
 git pull --ff-only origin main
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.1)"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.2)"
 git branch --show-current
 ```
 
 Последняя команда должна вывести `main`, а проверяемый hash должен совпасть с
-локальным `git rev-list -n 1 v0.5.1`.
+локальным `git rev-list -n 1 v0.5.2`.
 `git verify-tag` подходит только для подписанного тега; приведённая выше
 команда создаёт обычный annotated tag.
 
@@ -147,6 +149,7 @@ test "$(stat -c %a .env.production)" = 600
 grep -Eq '^SESSION_COOKIE_SECURE=true$' .env.production
 grep -Eq '^APP_ALLOWED_ORIGINS=https://robodovod.ru,https://www.robodovod.ru$' .env.production
 grep -Eq '^COMPOSE_PROJECT_NAME=robodovod-prod$' .env.production
+grep -Eq '^POSTGRES_ADMIN_USER=[A-Za-z0-9_]+$' .env.production
 ! grep -Eq '<[^>]+>' .env.production
 ```
 
@@ -180,6 +183,8 @@ DOCKER='sudo docker' ./scripts/production/restore-drill.sh /var/backups/robodovo
 раздела 8, затем backup и restore drill по тем же командам. Наличие или
 отсутствие прежней БД подтвердить до запуска по Docker volumes и server state;
 существующий volume нельзя считать пустым по одному лишь отсутствию приложения.
+Скрипты подключаются к PostgreSQL под ролью `POSTGRES_ADMIN_USER` из
+`.env.production`; системный пользователь контейнера остаётся `postgres`.
 
 Скопировать dump, uploads archive и checksum manifest в зашифрованное off-host
 хранилище. Наличие локального файла без restore drill не считается backup.
@@ -204,6 +209,11 @@ $C run --rm admin-bootstrap
 $C run --rm catalog-activation status
 $C run --rm economics-activation status
 ```
+
+Если остановка произошла на первом `BASE VALIDATE_ONLY` из-за инцидента выше,
+`db` и migration уже выполнены. После pull `v0.5.2` и проверки двух SHA-256
+возобновить раздел с `$C build catalog-import ...`, затем повторить
+`BASE VALIDATE_ONLY`; не создавать новую БД и не повторять bootstrap.
 
 Не активировать `runtime` для organizer catalog. После зелёного повторного C29
 активировать versioned economics route отдельной командой:
