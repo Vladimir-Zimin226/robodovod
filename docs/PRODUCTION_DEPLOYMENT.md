@@ -40,8 +40,8 @@ git pull --ff-only origin main
 test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.4)"
 $C config --quiet
 $C build backend frontend
-$C up -d --wait backend frontend
-$C run --rm economics-activation status
+$C up -d --wait --no-deps backend frontend
+$C run --rm --no-deps economics-activation status
 $C ps
 ```
 
@@ -50,7 +50,26 @@ $C ps
 endpoint и каталог, затем вернуть Caddy:
 
 ```bash
-$C exec -T backend python -c 'import urllib.request; u="http://127.0.0.1:8000"; print(urllib.request.urlopen(u+"/ready").read().decode()); print(urllib.request.urlopen(u+"/api/catalog/status").read().decode())'
+$C exec -T backend python - <<'PY'
+import urllib.error
+import urllib.request
+
+base = "http://127.0.0.1:8000"
+for path in ("/ready", "/api/catalog/status"):
+    print(path, urllib.request.urlopen(base + path).read().decode())
+request = urllib.request.Request(
+    base + "/api/v2/calculation-intake/normalize",
+    data=b"{}",
+    headers={"Content-Type": "application/json"},
+)
+try:
+    urllib.request.urlopen(request)
+except urllib.error.HTTPError as error:
+    assert error.code == 422, f"unexpected C01 status {error.code}"
+    print("C01 route registered: empty input returned 422")
+else:
+    raise AssertionError("empty intake unexpectedly accepted")
+PY
 $C up -d --wait caddy
 $C ps
 ```
