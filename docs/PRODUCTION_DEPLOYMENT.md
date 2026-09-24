@@ -2,7 +2,7 @@
 
 Статус: **C30 LIVE TEST / ECONOMICS + VISUALIZATION HOLD**, 2026-09-24.
 
-### Обновление `v0.5.7` → `v0.5.8`: результат C11, экономика и визуализация
+### Обновление `v0.5.7` → `v0.5.9`: результат C11, экономика и визуализация
 
 Живой C11 после `v0.5.7` сохранён с HTTP 201. Снимок пользователя показал
 белые карточки C11 и формы C13–C21 на тёмном фоне. Формулы C13–C21 требуют
@@ -16,6 +16,11 @@
 Для её request не выдумываются SLA или мощности дополнительных ресурсов.
 C23 ограниченно сопоставляет generic `unit/cycle` и `unit/h` с единицей demand
 лишь при совпадающем process quantity kind; исторические snapshots не меняются.
+Опубликованный `v0.5.8` не надо разворачивать отдельно: перед серверным
+обновлением найдено, что reopen сохранённого C11 терял его `input_snapshot`.
+`v0.5.9` читает исходный snapshot из защищённого project-run API, сверяет
+project/run/revision с C11 response и позволяет продолжить economics после
+перезагрузки страницы без нового C11 run.
 Это code-only обновление frontend+backend: без миграции, повторной activation
 каталога и backup. C30 остаётся HOLD до живой проверки C13–C23 и экспорта.
 Локальные gates: в чистом LF checkout 568 backend tests passed, 67 skipped
@@ -33,7 +38,7 @@ test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.7)"
 test -f .env.production
 git fetch --prune --tags origin
 git pull --ff-only origin main
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.8)"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.9)"
 sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml config --quiet
 sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml build backend frontend
 sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml up -d --wait --no-deps backend frontend

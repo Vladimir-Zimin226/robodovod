@@ -960,6 +960,10 @@ ScenarioSpec в серверный C23 и строгую трактовку gene
 подставляются автоматически. [Частичный ввод экономики](partial-economics-inputs-backlog.md)
 оставлен отдельной задачей; live C13–C23, 2D/3D, reopen/export ещё нужно
 проверить после выпуска.
+Перед выпуском обнаружено, что reopen C11 из «Моих проектов» загружал только
+result, но не immutable input; economics форма не могла продолжиться после
+refresh. `v0.5.9` восстанавливает оба snapshot и проверяет их project/run/
+revision binding. Отдельный live gate остаётся обязательным.
 
 - **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
   с Ubuntu 24.04 LTS по `robodovod.ru` и `www.robodovod.ru`; серверный baseline,
