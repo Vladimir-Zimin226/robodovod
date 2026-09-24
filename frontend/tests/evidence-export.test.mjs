@@ -78,7 +78,8 @@ test('standalone PDF saves only when its source matches the reopened run manifes
     saveImpl: (blob, filename) => saved.push({ blob, filename }),
   });
   await session.downloadReport(manifest.project_id, manifest.run_id);
-  assert.equal(saved[0].filename, `robomera-report-${manifest.run_id}.pdf`);
+  const [year, month, day] = manifest.snapshot_captured_at.slice(0, 10).split('-');
+  assert.equal(saved[0].filename, `Рободовод, отчёт № ${manifest.run_id} от ${day}.${month}.${year}.pdf`);
   const mismatch = new EvidenceExportSession({
     fetchImpl: async (url) => url.endsWith('/manifest')
       ? jsonResponse(manifest)

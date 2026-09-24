@@ -47,6 +47,13 @@ function defaultSave(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
+function reportFilename(runId, capturedAt) {
+  const date = String(capturedAt).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('invalid report date');
+  const [year, month, day] = date.split('-');
+  return `Рободовод, отчёт № ${runId} от ${day}.${month}.${year}.pdf`;
+}
+
 export class EvidenceExportSession {
   constructor({ fetchImpl = globalThis.fetch, saveImpl = defaultSave } = {}) {
     // Window.fetch requires Window as its receiver in browsers.
@@ -105,7 +112,7 @@ export class EvidenceExportSession {
     }
     const blob = await reportResponse.blob();
     if (sequence !== this.sequence) throw new Error('stale evidence response');
-    this.saveImpl(blob, `robomera-report-${runId}.pdf`);
+    this.saveImpl(blob, reportFilename(runId, manifest.snapshot_captured_at));
     return manifest;
   }
 }

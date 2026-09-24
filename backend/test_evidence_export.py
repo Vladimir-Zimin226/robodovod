@@ -5,6 +5,7 @@ import json
 import uuid
 import zipfile
 from types import SimpleNamespace
+from urllib.parse import unquote
 
 import pytest
 from fastapi import FastAPI
@@ -126,12 +127,46 @@ def test_api_is_owner_scoped_and_binds_bundle_to_manifest_digest():
     assert report_response.status_code == 200
     assert report_response.headers["content-type"] == "application/pdf"
     assert report_response.headers["x-report-source-digest"] == manifest_response.json()["source_snapshot_digests"]["result"]
+    assert "filename*=UTF-8''" in report_response.headers["content-disposition"]
+    assert "Robodovod-report-" in report_response.headers["content-disposition"]
+    assert unquote(report_response.headers["content-disposition"].split("filename*=UTF-8''", 1)[1]) == (
+        f"Рободовод, отчёт № {run_id} от 01.01.2026.pdf"
+    )
     assert "РОБОДОВОД" in "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(report_response.content)).pages)
     assert all(item[:2] == (project, run_id) for item in calls)
 
     app.dependency_overrides[require_auth_context] = lambda: SimpleNamespace(user=SimpleNamespace(id=uuid.uuid4()))
     assert client.get(f"{base}/manifest").status_code == 404
     assert client.get(f"{base}/report.pdf").status_code == 404
+
+
+def test_report_loads_linked_capacity_with_same_owner():
+    from test_readable_report import _full_runs
+
+    run, linked = _full_runs()
+    owner = uuid.uuid4()
+    calls = []
+
+    def run_loader(_db, project_id, run_id, candidate_owner):
+        return run if (project_id, run_id, candidate_owner) == (
+            uuid.UUID(run.project_id), uuid.UUID(run.run_id), owner
+        ) else None
+
+    def capacity_loader(_db, project_id, run_id, candidate_owner):
+        calls.append((project_id, run_id, candidate_owner))
+        return linked if candidate_owner == owner else None
+
+    app = FastAPI()
+    app.include_router(create_evidence_export_router(run_loader, capacity_loader))
+    app.dependency_overrides[require_auth_context] = lambda: SimpleNamespace(user=SimpleNamespace(id=owner))
+    app.dependency_overrides[database_session] = lambda: object()
+    response = TestClient(app).get(
+        f"/api/projects/{run.project_id}/analysis-runs/{run.run_id}/exports/report.pdf"
+    )
+    assert response.status_code == 200
+    assert calls == [(uuid.UUID(run.project_id), uuid.UUID(linked.run_id), owner)]
+    text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(response.content)).pages)
+    assert "1 000 паллет/день" in text
 
 
 def test_manifest_rejects_unknown_version_and_extra_fields():

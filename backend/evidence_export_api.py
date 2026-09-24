@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 import hashlib
 from collections.abc import Callable
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
@@ -79,6 +80,7 @@ def _load_owned_succeeded_run(
 
 def create_evidence_export_router(
     run_loader: RunLoader = _load_owned_succeeded_run,
+    capacity_loader: RunLoader = _load_owned_succeeded_run,
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
@@ -141,14 +143,24 @@ def create_evidence_export_router(
         if run is None:
             raise HTTPException(status_code=404, detail="analysis run not found")
         try:
-            pdf, source_digest = build_readable_report(run)
+            linked = None
+            linked_id = run.input_snapshot.get("capacity_run_id")
+            if linked_id is not None:
+                try:
+                    linked_id = uuid.UUID(str(linked_id))
+                except ValueError as exc:
+                    raise EvidenceExportIntegrityError("invalid linked capacity run id") from exc
+                linked = capacity_loader(db, project_id, linked_id, context.user.id)
+            pdf, source_digest = build_readable_report(run, linked)
         except EvidenceExportIntegrityError as exc:
             raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
+        filename = f"Рободовод, отчёт № {run.run_id} от {run.finished_at:%d.%m.%Y}.pdf"
+        fallback = f"Robodovod-report-{run.run_id}-{run.finished_at:%Y-%m-%d}.pdf"
         return Response(
             content=pdf,
             media_type="application/pdf",
             headers={
-                "Content-Disposition": f'attachment; filename="robomera-report-{run_id}.pdf"',
+                "Content-Disposition": f'attachment; filename="{fallback}"; filename*=UTF-8\'\'{quote(filename, safe="")}',
                 "X-Report-Source-Digest": source_digest,
                 "ETag": f'"sha256:{hashlib.sha256(pdf).hexdigest()}"',
                 "Cache-Control": "private, no-store",

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import io
+import uuid
+from copy import deepcopy
 
+import pytest
 from pypdf import PdfReader
 
-from calculation.evidence_export import EvidenceRunSnapshotV1
-from calculation.readable_report import build_readable_report
+from calculation.evidence_export import EvidenceExportIntegrityError, EvidenceRunSnapshotV1
+from calculation.readable_report import _money, build_readable_report
 from scripts.build_evidence_export_contract import _checksum, golden_run
 
 
@@ -13,49 +16,161 @@ def _text(pdf: bytes) -> str:
     return "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(pdf)).pages)
 
 
-def test_standalone_russian_pdf_has_six_snapshot_scenarios_and_source_digests():
+def _full_runs():
     raw = golden_run().model_dump(mode="json")
+    capacity_id = str(uuid.uuid4())
     raw["versions"]["application"] = "production-economics-orchestrator-v2"
-    raw["diagnostics"]["constraint_eligibility"] = "NEEDS_VALIDATION"
-    raw["input_snapshot"]["economics"] = {"discount_rate": "0.15", "horizon_years": 5}
+    raw["input_snapshot"] = {
+        "capacity_run_id": capacity_id,
+        "economics": {"discount_rate": "0.15", "horizon_years": 5, "raas_monthly_per_robot_gross": "120000"},
+    }
     raw["checksums"]["input"] = _checksum(raw["input_snapshot"])
-    scenarios = []
-    for acquisition in ("PURCHASE", "RAAS"):
-        for uncertainty in ("PESSIMISTIC", "BASE", "OPTIMISTIC"):
-            scenarios.append({
-                "scenario_id": f"scenario.{acquisition.lower()}.{uncertainty.lower()}",
-                "acquisition": acquisition, "uncertainty": uncertainty,
-                "procurement": {"procurement_status": "UNVERIFIED"},
-                "recommendation": {"status": "ALTERNATIVE"},
-                "financial": {
-                    "status": "COMPLETE", "source_digest": "sha256:" + "a" * 64,
-                    "npv_project": {"value": "12345.67"}, "simple_payback": {"value": "2.50"},
-                    "annual_ledgers": [{"year": 1, "primary_cf_base": "-100.00", "primary_cf_scenario": "-70.00", "differential_cf": "30.00"}],
-                },
-            })
-    raw["result_snapshot"] = {"schema_version": "commercial-scenarios-bundle-v2", "scenarios": scenarios}
+    facts = {
+        "schema_version": "calculation-report-facts-v1",
+        "fleet_count": 10,
+        "project_capex_cashflow": "3000000.00",
+        "project_npv": {"status": "COMPLETE", "value": "12345.67", "unit": "RUB"},
+        "purchase_annual_robot_opex": "500000.00",
+        "raas_annual_customer_opex": "100000.00",
+        "raas_annual_payment": "1440000.00",
+        "responsibilities": [{"area": "MAINTENANCE", "responsible_party": "VENDOR"}],
+        "annual_cashflows": [{"year": 1, "baseline": "-100.00", "scenario": "-70.00", "effect": "30.00"}],
+    }
+    raw["result_snapshot"] = {
+        "schema_version": "commercial-scenarios-bundle-v2",
+        "input_revision": "revision.report.v1",
+        "roles": [{"role_code": "forklift_driver", "headcount": "20", "monthly_gross_salary": {"value": "100000"}}],
+        "scenarios": [
+            {"acquisition": acquisition, "uncertainty": "BASE", "report_facts": facts}
+            for acquisition in ("PURCHASE", "RAAS")
+        ],
+    }
     raw["checksums"]["result"] = _checksum(raw["result_snapshot"])
-    run = EvidenceRunSnapshotV1.model_validate(raw)
-    first, source = build_readable_report(run)
-    second, _ = build_readable_report(run)
+    linked = golden_run().model_dump(mode="json")
+    linked["run_id"] = capacity_id
+    linked["run_kind"] = "CAPACITY_ANALYSIS"
+    linked["input_snapshot"] = {
+        "project_id": raw["project_id"], "input_revision": "revision.report.v1",
+        "process": {
+            "process_code": "warehouse_receiving_shipping",
+            "demand": {"normalized_value": "1000", "unit": "pallet/day"},
+            "schedule": {
+                "shifts_per_day": {"normalized_value": "2"},
+                "shift_hours": {"normalized_value": "10"},
+                "days_per_year": {"normalized_value": "365"},
+            },
+        },
+    }
+    linked["result_snapshot"] = {
+        "run_id": capacity_id,
+        "capacity": {"value": {"selected_fleet": 10, "effective_capacity": {"value": "1100", "unit": "pallet/day"}}},
+    }
+    linked["checksums"]["input"] = _checksum(linked["input_snapshot"])
+    linked["checksums"]["result"] = _checksum(linked["result_snapshot"])
+    return EvidenceRunSnapshotV1.model_validate(raw), EvidenceRunSnapshotV1.model_validate(linked)
+
+
+def test_full_report_has_readable_source_bound_financial_values():
+    run, linked = _full_runs()
+    first, digest = build_readable_report(run, linked)
+    second, _ = build_readable_report(run, linked)
     assert first == second and first.startswith(b"%PDF-")
     text = _text(first)
-    assert text.count("NPV: 12345.67") == 6
-    assert "РОБОДОВОД" in text and "C05: NEEDS_VALIDATION" in text
-    assert "Закупка: UNVERIFIED" in text and "ALTERNATIVE" in text
-    assert "Год 1: база -100.00 ₽; сценарий -70.00 ₽; разница 30.00 ₽." in text
-    assert source in text and "Snapshot.json" in text
-    assert "Источники и проверка" in text
+    for heading in ("Какой процесс оцениваем", "Сейчас", "После покупки роботов", "При аренде роботов (RaaS)",
+                    "Сравнение денег по годам", "Что известно и что ещё подтвердить", "Источники и методика"):
+        assert heading in text
+    assert run.run_id in text and "01.01.2026" in text
+    assert "1 000 паллет/день" in text and "1 100 паллет/день" in text
+    assert "3 000 000,00 ₽" in text and "12 345,67 ₽" in text
+    assert "техническое обслуживание" in text
+    assert "Год 1: без роботов -100,00 ₽" in text
+    assert digest in text
 
 
-def test_historical_and_partial_runs_keep_limits_and_unknown_basis_visible():
+def test_partial_report_explains_missing_values_and_historical_error():
     raw = golden_run().model_dump(mode="json")
     raw["versions"]["application"] = "production-economics-orchestrator-v1"
     raw["input_snapshot"]["fte_cost_rub"] = "100000"
     raw["checksums"]["input"] = _checksum(raw["input_snapshot"])
     pdf, _ = build_readable_report(EvidenceRunSnapshotV1.model_validate(raw))
     text = _text(pdf)
-    assert "C16 v1" in text
-    assert "база неизвестна" in text
-    assert "Сценарии и финансовые показатели: NOT_AVAILABLE" not in text
-    assert "Денежный поток: NOT_AVAILABLE" in text
+    assert "C16 v1" in text and "известную ошибку" in text
+    assert "нет данных для оценки" in text and "связанный расчёт мощности" in text
+    assert "не известна база начисления" in text
+
+
+def test_capacity_only_report_uses_its_own_verified_snapshot():
+    _, linked = _full_runs()
+    pdf, _ = build_readable_report(linked)
+    text = _text(pdf)
+    assert "Приёмка и отгрузка" in text
+    assert "1 000 паллет/день" in text
+    assert "нет данных для оценки" in text
+    assert "Расчёт мощности:" in text
+
+
+def test_linked_run_requires_matching_binding_and_verified_digest():
+    run, linked = _full_runs()
+    raw = linked.model_dump(mode="json")
+    raw["project_id"] = str(uuid.uuid4())
+    with pytest.raises(EvidenceExportIntegrityError):
+        build_readable_report(run, EvidenceRunSnapshotV1.model_validate(raw))
+    raw = linked.model_dump(mode="json")
+    raw["result_snapshot"]["capacity"]["value"]["selected_fleet"] = 100
+    with pytest.raises(EvidenceExportIntegrityError):
+        build_readable_report(run, EvidenceRunSnapshotV1.model_validate(raw))
+
+
+def test_report_consumes_real_orchestrator_values_without_new_finance_math():
+    from calculation.service import analyze_capacity
+    from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
+    from persistence_api import _canonical_sha256, _comparable_economics_result
+    from test_economics_orchestrator import _capacity_request, _inputs, _snapshot
+
+    request = _capacity_request()
+    snapshot = _snapshot()
+    capacity_id = str(uuid.uuid4())
+    capacity = analyze_capacity(request, snapshot, capacity_id)
+    raw = golden_run().model_dump(mode="json")
+    context = EconomicsExecutionContextV1(
+        run_id=raw["run_id"], project_id=request.project_id, tenant_id="tenant.report",
+        capacity_request=request, capacity_response=capacity.response,
+        constraint_report=capacity.constraints.model_dump(mode="json"),
+        executability=capacity.executability.model_dump(mode="json"),
+    )
+    calculated = execute_economics_v2(_inputs(), snapshot, context)
+    saved_old = deepcopy(calculated.result_snapshot)
+    for item in saved_old["scenarios"]:
+        item.pop("report_facts")
+    assert _canonical_sha256(_comparable_economics_result(calculated.result_snapshot, saved_old)) == _canonical_sha256(saved_old)
+    assert "report_facts" in calculated.result_snapshot["scenarios"][0]
+    tampered = deepcopy(saved_old)
+    tampered["scenarios"][0]["financial"]["status"] = "INCOMPLETE"
+    assert _canonical_sha256(_comparable_economics_result(calculated.result_snapshot, tampered)) != _canonical_sha256(tampered)
+    raw["project_id"] = request.project_id
+    raw["versions"]["application"] = calculated.application_version
+    raw["input_snapshot"] = {"capacity_run_id": capacity_id, "economics": _inputs()}
+    raw["result_snapshot"] = calculated.result_snapshot
+    raw["checksums"]["input"] = _checksum(raw["input_snapshot"])
+    raw["checksums"]["result"] = _checksum(raw["result_snapshot"])
+    linked = golden_run().model_dump(mode="json")
+    linked["run_id"] = capacity_id
+    linked["project_id"] = request.project_id
+    linked["run_kind"] = "CAPACITY_ANALYSIS"
+    linked["input_snapshot"] = request.model_dump(mode="json")
+    linked["result_snapshot"] = capacity.response.model_dump(mode="json")
+    linked["checksums"]["input"] = _checksum(linked["input_snapshot"])
+    linked["checksums"]["result"] = _checksum(linked["result_snapshot"])
+    pdf, _ = build_readable_report(
+        EvidenceRunSnapshotV1.model_validate(raw), EvidenceRunSnapshotV1.model_validate(linked)
+    )
+    text = _text(pdf)
+    assert "Приёмка и отгрузка" in text
+    assert "1 000 паллет/день" in text
+    assert "Год 1: без роботов" in text
+    assert "Чистая приведённая стоимость проекта:" in text
+    for scenario in calculated.result_snapshot["scenarios"]:
+        if scenario["uncertainty"] == "BASE":
+            facts = scenario["report_facts"]
+            assert _money(facts["project_capex_cashflow"]) in text
+            assert _money(facts["project_npv"]["value"]) in text

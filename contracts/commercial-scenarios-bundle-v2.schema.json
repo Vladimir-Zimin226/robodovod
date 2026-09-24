@@ -578,6 +578,42 @@
         }
       }
     },
+    "reportCashflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["year", "baseline", "scenario", "effect"],
+      "properties": {
+        "year": {"type": "integer", "minimum": 1},
+        "baseline": {"type": "string"},
+        "scenario": {"type": "string"},
+        "effect": {"type": "string"}
+      }
+    },
+    "reportResponsibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["area", "responsible_party"],
+      "properties": {
+        "area": {"type": "string"},
+        "responsible_party": {"enum": ["CUSTOMER", "VENDOR", "INTEGRATOR", "SHARED", "UNKNOWN"]}
+      }
+    },
+    "reportFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "fleet_count", "project_capex_cashflow", "project_npv", "purchase_annual_robot_opex", "raas_annual_customer_opex", "raas_annual_payment", "responsibilities", "annual_cashflows"],
+      "properties": {
+        "schema_version": {"const": "calculation-report-facts-v1"},
+        "fleet_count": {"type": "integer", "minimum": 0},
+        "project_capex_cashflow": {"type": "string"},
+        "project_npv": {"$ref": "#/$defs/metric"},
+        "purchase_annual_robot_opex": {"type": ["string", "null"]},
+        "raas_annual_customer_opex": {"type": ["string", "null"]},
+        "raas_annual_payment": {"type": ["string", "null"]},
+        "responsibilities": {"type": "array", "items": {"$ref": "#/$defs/reportResponsibility"}},
+        "annual_cashflows": {"type": "array", "items": {"$ref": "#/$defs/reportCashflow"}}
+      }
+    },
     "scenario": {
       "type": "object",
       "additionalProperties": false,
@@ -628,6 +664,9 @@
           "items": {
             "$ref": "#/$defs/expense"
           }
+        },
+        "report_facts": {
+          "$ref": "#/$defs/reportFacts"
         },
         "assumptions": {
           "type": "array",

@@ -1243,6 +1243,34 @@ def _expenses(artifact: ScenarioArtifacts) -> list[dict[str, Any]]:
     ]
 
 
+def _report_facts(artifact: ScenarioArtifacts) -> dict[str, Any]:
+    """Persist report-only projections of values already computed by the engines."""
+
+    annual = artifact.financial.annual_ledgers[0]
+    return {
+        "schema_version": "calculation-report-facts-v1",
+        "fleet_count": artifact.purchase.fleet_count if artifact.acquisition == "PURCHASE" else artifact.financial.fleet_count,
+        "project_capex_cashflow": artifact.allocation.project_capex_cashflow,
+        "project_npv": artifact.allocation.npv_project.model_dump(mode="json"),
+        "purchase_annual_robot_opex": artifact.purchase.annual_ledgers[0].operating_total if artifact.acquisition == "PURCHASE" else None,
+        "raas_annual_customer_opex": annual.customer_opex if artifact.acquisition == "RAAS" else None,
+        "raas_annual_payment": annual.raas_payment if artifact.acquisition == "RAAS" else None,
+        "responsibilities": [
+            {"area": item.area, "responsible_party": item.responsible_party}
+            for item in artifact.procurement.responsibilities
+        ],
+        "annual_cashflows": [
+            {
+                "year": item.year,
+                "baseline": item.combined_baseline_cf,
+                "scenario": item.combined_scenario_cf,
+                "effect": item.differential_cf,
+            }
+            for item in artifact.allocation.annual_ledgers
+        ],
+    }
+
+
 def _bundle(
     context: EconomicsExecutionContextV1,
     inputs: EconomicsExplicitInputsV1,
@@ -1285,6 +1313,7 @@ def _bundle(
                     "reason_codes": [] if ready else ["procurement-not-confirmed"],
                 },
                 "expenses": _expenses(item),
+                "report_facts": _report_facts(item),
                 "assumptions": [
                     {
                         "assumption_id": "discount",

@@ -239,5 +239,7 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
         assert report.status_code == 200
         assert report.headers["x-report-source-digest"] == "sha256:" + run["checksums"]["result"]
         report_text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(report.content)).pages)
-        assert "NEEDS_VALIDATION" in report_text
-        assert "UNVERIFIED" in report_text
+        assert "Проверка технических ограничений" in report_text
+        assert "Параметры поставщика" in report_text
+        assert "После покупки роботов" in report_text
+        assert "При аренде роботов (RaaS)" in report_text

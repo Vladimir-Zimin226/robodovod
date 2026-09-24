@@ -9,10 +9,11 @@ from __future__ import annotations
 import io
 import json
 import zlib
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
 
-from calculation.evidence_export import EvidenceRunSnapshotV1, _verify_snapshots
+from calculation.evidence_export import EvidenceExportIntegrityError, EvidenceRunSnapshotV1, _verify_snapshots
 
 
 ASSETS = Path(__file__).with_name("assets")
@@ -20,6 +21,141 @@ FONT = (ASSETS / "DejaVuSans.ttf").read_bytes()
 CMAP = {int(code): tuple(metrics) for code, metrics in json.loads(
     (ASSETS / "dejavu-cmap-v1.json").read_text(encoding="utf-8")
 ).items()}
+
+UNKNOWN = "нет данных для оценки"
+PROCESS_LABELS = {
+    "warehouse_receiving_shipping": "Приёмка и отгрузка",
+    "warehouse_storage": "Хранение",
+    "warehouse_picking": "Комплектация",
+    "warehouse_palletizing": "Паллетизация",
+    "warehouse_cleaning": "Уборка склада",
+    "warehouse_inventory": "Инвентаризация",
+    "airport_baggage": "Обработка багажа",
+    "airport_catering": "Бортовое питание",
+    "airport_fuelling": "Заправка",
+    "airport_internal_logistics": "Внутренняя логистика аэропорта",
+    "airport_terminal_cleaning": "Уборка терминала",
+    "airport_apron_cleaning": "Уборка перрона",
+    "airport_waste": "Вывоз отходов",
+    "airport_inspection": "Инспекция",
+    "airport_passenger_assistance": "Помощь пассажирам",
+    "airport_ground_service": "Наземное обслуживание",
+    "clinic_food": "Доставка питания",
+    "clinic_linen": "Транспорт белья",
+    "clinic_medicines": "Доставка медикаментов",
+    "clinic_biomaterials": "Доставка биоматериалов",
+    "clinic_sterile_sets": "Стерильные наборы",
+    "clinic_consumables": "Расходные материалы",
+    "clinic_waste_a": "Отходы класса А",
+    "clinic_waste_b": "Отходы класса Б",
+    "clinic_results": "Доставка результатов",
+    "clinic_cleaning": "Уборка клиники",
+    "clinic_inventory": "Инвентаризация клиники",
+    "clinic_safety_requirements": "Требования безопасности",
+}
+ROLE_LABELS = {
+    "forklift_driver": "Водитель погрузчика", "loader": "Грузчик",
+    "storekeeper": "Кладовщик", "picker": "Комплектовщик",
+    "sorter": "Сортировщик", "packer": "Упаковщик",
+    "cleaner": "Уборщик", "inventory_worker": "Сотрудник инвентаризации",
+    "control_operator": "Оператор управления", "tech_support": "Технический специалист",
+    "baggage_handler": "Сотрудник обработки багажа",
+    "trolley_operator": "Оператор тележки",
+    "special_equipment_driver": "Водитель спецтехники",
+    "terminal_cleaner": "Уборщик терминала",
+    "perron_cleaner": "Уборщик перрона",
+    "runway_inspector": "Инспектор ВПП",
+    "security_guard": "Сотрудник охраны",
+    "passenger_assistant": "Помощник пассажиров",
+    "courier": "Курьер",
+    "ramp_worker": "Сотрудник перрона",
+    "ground_support_worker": "Сотрудник наземного обслуживания",
+    "catering_worker": "Сотрудник пищеблока",
+    "laundry_worker": "Сотрудник прачечной",
+    "sanitary": "Санитар",
+    "porter": "Транспортировщик",
+    "lab_assistant": "Лаборант",
+    "sterile_supply_worker": "Сотрудник стерилизационной",
+    "consumable_worker": "Сотрудник снабжения",
+    "lab_result_courier": "Курьер лаборатории",
+}
+UNIT_LABELS = {
+    "pallet/day": "паллет/день", "pick/day": "операций подбора/день",
+    "item/day": "единиц/день", "portion/day": "порций/день",
+    "cart/day": "тележек/день", "delivery/day": "доставок/день",
+    "sample/day": "образцов/день", "set/day": "наборов/день",
+    "kg/day": "кг/день", "m2/day": "м²/день", "unit/day": "единиц/день",
+    "unit/h": "единиц/час", "pick/h": "операций подбора/час",
+    "m2/h": "м²/час", "trip/h": "рейсов/час",
+    "box/day": "коробок/день", "case/day": "коробов/день",
+    "bin/day": "контейнеров/день",
+}
+SERVICE_LABELS = {
+    "HARDWARE": "роботы", "BATTERY": "аккумуляторы", "CHARGING": "зарядка",
+    "MAINTENANCE": "техническое обслуживание", "SOFTWARE": "программное обеспечение",
+    "INTEGRATION": "интеграция", "INFRASTRUCTURE": "инфраструктура",
+}
+
+
+def _obj(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def _list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else []
+
+
+def _number(value: Any, *, money: bool = False) -> str | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        amount = Decimal(str(value))
+    except (InvalidOperation, ValueError):
+        return None
+    if not amount.is_finite():
+        return None
+    rendered = format(amount, ",.2f")
+    if not money:
+        rendered = rendered.rstrip("0").rstrip(".")
+    return rendered.replace(",", " ").replace(".", ",")
+
+
+def _money(value: Any) -> str:
+    number = _number(value, money=True)
+    return f"{number} ₽" if number is not None else UNKNOWN
+
+
+def _plain(value: Any) -> str:
+    return _number(value) or UNKNOWN
+
+
+def _quantity(value: Any) -> str:
+    item = _obj(value)
+    number = _number(item.get("normalized_value", item.get("value")))
+    if number is None:
+        return UNKNOWN
+    return f"{number} {UNIT_LABELS.get(item.get('unit'), item.get('unit') or 'единиц')}"
+
+
+def _metric(value: Any) -> str:
+    item = _obj(value)
+    return _money(item.get("value")) if item.get("status") == "COMPLETE" else UNKNOWN
+
+
+def _scenario(result: dict[str, Any], acquisition: str) -> dict[str, Any]:
+    return next((item for item in _list(result.get("scenarios"))
+                 if isinstance(item, dict) and item.get("acquisition") == acquisition
+                 and item.get("uncertainty") == "BASE"), {})
+
+
+def _facts(scenario: dict[str, Any]) -> dict[str, Any]:
+    facts = _obj(scenario.get("report_facts"))
+    return facts if facts.get("schema_version") == "calculation-report-facts-v1" else {}
+
+
+def _cashflows(scenario: dict[str, Any]) -> list[dict[str, Any]]:
+    facts = _facts(scenario)
+    return [item for item in _list(facts.get("annual_cashflows")) if isinstance(item, dict)]
 
 
 def _text_width(value: str, size: float) -> float:
@@ -50,24 +186,70 @@ def _wrap(value: str, size: float, width: float = 505) -> list[str]:
 def _pdf(lines: list[tuple[str, str]]) -> bytes:
     pages: list[list[str]] = [[]]
     used: dict[int, int] = {}
-    y = 795.0
+    y = 760.0
+
+    def write(value: str, size: float, x: float, baseline: float, color: str) -> None:
+        encoded = bytearray()
+        for char in value:
+            code = ord(char) if ord(char) in CMAP else 63
+            gid = CMAP[code][0]
+            used[gid] = code
+            encoded.extend(gid.to_bytes(2, "big"))
+        pages[-1].append(f"{color} rg BT /F1 {size} Tf {x:.1f} {baseline:.1f} Td <{encoded.hex().upper()}> Tj ET")
+
+    def new_page(cover: bool = False) -> None:
+        nonlocal y
+        if pages[-1]:
+            pages.append([])
+        if cover:
+            pages[-1].extend(["0.035 0.082 0.100 rg 0 0 595 842 re f",
+                              "0.51 0.88 0.64 rg 45 712 88 5 re f"])
+            y = 670.0
+        else:
+            pages[-1].extend(["0.972 0.981 0.975 rg 0 0 595 842 re f",
+                              "0.035 0.082 0.100 rg 0 792 595 50 re f",
+                              "0.51 0.88 0.64 rg 45 779 80 4 re f"])
+            write("РОБОДОВОД  /  ОТЧЁТ ПО РАСЧЁТУ", 8.5, 45, 807, "0.96 0.98 0.96")
+            y = 752.0
+
+    new_page(cover=True)
+    cover = True
     for value, kind in lines:
-        size = 16 if kind == "title" else 11 if kind == "heading" else 9
-        leading = 24 if kind == "title" else 18 if kind == "heading" else 14
-        if kind == "heading":
-            y -= 8
-        for row in _wrap(value, size):
-            if y < 52:
-                pages.append([])
-                y = 795.0
-            encoded = bytearray()
-            for char in row:
-                code = ord(char) if ord(char) in CMAP else 63
-                gid = CMAP[code][0]
-                used[gid] = code
-                encoded.extend(gid.to_bytes(2, "big"))
-            pages[-1].append(f"BT /F1 {size} Tf 45 {y:.1f} Td <{encoded.hex().upper()}> Tj ET")
+        if kind == "page":
+            new_page()
+            cover = False
+            continue
+        if kind == "section" and y < 150:
+            new_page()
+            cover = False
+        size, leading, before = {
+            "brand": (11, 20, 0), "title": (27, 38, 10),
+            "subtitle": (13, 23, 8), "cover": (11, 22, 12),
+            "section": (15, 24, 16), "metric": (11, 20, 5),
+            "body": (9.3, 15, 2), "note": (8.6, 14, 5),
+        }.get(kind, (9.3, 15, 2))
+        y -= before
+        color = ("0.96 0.98 0.96" if cover else
+                 "0.035 0.082 0.100" if kind in {"section", "metric"} else
+                 "0.21 0.27 0.27")
+        if kind == "brand":
+            color = "0.51 0.88 0.64"
+        if kind == "note" and not cover:
+            color = "0.35 0.42 0.41"
+        for row in _wrap(value, size, 500):
+            if y < 60:
+                new_page()
+                cover = False
+                color = "0.035 0.082 0.100" if kind in {"section", "metric"} else "0.21 0.27 0.27"
+            write(row, size, 45, y, color)
             y -= leading
+
+    for index in range(len(pages)):
+        original = pages[-1]
+        pages[-1] = pages[index]
+        write(f"{index + 1} / {len(pages)}", 8, 520, 30,
+              "0.65 0.77 0.71" if index == 0 else "0.35 0.42 0.41")
+        pages[-1] = original
 
     cmap_lines = [
         "/CIDInit /ProcSet findresource begin", "12 dict begin", "begincmap",
@@ -116,70 +298,164 @@ def _pdf(lines: list[tuple[str, str]]) -> bytes:
     return output.getvalue()
 
 
-def _value(value: Any) -> str:
-    if value is None:
-        return "NOT_AVAILABLE"
-    if isinstance(value, dict):
-        return str(value.get("value") if value.get("value") is not None else value.get("status", "NOT_AVAILABLE"))
-    return str(value)
+
+def _unknown(reason: str) -> str:
+    return f"{UNKNOWN} — {reason}"
 
 
-def build_readable_report(run: EvidenceRunSnapshotV1) -> tuple[bytes, str]:
-    """Return searchable PDF and its verified result snapshot digest."""
+def _capacity_source(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapshotV1 | None) -> dict[str, Any]:
+    requested = run.input_snapshot.get("capacity_run_id")
+    if linked is None:
+        if run.run_kind == "CAPACITY_ANALYSIS":
+            if (run.input_snapshot.get("project_id") not in {None, run.project_id}
+                    or run.result_snapshot.get("run_id") not in {None, run.run_id}):
+                raise EvidenceExportIntegrityError("capacity run identity mismatch")
+            return {"input": run.input_snapshot, "result": run.result_snapshot}
+        return {}
+    _verify_snapshots(linked)
+    if (linked.run_kind != "CAPACITY_ANALYSIS"
+            or linked.project_id != run.project_id
+            or linked.run_id != requested
+            or linked.input_snapshot.get("project_id") != run.project_id
+            or _obj(linked.result_snapshot).get("run_id") != linked.run_id
+            or _obj(run.result_snapshot).get("input_revision") != linked.input_snapshot.get("input_revision")):
+        raise EvidenceExportIntegrityError("linked capacity run does not match economics run")
+    return {"input": linked.input_snapshot, "result": linked.result_snapshot}
+
+
+def _with_reason(value: str, reason: str) -> str:
+    return _unknown(reason) if value == UNKNOWN else value
+
+
+def build_readable_report(
+    run: EvidenceRunSnapshotV1,
+    capacity_run: EvidenceRunSnapshotV1 | None = None,
+) -> tuple[bytes, str]:
+    """Return a searchable report from verified persisted values only."""
     digests = _verify_snapshots(run)
-    result = run.result_snapshot
-    scenarios = result.get("scenarios") if isinstance(result.get("scenarios"), list) else []
+    linked = _capacity_source(run, capacity_run)
+    result = _obj(run.result_snapshot)
+    inputs = _obj(run.input_snapshot.get("economics"))
+    process = _obj(_obj(linked.get("input")).get("process"))
+    capacity = _obj(_obj(_obj(linked.get("result")).get("capacity")).get("value"))
+    purchase = _scenario(result, "PURCHASE")
+    raas = _scenario(result, "RAAS")
+    purchase_facts = _facts(purchase)
+    raas_facts = _facts(raas)
+    purchase_flows = _cashflows(purchase)
+    raas_flows = _cashflows(raas)
+    date = run.finished_at.strftime("%d.%m.%Y")
+    historical = run.versions.get("application") == "production-economics-orchestrator-v1"
+    source_reason = ("исходные данные отсутствуют в сохранённом расчёте мощности"
+                     if run.run_kind == "CAPACITY_ANALYSIS" else
+                     "связанный расчёт мощности недоступен или отсутствует в старом расчёте")
+    finance_reason = "показатель отсутствует в сохранённом результате"
+    value = _obj(_obj(linked.get("result")).get("capacity")).get("value")
+    fleet = purchase_facts.get("fleet_count")
+    if fleet is None and isinstance(value, dict):
+        fleet = value.get("selected_fleet")
+    effective = _obj(capacity.get("effective_capacity"))
+    effective_text = _quantity(effective) if effective else UNKNOWN
+    process_name = PROCESS_LABELS.get(process.get("process_code"))
+    roles = _list(result.get("roles"))
     lines: list[tuple[str, str]] = [
-        ("РОБОДОВОД · Отчёт предварительного расчёта", "title"),
-        (f"Run {run.run_id} · revision {run.revision_id or 'NOT_AVAILABLE'}", "body"),
-        (f"Сохранён {run.finished_at.isoformat()} · {run.run_kind}", "body"),
-        ("Предварительная оценка. Не является инженерной сертификацией, коммерческим предложением или рекомендацией к закупке.", "body"),
-        ("Достоверность и ограничения", "heading"),
-        (f"C05: {run.diagnostics.get('constraint_eligibility') or 'NOT_AVAILABLE'}. Данные паспорта и доступности требуют отдельного подтверждения.", "body"),
-        ("Цены, зарплаты, RaaS и включённые услуги — введённые условия сценария; подтверждение поставщика не следует из расчёта.", "body"),
+        ("РОБОДОВОД", "brand"),
+        ("Отчёт по расчёту", "title"),
+        (f"№ {run.run_id}", "subtitle"),
+        (f"Дата расчёта: {date}", "cover"),
+        ("Предварительная оценка для выбора способа роботизации.", "cover"),
+        ("Данные о цене, комплектации и работе на объекте требуют подтверждения.", "cover"),
+        ("", "page"),
+        ("Какой процесс оцениваем", "section"),
+        (f"Процесс: {process_name or _unknown(source_reason)}", "metric"),
+        (f"Исходный объём работ: {_with_reason(_quantity(process.get('demand')), source_reason)}", "body"),
+        (f"Смен в день: {_with_reason(_plain(_obj(_obj(process.get('schedule')).get('shifts_per_day')).get('normalized_value')), source_reason)}", "body"),
+        (f"Часов в смене: {_with_reason(_plain(_obj(_obj(process.get('schedule')).get('shift_hours')).get('normalized_value')), source_reason)}", "body"),
+        (f"Рабочих дней в год: {_with_reason(_plain(_obj(_obj(process.get('schedule')).get('days_per_year')).get('normalized_value')), source_reason)}", "body"),
+        ("Сейчас", "section"),
     ]
-    if run.versions.get("application") == "production-economics-orchestrator-v1":
-        lines.append(("ИСТОРИЧЕСКИЙ РАСЧЁТ: C16 v1 повторно умножал стоимость дефицита персонала. NPV и срок окупаемости этого run нельзя принимать как проверенное обоснование. Для исправления нужен новый run.", "body"))
+    if roles:
+        for role in roles:
+            label = ROLE_LABELS.get(role.get("role_code"), "Сотрудник")
+            salary = _with_reason(_money(_obj(role.get("monthly_gross_salary")).get("value")), "зарплата не сохранена")
+            count = _with_reason(_plain(role.get("headcount")), "численность не сохранена")
+            lines.append((f"{label}: {count} чел.; зарплата до удержаний {salary} на человека в месяц.", "body"))
+    else:
+        lines.append((_unknown("состав сотрудников не сохранён в этом расчёте"), "body"))
+    baseline = purchase_flows[0].get("baseline") if purchase_flows else None
+    lines.append((f"Денежный поток без роботов, первый год: {_with_reason(_money(baseline), finance_reason)}", "metric"))
+    lines.append(("Это годовая база сценария, а не обещанная выручка.", "note"))
+
+    lines.extend([
+        ("После покупки роботов", "section"),
+        (f"Расчётный парк: {_with_reason(_plain(fleet), 'не сохранён расчёт парка')} роботов", "metric"),
+        (f"Расчётная мощность после внедрения: {_with_reason(effective_text, source_reason)}", "body"),
+        (f"Первоначальные вложения проекта: {_with_reason(_money(purchase_facts.get('project_capex_cashflow')), finance_reason)}", "body"),
+        (f"Эксплуатация роботов, первый год: {_with_reason(_money(purchase_facts.get('purchase_annual_robot_opex')), finance_reason)}", "body"),
+        (f"Эффект против варианта без роботов, первый год: {_with_reason(_money(purchase_flows[0].get('effect') if purchase_flows else None), finance_reason)}", "metric"),
+        (f"Чистая приведённая стоимость проекта: {_with_reason(_metric(purchase_facts.get('project_npv')), finance_reason)}", "metric"),
+        ("При аренде роботов (RaaS)", "section"),
+        (f"Тариф на робота в месяц: {_with_reason(_money(inputs.get('raas_monthly_per_robot_gross')), 'тариф не сохранён во входных условиях')}", "metric"),
+    ])
+    services = [SERVICE_LABELS.get(item.get("area"), item.get("area"))
+                for item in _list(raas_facts.get("responsibilities"))
+                if isinstance(item, dict) and item.get("responsible_party") == "VENDOR"]
+    lines.append((f"Услуги поставщика по введённым условиям: {', '.join(services) if services else _unknown('обязанности сторон не подтверждены или не сохранены')}", "body"))
+    lines.extend([
+        (f"Первоначальные вложения заказчика: {_with_reason(_money(raas_facts.get('project_capex_cashflow')), finance_reason)}", "body"),
+        (f"Арендные платежи, первый год: {_with_reason(_money(raas_facts.get('raas_annual_payment')), finance_reason)}", "body"),
+        (f"Прочие расходы заказчика, первый год: {_with_reason(_money(raas_facts.get('raas_annual_customer_opex')), finance_reason)}", "body"),
+        (f"Эффект против варианта без роботов, первый год: {_with_reason(_money(raas_flows[0].get('effect') if raas_flows else None), finance_reason)}", "metric"),
+        (f"Чистая приведённая стоимость проекта: {_with_reason(_metric(raas_facts.get('project_npv')), finance_reason)}", "metric"),
+        ("Сравнение денег по годам", "section"),
+        ("Суммы ниже взяты из сохранённых годовых потоков проекта. Эффект — разница между сценарием и вариантом без роботов.", "note"),
+    ])
+    years = sorted({item.get("year") for item in purchase_flows + raas_flows if isinstance(item.get("year"), int)})
+    if years:
+        for year in years:
+            p = next((item for item in purchase_flows if item.get("year") == year), {})
+            r = next((item for item in raas_flows if item.get("year") == year), {})
+            lines.append((f"Год {year}: без роботов {_with_reason(_money(p.get('baseline')), finance_reason)}; покупка {_with_reason(_money(p.get('scenario')), finance_reason)}; аренда {_with_reason(_money(r.get('scenario')), finance_reason)}.", "body"))
+            lines.append((f"Изменение: покупка {_with_reason(_money(p.get('effect')), finance_reason)}; аренда {_with_reason(_money(r.get('effect')), finance_reason)}.", "body"))
+    else:
+        lines.append((_unknown("годовые денежные потоки отсутствуют в сохранённом результате"), "body"))
+    eligibility = {
+        "ELIGIBLE": "по сохранённой проверке препятствий не выявлено; паспорт модели и объект всё равно требуют подтверждения",
+        "NEEDS_VALIDATION": "нужна проверка паспортных данных и условий объекта",
+        "INELIGIBLE": "сохранённая проверка выявила препятствия для применения",
+    }.get(run.diagnostics.get("constraint_eligibility"), _unknown("статус проверки не сохранён"))
+    procurement = {
+        "VERIFIED": "условия закупки подтверждены в сохранённом расчёте",
+        "UNVERIFIED": "условия закупки поставщиком не подтверждены",
+        "INCOMPLETE": "данных об условиях закупки недостаточно",
+    }.get(_obj(purchase.get("procurement")).get("procurement_status"), _unknown("статус закупки не сохранён"))
+    lines.extend([
+        ("Что известно и что ещё подтвердить", "section"),
+        ("Расчёт использует сохранённые условия пользователя и версии правил на дату запуска. Параметры поставщика, доступность модели и условия внедрения следует подтвердить до закупки.", "body"),
+        (f"Проверка технических ограничений: {eligibility}.", "body"),
+        (f"Условия закупки: {procurement}.", "body"),
+    ])
+    if historical:
+        lines.append(("ВНИМАНИЕ: исторический расчёт C16 v1 содержит известную ошибку повторного учёта стоимости дефицита персонала. Денежные результаты требуют нового расчёта.", "metric"))
     if "fte_cost_rub" in run.input_snapshot:
-        lines.append(("Legacy fte_cost_rub: база неизвестна; значение не преобразовано в месячный gross.", "body"))
-    inputs = run.input_snapshot.get("economics", {})
-    if not isinstance(inputs, dict):
-        inputs = {}
-    lines.append(("Ключевые входные условия", "heading"))
-    for key, label in (
-        ("discount_rate", "Ставка дисконтирования"),
-        ("horizon_years", "Горизонт, лет"),
-        ("annual_service_per_robot_gross", "Сервис на робота, gross ₽/год"),
-        ("raas_monthly_per_robot_gross", "RaaS на робота, gross ₽/мес"),
-        ("implementation_cost_total_gross", "Внедрение, gross ₽"),
-        ("warranty_years", "Гарантия, лет"),
-    ):
-        lines.append((f"{label}: {_value(inputs.get(key))}", "body"))
-    if not isinstance(inputs, dict) or not inputs:
-        lines.append(("Экономические входы: NOT_AVAILABLE в этом сохранённом run.", "body"))
-    lines.append(("Сценарии · суммы взяты из сохранённого расчёта", "heading"))
-    if not scenarios:
-        lines.append(("Сценарии и финансовые показатели: NOT_AVAILABLE.", "body"))
-    for scenario in scenarios:
-        financial = scenario.get("financial") or {}
-        procurement = scenario.get("procurement") or {}
-        lines.append((f"{scenario.get('acquisition', '?')} · {scenario.get('uncertainty', '?')} · {scenario.get('scenario_id', '?')}", "heading"))
-        lines.append((f"NPV: {_value(financial.get('npv_project'))} ₽ · простой срок окупаемости: {_value(financial.get('simple_payback'))} лет · статус: {financial.get('status', 'NOT_AVAILABLE')}", "body"))
-        lines.append((f"Закупка: {procurement.get('procurement_status', 'NOT_AVAILABLE')} · recommendation: {(scenario.get('recommendation') or {}).get('status', 'NOT_AVAILABLE')}", "body"))
-        lines.append((f"Источник финансов: {financial.get('source_digest', 'NOT_AVAILABLE')}", "body"))
-    base = next((item for item in scenarios if item.get("acquisition") == "PURCHASE" and item.get("uncertainty") == "BASE"), None)
-    lines.append(("Денежный поток · покупка, базовый профиль", "heading"))
-    lines.append(("Разница = поток сценария минус поток базы. NPV и окупаемость рассчитаны серверным engine; PDF только переносит сохранённые значения.", "body"))
-    for ledger in ((base or {}).get("financial") or {}).get("annual_ledgers", []):
-        lines.append((f"Год {ledger.get('year')}: база {_value(ledger.get('primary_cf_base'))} ₽; сценарий {_value(ledger.get('primary_cf_scenario'))} ₽; разница {_value(ledger.get('differential_cf'))} ₽.", "body"))
-    if base is None:
-        lines.append(("Денежный поток: NOT_AVAILABLE.", "body"))
-    lines.append(("Источники и проверка", "heading"))
-    for key, digest in digests.items():
-        lines.append((f"{key}: {digest or 'NOT_AVAILABLE'}", "body"))
-    lines.append((f"Evidence ZIP: /api/projects/{run.project_id}/analysis-runs/{run.run_id}/exports/evidence.zip", "body"))
-    lines.append((f"Manifest: /api/projects/{run.project_id}/analysis-runs/{run.run_id}/exports/manifest", "body"))
-    lines.append(("Snapshot.json и CSV-разделы в ZIP содержат полный машинный след; отдельный PDF не заменяет его.", "body"))
+        lines.append(("Для старой суммы затрат на сотрудника не известна база начисления; месячная зарплата до удержаний из неё не выводится.", "body"))
+    if not linked:
+        lines.append((_unknown(source_reason), "body"))
+    lines.extend([
+        ("Источники и методика", "section"),
+        ("Показатели взяты из неизменяемых сохранённых входов и результатов. Этот PDF не пересчитывает мощность или деньги и не использует показатели 3D-визуализации как фактическую производительность.", "body"),
+        ("Чистая приведённая стоимость учитывает дисконтирование в расчётном движке. Положительное значение само по себе не подтверждает техническую пригодность или цену поставщика.", "body"),
+        (f"Горизонт: {_with_reason(_plain(inputs.get('horizon_years')), 'не сохранён во входных условиях')} лет; ставка дисконтирования: {_with_reason(_plain(inputs.get('discount_rate')), 'не сохранена во входных условиях')}.", "body"),
+        ("Приложение: техническая проверка источника", "section"),
+        (f"Идентификатор расчёта: {run.run_id}; ревизия: {run.revision_id or 'не указана'}.", "body"),
+        (f"Результат: {digests.get('result') or UNKNOWN}", "body"),
+        (f"Входные данные: {digests.get('input') or UNKNOWN}", "body"),
+        (f"Версия расчёта: {run.versions.get('application') or UNKNOWN}", "body"),
+    ])
+    if linked:
+        source_run = capacity_run or run
+        lines.append((f"Расчёт мощности: {source_run.run_id}; проверенный результат: {_verify_snapshots(source_run).get('result') or UNKNOWN}", "body"))
+    lines.append(("Полные входы, результаты и контрольные суммы доступны в архиве доказательств этого расчёта.", "body"))
     return _pdf(lines), digests["result"] or ""
 
 

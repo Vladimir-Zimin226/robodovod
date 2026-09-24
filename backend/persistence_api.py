@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import copy
 import json
 import logging
 import os
@@ -412,6 +413,22 @@ def _canonical_sha256(value: dict[str, Any]) -> str:
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def _comparable_economics_result(
+    calculated: dict[str, Any], saved: dict[str, Any]
+) -> dict[str, Any]:
+    """Recreate the pre-report projection for exact replay of older v2 runs."""
+    scenarios = saved.get("scenarios")
+    if not isinstance(scenarios, list) or not scenarios or not all(
+        isinstance(item, dict) and "report_facts" not in item for item in scenarios
+    ):
+        return calculated
+    comparable = copy.deepcopy(calculated)
+    for item in comparable.get("scenarios", []):
+        if isinstance(item, dict):
+            item.pop("report_facts", None)
+    return comparable
 
 
 def _economics_capacity_context(
@@ -1582,7 +1599,8 @@ def create_persistence_router(
             raise HTTPException(status_code=500, detail="economics v2 replay failed") from None
 
         matches = (
-            _canonical_sha256(execution.result_snapshot) == run.result_sha256
+            _canonical_sha256(_comparable_economics_result(execution.result_snapshot, run.result_snapshot))
+            == run.result_sha256
             and _canonical_sha256(execution.scenario_spec_snapshot)
             == run.scenario_spec_sha256
             and execution.revision_id == run.revision_id
