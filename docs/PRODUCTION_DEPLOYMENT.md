@@ -1,6 +1,53 @@
 # Production deployment — robodovod.ru
 
-Статус: **C30 LIVE TEST / MODEL PICKER HOLD**, 2026-09-24.
+Статус: **C30 LIVE TEST / C11 TRACE HOLD**, 2026-09-24.
+
+### Текущее обновление `v0.5.5` → `v0.5.6`
+
+Живой браузерный ввод уже дошёл до выбора MULE, но `POST
+/api/v2/capacity-analyses` вернул 422: C01 присвоил исходному
+`explicit_batch` ссылку `conversion.0006`, а C11 построил trace с этой
+ссылкой без соответствующей записи provenance. В диагностическом архиве
+зафиксирован один `FAILED` C11 run; он остаётся историческим и не
+переписывается. Исправление связывает C01 conversion refs с уже существующим
+источником нормализованного процесса внутри C11 trace, сохраняя исходный ref
+в immutable input snapshot. Формулы, цены, каталог и C05 gates не меняются.
+Карточка демо-профиля получает тёмный фон и контрастный текст.
+
+Это code-only hotfix: **новый backup, миграция, импорт каталога, activation и
+bootstrap не нужны**. На сервере с чистым `main` на `v0.5.5`:
+
+```bash
+set -euo pipefail
+cd /opt/robodovod
+test "$(git branch --show-current)" = main
+test -z "$(git status --porcelain)"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.5)"
+C='sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml'
+$C config --quiet
+OLD_BACKEND="$($C images -q backend)"
+OLD_FRONTEND="$($C images -q frontend)"
+test -n "$OLD_BACKEND"
+test -n "$OLD_FRONTEND"
+sudo docker image tag "$OLD_BACKEND" robodovod-backend:rollback-v055
+sudo docker image tag "$OLD_FRONTEND" robodovod-frontend:rollback-v055
+git fetch --prune --tags origin
+git pull --ff-only origin main
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.6)"
+$C config --quiet
+$C build backend frontend
+$C stop caddy
+$C up -d --wait --no-deps backend frontend
+$C exec -T backend python -c 'import urllib.request; print(urllib.request.urlopen("http://127.0.0.1:8000/ready").read().decode())'
+$C up -d --wait --no-deps caddy
+$C ps
+```
+
+При любой ошибке остановиться; если Caddy уже остановлен, не открывать
+публичный трафик до исправления. После успешного обновления сделать hard
+refresh браузера и новый C11 run, затем C13–C21 → reopen/export. Отдельно
+проверить HTTPS `/ready` с клиентского ПК. До успешного живого расчёта C30
+остаётся на HOLD.
 
 После `v0.5.4` серверная нормализация C01 и активный capacity-каталог
 подтверждены. Живой браузерный тест выявил вторую ошибку: выпадающий список
