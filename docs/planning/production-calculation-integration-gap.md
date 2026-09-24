@@ -1,31 +1,30 @@
 # Production calculation integration gap — 2026-09-24
 
-Статус: **BLOCKED FOR FULL PUBLIC RELEASE**. Владелец выбрал полноценный сервис
-с работающим расчётом после исправлений, а не каталог без расчёта. Эта проверка
-не изменяет принятые формулы, registry v1, catalog membership или исторические
-runs.
+Статус: **TECHNICAL GAP CLOSED / C30 TRAFFIC SWITCH HOLD**, повторная проверка
+2026-09-24. Владелец выбрал полноценный сервис с работающим расчётом, а не
+каталог без расчёта. Реализация не меняет registry v1, catalog membership,
+строгий C05 или исторические runs.
 
 ## Исполняемый путь сейчас
 
-1. Исторический `recalc` в `frontend/src/App.jsx` вызывает legacy
-   `POST /api/calculate`; `saveAnalysis` выбирает legacy `/analysis-runs` для
-   результата этого пути. Новый процессно-ролевой ввод теперь открыт по
-   умолчанию для трёх поддержанных объектов и может создать C11 capacity run,
-   но переход к полной экономике пока не реализован. Пустой fresh DB не имеет `runtime` slot, а
-   `organizer-catalog-v4` не содержит `runtime_robots`. Активация этого каталога
-   в `runtime` правильно отвергается.
-2. Экран «Процессы и роли v2» нормализует ввод, выбирает одну из трёх
-   документированных демо-моделей в активном capacity-каталоге и сохраняет
-   immutable C11 run через `/api/v2/capacity-analyses`. Для транспортного
-   процесса требуется явное время обмена; складской пресет раскрывает
-   допущения. На экране выбора модели видны источник, авторские допущения и
-   неизвестные характеристики. Поддержанные объекты по умолчанию открывают
-   новый путь даже при старом preset; legacy-режимы явно обозначены как
-   «старый расчёт». C13–C21 economics run он пока **не создаёт**.
-3. Persistence v2 API требует `resolve_economics_version` и
-   `calculate_economics_v2`; `main.app` их не передаёт. Тест API подставляет
-   fixture executor, который возвращает готовый commercial bundle; такого
-   production orchestrator в репозитории нет.
+1. Экран «Процессы и роли v2» нормализует ввод, выбирает одну из трёх
+   документированных demo-моделей в активном capacity-каталоге и сохраняет
+   immutable C11 run через `/api/v2/capacity-analyses`. После C11 отдельная
+   форма требует явные monthly gross, ручную производительность, внедрение,
+   сервис, энергию, общеплощадочные затраты и RaaS-условия. Браузер не считает
+   экономику и не подставляет неизвестные закупочные условия.
+2. `main.app` подключает production executor
+   `production-economics-orchestrator-v1` и активную versioned economics route.
+   Executor читает только сохранённый owner/project-scoped C11 snapshot и тот
+   же опубликованный capacity catalog, исполняет C13–C21 и возвращает strict
+   commercial bundle v2 + ScenarioSpec v2. Runtime fixture bundle не
+   импортируется.
+3. Economics input сохраняется в envelope `economics-run-input-v2` вместе с
+   `capacity_run_id`; result/scenario spec/checksums и version mapping
+   неизменяемы. Reopen и snapshot-driven ZIP export работают для нового run.
+   Explicit rerun создаёт новый run, а CSRF-защищённый v2 replay заново
+   исполняет исходные snapshots и требует точного совпадения hashes, revision,
+   versions и diagnostics. Source run не переписывается.
 4. Строгий production C11 по умолчанию продолжает использовать
    `conservative_constraints`: unknown passport/availability дают
    `NEEDS_VALIDATION`, и обычный `VERIFIED` run остаётся `BLOCKED`.
@@ -83,26 +82,38 @@ AMR в легенде Excel — типовой KPI/допущение, а не v
 [demo-model-profiles-v1](demo-model-profiles-v1.md). Это не паспорта
 изготовителей.
 
-## Что требуется для полноценного выпуска
+## Повторная production integration acceptance
+
+- Реальный `organizer-catalog-v4` импортирован в disposable PostgreSQL 16,
+  опубликован и активирован только в `capacity`/`discovery`; legacy `runtime`
+  намеренно не активировался. Авторский MULE profile прошёл HTTP API C11
+  (`WITH_ASSUMPTIONS`) → C13–C21 → immutable run → reopen → deterministic
+  replay → evidence ZIP. Во всех шести purchase/RaaS сценариях procurement
+  остался `UNVERIFIED`, рекомендация к закупке не создана.
+- Production projection привязана новым golden digest к economics activation
+  report. Full backend/PostgreSQL suite: **625 passed**. Frontend: **73 passed**,
+  ESLint и production build зелёные. JSON Schema commercial bundle проходит.
+- Tenant isolation, CSRF для create/replay, capacity/result/trace integrity,
+  catalog-version binding, rerun parentage и export digest проверены.
+
+## Оставшиеся границы выпуска
 
 - Для конкретного поддержанного процесса и позиции: проверить официальные
   model facts и источник технического паспорта/availability, собрать явные
   требования объекта с provenance, провести C05 до `ELIGIBLE` без test provider.
   Текущий `catalog_capacity_runtime.json` намеренно фиксирует
   `deployment_ready_models=0`; выдавать его за deployment-ready нельзя.
-- Проверить новый UI → C11 путь на actual activated organizer catalog и
-  повторить browser-level smoke. Отдельная test DB с synthetic published
-  capacity source прошла CSRF/tenant/reopen; это не production activation.
 - Для неизвестных фактов продолжать показывать `BLOCKED` либо честный
   `WITH_ASSUMPTIONS` в подтверждённом demo-mode. Не подставлять скрытые значения.
-- Реализовать production orchestrator C13–C21 поверх неизменных validated
-  snapshots и явных user inputs. Создавать commercial bundle и ScenarioSpec v2
-  на сервере, затем подключить versioned economics route. Fixture bundle не
-  может быть runtime executor.
-- Пройти новый сквозной тест браузер → API → official catalog → C05/C11 →
-  C13–C21 → immutable run → reopen/export, включая tenant/CSRF, goldens,
-  deterministic replay и повторный C29 gate. Только после этого C30 может
-  продолжить migration/bootstrap/traffic switch.
+- C05 `ELIGIBLE`/deployment-ready по-прежнему требует внешних паспортов,
+  комплектации, availability и фактических условий объекта. Это не блокирует
+  разрешённый предварительный demo, но блокирует такое утверждение в UI/API.
+- До переноса проверенного commit в `main`, server backup/migration/bootstrap,
+  production smoke и TLS проверки C30 traffic switch остаётся на HOLD.
+- Fresh catalog по-прежнему нельзя активировать в legacy `runtime`: новые
+  поддержанные расчёты идут только через capacity/economics v2, а historical
+  viewer/replay остаются snapshot-only. Legacy route не удаляется до отдельной
+  совместимой миграции всех неподдержанных custom flows.
 
 Следующее внешнее входное условие для подтверждённого сценария внедрения:
 паспорт/комплектация и подтверждённая availability выбранной модели, а также

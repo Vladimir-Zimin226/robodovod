@@ -84,19 +84,18 @@ multi-zone scenes, но не единую физическую модель вс
 
 Подробный технический контекст движка: `13_ROBCRAFT_ENGINE.md`.
 
-Текущий код — компактный демонстрационный монолит. Описанная в
-`05_TECHNICAL_ARCHITECTURE.md` архитектура с PostgreSQL, SQLAlchemy, Alembic,
-полноценными evidence/procurement/readiness-модулями и тестовыми слоями является
-целевой: считать её уже реализованной нельзя. Принятый порядок следующей
-итерации зафиксирован в `17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md`: сначала
-границы хранения и фундамент БД, затем импорт проверенного каталога через
-отдельный overlay и только после dual-run проверки — переключение backend.
+Текущий сервис остаётся модульным монолитом, но storage/runtime foundation уже
+реализован: PostgreSQL, SQLAlchemy, Alembic, evidence/procurement/readiness и
+раздельные тестовые слои входят в принятый C01–C29 scope. Историческое описание
+целевой архитектуры остаётся в `05_TECHNICAL_ARCHITECTURE.md`, а порядок её
+ввода — в `17_DATA_STORAGE_AND_CATALOG_INTEGRATION.md`.
 
-Встроенные legacy-модели удалены. Production runtime и discovery читают только
-явно активированные PostgreSQL slots; отсутствие безопасной runtime projection
-даёт 503. Тесты расчётного ядра используют отдельные синтетические записи,
-которые production-код не импортирует. До materialization официального
-расчётного пула работоспособного runtime-каталога намеренно нет.
+Встроенные legacy-модели удалены. Production discovery, capacity и economics
+читают только явно активированные PostgreSQL slots/routes; отсутствие нужной
+активации даёт fail-closed 503. `organizer-catalog-v4` materialized и принят для
+нового C11 → C13–C21 пути, но не содержит безопасной legacy `runtime`
+projection, поэтому этот slot намеренно не активируется. Синтетические записи и
+golden fixtures production-код не импортирует.
 
 ## Принципы, которые нельзя потерять
 
@@ -464,16 +463,20 @@ media verification исправлены без rewrite старых runs, изм
 catalog membership или production activation. Отчёт:
 [calculation migration acceptance](planning/qa-calculation-migration-acceptance.md).
 
-Следующая итерация — **`ops/production-domain-deployment-v1`** (C30), только по
-отдельной явной команде владельца. C30 в C29 не начинался.
+По завершении исходного C29 следующей итерацией был объявлен
+**`ops/production-domain-deployment-v1`** (C30); в рамках самого C29 он не
+начинался. Его текущее состояние описано ниже.
 
-C30 начат 2026-09-23 по явной команде владельца, но production traffic switch
-поставлен на HOLD: `main.app` пока не wiring economics-v2 executor, а fresh
-organizer catalog не содержит legacy runtime robots. Подготовлены internal-only
-production Compose, pinned Caddy automatic TLS, secure-cookie/origin settings,
-root-contract-aware backend image, liveness endpoint и backup/restore/smoke
-scripts. Эти артефакты не разрешают synthetic fallback или activation
-неработающего runtime. Точный runbook:
+C30 начат 2026-09-23 по явной команде владельца; production traffic switch
+остаётся на HOLD до переноса проверенного commit в `main` и серверных gates.
+Production economics executor теперь подключён в `main.app`: новый путь
+создаёт C11 snapshot, принимает явные commercial inputs, исполняет C13–C21 и
+сохраняет immutable economics run с reopen/export/exact replay. Fresh organizer
+catalog всё ещё не содержит legacy runtime robots и не активируется в
+`runtime`; новые поддержанные расчёты используют capacity/economics slots.
+Подготовлены internal-only production Compose, pinned Caddy automatic TLS,
+secure-cookie/origin settings, root-contract-aware backend image, liveness
+endpoint и backup/restore/smoke scripts. Точный runbook:
 [production deployment](PRODUCTION_DEPLOYMENT.md).
 
 Аудит локальных материалов организаторов 2026-09-24 уточнил границу C30:
@@ -482,17 +485,21 @@ Excel содержит прямо обозначенные demo-значения
 дополняют материалы, но не заменяют паспорт выбранной комплектации, vendor
 availability и фактические параметры объекта. Эти данные можно использовать
 для предварительного расчёта с раскрытыми допущениями, не для скрытого
-`ELIGIBLE`/deployment-ready. Кроме доказательной базы, остаются независимые
-разрывы production UI → C11 → economics v2; полный traffic switch запрещён.
+`ELIGIBLE`/deployment-ready. Технический разрыв production UI → C11 →
+economics v2 закрыт, но это не повышает доказательную готовность C05.
 Подробности: [integration gap](planning/production-calculation-integration-gap.md).
 
-По явному разрешению владельца начат отдельный предварительный demo-route:
+По явному разрешению владельца реализован предварительный demo-route:
 три авторских [профиля моделей](planning/demo-model-profiles-v1.md) отделяют
 публичные ТТХ от допущений; v2-ввод по умолчанию открывает сохранённый C11
-capacity run после подтверждения условий. Строгий C05 и исторические runs
-сохранены. Это **не завершает** production economics orchestrator C13–C21,
-повторную приёмку и C30 traffic switch; legacy new-run route пока нельзя
-выключать, не оставив пользователя без полного финансового расчёта.
+capacity run после подтверждения условий. После него сервер требует явные
+monthly gross и закупочные/RaaS условия, выполняет C13–C21 и показывает все
+неподтверждённые ограничения. Строгий C05 и исторические runs сохранены.
+Повторная приёмка: 625 backend/PostgreSQL tests, 73 frontend tests, schema,
+lint/build и actual-catalog end-to-end зелёные. Economics approval привязан к
+golden projection production orchestrator, не к runtime fixture. C30 traffic
+не переключался; legacy route остаётся только для явно маркированной
+совместимости и snapshot-only historical viewer/replay.
 
 Все C01–C30 и их acceptance gates обязательны к последовательной реализации.
 Ограничение сложности относится только к новой логике сверх принятого плана:

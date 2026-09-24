@@ -2,44 +2,49 @@
 
 Статус: **C30 IN PROGRESS / TRAFFIC SWITCH HOLD**, 2026-09-24.
 
-Production activation запрещена до закрытия runtime blockers из раздела
-1. Все команды ниже разделены на безопасную подготовку и намеренно закрытый
-traffic switch. Project name: `robodovod-prod`; installation root:
+Публичный traffic switch не выполняется автоматически. Все команды ниже
+разделены на локальную публикацию, безопасную серверную подготовку и отдельный
+ручной switch. Project name: `robodovod-prod`; installation root:
 `/opt/robodovod`; environment: `.env.production` с mode `600`.
+
+Команды выполнять по одной в указанном порядке. При любом ненулевом exit code,
+неожиданном hash/status или failed/unhealthy контейнере остановиться на текущем
+разделе: не выполнять следующий раздел и особенно раздел 9, пока причина не
+устранена и текущая проверка не повторена успешно.
 
 ## 1. Обязательный HOLD
 
-Текущий release нельзя считать готовым к публичному расчёту:
+Технический UI → C11 → C13–C21 gap закрыт и повторный C29 прошёл: production
+executor подключён, actual organizer catalog path, immutable persistence,
+reopen/export/replay, tenant isolation и CSRF проверены. HOLD теперь означает:
 
-1. `main.app` не передаёт `resolve_economics_version` и
-   `calculate_economics_v2` в persistence router. Approved economics v2 route
-   поэтому отвечает `503`, а production orchestrator C13–C21 отсутствует.
-2. `organizer-catalog-v4` содержит capacity pool 21/24, но zero legacy
-   `runtime_robots`. Его корректно можно активировать для `discovery` и
-   `capacity`, но нельзя для legacy `runtime`; старые `/api/calculate` и
-   `/analysis-runs` на fresh DB fail closed.
-3. Новый frontend пока выполняет только нормализацию; production C11 вызывает
-   conservative C05 и даёт `NEEDS_VALIDATION`/`BLOCKED`, даже если модель входит
-   в capacity pool. Approved bundle содержит 0 deployment-ready моделей.
-   Положительный C11 unit golden использует тестовый `ELIGIBLE` provider.
+1. deploy выполняется только из проверенного `main`; до публикации/сверки hash
+   серверный checkout и public traffic не менять;
+2. до запуска backend обязательны production `.env`, backup/restore drill,
+   migration/import/activation и internal smoke;
+3. `organizer-catalog-v4` нельзя активировать в legacy `runtime`: у него zero
+   `runtime_robots`. Для новых поддержанных расчётов активируются только
+   `discovery`, `capacity` и economics v2 route;
+4. demo `WITH_ASSUMPTIONS` — предварительное ТЭО. Без паспорта/комплектации,
+   availability и фактических условий объекта C05 остаётся
+   `NEEDS_VALIDATION`; UI не вправе показывать PASS/deployment-ready или
+   закупочную рекомендацию.
 
 Технический разбор: [production calculation integration gap](planning/production-calculation-integration-gap.md).
 
-До отдельного исправления и повторного C29 gate запрещены команды `caddy up`,
-catalog `runtime` activation и economics route activation. Нельзя подменять
-их synthetic catalog, test fixture или скрытым fallback.
+Synthetic catalog, fixture executor и скрытый fallback в production запрещены.
 
-## 2. Локальная публикация release — после снятия HOLD
+## 2. Локальная публикация проверенного release
 
 ```cmd
 git status --short
 git switch main
 git pull --ff-only origin main
-git merge --ff-only ops/production-domain-deployment-v1
-git tag -a v0.4.0 -m "Robodovod production release v0.4.0"
+git merge --ff-only integration/production-calculation-flow-v2
+git tag -a v0.5.0 -m "Robodovod production calculation service v0.5.0"
 git push origin main
-git push origin v0.4.0
-git rev-list -n 1 v0.4.0
+git push origin v0.5.0
+git rev-list -n 1 v0.5.0
 ```
 
 Если `--ff-only` невозможен, не создавать merge вручную: опубликовать branch,
@@ -76,24 +81,31 @@ ssh robodovod
 cd /opt/robodovod
 git status --short
 git fetch --prune --tags origin
-test "$(git cat-file -t v0.4.0)" = tag
-git show --no-patch --decorate v0.4.0
-git checkout --detach v0.4.0
+test "$(git cat-file -t v0.5.0)" = tag
+git show --no-patch --decorate v0.5.0
+git checkout --detach v0.5.0
 git rev-parse HEAD
 ```
 
-Полученный hash должен совпасть с локальным `git rev-list -n 1 v0.4.0`.
+Полученный hash должен совпасть с локальным `git rev-list -n 1 v0.5.0`.
 `git verify-tag` подходит только для подписанного тега; приведённая выше
 команда создаёт обычный annotated tag.
 
 ## 5. Production secrets
+
+Локальный пароль БД, ранее попавший в диагностический вывод, считать
+скомпрометированным. Его нельзя переносить на VDS. До следующего локального
+запуска сменить пароль роли интерактивной `psql \password` (ввод скрыт), затем
+вручную обновить локальные `APP_DB_PASSWORD` и `DATABASE_URL` в `.env`; сам
+`.env` не печатать и не добавлять в Git. Production credentials генерируются
+независимо ниже.
 
 На VDS, не на рабочем ПК:
 
 ```bash
 cd /opt/robodovod
 umask 077
-cp .env.production.example .env.production
+test -e .env.production || cp .env.production.example .env.production
 chmod 600 .env.production
 openssl rand -hex 32
 openssl rand -hex 32
@@ -132,7 +144,7 @@ Caddy публикует TCP 80/443 и UDP 443. Network `data` internal-only.
 
 ```bash
 cd /opt/robodovod
-sudo install -d -m 700 -o deploy -g deploy /var/backups/robodovod
+sudo install -d -m 700 -o "$(id -un)" -g "$(id -gn)" /var/backups/robodovod
 sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml up -d db
 DOCKER='sudo docker' BACKUP_DIR=/var/backups/robodovod ./scripts/production/backup.sh
 DOCKER='sudo docker' ./scripts/production/restore-drill.sh /var/backups/robodovod/postgres-YYYYMMDDTHHMMSSZ.dump
@@ -147,7 +159,7 @@ DOCKER='sudo docker' ./scripts/production/restore-drill.sh /var/backups/robodovo
 Скопировать dump, uploads archive и checksum manifest в зашифрованное off-host
 хранилище. Наличие локального файла без restore drill не считается backup.
 
-## 8. Migration и first bootstrap — выполнять только после снятия HOLD
+## 8. Migration и first bootstrap — после публикации проверенного main/tag
 
 ```bash
 cd /opt/robodovod
@@ -167,8 +179,8 @@ $C run --rm catalog-activation status
 $C run --rm economics-activation status
 ```
 
-Не активировать `runtime` для organizer catalog. Economics activation допустима
-только после появления production executor и повторной acceptance:
+Не активировать `runtime` для organizer catalog. После зелёного повторного C29
+активировать versioned economics route отдельной командой:
 
 ```bash
 $C run --rm economics-activation activate --actor production-c30 --approval-report /contracts/fixtures/economics-dual-run-report-v1.golden.json
@@ -180,9 +192,10 @@ Rollback economics меняет только route configuration:
 $C run --rm economics-activation rollback --actor production-rollback
 ```
 
-## 9. Traffic switch — CLOSED до снятия HOLD
+## 9. Traffic switch — отдельное ручное действие после всех gates
 
-После устранения blockers, зелёного повторного C29 и предыдущих шагов:
+После публикации main/tag, backup/restore, миграций, activation и internal
+проверок:
 
 ```bash
 cd /opt/robodovod
@@ -236,9 +249,11 @@ Alembic downgrade на production запрещены.
   healthy для PostgreSQL/backend/frontend и не публикует 5432/8000/5173;
 - `/health`, `/ready`, frontend и economics route `status` отвечают ожидаемо;
 - backup/restore/smoke scripts проходят `sh -n`;
-- targeted backend regression: 16 tests passed;
-- C29 acceptance остаётся базой release: 616 backend tests с PostgreSQL,
-  66 frontend tests, lint/build и restore drill прошли до начала C30.
+- production orchestrator golden связан с economics activation report;
+- C29 повторён: 625 backend tests с PostgreSQL, 73 frontend tests,
+  Draft 2020-12 commercial schema, lint и production build прошли;
+- actual organizer catalog acceptance прошёл C11 → C13–C21 → reopen → replay →
+  export без C05 PASS и без procurement-ready утверждения.
 
-Это подтверждает готовность deployment infrastructure, но не снимает runtime
-HOLD из раздела 1.
+Это подтверждает готовность release к серверным deployment gates. Публичный
+traffic остаётся выключенным, пока оператор не завершит разделы 3–9.
