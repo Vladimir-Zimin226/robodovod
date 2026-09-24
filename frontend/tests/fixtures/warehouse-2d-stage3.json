@@ -1,0 +1,427 @@
+{
+  "request": {
+    "schema_version": "simulation-request-v1",
+    "request_id": "simulation.warehouse.stage3",
+    "tenant_id": "tenant.demo",
+    "project_id": "00000000-0000-0000-0000-000000000041",
+    "scenario_spec": {
+      "schema_version": "scenario-spec-v2",
+      "revision_id": "calc_8e4d2fbfe19895c5",
+      "source": "capacity-analysis",
+      "template": "warehouse",
+      "seed": "scenario-c665c43f4c6f2942",
+      "analysis": {
+        "project_id": "00000000-0000-0000-0000-000000000041",
+        "tenant_id": "tenant.demo",
+        "capacity_run_id": "run.capacity.stage3",
+        "input_revision": "revision.orchestrator.v1",
+        "capacity_request_digest": "sha256:92b7cbf265e0059859ca6a6f8adc25abcbe644db7bc2426631fcfa8061b7c5b3",
+        "capacity_result_digest": "sha256:4f2aef4e33a0797a306d6754142b2ccdb77d8c41a8bda02b893f83b924a8463a",
+        "capacity_trace_digest": "sha256:38b6615d6548b2d9c6df57e5e629118b960a915633650174cde53924dfcf44d3"
+      },
+      "versions": {
+        "scenario_contract_version": "scenario-spec-v2",
+        "scenario_policy_version": "scenario-spec-policy-v2",
+        "capacity_result_version": "capacity-result-v1",
+        "capacity_trace_version": "calculation-trace-v1",
+        "calculation": {
+          "catalog_version_id": "orchestrator-test-v1",
+          "catalog_content_digest": "sha256:bcccaf9125d3cf949aa1a438ac6a33b96171f0d4009c49a7abd179bfa3cbb354",
+          "capacity_projection_version": "formula-executability-profiles-v3",
+          "capacity_projection_digest": "sha256:c8743f9f553d1d63d3409adb8d5149e8c86177f0c0422a769b2a45a6a02b59d6",
+          "registry_version": "hackathon-calculation-parameter-registry-v1",
+          "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+          "process_catalog_version": "calculation-process-catalog-v1",
+          "formula_bundle_version": "calculation-formulas-v1",
+          "constraint_rules_version": "calculation-constraint-rules-v2",
+          "commercial_policy_version": "hackathon-commercial-policy-v1",
+          "precision_policy_version": "decimal-context-28-half-even-v1",
+          "calculation_policy_version": "hackathon-calculation-policy-v1"
+        }
+      },
+      "profile": {
+        "process_id": "process.receiving",
+        "process_code": "warehouse_receiving_shipping",
+        "process_scope": "TRANSPORT_CYCLE",
+        "calculation_profile": "TRANSPORT_CYCLE_V1",
+        "quantity_kind": "PALLET",
+        "capacity_status": "WITH_ASSUMPTIONS"
+      },
+      "operating_windows": [
+        {
+          "window_id": "window.primary",
+          "start_time": {
+            "value": "0",
+            "unit": "s",
+            "quantity_kind": "TIME",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "duration": {
+            "value": "20",
+            "unit": "h",
+            "quantity_kind": "TIME",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "timezone": "Europe/Moscow",
+          "source": "USER",
+          "provenance_ref": "input.economics.operating-window"
+        }
+      ],
+      "zones": [
+        {
+          "zone_id": "zone.process.receiving",
+          "label": "warehouse_receiving_shipping",
+          "geometry_source": "SYNTHETIC",
+          "geometry_ref": null,
+          "assumption_ref": "assumption.synthetic-geometry"
+        }
+      ],
+      "routes": [
+        {
+          "route_id": "route.process.receiving",
+          "geometry_source": "SYNTHETIC",
+          "one_way_distance": {
+            "value": "120",
+            "unit": "m",
+            "quantity_kind": "DISTANCE",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "geometry_ref": null,
+          "assumption_ref": "assumption.synthetic-geometry"
+        }
+      ],
+      "fleet": [
+        {
+          "fleet_id": "fleet.process.receiving",
+          "zone_id": "zone.process.receiving",
+          "process_id": "process.receiving",
+          "model_id": "model.demo.mule",
+          "position_id": "position.demo.mule",
+          "selected_fleet": 10,
+          "recommended_fleet": 10,
+          "nominal_capacity": {
+            "value": "109.0909090909090909090909091",
+            "unit": "unit/h",
+            "quantity_kind": "RATE",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "effective_capacity": {
+            "value": "76.36363636363636363636363637",
+            "unit": "unit/h",
+            "quantity_kind": "RATE",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "coverage": {
+            "value": "1",
+            "unit": "1",
+            "quantity_kind": "FRACTION",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "raw_load_ratio": {
+            "value": "0.9821428571428571428571428571",
+            "unit": "1",
+            "quantity_kind": "FRACTION",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "utilization": {
+            "value": "0.9821428571428571428571428571",
+            "unit": "1",
+            "quantity_kind": "FRACTION",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "overloaded": false
+        }
+      ],
+      "tasks": [
+        {
+          "task_id": "task.process.receiving",
+          "zone_id": "zone.process.receiving",
+          "process_id": "process.receiving",
+          "demand": {
+            "value": "1000",
+            "unit": "pallet/day",
+            "quantity_kind": "FLOW",
+            "numeric_encoding": "DECIMAL_STRING"
+          },
+          "operating_window_refs": [
+            "window.primary"
+          ],
+          "exchange": {
+            "mode": "TOTAL",
+            "total_time": {
+              "value": "90",
+              "unit": "s",
+              "quantity_kind": "TIME",
+              "numeric_encoding": "DECIMAL_STRING"
+            },
+            "load_time": null,
+            "unload_time": null
+          },
+          "batch": {
+            "semantics": "PHYSICAL_BATCH",
+            "units_per_cycle": {
+              "value": "1",
+              "unit": "unit/cycle",
+              "quantity_kind": "RATE",
+              "numeric_encoding": "DECIMAL_STRING"
+            },
+            "provenance_ref": "prov.user"
+          },
+          "route_ref": "route.process.receiving"
+        }
+      ],
+      "finance": {
+        "source_schema_version": "multiprocess-allocation-result-v1",
+        "source_run_id": "run.economics.stage3.allocation.purchase.base",
+        "source_result_digest": "sha256:04378497e43a5bdb12a49f57a415d632fd395b87b8671114da3d8455406a7a94",
+        "cohort_id": "cohort.run.economics.stage3.purchase",
+        "acquisition": "PURCHASE",
+        "uncertainty": "BASE",
+        "horizon_years": 5,
+        "project_capex_cashflow": {
+          "status": "COMPLETE",
+          "value": "33550000.00",
+          "unit": "RUB"
+        },
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "23606877.01",
+          "unit": "RUB"
+        },
+        "simple_payback": {
+          "status": "COMPLETE",
+          "value": "2.402822440030471839076474847",
+          "unit": "YEAR"
+        },
+        "versions": {
+          "engine_version": "multiprocess-allocation-v1",
+          "result_version": "multiprocess-allocation-result-v1",
+          "calculation_policy_version": "hackathon-calculation-policy-v1",
+          "labour_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14",
+          "registry_version": "hackathon-calculation-parameter-registry-v1",
+          "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+          "precision_policy_version": "decimal-context-28-half-even-v1"
+        }
+      },
+      "assumptions": [
+        {
+          "assumption_id": "assumption.synthetic-geometry",
+          "version": "v1",
+          "provenance_ref": "assumption.synthetic-geometry",
+          "scope": "VISUALIZATION_ONLY",
+          "message": "Геометрия синтетическая и не изменяет аналитический маршрут или экономику"
+        }
+      ],
+      "trace_node_refs": [
+        "node.f01",
+        "node.f02",
+        "node.f03",
+        "node.f04",
+        "node.f07"
+      ],
+      "warnings": [
+        "ScenarioSpec не является инженерным цифровым двойником.",
+        "Предварительный demo: неподтверждённые C05 checks не являются PASS."
+      ]
+    },
+    "mode": "DAILY",
+    "peak_factor": null,
+    "sla": null,
+    "resources": [],
+    "limits": {
+      "max_jobs_per_day": 10000,
+      "max_fleet": 100,
+      "max_runtime_seconds": 60,
+      "progress_event_batch": 1000
+    }
+  },
+  "report": {
+    "schema_version": "simulation-report-v2",
+    "report_id": "report.9adea32596c55e1f",
+    "request_id": "simulation.warehouse.stage3",
+    "tenant_id": "tenant.demo",
+    "project_id": "00000000-0000-0000-0000-000000000041",
+    "scenario_revision_id": "calc_8e4d2fbfe19895c5",
+    "status": "CONDITIONAL_MODEL",
+    "engineering_claim": "PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION",
+    "time_basis": {
+      "unit": "MICROSECOND",
+      "seed": 42,
+      "timezone": "Europe/Moscow",
+      "warmup_days": 1,
+      "measurement_days": 1,
+      "completion_grace_days": 1,
+      "operating_hours_per_day": "20",
+      "window_refs": [
+        "window.primary"
+      ]
+    },
+    "workload": {
+      "mode": "DAILY",
+      "daily_units": "1000",
+      "peak_factor": null,
+      "simulated_units_per_day": "1000",
+      "batch_units": "1",
+      "jobs_per_day": 1000,
+      "fleet_units": 10,
+      "quantity_unit": "pallet/day",
+      "arrival_assumption": "UNIFORM_ARRIVALS"
+    },
+    "capacity": {
+      "required_per_hour": "50",
+      "expected_effective_per_hour": "76.36363636363636363636363637",
+      "observed_per_hour": "49.7",
+      "unit": "unit/h",
+      "deviation_percent": "0.6",
+      "verdict": "CONSISTENT",
+      "denominator": "REQUIRED_DEMAND",
+      "warning_threshold_percent": "10",
+      "demand_shortfall_per_hour": "0.3",
+      "capacity_headroom_per_hour": "26.66363636363636363636363637",
+      "ceiling_verdict": "WITHIN_CEILING"
+    },
+    "queue": {
+      "maximum_jobs": 1,
+      "mean_wait_seconds": "0",
+      "p95_wait_seconds": "0",
+      "mean_turnaround_seconds": "557.828571",
+      "p95_turnaround_seconds": "471.428571",
+      "measurement_jobs": 1000,
+      "completed_by_measurement_end": 994,
+      "completed_with_grace": 1000,
+      "completed_units_by_measurement_end": "994",
+      "completed_units_with_grace": "1000",
+      "completed_unit": "unit/cycle",
+      "censored_jobs": 0
+    },
+    "utilization": {
+      "busy_fraction": "0.6547619041666666666666666667",
+      "productive_fraction": "0.4583333329166666666666666667",
+      "nonproductive_fraction": "0.19642857125",
+      "busy_seconds": "471428.571",
+      "productive_seconds": "329999.9997",
+      "nonproductive_allowance_seconds": "141428.5713",
+      "failure_downtime_seconds": null,
+      "failure_downtime_status": "NOT_EVALUATED_NO_INPUT",
+      "resource_wait_seconds": "0",
+      "denominator": "FLEET_OPERATING_TIME"
+    },
+    "sla": {
+      "verdict": "NOT_EVALUATED",
+      "sla_minutes": null,
+      "target_fraction": null,
+      "on_time_fraction": null,
+      "on_time_jobs": 0,
+      "denominator_jobs": 1000,
+      "reason_codes": [
+        "sla-not-supplied"
+      ]
+    },
+    "resources": [],
+    "limitations": [
+      "charging-in-aggregate-allowance",
+      "end-of-window-unfinished-jobs",
+      "no-random-failure-model",
+      "not-engineering-certification",
+      "resource-bottlenecks-not-modelled",
+      "synthetic-route-geometry"
+    ],
+    "trace": [
+      {
+        "node_id": "simulation.service",
+        "operation": "DERIVE_SERVICE_TIME",
+        "input_refs": [
+          "scenario.fleet.nominal_capacity",
+          "scenario.fleet.effective_capacity",
+          "scenario.task.batch"
+        ],
+        "output_ref": "service.effective-seconds",
+        "value": "471.4285714285714285714285714",
+        "unit": "s"
+      },
+      {
+        "node_id": "simulation.calendar",
+        "operation": "BUILD_CALENDAR",
+        "input_refs": [
+          "scenario.operating_windows"
+        ],
+        "output_ref": "calendar.operating-hours",
+        "value": "20",
+        "unit": "h/day"
+      },
+      {
+        "node_id": "simulation.arrivals",
+        "operation": "GENERATE_ARRIVALS",
+        "input_refs": [
+          "scenario.task.demand",
+          "scenario.task.batch"
+        ],
+        "output_ref": "workload.jobs-per-day",
+        "value": "1000",
+        "unit": "job/day"
+      },
+      {
+        "node_id": "simulation.dispatch",
+        "operation": "DISPATCH_FIFO",
+        "input_refs": [
+          "workload.arrivals",
+          "scenario.fleet.selected"
+        ],
+        "output_ref": "queue.completed-with-grace",
+        "value": "1000",
+        "unit": "job"
+      },
+      {
+        "node_id": "simulation.allowance",
+        "operation": "APPLY_NONPRODUCTIVE_ALLOWANCE",
+        "input_refs": [
+          "service.nominal-seconds",
+          "service.effective-seconds"
+        ],
+        "output_ref": "utilization.nonproductive-seconds",
+        "value": "141428.5713",
+        "unit": "s"
+      },
+      {
+        "node_id": "simulation.capacity",
+        "operation": "COMPARE_CAPACITY",
+        "input_refs": [
+          "workload.required-per-hour",
+          "scenario.fleet.effective-capacity",
+          "queue.completed-by-measurement-end"
+        ],
+        "output_ref": "capacity.deviation-percent",
+        "value": "0.6",
+        "unit": "%"
+      },
+      {
+        "node_id": "simulation.sla",
+        "operation": "EVALUATE_SLA",
+        "input_refs": [
+          "request.sla",
+          "queue.turnaround"
+        ],
+        "output_ref": "sla.on-time-fraction",
+        "value": null,
+        "unit": "1"
+      }
+    ],
+    "versions": {
+      "engine_version": "deterministic-queue-v2",
+      "request_version": "simulation-request-v1",
+      "report_version": "simulation-report-v2",
+      "policy_version": "hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2",
+      "event_order_version": "event-order-time-priority-process-resource-job-v1",
+      "arrival_model_version": "uniform-arrivals-v1",
+      "availability_model_version": "aggregate-nonproductive-allowance-v1",
+      "failure_model_version": "not-provided",
+      "scenario_contract_version": "scenario-spec-v2",
+      "precision_policy_version": "decimal-context-28-half-even-v1"
+    },
+    "replay": {
+      "scenario_spec_digest": "sha256:bb6b26127b1b7f8667511d5121ff2d130955673450e855f76d289613c09fa1ea",
+      "canonical_request_digest": "sha256:e6935bef601b056e7acf352a9a6680b86bbc537f75b20b6087485ad67b3df0ad",
+      "report_content_digest": "sha256:f03b75e275549bb7b78dc66d3daa2b8e3b21241decae1f6b041cb8fa61d914d7"
+    }
+  }
+}

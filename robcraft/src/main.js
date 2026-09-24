@@ -68,6 +68,7 @@ let zoneSessions = [];
 let scenarioZoneEntries = [];
 let activeZoneIndex = 0;
 let zoneRotationElapsed = 0;
+let pinnedZoneId = null;
 let authoritativeSimulationReport = null;
 const audioEngine = new AudioEngine();
 
@@ -164,6 +165,7 @@ function activateZone(index, reason = 'ZONE_SELECTED', resetCamera = true) {
   const session = zoneSessions[index];
   if (!session) return false;
   activeZoneIndex = index;
+  if (reason === 'PARENT_SELECTED' || reason === 'USER_SELECTED') pinnedZoneId = session.zoneId;
   baseScene = session.baseScene; sceneEditor = session.sceneEditor;
   scene = sceneEditor.scene; simulation = session.simulation;
   zoneRotationElapsed = 0; inspectedEntity = null;
@@ -180,7 +182,7 @@ function activateZone(index, reason = 'ZONE_SELECTED', resetCamera = true) {
   document.querySelector('#hud-robots').textContent = simulation.robots.length;
   document.querySelector('#hud-mode').textContent = `${scene.scenario.processType.toUpperCase()} // ${scene.scenario.zoneName}`;
   document.querySelector('#zone-select').value = session.zoneId;
-  document.querySelector('#zone-note').textContent = `Концептуальная сцена · ${scene.scenario.zoneName} · ${scene.scenario.processType}`;
+  document.querySelector('#zone-note').textContent = `Концептуальная сцена · ${scene.scenario.zoneName} · ${scene.scenario.processType}${scene.scenario.taskId ? ` · задание ${scene.scenario.taskId}` : ''}`;
   if (reason !== 'INITIAL') { announceScenePatch(); announceEditorState(); }
   return true;
 }
@@ -218,6 +220,7 @@ function applyEmbeddedScenario(candidate) {
     zoneSessions = candidate.generated.zones.filter(entry => entry.supported).map(entry => createZoneSession(entry, candidate.fingerprint));
   }
   scenarioZoneEntries = candidate.generated.zones;
+  if (pinnedZoneId && !zoneSessions.some(session => session.zoneId === pinnedZoneId)) pinnedZoneId = null;
   renderZoneSelector(scenarioZoneEntries);
   const selectedIndex = Math.max(0, zoneSessions.findIndex(session => session.zoneId === previousZoneId));
   const session = zoneSessions[selectedIndex];
@@ -760,6 +763,8 @@ function zoneCard(target) {
     : `${scene.scenarioSpec.economics.fte_released} FTE`;
   return `<h3>${safeText(zone.name || zone.label)}</h3><div class="status">● КОНЦЕПТУАЛЬНАЯ ЗОНА</div><dl>
     <dt>Процесс</dt><dd>${safeText(zone.process_type || scene.scenario.processType)}</dd>
+    <dt>Задание</dt><dd>${safeText(task?.task_id || task?.kind || 'не задано')}</dd>
+    <dt>Точки</dt><dd>${safeText(scene.scenario.pickupId || 'не задана')} → ${safeText(scene.scenario.dropoffId || 'не задана')}</dd>
     <dt>Спрос</dt><dd>${demand} ${safeText(task?.demand?.unit || 'ед./день')}</dd>
     <dt>Рейс</dt><dd>${batch} ед.</dd>
     <dt>Парк</dt><dd>${fleet ? `${quantity} × ${safeText(model)}` : 'Не выбран'}</dd>
@@ -792,7 +797,7 @@ function frame(now) {
       if (cameraState === 'AUTOPILOT' && !editorMode) cameraDirector.update(delta, scene, simulation);
       else player.update(delta, scene.solids);
       if (!editorMode) updateSimulation(simulation, delta, scene.solids);
-      if (embeddedMode && cameraState === 'AUTOPILOT' && !editorMode && zoneSessions.length > 1) {
+      if (embeddedMode && cameraState === 'AUTOPILOT' && !editorMode && !pinnedZoneId && zoneSessions.length > 1) {
         zoneRotationElapsed += delta;
         if (zoneRotationElapsed >= 24) activateZone((activeZoneIndex + 1) % zoneSessions.length, 'AUTOPILOT_ROTATION');
       }
@@ -818,6 +823,12 @@ try {
     embeddedBridge = installParentBridge(window, {
       prepare: prepareEmbeddedScenario,
       apply: applyEmbeddedScenario,
+      selectZone: zoneId => {
+        const index = zoneSessions.findIndex(session => session.zoneId === zoneId);
+          if (index < 0) return false;
+          if (index === activeZoneIndex) { pinnedZoneId = zoneId; announceScenePatch(); return true; }
+          return activateZone(index, 'PARENT_SELECTED');
+      },
       setCameraMode: mode => mode === 'MANUAL_FIRST_PERSON'
         ? enterManualCamera('PARENT_REQUEST')
         : enterAutopilot('PARENT_REQUEST'),

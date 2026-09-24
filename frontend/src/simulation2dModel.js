@@ -1,3 +1,5 @@
+import { buildWarehouseScene, warehouseFrameAt } from './warehouse2dScene.js';
+
 const REQUEST_FIELDS = new Set([
   'schema_version', 'request_id', 'tenant_id', 'project_id', 'scenario_spec',
   'mode', 'peak_factor', 'sla', 'resources', 'limits',
@@ -91,6 +93,9 @@ function routePoints(zone) {
 
 export function buildSimulationScene(spec) {
   object(spec, 'ScenarioSpec');
+  if (spec.template === 'warehouse' && spec.profile?.calculation_profile === 'TRANSPORT_CYCLE_V1') {
+    return buildWarehouseScene(spec);
+  }
   const zones = spec.zones.map((zone, index) => {
     const columns = Math.min(2, spec.zones.length);
     const row = Math.floor(index / columns);
@@ -214,6 +219,7 @@ function interpolate(points, progress) {
 }
 
 export function frameAt(scene, bundle, simulationTimeUs) {
+  if (scene.kind === 'WAREHOUSE_TRANSPORT') return warehouseFrameAt(scene, bundle, simulationTimeUs);
   const { spec, report } = bundle;
   const routeById = new Map(scene.routes.map((route) => [route.id, route]));
   const operationsByZone = new Map(scene.operations.map((operation) => [operation.zoneId, operation]));
@@ -261,7 +267,14 @@ export function deterministicCapture(request, report, simulationTimeUs = 5_000_0
     },
     geometry: scene.zones.map(({ id, geometryLabel, geometryRef, assumptionRef }) => ({ id, geometryLabel, geometryRef, assumptionRef })),
     routes: scene.routes.map(({ id, geometryLabel, analyticalDistance, visualOnly }) => ({ id, geometryLabel, analyticalDistance, visualOnly })),
-    robots: frame.robots.map(({ id, stage, x, y }) => ({ id, stage, x: Number(x.toFixed(3)), y: Number(y.toFixed(3)) })),
+    robots: scene.kind === 'WAREHOUSE_TRANSPORT'
+      ? frame.robots.map(({ id, zoneId, taskId, routeId, stage, cargoState, x, y }) => ({
+        id, zoneId, taskId, routeId, stage, cargoState,
+        x: Number(x.toFixed(3)), y: Number(y.toFixed(3)),
+      }))
+      : frame.robots.map(({ id, stage, x, y }) => ({
+        id, stage, x: Number(x.toFixed(3)), y: Number(y.toFixed(3)),
+      })),
     sla: report.sla.verdict,
     capacity: report.capacity.verdict,
   };

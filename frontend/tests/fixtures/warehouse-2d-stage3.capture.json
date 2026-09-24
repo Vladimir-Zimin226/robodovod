@@ -1,0 +1,134 @@
+{
+  "binding": {
+    "scenario_revision_id": "calc_8e4d2fbfe19895c5",
+    "report_id": "report.9adea32596c55e1f",
+    "report_digest": "sha256:f03b75e275549bb7b78dc66d3daa2b8e3b21241decae1f6b041cb8fa61d914d7",
+    "seed": "scenario-c665c43f4c6f2942",
+    "simulation_time_us": 5000000
+  },
+  "geometry": [
+    {
+      "id": "zone.process.receiving",
+      "geometryLabel": "Расположение условное",
+      "geometryRef": null,
+      "assumptionRef": "assumption.synthetic-geometry"
+    }
+  ],
+  "routes": [
+    {
+      "id": "route.process.receiving",
+      "geometryLabel": "Расположение условное",
+      "analyticalDistance": {
+        "value": "120",
+        "unit": "m",
+        "quantity_kind": "DISTANCE",
+        "numeric_encoding": "DECIMAL_STRING"
+      },
+      "visualOnly": true
+    }
+  ],
+  "robots": [
+    {
+      "id": "fleet.process.receiving.1",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "LOADING",
+      "cargoState": "AT_PICKUP",
+      "x": 387.2,
+      "y": 175
+    },
+    {
+      "id": "fleet.process.receiving.2",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "RETURN",
+      "cargoState": "DELIVERED",
+      "x": 411.578,
+      "y": 202
+    },
+    {
+      "id": "fleet.process.receiving.3",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "TO_DROPOFF",
+      "cargoState": "ON_ROBOT",
+      "x": 464.723,
+      "y": 229
+    },
+    {
+      "id": "fleet.process.receiving.4",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "RETURN",
+      "cargoState": "DELIVERED",
+      "x": 734.66,
+      "y": 256
+    },
+    {
+      "id": "fleet.process.receiving.5",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "TO_DROPOFF",
+      "cargoState": "ON_ROBOT",
+      "x": 606.907,
+      "y": 283
+    },
+    {
+      "id": "fleet.process.receiving.6",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "RETURN",
+      "cargoState": "DELIVERED",
+      "x": 728.754,
+      "y": 310
+    },
+    {
+      "id": "fleet.process.receiving.7",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "TO_PICKUP",
+      "cargoState": "AT_PICKUP",
+      "x": 314.776,
+      "y": 337
+    },
+    {
+      "id": "fleet.process.receiving.8",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "UNLOADING",
+      "cargoState": "AT_DROPOFF",
+      "x": 744.4,
+      "y": 364
+    },
+    {
+      "id": "fleet.process.receiving.9",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "TO_PICKUP",
+      "cargoState": "AT_PICKUP",
+      "x": 359.321,
+      "y": 391
+    },
+    {
+      "id": "fleet.process.receiving.10",
+      "zoneId": "zone.process.receiving",
+      "taskId": "task.process.receiving",
+      "routeId": "route.process.receiving",
+      "stage": "TO_PICKUP",
+      "cargoState": "AT_PICKUP",
+      "x": 159.803,
+      "y": 418
+    }
+  ],
+  "sla": "NOT_EVALUATED",
+  "capacity": "CONSISTENT"
+}

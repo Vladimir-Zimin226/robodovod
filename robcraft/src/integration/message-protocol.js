@@ -1,6 +1,6 @@
 export const MESSAGE_SCHEMA_VERSION = 'robcraft-message-v1';
 
-const INBOUND_TYPES = new Set(['LOAD_SCENARIO', 'APPLY_REVISION', 'SET_CAMERA_MODE', 'SET_EDITOR_MODE']);
+const INBOUND_TYPES = new Set(['LOAD_SCENARIO', 'APPLY_REVISION', 'SET_CAMERA_MODE', 'SET_EDITOR_MODE', 'SELECT_ZONE']);
 const CAMERA_MODES = new Set(['AUTOPILOT', 'MANUAL_FIRST_PERSON']);
 const ENVELOPE_FIELDS = new Set([
   'schema_version', 'type', 'revision_id', 'request_id', 'payload'
@@ -48,6 +48,9 @@ export function parseParentMessage(value) {
   } else if (value.type === 'SET_CAMERA_MODE') {
     assertExactFields(value.payload, new Set(['mode']), 'SET_CAMERA_MODE.payload');
     if (!CAMERA_MODES.has(value.payload.mode)) throw new TypeError('Неподдерживаемый режим камеры');
+  } else if (value.type === 'SELECT_ZONE') {
+    assertExactFields(value.payload, new Set(['zone_id']), 'SELECT_ZONE.payload');
+    if (typeof value.payload.zone_id !== 'string' || !value.payload.zone_id) throw new TypeError('SELECT_ZONE.zone_id обязателен');
   } else {
     assertExactFields(value.payload, new Set(['enabled']), 'SET_EDITOR_MODE.payload');
     if (typeof value.payload.enabled !== 'boolean') throw new TypeError('SET_EDITOR_MODE.enabled должен быть boolean');
@@ -65,7 +68,7 @@ export function childMessage(type, revisionId, requestId, payload = {}) {
   };
 }
 
-export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState, getRendererReport }) {
+export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState, getRendererReport, selectZone }) {
   if (windowObject.parent === windowObject) return { dispose() {}, cameraModeChanged() {}, editorModeChanged() {}, scenePatchChanged() {}, rendererReportChanged() {} };
   const origin = windowObject.location.origin;
   let prepared = null;
@@ -78,7 +81,7 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
     source.revision_id ?? null,
     source.request_id ?? null,
     {
-      code: source.type === 'SET_CAMERA_MODE' ? 'CAMERA_CONTROL_REJECTED' : source.type === 'SET_EDITOR_MODE' ? 'EDITOR_CONTROL_REJECTED' : 'SCENARIO_REJECTED',
+      code: source.type === 'SET_CAMERA_MODE' ? 'CAMERA_CONTROL_REJECTED' : source.type === 'SET_EDITOR_MODE' ? 'EDITOR_CONTROL_REJECTED' : source.type === 'SELECT_ZONE' ? 'ZONE_SELECTION_REJECTED' : 'SCENARIO_REJECTED',
       message: error instanceof Error ? error.message : String(error)
     }
   ));
@@ -153,6 +156,8 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
       if (message.type === 'SET_CAMERA_MODE') {
         const state = await setCameraMode(message.payload.mode);
         cameraModeChanged(state.mode, state.reason || 'PARENT_REQUEST', state.pointerLocked);
+      } else if (message.type === 'SELECT_ZONE') {
+        if (!selectZone || !await selectZone(message.payload.zone_id)) throw new TypeError('3D-зона недоступна для выбора');
       } else {
         const state = await setEditorMode(message.payload.enabled);
         editorModeChanged(state);

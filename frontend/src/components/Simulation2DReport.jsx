@@ -9,6 +9,7 @@ import {
   reduceTimeline,
 } from '../simulation2dModel';
 import RobCraftFrame from './RobCraftFrame';
+import Warehouse2DPlan from './Warehouse2DPlan';
 
 const STATUS_LABELS = {
   STOPPED: 'Остановлено', RUNNING: 'Воспроизведение', PAUSED: 'Пауза',
@@ -49,6 +50,12 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     ? `${active.request.scenario_spec.revision_id}:${report.replay.report_content_digest}`
     : `pending:${active?.request?.scenario_spec?.revision_id || 'none'}`;
   const [timeline, dispatch] = useReducer(reduceTimeline, bindingKey, createTimelineState);
+  const [zoneChoice, setZoneChoice] = useState({ bindingKey: null, id: null });
+  const persistedZoneId = useMemo(() => {
+    try { return window.sessionStorage.getItem(`simulation-zone:${bindingKey}`); }
+    catch { return null; }
+  }, [bindingKey]);
+  const selectedZoneId = zoneChoice.bindingKey === bindingKey ? zoneChoice.id : persistedZoneId;
   const previousFrame = useRef(null);
 
   useEffect(() => {
@@ -123,6 +130,13 @@ export default function Simulation2DReport({ request, initialReport = null, scen
 
   const progress = runState?.progress;
   const progressValue = progress?.total_events ? Math.round(progress.processed_events / progress.total_events * 100) : 0;
+  const warehouseScene = presentation?.scene?.kind === 'WAREHOUSE_TRANSPORT' ? presentation.scene : null;
+  const activeZoneId = warehouseScene?.zones.some((zone) => zone.id === selectedZoneId)
+    ? selectedZoneId : warehouseScene?.zones[0]?.id;
+  const selectZone = (id) => {
+    setZoneChoice({ bindingKey, id });
+    try { window.sessionStorage.setItem(`simulation-zone:${bindingKey}`, id); } catch { /* private mode */ }
+  };
 
   return (
     <section className="simulation-2d panel" id="visualization" aria-label="2D-симуляция и отчёт">
@@ -135,6 +149,11 @@ export default function Simulation2DReport({ request, initialReport = null, scen
         {options.length > 1 && (
           <label>Сценарий<select value={selected} onChange={(event) => selectScenario(event.target.value)}>{options.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
         )}
+        {warehouseScene?.zones.length > 1 && <label>Зона склада
+          <select value={activeZoneId} onChange={(event) => selectZone(event.target.value)}>
+            {warehouseScene.zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.label}</option>)}
+          </select>
+        </label>}
       </header>
 
       {!report && (
@@ -167,7 +186,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             <strong>{STATUS_LABELS[timeline.status]}</strong>
           </div>
 
-          <div className="simulation-canvas-wrap">
+          {warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} /> : <div className="simulation-canvas-wrap">
             <svg viewBox={`0 0 ${presentation.scene.width} ${presentation.scene.height}`} role="img" aria-label="Зоны, маршруты, парк и операции">
               <defs><marker id="simulation-flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#67e8f9" /></marker></defs>
               {presentation.scene.zones.map((zone) => <g key={zone.id}><rect className={`simulation-zone source-${zone.geometrySource.toLowerCase()}`} x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="16" /><text className="zone-name" x={zone.x + 16} y={zone.y + 26}>{zone.label}</text><text className="geometry-source" x={zone.x + 16} y={zone.y + 46}>{zone.geometryLabel}</text></g>)}
@@ -177,7 +196,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             </svg>
             <div className="simulation-legend"><span>→ направление потока · обратный ход по нижней линии</span><span><i className="legend-robot" /> условное положение робота</span><span>↯ зарядка учтена агрегированно; точка не задана</span></div>
             <p className="simulation-schematic-note">Зоны и точки показаны схематично; даже PROVIDED означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, KPI берутся из отчёта C23.</p>
-          </div>
+          </div>}
 
           <div className="simulation-kpis">
             {metric('Парк', number(report.workload.fleet_units, ' роботов'))}
@@ -199,7 +218,8 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             <div><h3>Ограничения отчёта</h3><ul>{report.limitations.map((item) => <li key={item}>{item}</li>)}</ul></div>
             <div><h3>Геометрия и экономика</h3><p>{presentation.bundle.spec.finance === null ? 'Capacity-only: финансовый snapshot не предоставлен; визуализация полностью доступна.' : 'Finance binding показан только как immutable reference; браузер не считает деньги.'}</p><p>Synthetic coordinates используются только для показа и не переписывают analytical route/distance.</p></div>
           </div>
-          <RobCraftFrame scenarioSpec={active.request.scenario_spec} simulationReport={report} compact />
+          <RobCraftFrame scenarioSpec={active.request.scenario_spec} simulationReport={report}
+            selectedZoneId={warehouseScene ? activeZoneId : null} onZoneChange={warehouseScene ? selectZone : null} compact />
         </>
       )}
     </section>

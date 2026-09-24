@@ -3,10 +3,12 @@ import { negotiateScenarioSpec, parentMessage, parseRobCraftMessage } from '../r
 
 const LOAD_TIMEOUT_MS = 12000;
 
-export default function RobCraftFrame({ scenarioSpec, simulationReport = null, compact = false }) {
+export default function RobCraftFrame({ scenarioSpec, simulationReport = null, compact = false, selectedZoneId = null, onZoneChange = null }) {
   const iframeRef = useRef(null);
   const requestCounter = useRef(0);
   const activeRequest = useRef(null);
+  const zoneSyncReady = useRef(false);
+  const onZoneChangeRef = useRef(onZoneChange);
   const [ready, setReady] = useState(false);
   const [capabilities, setCapabilities] = useState([]);
   const [appliedRevision, setAppliedRevision] = useState(null);
@@ -33,6 +35,8 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
     iframeRef.current?.contentWindow?.postMessage(message, window.location.origin);
   };
 
+  useEffect(() => { onZoneChangeRef.current = onZoneChange; }, [onZoneChange]);
+
   useEffect(() => {
     const onMessage = (event) => {
       if (event.origin !== window.location.origin || event.source !== iframeRef.current?.contentWindow) return;
@@ -42,6 +46,7 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
           setCapabilities(message.payload.capabilities);
           setReady(true);
           setAppliedRevision(null);
+          zoneSyncReady.current = false;
           setEditorEnabled(false);
           setScenePatch({ status: 'CLEAN', summary: null, zoneId: null });
           setError(null);
@@ -72,6 +77,8 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
         }
         if (message.type === 'SCENE_PATCH_CHANGED') {
           setScenePatch({ status: message.payload.status, summary: message.payload.summary, zoneId: message.payload.zone_id });
+          setError(null);
+          if (zoneSyncReady.current) onZoneChangeRef.current?.(message.payload.zone_id);
           return;
         }
         if (message.type === 'ROBCRAFT_REPORT') {
@@ -101,9 +108,17 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
     if (negotiationError) return;
     requestCounter.current += 1;
     const requestId = `request_${Date.now()}_${requestCounter.current}`;
+    zoneSyncReady.current = false;
     activeRequest.current = { requestId, revisionId, reportDigest, bindingKey };
     post(parentMessage('LOAD_SCENARIO', revisionId, requestId, { scenario_spec: scenarioSpec, simulation_report: simulationReport }));
   }, [ready, capabilities, negotiationError, scenarioSpec, simulationReport, revisionId, reportDigest, bindingKey, appliedRevision]);
+
+  useEffect(() => {
+    const current = activeRequest.current;
+    if (!selectedZoneId || appliedRevision !== bindingKey || current?.bindingKey !== bindingKey) return;
+    zoneSyncReady.current = true;
+    post(parentMessage('SELECT_ZONE', current.revisionId, current.requestId, { zone_id: selectedZoneId }));
+  }, [appliedRevision, bindingKey, selectedZoneId]);
 
   useEffect(() => {
     if (!synchronizing) return undefined;

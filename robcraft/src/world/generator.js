@@ -249,7 +249,9 @@ function applyScenarioToScene(scene, parsed, zoneEntry) {
       Object.assign(route, profile, {
         id: index + 1, modelCode: scenario.equipmentModelId, label: scenario.equipmentModelId,
         maxLoadKg: scenario.payloadKg, equipmentModelId: scenario.equipmentModelId,
-        zoneId: scenario.zoneId, unitsPerTrip: scenario.unitsPerTrip,
+        zoneId: scenario.zoneId, taskId: scenario.taskId, scenarioRouteId: scenario.routeId,
+        pickupId: scenario.pickupId, dropoffId: scenario.dropoffId,
+        unitsPerTrip: scenario.unitsPerTrip,
         taskProfileKind: scenario.taskKind, exchangeTimeS: scenario.exchangeTimeS,
         speed: scenario.maxSpeedMS, kind: scenario.processType === 'delivery' ? 'medical' : route.kind
       });

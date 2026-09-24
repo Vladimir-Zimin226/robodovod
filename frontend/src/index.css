@@ -40,6 +40,31 @@
 .simulation-zone.source-provided { stroke: #22d3ee; }
 .simulation-zone.source-synthetic { stroke-dasharray: 7 6; stroke: #fbbf24; }
 .simulation-route { fill: none; stroke: #67e8f9; stroke-width: 4; stroke-dasharray: 10 7; opacity: .75; }
+.warehouse-canvas-wrap { max-width: 100%; background: #09151b; }
+.warehouse-svg-scroll { width: 100%; overflow-x: auto; }
+.warehouse-svg-scroll svg { min-width: 660px; min-height: 0; height: auto; }
+.warehouse-rack { fill: #405349; stroke: #a9bc77; stroke-width: 1.5; }
+.warehouse-rack-shelf { stroke: #758d72; stroke-width: 1; }
+.warehouse-aisle-label { fill: #8eada9; font-size: 10px; letter-spacing: .09em; }
+.warehouse-geometry-label { fill: #f4b457; font-size: 11px; }
+.warehouse-track { fill: none; stroke: #4ccfe3; stroke-width: 2; stroke-dasharray: 6 5; opacity: .45; }
+.warehouse-pickup { fill: #f4b457; stroke: #f9ddb1; stroke-width: 1; }
+.warehouse-dropoff { fill: #7de1e8; stroke: #cff8fa; stroke-width: 1; }
+.warehouse-cargo { fill: #c88f4c; stroke: #f8d6a4; stroke-width: 1; }
+.warehouse-cargo.cargo-on_robot { fill: #f0be67; }
+.warehouse-cargo.cargo-delivered { fill: #79d7d4; }
+.warehouse-robot-number { fill: #08231f; font-size: 9px; font-weight: 800; pointer-events: none; }
+.warehouse-station { fill: #1e4850; stroke: #74cfd7; stroke-width: 1; }
+.warehouse-station-label { fill: #cceced; font-size: 10px; }
+.warehouse-zone-details { display: grid; gap: 5px; padding: 13px 16px; background: #10232a; border: 1px solid #28474d; border-radius: 10px; color: #bfd7d8; font-size: 12px; }
+.warehouse-zone-details strong { color: #f0f7f4; font-size: 14px; }
+.warehouse-zone-details code { color: #93edce; overflow-wrap: anywhere; }
+.warehouse-canvas-wrap .simulation-legend { flex-wrap: wrap; }
+.warehouse-robot-states { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 7px; margin-top: 9px; }
+.warehouse-robot-states > div { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid #28474d; border-radius: 7px; background: #10232a; font-size: 11px; }
+.warehouse-robot-states strong { color: #e8f8f1; }
+.warehouse-robot-states span { color: #a9e7cf; }
+.warehouse-robot-states small { color: #b5c7ca; }
 .simulation-schematic-note { margin: 8px 14px 12px; color: #cbd5e1; font-size: .83rem; }
 .zone-name { fill: #eff7ff; font-size: 16px; font-weight: 700; }
 .geometry-source { fill: #fbbf24; font-size: 10px; letter-spacing: .08em; }

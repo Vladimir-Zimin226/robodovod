@@ -1,3 +1,5 @@
+import { sceneBindingsV2 } from './scene-bindings.js';
+
 const ROOT_FIELDS = new Set(['schema_version', 'revision_id', 'source', 'template', 'seed', 'presentation', 'facility', 'zones', 'fleet', 'task_profiles', 'economics', 'assumptions', 'warnings']);
 const ZONE_FIELDS = new Set(['id', 'name', 'process_type', 'cargo_type', 'status', 'demand_per_day', 'avg_distance_m', 'aisle_width_m', 'polygon']);
 const FLEET_FIELDS = new Set(['zone_id', 'equipment_model_id', 'visual_profile', 'quantity', 'max_speed_m_s', 'payload_kg']);
@@ -146,9 +148,12 @@ function parseScenarioSpecV2(source) {
     if (!zoneIds.has(task.zone_id) || task.operating_window_refs.some(ref => !windowMap.has(ref)) || (task.route_ref !== null && !routeMap.has(task.route_ref))) throw new TypeError(`ScenarioSpec task ${task.task_id} содержит несогласованные ссылки`);
   });
   const profile = V2_PROCESS[source.profile.calculation_profile];
+  const bindings = sceneBindingsV2(source);
   const zones = source.zones.map(zone => {
-    const task = source.tasks.find(item => item.zone_id === zone.zone_id && item.process_id === source.profile.process_id);
-    const fleet = source.fleet.find(item => item.zone_id === zone.zone_id && item.process_id === source.profile.process_id);
+    const binding = bindings.find(item => item.zoneId === zone.zone_id);
+    const taskBinding = binding.tasks.find(item => item.processId === source.profile.process_id);
+    const task = taskBinding?.source;
+    const fleet = binding.fleet.find(item => item.processId === source.profile.process_id)?.source;
     const normalizedZone = deepFreeze({ id: zone.zone_id, name: zone.label, process_type: profile.processType, polygon: null, geometry_source: zone.geometry_source, geometry_ref: zone.geometry_ref });
     if (!task || !fleet || fleet.selected_fleet < 1) return Object.freeze({ zone: normalizedZone, supported: false, reason: 'NO_RENDERABLE_FLEET_OR_TASK' });
     const demandPerDay = quantityV2(task.demand, `task ${task.task_id}.demand`);
@@ -158,7 +163,9 @@ function parseScenarioSpecV2(source) {
     const route = task.route_ref === null ? null : routeMap.get(task.route_ref);
     const scenario = Object.freeze({
       revisionId: source.revision_id, scenarioSchemaVersion: source.schema_version, scenarioSeed: source.seed,
-      zoneId: zone.zone_id, zoneName: zone.label, processType: profile.processType,
+      zoneId: zone.zone_id, zoneName: zone.label, taskId: task.task_id, routeId: task.route_ref,
+      pickupId: taskBinding.pickupId, dropoffId: taskBinding.dropoffId,
+      processType: profile.processType,
       equipmentModelId: fleet.model_id, visualProfile: `conceptual-${profile.processType}`, internalProfile: profile.internalProfile,
       quantity: positiveInteger(fleet.selected_fleet, `fleet ${fleet.fleet_id}.selected_fleet`, 100),
       maxSpeedMS: profile.speed, payloadKg: 0, visualKinematicsSource: 'CONCEPTUAL_RENDERER_DEFAULT_V1',

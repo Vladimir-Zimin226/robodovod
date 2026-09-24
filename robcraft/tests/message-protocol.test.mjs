@@ -20,10 +20,41 @@ test('validates the message envelope and revision consistency', () => {
   assert.throws(() => parseParentMessage(envelope('SET_CAMERA_MODE', { mode: 'EDITOR' })), /режим камеры/);
   assert.equal(parseParentMessage(envelope('SET_EDITOR_MODE', { enabled: true })).payload.enabled, true);
   assert.throws(() => parseParentMessage(envelope('SET_EDITOR_MODE', { enabled: 'yes' })), /boolean/);
+  assert.equal(parseParentMessage(envelope('SELECT_ZONE', { zone_id: 'zone.warehouse' })).payload.zone_id, 'zone.warehouse');
+  assert.throws(() => parseParentMessage(envelope('SELECT_ZONE', { zone_id: '' })), /zone_id/);
+  assert.throws(() => parseParentMessage(envelope('SELECT_ZONE', { zone_id: 'zone.warehouse', extra: true })), /неизвестные поля/);
   assert.throws(() => parseParentMessage(envelope('LOAD_SCENARIO', {
     scenario_spec: scenario,
     simulation_report: { schema_version: 'simulation-report-v1', scenario_revision_id: 'calc_ffffffffffffffff', replay: { report_content_digest: `sha256:${'a'.repeat(64)}` } },
   })), /revision/);
+});
+
+test('zone selection is bound to the applied revision and rejects an unavailable zone', async () => {
+  const sent = [];
+  const listeners = new Map();
+  const parent = { postMessage: message => sent.push(message) };
+  const fakeWindow = {
+    parent, location: { origin: 'http://same-origin.test' },
+    addEventListener: (name, listener) => listeners.set(name, listener), removeEventListener: () => {},
+  };
+  const selected = [];
+  installParentBridge(fakeWindow, {
+    prepare: async () => ({}), apply: async () => {},
+    selectZone: zoneId => { selected.push(zoneId); return zoneId === 'zone.warehouse'; },
+  });
+  const send = data => listeners.get('message')({ origin: fakeWindow.location.origin, source: parent, data });
+  await send(envelope('SELECT_ZONE', { zone_id: 'zone.warehouse' }));
+  assert.equal(sent.at(-1).payload.code, 'ZONE_SELECTION_REJECTED');
+  assert.deepEqual(selected, []);
+  await send(envelope('LOAD_SCENARIO', { scenario_spec: { revision_id: revision } }));
+  await send(envelope('APPLY_REVISION'));
+  await send(envelope('SELECT_ZONE', { zone_id: 'zone.warehouse' }));
+  assert.deepEqual(selected, ['zone.warehouse']);
+  await send(envelope('SELECT_ZONE', { zone_id: 'zone.missing' }));
+  assert.equal(sent.at(-1).payload.code, 'ZONE_SELECTION_REJECTED');
+  await send({ ...envelope('SELECT_ZONE', { zone_id: 'zone.warehouse' }), request_id: 'request_stale' });
+  assert.equal(sent.at(-1).payload.code, 'ZONE_SELECTION_REJECTED');
+  assert.deepEqual(selected, ['zone.warehouse', 'zone.missing']);
 });
 
 test('returns a revision-bound renderer report after the two-phase apply', async () => {
