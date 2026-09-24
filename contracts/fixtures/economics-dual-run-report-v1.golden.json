@@ -3,7 +3,7 @@
   "policy_version": "economics-runtime-migration-policy-v1",
   "policy_digest": "sha256:b5ec3cd6407aef120b97aefcd70c1b4a10dfb84bee6625cadade38d29dd5df48",
   "legacy_fixture_digest": "sha256:537a8a3683384ea3a48c13b5cb48f2b1adb0df43923a4cb532f5bfdfd092522f",
-  "candidate_fixture_digest": "sha256:120b16c3c8f81edb20a9a4c41161d82acae9d5a4cff6d99f436c8adbf63d6e66",
+  "candidate_fixture_digest": "sha256:417c9bfd47efe58cc2187eb07ee375c44eec22a834ce4dae44d2e0202d57a1e3",
   "differences": [
     {
       "comparison_id": "labour.cost-basis",
@@ -42,5 +42,5 @@
   },
   "approval_status": "APPROVED",
   "blocker_codes": [],
-  "report_digest": "sha256:0853e369cee3099e76066a13ed04bc82b3d669c0e9c8f6d48ccff6160eaec880"
+  "report_digest": "sha256:7398906e788a36374e6068c3d38cb4a223dbfa6ad58202b6c1c2a7492c87afe5"
 }

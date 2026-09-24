@@ -16,6 +16,8 @@ from catalog_repository import (
 from catalog_taxonomy import CATEGORY_LABELS, CATEGORY_ORDER
 from catalog_runtime import CatalogRuntime, CatalogRuntimeConfigurationError
 from calculation.service import analyze_capacity
+from economics_orchestrator import execute_economics_v2
+from economics_route_activation import resolve_active_economics_version
 from database import get_database
 from economics import (
     ASSUMPTIONS,
@@ -866,6 +868,9 @@ app.include_router(
         resolve_capacity_catalog=_capacity_snapshot,
         analyze_capacity_for_catalog=analyze_capacity,
         resolve_economics_catalog=_capacity_snapshot,
+        resolve_economics_version=lambda: resolve_active_economics_version(get_database()),
+        calculate_economics_v2=execute_economics_v2,
+        require_economics_capacity_source=True,
     )
 )
 app.include_router(create_simulation_router())

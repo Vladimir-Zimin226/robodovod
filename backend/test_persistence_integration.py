@@ -44,6 +44,11 @@ from persistence_models import (
 from project_file_intake import build_csv_template
 from storage_models import Base, CatalogVersion
 from test_capacity_analysis_service import request as capacity_request, snapshot as capacity_snapshot
+from test_economics_orchestrator import (
+    _capacity_request as economics_capacity_request,
+    _inputs as economics_inputs,
+    _snapshot as economics_snapshot,
+)
 from test_robot_fixtures import synthetic_snapshot
 
 
@@ -121,7 +126,7 @@ def clean_persistence(migrated_database, tmp_path, monkeypatch):
         )
         connection.execute(text(
             "DELETE FROM catalog_versions WHERE code LIKE 'persistence-test-%' "
-            "OR code IN ('economics-c28-test', 'c29-test-runtime-v1')"
+            "OR code IN ('economics-c28-test', 'c29-test-runtime-v1', 'orchestrator-test-v1')"
         ))
         connection.execute(text(
             "INSERT INTO catalog_versions "
@@ -527,6 +532,140 @@ def test_preliminary_capacity_run_requires_csrf_and_reopens_with_c05_unknowns(mo
     with TestClient(main.app) as intruder:
         _register(intruder, "demo-capacity-intruder@example.com", PASSWORD_B)
         assert intruder.get(f"/api/v2/capacity-analyses/{result['run_id']}").status_code == 404
+
+
+def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
+    monkeypatch,
+):
+    catalog = economics_snapshot()
+
+    class ProductionCapacitySource:
+        def load_capacity(self):
+            return catalog
+
+        def load_runtime(self):
+            raise AssertionError("production economics v2 must not use legacy runtime")
+
+    monkeypatch.setattr(main, "_CATALOG_RUNTIME", ProductionCapacitySource())
+    now = datetime.now(timezone.utc)
+    with get_database().session() as db:
+        db.add(
+            CatalogVersion(
+                id=uuid.UUID(catalog.version.id),
+                code=catalog.version.code,
+                status="PUBLISHED",
+                schema_version="4",
+                content_sha256="d" * 64,
+                created_at=now,
+                updated_at=now,
+                validated_at=now,
+                published_at=now,
+            )
+        )
+        db.commit()
+    report = EconomicsDualRunReportV1.model_validate_json(
+        (
+            Path(__file__).resolve().parents[1]
+            / "contracts/fixtures/economics-dual-run-report-v1.golden.json"
+        ).read_text(encoding="utf-8")
+    )
+    activate_economics_route(
+        get_database(), report, actor_subject="production-orchestrator-api-test"
+    )
+
+    with TestClient(main.app) as owner:
+        _, headers = _register(owner, "production-flow-owner@example.com")
+        project = _create_project(owner, headers)
+        scenario = next(item for item in project["scenarios"] if item["slot"] == "BASE")
+        capacity_payload = economics_capacity_request().model_dump(mode="json")
+        capacity_payload["project_id"] = project["id"]
+        capacity_created = owner.post(
+            "/api/v2/capacity-analyses", headers=headers, json=capacity_payload
+        )
+        assert capacity_created.status_code == 201, capacity_created.text
+        capacity = capacity_created.json()
+        assert capacity["capacity"]["status"] == "WITH_ASSUMPTIONS"
+
+        endpoint = f"/api/v2/projects/{project['id']}/economics-runs"
+        economics_payload = {
+            "scenario_id": scenario["id"],
+            "capacity_run_id": capacity["run_id"],
+            "input": economics_inputs(),
+        }
+        assert owner.post(endpoint, json=economics_payload).status_code == 403
+        created_response = owner.post(
+            endpoint, headers=headers, json=economics_payload
+        )
+        assert created_response.status_code == 201, created_response.text
+        created = created_response.json()
+        assert created["status"] == "SUCCEEDED"
+        assert created["parent_run_id"] == capacity["run_id"]
+        assert created["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v2"
+        assert len(created["result_snapshot"]["scenarios"]) == 6
+        assert all(
+            item["procurement"]["procurement_status"] == "UNVERIFIED"
+            for item in created["result_snapshot"]["scenarios"]
+        )
+
+        reopened = owner.get(
+            f"/api/projects/{project['id']}/analysis-runs/{created['id']}"
+        )
+        assert reopened.status_code == 200
+        assert reopened.json()["checksums"] == created["checksums"]
+        assert reopened.json()["result_snapshot"] == created["result_snapshot"]
+
+        replay_endpoint = f"{endpoint}/{created['id']}/replay"
+        assert owner.post(replay_endpoint).status_code == 403
+        replay = owner.post(replay_endpoint, headers=headers)
+        assert replay.status_code == 200, replay.text
+        assert replay.json()["status"] == "MATCH"
+        assert replay.json()["result_sha256"] == created["checksums"]["result"]
+
+        rerun_payload = {
+            **economics_payload,
+            "source_run_id": created["id"],
+        }
+        rerun_response = owner.post(endpoint, headers=headers, json=rerun_payload)
+        assert rerun_response.status_code == 201, rerun_response.text
+        rerun = rerun_response.json()
+        assert rerun["id"] != created["id"]
+        assert rerun["parent_run_id"] == created["id"]
+        assert rerun["input_snapshot"]["economics"] == created["input_snapshot"]["economics"]
+
+        manifest = owner.get(
+            f"/api/projects/{project['id']}/analysis-runs/{created['id']}/exports/manifest"
+        )
+        archive = owner.get(
+            f"/api/projects/{project['id']}/analysis-runs/{created['id']}/exports/evidence.zip"
+        )
+        assert manifest.status_code == 200, manifest.text
+        assert archive.status_code == 200
+        assert archive.headers["x-export-manifest-digest"] == manifest.json()["manifest_digest"]
+
+    with TestClient(main.app) as intruder:
+        _, intruder_headers = _register(
+            intruder, "production-flow-intruder@example.com", PASSWORD_B
+        )
+        intruder_project = _create_project(intruder, intruder_headers)
+        intruder_scenario = next(
+            item for item in intruder_project["scenarios"] if item["slot"] == "BASE"
+        )
+        cross_tenant = intruder.post(
+            f"/api/v2/projects/{intruder_project['id']}/economics-runs",
+            headers=intruder_headers,
+            json={
+                **economics_payload,
+                "scenario_id": intruder_scenario["id"],
+            },
+        )
+        assert cross_tenant.status_code == 404
+        assert intruder.post(
+            f"/api/v2/projects/{project['id']}/economics-runs/{created['id']}/replay",
+            headers=intruder_headers,
+        ).status_code == 404
+        assert intruder.get(
+            f"/api/projects/{project['id']}/analysis-runs/{created['id']}/exports/manifest"
+        ).status_code == 404
 
 
 def test_capacity_endpoint_returns_503_without_published_source(monkeypatch):

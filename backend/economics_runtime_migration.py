@@ -187,6 +187,7 @@ def historical_mapping(
             if isinstance(value, dict):
                 return any(
                     key in {"monthly_gross", "monthly_gross_salary"}
+                    or key.endswith("_monthly_gross")
                     or contains_gross(child)
                     for key, child in value.items()
                 )

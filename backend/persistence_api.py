@@ -41,6 +41,7 @@ from economics_runtime_migration import (
     route_operation,
     verify_snapshot,
 )
+from economics_orchestrator import EconomicsExecutionContextV1
 from persistence_models import (
     AnalysisRun,
     AnalysisRunEconomicsVersion,
@@ -197,6 +198,7 @@ class AnalysisCreateRequest(ApiModel):
 
 class EconomicsV2CreateRequest(ApiModel):
     scenario_id: uuid.UUID
+    capacity_run_id: uuid.UUID | None = None
     source_run_id: uuid.UUID | None = None
     input: dict[str, Any]
 
@@ -411,6 +413,70 @@ def _canonical_sha256(value: dict[str, Any]) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def _economics_capacity_context(
+    db: Session,
+    *,
+    project_id: uuid.UUID,
+    tenant_id: uuid.UUID,
+    capacity_run_id: uuid.UUID,
+    catalog_snapshot: Any,
+    economics_run_id: uuid.UUID,
+) -> tuple[AnalysisRun, EconomicsExecutionContextV1]:
+    """Load and verify the immutable C11 source used by a C13-C21 execution."""
+
+    source = db.scalar(
+        select(AnalysisRun).where(
+            AnalysisRun.id == capacity_run_id,
+            AnalysisRun.project_id == project_id,
+            AnalysisRun.run_kind == "CAPACITY_ANALYSIS",
+            AnalysisRun.status == "SUCCEEDED",
+        )
+    )
+    if source is None:
+        raise HTTPException(status_code=404, detail="capacity analysis run not found")
+    if (
+        source.result_snapshot is None
+        or source.trace_snapshot is None
+        or _canonical_sha256(source.input_snapshot) != source.input_sha256
+        or _canonical_sha256(source.result_snapshot) != source.result_sha256
+        or _canonical_sha256(source.trace_snapshot) != source.trace_sha256
+        or source.result_snapshot.get("trace") != source.trace_snapshot
+    ):
+        raise HTTPException(status_code=409, detail="capacity source integrity check failed")
+    if (
+        source.catalog_version_code != catalog_snapshot.version.code
+        or str(source.catalog_version_id) != str(catalog_snapshot.version.id)
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="capacity catalog version is no longer active for economics",
+        )
+    try:
+        request = CapacityAnalysisRequest.model_validate(source.input_snapshot)
+        response = CapacityAnalysisResponse.model_validate(source.result_snapshot)
+        constraints = source.diagnostics["constraints"]
+        executability = source.diagnostics["executability"]
+        if not isinstance(constraints, dict) or not isinstance(executability, dict):
+            raise TypeError("capacity diagnostics are not objects")
+        if request.project_id != str(project_id):
+            raise ValueError("capacity project binding mismatch")
+        if response.run_id != str(source.id):
+            raise ValueError("capacity run binding mismatch")
+    except (KeyError, ValueError, TypeError):
+        raise HTTPException(
+            status_code=409, detail="capacity source snapshot is invalid"
+        ) from None
+    return source, EconomicsExecutionContextV1(
+        run_id=str(economics_run_id),
+        project_id=str(project_id),
+        tenant_id=str(tenant_id),
+        capacity_request=request,
+        capacity_response=response,
+        constraint_report=constraints,
+        executability=executability,
+    )
+
+
 def _capacity_error(status_code: int, error_code: str, message: str, *, run_id: str | None = None) -> JSONResponse:
     reason = "MISSING_SAFE_FACT" if error_code == "CAPACITY_SOURCE_UNAVAILABLE" else "INVALID_DOMAIN"
     body = CapacityAnalysisErrorResponse(
@@ -587,7 +653,8 @@ def create_persistence_router(
     analyze_capacity_for_catalog: Callable[[CapacityAnalysisRequest, Any, str], CapacityExecutionSnapshotV2] | None = None,
     resolve_economics_catalog: Callable[[], Any] | None = None,
     resolve_economics_version: Callable[[], str] | None = None,
-    calculate_economics_v2: Callable[[dict[str, Any], Any], EconomicsV2ExecutionV1] | None = None,
+    calculate_economics_v2: Callable[..., EconomicsV2ExecutionV1] | None = None,
+    require_economics_capacity_source: bool = False,
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
@@ -1292,6 +1359,8 @@ def create_persistence_router(
             raise HTTPException(status_code=404, detail="scenario not found")
         if resolve_economics_version is None or calculate_economics_v2 is None:
             raise HTTPException(status_code=503, detail="economics v2 route unavailable")
+        if require_economics_capacity_source and payload.capacity_run_id is None:
+            raise HTTPException(status_code=422, detail="capacity_run_id is required for economics v2")
         try:
             active_version = resolve_economics_version()
             source = None
@@ -1306,6 +1375,14 @@ def create_persistence_router(
                 )
                 if source is None:
                     raise HTTPException(status_code=404, detail="source analysis run not found")
+                if (
+                    _canonical_sha256(source.input_snapshot) != source.input_sha256
+                    or source.result_snapshot is None
+                    or _canonical_sha256(source.result_snapshot) != source.result_sha256
+                ):
+                    raise HTTPException(
+                        status_code=409, detail="source analysis run integrity check failed"
+                    )
                 source_mapping = historical_mapping(
                     source.economics_version, source.input_snapshot
                 )
@@ -1327,15 +1404,39 @@ def create_persistence_router(
         if economics_catalog_resolver is None:
             raise HTTPException(status_code=503, detail="economics catalog unavailable")
         catalog_snapshot = economics_catalog_resolver()
-        input_snapshot = payload.input
+        run_id = uuid.uuid4()
+        capacity_context = None
+        capacity_source = None
+        if payload.capacity_run_id is not None:
+            capacity_source, capacity_context = _economics_capacity_context(
+                db,
+                project_id=project.id,
+                tenant_id=context.user.id,
+                capacity_run_id=payload.capacity_run_id,
+                catalog_snapshot=catalog_snapshot,
+                economics_run_id=run_id,
+            )
+        input_snapshot = {
+            "schema_version": "economics-run-input-v2",
+            "capacity_run_id": None if payload.capacity_run_id is None else str(payload.capacity_run_id),
+            "source_run_id": None if payload.source_run_id is None else str(payload.source_run_id),
+            "economics": payload.input,
+        }
         try:
-            execution = calculate_economics_v2(payload.input, catalog_snapshot)
+            execution = (
+                calculate_economics_v2(payload.input, catalog_snapshot, capacity_context)
+                if capacity_context is not None
+                else calculate_economics_v2(payload.input, catalog_snapshot)
+            )
+        except ValueError as exc:
+            logger.info("Economics v2 input rejected (error_type=%s)", type(exc).__name__)
+            raise HTTPException(status_code=422, detail=str(exc)) from None
         except Exception:
             logger.exception("Economics v2 calculation failed before persistence")
             raise HTTPException(status_code=500, detail="economics v2 calculation failed") from None
         run = AnalysisRun(
-            id=uuid.uuid4(), project_id=project.id, scenario_id=scenario.id,
-            parent_run_id=(source.id if source is not None else None),
+            id=run_id, project_id=project.id, scenario_id=scenario.id,
+            parent_run_id=(source.id if source is not None else (capacity_source.id if capacity_source is not None else None)),
             run_kind="FULL_ANALYSIS", status="PENDING",
             input_snapshot=input_snapshot, input_sha256=_canonical_sha256(input_snapshot),
             catalog_version_id=uuid.UUID(catalog_snapshot.version.id),
@@ -1369,6 +1470,117 @@ def create_persistence_router(
                project_id=project.id, aggregate={"run_id": str(run.id)})
         db.commit()
         return _run_dict(run, include_snapshots=True, db=db)
+
+    @router.post("/v2/projects/{project_id}/economics-runs/{run_id}/replay")
+    def replay_economics_v2_run(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        context: AuthContext = Depends(require_csrf),
+        db: Session = Depends(database_session),
+    ):
+        """Re-execute a v2 run from its immutable inputs and verify exact output."""
+
+        project = _owned_project(db, project_id, context.user.id)
+        run = db.scalar(
+            select(AnalysisRun).where(
+                AnalysisRun.id == run_id,
+                AnalysisRun.project_id == project.id,
+                AnalysisRun.run_kind == "FULL_ANALYSIS",
+                AnalysisRun.economics_version == V2_VERSION,
+                AnalysisRun.status == "SUCCEEDED",
+            )
+        )
+        if run is None:
+            raise HTTPException(status_code=404, detail="economics v2 run not found")
+        if resolve_economics_version is None or calculate_economics_v2 is None:
+            raise HTTPException(status_code=503, detail="economics v2 route unavailable")
+        economics_catalog_resolver = resolve_economics_catalog or resolve_catalog
+        if economics_catalog_resolver is None:
+            raise HTTPException(status_code=503, detail="economics catalog unavailable")
+        try:
+            if resolve_economics_version() != V2_VERSION:
+                raise EconomicsMigrationError("active economics route is not approved")
+            mapping = historical_mapping(run.economics_version, run.input_snapshot)
+            stored_mapping = db.get(AnalysisRunEconomicsVersion, run.id)
+            if (
+                stored_mapping is None
+                or _mapping_dict(stored_mapping) != mapping.model_dump(mode="json")
+            ):
+                raise EconomicsMigrationError("economics version mapping mismatch")
+            if (
+                _canonical_sha256(run.input_snapshot) != run.input_sha256
+                or run.result_snapshot is None
+                or _canonical_sha256(run.result_snapshot) != run.result_sha256
+                or run.scenario_spec_snapshot is None
+                or _canonical_sha256(run.scenario_spec_snapshot)
+                != run.scenario_spec_sha256
+            ):
+                raise EconomicsMigrationError("saved economics snapshot checksum mismatch")
+            envelope = run.input_snapshot
+            if (
+                envelope.get("schema_version") != "economics-run-input-v2"
+                or not isinstance(envelope.get("economics"), dict)
+                or not isinstance(envelope.get("capacity_run_id"), str)
+            ):
+                raise EconomicsMigrationError("economics replay input is invalid")
+            capacity_run_id = uuid.UUID(envelope["capacity_run_id"])
+        except (EconomicsMigrationError, TypeError, ValueError):
+            raise HTTPException(
+                status_code=409, detail="economics v2 replay prerequisites are invalid"
+            ) from None
+
+        catalog_snapshot = economics_catalog_resolver()
+        _, capacity_context = _economics_capacity_context(
+            db,
+            project_id=project.id,
+            tenant_id=context.user.id,
+            capacity_run_id=capacity_run_id,
+            catalog_snapshot=catalog_snapshot,
+            economics_run_id=run.id,
+        )
+        try:
+            execution = calculate_economics_v2(
+                envelope["economics"], catalog_snapshot, capacity_context
+            )
+        except ValueError:
+            raise HTTPException(
+                status_code=409, detail="economics v2 replay is no longer executable"
+            ) from None
+        except Exception:
+            logger.exception("Economics v2 replay failed")
+            raise HTTPException(status_code=500, detail="economics v2 replay failed") from None
+
+        matches = (
+            _canonical_sha256(execution.result_snapshot) == run.result_sha256
+            and _canonical_sha256(execution.scenario_spec_snapshot)
+            == run.scenario_spec_sha256
+            and execution.revision_id == run.revision_id
+            and execution.rules_version == run.rules_version
+            and execution.object_profile_version == run.object_profile_version
+            and execution.application_version == run.application_version
+            and _canonical_sha256(execution.diagnostics)
+            == _canonical_sha256(run.diagnostics)
+        )
+        if not matches:
+            raise HTTPException(
+                status_code=409, detail="economics v2 deterministic replay mismatch"
+            )
+        _audit(
+            db,
+            "ECONOMICS_V2_REPLAY_VERIFIED",
+            actor_id=context.user.id,
+            project_id=project.id,
+            aggregate={"run_id": str(run.id), "result_sha256": run.result_sha256},
+        )
+        db.commit()
+        return {
+            "status": "MATCH",
+            "run_id": run.id,
+            "result_sha256": run.result_sha256,
+            "scenario_spec_sha256": run.scenario_spec_sha256,
+            "revision_id": run.revision_id,
+            "economics_version": run.economics_version,
+        }
 
     @router.post(
         "/v2/capacity-analyses",

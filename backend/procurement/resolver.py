@@ -59,6 +59,16 @@ def _catalog_money(position: CatalogPositionDTO, option: ProcurementOptionDTO) -
     )
 
 
+def catalog_commercial_money(position: CatalogPositionDTO) -> CommercialMoneyV1 | None:
+    """Expose the exact C13 projection of one immutable catalog price.
+
+    The returned value preserves organizer provenance and UNKNOWN currency; it
+    is not a quote and cannot make procurement ready by itself.
+    """
+
+    return _catalog_money(position, position.procurement_option)
+
+
 def _scope_matches(scope: CommercialScopeV1, request: ProcurementReportRequestV1) -> bool:
     return scope.model_id == request.model_id and scope.position_id == request.position_id
 
