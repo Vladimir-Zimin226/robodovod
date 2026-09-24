@@ -181,9 +181,9 @@ already saved test `analysis_runs` row and found its complete JSON unchanged.
 container: only `/robcraft/` and `/robcraft/index.html` returned SAMEORIGIN and
 `frame-ancestors 'self'`; root, API and RobCraft assets stayed DENY/`'none'`.
 `python scripts/browser_export_smoke.py` passed in native headless Chrome:
-same-origin `Window.fetch` received both exports, and the browser's ZIP/PDF
-blobs matched the source bytes by SHA-256. This local fixture server does not
-prove that Chrome wrote files to disk from a live authenticated run.
+same-origin `Window.fetch` received both exports, Chrome saved ZIP/PDF files to
+an isolated directory, and both files matched the source bytes exactly. This
+local fixture server does not prove a live authenticated HTTPS download.
 
 **Remaining HOLD gates:** a live authenticated browser file save and
 digest/extraction of ZIP/PDF; production HTTPS response headers/console and RobCraft handshake;

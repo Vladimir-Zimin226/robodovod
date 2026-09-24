@@ -53,9 +53,9 @@ ZIP, iframe RobCraft, смысл C23 verdict и 2D; добавлены отде�
 
 Публикация исходного кода в `origin/main` сама по себе не применяет миграцию и
 не переключает трафик; server pull, migration и deployment являются отдельными
-шагами. Локальный headless Chrome подтвердил получение ZIP/PDF blob и их
-SHA-256, а одноразовый Caddy подтвердил scoped iframe headers; live HTTPS,
-браузерное сохранение файлов и preview всё ещё открыты.
+шагами. Локальный headless Chrome сохранил ZIP/PDF файлы и подтвердил их
+побайтовое совпадение, а одноразовый Caddy подтвердил scoped iframe headers;
+live HTTPS, авторизованное скачивание и preview всё ещё открыты.
 
 ### Обновление `v0.5.7` → `v0.5.9`: результат C11, экономика и визуализация
 

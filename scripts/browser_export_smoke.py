@@ -1,7 +1,8 @@
-"""Exercise native Chrome fetch and ZIP/PDF blobs against fixed API bytes.
+"""Exercise native Chrome fetch and actual ZIP/PDF file saves against fixed API bytes.
 
 This is a local browser transport check. PostgreSQL/API ownership and ZIP
-contents are checked by the backend integration suite.
+contents are checked by the backend integration suite. Requires Chrome and
+websocket-client in the local test environment.
 """
 
 from __future__ import annotations
@@ -13,9 +14,12 @@ import subprocess
 import sys
 import tempfile
 import threading
-import hashlib
+import time
 from pathlib import Path
 from urllib.parse import urlparse
+
+import requests
+import websocket
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,20 +41,13 @@ def main() -> int:
     manifest = package.manifest.model_dump(mode="json")
     assert source_digest == manifest["source_snapshot_digests"]["result"]
     module = (ROOT / "frontend/src/evidenceExportApi.js").read_bytes()
-    expected_zip = hashlib.sha256(package.archive).hexdigest()
-    expected_pdf = hashlib.sha256(pdf).hexdigest()
     page = f"""<!doctype html><meta charset="utf-8"><p id="result">PENDING</p>
 <script type="module">
 import {{ EvidenceExportSession }} from '/evidenceExportApi.js';
 try {{
-  const saved = [];
-  const session = new EvidenceExportSession({{saveImpl: (blob, filename) => saved.push([blob, filename])}});
+  const session = new EvidenceExportSession();
   await session.download({json.dumps(run.project_id)}, {json.dumps(run.run_id)});
   await session.downloadReport({json.dumps(run.project_id)}, {json.dumps(run.run_id)});
-  const digest = async blob => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer())))
-    .map(value => value.toString(16).padStart(2, '0')).join('');
-  if (saved.length !== 2 || await digest(saved[0][0]) !== {json.dumps(expected_zip)} ||
-      await digest(saved[1][0]) !== {json.dumps(expected_pdf)}) throw new Error('download bytes mismatch');
   document.getElementById('result').textContent = 'PASS';
 }} catch (error) {{
   document.getElementById('result').textContent = 'FAIL: ' + error;
@@ -91,26 +88,93 @@ try {{
         thread = threading.Thread(target=server.serve_forever)
         thread.start()
         try:
-            return run_browser(server.server_port, temp, chrome)
+            return run_browser(
+                server.server_port, temp, chrome,
+                {
+                    f"robomera-evidence-{run.run_id}.zip": package.archive,
+                    f"robomera-report-{run.run_id}.pdf": pdf,
+                },
+            )
         finally:
             server.shutdown()
             thread.join()
 
 
-def run_browser(port: int, temp: str, chrome: Path) -> int:
+def cdp_call(connection, identity: int, method: str, params: dict | None = None) -> dict:
+    connection.send(json.dumps({"id": identity, "method": method, "params": params or {}}))
+    while True:
+        message = json.loads(connection.recv())
+        if message.get("id") == identity:
+            if "error" in message:
+                raise RuntimeError(message["error"])
+            return message.get("result", {})
+
+
+def run_browser(port: int, temp: str, chrome: Path, expected: dict[str, bytes]) -> int:
+    profile = Path(temp) / "profile"
+    downloads = Path(temp) / "downloads"
+    downloads.mkdir()
     command = [
         str(chrome), "--headless=new", "--disable-gpu", "--no-first-run",
-        "--no-default-browser-check", f"--user-data-dir={Path(temp) / 'profile'}",
-        "--virtual-time-budget=3000",
-        "--dump-dom", f"http://127.0.0.1:{port}/",
+        "--no-default-browser-check", "--remote-debugging-port=0",
+        "--remote-allow-origins=*", f"--user-data-dir={profile}", "about:blank",
     ]
-    completed = subprocess.run(command, capture_output=True, text=True, timeout=20)
-    if completed.returncode or '<p id="result">PASS</p>' not in completed.stdout:
-        print(completed.stdout[-1000:])
-        print(completed.stderr[-1000:])
-        return 1
-    print("PASS: native Chrome fetch; ZIP and PDF blobs match source SHA-256")
-    return 0
+    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    browser = None
+    page = None
+    try:
+        active_port = profile / "DevToolsActivePort"
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and not active_port.is_file():
+            time.sleep(0.1)
+        if not active_port.is_file():
+            raise RuntimeError("Chrome DevTools did not become ready")
+        debug_port = active_port.read_text(encoding="utf-8").splitlines()[0]
+        debugger = f"http://127.0.0.1:{debug_port}"
+        browser_url = requests.get(debugger + "/json/version", timeout=3).json()["webSocketDebuggerUrl"]
+        page_url = next(item["webSocketDebuggerUrl"] for item in requests.get(debugger + "/json", timeout=3).json() if item["type"] == "page")
+        browser = websocket.create_connection(browser_url, timeout=5)
+        page = websocket.create_connection(page_url, timeout=5)
+        cdp_call(browser, 1, "Browser.setDownloadBehavior", {"behavior": "allow", "downloadPath": str(downloads)})
+        cdp_call(page, 1, "Page.navigate", {"url": f"http://127.0.0.1:{port}/"})
+        state = "PENDING"
+        deadline = time.monotonic() + 15
+        identity = 2
+        while time.monotonic() < deadline:
+            response = cdp_call(page, identity, "Runtime.evaluate", {
+                "expression": "document.getElementById('result')?.textContent || 'PENDING'",
+                "returnByValue": True,
+            })
+            identity += 1
+            state = response.get("result", {}).get("value", "PENDING")
+            if state != "PENDING":
+                break
+            time.sleep(0.1)
+        if state != "PASS":
+            raise AssertionError(f"browser export failed: {state}")
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline and any(not (downloads / name).is_file() for name in expected):
+            time.sleep(0.1)
+        for name, body in expected.items():
+            path = downloads / name
+            if not path.is_file() or path.read_bytes() != body:
+                raise AssertionError(f"browser file missing or altered: {name}")
+        print("PASS: native Chrome fetch; ZIP and PDF files match source bytes")
+        return 0
+    finally:
+        if browser is not None:
+            try:
+                browser.send(json.dumps({"id": 2, "method": "Browser.close"}))
+            except OSError:
+                pass
+            browser.close()
+        if page is not None:
+            page.close()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.terminate()
+            process.wait(timeout=5)
 
 
 if __name__ == "__main__":
