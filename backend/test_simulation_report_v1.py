@@ -14,6 +14,7 @@ from calculation.scheduling import (
     SimulationRequestV1,
     SimulationSlaV1,
     _capacity_verdict,
+    _demand_capacity_verdict,
     run_simulation,
 )
 from calculation_contracts import semantic_digest
@@ -44,8 +45,8 @@ def _scenario(mutator) -> ScenarioSpecV2:
 
 def test_capacity_only_golden_is_deterministic_and_replay_digest_is_self_checking():
     request = _request()
-    first = run_simulation(request)
-    second = run_simulation(request)
+    first = run_simulation(request, engine_version="deterministic-queue-v1")
+    second = run_simulation(request, engine_version="deterministic-queue-v1")
     assert isinstance(first, SimulationReportV1)
     assert first.model_dump(mode="json") == second.model_dump(mode="json")
     assert first.model_dump(mode="json") == json.loads(
@@ -78,7 +79,7 @@ def test_strict_unknown_version_extra_field_and_tenant_isolation():
         _request(tenant_id="tenant.other")
     report = json.loads((FIXTURES / "simulation-report-v1.capacity-only.golden.json").read_text(encoding="utf-8"))
     with pytest.raises(ValidationError):
-        SimulationReportV1.model_validate({**report, "schema_version": "simulation-report-v2"})
+        SimulationReportV1.model_validate({**report, "schema_version": "simulation-report-v3"})
     with pytest.raises(ValidationError, match="extra_forbidden"):
         SimulationReportV1.model_validate({**report, "client_kpi": 1})
     tampered = {**report, "queue": {**report["queue"], "maximum_jobs": 99}}
@@ -142,6 +143,32 @@ def test_deviation_boundary_is_strictly_greater_than_ten_percent():
     assert _capacity_verdict(Decimal("100"), Decimal("90"), overloaded=False) == (Decimal("10"), "CONSISTENT")
     assert _capacity_verdict(Decimal("100"), Decimal("89.999"), overloaded=False)[1] == "DEVIATION"
     assert _capacity_verdict(Decimal("0"), Decimal("1"), overloaded=False) == (None, "INPUT_MISMATCH")
+
+
+def test_v2_compares_served_demand_and_capacity_ceiling_separately():
+    deviation, verdict, ceiling = _demand_capacity_verdict(
+        Decimal("90.91"), Decimal("137.65"), Decimal("90.5"), overloaded=False,
+    )
+    assert deviation < 1 and verdict == "CONSISTENT" and ceiling == "WITHIN_CEILING"
+    assert _demand_capacity_verdict(Decimal("100"), Decimal("100"), Decimal("90"), overloaded=False) == (Decimal("10"), "CONSISTENT", "WITHIN_CEILING")
+    assert _demand_capacity_verdict(Decimal("100"), Decimal("100"), Decimal("89.999"), overloaded=False)[1] == "DEVIATION"
+    assert _demand_capacity_verdict(Decimal("150"), Decimal("100"), Decimal("95"), overloaded=True)[1] == "OVERLOADED"
+    assert _demand_capacity_verdict(Decimal("0"), Decimal("100"), Decimal("0"), overloaded=False)[1] == "N_A"
+    assert _demand_capacity_verdict(Decimal("0"), Decimal("100"), Decimal("1"), overloaded=False)[1] == "INPUT_MISMATCH"
+    assert _demand_capacity_verdict(Decimal("100"), Decimal("100"), Decimal("111"), overloaded=False)[2] == "ABOVE_CEILING"
+
+
+def test_v2_golden_preserves_v1_and_explains_end_of_window_shortfall():
+    request = _request()
+    report = run_simulation(request)
+    assert isinstance(report, SimulationReportV1)
+    assert report.model_dump(mode="json") == json.loads((FIXTURES / "simulation-report-v2.capacity-only.golden.json").read_text(encoding="utf-8"))
+    assert report.schema_version == "simulation-report-v2"
+    assert report.capacity.denominator == "REQUIRED_DEMAND"
+    assert report.capacity.verdict == "CONSISTENT"
+    assert Decimal(report.capacity.demand_shortfall_per_hour) > 0
+    assert report.queue.completed_by_measurement_end < report.queue.measurement_jobs
+    assert "end-of-window-unfinished-jobs" in report.limitations
 
 
 def test_sla_20_and_30_minutes_use_explicit_inputs_and_resource_model():

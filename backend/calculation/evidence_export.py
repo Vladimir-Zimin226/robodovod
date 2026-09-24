@@ -221,7 +221,7 @@ def _rows_for_section(run: EvidenceRunSnapshotV1, digests: dict[str, str | None]
         "Simulation": ("simulation_report", "simulationreport"),
     }
     nodes = _matching_nodes(result, keyword_map[section])
-    if section == "Simulation" and result.get("schema_version") == "simulation-report-v1":
+    if section == "Simulation" and result.get("schema_version") in ("simulation-report-v1", "simulation-report-v2"):
         nodes = [("$", result)]
     rows: list[tuple[str, str, str, str]] = []
     seen: set[tuple[str, str]] = set()

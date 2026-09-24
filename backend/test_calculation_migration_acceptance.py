@@ -64,7 +64,7 @@ def test_golden_path_repeats_five_times_and_engines_remain_offline_and_determini
         economy = calculate_financial_result(financial_request, engine_version="full-cashflows-reconciliation-v1").model_dump(mode="json")
         assert time.monotonic() - economy_started <= 10
         simulation_started = time.monotonic()
-        simulation = run_simulation(simulation_request)
+        simulation = run_simulation(simulation_request, engine_version="deterministic-queue-v1")
         assert time.monotonic() - simulation_started <= 60
         assert economy == expected_financial
         assert isinstance(simulation, SimulationReportV1)

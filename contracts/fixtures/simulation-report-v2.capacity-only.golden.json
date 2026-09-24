@@ -1,0 +1,188 @@
+{
+  "capacity": {
+    "capacity_headroom_per_hour": "127.5",
+    "ceiling_verdict": "WITHIN_CEILING",
+    "demand_shortfall_per_hour": "12.5",
+    "denominator": "REQUIRED_DEMAND",
+    "deviation_percent": "0.5882352941176470588235294118",
+    "expected_effective_per_hour": "2240",
+    "observed_per_hour": "2112.5",
+    "required_per_hour": "2125",
+    "unit": "m2/h",
+    "verdict": "CONSISTENT",
+    "warning_threshold_percent": "10"
+  },
+  "engineering_claim": "PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION",
+  "limitations": [
+    "charging-in-aggregate-allowance",
+    "end-of-window-unfinished-jobs",
+    "no-random-failure-model",
+    "not-engineering-certification",
+    "resource-bottlenecks-not-modelled"
+  ],
+  "project_id": "project.c22.cleaner",
+  "queue": {
+    "censored_jobs": 0,
+    "completed_by_measurement_end": 507,
+    "completed_unit": "m2",
+    "completed_units_by_measurement_end": "50700",
+    "completed_units_with_grace": "51000",
+    "completed_with_grace": 510,
+    "maximum_jobs": 1,
+    "mean_turnaround_seconds": "642.857143",
+    "mean_wait_seconds": "0",
+    "measurement_jobs": 510,
+    "p95_turnaround_seconds": "642.857143",
+    "p95_wait_seconds": "0"
+  },
+  "replay": {
+    "canonical_request_digest": "sha256:79e3422bd8e3217fb379e1414780e580200a10b0c9f0af3ddad7b993bf9931ff",
+    "report_content_digest": "sha256:4d0c9e3ca63fed264911599c68a07d5a8703a395d33a8dee9691fc0e4c74c695",
+    "scenario_spec_digest": "sha256:d8da16e8ef97d6e968c2b73d8945d5d942a0856b0c31c0d6afa8e4a2ce6cd2bc"
+  },
+  "report_id": "report.19200e39097b1359",
+  "request_id": "request.c23.capacity-only",
+  "resources": [],
+  "scenario_revision_id": "calc_fe6611cc9a672595",
+  "schema_version": "simulation-report-v2",
+  "sla": {
+    "denominator_jobs": 510,
+    "on_time_fraction": null,
+    "on_time_jobs": 0,
+    "reason_codes": [
+      "sla-not-supplied"
+    ],
+    "sla_minutes": null,
+    "target_fraction": null,
+    "verdict": "NOT_EVALUATED"
+  },
+  "status": "CONDITIONAL_MODEL",
+  "tenant_id": "tenant.c22",
+  "time_basis": {
+    "completion_grace_days": 1,
+    "measurement_days": 1,
+    "operating_hours_per_day": "24",
+    "seed": 42,
+    "timezone": "Europe/Moscow",
+    "unit": "MICROSECOND",
+    "warmup_days": 1,
+    "window_refs": [
+      "window.day"
+    ]
+  },
+  "trace": [
+    {
+      "input_refs": [
+        "scenario.fleet.nominal_capacity",
+        "scenario.fleet.effective_capacity",
+        "scenario.task.batch"
+      ],
+      "node_id": "simulation.service",
+      "operation": "DERIVE_SERVICE_TIME",
+      "output_ref": "service.effective-seconds",
+      "unit": "s",
+      "value": "642.8571428571428571428571429"
+    },
+    {
+      "input_refs": [
+        "scenario.operating_windows"
+      ],
+      "node_id": "simulation.calendar",
+      "operation": "BUILD_CALENDAR",
+      "output_ref": "calendar.operating-hours",
+      "unit": "h/day",
+      "value": "24"
+    },
+    {
+      "input_refs": [
+        "scenario.task.demand",
+        "scenario.task.batch"
+      ],
+      "node_id": "simulation.arrivals",
+      "operation": "GENERATE_ARRIVALS",
+      "output_ref": "workload.jobs-per-day",
+      "unit": "job/day",
+      "value": "510"
+    },
+    {
+      "input_refs": [
+        "workload.arrivals",
+        "scenario.fleet.selected"
+      ],
+      "node_id": "simulation.dispatch",
+      "operation": "DISPATCH_FIFO",
+      "output_ref": "queue.completed-with-grace",
+      "unit": "job",
+      "value": "510"
+    },
+    {
+      "input_refs": [
+        "service.nominal-seconds",
+        "service.effective-seconds"
+      ],
+      "node_id": "simulation.allowance",
+      "operation": "APPLY_NONPRODUCTIVE_ALLOWANCE",
+      "output_ref": "utilization.nonproductive-seconds",
+      "unit": "s",
+      "value": "98357.142879"
+    },
+    {
+      "input_refs": [
+        "workload.required-per-hour",
+        "scenario.fleet.effective-capacity",
+        "queue.completed-by-measurement-end"
+      ],
+      "node_id": "simulation.capacity",
+      "operation": "COMPARE_CAPACITY",
+      "output_ref": "capacity.deviation-percent",
+      "unit": "%",
+      "value": "0.5882352941176470588235294118"
+    },
+    {
+      "input_refs": [
+        "request.sla",
+        "queue.turnaround"
+      ],
+      "node_id": "simulation.sla",
+      "operation": "EVALUATE_SLA",
+      "output_ref": "sla.on-time-fraction",
+      "unit": "1",
+      "value": null
+    }
+  ],
+  "utilization": {
+    "busy_fraction": "0.9486607144965277777777777778",
+    "busy_seconds": "327857.14293",
+    "denominator": "FLEET_OPERATING_TIME",
+    "failure_downtime_seconds": null,
+    "failure_downtime_status": "NOT_EVALUATED_NO_INPUT",
+    "nonproductive_allowance_seconds": "98357.142879",
+    "nonproductive_fraction": "0.2845982143489583333333333333",
+    "productive_fraction": "0.6640625001475694444444444444",
+    "productive_seconds": "229500.000051",
+    "resource_wait_seconds": "0"
+  },
+  "versions": {
+    "arrival_model_version": "uniform-arrivals-v1",
+    "availability_model_version": "aggregate-nonproductive-allowance-v1",
+    "engine_version": "deterministic-queue-v2",
+    "event_order_version": "event-order-time-priority-process-resource-job-v1",
+    "failure_model_version": "not-provided",
+    "policy_version": "hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2",
+    "precision_policy_version": "decimal-context-28-half-even-v1",
+    "report_version": "simulation-report-v2",
+    "request_version": "simulation-request-v1",
+    "scenario_contract_version": "scenario-spec-v2"
+  },
+  "workload": {
+    "arrival_assumption": "UNIFORM_ARRIVALS",
+    "batch_units": "100",
+    "daily_units": "51000",
+    "fleet_units": 4,
+    "jobs_per_day": 510,
+    "mode": "DAILY",
+    "peak_factor": null,
+    "quantity_unit": "m2/day",
+    "simulated_units_per_day": "51000"
+  }
+}

@@ -70,6 +70,98 @@
       "title": "SimulationCapacityComparisonV1",
       "type": "object"
     },
+    "SimulationCapacityComparisonV2": {
+      "additionalProperties": false,
+      "properties": {
+        "capacity_headroom_per_hour": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Capacity Headroom Per Hour",
+          "type": "string"
+        },
+        "ceiling_verdict": {
+          "enum": [
+            "WITHIN_CEILING",
+            "ABOVE_CEILING",
+            "N_A"
+          ],
+          "title": "Ceiling Verdict",
+          "type": "string"
+        },
+        "demand_shortfall_per_hour": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Demand Shortfall Per Hour",
+          "type": "string"
+        },
+        "denominator": {
+          "const": "REQUIRED_DEMAND",
+          "default": "REQUIRED_DEMAND",
+          "title": "Denominator",
+          "type": "string"
+        },
+        "deviation_percent": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Deviation Percent"
+        },
+        "expected_effective_per_hour": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Expected Effective Per Hour",
+          "type": "string"
+        },
+        "observed_per_hour": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Observed Per Hour",
+          "type": "string"
+        },
+        "required_per_hour": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Required Per Hour",
+          "type": "string"
+        },
+        "unit": {
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "CONSISTENT",
+            "DEVIATION",
+            "OVERLOADED",
+            "N_A",
+            "INPUT_MISMATCH"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        },
+        "warning_threshold_percent": {
+          "const": "10",
+          "default": "10",
+          "title": "Warning Threshold Percent",
+          "type": "string"
+        }
+      },
+      "required": [
+        "required_per_hour",
+        "expected_effective_per_hour",
+        "observed_per_hour",
+        "unit",
+        "deviation_percent",
+        "verdict",
+        "demand_shortfall_per_hour",
+        "capacity_headroom_per_hour",
+        "ceiling_verdict"
+      ],
+      "title": "SimulationCapacityComparisonV2",
+      "type": "object"
+    },
     "SimulationQueueMetricsV1": {
       "additionalProperties": false,
       "properties": {
@@ -611,6 +703,73 @@
       "title": "SimulationVersionsV1",
       "type": "object"
     },
+    "SimulationVersionsV2": {
+      "additionalProperties": false,
+      "properties": {
+        "arrival_model_version": {
+          "const": "uniform-arrivals-v1",
+          "default": "uniform-arrivals-v1",
+          "title": "Arrival Model Version",
+          "type": "string"
+        },
+        "availability_model_version": {
+          "const": "aggregate-nonproductive-allowance-v1",
+          "default": "aggregate-nonproductive-allowance-v1",
+          "title": "Availability Model Version",
+          "type": "string"
+        },
+        "engine_version": {
+          "const": "deterministic-queue-v2",
+          "default": "deterministic-queue-v2",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "event_order_version": {
+          "const": "event-order-time-priority-process-resource-job-v1",
+          "default": "event-order-time-priority-process-resource-job-v1",
+          "title": "Event Order Version",
+          "type": "string"
+        },
+        "failure_model_version": {
+          "const": "not-provided",
+          "default": "not-provided",
+          "title": "Failure Model Version",
+          "type": "string"
+        },
+        "policy_version": {
+          "const": "hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2",
+          "default": "hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "precision_policy_version": {
+          "const": "decimal-context-28-half-even-v1",
+          "default": "decimal-context-28-half-even-v1",
+          "title": "Precision Policy Version",
+          "type": "string"
+        },
+        "report_version": {
+          "const": "simulation-report-v2",
+          "default": "simulation-report-v2",
+          "title": "Report Version",
+          "type": "string"
+        },
+        "request_version": {
+          "const": "simulation-request-v1",
+          "default": "simulation-request-v1",
+          "title": "Request Version",
+          "type": "string"
+        },
+        "scenario_contract_version": {
+          "const": "scenario-spec-v2",
+          "default": "scenario-spec-v2",
+          "title": "Scenario Contract Version",
+          "type": "string"
+        }
+      },
+      "title": "SimulationVersionsV2",
+      "type": "object"
+    },
     "SimulationWorkloadV1": {
       "additionalProperties": false,
       "properties": {
@@ -689,7 +848,15 @@
   "additionalProperties": false,
   "properties": {
     "capacity": {
-      "$ref": "#/$defs/SimulationCapacityComparisonV1"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SimulationCapacityComparisonV1"
+        },
+        {
+          "$ref": "#/$defs/SimulationCapacityComparisonV2"
+        }
+      ],
+      "title": "Capacity"
     },
     "engineering_claim": {
       "const": "PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION",
@@ -738,7 +905,10 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "simulation-report-v1",
+      "enum": [
+        "simulation-report-v1",
+        "simulation-report-v2"
+      ],
       "title": "Schema Version",
       "type": "string"
     },
@@ -775,7 +945,15 @@
       "$ref": "#/$defs/SimulationUtilizationV1"
     },
     "versions": {
-      "$ref": "#/$defs/SimulationVersionsV1"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SimulationVersionsV1"
+        },
+        {
+          "$ref": "#/$defs/SimulationVersionsV2"
+        }
+      ],
+      "title": "Versions"
     },
     "workload": {
       "$ref": "#/$defs/SimulationWorkloadV1"

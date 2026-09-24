@@ -19,7 +19,9 @@ from scenario_spec_v2 import ScenarioSpecV2
 
 SIMULATION_REQUEST_VERSION = "simulation-request-v1"
 SIMULATION_REPORT_VERSION = "simulation-report-v1"
+CORRECTED_SIMULATION_REPORT_VERSION = "simulation-report-v2"
 SIMULATION_ENGINE_VERSION = "deterministic-queue-v1"
+CORRECTED_SIMULATION_ENGINE_VERSION = "deterministic-queue-v2"
 SIMULATION_POLICY_VERSION = "hackathon-calculation-policy-v1+k18-c23"
 EVENT_ORDER_VERSION = "event-order-time-priority-process-resource-job-v1"
 ARRIVAL_MODEL_VERSION = "uniform-arrivals-v1"
@@ -121,6 +123,12 @@ class SimulationVersionsV1(FrozenContractModel):
     precision_policy_version: Literal["decimal-context-28-half-even-v1"] = "decimal-context-28-half-even-v1"
 
 
+class SimulationVersionsV2(SimulationVersionsV1):
+    engine_version: Literal["deterministic-queue-v2"] = CORRECTED_SIMULATION_ENGINE_VERSION
+    report_version: Literal["simulation-report-v2"] = CORRECTED_SIMULATION_REPORT_VERSION
+    policy_version: Literal["hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2"] = "hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2"
+
+
 class SimulationTimeBasisV1(FrozenContractModel):
     unit: Literal["MICROSECOND"] = "MICROSECOND"
     seed: Literal[42] = 42
@@ -153,6 +161,20 @@ class SimulationCapacityComparisonV1(FrozenContractModel):
     verdict: Literal["CONSISTENT", "DEVIATION", "OVERLOADED", "N_A", "INPUT_MISMATCH"]
     denominator: Literal["EXPECTED_EFFECTIVE_FLEET_CAPACITY"] = "EXPECTED_EFFECTIVE_FLEET_CAPACITY"
     warning_threshold_percent: Literal["10"] = "10"
+
+
+class SimulationCapacityComparisonV2(FrozenContractModel):
+    required_per_hour: DecimalString
+    expected_effective_per_hour: DecimalString
+    observed_per_hour: DecimalString
+    unit: Annotated[str, Field(min_length=1)]
+    deviation_percent: DecimalString | None
+    verdict: Literal["CONSISTENT", "DEVIATION", "OVERLOADED", "N_A", "INPUT_MISMATCH"]
+    denominator: Literal["REQUIRED_DEMAND"] = "REQUIRED_DEMAND"
+    warning_threshold_percent: Literal["10"] = "10"
+    demand_shortfall_per_hour: DecimalString
+    capacity_headroom_per_hour: DecimalString
+    ceiling_verdict: Literal["WITHIN_CEILING", "ABOVE_CEILING", "N_A"]
 
 
 class SimulationQueueMetricsV1(FrozenContractModel):
@@ -221,7 +243,7 @@ class SimulationReplayV1(FrozenContractModel):
 
 class SimulationReportV1(StrictContractModel):
     model_config = ConfigDict(extra="forbid", use_enum_values=True, frozen=True)
-    schema_version: Literal["simulation-report-v1"]
+    schema_version: Literal["simulation-report-v1", "simulation-report-v2"]
     report_id: StableId
     request_id: StableId
     tenant_id: StableId
@@ -231,18 +253,22 @@ class SimulationReportV1(StrictContractModel):
     engineering_claim: Literal["PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION"]
     time_basis: SimulationTimeBasisV1
     workload: SimulationWorkloadV1
-    capacity: SimulationCapacityComparisonV1
+    capacity: SimulationCapacityComparisonV1 | SimulationCapacityComparisonV2
     queue: SimulationQueueMetricsV1
     utilization: SimulationUtilizationV1
     sla: SimulationSlaResultV1
     resources: list[SimulationResourceMetricsV1]
     limitations: list[StableId]
     trace: list[SimulationTraceNodeV1]
-    versions: SimulationVersionsV1
+    versions: SimulationVersionsV1 | SimulationVersionsV2
     replay: SimulationReplayV1
 
     @model_validator(mode="after")
     def validate_content_digest(self) -> "SimulationReportV1":
+        if isinstance(self.capacity, SimulationCapacityComparisonV2) != isinstance(self.versions, SimulationVersionsV2):
+            raise ValueError("simulation capacity and engine versions differ")
+        if self.schema_version != self.versions.report_version:
+            raise ValueError("simulation report schema and engine versions differ")
         content = self.model_dump(mode="json")
         actual = content["replay"]["report_content_digest"]
         content["replay"]["report_content_digest"] = "sha256:" + "0" * 64
@@ -370,6 +396,20 @@ def _capacity_verdict(expected: Decimal, observed: Decimal, *, overloaded: bool)
     return deviation, "DEVIATION" if deviation > 10 else "CONSISTENT"
 
 
+def _demand_capacity_verdict(required: Decimal, ceiling: Decimal, observed: Decimal,
+                             *, overloaded: bool) -> tuple[Decimal | None, str, str]:
+    """Compare served demand with demand, then check the independent ceiling."""
+    ceiling_verdict = "N_A" if ceiling == 0 else ("ABOVE_CEILING" if observed > ceiling * Decimal("1.10") else "WITHIN_CEILING")
+    if required == 0:
+        return None, "N_A" if observed == 0 else "INPUT_MISMATCH", ceiling_verdict
+    deviation = abs(observed - required) / required * 100
+    if observed > required * Decimal("1.10") or ceiling_verdict == "ABOVE_CEILING":
+        return deviation, "INPUT_MISMATCH", ceiling_verdict
+    if overloaded or ceiling == 0:
+        return deviation, "OVERLOADED", ceiling_verdict
+    return deviation, "DEVIATION" if deviation > 10 else "CONSISTENT", ceiling_verdict
+
+
 def _service_model(spec: ScenarioSpecV2, calendar: _Calendar) -> tuple[Decimal, Decimal, Decimal, list[tuple[str, Decimal]]]:
     if len(spec.tasks) != 1 or len(spec.fleet) != 1:
         raise ValueError("simulation-report-v1 requires one process-bound task and fleet")
@@ -428,7 +468,8 @@ def _service_model(spec: ScenarioSpecV2, calendar: _Calendar) -> tuple[Decimal, 
 
 
 def _run(request: SimulationRequestV1, *, should_cancel: Callable[[], bool],
-         progress: Callable[[SimulationProgressV1], None], clock: Callable[[], float]) -> SimulationReportV1:
+         progress: Callable[[SimulationProgressV1], None], clock: Callable[[], float],
+         engine_version: str) -> SimulationReportV1:
     spec = request.scenario_spec
     calendar = _calendar(spec)
     task, fleet = spec.tasks[0], spec.fleet[0]
@@ -513,9 +554,13 @@ def _run(request: SimulationRequestV1, *, should_cancel: Callable[[], bool],
         expected_per_hour /= calendar.hours
     observed_per_hour = completed_units / calendar.hours if calendar.hours else Decimal(0)
     is_overloaded = len(completed_measurement) < len(measurement) and simulated > expected_per_hour * calendar.hours
-    deviation, capacity_verdict = _capacity_verdict(
-        expected_per_hour, observed_per_hour, overloaded=is_overloaded,
-    )
+    if engine_version == SIMULATION_ENGINE_VERSION:
+        deviation, capacity_verdict = _capacity_verdict(expected_per_hour, observed_per_hour, overloaded=is_overloaded)
+        ceiling_verdict = None
+    else:
+        deviation, capacity_verdict, ceiling_verdict = _demand_capacity_verdict(
+            required_per_hour, expected_per_hour, observed_per_hour, overloaded=is_overloaded,
+        )
 
     wait_values = [max(0, item.start - item.release) for item in measurement if item.start]
     turnaround_values = [item.completion - item.release for item in completed_grace]
@@ -552,6 +597,8 @@ def _run(request: SimulationRequestV1, *, should_cancel: Callable[[], bool],
         limitations.append("resource-bottlenecks-not-modelled")
     if any(item.geometry_source != "PROVIDED" for item in spec.routes):
         limitations.append("synthetic-route-geometry")
+    if engine_version == CORRECTED_SIMULATION_ENGINE_VERSION and len(completed_measurement) < len(measurement):
+        limitations.append("end-of-window-unfinished-jobs")
     overall = "OVERLOADED" if capacity_verdict == "OVERLOADED" else (
         "DEVIATION" if capacity_verdict in ("DEVIATION", "INPUT_MISMATCH") else (
             "CONDITIONAL_MODEL" if sla_verdict == "CONDITIONAL" or "resource-bottlenecks-not-modelled" in limitations
@@ -566,23 +613,23 @@ def _run(request: SimulationRequestV1, *, should_cancel: Callable[[], bool],
         SimulationTraceNodeV1(node_id="simulation.arrivals", operation="GENERATE_ARRIVALS", input_refs=["scenario.task.demand", "scenario.task.batch"], output_ref="workload.jobs-per-day", value=str(jobs_per_day), unit="job/day"),
         SimulationTraceNodeV1(node_id="simulation.dispatch", operation="DISPATCH_FIFO", input_refs=["workload.arrivals", "scenario.fleet.selected"], output_ref="queue.completed-with-grace", value=str(len(completed_grace)), unit="job"),
         SimulationTraceNodeV1(node_id="simulation.allowance", operation="APPLY_NONPRODUCTIVE_ALLOWANCE", input_refs=["service.nominal-seconds", "service.effective-seconds"], output_ref="utilization.nonproductive-seconds", value=_decimal(Decimal(max(0, measure_busy - measure_productive)) / MICROS_PER_SECOND), unit="s"),
-        SimulationTraceNodeV1(node_id="simulation.capacity", operation="COMPARE_CAPACITY", input_refs=["scenario.fleet.effective_capacity", "queue.completed-by-measurement-end"], output_ref="capacity.deviation-percent", value=None if deviation is None else _decimal(deviation), unit="%"),
+        SimulationTraceNodeV1(node_id="simulation.capacity", operation="COMPARE_CAPACITY", input_refs=(["scenario.fleet.effective_capacity", "queue.completed-by-measurement-end"] if engine_version == SIMULATION_ENGINE_VERSION else ["workload.required-per-hour", "scenario.fleet.effective-capacity", "queue.completed-by-measurement-end"]), output_ref="capacity.deviation-percent", value=None if deviation is None else _decimal(deviation), unit="%"),
         SimulationTraceNodeV1(node_id="simulation.sla", operation="EVALUATE_SLA", input_refs=["request.sla", "queue.turnaround"], output_ref="sla.on-time-fraction", value=None if on_time is None else _decimal(on_time), unit="1"),
     ]
     payload = dict(
-        schema_version=SIMULATION_REPORT_VERSION,
+        schema_version=SIMULATION_REPORT_VERSION if engine_version == SIMULATION_ENGINE_VERSION else CORRECTED_SIMULATION_REPORT_VERSION,
         report_id="report.placeholder",
         request_id=request.request_id, tenant_id=request.tenant_id, project_id=request.project_id,
         scenario_revision_id=spec.revision_id, status=overall,
         engineering_claim="PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION",
         time_basis=SimulationTimeBasisV1(timezone=spec.operating_windows[0].timezone, operating_hours_per_day=_decimal(calendar.hours), window_refs=[item.window_id for item in spec.operating_windows]),
         workload=SimulationWorkloadV1(mode=request.mode, daily_units=_decimal(daily), peak_factor=request.peak_factor, simulated_units_per_day=_decimal(simulated), batch_units=_decimal(batch), jobs_per_day=jobs_per_day, fleet_units=fleet.selected_fleet, quantity_unit=str(task.demand.unit)),
-        capacity=SimulationCapacityComparisonV1(required_per_hour=_decimal(required_per_hour), expected_effective_per_hour=_decimal(expected_per_hour), observed_per_hour=_decimal(observed_per_hour), unit=str(fleet.effective_capacity.unit).replace("/day", "/h"), deviation_percent=None if deviation is None else _decimal(deviation), verdict=capacity_verdict),
+        capacity=(SimulationCapacityComparisonV1(required_per_hour=_decimal(required_per_hour), expected_effective_per_hour=_decimal(expected_per_hour), observed_per_hour=_decimal(observed_per_hour), unit=str(fleet.effective_capacity.unit).replace("/day", "/h"), deviation_percent=None if deviation is None else _decimal(deviation), verdict=capacity_verdict) if engine_version == SIMULATION_ENGINE_VERSION else SimulationCapacityComparisonV2(required_per_hour=_decimal(required_per_hour), expected_effective_per_hour=_decimal(expected_per_hour), observed_per_hour=_decimal(observed_per_hour), unit=str(fleet.effective_capacity.unit).replace("/day", "/h"), deviation_percent=None if deviation is None else _decimal(deviation), verdict=capacity_verdict, demand_shortfall_per_hour=_decimal(max(Decimal(0), required_per_hour - observed_per_hour)), capacity_headroom_per_hour=_decimal(expected_per_hour - observed_per_hour), ceiling_verdict=ceiling_verdict)),
         queue=SimulationQueueMetricsV1(maximum_jobs=maximum_queue, mean_wait_seconds=None if not wait_values else _decimal(Decimal(sum(wait_values)) / len(wait_values) / MICROS_PER_SECOND), p95_wait_seconds=None if not wait_values else _decimal(Decimal(_nearest_rank(wait_values, Decimal("0.95"))) / MICROS_PER_SECOND), mean_turnaround_seconds=None if not turnaround_values else _decimal(Decimal(sum(turnaround_values)) / len(turnaround_values) / MICROS_PER_SECOND), p95_turnaround_seconds=None if not turnaround_values else _decimal(Decimal(_nearest_rank(turnaround_values, Decimal("0.95"))) / MICROS_PER_SECOND), measurement_jobs=len(measurement), completed_by_measurement_end=len(completed_measurement), completed_with_grace=len(completed_grace), completed_units_by_measurement_end=_decimal(completed_units), completed_units_with_grace=_decimal(sum((item.units for item in completed_grace), Decimal(0))), completed_unit=str(task.batch.units_per_cycle.unit), censored_jobs=len(measurement) - len(completed_grace)),
         utilization=SimulationUtilizationV1(busy_fraction=None if not fleet_work_us else _decimal(Decimal(measure_busy) / fleet_work_us), productive_fraction=None if not fleet_work_us else _decimal(Decimal(measure_productive) / fleet_work_us), nonproductive_fraction=None if not fleet_work_us else _decimal(Decimal(max(0, measure_busy - measure_productive)) / fleet_work_us), busy_seconds=_decimal(Decimal(measure_busy) / MICROS_PER_SECOND), productive_seconds=_decimal(Decimal(measure_productive) / MICROS_PER_SECOND), nonproductive_allowance_seconds=_decimal(Decimal(max(0, measure_busy - measure_productive)) / MICROS_PER_SECOND), failure_downtime_seconds=None, failure_downtime_status="NOT_EVALUATED_NO_INPUT", resource_wait_seconds=_decimal(Decimal(sum(item.resource_wait for item in measurement)) / MICROS_PER_SECOND)),
         sla=SimulationSlaResultV1(verdict=sla_verdict, sla_minutes=None if request.sla is None else request.sla.minutes, target_fraction=None if target is None else _decimal(target), on_time_fraction=None if on_time is None else _decimal(on_time), on_time_jobs=on_time_count, denominator_jobs=len(measurement), reason_codes=sla_reasons),
         resources=[SimulationResourceMetricsV1(resource_id=item.resource_id, stage=item.stage, capacity=item.capacity, wait_seconds=_decimal(Decimal(resource_waits[item.resource_id]) / MICROS_PER_SECOND), utilization_fraction=_decimal(Decimal(resource_busy[item.resource_id]) / (item.capacity * 2 * day_work_us))) for item in sorted(request.resources, key=lambda value: value.resource_id)],
-        limitations=sorted(limitations), trace=trace, versions=SimulationVersionsV1(),
+        limitations=sorted(limitations), trace=trace, versions=SimulationVersionsV1() if engine_version == SIMULATION_ENGINE_VERSION else SimulationVersionsV2(),
         replay=SimulationReplayV1(scenario_spec_digest=scenario_digest, canonical_request_digest=request_digest, report_content_digest="sha256:" + "0" * 64),
     )
     canonical = SimulationReportV1.model_construct(**payload).model_dump(mode="json")
@@ -597,6 +644,7 @@ def _run(request: SimulationRequestV1, *, should_cancel: Callable[[], bool],
 def run_simulation(
     request: SimulationRequestV1,
     *,
+    engine_version: Literal["deterministic-queue-v1", "deterministic-queue-v2"] = CORRECTED_SIMULATION_ENGINE_VERSION,
     should_cancel: Callable[[], bool] | None = None,
     progress: Callable[[SimulationProgressV1], None] | None = None,
     clock: Callable[[], float] = time.monotonic,
@@ -605,7 +653,8 @@ def run_simulation(
 
     try:
         return _run(request, should_cancel=should_cancel or (lambda: False),
-                    progress=progress or (lambda _value: None), clock=clock)
+                    progress=progress or (lambda _value: None), clock=clock,
+                    engine_version=engine_version)
     except _Stop as error:
         return SimulationErrorV1(
             request_id=request.request_id,

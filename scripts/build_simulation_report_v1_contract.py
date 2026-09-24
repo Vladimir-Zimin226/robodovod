@@ -62,7 +62,8 @@ def request_fixture() -> SimulationRequestV1:
 
 def expected_files() -> tuple[tuple[Path, bytes], ...]:
     request = request_fixture()
-    report = run_simulation(request)
+    report = run_simulation(request, engine_version="deterministic-queue-v1")
+    corrected = run_simulation(request)
     if not isinstance(report, SimulationReportV1):
         raise RuntimeError(f"golden simulation failed: {report}")
     unknown = request.model_dump(mode="json")
@@ -76,6 +77,7 @@ def expected_files() -> tuple[tuple[Path, bytes], ...]:
         (CONTRACTS / "simulation-error-v1.schema.json", _schema(SimulationErrorV1, "simulation-error-v1.schema.json", "Robomera SimulationError v1")),
         (FIXTURES / "simulation-request-v1.capacity-only.golden.json", _json_bytes(request.model_dump(mode="json"))),
         (FIXTURES / "simulation-report-v1.capacity-only.golden.json", _json_bytes(report.model_dump(mode="json"))),
+        (FIXTURES / "simulation-report-v2.capacity-only.golden.json", _json_bytes(corrected.model_dump(mode="json"))),
         (FIXTURES / "simulation-request-v1.unknown-version.invalid.json", _json_bytes(unknown)),
         (FIXTURES / "simulation-request-v1.extra-field.invalid.json", _json_bytes(extra)),
     )
