@@ -28,8 +28,11 @@ case "$PROJECT" in ''|*[!A-Za-z0-9_-]*) echo "COMPOSE_PROJECT_NAME is invalid" >
 $DOCKER run --rm \
   --volume "${PROJECT}_project_uploads:/source:ro" \
   --volume "$BACKUP_DIR:/backup" \
-  alpine:3.22.2 sh -c "tar -C /source -czf /backup/$(basename "$UPLOADS") ."
+  alpine:3.22.2 sh -eu -c \
+    'umask 077; tar -C /source -czf "$1" .; chown "$2:$3" "$1"; chmod 600 "$1"' \
+    sh "/backup/$(basename "$UPLOADS")" "$(id -u)" "$(id -g)"
 
+test -s "$UPLOADS"
 sha256sum "$DB_DUMP" "$UPLOADS" > "$BACKUP_DIR/sha256-$STAMP.txt"
 chmod 600 "$DB_DUMP" "$UPLOADS" "$BACKUP_DIR/sha256-$STAMP.txt"
 printf '%s\n' "$DB_DUMP" "$UPLOADS" "$BACKUP_DIR/sha256-$STAMP.txt"

@@ -42,9 +42,12 @@ Git нормализовал встроенные CRLF при Linux checkout: `c
 стал 119210 вместо 119228 байт, `catalog_field_evidence.csv` — 826195 вместо
 826253. Исправление `v0.5.1` закрепляет исходные Git blobs и отключает
 нормализацию в `data/import/organizer-catalog-v4/`. Содержимое manifest, каталог
-и закупочные данные не менялись. `v0.5.2` также исправляет выбор PostgreSQL
-admin role в backup/restore scripts. `v0.5.0` и `v0.5.1` не переписывать;
-продолжать deployment только с `v0.5.2`.
+и закупочные данные не менялись. `v0.5.2` исправляет выбор PostgreSQL admin
+role в backup/restore scripts. На первом backup с `v0.5.2` архив uploads был
+создан контейнером от root, поэтому последующий `chmod` от deploy завершился
+ошибкой. `v0.5.3` создаёт архив с mode 600 и передаёт владение вызывающему
+пользователю до выхода контейнера. Старые теги не переписывать; продолжать
+deployment только с `v0.5.3`.
 
 До нового импорта на сервере после обновления `main` проверить:
 
@@ -67,10 +70,10 @@ printf '%s\n' \
 git status --short
 git switch main
 git pull --ff-only origin main
-git merge --ff-only fix/production-backup-admin-role
-git tag -a v0.5.2 -m "Robodovod deployment restore fix v0.5.2"
-git push --atomic origin main refs/tags/v0.5.2
-git rev-list -n 1 v0.5.2
+git merge --ff-only fix/backup-uploads-owner
+git tag -a v0.5.3 -m "Robodovod backup uploads ownership fix v0.5.3"
+git push --atomic origin main refs/tags/v0.5.3
+git rev-list -n 1 v0.5.3
 ```
 
 Если `--ff-only` невозможен, не создавать merge вручную: опубликовать branch,
@@ -100,23 +103,23 @@ Docker daemon 29.8.1. `docker volume ls` и `docker ps -a` не вывели з�
 
 ## 4. Подготовка server checkout — можно выполнить без запуска
 
-После публикации `v0.5.2`:
+После публикации `v0.5.3`:
 
 ```bash
 ssh robodovod
 cd /opt/robodovod
 git status --short
 git fetch --prune --tags origin
-test "$(git cat-file -t v0.5.2)" = tag
-git show --no-patch --decorate v0.5.2
+test "$(git cat-file -t v0.5.3)" = tag
+git show --no-patch --decorate v0.5.3
 git switch main
 git pull --ff-only origin main
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.2)"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.3)"
 git branch --show-current
 ```
 
 Последняя команда должна вывести `main`, а проверяемый hash должен совпасть с
-локальным `git rev-list -n 1 v0.5.2`.
+локальным `git rev-list -n 1 v0.5.3`.
 `git verify-tag` подходит только для подписанного тега; приведённая выше
 команда создаёт обычный annotated tag.
 
@@ -178,6 +181,19 @@ DOCKER='sudo docker' BACKUP_DIR=/var/backups/robodovod ./scripts/production/back
 DOCKER='sudo docker' ./scripts/production/restore-drill.sh /var/backups/robodovod/postgres-YYYYMMDDTHHMMSSZ.dump
 ```
 
+Для частичного backup `20260924T024748Z` оба файла уже прошли `sha256sum -c`;
+архив uploads содержит пустой каталог, но остался root-owned. После обновления
+кода сначала исправить права именно этого архива, затем проверить его manifest:
+
+```bash
+sudo chown "$(id -u):$(id -g)" /var/backups/robodovod/uploads-20260924T024748Z.tar.gz
+chmod 600 /var/backups/robodovod/uploads-20260924T024748Z.tar.gz
+sha256sum -c /var/backups/robodovod/sha256-20260924T024748Z.txt
+```
+
+Затем повторить `backup.sh` из `v0.5.3`, проверить новые checksum и выполнить
+restore drill на новом dump. Не удалять старый backup до успешного drill.
+
 На подтверждённой пустой установке restore drill до migration не пройдёт:
 в dump ещё нет Alembic revision и 31 таблицы. Сначала выполните migration из
 раздела 8, затем backup и restore drill по тем же командам. Наличие или
@@ -211,7 +227,7 @@ $C run --rm economics-activation status
 ```
 
 Если остановка произошла на первом `BASE VALIDATE_ONLY` из-за инцидента выше,
-`db` и migration уже выполнены. После pull `v0.5.2` и проверки двух SHA-256
+`db` и migration уже выполнены. После pull `v0.5.3` и проверки двух SHA-256
 возобновить раздел с `$C build catalog-import ...`, затем повторить
 `BASE VALIDATE_ONLY`; не создавать новую БД и не повторять bootstrap.
 
