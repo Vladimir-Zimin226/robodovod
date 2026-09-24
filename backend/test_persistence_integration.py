@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import io
 import os
 import uuid
+import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
@@ -36,6 +38,7 @@ from persistence_models import (
     AnalysisRun,
     AnalysisRunEconomicsVersion,
     AuditEntry,
+    Project,
     ProjectFile,
     ProjectFileImport,
     Scenario,
@@ -948,3 +951,44 @@ def test_project_file_routes_hide_other_users_project():
             files={"file": (filename, payload, "text/csv")},
         )
         assert response.status_code == 404
+
+
+def test_admin_diagnostic_zip_requires_role_and_csrf_and_omits_credentials():
+    endpoint = "/api/admin/diagnostics/export"
+    with TestClient(main.app) as client:
+        assert client.post(endpoint).status_code == 401
+        _, headers = _register(client, "diagnostic-admin@example.com")
+        assert client.post(endpoint, headers=headers).status_code == 403
+        project = _create_project(client, headers)
+        with get_database().session() as db:
+            admin = db.scalar(select(User).where(User.email_normalized == "diagnostic-admin@example.com"))
+            admin.role = "ADMIN"
+            stored_project = db.get(Project, uuid.UUID(project["id"]))
+            stored_project.profile = {"api_key": "do-not-export-this-value", "label": "warehouse"}
+            db.commit()
+        assert client.post(endpoint).status_code == 403
+        response = client.post(endpoint, headers=headers)
+        assert response.status_code == 200, response.text
+        assert response.headers["content-type"] == "application/zip"
+        assert response.headers["cache-control"] == "no-store, private"
+        assert "attachment" in response.headers["content-disposition"]
+        with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+            names = set(archive.namelist())
+            assert "manifest.json" in names
+            assert "database/projects.jsonl" in names
+            assert "database/analysis_runs.jsonl" in names
+            assert "logs/backend-requests.jsonl" in names
+            assert "database/user_sessions.jsonl" not in names
+            manifest = json.loads(archive.read("manifest.json"))
+            assert manifest["schema_version"] == "diagnostic-bundle-v1"
+            assert manifest["members"]["database/projects.jsonl"]["rows"] == 1
+            users = archive.read("database/users.jsonl")
+            projects = archive.read("database/projects.jsonl")
+            assert b"password_hash" not in users
+            assert PASSWORD_A.encode() not in response.content
+            assert b"do-not-export-this-value" not in projects
+            assert b"<redacted>" in projects
+        with get_database().session() as db:
+            assert db.scalar(select(func.count()).select_from(AuditEntry).where(
+                AuditEntry.event_type == "DIAGNOSTIC_BUNDLE_EXPORTED"
+            )) == 1

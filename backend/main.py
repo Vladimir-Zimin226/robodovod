@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import time
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -15,7 +16,9 @@ from catalog_repository import (
 )
 from catalog_taxonomy import CATEGORY_LABELS, CATEGORY_ORDER
 from catalog_runtime import CatalogRuntime, CatalogRuntimeConfigurationError
+from calculation.intake import CalculationIntakeRequestV2, NormalizationResponseV2, normalize_intake
 from calculation.service import analyze_capacity
+from diagnostic_export import record_http_event
 from economics_orchestrator import execute_economics_v2
 from economics_route_activation import resolve_active_economics_version
 from database import get_database
@@ -109,6 +112,28 @@ def _robots_by_category(robots: list[dict[str, Any]]):
 app = FastAPI(title="РобоМера API", version="3.9.0")
 
 
+@app.middleware("http")
+async def diagnostic_request_log(request: Request, call_next):
+    started = time.monotonic()
+    status_code = 500
+    error_type = None
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        return response
+    except Exception as exc:
+        error_type = type(exc).__name__
+        raise
+    finally:
+        record_http_event(
+            request.method,
+            request.url.path,
+            status_code,
+            round((time.monotonic() - started) * 1000),
+            error_type,
+        )
+
+
 @app.exception_handler(RequestValidationError)
 async def versioned_request_validation(request: Request, exc: RequestValidationError):
     if request.url.path == "/api/v2/capacity-analyses":
@@ -171,6 +196,18 @@ def readiness():
         )
         raise HTTPException(status_code=503, detail="database unavailable") from None
     return {"status": "ready", "database": "available"}
+
+
+@app.post(
+    "/api/v2/calculation-intake/normalize",
+    response_model=NormalizationResponseV2,
+)
+def normalize_calculation_intake(
+    request: CalculationIntakeRequestV2,
+) -> NormalizationResponseV2:
+    """Pure C01 normalization used by the production v2 intake screen."""
+
+    return normalize_intake(request)
 
 
 @app.post("/api/v2/procurement-reports", response_model=ProcurementReportV1)

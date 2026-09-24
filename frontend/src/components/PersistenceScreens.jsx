@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { persistenceRequest as request, readCsrfCookie } from '../persistenceApi';
+import { requestDiagnosticBundle } from '../diagnosticExportApi';
 import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { economicsRunView } from '../economicsRunModel';
 
@@ -124,6 +125,7 @@ export function ProjectsScreen({ onOpenProject, onOpenRun }) {
       });
       setName('');
       setProjects((items) => [project, ...items]);
+      onOpenProject(project);
     } catch (err) {
       setError(err.message);
     }
@@ -225,7 +227,29 @@ export function AdminUsersScreen() {
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ email: '', password: '', name: '', role: 'USER' });
   const [error, setError] = useState('');
+  const [diagnosticBusy, setDiagnosticBusy] = useState(false);
+  const [diagnosticError, setDiagnosticError] = useState('');
   const csrf = readCsrfCookie();
+
+  const downloadDiagnostics = async () => {
+    setDiagnosticBusy(true);
+    setDiagnosticError('');
+    try {
+      const blob = await requestDiagnosticBundle(fetch, readCsrfCookie(), import.meta.env.VITE_API_URL || '');
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `robodovod-diagnostics-${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch (err) {
+      setDiagnosticError(err.message || 'Не удалось скачать диагностику');
+    } finally {
+      setDiagnosticBusy(false);
+    }
+  };
 
   const load = async () => {
     try {
@@ -297,6 +321,14 @@ export function AdminUsersScreen() {
       <div className="persistence-heading">
         <span className="eyebrow">ADMIN</span><h1>Пользователи</h1>
         <p>Регистрация всегда создаёт USER. Только администратор может назначить роль ADMIN.</p>
+      </div>
+      <div className="panel p-4">
+        <h2>Диагностика сервиса</h2>
+        <p>ZIP содержит данные проектов и расчётов всех пользователей, состояние каталога, аудит и недавние HTTP-события backend. Пароли и сессии исключены. Архив конфиденциален; передавайте его только по защищённому каналу.</p>
+        <button className="primary-action" type="button" disabled={diagnosticBusy} onClick={downloadDiagnostics}>
+          {diagnosticBusy ? 'Собираем архив…' : 'Скачать диагностический ZIP'}
+        </button>
+        {diagnosticError && <p className="form-error" role="alert">{diagnosticError}</p>}
       </div>
       <form className="admin-create-grid" onSubmit={create}>
         <input required type="email" placeholder="Email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />

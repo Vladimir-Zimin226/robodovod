@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from calculation.intake import (
@@ -208,3 +209,15 @@ def test_additional_income_and_allocation_are_raw_deferred_extensions():
     response = normalize_intake(CalculationIntakeRequestV2.model_validate(raw))
     assert response.raw_extensions["additional_income_raw"]["value"] == "50000"
     assert response.raw_extensions["role_allocations_raw"] == {"role.forklift": {"process.receiving": "1"}}
+
+
+def test_production_app_exposes_v2_intake_normalization_http_route():
+    from main import app
+
+    payload = _request()
+    expected = normalize_intake(CalculationIntakeRequestV2.model_validate(payload))
+    with TestClient(app) as client:
+        response = client.post("/api/v2/calculation-intake/normalize", json=payload)
+        assert response.status_code == 200, response.text
+        assert response.json() == expected.model_dump(mode="json")
+        assert client.post("/api/v2/calculation-intake/normalize", json={}).status_code == 422

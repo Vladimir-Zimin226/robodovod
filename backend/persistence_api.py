@@ -28,6 +28,7 @@ from auth import (
     verify_password,
 )
 from database import database_session
+from diagnostic_export import DiagnosticArchiveTooLarge, build_diagnostic_archive
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
@@ -729,6 +730,36 @@ def create_persistence_router(
     ):
         users = db.scalars(select(User).order_by(User.created_at, User.id)).all()
         return {"items": [_user_dict(user) for user in users]}
+
+    @router.post("/admin/diagnostics/export")
+    def export_diagnostics(
+        context: AuthContext = Depends(_require_admin_csrf),
+        db: Session = Depends(database_session),
+    ):
+        """Download a confidential diagnostic snapshot, not a restore backup."""
+
+        try:
+            archive = build_diagnostic_archive(db)
+        except DiagnosticArchiveTooLarge:
+            raise HTTPException(status_code=413, detail="diagnostic archive exceeds 128 MiB") from None
+        _audit(
+            db,
+            "DIAGNOSTIC_BUNDLE_EXPORTED",
+            actor_id=context.user.id,
+            aggregate={"byte_size": len(archive)},
+        )
+        db.commit()
+        filename = f"robodovod-diagnostics-{utcnow():%Y%m%dT%H%M%SZ}.zip"
+        return Response(
+            content=archive,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-store, private",
+                "Pragma": "no-cache",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
 
     @router.post("/admin/users", status_code=status.HTTP_201_CREATED)
     def create_user(
