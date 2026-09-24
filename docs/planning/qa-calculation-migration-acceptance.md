@@ -72,6 +72,18 @@ bundle проходит Draft 2020-12 schema. С PostgreSQL: **625 passed**. Е�
 
 ## Ограничения и следующий этап
 
+### Повторный локальный gate после исправления живого расчёта (2026-09-24)
+
+В `calculation-acceptance-manifest-v1` добавлены новые pinned fixtures C16 v2,
+production orchestrator v2 и C23 v2; исходные v1 fixtures и их SHA-256 сохранены.
+Исполняемый C29 gate повторяет C16 v1/C23 v1 и C16 v2/C23 v2 по пять раз,
+проверяя точные golden ответы и лимиты времени. После доработок полный suite
+на одноразовом PostgreSQL прошёл: **644 tests**; frontend **86 tests**,
+RobCraft **82 tests**, lint/build прошли. Изолированный архивный replay
+воспроизвёл шесть старых NPV и дал шесть исправленных проекций, перечисленных
+в [live remediation](live-calculation-remediation-2026-09-24.md). Это локальная
+приёмка кода; живые HTTPS, браузер, миграция и экспорт остаются gate C30.
+
 Simulation остаётся conditional model, а не deployment certification. Legacy
 implementation не удалена. Production DB, DNS/TLS и сервер не изменялись.
 Economics/catalog activation выполнялись только в disposable test DB;

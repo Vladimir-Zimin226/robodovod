@@ -1,6 +1,6 @@
 # Live C11–C26 remediation after the first economics run
 
-Status: **investigated; implementation pending; C30 HOLD**. Evidence: the owner's
+Status: **implemented and locally verified; live gates pending; C30 HOLD**. Evidence: the owner's
 2026-09-24 deployment log and commercial-result transcript, plus the ignored
 `backup/` diagnostic snapshot generated at 08:11 UTC. The archive is confidential
 and must remain outside Git. Server `main` reached `6a92e3e` (`v0.5.9`), Compose
@@ -130,3 +130,63 @@ basis confirmation is not a verified offer, VAT determination or C05 PASS.
 
 Existing [partial-input backlog](partial-economics-inputs-backlog.md) remains
 separate: unknown commercial values must not become hidden zeroes or facts.
+
+## 2026-09-24 implementation and verification
+
+The local `main` started clean at `8d099db`. Separate commits implemented C16
+v2 (`6d10e32`), browser ZIP fetch binding (`f438390`), scoped RobCraft iframe
+headers (`42bdcfd`), C23 v2 verdict (`403fcf5`), an explicitly schematic 2D
+view (`9c5cb5f`), a separate readable Russian PDF (`29edd0b`), and immutable
+C23 artifacts (`b1efcfb`). Historical C16 v1 and C23 v1 golden responses remain
+unchanged. The C23 storage change adds migration `0011_simulation_artifacts`;
+no production database migration or historical run update has occurred.
+
+An isolated replay used the archived successful C11 request/response and
+economics input, plus a disposable PostgreSQL import of the published
+`organizer-catalog-v4`. Its catalog content SHA-256 matched the archived
+`77cf767fd949cecc59a2cbf84862f150d46bfefcf0df88cd873b91589c3aafa6`.
+The import assigned different internal UUIDs, so the MULE model and position
+were mapped to the archived IDs by stable organizer ID and source row. With
+C16 v1 the replay reproduced the six archived NPV values to the kopeck. The
+same inputs with C16 v2 gave:
+
+| Scenario | Archived v1 NPV, RUB | Corrected v2 NPV, RUB | Corrected simple payback, years |
+| --- | ---: | ---: | ---: |
+| PURCHASE pessimistic | 4,397,755,511.57 | 177,895,248.42 | 1.54 |
+| PURCHASE base | 4,857,446,580.85 | 223,701,942.55 | 1.14 |
+| PURCHASE optimistic | 5,245,260,939.05 | 267,403,164.72 | 0.79 |
+| RaaS pessimistic | 4,358,337,709.95 | 138,477,446.81 | 0.00 |
+| RaaS base | 4,808,727,997.54 | 174,983,359.24 | 0.00 |
+| RaaS optimistic | 5,192,522,460.79 | 214,664,686.46 | 0.00 |
+
+The replay is an in-memory projection, not a new saved or accepted business
+case. Both versions kept C05 `NEEDS_VALIDATION` and procurement `UNVERIFIED`.
+RaaS zero simple payback is the existing contract's convention, not vendor
+validation. Legacy `fte_cost` with unknown salary basis remains unknown; the
+PDF calls this out rather than relabelling it as gross salary.
+
+The full disposable PostgreSQL backend suite passed: **644 tests**. Frontend
+passed **86 tests**, lint and production build; RobCraft passed **82 tests**.
+The additive migration was upgraded and checked against a disposable Postgres,
+including tenant isolation, CSRF, restart/reopen, immutable UPDATE rejection and
+run-bound C23 evidence download. A further actual-catalog API integration check
+reopened an economics run, extracted its ZIP, verified every artifact SHA-256,
+and read the standalone PDF with its source digest; that check passed separately
+after the full suite. The pinned C29 manifest still checks v1, and
+now also pins v2 C16/C23 goldens; both engines repeat five times in the local
+release gate. Caddyfile syntax was validated with `caddy:2.11.4-alpine`.
+
+**Remaining HOLD gates:** a real browser download and digest/extraction of ZIP
+and PDF; production HTTPS response headers/console and RobCraft handshake;
+live browser → API → C11/C13–C23 → 2D/3D → reopen/replay → both exports;
+production migration and post-deploy owner/other-tenant/CSRF checks. The
+diagnostic archive has no browser log or live export response. Nothing here
+asserts live release acceptance or permits traffic switch.
+
+Before applying `0011` to the live database, agree on data protection: verify
+an operational PostgreSQL backup and restore path, record current migration
+head and run counts, then apply the additive migration with a rollback plan.
+This is an operational safeguard for a live schema change, not a new diagnostic
+backup for code-only changes. A downgrade intentionally refuses to drop C23
+evidence once any has been saved. Publish/deploy only the tested `main`, without
+force push, and leave C30 HOLD until every live gate is green.
