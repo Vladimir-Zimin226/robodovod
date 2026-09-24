@@ -1,6 +1,45 @@
 # Production deployment — robodovod.ru
 
-Статус: **C30 LIVE TEST / CALCULATION HOTFIX HOLD**, 2026-09-24.
+Статус: **C30 LIVE TEST / MODEL PICKER HOLD**, 2026-09-24.
+
+После `v0.5.4` серверная нормализация C01 и активный capacity-каталог
+подтверждены. Живой браузерный тест выявил вторую ошибку: выпадающий список
+демо-моделей сравнивал внутренний `model_id` API с опубликованным
+`organizer_id` авторских профилей. Это разные UUID; поэтому список был пуст,
+хотя MULE присутствует в активном каталоге и расчётно доступен. `v0.5.5`
+использует `organizer_id` только для сопоставления авторского профиля, а
+неизменённый внутренний `model_id` передаёт в C11. Архив администратора
+подтвердил: C01 ответил 200, `/api/catalog/models` ответил 200, C11 runs ещё
+не создавались. Папка `backup/` локально исключена из Git.
+
+Для обновления именно с `v0.5.4` на `v0.5.5` не повторять backup, migration,
+import, activation или bootstrap. После сверки чистого `main` на сервере:
+
+```bash
+cd /opt/robodovod
+test "$(git branch --show-current)" = main
+test -z "$(git status --porcelain)"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.4)"
+C='sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml'
+git fetch --prune --tags origin
+git pull --ff-only origin main
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.5)"
+$C config --quiet
+$C build frontend
+$C up -d --wait --no-deps frontend
+$C ps
+```
+
+`v0.5.5` меняет только браузерную сборку, тесты и документацию: backend,
+PostgreSQL и Caddy не пересоздаются. После обновления сделать hard refresh
+страницы, заново проверить ввод, выбрать MULE, подтвердить демо-допущения,
+затем пройти C11 → C13–C21 → reopen/export. При пустом списке или сетевой
+ошибке остановить приёмку, сохранить диагностический ZIP и HTTP-статусы.
+
+`www.robodovod.ru` по Caddyfile всегда отдаёт 301 на apex. HTTP 301 для
+`www` не подтверждает доступность apex: отдельные тайм-ауты подключения к
+`robodovod.ru:443` требуют проверки с клиентской сети и не исправляются
+этим frontend hotfix.
 
 Первый публичный запуск `v0.5.3` состоялся: HTTPS для обоих доменов, backend,
 frontend, catalog discovery/capacity и economics v2 route работают. Сквозной

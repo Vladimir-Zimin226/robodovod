@@ -18,7 +18,7 @@ C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
 C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
 C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23,
-C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / LIVE CALCULATION HOLD**.
+C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / MODEL PICKER HOLD**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -915,7 +915,7 @@ Production activation не выполнялась.
 
 ## C30 — `ops/production-domain-deployment-v1`
 
-Статус: **IN PROGRESS / LIVE CALCULATION HOLD**, обновлено 2026-09-24.
+Статус: **IN PROGRESS / MODEL PICKER HOLD**, обновлено 2026-09-24.
 Исполнитель — агент. Production economics-v2 executor подключён в `main.app`;
 новый UI выполняет C11 → явные commercial inputs → C13–C21, сохраняет
 immutable run и поддерживает reopen/export/deterministic replay. Повторный C29
@@ -932,6 +932,12 @@ Infrastructure artifacts подготовлены. Первый публичны
 и защищённый админский диагностический ZIP. C30 нельзя завершить до повторного
 live C01 → C11 → C13–C21 → reopen/export и проверки CSRF/tenant gates. Runbook:
 [production deployment](../PRODUCTION_DEPLOYMENT.md).
+После `v0.5.4` C01 вернул 200, а browser picker оказался пустым из-за
+сравнения `model_id` API с `organizer_id` авторского профиля. Диагностический
+архив подтвердил активные discovery/capacity и отсутствие C11 runs. Исправление
+`v0.5.5` меняет только сопоставление в frontend; полную живую приёмку ещё
+нужно повторить. Отдельные сетевые тайм-ауты apex HTTPS остаются предметом
+проверки, хотя `www` отвечает ожидаемым 301 на apex.
 
 - **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
   с Ubuntu 24.04 LTS по `robodovod.ru` и `www.robodovod.ru`; серверный baseline,
