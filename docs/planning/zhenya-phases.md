@@ -18,7 +18,7 @@ C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
 C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
 C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23,
-C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / PROJECT CONTEXT HOLD**.
+C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / ECONOMICS + VISUALIZATION HOLD**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -915,7 +915,7 @@ Production activation не выполнялась.
 
 ## C30 — `ops/production-domain-deployment-v1`
 
-Статус: **IN PROGRESS / PROJECT CONTEXT HOLD**, обновлено 2026-09-24.
+Статус: **IN PROGRESS / ECONOMICS + VISUALIZATION HOLD**, обновлено 2026-09-24.
 Исполнитель — агент. Production economics-v2 executor подключён в `main.app`;
 новый UI выполняет C11 → явные commercial inputs → C13–C21, сохраняет
 immutable run и поддерживает reopen/export/deterministic replay. Повторный C29
@@ -952,6 +952,14 @@ live C01 → C11 → C13–C21 → reopen/export и проверки CSRF/tenant
 после проверки владельца через `/api/projects`, предлагает явный выбор при
 нескольких и объясняет гостю требование входа. Полный live C11 → C13–C21 →
 reopen/export ещё не подтверждён; C30 не закрывать.
+Живой C11 после `v0.5.7` вернул 201 и показал предварительный парк, но форма
+C13–C21 и C11 trace нарушали тёмную тему; C23 из economics run не был доступен.
+Следующее исправление объединяет тёмные карточки, явный переход сохранённого
+ScenarioSpec в серверный C23 и строгую трактовку generic `unit/cycle`/`unit/h`
+только в рамках совпадающего типа выхода процесса. Условия procurement не
+подставляются автоматически. [Частичный ввод экономики](partial-economics-inputs-backlog.md)
+оставлен отдельной задачей; live C13–C23, 2D/3D, reopen/export ещё нужно
+проверить после выпуска.
 
 - **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
   с Ubuntu 24.04 LTS по `robodovod.ru` и `www.robodovod.ru`; серверный baseline,
