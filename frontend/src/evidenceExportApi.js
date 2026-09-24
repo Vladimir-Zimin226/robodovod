@@ -46,8 +46,9 @@ function defaultSave(blob, filename) {
 }
 
 export class EvidenceExportSession {
-  constructor({ fetchImpl = fetch, saveImpl = defaultSave } = {}) {
-    this.fetchImpl = fetchImpl;
+  constructor({ fetchImpl = globalThis.fetch, saveImpl = defaultSave } = {}) {
+    // Window.fetch requires Window as its receiver in browsers.
+    this.fetchImpl = (...args) => Reflect.apply(fetchImpl, globalThis, args);
     this.saveImpl = saveImpl;
     this.sequence = 0;
   }

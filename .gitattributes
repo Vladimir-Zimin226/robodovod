@@ -4,5 +4,6 @@ data/import/organizer-catalog-v4/* -text -diff
 # Evidence ZIP golden pins CSV bytes (including RFC 4180 CRLF) across checkouts.
 contracts/fixtures/calculation-evidence-export-v1.cashflow.golden.csv -text -diff
 
+contracts/*.json text eol=lf
 contracts/fixtures/*.json text eol=lf
 frontend/tests/fixtures/*.json text eol=lf

@@ -49,6 +49,21 @@ test('download uses same-origin credentials and saves only a digest-bound bundle
   assert.equal(saved[0].filename, `robomera-evidence-${manifest.run_id}.zip`);
 });
 
+test('download invokes native-style fetch with the global receiver', async () => {
+  const responses = [jsonResponse(manifest), zipResponse(manifest.manifest_digest)];
+  const saved = [];
+  const browserFetch = function () {
+    if (this !== globalThis) throw new TypeError('Illegal invocation');
+    return responses.shift();
+  };
+  const session = new EvidenceExportSession({
+    fetchImpl: browserFetch,
+    saveImpl: (blob) => saved.push(blob),
+  });
+  await session.download(manifest.project_id, manifest.run_id);
+  assert.equal(saved.length, 1);
+});
+
 test('digest mismatch, HTTP error and stale response cannot trigger a download', async () => {
   const saved = [];
   let responses = [jsonResponse(manifest), zipResponse(`sha256:${'0'.repeat(64)}`)];
