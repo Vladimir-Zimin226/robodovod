@@ -18,7 +18,7 @@ C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
 C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
 C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23,
-C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / C11 TRACE HOLD**.
+C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / PROJECT CONTEXT HOLD**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -915,7 +915,7 @@ Production activation не выполнялась.
 
 ## C30 — `ops/production-domain-deployment-v1`
 
-Статус: **IN PROGRESS / C11 TRACE HOLD**, обновлено 2026-09-24.
+Статус: **IN PROGRESS / PROJECT CONTEXT HOLD**, обновлено 2026-09-24.
 Исполнитель — агент. Production economics-v2 executor подключён в `main.app`;
 новый UI выполняет C11 → явные commercial inputs → C13–C21, сохраняет
 immutable run и поддерживает reopen/export/deterministic replay. Повторный C29
@@ -945,6 +945,13 @@ live C01 → C11 → C13–C21 → reopen/export и проверки CSRF/tenant
 `v0.5.6` исправляет trace binding, добавляет unit и actual-catalog HTTP
 регрессию и тёмную контрастную карточку демо-профиля. Полный живой сценарий
 остаётся обязательным gate перед завершением C30.
+После `v0.5.6` оба `/ready` ответили, но браузер показывал «Гостевой расчёт»
+и блокировал C11, хотя диагностический архив подтвердил авторизованного
+владельца и один активный проект. Запрос C11 до API не доходил: `activeProject`
+терялся при перезагрузке React. `v0.5.7` восстанавливает единственный проект
+после проверки владельца через `/api/projects`, предлагает явный выбор при
+нескольких и объясняет гостю требование входа. Полный live C11 → C13–C21 →
+reopen/export ещё не подтверждён; C30 не закрывать.
 
 - **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
   с Ubuntu 24.04 LTS по `robodovod.ru` и `www.robodovod.ru`; серверный baseline,
