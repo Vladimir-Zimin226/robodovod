@@ -17,7 +17,7 @@ from sqlalchemy.exc import DBAPIError
 from auth import require_auth_context, require_csrf
 from calculation.scheduling import SimulationRequestV1
 from calculation_contracts import semantic_digest
-from database import get_database
+from database import dispose_database, get_database
 from persistence_models import AnalysisRun, Project, SimulationArtifact, User
 from simulation_api import create_simulation_router
 from simulation_artifacts import load_artifact
@@ -62,7 +62,9 @@ def _seed():
 
 
 @pytest.fixture
-def seeded():
+def seeded(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", os.environ["TEST_DATABASE_URL"])
+    dispose_database()
     values = _seed()
     yield values
     owner_id, other_id, project_id, run_id, _ = values
@@ -72,6 +74,7 @@ def seeded():
         db.execute(delete(Project).where(Project.id == project_id))
         db.execute(delete(User).where(User.id.in_([owner_id, other_id])))
         db.commit()
+    dispose_database()
 
 
 def _client(owner_id: uuid.UUID) -> tuple[FastAPI, TestClient]:

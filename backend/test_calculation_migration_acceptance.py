@@ -71,6 +71,26 @@ def test_golden_path_repeats_five_times_and_engines_remain_offline_and_determini
         assert simulation.model_dump(mode="json") == expected_simulation
 
 
+def test_corrected_c16_and_c23_release_goldens_repeat_without_changing_legacy():
+    financial = _load("contracts/fixtures/financial-result-v2.warehouse.golden.json")
+    financial_request = FinancialAnalysisRequestV1.model_validate(financial["request"])
+    simulation_request = SimulationRequestV1.model_validate(
+        _load("contracts/fixtures/simulation-request-v1.capacity-only.golden.json")
+    )
+    expected_simulation = _load("contracts/fixtures/simulation-report-v2.capacity-only.golden.json")
+    for _ in range(5):
+        economy_started = time.monotonic()
+        economy = calculate_financial_result(
+            financial_request, engine_version="full-cashflows-reconciliation-v2"
+        ).model_dump(mode="json")
+        assert time.monotonic() - economy_started <= 10
+        simulation_started = time.monotonic()
+        simulation = run_simulation(simulation_request, engine_version="deterministic-queue-v2")
+        assert time.monotonic() - simulation_started <= 60
+        assert economy == financial["result"]
+        assert simulation.model_dump(mode="json") == expected_simulation
+
+
 def test_50_concurrent_economics_users_are_deterministic_within_request_sla():
     fixture = _load("contracts/fixtures/financial-result-v1.warehouse.golden.json")
     request = FinancialAnalysisRequestV1.model_validate(fixture["request"])

@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import hashlib
+import io
+import json
 import os
+import zipfile
 from pathlib import Path
 
 import main
 import pytest
+from pypdf import PdfReader
 from alembic import command
 from alembic.config import Config
 from catalog_activation import activate_catalog_version, publish_catalog_version
@@ -221,3 +226,18 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
             archive.headers["x-export-manifest-digest"]
             == manifest.json()["manifest_digest"]
         )
+        with zipfile.ZipFile(io.BytesIO(archive.content)) as evidence:
+            assert json.loads(evidence.read("manifest.json")) == manifest.json()
+            for artifact in manifest.json()["artifacts"]:
+                assert (
+                    "sha256:" + hashlib.sha256(evidence.read(artifact["filename"])).hexdigest()
+                    == artifact["sha256"]
+                )
+        report = client.get(
+            f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/report.pdf"
+        )
+        assert report.status_code == 200
+        assert report.headers["x-report-source-digest"] == "sha256:" + run["checksums"]["result"]
+        report_text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(report.content)).pages)
+        assert "NEEDS_VALIDATION" in report_text
+        assert "UNVERIFIED" in report_text

@@ -16,6 +16,9 @@
     {"path": "contracts/fixtures/scenario-spec-v2.capacity-only-cleaner.golden.json", "sha256": "8252d86f233d0e0014827af218d011cde43d3ffd31ab6a8267d39a3eab5b84c7"},
     {"path": "contracts/fixtures/economics-dual-run-report-v1.golden.json", "sha256": "6d58e3ee7cb840627a7c43b2121f98ed618c33843d7e66a73dd12e34037d271c"},
     {"path": "contracts/fixtures/production-economics-orchestrator-v1.golden.json", "sha256": "417c9bfd47efe58cc2187eb07ee375c44eec22a834ce4dae44d2e0202d57a1e3"},
+    {"path": "contracts/fixtures/financial-result-v2.warehouse.golden.json", "sha256": "0402a6747762d555ff1aaa6d87fac7d8ed98d9146adae4ecab12e5ce59483722"},
+    {"path": "contracts/fixtures/production-economics-orchestrator-v2.golden.json", "sha256": "0537027088065da6667c5ffa9f768bf0adda9ea1740879dedc241056d6f179c5"},
+    {"path": "contracts/fixtures/simulation-report-v2.capacity-only.golden.json", "sha256": "18b1b5ec63d3ffbf40942b7ec421aedc87598fd6490147a1d956272a58b247dc"},
     {"path": "contracts/fixtures/capacity-catalog-dual-run-report-v1.golden.json", "sha256": "c7fa23bcbf63b3ab14676bfc8be9190750c58e195d8fb31736f59a11520da4be"},
     {"path": "frontend/tests/fixtures/commercial-scenarios-v2.golden.json", "sha256": "120b16c3c8f81edb20a9a4c41161d82acae9d5a4cff6d99f436c8adbf63d6e66"}
   ],
