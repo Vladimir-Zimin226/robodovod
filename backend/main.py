@@ -59,6 +59,7 @@ from readiness import ReadinessReport, ReadinessRequest, evaluate_readiness
 from scenario_spec import build_scenario_spec
 from simulation import generate_simulation
 from simulation_api import create_simulation_router
+from solution_assistant import create_solution_assistant_router
 from sqlalchemy import select
 from storage_models import CatalogVersion
 
@@ -911,4 +912,5 @@ app.include_router(
     )
 )
 app.include_router(create_simulation_router())
+app.include_router(create_solution_assistant_router(_discovery_snapshot))
 app.include_router(create_evidence_export_router())

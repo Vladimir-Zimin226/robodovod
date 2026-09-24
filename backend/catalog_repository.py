@@ -28,7 +28,7 @@ from catalog_models import (
 from database import Database
 from models import Robot
 from sqlalchemy import select, text
-from storage_models import CatalogActivation, CatalogVersion
+from storage_models import CatalogActivation, CatalogVersion, SourceArtifact
 
 
 class CatalogRepositoryError(RuntimeError):
@@ -178,6 +178,8 @@ class CatalogMediaDTO:
     storage_key: str
     source_page: int
     source_slot: int
+    source_name: str | None = None
+    source_observed_on: date | None = None
 
 
 @dataclass(frozen=True)
@@ -208,6 +210,8 @@ class CatalogPositionDTO:
     runtime_robot: dict[str, Any] | None
     runtime_blockers: tuple[str, ...]
     enrichment: CatalogEnrichmentDTO | None = None
+    source_name: str | None = None
+    source_observed_on: date | None = None
 
     def runtime_dict(self) -> dict[str, Any] | None:
         return copy.deepcopy(self.runtime_robot)
@@ -505,6 +509,14 @@ class PostgresCatalogRepository:
                 .where(CatalogSourceRow.catalog_version_id == version.id)
                 .order_by(CatalogSourceRow.source_row_number)
             ).all()
+            source_artifacts = {
+                row.id: row
+                for row in session.scalars(
+                    select(SourceArtifact).where(
+                        SourceArtifact.id.in_({row.source_artifact_id for row in source_rows})
+                    )
+                ).all()
+            }
             applicability_rows = session.scalars(
                 select(EquipmentApplicability)
                 .where(EquipmentApplicability.catalog_version_id == version.id)
@@ -545,7 +557,7 @@ class PostgresCatalogRepository:
                 .all()
             )
             media_rows = session.execute(
-                select(CatalogPositionMedia, CatalogMediaAsset)
+                select(CatalogPositionMedia, CatalogMediaAsset, SourceArtifact)
                 .join(
                     CatalogMediaAsset,
                     (CatalogMediaAsset.id == CatalogPositionMedia.media_asset_id)
@@ -555,6 +567,7 @@ class PostgresCatalogRepository:
                     ),
                 )
                 .where(CatalogPositionMedia.catalog_version_id == version.id)
+                .join(SourceArtifact, SourceArtifact.id == CatalogMediaAsset.source_artifact_id)
             ).all()
             enrichment_rows = session.scalars(
                 select(CatalogPositionEnrichment).where(
@@ -625,7 +638,7 @@ class PostgresCatalogRepository:
                 )
 
             media_by_source: dict[uuid.UUID, CatalogMediaDTO] = {}
-            for link, asset in media_rows:
+            for link, asset, artifact in media_rows:
                 media_by_source[link.catalog_source_row_id] = CatalogMediaDTO(
                     id=str(asset.id),
                     sha256=asset.sha256,
@@ -636,6 +649,8 @@ class PostgresCatalogRepository:
                     storage_key=asset.storage_key,
                     source_page=link.source_page,
                     source_slot=link.source_slot,
+                    source_name=artifact.original_name,
+                    source_observed_on=artifact.observed_at.date(),
                 )
 
             enrichment_by_source = {
@@ -741,6 +756,8 @@ class PostgresCatalogRepository:
                         runtime_robot=runtime_robot,
                         runtime_blockers=blockers,
                         enrichment=enrichment_by_source.get(source_row.id),
+                        source_name=source_artifacts[source_row.source_artifact_id].original_name,
+                        source_observed_on=source_artifacts[source_row.source_artifact_id].observed_at.date(),
                     )
                 )
 

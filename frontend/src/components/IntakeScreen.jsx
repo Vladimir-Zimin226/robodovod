@@ -20,7 +20,7 @@ const PROCESS_DEFAULTS = {
   other: ['transport', 'pallets'],
 };
 
-export default function IntakeScreen({ objectType, initialCollected, initialPrompt = '', activeProject, user, authChecked, projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onFileApplied, onReady, onIntakeV2Normalized, onCapacityResult }) {
+export default function IntakeScreen({ objectType, initialCollected, initialSources, initialPrompt = '', activeProject, user, authChecked, projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onFileApplied, onReady, onIntakeV2Normalized, onCapacityResult }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', text: WELCOME[objectType] || WELCOME.other },
   ]);
@@ -37,7 +37,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialProm
   );
   const [sources, setSources] = useState(
     initialCollected
-      ? Object.fromEntries(Object.keys(initialCollected).map((k) => [k, 'preset']))
+      ? Object.fromEntries(Object.keys(initialCollected).map((k) => [k, initialSources?.[k] || 'preset']))
       : {}
   );
   const [fileContext, setFileContext] = useState(null);

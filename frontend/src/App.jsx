@@ -38,6 +38,9 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [command, setCommand] = useState('');
   const [intakePrompt, setIntakePrompt] = useState('');
+  const [intakeInitialSources, setIntakeInitialSources] = useState(null);
+  const [catalogFocusId, setCatalogFocusId] = useState(null);
+  const [assistantSession, setAssistantSession] = useState(null);
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [activeProject, setActiveProject] = useState(null);
@@ -177,6 +180,7 @@ export default function App() {
     showPhase('onboarding');
     setObjectType(null);
     setPreset(null);
+    setIntakeInitialSources(null);
     setResult(null);
     setActiveRun(null);
     setSaveState('');
@@ -186,8 +190,10 @@ export default function App() {
   };
 
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
+  const assistantSessionKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}`;
 
   const openCalculation = () => {
+    setIntakeInitialSources(null);
     const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
     const nextType = savedInput?.object_type || objectType || 'other';
     setObjectType(nextType);
@@ -209,6 +215,7 @@ export default function App() {
       return;
     }
     if (id === 'library') {
+      setCatalogFocusId(null);
       if (phase !== 'catalog') catalogReturnPhase.current = phase;
       showPhase('catalog');
       return;
@@ -245,6 +252,7 @@ export default function App() {
     if (!prompt) return;
     setObjectType('other');
     setPreset(null);
+    setIntakeInitialSources(null);
     setIntakePrompt(prompt);
     showPhase('intake');
   };
@@ -282,26 +290,40 @@ export default function App() {
         {phase === 'onboarding' ? (
           <OnboardingScreen
             onChoose={(t) => {
+              setIntakeInitialSources(null);
               setObjectType(t);
               const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
               setPreset(savedInput?.object_type === t ? savedInput : null);
               showPhase('intake');
             }}
             onPreset={(t, d) => {
+              setIntakeInitialSources(null);
               setObjectType(t);
               setPreset(d);
               showPhase('intake');
             }}
           />
         ) : phase === 'process' ? (
-          <ProcessScreen activeProject={activeProject} hasResult={Boolean(result)}
+          <ProcessScreen key={assistantSessionKey} activeProject={activeProject} user={user} hasResult={Boolean(result)}
+            sessionKey={assistantSessionKey}
+            session={assistantSession?.key === assistantSessionKey ? assistantSession.value : null}
+            onSessionChange={setAssistantSession}
             onStartCalculation={openCalculation}
-            onOpenCatalog={() => navigate({ id: 'library' })}
+            onOpenCatalog={(positionId = null) => { setCatalogFocusId(positionId); catalogReturnPhase.current = 'process'; showPhase('catalog'); }}
+            onOpenAccount={() => showPhase('account')}
+            onConfirmDraft={(draft) => {
+              setObjectType(draft.fields.object_type || 'other');
+              setPreset(draft.fields);
+              setIntakeInitialSources(Object.fromEntries(Object.keys(draft.fields).map((key) => [key, 'manual'])));
+              setIntakePrompt(draft.summary || '');
+              showPhase('intake');
+            }}
             onReturnToResult={() => showPhase('results')} />
         ) : phase === 'intake' ? (
           <IntakeScreen
             objectType={objectType}
             initialCollected={preset}
+            initialSources={intakeInitialSources}
             initialPrompt={intakePrompt}
             activeProject={activeProject}
             user={user}
@@ -331,7 +353,7 @@ export default function App() {
             }}
           />
         ) : phase === 'catalog' ? (
-          <CatalogScreen objectType={objectType || 'other'} onContinue={openCalculation}
+          <CatalogScreen objectType={objectType || 'other'} focusPositionId={catalogFocusId} onContinue={openCalculation}
             onBack={() => showPhase(catalogReturnPhase.current)} />
         ) : phase === 'account' ? (
           <AuthScreen

@@ -21,7 +21,7 @@ function readResponse(response) {
   return response.json();
 }
 
-export default function CatalogScreen({ objectType, onContinue, onBack }) {
+export default function CatalogScreen({ objectType, onContinue, onBack, focusPositionId }) {
   const [robots, setRobots] = useState([]);
   const [catalog, setCatalog] = useState(null);
   const [hierarchy, setHierarchy] = useState([]);
@@ -52,6 +52,10 @@ export default function CatalogScreen({ objectType, onContinue, onBack }) {
         });
         setHierarchy(payload.hierarchy || []);
         setRobots((payload.items || []).map(normalizeOfficialModel));
+        if (focusPositionId) {
+          const found = (payload.items || []).find((item) => item.id === focusPositionId);
+          if (found) setDetailPosition(normalizeOfficialModel(found));
+        }
         setStatus('ready');
       })
       .catch((catalogError) => {
@@ -60,7 +64,7 @@ export default function CatalogScreen({ objectType, onContinue, onBack }) {
         setStatus('error');
       });
     return () => controller.abort();
-  }, []);
+  }, [focusPositionId]);
 
   const visible = useMemo(() => {
     return filterAndSortCatalog(robots, {
