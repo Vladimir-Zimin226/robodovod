@@ -175,9 +175,13 @@ and read the standalone PDF with its source digest; that check passed separately
 after the full suite. The pinned C29 manifest still checks v1, and
 now also pins v2 C16/C23 goldens; both engines repeat five times in the local
 release gate. Caddyfile syntax was validated with `caddy:2.11.4-alpine`.
+`python scripts/browser_export_smoke.py` passed in native headless Chrome:
+same-origin `Window.fetch` received both exports, and the browser's ZIP/PDF
+blobs matched the source bytes by SHA-256. This local fixture server does not
+prove that Chrome wrote files to disk from a live authenticated run.
 
-**Remaining HOLD gates:** a real browser download and digest/extraction of ZIP
-and PDF; production HTTPS response headers/console and RobCraft handshake;
+**Remaining HOLD gates:** a live authenticated browser file save and
+digest/extraction of ZIP/PDF; production HTTPS response headers/console and RobCraft handshake;
 live browser → API → C11/C13–C23 → 2D/3D → reopen/replay → both exports;
 production migration and post-deploy owner/other-tenant/CSRF checks. The
 diagnostic archive has no browser log or live export response. Nothing here
