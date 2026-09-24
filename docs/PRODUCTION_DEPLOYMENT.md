@@ -83,11 +83,14 @@ git status --short
 git fetch --prune --tags origin
 test "$(git cat-file -t v0.5.0)" = tag
 git show --no-patch --decorate v0.5.0
-git checkout --detach v0.5.0
-git rev-parse HEAD
+git switch main
+git pull --ff-only origin main
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.0)"
+git branch --show-current
 ```
 
-Полученный hash должен совпасть с локальным `git rev-list -n 1 v0.5.0`.
+Последняя команда должна вывести `main`, а проверяемый hash должен совпасть с
+локальным `git rev-list -n 1 v0.5.0`.
 `git verify-tag` подходит только для подписанного тега; приведённая выше
 команда создаёт обычный annotated tag.
 
