@@ -175,6 +175,9 @@ and read the standalone PDF with its source digest; that check passed separately
 after the full suite. The pinned C29 manifest still checks v1, and
 now also pins v2 C16/C23 goldens; both engines repeat five times in the local
 release gate. Caddyfile syntax was validated with `caddy:2.11.4-alpine`.
+`python scripts/caddy_header_smoke.py` also passed through a disposable Caddy
+container: only `/robcraft/` and `/robcraft/index.html` returned SAMEORIGIN and
+`frame-ancestors 'self'`; root, API and RobCraft assets stayed DENY/`'none'`.
 `python scripts/browser_export_smoke.py` passed in native headless Chrome:
 same-origin `Window.fetch` received both exports, and the browser's ZIP/PDF
 blobs matched the source bytes by SHA-256. This local fixture server does not
