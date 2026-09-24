@@ -36,6 +36,7 @@ TABLE_NAMES = (
     "project_file_imports",
     "scenarios",
     "analysis_runs",
+    "simulation_artifacts",
     "analysis_run_economics_versions",
     "economics_route_activations",
     "audit_entries",

@@ -11,7 +11,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import select, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.exc import DBAPIError
 
 from auth import require_auth_context, require_csrf
@@ -61,6 +61,19 @@ def _seed():
     return owner_id, other_id, project_id, run_id, request
 
 
+@pytest.fixture
+def seeded():
+    values = _seed()
+    yield values
+    owner_id, other_id, project_id, run_id, _ = values
+    with get_database().session() as db:
+        db.execute(delete(SimulationArtifact).where(SimulationArtifact.analysis_run_id == run_id))
+        db.execute(delete(AnalysisRun).where(AnalysisRun.id == run_id))
+        db.execute(delete(Project).where(Project.id == project_id))
+        db.execute(delete(User).where(User.id.in_([owner_id, other_id])))
+        db.commit()
+
+
 def _client(owner_id: uuid.UUID) -> tuple[FastAPI, TestClient]:
     app = FastAPI()
     app.include_router(create_simulation_router())
@@ -70,8 +83,8 @@ def _client(owner_id: uuid.UUID) -> tuple[FastAPI, TestClient]:
     return app, client
 
 
-def test_saved_c23_evidence_survives_router_restart_and_denies_other_tenant():
-    owner_id, other_id, project_id, run_id, request = _seed()
+def test_saved_c23_evidence_survives_router_restart_and_denies_other_tenant(seeded):
+    owner_id, other_id, project_id, run_id, request = seeded
     app, client = _client(owner_id)
     base = f"/api/v2/simulations/projects/{project_id}/analysis-runs/{run_id}"
     assert client.post(base, json=request.model_dump(mode="json")).status_code == 403
@@ -112,8 +125,8 @@ def test_saved_c23_evidence_survives_router_restart_and_denies_other_tenant():
     assert client.get(f"{base}/{request.request_id}/evidence.json").status_code == 404
 
 
-def test_saved_c23_rejects_mismatched_scenario_spec_without_writing():
-    owner_id, _, project_id, run_id, request = _seed()
+def test_saved_c23_rejects_mismatched_scenario_spec_without_writing(seeded):
+    owner_id, _, project_id, run_id, request = seeded
     app, client = _client(owner_id)
     app.dependency_overrides[require_csrf] = lambda: SimpleNamespace(user=SimpleNamespace(id=owner_id))
     raw = request.model_dump(mode="json")
