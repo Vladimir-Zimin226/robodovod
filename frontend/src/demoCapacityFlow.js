@@ -1,4 +1,5 @@
 // Browser-side request assembly only. All formulae and evidence gates remain server-owned.
+// Authored profiles use stable organizer_id; C11 must still receive the catalog's model_id.
 export const DEMO_MODELS = Object.freeze({
   'ecd7d582-b342-449a-b43b-66288d159a32': 'MULE · демонстрационный профиль',
   '5760e938-9a43-45a7-b8e8-f4f2e6383930': 'Ronavi H1500 · демонстрационный профиль',
@@ -42,7 +43,7 @@ export function demoCandidates(items, scope) {
     ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(scope) ? 'TRANSPORT_CYCLE_V1' : null;
   if (!profile) return [];
   return items.filter((item) => item.calculation_ready &&
-    item.calculation_profile === profile && DEMO_MODELS[item.model_id]);
+    item.calculation_profile === profile && DEMO_MODELS[item.organizer_id]);
 }
 
 export function buildDemoCapacityRequest({ normalized, projectId, processId, position, exchangeSeconds, acknowledged }) {
@@ -52,7 +53,7 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
   if (!process?.active || process.input_revision !== normalized.response.input_revision) {
     throw new Error('Нормализуйте активный процесс заново.');
   }
-  if (!position || !DEMO_MODELS[position.model_id] || !position.calculation_ready) {
+  if (!position || !DEMO_MODELS[position.organizer_id] || !position.calculation_ready) {
     throw new Error('Выберите расчётную модель из демо-профилей.');
   }
   const expectedProfile = process.scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :

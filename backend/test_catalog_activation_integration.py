@@ -207,6 +207,12 @@ def test_publish_activate_discovery_and_safe_runtime_gate(activation_database):
         assert all(item["system_family"] == "BRS" for item in participating["items"])
         assert all(item["selectable"] is False for item in participating["items"])
         assert all(item["runtime_catalog_version"] for item in participating["items"])
+        mule = next(
+            item for item in participating["items"]
+            if item["organizer_id"] == "ecd7d582-b342-449a-b43b-66288d159a32"
+        )
+        assert mule["model_id"] != mule["organizer_id"]
+        assert mule["calculation_profile"] == "TRANSPORT_CYCLE_V1"
 
         requires_data = client.get(
             "/api/catalog/models",

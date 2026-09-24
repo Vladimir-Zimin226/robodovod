@@ -59,6 +59,7 @@ htmlcov/
 /Разобрать/
 /data/staging/
 /data/catalog-media/
+/backup/
 
 # Local Deep Research workspace and generated upload copies
 /Исследования/

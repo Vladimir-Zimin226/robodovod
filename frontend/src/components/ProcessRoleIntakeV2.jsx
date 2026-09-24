@@ -45,6 +45,7 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
   const [state, setState] = useState('');
   const [error, setError] = useState('');
   const [positions, setPositions] = useState([]);
+  const [catalogState, setCatalogState] = useState('loading');
   const [processId, setProcessId] = useState('');
   const [positionId, setPositionId] = useState('');
   const [exchangeSeconds, setExchangeSeconds] = useState('');
@@ -70,9 +71,12 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();
       })
-      .then((payload) => setPositions(payload.items || []))
+      .then((payload) => {
+        setPositions(payload.items || []);
+        setCatalogState('ready');
+      })
       .catch((catalogError) => {
-        if (catalogError.name !== 'AbortError') setError('Каталог расчётных моделей пока недоступен.');
+        if (catalogError.name !== 'AbortError') setCatalogState('error');
       });
     return () => controller.abort();
   }, []);
@@ -207,10 +211,13 @@ export default function ProcessRoleIntakeV2({ objectType, activeProject, onNorma
           <label className="block text-xs">Модель из активного capacity-каталога
             <select className="w-full border rounded px-2 py-1" value={positionId} onChange={(event) => setPositionId(event.target.value)}>
               <option value="">Выберите модель</option>
-              {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.model_id]} · позиция {item.source_row_number}</option>)}
+              {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.organizer_id]} · позиция {item.source_row_number}</option>)}
             </select>
           </label>
-          {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.model_id]} />}
+          {catalogState === 'loading' && <p className="text-xs text-slate-600" role="status">Загружаем расчётные модели…</p>}
+          {catalogState === 'error' && <p className="text-xs text-red-700" role="alert">Каталог расчётных моделей недоступен. Обновите страницу и повторите попытку.</p>}
+          {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">В активном каталоге нет подходящего авторского демо-профиля для этого процесса. Проверьте capacity-активацию.</p>}
+          {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.organizer_id]} />}
           {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
           {selectedProcess?.scope === 'CLEANING_AREA' && <p className="text-xs text-slate-600">Демо-допущение: одна уборка указанной площади в сутки.</p>}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
