@@ -12,6 +12,7 @@ import { isCapacityAnalysisResponse } from './capacityResultsModel';
 import { isCommercialScenariosBundle } from './commercialScenariosModel';
 import Simulation2DReport from './components/Simulation2DReport';
 import EvidenceExportPanel from './components/EvidenceExportPanel';
+import EconomicsInputsV2 from './components/EconomicsInputsV2';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -262,7 +263,19 @@ export default function App() {
             {result?.schema_version === 'simulation-2d-bundle-v1' ? (
               <Simulation2DReport key={result.request?.request_id || result.run_id} request={result.request} initialReport={result.report} scenarios={result.scenarios} />
             ) : isCapacityAnalysisResponse(result) ? (
-              <CapacityResultsTrace response={result} onRestart={restart} />
+              <>
+                <CapacityResultsTrace response={result} onRestart={restart} />
+                <EconomicsInputsV2
+                  capacityRequest={userInput}
+                  capacityRunId={activeRun?.id || result.run_id}
+                  project={activeProject}
+                  onComplete={(run) => {
+                    setActiveRun(run);
+                    setResult(run.result_snapshot);
+                    setSaveState('saved');
+                  }}
+                />
+              </>
             ) : isCommercialScenariosBundle(result) ? (
               <CommercialScenariosV2 key={result.run_id} bundle={result} onRestart={restart} onRecalculate={() => setPhase('intake')} />
             ) : (
