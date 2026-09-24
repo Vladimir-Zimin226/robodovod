@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+import hashlib
 from collections.abc import Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Response
@@ -16,6 +17,7 @@ from calculation.evidence_export import (
     EvidenceRunSnapshotV1,
     build_evidence_export,
 )
+from calculation.readable_report import build_readable_report
 from database import database_session
 from persistence_models import AnalysisRun, Project
 
@@ -124,6 +126,31 @@ def create_evidence_export_router(
                 "Content-Disposition": f'attachment; filename="robomera-evidence-{run_id}.zip"',
                 "X-Export-Manifest-Digest": package.manifest.manifest_digest,
                 "ETag": f'"{package.manifest.manifest_digest}"',
+                "Cache-Control": "private, no-store",
+            },
+        )
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/report.pdf")
+    def download_readable_report(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        run = run_loader(db, project_id, run_id, context.user.id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="analysis run not found")
+        try:
+            pdf, source_digest = build_readable_report(run)
+        except EvidenceExportIntegrityError as exc:
+            raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
+        return Response(
+            content=pdf,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="robomera-report-{run_id}.pdf"',
+                "X-Report-Source-Digest": source_digest,
+                "ETag": f'"sha256:{hashlib.sha256(pdf).hexdigest()}"',
                 "Cache-Control": "private, no-store",
             },
         )

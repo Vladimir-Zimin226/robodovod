@@ -64,6 +64,31 @@ test('download invokes native-style fetch with the global receiver', async () =>
   assert.equal(saved.length, 1);
 });
 
+test('standalone PDF saves only when its source matches the reopened run manifest', async () => {
+  const reportResponse = (digest) => ({
+    ok: true, status: 200,
+    headers: new Headers({ 'X-Report-Source-Digest': digest }),
+    blob: async () => new Blob(['%PDF-1.4'], { type: 'application/pdf' }),
+  });
+  const saved = [];
+  const session = new EvidenceExportSession({
+    fetchImpl: async (url) => url.endsWith('/manifest')
+      ? jsonResponse(manifest)
+      : reportResponse(manifest.source_snapshot_digests.result),
+    saveImpl: (blob, filename) => saved.push({ blob, filename }),
+  });
+  await session.downloadReport(manifest.project_id, manifest.run_id);
+  assert.equal(saved[0].filename, `robomera-report-${manifest.run_id}.pdf`);
+  const mismatch = new EvidenceExportSession({
+    fetchImpl: async (url) => url.endsWith('/manifest')
+      ? jsonResponse(manifest)
+      : reportResponse(`sha256:${'0'.repeat(64)}`),
+    saveImpl: () => saved.push('unexpected'),
+  });
+  await assert.rejects(mismatch.downloadReport(manifest.project_id, manifest.run_id), /digest binding mismatch/);
+  assert.equal(saved.length, 1);
+});
+
 test('digest mismatch, HTTP error and stale response cannot trigger a download', async () => {
   const saved = [];
   let responses = [jsonResponse(manifest), zipResponse(`sha256:${'0'.repeat(64)}`)];

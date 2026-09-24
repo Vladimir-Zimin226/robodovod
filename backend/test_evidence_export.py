@@ -122,10 +122,16 @@ def test_api_is_owner_scoped_and_binds_bundle_to_manifest_digest():
     assert bundle_response.status_code == 200
     assert bundle_response.headers["x-export-manifest-digest"] == manifest_response.json()["manifest_digest"]
     assert bundle_response.headers["content-type"] == "application/zip"
+    report_response = client.get(f"{base}/report.pdf")
+    assert report_response.status_code == 200
+    assert report_response.headers["content-type"] == "application/pdf"
+    assert report_response.headers["x-report-source-digest"] == manifest_response.json()["source_snapshot_digests"]["result"]
+    assert "РОБОДОВОД" in "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(report_response.content)).pages)
     assert all(item[:2] == (project, run_id) for item in calls)
 
     app.dependency_overrides[require_auth_context] = lambda: SimpleNamespace(user=SimpleNamespace(id=uuid.uuid4()))
     assert client.get(f"{base}/manifest").status_code == 404
+    assert client.get(f"{base}/report.pdf").status_code == 404
 
 
 def test_manifest_rejects_unknown_version_and_extra_fields():

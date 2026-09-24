@@ -41,8 +41,10 @@ function defaultSave(blob, filename) {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = filename;
+  document.body.append(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 export class EvidenceExportSession {
@@ -86,6 +88,24 @@ export class EvidenceExportSession {
     if (sequence !== this.sequence) throw new Error('stale evidence response');
     const filename = `robomera-evidence-${runId}.zip`;
     this.saveImpl(blob, filename);
+    return manifest;
+  }
+
+  async downloadReport(projectId, runId) {
+    const sequence = ++this.sequence;
+    const base = `${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports`;
+    const manifestResponse = await this.fetchImpl(`${base}/manifest`, { credentials: 'include' });
+    if (!manifestResponse.ok) throw new Error(`export manifest unavailable (${manifestResponse.status})`);
+    const manifest = parseEvidenceManifest(await manifestResponse.json(), { projectId, runId });
+    if (sequence !== this.sequence) throw new Error('stale evidence response');
+    const reportResponse = await this.fetchImpl(`${base}/report.pdf`, { credentials: 'include' });
+    if (!reportResponse.ok) throw new Error(`calculation report unavailable (${reportResponse.status})`);
+    if (reportResponse.headers.get('X-Report-Source-Digest') !== manifest.source_snapshot_digests.result) {
+      throw new Error('calculation report source digest binding mismatch');
+    }
+    const blob = await reportResponse.blob();
+    if (sequence !== this.sequence) throw new Error('stale evidence response');
+    this.saveImpl(blob, `robomera-report-${runId}.pdf`);
     return manifest;
   }
 }

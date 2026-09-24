@@ -34,6 +34,21 @@ export default function EvidenceExportPanel({ projectId, runId }) {
     }
   };
 
+  const downloadReport = async () => {
+    setStatus('downloading-pdf');
+    setError('');
+    try {
+      const next = await session.downloadReport(projectId, runId);
+      setManifest(next);
+      setStatus('downloaded-pdf');
+    } catch (reason) {
+      if (reason.message !== 'stale evidence response') {
+        setError(reason.message);
+        setStatus('error');
+      }
+    }
+  };
+
   return (
     <section className="evidence-export-v2 panel p-4 space-y-3" aria-label="Доказательный экспорт расчёта">
       <div className="flex items-center justify-between gap-4">
@@ -41,9 +56,14 @@ export default function EvidenceExportPanel({ projectId, runId }) {
           <h2 className="font-semibold">Доказательный экспорт</h2>
           <p className="text-xs text-slate-500">PDF, CSV-разделы и полный неизменяемый snapshot — без пересчёта в браузере.</p>
         </div>
-        <button className="primary-action" disabled={!manifest || status === 'downloading'} onClick={download}>
-          {status === 'downloading' ? 'Формируем архив…' : 'Скачать evidence ZIP'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button className="primary-action" disabled={!manifest || status.startsWith('downloading')} onClick={downloadReport}>
+            {status === 'downloading-pdf' ? 'Формируем отчёт…' : 'Скачать читаемый отчёт PDF'}
+          </button>
+          <button className="primary-action" disabled={!manifest || status.startsWith('downloading')} onClick={download}>
+            {status === 'downloading' ? 'Формируем архив…' : 'Скачать evidence ZIP'}
+          </button>
+        </div>
       </div>
       {manifest && (
         <div className="text-xs text-slate-500">
@@ -58,6 +78,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
         </div>
       )}
       {status === 'downloaded' && <p className="text-xs text-emerald-700">Архив скачан и связан с показанным digest.</p>}
+      {status === 'downloaded-pdf' && <p className="text-xs text-emerald-700">Отчёт скачан и связан с сохранённым результатом.</p>}
       {error && <p role="alert" className="text-xs text-red-700">Экспорт недоступен: {error}</p>}
     </section>
   );
