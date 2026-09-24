@@ -1,16 +1,64 @@
 # Production deployment — robodovod.ru
 
-Статус: **C30 IN PROGRESS / TRAFFIC SWITCH HOLD**, 2026-09-24.
+Статус: **C30 LIVE TEST / CALCULATION HOTFIX HOLD**, 2026-09-24.
 
-Публичный traffic switch не выполняется автоматически. Все команды ниже
-разделены на локальную публикацию, безопасную серверную подготовку и отдельный
-ручной switch. Project name: `robodovod-prod`; installation root:
+Первый публичный запуск `v0.5.3` состоялся: HTTPS для обоих доменов, backend,
+frontend, catalog discovery/capacity и economics v2 route работают. Сквозной
+браузерный расчёт пока **не принят**: `POST /api/v2/calculation-intake/normalize`
+возвращал 404, поскольку обработчик C01 не был подключён в `main.app`. До
+проверки hotfix не утверждать, что публичный C11 → C13–C21 путь работает.
+
+Hotfix `v0.5.4` подключает C01 endpoint, добавляет HTTP regression test и
+админский диагностический ZIP. ZIP доступен только ADMIN по POST с CSRF,
+содержит снимки расчётных/каталожных таблиц всех tenants, audit и ограниченный
+журнал запросов backend. Он не содержит известных password/session/token fields,
+`.env` или Docker/Caddy logs и **не заменяет restore backup**. Файл считать
+конфиденциальным. Для этого stateless code hotfix дополнительный backup не
+является deployment gate: уже проверенный backup `20260924T034525Z` сохранён;
+оператор осознанно отказался от повторных backup на первом развёртывании.
+
+Публичный Caddy уже запущен оператором. Команды первого развёртывания ниже
+сохранены для истории; при обновлении с `v0.5.3` не повторять миграцию, импорт,
+активацию каталога или bootstrap. Project name: `robodovod-prod`; installation root:
 `/opt/robodovod`; environment: `.env.production` с mode `600`.
 
 Команды выполнять по одной в указанном порядке. При любом ненулевом exit code,
-неожиданном hash/status или failed/unhealthy контейнере остановиться на текущем
-разделе: не выполнять следующий раздел и особенно раздел 9, пока причина не
-устранена и текущая проверка не повторена успешно.
+неожиданном hash/status или failed/unhealthy контейнере остановиться и закрыть
+публичный Caddy до расследования.
+
+## 0. Текущее обновление с `v0.5.3` на `v0.5.4`
+
+После публикации проверенного `main`/tag, на сервере:
+
+```bash
+cd /opt/robodovod
+C='sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml'
+$C stop caddy
+test -z "$(git status --porcelain)"
+git fetch --prune --tags origin
+git pull --ff-only origin main
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.4)"
+$C config --quiet
+$C build backend frontend
+$C up -d --wait backend frontend
+$C run --rm economics-activation status
+$C ps
+```
+
+Не запускать `migrate`, `catalog-import`, `catalog-activation` или
+`admin-bootstrap` повторно. До открытия трафика проверить новый C01 HTTP
+endpoint и каталог, затем вернуть Caddy:
+
+```bash
+$C exec -T backend python -c 'import urllib.request; u="http://127.0.0.1:8000"; print(urllib.request.urlopen(u+"/ready").read().decode()); print(urllib.request.urlopen(u+"/api/catalog/status").read().decode())'
+$C up -d --wait caddy
+$C ps
+```
+
+Публичный smoke без секретов: HTTPS `/health`, `/ready`, `/api/catalog/status`,
+TLS обоих доменов, закрытые 5432/8000/5173. Затем авторизованный UI flow с
+открытым проектом; проверить новый C01 route, C11, C13–C21, reopen/export и
+админский диагностический ZIP. При ошибке `$C stop caddy`, не удалять volumes.
 
 ## 1. Обязательный HOLD
 
@@ -70,10 +118,10 @@ printf '%s\n' \
 git status --short
 git switch main
 git pull --ff-only origin main
-git merge --ff-only fix/backup-uploads-owner
-git tag -a v0.5.3 -m "Robodovod backup uploads ownership fix v0.5.3"
-git push --atomic origin main refs/tags/v0.5.3
-git rev-list -n 1 v0.5.3
+git merge --ff-only fix/normalization-admin-diagnostics
+git tag -a v0.5.4 -m "Robodovod intake and diagnostic hotfix v0.5.4"
+git push --atomic origin main refs/tags/v0.5.4
+git rev-list -n 1 v0.5.4
 ```
 
 Если `--ff-only` невозможен, не создавать merge вручную: опубликовать branch,
@@ -103,23 +151,23 @@ Docker daemon 29.8.1. `docker volume ls` и `docker ps -a` не вывели з�
 
 ## 4. Подготовка server checkout — можно выполнить без запуска
 
-После публикации `v0.5.3`:
+После публикации `v0.5.4`:
 
 ```bash
 ssh robodovod
 cd /opt/robodovod
 git status --short
 git fetch --prune --tags origin
-test "$(git cat-file -t v0.5.3)" = tag
-git show --no-patch --decorate v0.5.3
+test "$(git cat-file -t v0.5.4)" = tag
+git show --no-patch --decorate v0.5.4
 git switch main
 git pull --ff-only origin main
-test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.3)"
+test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 v0.5.4)"
 git branch --show-current
 ```
 
 Последняя команда должна вывести `main`, а проверяемый hash должен совпасть с
-локальным `git rev-list -n 1 v0.5.3`.
+локальным `git rev-list -n 1 v0.5.4`.
 `git verify-tag` подходит только для подписанного тега; приведённая выше
 команда создаёт обычный annotated tag.
 
@@ -307,5 +355,6 @@ Alembic downgrade на production запрещены.
 - actual organizer catalog acceptance прошёл C11 → C13–C21 → reopen → replay →
   export без C05 PASS и без procurement-ready утверждения.
 
-Это подтверждает готовность release к серверным deployment gates. Публичный
-traffic остаётся выключенным, пока оператор не завершит разделы 3–9.
+Эта прежняя локальная приёмка не обнаружила отсутствующий production C01 HTTP
+route. Текущий C30 остаётся на HOLD до публичной проверки полного v2 flow после
+hotfix: normalize → C11 → C13–C21 → reopen/replay/export.

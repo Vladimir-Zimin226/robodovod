@@ -18,7 +18,7 @@ C20 **COMPLETE** 2026-09-23, C21 **COMPLETE** 2026-09-23,
 C22 **COMPLETE** 2026-09-23, C23 **COMPLETE** 2026-09-23,
 C24 **COMPLETE** 2026-09-23, C25 **COMPLETE** 2026-09-23,
 C26 **COMPLETE** 2026-09-23, C27 **COMPLETE** 2026-09-23,
-C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / TRAFFIC SWITCH HOLD**.
+C28–C29 **COMPLETE** 2026-09-23; C30 **IN PROGRESS / LIVE CALCULATION HOLD**.
 
 Общие gates каждого этапа: strict contracts, no unsafe vendor facts,
 tenant/owner predicates, immutable old runs, deterministic results,
@@ -915,7 +915,7 @@ Production activation не выполнялась.
 
 ## C30 — `ops/production-domain-deployment-v1`
 
-Статус: **IN PROGRESS / TRAFFIC SWITCH HOLD**, обновлено 2026-09-24.
+Статус: **IN PROGRESS / LIVE CALCULATION HOLD**, обновлено 2026-09-24.
 Исполнитель — агент. Production economics-v2 executor подключён в `main.app`;
 новый UI выполняет C11 → явные commercial inputs → C13–C21, сохраняет
 immutable run и поддерживает reopen/export/deterministic replay. Повторный C29
@@ -924,9 +924,13 @@ immutable run и поддерживает reopen/export/deterministic replay. П
 в `runtime`; новые поддержанные расчёты используют отдельные capacity/economics
 slots. C05 demo остаётся `NEEDS_VALIDATION` и не объявляется PASS. Подробности:
 [production calculation integration gap](production-calculation-integration-gap.md).
-Infrastructure artifacts подготовлены. Production activation выполняется
-только из `main` после backup/migration/config gates; публичный traffic switch
-в этой итерации не выполнялся. Runbook:
+Infrastructure artifacts подготовлены. Первый публичный запуск `v0.5.3`
+выполнен: TLS apex/www, catalog discovery/capacity, economics v2, restore drill
+и internal smoke зелёные. Живой браузерный тест обнаружил 404 на
+`POST /api/v2/calculation-intake/normalize`: C01 normalizer существовал как
+контракт/функция, но не был включён в `main.app`. Hotfix подключает endpoint
+и защищённый админский диагностический ZIP. C30 нельзя завершить до повторного
+live C01 → C11 → C13–C21 → reopen/export и проверки CSRF/tenant gates. Runbook:
 [production deployment](../PRODUCTION_DEPLOYMENT.md).
 
 - **Цель / среда:** воспроизводимо развернуть принятый release на Selectel VDS
