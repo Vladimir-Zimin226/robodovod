@@ -3,7 +3,7 @@ import AppIcon from './AppIcon';
 
 const NAVIGATION = [
   { id: 'home', label: 'Главная', icon: 'home' },
-  { id: 'process', label: 'Процесс', icon: 'process' },
+  { id: 'process', label: 'Помощник по сервису', icon: 'process' },
   { id: 'calculation', label: 'Расчёт', icon: 'calculator' },
   { id: 'model', label: 'Моделирование', icon: 'cube', target: 'visualization' },
   { id: 'variants', label: 'Варианты', icon: 'chart', target: 'scenarios' },

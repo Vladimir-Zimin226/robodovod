@@ -24,6 +24,7 @@ from persistence_models import Project
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from service_knowledge import answer_service_question
 
 
 WEB_SEARCH_URL = "https://searchapi.api.cloud.yandex.net/v2/web/search"
@@ -99,6 +100,11 @@ class AssistantRequest(BaseModel):
 
 class WebSearchRequest(BaseModel):
     query: str = Field(min_length=3, max_length=300)
+    project_id: uuid.UUID | None = None
+
+
+class ServiceQuestionRequest(BaseModel):
+    message: str = Field(min_length=3, max_length=400)
     project_id: uuid.UUID | None = None
 
 
@@ -379,6 +385,12 @@ def _owned_project(project_id: uuid.UUID | None, request: Request, db: Session, 
 
 def create_solution_assistant_router(load_snapshot: Callable[[], CatalogSnapshotDTO]) -> APIRouter:
     router = APIRouter(prefix="/api/assistant")
+
+    @router.post("/service")
+    def service(payload: ServiceQuestionRequest, request: Request, db: Session = Depends(database_session)):
+        subject = _owned_project(payload.project_id, request, db, csrf=payload.project_id is not None)
+        _LIMITER.check("service", subject or (request.client.host if request.client else "unknown"), 60)
+        return answer_service_question(payload.message)
 
     @router.post("/catalog")
     def catalog(payload: AssistantRequest, request: Request, db: Session = Depends(database_session)):

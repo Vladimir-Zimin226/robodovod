@@ -67,7 +67,19 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (window.location.hash !== '#process') return;
+    const url = new URL(window.location.href);
+    url.hash = '#assistant';
+    window.history.replaceState({ robodovodPhase: 'process' }, '', url);
+  }, []);
+
+  useEffect(() => {
     const restore = () => {
+      if (window.location.hash === '#process') {
+        const url = new URL(window.location.href);
+        url.hash = '#assistant';
+        window.history.replaceState({ robodovodPhase: 'process' }, '', url);
+      }
       const nextPhase = phaseFromHash(window.location.hash, Boolean(result));
       if (nextPhase === 'onboarding' && window.location.hash === '#results') {
         const url = new URL(window.location.href);
@@ -216,7 +228,7 @@ export default function App() {
         ) : phase === 'onboarding' ? (
           <OnboardingScreen
             onGuestDemo={() => showPhase('guestDemo')}
-            onOwnProcess={() => showPhase('process')}
+            onOwnProcess={openCalculation}
             onOpenCatalog={() => { setCatalogFocusId(null); catalogReturnPhase.current = 'onboarding'; showPhase('catalog'); }}
             onChoose={(t) => {
               setIntakeInitialSources(null);
@@ -235,13 +247,8 @@ export default function App() {
             onSessionChange={setAssistantSession}
             onStartCalculation={openCalculation}
             onOpenCatalog={(positionId = null) => { setCatalogFocusId(positionId); catalogReturnPhase.current = 'process'; showPhase('catalog'); }}
-            onOpenAccount={() => showPhase('account')}
-            onConfirmDraft={(profile) => {
-              setObjectType(profile.fields.object_type.value);
-              setAssistantImport({ profile, id: Date.now() });
-              setIntakePrompt('Подтверждённые поля интервью перенесены в форму. Проверьте модель и отдельные условия расчёта парка.');
-              showPhase('intake');
-            }}
+            onOpenDemo={() => showPhase('guestDemo')}
+            onOpenProjects={() => showPhase(user ? 'projects' : 'account')}
             onReturnToResult={() => showPhase('results')} />
         ) : phase === 'intake' ? (
           <IntakeScreen

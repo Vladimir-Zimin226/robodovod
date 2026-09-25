@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 
 import { phaseFromHash, phaseHash } from '../src/appNavigation.js';
 
-test('process, calculation and catalog have distinct browser routes', () => {
-  assert.equal(phaseHash('process'), '#process');
+test('service assistant, calculation and catalog have distinct browser routes', () => {
+  assert.equal(phaseHash('process'), '#assistant');
   assert.equal(phaseHash('intake'), '#calculation');
   assert.equal(phaseHash('catalog'), '#catalog');
+  assert.equal(phaseFromHash('#assistant'), 'process');
   assert.equal(phaseFromHash('#process'), 'process');
   assert.equal(phaseFromHash('#calculation'), 'intake');
   assert.equal(phaseFromHash('#catalog'), 'catalog');

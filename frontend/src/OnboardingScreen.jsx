@@ -65,7 +65,7 @@ export default function OnboardingScreen({ onChoose, onGuestDemo, onOwnProcess, 
             <button type="button" className="landing-button landing-button-primary" onClick={onGuestDemo}>Попробовать демо <AppIcon name="arrow" size={18} /></button>
             <button type="button" className="landing-button landing-button-secondary" onClick={onOwnProcess}>Рассчитать свой процесс <AppIcon name="arrow" size={18} /></button>
           </div>
-          <p className="landing-entry-note">Демо открывается без регистрации. Свой процесс начинается с короткого интервью; для сохранения расчёта понадобится проект.</p>
+          <p className="landing-entry-note">Демо открывается без регистрации. Свой процесс можно ввести в разделе «Расчёт»; для сохранения результата понадобится проект.</p>
           <button type="button" className="landing-catalog-link" onClick={onOpenCatalog}><AppIcon name="library" size={18} /> Смотреть каталог решений <AppIcon name="arrow" size={16} /></button>
         </div>
         <WarehousePreview />

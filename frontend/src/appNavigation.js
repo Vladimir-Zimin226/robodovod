@@ -1,5 +1,5 @@
 const PHASE_HASH = Object.freeze({
-  onboarding: '', process: '#process', intake: '#calculation', catalog: '#catalog',
+  onboarding: '', process: '#assistant', intake: '#calculation', catalog: '#catalog',
   results: '#results', projects: '#projects', account: '#account', admin: '#admin',
   guestDemo: '#demo-warehouse',
 });
@@ -12,6 +12,6 @@ export function phaseHash(phase) {
 }
 
 export function phaseFromHash(hash, hasResult = false) {
-  const phase = HASH_PHASE[hash] || 'onboarding';
+  const phase = hash === '#process' ? 'process' : HASH_PHASE[hash] || 'onboarding';
   return phase === 'results' && !hasResult ? 'onboarding' : phase;
 }
