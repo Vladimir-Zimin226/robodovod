@@ -242,4 +242,4 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
         assert "Проверка технических ограничений" in report_text
         assert "Параметры поставщика" in report_text
         assert "После покупки роботов" in report_text
-        assert "При аренде роботов (RaaS)" in report_text
+        assert "При аренде роботов" in report_text

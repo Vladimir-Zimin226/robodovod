@@ -17,6 +17,11 @@ import PartialEconomicsResult from './components/PartialEconomicsResult';
 import SavedEconomicsEditor from './components/SavedEconomicsEditor';
 import GuestWarehouseDemo from './components/GuestWarehouseDemo';
 import TechnicalVisualization from './components/TechnicalVisualization';
+import BrainModelScreen from './components/BrainModelScreen';
+import CandidateComparisonPanel from './components/CandidateComparisonPanel';
+import RoboExpertScreen from './components/RoboExpertScreen';
+import EconomicsGlossaryScreen from './components/EconomicsGlossaryScreen';
+import ReportsScreen from './components/ReportsScreen';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
@@ -52,6 +57,7 @@ export default function App() {
   const [projectChoices, setProjectChoices] = useState([]);
   const [projectStatus, setProjectStatus] = useState('loading');
   const [activeRun, setActiveRun] = useState(null);
+  const [editorRequestedRunId, setEditorRequestedRunId] = useState(null);
   const [, setSaveState] = useState('');
   const intakeV2Snapshot = useRef(null);
   const catalogReturnPhase = useRef('onboarding');
@@ -153,6 +159,7 @@ export default function App() {
   const assistantSessionKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}`;
 
   const openCalculation = () => {
+    setEditorRequestedRunId(null);
     setAssistantImport(null);
     setIntakeInitialSources(null);
     const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
@@ -162,6 +169,17 @@ export default function App() {
     showPhase('intake');
   };
 
+  const openSavedRun = (run, project, options = {}) => {
+    selectActiveProject(project);
+    setActiveRun(run);
+    setUserInput(run.input_snapshot);
+    setResult(run.result_snapshot);
+    setEditorRequestedRunId(options.edit ? run.id : null);
+    if (options.edit) pendingResultTarget.current = 'edit-economics-run';
+    showPhase('results');
+    setSaveState('saved');
+  };
+
   const navigate = ({ id, target }) => {
     if (id === 'home') {
       restart();
@@ -169,6 +187,22 @@ export default function App() {
     }
     if (id === 'process') {
       showPhase('process');
+      return;
+    }
+    if (id === 'model') {
+      showPhase('model');
+      return;
+    }
+    if (id === 'expert' || id === 'variants') {
+      showPhase('expert');
+      return;
+    }
+    if (id === 'economics') {
+      showPhase('economics');
+      return;
+    }
+    if (id === 'report') {
+      showPhase('reports');
       return;
     }
     if (id === 'calculation') {
@@ -240,6 +274,10 @@ export default function App() {
               showPhase('intake');
             }}
           />
+        ) : phase === 'economics' ? (
+          <EconomicsGlossaryScreen onOpenCalculation={openCalculation} onOpenDemo={() => showPhase('guestDemo')} />
+        ) : phase === 'reports' ? (
+          <ReportsScreen user={user} onOpenAccount={() => showPhase('account')} onOpenRun={openSavedRun} />
         ) : phase === 'process' ? (
           <ProcessScreen key={assistantSessionKey} activeProject={activeProject} user={user} hasResult={Boolean(result)}
             sessionKey={assistantSessionKey}
@@ -250,6 +288,16 @@ export default function App() {
             onOpenDemo={() => showPhase('guestDemo')}
             onOpenProjects={() => showPhase(user ? 'projects' : 'account')}
             onReturnToResult={() => showPhase('results')} />
+        ) : phase === 'model' ? (
+          <BrainModelScreen key={activeProject?.id || 'no-project'} project={activeProject} user={user}
+            onOpenProjects={() => showPhase('projects')} onOpenAccount={() => showPhase('account')}
+            onViewRun={(run, request) => {
+              setActiveRun(run); setResult(run.result_snapshot); setUserInput(request); showPhase('results');
+            }} />
+        ) : phase === 'expert' ? (
+          <RoboExpertScreen user={user} project={activeProject}
+            capacityRunId={activeRun?.run_kind === 'CAPACITY_ANALYSIS' ? activeRun.id : null}
+            onOpenAccount={() => showPhase('account')} />
         ) : phase === 'intake' ? (
           <IntakeScreen
             objectType={objectType}
@@ -311,14 +359,7 @@ export default function App() {
         ) : phase === 'projects' ? (
           <ProjectsScreen
             onOpenProject={(project) => { selectActiveProject(project); showPhase('onboarding'); }}
-            onOpenRun={(run, project) => {
-              selectActiveProject(project);
-              setActiveRun(run);
-              setUserInput(run.input_snapshot);
-              setResult(run.result_snapshot);
-              showPhase('results');
-              setSaveState('saved');
-            }}
+            onOpenRun={openSavedRun}
           />
         ) : phase === 'admin' && user?.role === 'ADMIN' ? (
           <AdminUsersScreen />
@@ -329,6 +370,7 @@ export default function App() {
             ) : isCapacityAnalysisResponse(result) ? (
               <>
                 <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
+                <CandidateComparisonPanel key={activeRun?.id || result.run_id} project={activeProject} capacityRunId={activeRun?.id || result.run_id} />
                 <TechnicalVisualization key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <EconomicsInputsV2
                   capacityRequest={userInput}
@@ -342,15 +384,15 @@ export default function App() {
                 />
               </>
             ) : result?.schema_version === 'economics-partial-result-v1' ? (
-              <PartialEconomicsResult result={result} run={activeRun} project={activeProject} onComplete={(run) => {
+              <PartialEconomicsResult result={result} run={activeRun} project={activeProject} autoOpenEditor={editorRequestedRunId === activeRun?.id} onComplete={(run) => {
                 setActiveRun(run);
                 setResult(run.result_snapshot);
                 setSaveState('saved');
               }} />
             ) : isCommercialScenariosBundle(result) ? (
               <>
-                <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={openCalculation} />
-                <SavedEconomicsEditor key={activeRun?.id || result.run_id} project={activeProject} run={activeRun} onComplete={(run) => {
+                <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={openCalculation} />
+                <SavedEconomicsEditor key={`editor:${activeRun?.id || result.run_id}`} project={activeProject} run={activeRun} autoOpen={editorRequestedRunId === activeRun?.id} onComplete={(run) => {
                   setActiveRun(run); setResult(run.result_snapshot); setSaveState('saved');
                 }} />
               </>

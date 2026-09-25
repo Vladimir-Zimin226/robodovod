@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from calculation.scheduling import SimulationReportV1, SimulationRequestV1
+from calculation.scheduling import SimulationReportV1, SimulationReportV3, SimulationRequestV1, SimulationRequestV2
 from calculation_contracts import semantic_digest
 from persistence_models import AnalysisRun, Project, SimulationArtifact
 
@@ -22,8 +22,8 @@ class StoredSimulationEvidence:
     artifact_id: uuid.UUID
     analysis_run_id: uuid.UUID
     project_id: uuid.UUID
-    request: SimulationRequestV1
-    report: SimulationReportV1
+    request: SimulationRequestV1 | SimulationRequestV2
+    report: SimulationReportV1 | SimulationReportV3
     request_digest: str
     report_digest: str
     scenario_spec_digest: str
@@ -43,7 +43,7 @@ def owned_run(db: Session, owner_id: uuid.UUID, project_id: uuid.UUID,
     )
 
 
-def verify_run_binding(run: AnalysisRun, request: SimulationRequestV1) -> str:
+def verify_run_binding(run: AnalysisRun, request: SimulationRequestV1 | SimulationRequestV2) -> str:
     spec_digest = semantic_digest(request.scenario_spec).removeprefix("sha256:")
     if (run.scenario_spec_sha256 != spec_digest
             or run.scenario_spec_snapshot != request.scenario_spec.model_dump(mode="json")
@@ -53,8 +53,8 @@ def verify_run_binding(run: AnalysisRun, request: SimulationRequestV1) -> str:
 
 
 def save_artifact(db: Session, owner_id: uuid.UUID, project_id: uuid.UUID,
-                  run_id: uuid.UUID, request: SimulationRequestV1,
-                  report: SimulationReportV1) -> StoredSimulationEvidence:
+                  run_id: uuid.UUID, request: SimulationRequestV1 | SimulationRequestV2,
+                  report: SimulationReportV1 | SimulationReportV3) -> StoredSimulationEvidence:
     run = owned_run(db, owner_id, project_id, run_id)
     if run is None:
         raise SimulationArtifactIntegrityError("saved analysis run is unavailable")
@@ -99,8 +99,10 @@ def load_artifact(db: Session, owner_id: uuid.UUID, project_id: uuid.UUID,
         return None
     if artifact.artifact_version != "simulation-artifact-v1":
         raise SimulationArtifactIntegrityError("unknown simulation artifact version")
-    request = SimulationRequestV1.model_validate(artifact.request_snapshot)
-    report = SimulationReportV1.model_validate(artifact.report_snapshot)
+    request_model = SimulationRequestV2 if artifact.request_snapshot.get("schema_version") == "simulation-request-v2" else SimulationRequestV1
+    report_model = SimulationReportV3 if artifact.report_snapshot.get("schema_version") == "simulation-report-v3" else SimulationReportV1
+    request = request_model.model_validate(artifact.request_snapshot)
+    report = report_model.model_validate(artifact.report_snapshot)
     if (artifact.request_sha256 != semantic_digest(request).removeprefix("sha256:")
             or artifact.report_sha256 != semantic_digest(report).removeprefix("sha256:")
             or artifact.scenario_spec_sha256 != run.scenario_spec_sha256

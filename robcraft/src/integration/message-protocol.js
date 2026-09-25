@@ -1,6 +1,6 @@
 export const MESSAGE_SCHEMA_VERSION = 'robcraft-message-v1';
 
-const INBOUND_TYPES = new Set(['LOAD_SCENARIO', 'APPLY_REVISION', 'SET_CAMERA_MODE', 'SET_EDITOR_MODE', 'SELECT_ZONE']);
+const INBOUND_TYPES = new Set(['LOAD_SCENARIO', 'APPLY_REVISION', 'SET_CAMERA_MODE', 'SET_EDITOR_MODE', 'SELECT_ZONE', 'SET_PLAYBACK']);
 const CAMERA_MODES = new Set(['AUTOPILOT', 'MANUAL_FIRST_PERSON']);
 const ENVELOPE_FIELDS = new Set([
   'schema_version', 'type', 'revision_id', 'request_id', 'payload'
@@ -39,7 +39,7 @@ export function parseParentMessage(value) {
     }
     if (value.payload.simulation_report !== undefined && value.payload.simulation_report !== null) {
       assertPlainObject(value.payload.simulation_report, 'LOAD_SCENARIO.payload.simulation_report');
-      if (!['simulation-report-v1', 'simulation-report-v2'].includes(value.payload.simulation_report.schema_version)) throw new TypeError('LOAD_SCENARIO поддерживает только SimulationReport v1/v2');
+      if (!['simulation-report-v1', 'simulation-report-v2', 'simulation-report-v3'].includes(value.payload.simulation_report.schema_version)) throw new TypeError('LOAD_SCENARIO поддерживает только SimulationReport v1/v2/v3');
       if (value.payload.simulation_report.scenario_revision_id !== value.revision_id) throw new TypeError('SimulationReport и ScenarioSpec revision не совпадают');
       if (!/^sha256:[0-9a-f]{64}$/.test(value.payload.simulation_report.replay?.report_content_digest || '')) throw new TypeError('SimulationReport report digest имеет неверный формат');
     }
@@ -51,6 +51,13 @@ export function parseParentMessage(value) {
   } else if (value.type === 'SELECT_ZONE') {
     assertExactFields(value.payload, new Set(['zone_id']), 'SELECT_ZONE.payload');
     if (typeof value.payload.zone_id !== 'string' || !value.payload.zone_id) throw new TypeError('SELECT_ZONE.zone_id обязателен');
+  } else if (value.type === 'SET_PLAYBACK') {
+    assertExactFields(value.payload, new Set(['elapsed_seconds', 'status', 'speed', 'restart']), 'SET_PLAYBACK.payload');
+    if (!Number.isFinite(value.payload.elapsed_seconds) || value.payload.elapsed_seconds < 0
+        || !['RUNNING', 'PAUSED', 'STOPPED'].includes(value.payload.status)
+        || ![0.5, 1, 2, 4].includes(value.payload.speed)
+        || !Number.isInteger(value.payload.restart) || value.payload.restart < 0)
+      throw new TypeError('SET_PLAYBACK содержит неверную временную шкалу');
   } else {
     assertExactFields(value.payload, new Set(['enabled']), 'SET_EDITOR_MODE.payload');
     if (typeof value.payload.enabled !== 'boolean') throw new TypeError('SET_EDITOR_MODE.enabled должен быть boolean');
@@ -68,7 +75,7 @@ export function childMessage(type, revisionId, requestId, payload = {}) {
   };
 }
 
-export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState, getRendererReport, selectZone }) {
+export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState, getRendererReport, selectZone, setPlayback }) {
   if (windowObject.parent === windowObject) return { dispose() {}, cameraModeChanged() {}, editorModeChanged() {}, scenePatchChanged() {}, rendererReportChanged() {} };
   const origin = windowObject.location.origin;
   let prepared = null;
@@ -158,6 +165,9 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
         cameraModeChanged(state.mode, state.reason || 'PARENT_REQUEST', state.pointerLocked);
       } else if (message.type === 'SELECT_ZONE') {
         if (!selectZone || !await selectZone(message.payload.zone_id)) throw new TypeError('3D-зона недоступна для выбора');
+      } else if (message.type === 'SET_PLAYBACK') {
+        if (!setPlayback) throw new TypeError('3D-воспроизведение недоступно');
+        setPlayback(message.payload);
       } else {
         const state = await setEditorMode(message.payload.enabled);
         editorModeChanged(state);
@@ -168,7 +178,7 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
   };
 
   windowObject.addEventListener('message', listener);
-  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'scenario-spec-v2', 'simulation-report-v1-binding', 'robcraft-renderer-report-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
+  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'scenario-spec-v2', 'simulation-report-v1-binding', 'robcraft-renderer-report-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'playback-sync-v1', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
   return {
     dispose: () => windowObject.removeEventListener('message', listener),
     cameraModeChanged,

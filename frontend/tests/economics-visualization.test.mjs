@@ -14,7 +14,10 @@ const bundle = {
 
 test('economics visualization binds only the same immutable project, tenant and revision', () => {
   const request = buildEconomicsSimulationRequest(bundle, scenarioSpec);
-  assert.equal(request.request_id, `simulation.${bundle.run_id}`);
+  assert.equal(request.request_id, `simulation.${bundle.run_id}.v2`);
+  assert.equal(request.schema_version, 'simulation-request-v2');
+  assert.equal(request.model_start.weekday, 'MONDAY');
+  assert.equal(request.model_start.timezone, scenarioSpec.operating_windows[0].timezone);
   assert.equal(request.scenario_spec, scenarioSpec);
   assert.equal(request.mode, 'DAILY');
   assert.equal(request.sla, null);
@@ -33,7 +36,7 @@ test('partial technical run builds a saved C23 request only for matching C11 ide
       capacity_run_id: scenarioSpec.analysis.capacity_run_id,
       project_id: scenarioSpec.analysis.project_id, tenant_id: scenarioSpec.analysis.tenant_id } };
   const request = buildTechnicalSimulationRequest(run);
-  assert.equal(request.request_id, `simulation.${run.id}`);
+  assert.equal(request.request_id, `simulation.${run.id}.v2`);
   assert.equal(request.scenario_spec, scenarioSpec);
   assert.equal(buildTechnicalSimulationRequest({ ...run, result_snapshot: { ...run.result_snapshot, capacity_run_id: 'other' } }), null);
   assert.equal(buildTechnicalSimulationRequest({ ...run, scenario_spec_snapshot: { schema_version: 'scenario-spec-partial-v1' } }), null);

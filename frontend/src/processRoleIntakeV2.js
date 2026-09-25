@@ -2,7 +2,7 @@ export const INTAKE_SCHEMA_VERSION = 'calculation-intake-v2';
 export const NORMALIZATION_SCHEMA_VERSION = 'calculation-intake-normalization-v2';
 
 const DEFINITIONS = [
-  ['WAREHOUSE', 'warehouse_receiving_shipping', 'Приёмка и отгрузка', 'TRANSPORT_CYCLE', 'PALLET', 'pallet/day', ['forklift_driver', 'loader']],
+  ['WAREHOUSE', 'warehouse_receiving_shipping', 'Перевозка подготовленных паллет', 'TRANSPORT_CYCLE', 'PALLET', 'pallet/day', ['forklift_driver', 'loader']],
   ['WAREHOUSE', 'warehouse_storage', 'Хранение', 'REFERENCE_ONLY', 'PALLET', 'pallet/day', ['storekeeper']],
   ['WAREHOUSE', 'warehouse_picking', 'Комплектация', 'REFERENCE_ONLY', 'PICK', 'pick/day', ['picker', 'sorter']],
   ['WAREHOUSE', 'warehouse_palletizing', 'Паллетизация', 'FIXED_CELL', 'PALLET', 'pallet/day', ['packer']],

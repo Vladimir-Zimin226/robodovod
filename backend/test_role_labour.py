@@ -115,6 +115,19 @@ def test_warehouse_rotation_27_and_conservation_golden():
     assert driver.deficit_cost_source == "DEFAULT_ANNUAL_DIRECT"
     assert result.labour_status == result.finance_status == "COMPLETE"
     assert result.forklifts.withdrawn <= result.forklifts.base_count
+
+
+def test_pallet_transport_does_not_release_pickers_or_packers():
+    roles = [
+        role("role.driver", "forklift_driver", 20, ["process.receiving"]),
+        role("role.picker", "picker", 100, ["process.picking"]),
+        role("role.packer", "packer", 12, ["process.palletizing"], salary_value=None),
+    ]
+    result = analyze_role_labour(request(roles=roles))
+    by_code = {item.role_code: item for item in result.roles}
+    assert by_code["forklift_driver"].released > 0
+    assert "picker" not in by_code
+    assert "packer" not in by_code
     assert result.replay.capacity_result_digests == [DIGEST]
 
 

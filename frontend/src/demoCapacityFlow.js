@@ -46,14 +46,26 @@ export function demoCandidates(items, scope) {
     item.calculation_profile === profile && DEMO_MODELS[item.organizer_id]);
 }
 
-export function buildDemoCapacityRequest({ normalized, projectId, processId, position, exchangeSeconds, acknowledged, zone }) {
+export function brainCandidates(items, scope) {
+  const profile = scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
+    ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(scope) ? 'TRANSPORT_CYCLE_V1' : null;
+  if (!profile) return [];
+  const seen = new Set();
+  return items.filter((item) => {
+    if (!item.calculation_ready || item.calculation_profile !== profile || seen.has(item.position_id)) return false;
+    seen.add(item.position_id);
+    return true;
+  });
+}
+
+export function buildDemoCapacityRequest({ normalized, projectId, processId, position, exchangeSeconds, cleaningFrequency = '1', acknowledged, zone, brainProfileVersion = null }) {
   if (!acknowledged) throw new Error('Подтвердите демонстрационные допущения.');
   if (!projectId) throw new Error('Откройте проект для сохранения расчёта.');
   const process = normalized?.response?.normalized_processes?.find((item) => item.process_id === processId);
   if (!process?.active || process.input_revision !== normalized.response.input_revision) {
     throw new Error('Нормализуйте активный процесс заново.');
   }
-  if (!position || !DEMO_MODELS[position.organizer_id] || !position.calculation_ready) {
+  if (!position || !(brainProfileVersion ? position.position_id : DEMO_MODELS[position.organizer_id]) || !position.calculation_ready) {
     throw new Error('Выберите расчётную модель из демо-профилей.');
   }
   const expectedProfile = process.scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
@@ -63,8 +75,9 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
   }
   const provenance = [{
     provenance_id: 'prov.demo.confirmation', kind: 'ASSUMPTION',
-    assumption_id: 'organizer-demo-object', assumption_version: 'v1',
-    rationale: 'Параметры типового объекта требуют проверки на реальном объекте',
+    assumption_id: brainProfileVersion ? 'brain-preliminary-applicability' : 'organizer-demo-object',
+    assumption_version: brainProfileVersion ? `profile-v${brainProfileVersion}` : 'v1',
+    rationale: brainProfileVersion ? 'Предварительный сценарий пользователя; пригодность модели, скорость и обмен требуют проверки на объекте' : 'Параметры типового объекта требуют проверки на реальном объекте',
     permitted_scope: process.scope, confirmation_state: 'USER_CONFIRMED',
   }];
   const requestProcess = { ...process };
@@ -89,8 +102,9 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
   };
   if (process.scope === 'CLEANING_AREA') {
     // One cleaning pass per day is an explicit demo assumption, never inferred by C11.
+    if (!positive(cleaningFrequency)) throw new Error('Укажите число уборок площади в сутки.');
     request.cleaning_area = quantity('cleaning_area', process.demand?.normalized_value, 'm2', 'AREA', 'prov.demo.confirmation');
-    request.cleaning_frequency = quantity('cleaning_frequency', '1', '1/day', 'RATE', 'prov.demo.confirmation');
+    request.cleaning_frequency = quantity('cleaning_frequency', cleaningFrequency, '1/day', 'RATE', 'prov.demo.confirmation');
   } else {
     if (!positive(exchangeSeconds)) throw new Error('Укажите время погрузки и выгрузки за рейс, сек.');
     requestProcess.exchange = {

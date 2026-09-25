@@ -14,15 +14,15 @@ test('A* строит свободный путь вокруг статичес�
   assert.ok(path.some(point => Math.abs(point[1]) > 2.4));
 });
 
-test('два робота при шести рядах получают удалённые точки разных стеллажей', () => {
+test('два робота получают разные точки передачи готовых паллет вне отбора со стеллажей', () => {
   const scene = generateWorld({ template: 'warehouse', seed: 'RACK-DISTRIBUTION', rackRows: 6, robotCount: 2 });
   const pickups = scene.routes.map(route => route.pickupCandidates[route.initialPickupIndex]);
-  assert.notEqual(pickups[0].rackRow, pickups[1].rackRow);
-  assert.ok(Math.abs(pickups[0].rackRow - pickups[1].rackRow) >= 4);
-  assert.ok(scene.routes.every(route => new Set(route.pickupCandidates.map(candidate => candidate.rackRow)).size === 6));
+  assert.notEqual(pickups[0].position[0], pickups[1].position[0]);
+  assert.ok(pickups.every(point => point.label.startsWith('Передача подготовленной паллеты')));
+  assert.ok(scene.routes.every(route => route.pickupCandidates.every(point => point.rackRow === null && point.bay === null)));
 });
 
-test('следующие задания ротируются между ячейками и рядами', () => {
+test('следующие задания ротируются между точками передачи', () => {
   const scene = generateWorld({ template: 'warehouse', seed: 'TASK-PICKUPS', rackRows: 6, robotCount: 2 });
   const simulation = createSimulation(scene);
   simulation.robots.forEach(robot => {
@@ -51,8 +51,10 @@ test('лидар перестраивает маршрут вокруг внез
   const lane = robot.route.metrics.segments[2];
   const laneStart = robot.route.points[2];
   const laneEnd = robot.route.points[3];
-  const amount = 3 / lane.length;
-  robot.distance = lane.start + 3;
+  // Keep the pickup waypoint clear: a physical pickup inside a solid cannot
+  // be reached by a detour, and should remain a safety stop instead.
+  const amount = .6 / lane.length;
+  robot.distance = lane.start + .6;
   robot.position = [laneStart[0] + (laneEnd[0] - laneStart[0]) * amount, .42, laneStart[1] + (laneEnd[1] - laneStart[1]) * amount];
   robot.yaw = Math.atan2(laneEnd[0] - laneStart[0], laneEnd[1] - laneStart[1]);
   robot.pause = 0;

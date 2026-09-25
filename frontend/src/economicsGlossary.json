@@ -1,0 +1,493 @@
+{
+  "entries": [
+    {
+      "applicability": "Для активного транспортного процесса с заданным циклом и вместимостью рейса.",
+      "example": "Склад: номинальная производительность ≈ 196,36 ед./ч на робота; эффективная после доступности ≈ 137,45 ед./ч.",
+      "example_source": "склад 2 000 паллет/сутки, 120 м; пересчёт build_warehouse_guest_demo",
+      "formula": "Qном = 3600 / время цикла × единиц за рейс. Время цикла учитывает маршрут и обмен.",
+      "formula_ids": [
+        "F02",
+        "F03"
+      ],
+      "id": "productivity",
+      "inputs": [
+        {
+          "field": "process.route_distance",
+          "label": "Длина маршрута",
+          "source": "Расчёт → процесс"
+        },
+        {
+          "field": "process.exchange",
+          "label": "Время обмена",
+          "source": "Расчёт → процесс"
+        },
+        {
+          "field": "process.explicit_batch",
+          "label": "Единиц за рейс",
+          "source": "Расчёт → процесс"
+        }
+      ],
+      "notation": "Qном",
+      "section": "Расчёт → парк и производительность",
+      "source": "Профиль процесса, параметры робота, C11.",
+      "synonyms": [
+        "пропускная способность",
+        "скорость обработки"
+      ],
+      "title": "Производительность",
+      "units": "ед./ч на робота"
+    },
+    {
+      "applicability": "Округление вверх применяется после учёта доступности; выбранный парк может отличаться от рекомендации.",
+      "example": "Склад: 18 роботов для 2 000 паллет/сутки; плечо 120 м.",
+      "example_source": "склад 2 000 паллет/сутки, 120 м; пересчёт build_warehouse_guest_demo",
+      "formula": "N = ⌈(спрос за сутки / рабочие часы × пик × (1 + резерв)) / (Qном × доступность)⌉.",
+      "formula_ids": [
+        "F01",
+        "F04"
+      ],
+      "id": "fleet",
+      "inputs": [
+        {
+          "field": "process.demand",
+          "label": "Поток за сутки",
+          "source": "Расчёт → процесс"
+        },
+        {
+          "field": "process.schedule",
+          "label": "Смены и часы",
+          "source": "Расчёт → график"
+        },
+        {
+          "field": "policy.capacity",
+          "label": "Доступность, пик и резерв",
+          "source": "Действующие правила C11 и подтверждённые допущения"
+        }
+      ],
+      "notation": "N",
+      "section": "Расчёт → парк и производительность",
+      "source": "C11, график, допущения о пике и резерве.",
+      "synonyms": [
+        "количество роботов",
+        "число роботов"
+      ],
+      "title": "Потребный парк",
+      "units": "роботов"
+    },
+    {
+      "applicability": "Только при известных затратах базового процесса; неизвестные суммы дают неполный результат.",
+      "example": "Проверочный склад, год 1: базовый поток -54 136 800,00 ₽; разница с роботизацией 14 738 912,94 ₽.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "CFбаза,t = − расходы действующего процесса в году t. Проектный поток = CFроботы,t − CFбаза,t.",
+      "formula_ids": [
+        "F23",
+        "F27"
+      ],
+      "id": "baseline",
+      "inputs": [
+        {
+          "field": "process.role_refs",
+          "label": "Роли, численность и зарплата gross",
+          "source": "Расчёт → процесс"
+        },
+        {
+          "field": "manual_units_per_shift",
+          "label": "Ручная производительность",
+          "source": "Расчёт → экономика → Труд"
+        }
+      ],
+      "notation": "CFбаза",
+      "section": "Отчёт → денежные потоки",
+      "source": "C14 труд и C16 денежные потоки; подтверждённые зарплаты и расходы.",
+      "synonyms": [
+        "текущий сценарий",
+        "денежный поток без роботов"
+      ],
+      "title": "Базовый денежный поток",
+      "units": "₽/год"
+    },
+    {
+      "applicability": "Покупка: оборудование и площадка; RaaS: только капитал заказчика по инфраструктуре.",
+      "example": "Проверочный склад, покупка: CAPEX 73 205 000,00 ₽.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "CAPEX = сумма разовых капитальных строк + резерв на капитал. В денежном потоке года 0 это отток.",
+      "formula_ids": [
+        "F16",
+        "F17"
+      ],
+      "id": "capex",
+      "inputs": [
+        {
+          "field": "implementation_cost_total_gross",
+          "label": "Внедрение и интеграция",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "shared_site_capital_gross",
+          "label": "Общие разовые расходы площадки",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "organizer_price_currency_rub_confirmed",
+          "label": "Подтверждение трактовки цены",
+          "source": "Расчёт → экономика → Покупка"
+        }
+      ],
+      "notation": "CAPEX",
+      "section": "Расчёт → экономика → Покупка",
+      "source": "C15 коммерческие строки и подтверждённые условия.",
+      "synonyms": [
+        "капитальные вложения",
+        "первоначальные инвестиции"
+      ],
+      "title": "CAPEX",
+      "units": "₽ единовременно"
+    },
+    {
+      "applicability": "Состав зависит от собственности, гарантии и подтверждённых договорных условий.",
+      "example": "Проверочный склад, год 1: OPEX покупки ≈ 2 847 487,06 ₽.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "OPEX года = сервис + ПО + связь + энергия + страхование + расходники + ремонт + прочие годовые строки.",
+      "formula_ids": [
+        "F18",
+        "F19",
+        "F20",
+        "F21"
+      ],
+      "id": "opex",
+      "inputs": [
+        {
+          "field": "annual_service_per_robot_gross",
+          "label": "Сервис одного робота",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "average_power_w",
+          "label": "Средняя мощность",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "shared_annual_cost_gross",
+          "label": "Общие годовые расходы",
+          "source": "Расчёт → экономика → Покупка"
+        }
+      ],
+      "notation": "OPEX",
+      "section": "Расчёт → экономика → Покупка",
+      "source": "C15 годовой реестр расходов и регистр тарифов.",
+      "synonyms": [
+        "операционные расходы",
+        "эксплуатационные затраты"
+      ],
+      "title": "OPEX",
+      "units": "₽/год"
+    },
+    {
+      "applicability": "Для покупки; налоговый эффект и базовый сценарий в эту метрику не входят.",
+      "example": "Проверочный склад: TCO 117 002 239,39 ₽; после остаточной стоимости 98 102 239,39 ₽.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "TCO покупки = CAPEX + Σ OPEX за горизонт; TCO за вычетом остаточной стоимости = TCO − остаточная стоимость.",
+      "formula_ids": [
+        "F30"
+      ],
+      "id": "tco",
+      "inputs": [
+        {
+          "field": "horizon_years",
+          "label": "Горизонт оценки",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "annual_service_per_robot_gross",
+          "label": "Сервис одного робота",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "shared_site_capital_gross",
+          "label": "Разовые расходы площадки",
+          "source": "Расчёт → экономика → Покупка"
+        }
+      ],
+      "notation": "TCO",
+      "section": "Отчёт → экономика покупки",
+      "source": "C15 расходы, C16 стоимость владения.",
+      "synonyms": [
+        "цена владения",
+        "TCO",
+        "совокупная стоимость владения"
+      ],
+      "title": "Стоимость владения",
+      "units": "₽ за горизонт"
+    },
+    {
+      "applicability": "Только для подтверждённых ролей и трудовых затрат; сокращение персонала не предполагается автоматически.",
+      "example": "Проверочный склад, год 1: прямой труд базы 31 248 000,00 ₽; оставшийся труд 18 748 800,00 ₽. Это две строки эффекта, без других расходов.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "ΔФОТ = стоимость труда базового процесса − стоимость оставшихся ролей и новых функций; изменения вводятся по ролям.",
+      "formula_ids": [
+        "F23"
+      ],
+      "id": "labor",
+      "inputs": [
+        {
+          "field": "process.role_refs",
+          "label": "Роли, численность и зарплата gross",
+          "source": "Расчёт → процесс"
+        },
+        {
+          "field": "manual_units_per_shift",
+          "label": "Ручная производительность",
+          "source": "Расчёт → экономика → Труд"
+        },
+        {
+          "field": "control_headcount",
+          "label": "Диспетчеры",
+          "source": "Расчёт → экономика → Труд"
+        }
+      ],
+      "notation": "ΔФОТ",
+      "section": "Расчёт → экономика → Труд",
+      "source": "C14 ролевая модель труда, C16 годовые строки.",
+      "synonyms": [
+        "снижение ФОТ",
+        "эффект от персонала"
+      ],
+      "title": "Экономия труда",
+      "units": "₽/год"
+    },
+    {
+      "applicability": "Если накопленный эффект не перекрывает вложения за горизонт, показывается «не достигнута».",
+      "example": "Проверочный склад: простая окупаемость 2,79 года; дисконтированная 3,59 года.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "Первый год, когда накопленная сумма разностных потоков CFроботы − CFбаза достигает нуля; внутри года — линейная интерполяция. Дисконтированная версия учитывает ставку.",
+      "formula_ids": [
+        "F29"
+      ],
+      "id": "payback",
+      "inputs": [
+        {
+          "field": "horizon_years",
+          "label": "Горизонт оценки",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "discount_rate",
+          "label": "Ставка для дисконтированной версии",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "process.role_refs",
+          "label": "Затраты базового труда",
+          "source": "Расчёт → процесс"
+        }
+      ],
+      "notation": "PBP",
+      "section": "Отчёт → экономика покупки",
+      "source": "C16 разностный денежный поток; metrics.payback.",
+      "synonyms": [
+        "срок окупаемости",
+        "возврат инвестиций"
+      ],
+      "title": "Окупаемость",
+      "units": "лет"
+    },
+    {
+      "applicability": "Требует полных денежных потоков обоих сценариев; при пропуске обязательных входов NPV не рассчитывается.",
+      "example": "Проверочный склад, ставка 15%: NPV покупки 34 541 131,56 ₽.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "NPV проекта = Σ CFроботы,t / (1 + r)^t − Σ CFбаза,t / (1 + r)^t, начиная с года 0.",
+      "formula_ids": [
+        "F28"
+      ],
+      "id": "npv",
+      "inputs": [
+        {
+          "field": "discount_rate",
+          "label": "Ставка дисконтирования r, доля",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "horizon_years",
+          "label": "Горизонт оценки",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "process.role_refs",
+          "label": "Расходы базового процесса",
+          "source": "Расчёт → процесс"
+        }
+      ],
+      "notation": "NPV",
+      "section": "Отчёт → экономика покупки или RaaS",
+      "source": "C16 денежные потоки, metrics.npv; ставка из политики или пользователя.",
+      "synonyms": [
+        "NPV",
+        "ЧПС",
+        "дисконтированный эффект"
+      ],
+      "title": "Чистая приведённая стоимость",
+      "units": "₽"
+    },
+    {
+      "applicability": "Используется в NPV и дисконтированной окупаемости; диапазон серверной схемы 0–1.",
+      "example": "Проверочный склад: r = 0,15 (15% годовых).",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "Приведённая стоимость потока года t = CFt / (1 + r)^t; r вводится долей: 0,15 = 15%.",
+      "formula_ids": [
+        "F28",
+        "F29"
+      ],
+      "id": "discount",
+      "inputs": [
+        {
+          "field": "discount_rate",
+          "label": "Ставка дисконтирования",
+          "source": "Расчёт → экономика → Покупка"
+        }
+      ],
+      "notation": "r",
+      "section": "Расчёт → экономика → Покупка",
+      "source": "Финансовая политика или подтверждённое поле пользователя.",
+      "synonyms": [
+        "дисконт",
+        "ставка приведения"
+      ],
+      "title": "Ставка дисконтирования",
+      "units": "доля в год"
+    },
+    {
+      "applicability": "Только для разрешённых параметров и полного базового расчёта; каждый вариант пересчитывает сервер.",
+      "example": "Демо склада: уменьшение цены оборудования даёт ΔNPV 6 609 761,95 ₽.",
+      "example_source": "склад 2 000 паллет/сутки, 120 м; пересчёт build_warehouse_guest_demo",
+      "formula": "ΔNPV = NPV пересчитанного варианта − NPV исходного варианта. Парк и численность могут меняться ступенчато.",
+      "formula_ids": [
+        "C20"
+      ],
+      "id": "sensitivity",
+      "inputs": [
+        {
+          "field": "equipment_price",
+          "label": "Цена оборудования",
+          "source": "Расчёт → конфигурация"
+        },
+        {
+          "field": "discount_rate",
+          "label": "Ставка дисконтирования",
+          "source": "Расчёт → экономика → Покупка"
+        }
+      ],
+      "notation": "ΔNPV",
+      "section": "Отчёт → чувствительность",
+      "source": "C20 чувствительность и исходные зафиксированные входы.",
+      "synonyms": [
+        "анализ чувствительности",
+        "что если",
+        "what-if"
+      ],
+      "title": "Чувствительность",
+      "units": "₽"
+    },
+    {
+      "applicability": "При подтверждённых капитальных и операционных строках; коммерческую цену нужно проверять у поставщика.",
+      "example": "Проверочный склад: вложения 73 205 000,00 ₽, NPV 34 541 131,56 ₽.",
+      "example_source": "financial-result-v2.warehouse.golden.json; пересчёт analyze_financials",
+      "formula": "Год 0: −CAPEX. Далее разность затрат базового и роботизированного процесса с OPEX; остаточная стоимость учитывается в конце горизонта.",
+      "formula_ids": [
+        "F16",
+        "F27",
+        "F28"
+      ],
+      "id": "purchase",
+      "inputs": [
+        {
+          "field": "implementation_cost_total_gross",
+          "label": "Внедрение",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "annual_service_per_robot_gross",
+          "label": "Сервис",
+          "source": "Расчёт → экономика → Покупка"
+        },
+        {
+          "field": "warranty_years",
+          "label": "Гарантия",
+          "source": "Расчёт → экономика → Покупка"
+        }
+      ],
+      "notation": "PURCHASE",
+      "section": "Отчёт → сценарий «Покупка»",
+      "source": "C15 покупка и C16 финансовое сравнение.",
+      "synonyms": [
+        "собственное оборудование",
+        "приобретение"
+      ],
+      "title": "Покупка роботов",
+      "units": "₽ по годам"
+    },
+    {
+      "applicability": "Нужен подтверждённый охват услуг и срок договора на весь горизонт; часть инфраструктуры может оставаться за заказчиком.",
+      "example": "Проверочный склад: платёж года 1 15 120 000,00 ₽; TCO RaaS 82 418 508,34 ₽.",
+      "example_source": "raas-financial-result-v1.warehouse.golden.json; пересчёт analyze_raas_financials",
+      "formula": "Годовой платёж = тариф × 12 × (число роботов при оплате за робота, иначе 1) × (коэффициент загрузки при поэтапном запуске, иначе 1). TCO RaaS = инфраструктурный CAPEX заказчика + Σ(платёж + OPEX заказчика).",
+      "formula_ids": [
+        "F32"
+      ],
+      "id": "raas",
+      "inputs": [
+        {
+          "field": "raas_monthly_per_robot_gross",
+          "label": "Месячный тариф за робота",
+          "source": "Расчёт → экономика → RaaS"
+        },
+        {
+          "field": "raas_contract_months",
+          "label": "Срок договора",
+          "source": "Расчёт → экономика → RaaS"
+        },
+        {
+          "field": "raas_infrastructure_owner",
+          "label": "Владелец инфраструктуры",
+          "source": "Расчёт → экономика → RaaS"
+        }
+      ],
+      "notation": "RaaS",
+      "section": "Отчёт → сценарий «RaaS»",
+      "source": "C17 RaaS, тариф и договор; C16 база сравнения.",
+      "synonyms": [
+        "RaaS",
+        "раас",
+        "аренда роботов",
+        "сервисная модель"
+      ],
+      "title": "Роботы как услуга",
+      "units": "₽/год и ₽ за горизонт"
+    }
+  ],
+  "examples": {
+    "financial_trace_digest": "sha256:c20901215088445d80d7c1ee1cc0457249b538116bcdbfa972b8e30596058568",
+    "raas_trace_digest": "sha256:b1acb521c49881b5af3ecc5dd7d5c5e448f01d6b345ebeeb1e1d578a090acbf8",
+    "warehouse_economics_result_digest": "sha256:0bfa1c53c0c343acc557950fc4177a91753b82879605f1800ffc28faf4676f7f"
+  },
+  "schema_version": "economics-glossary-v1",
+  "source_bindings": {
+    "backend/calculation/capacity/quantities.py": "937eb60e06054849a2f4d0aecbdfa9fb9ecd8ace77e10051b4b420e5f3bc15e2",
+    "backend/calculation/capacity/transport.py": "628d6f9d3c4cb0aba2b5a3bc89f11a6b1f43e0333cd934318dae20fd022ae280",
+    "backend/calculation/economics/cashflow.py": "56fdec89e4a46b076be8169a100af72a8f93e7ba3d9678837971d895359ca3dd",
+    "backend/calculation/economics/metrics.py": "74c288b0c3a873a515b6e10f390ab1fcc85d42cd50dc6da903ff35d2db8c1501",
+    "backend/calculation/economics/purchase.py": "5c42fd88aea1bf659b8a052291f8f9ed3909e8122fa267e628007a213fa495e3",
+    "backend/calculation/economics/raas.py": "5a574759008a12940535e725b7bbac39775ff111e9d7c5cda28d335bd742ee1e",
+    "backend/calculation/economics/sensitivity.py": "f4979700bcc3d9bd87848501bf3ea043366b5be0d056d6c9a67acccd1ad534e0",
+    "backend/calculation/labour.py": "73f5403a45a2c7a799513bdab44cad052e621c4aecc022b5040ba9c2afb13fb6",
+    "data/calculation/registry-v1.json": "6a54e7934abc36d90c19582d8ef038deacc49d4e04ff7e4bf360bb5da3c43e22"
+  },
+  "versions": {
+    "capacity": "transport-capacity-engine-v1",
+    "capacity_result": "capacity-result-v1",
+    "finance": "full-cashflows-reconciliation-v2",
+    "orchestrator": "production-economics-orchestrator-v2",
+    "purchase": "purchase-cost-ledger-v1",
+    "raas": "raas-cashflows-v1",
+    "registry": "hackathon-calculation-parameter-registry-v1"
+  }
+}

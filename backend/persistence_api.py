@@ -35,6 +35,7 @@ from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
 from calculation.service import CapacityExecutionSnapshotV2, capacity_version_bindings
 from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisRequestV3, CapacityAnalysisResponse, ContractIssue, KnownQuantity, parse_capacity_analysis_request
+from catalog_models import EquipmentModel
 from economics_runtime_migration import (
     EconomicsMigrationError,
     EconomicsV2ExecutionV1,
@@ -54,6 +55,7 @@ from persistence_models import (
     ProjectFile,
     ProjectFileImport,
     Scenario,
+    SimulationArtifact,
     User,
     UserSession,
 )
@@ -63,6 +65,7 @@ from project_file_intake import (
     build_csv_template,
     inspect_project_file,
 )
+from report_history import summarize_run
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
@@ -1785,7 +1788,44 @@ def create_persistence_router(
             .where(AnalysisRun.project_id == project_id)
             .order_by(AnalysisRun.created_at.desc(), AnalysisRun.id)
         ).all()
-        return {"items": [_run_dict(run, include_snapshots=False, db=db) for run in runs]}
+        by_id = {str(run.id): run for run in runs}
+        model_ids = set()
+        for run in runs:
+            if run.run_kind != "CAPACITY_ANALYSIS":
+                continue
+            raw_id = run.input_snapshot.get("model_id")
+            try:
+                model_ids.add(uuid.UUID(str(raw_id)))
+            except (TypeError, ValueError):
+                continue
+        database_models = {str(model_id): name for model_id, name in db.execute(
+            select(EquipmentModel.id, EquipmentModel.name).where(EquipmentModel.id.in_(model_ids))
+        )} if model_ids else {}
+        model_names = {}
+        for run in runs:
+            if run.run_kind == "CAPACITY_ANALYSIS":
+                raw_id = run.input_snapshot.get("model_id")
+                if str(raw_id) in database_models:
+                    model_names[(run.catalog_version_code, str(raw_id))] = database_models[str(raw_id)]
+        if resolve_capacity_catalog is not None:
+            try:
+                active_capacity_catalog = resolve_capacity_catalog()
+                active_code = active_capacity_catalog.version.code
+                for model in active_capacity_catalog.models:
+                    model_names[(active_code, str(model.id))] = model.name
+            except Exception:
+                logger.warning("Report history could not read active model labels", exc_info=True)
+        simulation_counts = {str(run_id): count for run_id, count in db.execute(
+            select(SimulationArtifact.analysis_run_id, func.count(SimulationArtifact.id))
+            .where(SimulationArtifact.project_id == project_id)
+            .group_by(SimulationArtifact.analysis_run_id)
+        )}
+        return {"items": [
+            {**_run_dict(run, include_snapshots=False, db=db),
+             "report_summary": summarize_run(run, by_id, model_names=model_names,
+                                              simulation_count=simulation_counts.get(str(run.id), 0))}
+            for run in runs
+        ]}
 
     @router.get("/projects/{project_id}/analysis-runs/{run_id}")
     def get_analysis_run(

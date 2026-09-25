@@ -269,6 +269,7 @@ def test_owner_predicate_hides_projects_and_runs_from_another_user():
         assert intruder.get(
             f"/api/projects/{project['id']}/analysis-runs/{run['id']}"
         ).status_code == 404
+        assert intruder.get(f"/api/projects/{project['id']}/analysis-runs").status_code == 404
         assert intruder.get(
             f"/api/projects/{project['id']}/analysis-runs/{run['id']}/legacy-replay"
         ).status_code == 404
@@ -791,6 +792,24 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert changed_run["parent_run_id"] == versioned_run["id"]
         assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{versioned_run['id']}").json()["checksums"] == versioned_run["checksums"]
         assert owner.post(f"{endpoint}/{changed_run['id']}/replay", headers=headers).json()["status"] == "MATCH"
+
+        history = owner.get(f"/api/projects/{project['id']}/analysis-runs")
+        assert history.status_code == 200, history.text
+        history_items = {item["id"]: item for item in history.json()["items"]}
+        assert {capacity["run_id"], zone_capacity["run_id"], created["id"], partial["id"], changed_run["id"]} <= history_items.keys()
+        capacity_card = history_items[capacity["run_id"]]["report_summary"]
+        zone_card = history_items[zone_capacity["run_id"]]["report_summary"]
+        partial_card = history_items[partial["id"]]["report_summary"]
+        full_card = history_items[created["id"]]["report_summary"]
+        assert capacity_card["group_run_id"] == partial_card["group_run_id"] == full_card["group_run_id"]
+        assert zone_card["group_run_id"] != full_card["group_run_id"] and zone_card["zone_label"] == "Отгрузка"
+        assert partial_card["result_type"] == "PARTIAL" and full_card["result_type"] == "FULL"
+        assert partial_card["branches"]["raas"] == "NOT_CALCULATED"
+        assert any(item["acquisition"] == "PURCHASE" for item in partial_card["npv"])
+        assert not any(item["acquisition"] == "RAAS" for item in partial_card["npv"])
+        assert history_items[visual["id"]]["report_summary"]["branches"]["simulation"] == "SAVED"
+        assert history_items[changed_run["id"]]["report_summary"]["can_create_version"] is True
+        assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{created['id']}").json()["checksums"] == created["checksums"]
 
         manifest = owner.get(
             f"/api/projects/{project['id']}/analysis-runs/{created['id']}/exports/manifest"

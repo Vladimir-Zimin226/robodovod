@@ -5,6 +5,19 @@ const LIMITS = Object.freeze({
   progress_event_batch: 1000,
 });
 
+function simulationRequest(runId, tenantId, projectId, scenarioSpec) {
+  const window = scenarioSpec.operating_windows?.find((item) => item.window_id === 'window.primary')
+    || scenarioSpec.operating_windows?.[0];
+  if (!window || !Number.isInteger(Number(window.start_time?.value)) || !window.timezone) return null;
+  return {
+    schema_version: 'simulation-request-v2', request_id: `simulation.${runId}.v2`,
+    tenant_id: tenantId, project_id: projectId, scenario_spec: scenarioSpec,
+    mode: 'DAILY', peak_factor: null, sla: null, resources: [], limits: { ...LIMITS },
+    model_start: { weekday: 'MONDAY', seconds_from_midnight: Number(window.start_time.value), timezone: window.timezone },
+    process_chain: null,
+  };
+}
+
 export function buildEconomicsSimulationRequest(bundle, scenarioSpec) {
   if (bundle?.schema_version !== 'commercial-scenarios-bundle-v2'
       || scenarioSpec?.schema_version !== 'scenario-spec-v2'
@@ -13,18 +26,7 @@ export function buildEconomicsSimulationRequest(bundle, scenarioSpec) {
       || scenarioSpec.analysis?.tenant_id !== bundle.tenant_id
       || scenarioSpec.analysis?.input_revision !== bundle.input_revision) return null;
 
-  return {
-    schema_version: 'simulation-request-v1',
-    request_id: `simulation.${bundle.run_id}`,
-    tenant_id: bundle.tenant_id,
-    project_id: bundle.project_id,
-    scenario_spec: scenarioSpec,
-    mode: 'DAILY',
-    peak_factor: null,
-    sla: null,
-    resources: [],
-    limits: { ...LIMITS },
-  };
+  return simulationRequest(bundle.run_id, bundle.tenant_id, bundle.project_id, scenarioSpec);
 }
 
 export function buildTechnicalSimulationRequest(run) {
@@ -35,10 +37,5 @@ export function buildTechnicalSimulationRequest(run) {
       || spec.analysis?.capacity_run_id !== result.capacity_run_id
       || spec.analysis?.project_id !== result.project_id
       || spec.analysis?.tenant_id !== result.tenant_id) return null;
-  return {
-    schema_version: 'simulation-request-v1', request_id: `simulation.${run.id}`,
-    tenant_id: result.tenant_id, project_id: result.project_id,
-    scenario_spec: spec, mode: 'DAILY', peak_factor: null, sla: null,
-    resources: [], limits: { ...LIMITS },
-  };
+  return simulationRequest(run.id, result.tenant_id, result.project_id, spec);
 }

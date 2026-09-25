@@ -3,7 +3,7 @@ import { negotiateScenarioSpec, parentMessage, parseRobCraftMessage } from '../r
 
 const LOAD_TIMEOUT_MS = 12000;
 
-export default function RobCraftFrame({ scenarioSpec, simulationReport = null, compact = false, selectedZoneId = null, onZoneChange = null }) {
+export default function RobCraftFrame({ scenarioSpec, simulationReport = null, playback = null, compact = false, selectedZoneId = null, onZoneChange = null }) {
   const iframeRef = useRef(null);
   const requestCounter = useRef(0);
   const activeRequest = useRef(null);
@@ -20,11 +20,17 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
   const [rendererReport, setRendererReport] = useState(null);
   const revisionId = scenarioSpec?.revision_id || null;
   const reportDigest = simulationReport?.replay?.report_content_digest || 'no-report';
+  const playbackEnabled = Boolean(playback);
+  const playbackTick = Math.floor((playback?.simulationTimeUs || 0) / 250_000);
   const bindingKey = revisionId ? `${revisionId}:${reportDigest}` : null;
   const negotiationError = useMemo(() => {
     if (!ready || !scenarioSpec) return null;
-    try { negotiateScenarioSpec(scenarioSpec, capabilities); return null; } catch (failure) { return failure.message; }
-  }, [ready, scenarioSpec, capabilities]);
+    try {
+      negotiateScenarioSpec(scenarioSpec, capabilities);
+      if (playbackEnabled && !capabilities.includes('playback-sync-v1')) return 'Эта версия 3D не поддерживает общую временную шкалу. Откройте вкладку 2D.';
+      return null;
+    } catch (failure) { return failure.message; }
+  }, [ready, scenarioSpec, capabilities, playbackEnabled]);
   const visibleError = error || negotiationError;
   const visualizationOnly = Boolean(scenarioSpec?.zones?.some((zone) =>
     zone.status === 'NO_ACCEPTABLE_ECONOMICS'
@@ -121,6 +127,15 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
   }, [appliedRevision, bindingKey, selectedZoneId]);
 
   useEffect(() => {
+    const current = activeRequest.current;
+    if (!playback || appliedRevision !== bindingKey || current?.bindingKey !== bindingKey) return;
+    post(parentMessage('SET_PLAYBACK', current.revisionId, current.requestId, {
+      elapsed_seconds: playback.simulationTimeUs / 1_000_000,
+      status: playback.status, speed: playback.speed, restart: playback.restart,
+    }));
+  }, [appliedRevision, bindingKey, playback, playbackTick]);
+
+  useEffect(() => {
     if (!synchronizing) return undefined;
     const timeout = window.setTimeout(() => {
       setError('RobCraft не подтвердил загрузку сцены. Экономический расчёт остаётся доступен.');
@@ -133,7 +148,10 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
       <div className="robcraft-frame-header flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white">
         <div>
           <div className="text-sm font-semibold">RobCraft · сценарная 3D-симуляция</div>
-          <div className="text-[11px] text-slate-400">Концептуальная визуализация{scenePatch.zoneId ? ` · зона ${scenePatch.zoneId}` : ''}<details><summary>Технические подробности</summary>Версия ввода: {revisionId || 'не получена'}</details></div>
+          <div className="text-[11px] text-slate-400">Концептуальная визуализация{scenePatch.zoneId ? ` · зона ${scenePatch.zoneId}` : ''}<details><summary>Технические подробности</summary>Версия ввода: {revisionId || 'не получена'} · отчёт: {simulationReport?.report_id || 'не получен'} · выполнено: {simulationReport?.queue?.completed_by_measurement_end ?? 'нет данных'} · максимальная очередь: {simulationReport?.queue?.maximum_jobs ?? 'нет данных'}</details></div>
+          {scenarioSpec?.template === 'warehouse' && (scenarioSpec?.profile?.process_code === 'warehouse_receiving_shipping' ||
+            scenarioSpec?.zones?.some((zone) => zone.process_type === 'transport')) &&
+            <div className="mt-1 text-[11px] text-amber-200">3D показывает перевозку готовой паллеты от точки передачи. Человек — контролёр зоны; отбор и упаковка здесь не моделируются.</div>}
           {visualizationOnly && <div className="mt-1 text-[10px] font-semibold text-amber-300">ТЕХНИЧЕСКИЙ ВАРИАНТ · НЕ ЭКОНОМИЧЕСКАЯ РЕКОМЕНДАЦИЯ</div>}
         </div>
         <div className="text-right">
@@ -173,10 +191,7 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
       {rendererReport && (
         <div className="border-t border-white/10 bg-slate-950 px-4 py-3 text-[11px] leading-5 text-slate-300">
           <strong className="text-sky-300">LOCAL VISUAL OBSERVATION ONLY</strong>
-          {' · '}t={Number(rendererReport.measurement_basis.elapsed_seconds).toFixed(1)} s
-          {' · '}moving {Number(rendererReport.utilization.moving_percent).toFixed(1)}% (не productive utilization)
-          {' · '}условная пропускная способность сцены {Number(rendererReport.observed.throughput_units_per_hour).toFixed(1)} {rendererReport.observed.throughput_unit} (не показатель симуляции)
-          <div className="text-amber-300">SLA: NOT_EVALUATED · energy: arbitrary renderer units · failures/charging: visual demo only · не инженерная сертификация.</div>
+          {' · '}Движение в 3D иллюстрирует процесс. Показатели выше относятся к сохранённому отчёту симуляции.
         </div>
       )}
     </section>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { SimulationApiSession } from '../simulationApi';
 import {
   buildSimulationScene,
@@ -10,7 +10,9 @@ import {
 } from '../simulation2dModel';
 import RobCraftFrame from './RobCraftFrame';
 import Warehouse2DPlan from './Warehouse2DPlan';
+import SimulationChainSetup from './SimulationChainSetup';
 import { humanizePresentation, statusLabel } from '../presentation';
+import { formatModelClock } from '../simulationDefaults';
 
 const STATUS_LABELS = {
   STOPPED: 'Остановлено', RUNNING: 'Воспроизведение', PAUSED: 'Пауза',
@@ -28,8 +30,8 @@ function number(value, suffix = '') {
   return `${Number.isFinite(parsed) ? new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(parsed) : value}${suffix}`;
 }
 
-function metric(label, value, detail) {
-  return <div className="simulation-kpi"><span>{label}</span><strong>{value}</strong>{detail && <small>{detail}</small>}</div>;
+function metric(label, value, detail, key) {
+  return <div key={key} className="simulation-kpi"><span>{label}</span><strong>{value}</strong>{detail && <small>{detail}</small>}</div>;
 }
 
 function path(points) {
@@ -37,13 +39,17 @@ function path(points) {
 }
 
 export default function Simulation2DReport({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
+  const [savedOptions, setSavedOptions] = useState([]);
+  const [savedReady, setSavedReady] = useState(!analysisRunId);
   const options = useMemo(
-    () => scenarios || [{ id: request?.request_id || 'current', label: 'Текущий сценарий', request, report: initialReport }],
-    [scenarios, request, initialReport],
+    () => scenarios || [{ id: request?.request_id || 'current', label: 'Паллетная перевозка', request, report: initialReport },
+      ...savedOptions.filter((item) => item.id !== request?.request_id)],
+    [scenarios, request, initialReport, savedOptions],
   );
   const [selected, setSelected] = useState(options[0]?.id || '');
   const active = useMemo(() => options.find((item) => item.id === selected) || options[0], [options, selected]);
   const [report, setReport] = useState(active?.report || null);
+  const [viewMode, setViewMode] = useState('2D');
   const [runState, setRunState] = useState(null);
   const [error, setError] = useState('');
   const api = useRef(new SimulationApiSession());
@@ -58,10 +64,30 @@ export default function Simulation2DReport({ request, initialReport = null, scen
   }, [bindingKey]);
   const selectedZoneId = zoneChoice.bindingKey === bindingKey ? zoneChoice.id : persistedZoneId;
   const previousFrame = useRef(null);
+  const startedRequest = useRef(null);
+
+  const startRun = useCallback(async () => {
+    if (!active?.request || startedRequest.current === active.request.request_id) return;
+    startedRequest.current = active.request.request_id;
+    setError('');
+    setRunState({ state: 'PENDING', progress: { processed_events: 0, total_events: 0 } });
+    try {
+      const terminal = await api.current.start(active.request, (state) => setRunState(state), analysisRunId);
+      if (terminal?.state === 'SUCCEEDED') setReport(terminal.report);
+      else if (terminal?.error) { setError(terminal.error.message); startedRequest.current = null; }
+    } catch (failure) {
+      setError(failure.message);
+      startedRequest.current = null;
+    }
+  }, [active, analysisRunId]);
 
   useEffect(() => {
     dispatch({ type: 'LOAD', bindingKey });
   }, [bindingKey]);
+
+  useEffect(() => {
+    if (report && active?.request) dispatch({ type: 'START' });
+  }, [bindingKey, report, active?.request]);
 
   useEffect(() => {
     if (timeline.status !== 'RUNNING') return undefined;
@@ -81,13 +107,42 @@ export default function Simulation2DReport({ request, initialReport = null, scen
   useEffect(() => () => api.current.invalidate(), []);
 
   useEffect(() => {
-    if (!analysisRunId || !active?.request || active.report) return undefined;
+    if (!analysisRunId || !request) return undefined;
+    const controller = new AbortController();
+    fetch(`${import.meta.env.VITE_API_URL || ''}/api/v2/simulations/projects/${encodeURIComponent(request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}/evidence`, {
+      credentials: 'include', signal: controller.signal,
+    }).then((response) => response.ok ? response.json() : Promise.reject(new Error(`Не удалось открыть сохранённые симуляции: HTTP ${response.status}`)))
+      .then((payload) => {
+        const items = (payload.items || []).filter((item) => item.request?.scenario_spec?.revision_id === request.scenario_spec.revision_id)
+          .map((item) => ({ id: item.request.request_id, label: item.request.process_chain?.stages?.length
+            ? `Цепочка · ${item.request.process_chain.stages.map((stage) => stage.stage).join(', ')}` : 'Паллетная перевозка',
+          request: item.request, report: item.report }));
+        setSavedOptions(items);
+        if (items.length) { const latest = items.at(-1); setSelected(latest.id); setReport(latest.report); }
+        setSavedReady(true);
+      })
+      .catch((reason) => { if (reason.name !== 'AbortError') { setError(reason.message); setSavedReady(true); } });
+    return () => controller.abort();
+  }, [analysisRunId, request]);
+
+  useEffect(() => {
+    if (!analysisRunId || !savedReady || !active?.request || active.report
+        || report?.request_id === active.request.request_id) return undefined;
     let current = true;
     api.current.loadSaved(active.request, analysisRunId)
-      .then((state) => { if (current && state?.state === 'SUCCEEDED') setReport(state.report); })
+      .then((state) => {
+        if (!current) return;
+        if (state?.state === 'SUCCEEDED') setReport(state.report);
+        else if (state?.state === 'PENDING' || state?.state === 'RUNNING') startRun();
+        else startRun();
+      })
       .catch((reason) => { if (current) setError(reason.message); });
     return () => { current = false; };
-  }, [analysisRunId, active]);
+  }, [analysisRunId, savedReady, active, report?.request_id, startRun]);
+
+  useEffect(() => {
+    if (!analysisRunId && active?.request && !report) startRun();
+  }, [analysisRunId, active, report, startRun]);
 
   const presentation = useMemo(() => {
     if (!active?.request || !report) return null;
@@ -98,23 +153,11 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     } catch (failure) { return { failure }; }
   }, [active, report, timeline.simulationTimeUs]);
 
-  const startRun = async () => {
-    if (!active?.request) return;
-    setError('');
-    setRunState({ state: 'PENDING', progress: { processed_events: 0, total_events: 0 } });
-    try {
-      const terminal = await api.current.start(active.request, (state) => setRunState(state), analysisRunId);
-      if (terminal?.state === 'SUCCEEDED') setReport(terminal.report);
-      else if (terminal?.error) setError(terminal.error.message);
-    } catch (failure) {
-      setError(failure.message);
-    }
-  };
-
   const cancelRun = async () => {
     try {
       const state = await api.current.cancel();
       if (state) setRunState(state);
+      startedRequest.current = null;
     } catch (failure) {
       setError(failure.message);
     }
@@ -127,6 +170,17 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     setReport(next?.report || null);
     setRunState(null);
     setError('');
+    startedRequest.current = null;
+  };
+
+  const startExtended = (extended) => {
+    api.current.invalidate();
+    setSavedOptions((current) => [...current.filter((item) => item.id !== extended.request_id), {
+      id: extended.request_id, label: `Цепочка · ${extended.process_chain.stages.map((stage) => stage.stage).join(', ')}`,
+      request: extended, report: null,
+    }]);
+    setSelected(extended.request_id);
+    setReport(null); setRunState(null); setError(''); startedRequest.current = null;
   };
 
   const progress = runState?.progress;
@@ -140,7 +194,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
   };
 
   return (
-    <section className="simulation-2d panel" id="visualization" aria-label="2D-симуляция и отчёт">
+    <section className="simulation-2d panel" id="visualization" aria-label="2D/3D-симуляция и отчёт">
       <header className="simulation-2d-header">
         <div>
           <p className="eyebrow">Симуляция процесса · схема работы</p>
@@ -157,6 +211,9 @@ export default function Simulation2DReport({ request, initialReport = null, scen
         </label>}
       </header>
 
+      {analysisRunId && request?.schema_version === 'simulation-request-v2'
+        && <SimulationChainSetup baseRequest={request} onStart={startExtended} />}
+
       {!report && (
         <div className="simulation-run-box">
           <p>Запустите симуляцию процесса. Показатели будут получены из сохранённого серверного отчёта.</p>
@@ -170,14 +227,22 @@ export default function Simulation2DReport({ request, initialReport = null, scen
       {presentation && !presentation.failure && (
         <>
           <div className="simulation-bindings">
-            <span>Время схемы: {(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} с</span>
+            <span>Модельное время: {formatModelClock(report.model_start, presentation.frame.simulationTimeUs) || `${(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} с`}</span>
             {analysisRunId && <a href={`/api/v2/simulations/projects/${encodeURIComponent(active.request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}/${encodeURIComponent(active.request.request_id)}/evidence.json`} download>Скачать технические данные симуляции</a>}
             <details><summary>Технические подробности</summary>
+              <span>Представление: {viewMode}</span>
               <span>scenario <code>{presentation.frame.scenarioRevisionId}</code></span>
               <span>report <code>{presentation.frame.reportId}</code></span>
+              <span>Выполнено до конца окна <code>{report.queue.completed_by_measurement_end}</code></span>
+              <span>Максимальная очередь <code>{report.queue.maximum_jobs}</code></span>
+              <span>Предел парка <code>{report.capacity.expected_effective_per_hour} {report.capacity.unit}</code></span>
               <span>digest <code>{presentation.frame.reportDigest.slice(0, 18)}…</code></span>
               <span>seed <code>{presentation.frame.seed}</code></span>
             </details>
+          </div>
+
+          <div className="simulation-view-tabs" role="tablist" aria-label="Представление симуляции">
+            {['2D', '3D'].map((mode) => <button key={mode} type="button" role="tab" aria-selected={viewMode === mode} onClick={() => setViewMode(mode)}>{mode}</button>)}
           </div>
 
           <div className="simulation-controls" aria-label="Управление timeline">
@@ -189,7 +254,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             <strong>{STATUS_LABELS[timeline.status]}</strong>
           </div>
 
-          {warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} /> : <div className="simulation-canvas-wrap">
+          <div role="tabpanel" hidden={viewMode !== '2D'}>{warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} stages={report.stages} /> : <div className="simulation-canvas-wrap">
             <svg viewBox={`0 0 ${presentation.scene.width} ${presentation.scene.height}`} role="img" aria-label="Зоны, маршруты, парк и операции">
               <defs><marker id="simulation-flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#67e8f9" /></marker></defs>
               {presentation.scene.zones.map((zone) => <g key={zone.id}><rect className={`simulation-zone source-${zone.geometrySource.toLowerCase()}`} x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="16" /><text className="zone-name" x={zone.x + 16} y={zone.y + 26}>{zone.label}</text><text className="geometry-source" x={zone.x + 16} y={zone.y + 46}>{zone.geometryLabel}</text></g>)}
@@ -199,7 +264,9 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             </svg>
             <div className="simulation-legend"><span>→ направление потока · обратный ход по нижней линии</span><span><i className="legend-robot" /> условное положение робота</span><span>↯ зарядка учтена агрегированно; точка не задана</span></div>
             <p className="simulation-schematic-note">Зоны и точки показаны схематично; предоставленная схема означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, показатели берутся из отчёта симуляции.</p>
-          </div>}
+          </div>}</div>
+          <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}<RobCraftFrame scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline}
+            selectedZoneId={warehouseScene ? activeZoneId : null} onZoneChange={warehouseScene ? selectZone : null} compact /></div>
 
           <div className="simulation-kpis">
             {metric('Парк', number(report.workload.fleet_units, ' роботов'))}
@@ -213,6 +280,12 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             {metric('Занятость парка', number(report.utilization.busy_fraction === null ? null : Number(report.utilization.busy_fraction) * 100, '%'), `полезная работа ${number(report.utilization.productive_fraction === null ? null : Number(report.utilization.productive_fraction) * 100, '%')}`)}
           </div>
 
+          {report.stages && <div className="simulation-kpis" aria-label="Стадии складской цепочки">{report.stages.map((stage) =>
+            metric(({ PICKING: 'Отбор', BUFFER: 'Буфер', FEED_TO_PACK: 'Подача к упаковке', PACKAGING: 'Упаковка' })[stage.stage],
+              stage.status === 'MODELED' ? number(stage.maximum_queue_jobs, ' в очереди') : 'Внешняя граница',
+              stage.status === 'MODELED' ? `Занятость ${number(Number(stage.utilization_fraction) * 100, '%')} · ${stage.resource_kind} · ${stage.resource_id}` : 'Нет отдельной скорости, ресурса или подтверждённой связи', stage.stage)
+          )}</div>}
+
           {hasCapacityWarning(report) && (
             <div className="simulation-warning" role="status">{report.capacity.verdict === 'DEVIATION' ? (report.capacity.denominator === 'REQUIRED_DEMAND' ? 'К концу окна выполнено более чем на 10% меньше заданного спроса.' : 'Исторический отчёт: расхождение с максимумом парка превышает 10%.') : report.capacity.verdict === 'OVERLOADED' ? 'Спрос превышает возможности парка; очередь не закрыта к концу окна.' : 'Наблюдаемый поток несовместим с входными данными.'} Отклонение: {number(report.capacity.deviation_percent, '%')}.</div>
           )}
@@ -221,8 +294,6 @@ export default function Simulation2DReport({ request, initialReport = null, scen
                 <div><h3>Ограничения отчёта</h3><ul>{report.limitations.map((item) => <li key={item}>{humanizePresentation(item)}</li>)}</ul></div>
                 <div><h3>Геометрия и экономика</h3><p>{presentation.bundle.spec.finance === null ? 'Финансовый расчёт не предоставлен; схема процесса доступна.' : 'Финансовый расчёт связан с симуляцией; браузер не считает деньги.'}</p><p>Условные координаты используются только для показа и не меняют расчётную длину маршрута.</p></div>
           </div>
-          <RobCraftFrame scenarioSpec={active.request.scenario_spec} simulationReport={report}
-            selectedZoneId={warehouseScene ? activeZoneId : null} onZoneChange={warehouseScene ? selectZone : null} compact />
         </>
       )}
     </section>

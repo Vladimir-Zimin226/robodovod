@@ -44,8 +44,10 @@ def test_v3_readable_archive_is_bound_and_old_export_is_unchanged():
     assert run.run_id not in before_technical and linked.run_id not in before_technical
     assert "C11" not in before_technical and "C05" not in before_technical
     assert "Сохранённый расчёт" in before_technical
+    assert "отбор коробок и упаковка не рассчитаны" in before_technical
     assert run.run_id in readable
     entry = first.files[ENTRYPOINT_FILENAME].decode()
+    assert "отбор коробок и упаковка не рассчитаны" in entry
     guide = first.files[GUIDE_FILENAME].decode()
     assert "C11" not in entry.split("## Технические подробности")[0]
     assert run.run_id not in entry.split("## Технические подробности")[0]

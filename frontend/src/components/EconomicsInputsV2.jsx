@@ -8,6 +8,7 @@ import {
   proposeDemoField,
 } from '../economicsDemoAssumptions';
 import { fieldPresentation } from '../presentation';
+import { MODEL_START_SECONDS, modelTimezone, timezoneChoices } from '../simulationDefaults';
 
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -27,7 +28,7 @@ const FIELDS = [
   ['Покупка', 'discountRate', 'discount_rate', 'Ставка дисконтирования', 'доля, 0–1', 'Будущие денежные потоки; 0.15 = 15%.', 'Финансовая политика'],
   ['RaaS', 'raasMonthly', 'raas_monthly_per_robot_gross', 'Тариф RaaS', '₽/робот/мес., gross', 'Для сравнения с покупкой; например 180000.', 'Договор или допущение'],
   ['RaaS', 'raasContractMonths', 'raas_contract_months', 'Срок договора', 'мес.', 'Должен покрывать горизонт; например 60.', 'Проект договора'],
-  ['Визуализация', 'startSeconds', 'start_seconds_from_midnight', 'Начало смены', 'сек. от 00:00', 'Для полной версии сценария; 28800 = 08:00.', 'График работы'],
+  ['Визуализация', 'startSeconds', 'start_seconds_from_midnight', 'Начало смены', 'сек. от 00:00', 'Модельное начало, отдельно от кнопки воспроизведения.', 'График работы'],
 ];
 const CHECKS = [
   ['Труд', 'grossConfirm', 'role_salaries_confirmed_as_monthly_gross', 'Подтверждаю, что зарплаты ролей и этой формы указаны за месяц до удержаний.'],
@@ -37,17 +38,19 @@ const CHECKS = [
   ['RaaS', 'raasScopeConfirm', 'raas_vendor_scope_confirmed', 'Для сценария RaaS включает оборудование, батареи, зарядку, обслуживание, ПО и интеграцию. Это не факт поставщика.'],
 ];
 const defaults = { evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', sources: {}, assumptions: {}, userValues: {} };
-function restored(capacityRunId, input) {
+function restored(capacityRunId, input, project) {
   const values = { ...defaults, capacityRunId, sources: { ...(input?.field_sources || {}) },
     assumptions: { ...(input?.assumption_evidence || {}) }, userValues: {} };
   FIELDS.forEach(([, key, server]) => { values[key] = String(input?.[server] ?? ''); });
   CHECKS.forEach(([, key, server]) => { values[key] = input?.[server] === true; });
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
-    raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: input.timezone || '' });
+    raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: input.timezone || modelTimezone(project),
+    startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
+  else Object.assign(values, { startSeconds: String(MODEL_START_SECONDS), timezone: modelTimezone(project) });
   return values;
 }
 export default function EconomicsInputsV2({ capacityRequest, capacityRunId, project, onComplete, initialInput, savedResult, sourceRunId }) {
-  const [values, setValues] = useState(() => restored(capacityRunId, initialInput));
+  const [values, setValues] = useState(() => restored(capacityRunId, initialInput, project));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const scenario = project?.scenarios?.find((item) => item.slot === 'BASE');
@@ -123,7 +126,12 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
       {group === 'Труд' && roleRefs.length > 1 && <label className="block mt-3 text-sm">Основная роль процесса
         <select value={values.primaryRoleId} onChange={set('primaryRoleId')} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id, index) => <option key={id} value={id}>Роль {index + 1}</option>)}</select>
         <small>Для сравнения труда; источник — введённые роли процесса.</small></label>}
-      <div className="mt-2 grid gap-3 md:grid-cols-3">{FIELDS.filter((field) => field[0] === group && !(field[1] === 'manualUnitsPerShift' && capacityRequest?.process?.scope === 'CLEANING_AREA')).map(([, key, server, label, unit, why, source]) => {
+      {group === 'Визуализация' && <div className="mt-2 rounded border p-3 text-sm">
+        <p>Модельное начало: понедельник, {String(Math.floor(Number(values.startSeconds) / 3600)).padStart(2, '0')}:{String(Math.floor(Number(values.startSeconds) % 3600 / 60)).padStart(2, '0')} местного времени. Часовой пояс сохраняется в новом сценарии.</p>
+        <label className="mt-2 block">Часовой пояс<select id="economics-timezone" value={values.timezone} onChange={set('timezone')} className="block w-full border rounded p-2"><option value="">Выберите часовой пояс</option>{timezoneChoices(values.timezone).map((zone) => <option key={zone} value={zone}>{zone.replaceAll('_', ' ')}</option>)}</select></label>
+        <details className="mt-2"><summary>Детальная настройка модельного времени</summary><label className="mt-2 block">Начало смены · местное время<input id="economics-start_seconds_from_midnight" type="time" value={`${String(Math.floor(Number(values.startSeconds) / 3600)).padStart(2, '0')}:${String(Math.floor(Number(values.startSeconds) % 3600 / 60)).padStart(2, '0')}`} onChange={(event) => { const [h, m] = event.target.value.split(':').map(Number); setValues((current) => ({ ...current, startSeconds: String(h * 3600 + m * 60) })); }} className="block border rounded p-2" /></label><p>График смен из процесса сохраняется. Здесь задаётся только местное начало.</p></details>
+      </div>}
+      {group !== 'Визуализация' && <div className="mt-2 grid gap-3 md:grid-cols-3">{FIELDS.filter((field) => field[0] === group && !(field[1] === 'manualUnitsPerShift' && capacityRequest?.process?.scope === 'CLEANING_AREA')).map(([, key, server, label, unit, why, source]) => {
         const fieldIssues = issues.filter((item) => item.field === server);
         return <div key={key} className="block rounded border border-slate-500/40 p-3 text-sm">
           <strong className="block">{label} <span className="font-normal">· {unit}</span></strong>
@@ -142,10 +150,9 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
           </div>}
           {fieldIssues.map((item, index) => <small key={index} className={`block mt-1 ${['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code) ? 'text-amber-900' : 'text-red-700'}`} role="status">{item.message} {item.next_step}</small>)}
         </div>;
-      })}</div>
+      })}</div>}
       {group === 'Покупка' && <label className="block mt-3 text-sm">Дата оценки · дата<input id="economics-evaluation_date" type="date" value={values.evaluationDate} onChange={set('evaluationDate')} className="w-full border rounded p-2" /><small>Для привязки цен; источник — дата оценки проекта.</small></label>}
       {group === 'RaaS' && <label className="block mt-3 text-sm">Кто оплачивает инфраструктуру<select id="economics-raas_infrastructure_owner" value={values.raasInfrastructureOwner} onChange={set('raasInfrastructureOwner')} className="w-full border rounded p-2"><option value="">Неизвестно</option><option value="VENDOR">Поставщик</option><option value="CUSTOMER">Заказчик</option></select><small>Для состава затрат; источник — договор или допущение.</small></label>}
-      {group === 'Визуализация' && <label className="block mt-3 text-sm">Часовой пояс · IANA<input id="economics-timezone" value={values.timezone} onChange={set('timezone')} className="w-full border rounded p-2" placeholder="Например, Europe/Moscow" /><small>Для полного сценария; пусто — не рассчитано.</small></label>}
     </section>)}
     <section className="rounded-xl border border-amber-300 p-4 text-sm" aria-label="Пять условий экономического сценария">
       <h3 className="font-semibold">Пять условий для денежного расчёта</h3>

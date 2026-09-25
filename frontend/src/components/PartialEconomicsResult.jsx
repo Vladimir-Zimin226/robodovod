@@ -10,7 +10,7 @@ const BRANCHES = [
   ['purchase', 'Покупка роботов'], ['raas', 'Аренда роботов'],
 ];
 
-export default function PartialEconomicsResult({ result, run, project, onComplete }) {
+export default function PartialEconomicsResult({ result, run, project, onComplete, autoOpenEditor = false }) {
   const branches = result.branches || {};
   return <div className="mx-auto max-w-6xl space-y-5" aria-label="Частичный результат экономики">
     <section className="economics-inputs-v2 rounded-2xl border p-5">
@@ -41,6 +41,6 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
       </article>)}</div>
     </section>}
     <TechnicalVisualization run={run} />
-    <SavedEconomicsEditor key={run?.id} project={project} run={run} onComplete={onComplete} />
+    <SavedEconomicsEditor key={run?.id} project={project} run={run} autoOpen={autoOpenEditor} onComplete={onComplete} />
   </div>;
 }

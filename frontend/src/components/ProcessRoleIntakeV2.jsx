@@ -18,6 +18,7 @@ import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../demoCapacityFlow';
 import { readCsrfCookie } from '../persistenceApi';
 import { toV2Draft } from '../assistantInterview';
+import WarehouseChainPanel from './WarehouseChainPanel';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -304,6 +305,13 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}
       </section>}
+      {objectType === 'retail' && <div className="mt-5"><WarehouseChainPanel project={activeProject} suggestedTransport={(() => {
+        const transport = draft.processes.find((item) => item.code === 'warehouse_receiving_shipping' && item.active);
+        if (!transport) return null;
+        return { demand: transport.demand, shifts: transport.shifts, hours: transport.hours, days: transport.days,
+          zone: draft.zones.find((zone) => zone.zoneId === transport.zoneId)?.label || 'Основная зона',
+          source: transport.fieldSources?.demand === 'ASSUMPTION' ? 'EXPERT_ASSUMPTION' : 'USER' };
+      })()} /></div>}
     </aside>
   );
 }

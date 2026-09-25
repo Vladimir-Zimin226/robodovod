@@ -435,6 +435,49 @@ def _weighted_score(parts: list[tuple[Decimal | None, Decimal]], penalty: Decima
     return min(Decimal(100), max(Decimal(0), value))
 
 
+def score_technical_candidate(candidate: RankingCandidateV2) -> dict[str, object]:
+    """The C19 technical branch, reusable for a cohort without C18 finance."""
+    reasons = set(candidate.constraint_report.blocker_codes + candidate.executability.blocker_codes)
+    excluded = candidate.constraint_report.eligibility == "BLOCKED" or candidate.executability.status in {
+        "MISSING_INPUT", "BLOCKED", "UNSUPPORTED_PROFILE"
+    }
+    applicability, components, local_reasons = _applicability(candidate)
+    reasons.update(local_reasons)
+    if local_reasons:
+        excluded = True
+    data = _data_score(candidate.data_fields)
+    preliminary = (candidate.constraint_report.eligibility == "NEEDS_VALIDATION"
+                   or candidate.executability.status == "NEEDS_VALIDATION")
+    penalty = Decimal(-5) if (
+        candidate.penalty_context.equipment_class == "AMR"
+        and candidate.penalty_context.quantity_kind == "PALLET"
+        and _d(candidate.penalty_context.demand_per_day) > 5000
+    ) else Decimal(0)
+    technical = None if excluded else _weighted_score([
+        (applicability, Decimal(".50")),
+        (None if data.value is None else _d(data.value), Decimal(".15")),
+    ], penalty)
+    return {"excluded": excluded, "preliminary": preliminary, "applicability": applicability,
+            "components": components, "data": data, "penalty": penalty,
+            "technical": technical, "reasons": reasons}
+
+
+def score_financial_components(applicability: str | None, data: str | None,
+                               npv: str, npv_min: str, npv_max: str,
+                               penalty: str = "0") -> tuple[Decimal, Decimal | None]:
+    """C19 F33 economy normalization and weighted score for comparable cases."""
+    low, high, value = _d(npv_min), _d(npv_max), _d(npv)
+    if not low <= value <= high:
+        raise ValueError("NPV lies outside the selected cohort")
+    economy = Decimal(50) if low == high else (value - low) / (high - low) * 100
+    final = _weighted_score([
+        (None if applicability is None else _d(applicability), Decimal(".50")),
+        (economy, Decimal(".35")),
+        (None if data is None else _d(data), Decimal(".15")),
+    ], _d(penalty))
+    return economy, final
+
+
 def calculate_ranking(request: RankingRequestV2) -> RankingResultV2:
     expected_rules = [item.rule_id for item in load_constraint_rules().rules]
     work: list[dict[str, object]] = []
@@ -448,31 +491,11 @@ def calculate_ranking(request: RankingRequestV2) -> RankingResultV2:
             raise ValueError("V2-D integrations must remain advisory, not hard fail")
         if (not candidate.integrations.required_ids) != (integration_check.status == "N_A"):
             raise ValueError("integration scoring scope differs from C05 report")
-        reasons = set(candidate.constraint_report.blocker_codes + candidate.executability.blocker_codes)
-        excluded = candidate.constraint_report.eligibility == "BLOCKED" or candidate.executability.status in {
-            "MISSING_INPUT", "BLOCKED", "UNSUPPORTED_PROFILE"
-        }
-        applicability, components, local_reasons = _applicability(candidate)
-        reasons.update(local_reasons)
-        if local_reasons:
-            excluded = True
-        data = _data_score(candidate.data_fields)
-        preliminary = candidate.constraint_report.eligibility == "NEEDS_VALIDATION" or candidate.executability.status == "NEEDS_VALIDATION"
-        penalty = Decimal(-5) if (
-            candidate.penalty_context.equipment_class == "AMR"
-            and candidate.penalty_context.quantity_kind == "PALLET"
-            and _d(candidate.penalty_context.demand_per_day) > 5000
-        ) else Decimal(0)
-        technical = None if excluded else _weighted_score([
-            (applicability, Decimal(".50")),
-            (None if data.value is None else _d(data.value), Decimal(".15")),
-        ], penalty)
-        work.append({"candidate": candidate, "excluded": excluded, "preliminary": preliminary,
-                     "applicability": applicability, "components": components, "data": data,
-                     "penalty": penalty, "technical": technical, "reasons": reasons})
+        scored = score_technical_candidate(candidate)
+        work.append({"candidate": candidate, **scored})
         trace.append(RankingTraceNodeV2(node_id=f"eligibility.{candidate.candidate_id}", formula_id="F33", operation="ELIGIBILITY",
             input_refs=[candidate.constraint_report_digest, candidate.executability_digest], output_ref=f"candidate.{candidate.candidate_id}.eligible",
-            value="0" if excluded else "1"))
+            value="0" if scored["excluded"] else "1"))
 
     financial = [item for item in work if not item["excluded"] and item["candidate"].finance_status == "COMPLETE"]
     npvs = [_d(item["candidate"].npv_project) for item in financial]
@@ -481,13 +504,13 @@ def calculate_ranking(request: RankingRequestV2) -> RankingResultV2:
     for item in work:
         candidate = item["candidate"]
         economy = None
+        final = None
         if not item["excluded"] and candidate.finance_status == "COMPLETE":
-            value = _d(candidate.npv_project)
-            economy = Decimal(50) if npv_min == npv_max else (value - npv_min) / (npv_max - npv_min) * 100
-        data_value = None if item["data"].value is None else _d(item["data"].value)
-        final = None if economy is None else _weighted_score([
-            (item["applicability"], Decimal(".50")), (economy, Decimal(".35")), (data_value, Decimal(".15")),
-        ], item["penalty"])
+            economy, final = score_financial_components(
+                None if item["applicability"] is None else _plain(item["applicability"]),
+                item["data"].value, candidate.npv_project, _plain(npv_min), _plain(npv_max),
+                _plain(item["penalty"]),
+            )
         item["economy"] = economy
         item["final"] = final
         trace.append(RankingTraceNodeV2(node_id=f"economy.{candidate.candidate_id}", formula_id="F33", operation="ECONOMY_MINMAX",
@@ -553,4 +576,10 @@ def calculate_ranking(request: RankingRequestV2) -> RankingResultV2:
     return result
 
 
-__all__ = ["RankingRequestV2", "RankingResultV2", "calculate_ranking"]
+__all__ = [
+    "RankingRequestV2",
+    "RankingResultV2",
+    "calculate_ranking",
+    "score_financial_components",
+    "score_technical_candidate",
+]

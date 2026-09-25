@@ -132,11 +132,14 @@ function generateWarehouseWorld(rawConfig, scenario = null) {
   scene.labels.push({ text: 'ЗАРЯДНАЯ ЗОНА', position: [-width / 2 + 4.8, 1.65, crossAisleZ + 1.7], kind: 'warehouse' });
 
   const rackAisles = aisleXs.slice(0, rackXs.length);
-  const pickupCandidates = [0, 1, 2].flatMap(slot => rackAisles.map((aisleX, aisleIndex) => {
-      const bay = Math.min(bayCount - 1, Math.round(slot * (bayCount - 1) / 2));
-      const row = Math.min(rackXs.length - 1, aisleIndex);
-      return { position: [aisleX, rackStart + bay * baySpacing], rackRow: row, bay, label: `Ряд ${String.fromCharCode(65 + row)}, ячейка ${bay + 1}` };
-    }));
+  // C11 models a prepared pallet moved between handoff points. Rack picking is
+  // outside this route, including when rendering a historical ScenarioSpec.
+  const pickupCandidates = [0, 1, 2].flatMap(slot => rackAisles.map((aisleX, aisleIndex) => ({
+    position: [aisleX, crossAisleZ - 4.2 - slot * .75],
+    rackRow: null, bay: null,
+    label: `Передача подготовленной паллеты ${slot * rackAisles.length + aisleIndex + 1}`,
+  })));
+  scene.labels.push({ text: 'ПЕРЕДАЧА ГОТОВЫХ ПАЛЛЕТ', position: [0, 1.6, crossAisleZ - 4.2], kind: 'warehouse' });
   for (let i = 0; i < config.robotCount; i += 1) {
     const profile = robotProfile(
       scenario?.internalProfile || robotTypesForTemplate('warehouse')[i % 3]
@@ -153,7 +156,7 @@ function generateWarehouseWorld(rawConfig, scenario = null) {
     const initialPickupIndex = initialSlot * rackAisles.length + initialAisle;
     const pickup = pickupCandidates[initialPickupIndex];
     const aisleX = pickup.position[0];
-    const deepZ = pickup.position[1];
+    const handoffZ = pickup.position[1];
     const chargerX = -width / 2 + 2 + i * chargerSpacing;
     const outboundZ = crossAisleZ - .20 - (i % 2) * 1.50;
     const returnZ = crossAisleZ - 3.50 - (i % 2) * 1.50;
@@ -172,7 +175,7 @@ function generateWarehouseWorld(rawConfig, scenario = null) {
         [chargerX, crossAisleZ + 1.6],
         [chargerX, outboundZ],
         [aisleX, outboundZ],
-        [aisleX, deepZ],
+        [aisleX, handoffZ],
         [aisleX, outboundZ],
         [stationX - 3.1, outboundZ],
         [stationX - 3.1, returnZ],

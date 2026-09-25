@@ -20,6 +20,7 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
             <p className="text-xs text-slate-500">{savedCalculationLabel(response?.finished_at || response?.created_at)}</p>
             <h1 className="text-2xl font-semibold">Производительность и требуемый парк</h1>
             <p className="text-sm text-slate-600 mt-1">Процесс: {model.processId}</p>
+            {model.processId?.includes('warehouse_receiving_shipping') && <p className="mt-1 text-sm text-amber-800">Учтена перевозка подготовленных паллет; отбор коробок и упаковка не рассчитаны. Экономия относится только к роли, связанной с перевозкой.</p>}
             <p className="text-xs text-slate-500">Зона: {zoneContext?.label || zoneForProcessId(model.processId)} · расчёт охватывает только указанный процесс и не суммирует общие ресурсы других зон.</p>
             {zoneContext?.constraints_note && <p className="text-xs text-amber-700">Ограничения зоны: {zoneContext.constraints_note} · не включены в проверку пригодности на объекте.</p>}
           </div>

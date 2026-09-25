@@ -1,0 +1,34 @@
+{
+  "bindings": {
+    "assumptions_version": "warehouse-economics-demo-v1",
+    "capacity_economics_input_digest": "sha256:7e851c4a5498522206304a053959307636281864d73f7e03005fadfb18ad7c3d",
+    "economics_result_digest": "sha256:0bfa1c53c0c343acc557950fc4177a91753b82879605f1800ffc28faf4676f7f",
+    "scenario_revision_id": "calc_7a4e669545a085fc",
+    "simulation_report_digest": "sha256:5738850df222b764be961b61c969660944a1f79e8ba115245cf7a56362e7a103",
+    "simulation_request_digest": "sha256:e82fffad9e0b3ce96daf0d02c6d2f0ae25e9ab73bb888dc7c25a3259076f7862"
+  },
+  "files": {
+    "assumptions.json": {
+      "bytes": 4270,
+      "sha256": "sha256:76b9aea027cd5d279324bad82475e639566fb904d64b8e823f7dbc212923f61b"
+    },
+    "package.json": {
+      "bytes": 43273,
+      "sha256": "sha256:0096dd1a803dce07c1e8dc8391467479aed2ea053cbe9686a4f9f046d0799212"
+    },
+    "report.pdf": {
+      "bytes": 408534,
+      "sha256": "sha256:c84c7a5fc24a313513bb603531cfbb2e30ceb46f41bbb0ef80ad86990115fd68"
+    },
+    "simulation-report.json": {
+      "bytes": 7503,
+      "sha256": "sha256:c249961a140a3c15e9f0aa7f77ac586fe476f6689e92577cf2cf37f3494687e5"
+    },
+    "simulation-request.json": {
+      "bytes": 9041,
+      "sha256": "sha256:4e49a62fad3f8bef2209ce006ff8b49c6e9487bd9e3e213af6e15f8b9437d51f"
+    }
+  },
+  "package_version": "warehouse-pallet-demo-v1",
+  "schema_version": "warehouse-guest-package-manifest-v1"
+}

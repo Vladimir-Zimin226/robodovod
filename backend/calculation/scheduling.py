@@ -22,6 +22,7 @@ SIMULATION_REPORT_VERSION = "simulation-report-v1"
 CORRECTED_SIMULATION_REPORT_VERSION = "simulation-report-v2"
 SIMULATION_ENGINE_VERSION = "deterministic-queue-v1"
 CORRECTED_SIMULATION_ENGINE_VERSION = "deterministic-queue-v2"
+PROCESS_CHAIN_ENGINE_VERSION = "deterministic-queue-v3"
 SIMULATION_POLICY_VERSION = "hackathon-calculation-policy-v1+k18-c23"
 EVENT_ORDER_VERSION = "event-order-time-priority-process-resource-job-v1"
 ARRIVAL_MODEL_VERSION = "uniform-arrivals-v1"
@@ -110,6 +111,76 @@ class SimulationRequestV1(StrictContractModel):
         return self
 
 
+class SimulationModelStartV2(FrozenContractModel):
+    weekday: Literal["MONDAY"] = "MONDAY"
+    seconds_from_midnight: Annotated[int, Field(ge=0, lt=86400)]
+    timezone: Annotated[str, Field(min_length=1)]
+
+
+class SimulationProcessStageV2(FrozenContractModel):
+    stage: Literal["PICKING", "BUFFER", "FEED_TO_PACK", "PACKAGING"]
+    flow_code: Literal["picking_lines", "picking_items", "tote_handoff", "packaging"]
+    units_per_pallet: DecimalString
+    service_rate_per_hour: DecimalString
+    capacity: Annotated[int, Field(ge=1, le=100)]
+    resource_kind: Literal["HUMAN", "ROBOT", "EQUIPMENT"]
+    resource_id: StableId
+    source_ref: StableId
+    conversion_refs: list[StableId] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_rate(self) -> "SimulationProcessStageV2":
+        if _d(self.units_per_pallet) <= 0 or _d(self.service_rate_per_hour) <= 0:
+            raise ValueError("extended stage quantities and rate must be positive")
+        if self.stage == "PICKING" and self.flow_code not in ("picking_lines", "picking_items"):
+            raise ValueError("picking stage needs a picking flow")
+        if self.stage in ("BUFFER", "FEED_TO_PACK") and self.flow_code != "tote_handoff":
+            raise ValueError("buffer/feed stages need tote handoff flow")
+        if self.stage == "PACKAGING" and self.flow_code != "packaging":
+            raise ValueError("packaging stage needs packaging flow")
+        return self
+
+
+class SimulationProcessChainV2(FrozenContractModel):
+    schema_version: Literal["warehouse-process-chain-v2"] = "warehouse-process-chain-v2"
+    warehouse_chain_version: Annotated[int, Field(ge=1)]
+    warehouse_chain_digest: Digest
+    stages: list[SimulationProcessStageV2] = Field(max_length=4)
+
+    @model_validator(mode="after")
+    def validate_order(self) -> "SimulationProcessChainV2":
+        expected = ("PICKING", "BUFFER", "FEED_TO_PACK", "PACKAGING")
+        codes = [item.stage for item in self.stages]
+        if len(codes) != len(set(codes)) or codes != [code for code in expected if code in codes]:
+            raise ValueError("extended stages must be unique and ordered")
+        resources = [item.resource_id for item in self.stages]
+        if len(resources) != len(set(resources)):
+            raise ValueError("a shared station cannot be counted independently at two stages")
+        return self
+
+
+class SimulationRequestV2(SimulationRequestV1):
+    schema_version: Literal["simulation-request-v2"] = "simulation-request-v2"
+    model_start: SimulationModelStartV2
+    process_chain: SimulationProcessChainV2 | None = None
+
+    @model_validator(mode="after")
+    def bind_model_start(self) -> "SimulationRequestV2":
+        windows = self.scenario_spec.operating_windows
+        primary = next((item for item in windows if item.window_id == "window.primary"), windows[0])
+        if (self.model_start.timezone != primary.timezone
+                or Decimal(self.model_start.seconds_from_midnight) != _d(primary.start_time.value)):
+            raise ValueError("model start must match the saved scenario operating window")
+        if self.process_chain is not None and (
+            self.scenario_spec.template != "warehouse"
+            or self.scenario_spec.profile.calculation_profile != "TRANSPORT_CYCLE_V1"
+            or len(self.scenario_spec.tasks) != 1
+            or self.scenario_spec.tasks[0].demand.unit != "pallet/day"
+        ):
+            raise ValueError("extended warehouse stages require a pallet transport scenario")
+        return self
+
+
 class SimulationVersionsV1(FrozenContractModel):
     engine_version: Literal["deterministic-queue-v1"] = SIMULATION_ENGINE_VERSION
     request_version: Literal["simulation-request-v1"] = SIMULATION_REQUEST_VERSION
@@ -127,6 +198,13 @@ class SimulationVersionsV2(SimulationVersionsV1):
     engine_version: Literal["deterministic-queue-v2"] = CORRECTED_SIMULATION_ENGINE_VERSION
     report_version: Literal["simulation-report-v2"] = CORRECTED_SIMULATION_REPORT_VERSION
     policy_version: Literal["hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2"] = "hackathon-calculation-policy-v1+k18-c23-demand-capacity-v2"
+
+
+class SimulationVersionsV3(SimulationVersionsV2):
+    engine_version: Literal["deterministic-queue-v3"] = PROCESS_CHAIN_ENGINE_VERSION
+    request_version: Literal["simulation-request-v2"] = "simulation-request-v2"
+    report_version: Literal["simulation-report-v3"] = "simulation-report-v3"
+    policy_version: Literal["hackathon-calculation-policy-v1+process-chain-v2"] = "hackathon-calculation-policy-v1+process-chain-v2"
 
 
 class SimulationTimeBasisV1(FrozenContractModel):
@@ -277,6 +355,45 @@ class SimulationReportV1(StrictContractModel):
         return self
 
 
+class SimulationStageMetricsV2(FrozenContractModel):
+    stage: Literal["PICKING", "BUFFER", "FEED_TO_PACK", "PACKAGING"]
+    status: Literal["MODELED", "EXTERNAL_BOUNDARY"]
+    source_ref: StableId | None
+    resource_id: StableId | None
+    resource_kind: Literal["HUMAN", "ROBOT", "EQUIPMENT"] | None
+    capacity: int | None
+    maximum_queue_jobs: int | None
+    mean_wait_seconds: DecimalString | None
+    utilization_fraction: DecimalString | None
+    completed_by_measurement_end: int | None
+
+    @model_validator(mode="after")
+    def validate_boundary(self) -> "SimulationStageMetricsV2":
+        values = (self.source_ref, self.resource_id, self.resource_kind, self.capacity,
+                  self.maximum_queue_jobs, self.mean_wait_seconds, self.utilization_fraction,
+                  self.completed_by_measurement_end)
+        if self.status == "EXTERNAL_BOUNDARY" and any(value is not None for value in values):
+            raise ValueError("external boundary cannot claim stage KPI")
+        if self.status == "MODELED" and any(value is None for index, value in enumerate(values) if index != 5):
+            raise ValueError("modeled stage requires resource and queue metrics")
+        return self
+
+
+class SimulationReportV3(SimulationReportV1):
+    schema_version: Literal["simulation-report-v3"] = "simulation-report-v3"
+    versions: SimulationVersionsV3
+    model_start: SimulationModelStartV2
+    stages: list[SimulationStageMetricsV2] = Field(min_length=4, max_length=4)
+
+    @model_validator(mode="after")
+    def validate_stage_bindings(self) -> "SimulationReportV3":
+        if [item.stage for item in self.stages] != ["PICKING", "BUFFER", "FEED_TO_PACK", "PACKAGING"]:
+            raise ValueError("stage report order is incomplete")
+        if self.model_start.timezone != self.time_basis.timezone:
+            raise ValueError("model start timezone differs from report time basis")
+        return self
+
+
 class SimulationErrorV1(FrozenContractModel):
     schema_version: Literal["simulation-error-v1"] = "simulation-error-v1"
     request_id: StableId
@@ -307,7 +424,7 @@ class _Calendar:
         return [(day * DAY_US + start, day * DAY_US + end) for start, end in self.windows]
 
     def next_work_time(self, point: int) -> int:
-        day = max(0, point // DAY_US)
+        day = max(0, point // DAY_US - 1)
         for candidate_day in range(day, day + 10000):
             for start, end in self.for_day(candidate_day):
                 if point < start:
@@ -321,8 +438,9 @@ class _Calendar:
         remaining = duration
         intervals: list[tuple[int, int]] = []
         while remaining > 0:
-            day = current // DAY_US
-            window = next((item for item in self.for_day(day) if item[0] <= current < item[1]), None)
+            day = max(0, current // DAY_US - 1)
+            window = next((item for candidate_day in range(day, day + 3)
+                           for item in self.for_day(candidate_day) if item[0] <= current < item[1]), None)
             if window is None:
                 current = self.next_work_time(current)
                 continue
@@ -360,7 +478,7 @@ class _Job:
     productive_us: int = 0
 
 
-def _calendar(spec: ScenarioSpecV2) -> _Calendar:
+def _calendar(spec: ScenarioSpecV2, phase_start: int | None = None) -> _Calendar:
     windows: list[tuple[int, int]] = []
     for item in sorted(spec.operating_windows, key=lambda value: (Decimal(value.start_time.value), value.window_id)):
         start = _micros(_d(item.start_time.value))
@@ -371,6 +489,14 @@ def _calendar(spec: ScenarioSpecV2) -> _Calendar:
     hours = sum((_d(item.duration.value) for item in spec.operating_windows), Decimal(0))
     if hours <= 0:
         raise ValueError("simulation requires positive operating hours")
+    if phase_start is not None:
+        phase_us = phase_start * MICROS_PER_SECOND
+        windows = sorted(((start + (DAY_US if start < phase_us else 0),
+                           end + (DAY_US if start < phase_us else 0))
+                          for start, end in windows), key=lambda item: item[0])
+        if not windows or windows[0][0] != phase_us or any(windows[index][0] < windows[index - 1][1]
+                                                            for index in range(1, len(windows))):
+            raise ValueError("model start must be the beginning of an operating window")
     return _Calendar(windows, hours)
 
 
@@ -471,7 +597,7 @@ def _run(request: SimulationRequestV1, *, should_cancel: Callable[[], bool],
          progress: Callable[[SimulationProgressV1], None], clock: Callable[[], float],
          engine_version: str) -> SimulationReportV1:
     spec = request.scenario_spec
-    calendar = _calendar(spec)
+    calendar = _calendar(spec, request.model_start.seconds_from_midnight if isinstance(request, SimulationRequestV2) else None)
     task, fleet = spec.tasks[0], spec.fleet[0]
     daily = _d(task.demand.value)
     factor = Decimal(1) if request.mode == "DAILY" else _d(request.peak_factor)
@@ -641,17 +767,116 @@ def _run(request: SimulationRequestV1, *, should_cancel: Callable[[], bool],
     return SimulationReportV1.model_validate(finalized)
 
 
+def _stage_metrics(request: SimulationRequestV2, base: SimulationReportV1,
+                   should_cancel: Callable[[], bool], clock: Callable[[], float]) -> list[SimulationStageMetricsV2]:
+    """Linked FIFO stations are diagnostic; they never alter pallet transport economics."""
+    codes = ("PICKING", "BUFFER", "FEED_TO_PACK", "PACKAGING")
+    configured = {item.stage: item for item in request.process_chain.stages} if request.process_chain else {}
+    calendar = _calendar(request.scenario_spec, request.model_start.seconds_from_midnight)
+    jobs_per_day = base.workload.jobs_per_day
+    batch = _d(base.workload.batch_units)
+    simulated = _d(base.workload.simulated_units_per_day)
+    day_work_us = int(calendar.hours * SECONDS_PER_HOUR * MICROS_PER_SECOND)
+    measurement_end = calendar.day_end(1)
+    windows = calendar.for_day(1)
+    arrivals = []
+    for day in range(2):
+        remainder = simulated
+        for index in range(jobs_per_day):
+            offset = int((Decimal(index) * day_work_us / jobs_per_day).quantize(Decimal("1"), rounding=ROUND_HALF_EVEN))
+            units = min(batch, remainder)
+            remainder -= units
+            arrivals.append((day, calendar.work_offset(day, offset), units))
+    base_arrivals = arrivals
+    result = []
+    started_at = clock()
+    last_modelled_index = -2
+    for stage_index, code in enumerate(codes):
+        stage = configured.get(code)
+        if stage is None:
+            result.append(SimulationStageMetricsV2(stage=code, status="EXTERNAL_BOUNDARY",
+                source_ref=None, resource_id=None, resource_kind=None, capacity=None, maximum_queue_jobs=None,
+                mean_wait_seconds=None, utilization_fraction=None, completed_by_measurement_end=None))
+            continue
+        if stage_index != last_modelled_index + 1:
+            arrivals = base_arrivals
+        slots = [0] * stage.capacity
+        next_arrivals = []
+        waits = []
+        events = []
+        busy = 0
+        completed = 0
+        for index, (day, release, units) in enumerate(arrivals):
+            if index % request.limits.progress_event_batch == 0:
+                if should_cancel():
+                    raise _Stop("CANCELLED", "extended simulation cancelled")
+                if clock() - started_at > request.limits.max_runtime_seconds:
+                    raise _Stop("TIMEOUT", "extended simulation exceeded runtime limit")
+            slot = min(range(len(slots)), key=lambda position: (slots[position], position))
+            start = calendar.next_work_time(max(release, slots[slot]))
+            service_seconds = _d(stage.units_per_pallet) * (units / batch) / _d(stage.service_rate_per_hour) * SECONDS_PER_HOUR
+            completion, intervals = calendar.add_work(start, _micros(service_seconds))
+            slots[slot] = completion
+            next_arrivals.append((day, completion, units))
+            if day == 1:
+                waits.append(start - release)
+                events.extend(((release, 1), (start, -1)))
+                if completion <= measurement_end:
+                    completed += 1
+            busy += _overlap(intervals, windows)
+        depth = maximum = 0
+        for _, delta in sorted(events):
+            depth += delta
+            maximum = max(maximum, depth)
+        result.append(SimulationStageMetricsV2(stage=code, status="MODELED",
+            source_ref=stage.source_ref, resource_id=stage.resource_id,
+            resource_kind=stage.resource_kind, capacity=stage.capacity,
+            maximum_queue_jobs=maximum,
+            mean_wait_seconds=None if not waits else _decimal(Decimal(sum(waits)) / len(waits) / MICROS_PER_SECOND),
+            utilization_fraction=_decimal(Decimal(busy) / (stage.capacity * day_work_us)),
+            completed_by_measurement_end=completed))
+        arrivals = next_arrivals
+        last_modelled_index = stage_index
+    return result
+
+
+def _run_v3(request: SimulationRequestV2, *, should_cancel: Callable[[], bool],
+            progress: Callable[[SimulationProgressV1], None], clock: Callable[[], float]) -> SimulationReportV3:
+    base = _run(request, should_cancel=should_cancel, progress=progress, clock=clock,
+                engine_version=CORRECTED_SIMULATION_ENGINE_VERSION)
+    stages = _stage_metrics(request, base, should_cancel, clock)
+    payload = base.model_dump(mode="json")
+    payload.update(schema_version="simulation-report-v3", report_id="report.placeholder",
+                   versions=SimulationVersionsV3().model_dump(mode="json"),
+                   model_start=request.model_start.model_dump(mode="json"),
+                   stages=[item.model_dump(mode="json") for item in stages])
+    payload["limitations"] = sorted(set(payload["limitations"] +
+        ["extended-stage-economics-not-evaluated"] +
+        (["unmodelled-warehouse-stages-external-boundaries"] if any(item.status == "EXTERNAL_BOUNDARY" for item in stages) else [])))
+    payload["replay"]["report_content_digest"] = "sha256:" + "0" * 64
+    payload["report_id"] = f"report.{semantic_digest(payload).removeprefix('sha256:')[:16]}"
+    payload["replay"]["report_content_digest"] = semantic_digest(payload)
+    return SimulationReportV3.model_validate(payload)
+
+
 def run_simulation(
-    request: SimulationRequestV1,
+    request: SimulationRequestV1 | SimulationRequestV2,
     *,
-    engine_version: Literal["deterministic-queue-v1", "deterministic-queue-v2"] = CORRECTED_SIMULATION_ENGINE_VERSION,
+    engine_version: Literal["deterministic-queue-v1", "deterministic-queue-v2", "deterministic-queue-v3"] = CORRECTED_SIMULATION_ENGINE_VERSION,
     should_cancel: Callable[[], bool] | None = None,
     progress: Callable[[SimulationProgressV1], None] | None = None,
     clock: Callable[[], float] = time.monotonic,
-) -> SimulationReportV1 | SimulationErrorV1:
+) -> SimulationReportV1 | SimulationReportV3 | SimulationErrorV1:
     """Run C23 without persistence/API side effects and return a typed terminal result."""
 
     try:
+        if isinstance(request, SimulationRequestV2):
+            if engine_version not in (CORRECTED_SIMULATION_ENGINE_VERSION, PROCESS_CHAIN_ENGINE_VERSION):
+                raise ValueError("v2 simulation request requires the v3 scheduler")
+            return _run_v3(request, should_cancel=should_cancel or (lambda: False),
+                progress=progress or (lambda _value: None), clock=clock)
+        if engine_version == PROCESS_CHAIN_ENGINE_VERSION:
+            raise ValueError("v3 scheduler requires simulation-request-v2")
         return _run(request, should_cancel=should_cancel or (lambda: False),
                     progress=progress or (lambda _value: None), clock=clock,
                     engine_version=engine_version)

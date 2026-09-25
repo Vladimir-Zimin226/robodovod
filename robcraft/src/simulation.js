@@ -575,7 +575,7 @@ export function getSimulationReport(simulation) {
 
 export function buildRendererReport(simulation, authoritativeReport = null) {
   if (authoritativeReport !== null) {
-    if (!['simulation-report-v1', 'simulation-report-v2'].includes(authoritativeReport?.schema_version)) throw new TypeError('RobCraft принимает только SimulationReport v1/v2');
+    if (!['simulation-report-v1', 'simulation-report-v2', 'simulation-report-v3'].includes(authoritativeReport?.schema_version)) throw new TypeError('RobCraft принимает только SimulationReport v1/v2/v3');
     if (authoritativeReport.scenario_revision_id !== simulation.revisionId) throw new TypeError('SimulationReport и RobCraft scenario revision не совпадают');
     if (!/^sha256:[0-9a-f]{64}$/.test(authoritativeReport.replay?.report_content_digest || '')) throw new TypeError('SimulationReport report digest имеет неверный формат');
   }

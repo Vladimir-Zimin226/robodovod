@@ -5,8 +5,8 @@ const NAVIGATION = [
   { id: 'home', label: 'Главная', icon: 'home' },
   { id: 'process', label: 'Помощник по сервису', icon: 'process' },
   { id: 'calculation', label: 'Расчёт', icon: 'calculator' },
-  { id: 'model', label: 'Моделирование', icon: 'cube', target: 'visualization' },
-  { id: 'variants', label: 'Варианты', icon: 'chart', target: 'scenarios' },
+  { id: 'model', label: 'Моделирование процесса', icon: 'cube' },
+  { id: 'expert', label: 'Робоэксперт', icon: 'chart' },
   { id: 'economics', label: 'Экономика', icon: 'money', target: 'economics' },
   { id: 'report', label: 'Отчёт', icon: 'report', target: 'report' },
 ];
@@ -14,7 +14,7 @@ const NAVIGATION = [
 export function AppShell({ phase, user, activeProject, onNavigate, command, setCommand, onCommand, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isResult = phase === 'results';
-  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase;
+  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase === 'reports' ? 'report' : phase;
   const initials = (user?.name || user?.email || 'Г')
     .split(/[\s@]+/)
     .filter(Boolean)

@@ -246,7 +246,7 @@ def _rows_for_section(run: EvidenceRunSnapshotV1, digests: dict[str, str | None]
         "Simulation": ("simulation_report", "simulationreport"),
     }
     nodes = _matching_nodes(result, keyword_map[section])
-    if section == "Simulation" and result.get("schema_version") in ("simulation-report-v1", "simulation-report-v2"):
+    if section == "Simulation" and result.get("schema_version") in ("simulation-report-v1", "simulation-report-v2", "simulation-report-v3"):
         nodes = [("$", result)]
     rows: list[tuple[str, str, str, str]] = []
     seen: set[tuple[str, str]] = set()
@@ -437,10 +437,13 @@ def build_evidence_export_v3(
         raise EvidenceExportIntegrityError("readable report source does not match run")
     missing = [section(item.name) for item in previous.manifest.sections if item.status == "NOT_AVAILABLE"]
     kind = "расчёт потребного парка" if run.run_kind == "CAPACITY_ANALYSIS" else "расчёт экономики роботизации"
+    capacity_input = run.input_snapshot if run.run_kind == "CAPACITY_ANALYSIS" else capacity_run.input_snapshot if capacity_run else {}
+    pallet_transport = (capacity_input.get("process") or {}).get("process_code") == "warehouse_receiving_shipping"
     lines = [
         "# НАЧНИТЕ ЗДЕСЬ", "",
         f"## Сохранённый расчёт от {run.finished_at:%d.%m.%Y}", "",
         f"Это {kind}. Сначала откройте **{READABLE_REPORT_FILENAME}**: в нём результаты, ограничения и следующие шаги.",
+        *(["Охват: учтена перевозка подготовленных паллет; отбор коробок и упаковка не рассчитаны. Экономия комплектовщиков и упаковщиков не включена."] if pallet_transport else []),
         f"Затем откройте **{GUIDE_FILENAME}**: он объясняет разделы данных архива.",
         "Исходные цены, паспорт модели и условия поставки требуют отдельного подтверждения перед закупкой.",
         f"Разделы без данных: {', '.join(missing) if missing else 'нет'}.", "",

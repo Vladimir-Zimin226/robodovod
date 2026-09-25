@@ -70,6 +70,7 @@ let activeZoneIndex = 0;
 let zoneRotationElapsed = 0;
 let pinnedZoneId = null;
 let authoritativeSimulationReport = null;
+let embeddedPlayback = null;
 const audioEngine = new AudioEngine();
 
 function cameraSnapshot(reason = 'STATE_CHANGED') {
@@ -796,7 +797,25 @@ function frame(now) {
     if (active) {
       if (cameraState === 'AUTOPILOT' && !editorMode) cameraDirector.update(delta, scene, simulation);
       else player.update(delta, scene.solids);
-      if (!editorMode) updateSimulation(simulation, delta, scene.solids);
+      if (!editorMode) {
+        if (!embeddedMode || !embeddedPlayback) updateSimulation(simulation, delta, scene.solids);
+        else {
+          const target = embeddedPlayback.elapsed_seconds;
+          if (simulation.elapsed > target + 1 || embeddedPlayback.reset) {
+            const replacement = createSimulation(scene);
+            replacement.baseRevisionId = simulation.baseRevisionId;
+            replacement.sceneModified = simulation.sceneModified;
+            zoneSessions[activeZoneIndex].simulation = replacement;
+            simulation = replacement;
+            embeddedPlayback.reset = false;
+          }
+          simulation.speedMultiplier = 1;
+          for (let steps = 0; simulation.elapsed + .05 < target && steps < 1200; steps += 1)
+            updateSimulation(simulation, Math.min(.05, target - simulation.elapsed), scene.solids);
+          simulation.speedMultiplier = embeddedPlayback.speed;
+          if (embeddedPlayback.status === 'RUNNING') updateSimulation(simulation, delta, scene.solids);
+        }
+      }
       if (embeddedMode && cameraState === 'AUTOPILOT' && !editorMode && !pinnedZoneId && zoneSessions.length > 1) {
         zoneRotationElapsed += delta;
         if (zoneRotationElapsed >= 24) activateZone((activeZoneIndex + 1) % zoneSessions.length, 'AUTOPILOT_ROTATION');
@@ -839,6 +858,11 @@ try {
       },
       getEditorState: () => currentEditorState(),
       getScenePatchState: () => currentScenePatchState(),
+      setPlayback: playback => {
+        const reset = (embeddedPlayback !== null && embeddedPlayback.restart !== playback.restart)
+          || (playback.status === 'STOPPED' && embeddedPlayback?.status !== 'STOPPED');
+        embeddedPlayback = { ...playback, reset };
+      },
       getRendererReport: () => buildRendererReport(simulation, authoritativeSimulationReport)
     });
   } else {

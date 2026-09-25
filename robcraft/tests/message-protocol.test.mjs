@@ -23,6 +23,8 @@ test('validates the message envelope and revision consistency', () => {
   assert.equal(parseParentMessage(envelope('SELECT_ZONE', { zone_id: 'zone.warehouse' })).payload.zone_id, 'zone.warehouse');
   assert.throws(() => parseParentMessage(envelope('SELECT_ZONE', { zone_id: '' })), /zone_id/);
   assert.throws(() => parseParentMessage(envelope('SELECT_ZONE', { zone_id: 'zone.warehouse', extra: true })), /неизвестные поля/);
+  assert.equal(parseParentMessage(envelope('SET_PLAYBACK', { elapsed_seconds: 2.5, status: 'PAUSED', speed: 1, restart: 0 })).payload.status, 'PAUSED');
+  assert.throws(() => parseParentMessage(envelope('SET_PLAYBACK', { elapsed_seconds: -1, status: 'RUNNING', speed: 1, restart: 0 })), /временную шкалу/);
   assert.throws(() => parseParentMessage(envelope('LOAD_SCENARIO', {
     scenario_spec: scenario,
     simulation_report: { schema_version: 'simulation-report-v1', scenario_revision_id: 'calc_ffffffffffffffff', replay: { report_content_digest: `sha256:${'a'.repeat(64)}` } },

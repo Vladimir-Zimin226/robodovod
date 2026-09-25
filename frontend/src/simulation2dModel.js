@@ -3,6 +3,7 @@ import { buildWarehouseScene, warehouseFrameAt } from './warehouse2dScene.js';
 const REQUEST_FIELDS = new Set([
   'schema_version', 'request_id', 'tenant_id', 'project_id', 'scenario_spec',
   'mode', 'peak_factor', 'sla', 'resources', 'limits',
+  'model_start', 'process_chain',
 ]);
 const SPEC_FIELDS = new Set([
   'schema_version', 'revision_id', 'source', 'template', 'seed', 'analysis',
@@ -14,6 +15,7 @@ const REPORT_FIELDS = new Set([
   'scenario_revision_id', 'status', 'engineering_claim', 'time_basis',
   'workload', 'capacity', 'queue', 'utilization', 'sla', 'resources',
   'limitations', 'trace', 'versions', 'replay',
+  'model_start', 'stages',
 ]);
 const SPEEDS = new Set([0.5, 1, 2, 4]);
 const CAPACITY_VERDICTS = new Set(['CONSISTENT', 'DEVIATION', 'OVERLOADED', 'N_A', 'INPUT_MISMATCH']);
@@ -36,9 +38,23 @@ export function parseSimulationBundle(request, report) {
   exact(request, REQUEST_FIELDS, 'SimulationRequest');
   exact(request.scenario_spec, SPEC_FIELDS, 'ScenarioSpec');
   exact(report, REPORT_FIELDS, 'SimulationReport');
-  if (request.schema_version !== 'simulation-request-v1') throw new TypeError('Неподдерживаемая версия SimulationRequest');
+  if (!['simulation-request-v1', 'simulation-request-v2'].includes(request.schema_version)) throw new TypeError('Неподдерживаемая версия SimulationRequest');
   if (request.scenario_spec.schema_version !== 'scenario-spec-v2') throw new TypeError('2D требует ScenarioSpec v2');
-  if (!['simulation-report-v1', 'simulation-report-v2'].includes(report.schema_version)) throw new TypeError('Неподдерживаемая версия SimulationReport');
+  if (!['simulation-report-v1', 'simulation-report-v2', 'simulation-report-v3'].includes(report.schema_version)) throw new TypeError('Неподдерживаемая версия SimulationReport');
+  if (request.schema_version === 'simulation-request-v2' && (report.schema_version !== 'simulation-report-v3'
+      || request.model_start?.weekday !== report.model_start?.weekday
+      || request.model_start?.seconds_from_midnight !== report.model_start?.seconds_from_midnight
+      || request.model_start?.timezone !== report.model_start?.timezone)) {
+    throw new TypeError('Модельное время или версия отчёта не совпадает с запросом');
+  }
+  if (request.schema_version === 'simulation-request-v1' && report.schema_version === 'simulation-report-v3')
+    throw new TypeError('Старый запрос не может ссылаться на новый отчёт');
+  if (report.schema_version === 'simulation-report-v3'
+      && (!Array.isArray(report.stages) || report.stages.length !== 4
+        || report.stages.map((item) => item.stage).join(',') !== 'PICKING,BUFFER,FEED_TO_PACK,PACKAGING'
+        || report.stages.some((item) => !['MODELED', 'EXTERNAL_BOUNDARY'].includes(item.status)))) {
+    throw new TypeError('Неполный отчёт складских стадий');
+  }
   if (report.engineering_claim !== 'PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION') {
     throw new TypeError('SimulationReport содержит недопустимое инженерное утверждение');
   }

@@ -1,0 +1,423 @@
+{
+  "$defs": {
+    "FlowConversion": {
+      "additionalProperties": false,
+      "properties": {
+        "from_code": {
+          "title": "From Code",
+          "type": "string"
+        },
+        "to_code": {
+          "title": "To Code",
+          "type": "string"
+        },
+        "factor": {
+          "maxLength": 16,
+          "title": "Factor",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "FILE",
+            "EXPERT_ASSUMPTION"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "source_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Ref"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "from_code",
+        "to_code",
+        "factor",
+        "source"
+      ],
+      "title": "FlowConversion",
+      "type": "object"
+    },
+    "SharedResource": {
+      "additionalProperties": false,
+      "properties": {
+        "resource_id": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "STAFF",
+            "EQUIPMENT",
+            "CONVEYOR",
+            "AREA",
+            "EXPENSE"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "role_code": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Role Code"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amount"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "monthly_gross_salary_rub": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Monthly Gross Salary Rub"
+        },
+        "source": {
+          "default": "UNKNOWN",
+          "enum": [
+            "UNKNOWN",
+            "USER",
+            "FILE",
+            "EXPERT_ASSUMPTION"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "source_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Ref"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "resource_id",
+        "kind"
+      ],
+      "title": "SharedResource",
+      "type": "object"
+    },
+    "WarehouseFlow": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "shifts_per_day": {
+          "anyOf": [
+            {
+              "maxLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shifts Per Day"
+        },
+        "hours_per_shift": {
+          "anyOf": [
+            {
+              "maxLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hours Per Shift"
+        },
+        "days_per_year": {
+          "anyOf": [
+            {
+              "maxLength": 8,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Days Per Year"
+        },
+        "source": {
+          "default": "UNKNOWN",
+          "enum": [
+            "UNKNOWN",
+            "USER",
+            "FILE",
+            "EXPERT_ASSUMPTION"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "source_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Ref"
+        },
+        "confirmed": {
+          "default": false,
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "zone": {
+          "default": "Основная зона",
+          "maxLength": 100,
+          "title": "Zone",
+          "type": "string"
+        },
+        "role_code": {
+          "title": "Role Code",
+          "type": "string"
+        },
+        "resource_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Resource Ids",
+          "type": "array"
+        },
+        "solution": {
+          "default": "MANUAL",
+          "enum": [
+            "MANUAL",
+            "UNASSESSED",
+            "CATALOG"
+          ],
+          "title": "Solution",
+          "type": "string"
+        },
+        "position_id": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position Id"
+        },
+        "physical_profile": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Physical Profile",
+          "type": "object"
+        },
+        "physical_profile_source": {
+          "default": "UNKNOWN",
+          "enum": [
+            "UNKNOWN",
+            "USER",
+            "FILE",
+            "VENDOR"
+          ],
+          "title": "Physical Profile Source",
+          "type": "string"
+        },
+        "physical_profile_ref": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Physical Profile Ref"
+        },
+        "physical_profile_confirmed": {
+          "default": false,
+          "title": "Physical Profile Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "unit",
+        "role_code"
+      ],
+      "title": "WarehouseFlow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "warehouse-chain-v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "project_id": {
+      "format": "uuid",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 0,
+      "title": "Version",
+      "type": "integer"
+    },
+    "parent_version": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Version"
+    },
+    "created_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Created At"
+    },
+    "flows": {
+      "items": {
+        "$ref": "#/$defs/WarehouseFlow"
+      },
+      "maxItems": 7,
+      "minItems": 7,
+      "title": "Flows",
+      "type": "array"
+    },
+    "resources": {
+      "items": {
+        "$ref": "#/$defs/SharedResource"
+      },
+      "maxItems": 80,
+      "title": "Resources",
+      "type": "array"
+    },
+    "conversions": {
+      "items": {
+        "$ref": "#/$defs/FlowConversion"
+      },
+      "maxItems": 25,
+      "title": "Conversions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "project_id",
+    "version",
+    "flows",
+    "resources",
+    "conversions"
+  ],
+  "title": "WarehouseChainSnapshot",
+  "type": "object"
+}

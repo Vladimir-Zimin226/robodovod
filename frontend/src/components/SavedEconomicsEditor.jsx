@@ -4,7 +4,7 @@ import { economicsFieldLabel } from '../economicsFieldLabels';
 
 const API = import.meta.env.VITE_API_URL || '';
 
-export default function SavedEconomicsEditor({ project, run, onComplete }) {
+export default function SavedEconomicsEditor({ project, run, onComplete, autoOpen = false }) {
   const [capacityRequest, setCapacityRequest] = useState(null);
   const [error, setError] = useState('');
   const capacityRunId = run?.input_snapshot?.capacity_run_id;
@@ -27,8 +27,8 @@ export default function SavedEconomicsEditor({ project, run, onComplete }) {
     return () => controller.abort();
   }, [project?.id, capacityRunId]);
 
-  if (!capacityRunId || !['economics-explicit-inputs-v2', 'economics-explicit-inputs-v3', 'economics-explicit-inputs-v4'].includes(initialInput?.schema_version)) return null;
-  return <details className="mx-auto my-6 max-w-6xl rounded-xl border p-4">
+  if (!capacityRunId || !['economics-explicit-inputs-v1', 'economics-explicit-inputs-v2', 'economics-explicit-inputs-v3', 'economics-explicit-inputs-v4'].includes(initialInput?.schema_version)) return null;
+  return <details id="edit-economics-run" open={autoOpen || undefined} className="mx-auto my-6 max-w-6xl rounded-xl border p-4">
     <summary className="cursor-pointer font-semibold">Изменить допущение и создать новый расчёт</summary>
     <p className="text-sm mt-2">Исходный расчёт останется доступен для повторного открытия.</p>
     <details><summary>Технические подробности</summary><p>Идентификатор исходного расчёта: {run.id}</p></details>

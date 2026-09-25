@@ -19,7 +19,7 @@ from test_economics_orchestrator import _capacity_request, _inputs, _snapshot  #
 TARGET = ROOT / "frontend/src/warehouseGuestDemo.json"
 
 
-def build() -> dict:
+def build_capture() -> tuple[dict, dict, CapacityAnalysisRequest, dict, object]:
     assumptions = json.loads((ROOT / "data/scenarios/warehouse-economics-demo-v1.json").read_text(encoding="utf-8"))
     snapshot = _snapshot()
     snapshot = replace(snapshot, version=replace(
@@ -46,11 +46,12 @@ def build() -> dict:
     for field, proposal in assumptions["fields"].items():
         inputs[field] = int(proposal["value"]) if isinstance(inputs.get(field), int) else proposal["value"]
     inputs.update(assumptions["other_inputs"])
-    economics = execute_economics_v2(inputs, snapshot, context).result_snapshot
+    execution = execute_economics_v2(inputs, snapshot, context)
+    economics = execution.result_snapshot
     assert capacity.constraints.eligibility == "NEEDS_VALIDATION"
     assert len(economics["scenarios"]) == 6
     assert {item["procurement"]["procurement_status"] for item in economics["scenarios"]} == {"UNVERIFIED"}
-    return {
+    demo = {
         "schema_version": "warehouse-guest-demo-v1", "assumptions_version": assumptions["schema_version"],
         "as_of": "2026-09-25", "source": "offline engine capture: scripts/build_warehouse_guest_demo.py",
         "model_notice": "Авторский расчётный профиль MULE из проверочного сценария, не паспорт и не коммерческое предложение",
@@ -67,6 +68,11 @@ def build() -> dict:
         "input_digest": semantic_digest({"capacity": request.model_dump(mode="json"), "economics": inputs}),
         "result_digest": semantic_digest(economics),
     }
+    return demo, assumptions, request, inputs, execution
+
+
+def build() -> dict:
+    return build_capture()[0]
 
 
 def main() -> int:

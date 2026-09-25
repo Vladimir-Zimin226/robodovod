@@ -1,10 +1,10 @@
 const stageLabels = {
-  TO_PICKUP: 'Едет за грузом', LOADING: 'Погрузка',
+  TO_PICKUP: 'Едет к подготовленной паллете', LOADING: 'Принимает готовую паллету',
   TO_DROPOFF: 'Везёт груз', UNLOADING: 'Выгрузка',
   RETURN: 'Возврат', WAITING: 'Ожидание',
 };
 const cargoLabels = {
-  AT_PICKUP: 'В точке подбора', ON_ROBOT: 'На роботе',
+  AT_PICKUP: 'В точке передачи', ON_ROBOT: 'На роботе',
   AT_DROPOFF: 'В точке выгрузки', DELIVERED: 'Доставлен',
 };
 
@@ -13,13 +13,20 @@ function track(robot) {
   return `M ${waiting.x} ${waiting.y} L ${pickup.x} ${pickup.y} L ${dropoff.x} ${dropoff.y} L ${waiting.x} ${waiting.y}`;
 }
 
-export default function Warehouse2DPlan({ scene, frame, selectedZoneId }) {
+export default function Warehouse2DPlan({ scene, frame, selectedZoneId, stages = null }) {
   const visible = scene.zones.filter((zone) => zone.id === selectedZoneId);
   const zone = visible[0] || scene.zones[0];
   const robots = frame.robots.filter((robot) => robot.zoneId === zone.id);
   const tasks = scene.tasks.filter((task) => task.zoneId === zone.id);
   const taskById = new Map(tasks.map((task) => [task.id, task]));
   return <>
+    {stages && <div className="warehouse-process-chain" aria-label="Стадии складского процесса">
+      {stages.map((stage) => <div key={stage.stage} className={stage.status === 'MODELED' ? 'is-modeled' : ''}>
+        <strong>{({ PICKING: 'Отбор', BUFFER: 'Буфер', FEED_TO_PACK: 'Подача к упаковке', PACKAGING: 'Упаковка' })[stage.stage]}</strong>
+        <span>{stage.status === 'MODELED' ? `Очередь до ${stage.maximum_queue_jobs} заданий · занятость ${Math.round(Number(stage.utilization_fraction) * 100)} %` : 'Внешняя граница · нет подтверждённых входов'}</span>
+      </div>)}
+      <div className="is-modeled"><strong>Передача готовой паллеты → перевозка → выгрузка</strong><span>Показатели паллетной перевозки из сохранённого отчёта</span></div>
+    </div>}
     <div className="simulation-canvas-wrap warehouse-canvas-wrap">
       <div className="warehouse-svg-scroll">
       <svg viewBox={`${zone.x - 14} ${zone.y - 14} ${zone.width + 28} ${zone.height + 28}`}
@@ -57,10 +64,10 @@ export default function Warehouse2DPlan({ scene, frame, selectedZoneId }) {
       </div>
       <div className="simulation-legend">
         <span><i className="legend-robot" /> робот</span>
-        <span>● точка подбора</span><span>● точка выгрузки</span>
-        <span>▰ паллета: в точке подбора → на роботе → у отгрузки</span>
+        <span>● передача подготовленной паллеты</span><span>● точка выгрузки</span>
+        <span>▰ готовая паллета: в точке передачи → на роботе → у отгрузки</span>
       </div>
-      <p className="simulation-schematic-note">Это условный план сверху. План можно прокрутить по горизонтали. Точки и 20-секундный цикл показывают порядок действий, а не реальные координаты, время операций или выполненные задания. Показатели берутся только из отчёта симуляции.</p>
+      <p className="simulation-schematic-note">Учтена перевозка подготовленных паллет; отбор коробок и упаковка не рассчитаны. Это условный план сверху. План можно прокрутить по горизонтали. Точки и 20-секундный цикл показывают порядок действий, а не реальные координаты, время операций или выполненные задания. Показатели берутся только из отчёта симуляции.</p>
     </div>
     <div className="warehouse-zone-details">
       <strong>{zone.label}</strong><span>Зона: <code>{zone.id}</code></span>
@@ -69,7 +76,7 @@ export default function Warehouse2DPlan({ scene, frame, selectedZoneId }) {
         : 'План здания не загружен; расположение условное.'}</span>
       {tasks.length ? tasks.map((task) => <span key={task.id}>
         Задание <code>{task.id}</code> · маршрут <code>{task.routeId || 'не задан'}</code>
-        {task.hasRoute && <> · подбор <code>{task.pickupId}</code> · выгрузка <code>{task.dropoffId}</code></>}
+        {task.hasRoute && <> · передача готовой паллеты <code>{task.pickupId}</code> · выгрузка <code>{task.dropoffId}</code></>}
       </span>) : <span>В этой зоне нет сохранённых заданий.</span>}
       {scene.missingTasks.includes(zone.id) && <span>Нет маршрута для показа перевозки: робот остаётся в ожидании.</span>}
       {!robots.length && <span>В этой зоне не выбран парк роботов.</span>}

@@ -9,6 +9,7 @@ from __future__ import annotations
 import threading
 import uuid
 import json
+from decimal import Decimal
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Annotated, Callable, Literal
@@ -24,11 +25,13 @@ from calculation.scheduling import (
     SimulationProgressV1,
     SimulationReportV1,
     SimulationRequestV1,
+    SimulationRequestV2,
+    SimulationReportV3,
     run_simulation,
 )
 from calculation_contracts import Digest, StableId, StrictContractModel, semantic_digest
 from database import database_session, get_database
-from persistence_models import Project
+from persistence_models import Project, SimulationArtifact
 from simulation_artifacts import (
     SimulationArtifactIntegrityError, load_artifact, owned_run,
     save_artifact, verify_run_binding,
@@ -47,7 +50,7 @@ class SimulationRunStateV1(StrictContractModel):
     request_digest: Digest
     state: Literal["PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED"]
     progress: SimulationProgressV1
-    report: SimulationReportV1 | None
+    report: SimulationReportV1 | SimulationReportV3 | None
     error: SimulationErrorV1 | None
 
     @model_validator(mode="after")
@@ -79,19 +82,19 @@ class SimulationRunStateV1(StrictContractModel):
         return self
 
 
-Runner = Callable[..., SimulationReportV1 | SimulationErrorV1]
+Runner = Callable[..., SimulationReportV1 | SimulationReportV3 | SimulationErrorV1]
 
 
 @dataclass
 class _Job:
-    request: SimulationRequestV1
+    request: SimulationRequestV1 | SimulationRequestV2
     request_digest: str
     state: str = "PENDING"
     progress: SimulationProgressV1 = field(init=False)
-    report: SimulationReportV1 | None = None
+    report: SimulationReportV1 | SimulationReportV3 | None = None
     error: SimulationErrorV1 | None = None
     cancel: threading.Event = field(default_factory=threading.Event)
-    on_success: Callable[[SimulationRequestV1, SimulationReportV1], None] | None = None
+    on_success: Callable[[SimulationRequestV1 | SimulationRequestV2, SimulationReportV1 | SimulationReportV3], None] | None = None
     binding_id: str | None = None
 
     def __post_init__(self) -> None:
@@ -127,8 +130,8 @@ class SimulationJobRegistry:
     def _key(tenant_id: str, request_id: str) -> tuple[str, str]:
         return tenant_id, request_id
 
-    def start(self, request: SimulationRequestV1, *,
-              on_success: Callable[[SimulationRequestV1, SimulationReportV1], None] | None = None,
+    def start(self, request: SimulationRequestV1 | SimulationRequestV2, *,
+              on_success: Callable[[SimulationRequestV1 | SimulationRequestV2, SimulationReportV1 | SimulationReportV3], None] | None = None,
               retry_failed: bool = False, binding_id: str | None = None) -> SimulationRunStateV1:
         key = self._key(request.tenant_id, request.request_id)
         digest = semantic_digest(request)
@@ -281,7 +284,7 @@ def create_simulation_router(
             raise HTTPException(status_code=409, detail="stored simulation evidence integrity check failed") from exc
 
     def authorize(
-        request: SimulationRequestV1,
+        request: SimulationRequestV1 | SimulationRequestV2,
         context: AuthContext,
         db: Session,
     ) -> None:
@@ -296,10 +299,50 @@ def create_simulation_router(
             ) from None
         if not project_authorizer(db, project_id, context.user.id):
             raise HTTPException(status_code=404, detail="project not found")
+        if isinstance(request, SimulationRequestV2) and request.process_chain is not None:
+            project = db.scalar(select(Project).where(Project.id == project_id, Project.owner_id == context.user.id))
+            versions = ((project.profile or {}).get("warehouse_chain_v1") or {}).get("versions", []) if project else []
+            snapshot = next((item for item in versions if item.get("version") == request.process_chain.warehouse_chain_version), None)
+            if snapshot is None or semantic_digest(snapshot) != request.process_chain.warehouse_chain_digest:
+                raise HTTPException(status_code=409, detail="warehouse process chain snapshot binding mismatch")
+            conversions = {f"conversion.{item['from_code']}.{item['to_code']}": item for item in snapshot["conversions"] if item["confirmed"]}
+            flows = {item["code"]: item for item in snapshot["flows"]}
+            resources = {item["resource_id"]: item for item in snapshot["resources"]}
+            pallet_demand = Decimal(request.scenario_spec.tasks[0].demand.value)
+            for stage in request.process_chain.stages:
+                flow = flows.get(stage.flow_code)
+                resource = resources.get(stage.resource_id)
+                path = [conversions.get(ref) for ref in stage.conversion_refs]
+                if (not flow or not flow["confirmed"] or flow["value"] is None
+                        or not resource or not resource["confirmed"]
+                        or stage.resource_id not in flow["resource_ids"]
+                        or resource["kind"] not in ("STAFF", "EQUIPMENT", "CONVEYOR")
+                        or Decimal(resource["amount"] or "0") != stage.capacity
+                        or any(item is None for item in path)):
+                    raise HTTPException(status_code=422, detail="extended stage lacks confirmed linked flow")
+                kind = "HUMAN" if resource["kind"] == "STAFF" else "ROBOT" if flow["solution"] == "CATALOG" else "EQUIPMENT"
+                if stage.resource_kind != kind:
+                    raise HTTPException(status_code=422, detail="extended stage resource kind is not supported by snapshot")
+                current = stage.flow_code
+                factor = Decimal(1)
+                for conversion in path:
+                    if conversion["from_code"] != current:
+                        raise HTTPException(status_code=422, detail="extended stage conversion path is disconnected")
+                    current = conversion["to_code"]
+                    factor *= Decimal(conversion["factor"])
+                if (current != "shipping" or factor <= 0
+                        or abs(Decimal(stage.units_per_pallet) * factor - 1) > Decimal("0.000001")
+                        or abs(Decimal(flow["value"]) * factor - pallet_demand) > max(Decimal("0.01"), pallet_demand * Decimal("0.001"))):
+                    raise HTTPException(status_code=422, detail="extended stage volume does not match pallet demand")
+            stages = request.process_chain.stages
+            for earlier, later in zip(stages, stages[1:]):
+                if (earlier.flow_code != later.flow_code
+                        and not any(ref.endswith(f".{later.flow_code}") for ref in earlier.conversion_refs)):
+                    raise HTTPException(status_code=422, detail="extended stages are not linked tasks")
 
     @router.post("", response_model=SimulationRunStateV1, status_code=status.HTTP_202_ACCEPTED)
     def start_simulation(
-        payload: SimulationRequestV1,
+        payload: SimulationRequestV1 | SimulationRequestV2,
         context: AuthContext = Depends(require_csrf),
         db: Session = Depends(database_session),
     ) -> SimulationRunStateV1:
@@ -334,7 +377,7 @@ def create_simulation_router(
     def start_saved_simulation(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
-        payload: SimulationRequestV1,
+        payload: SimulationRequestV1 | SimulationRequestV2,
         context: AuthContext = Depends(require_csrf),
         db: Session = Depends(database_session),
     ) -> SimulationRunStateV1:
@@ -354,7 +397,7 @@ def create_simulation_router(
                 raise HTTPException(status_code=409, detail="immutable simulation request_id collision")
             return stored_state(evidence)
 
-        def persist(request: SimulationRequestV1, report: SimulationReportV1) -> None:
+        def persist(request: SimulationRequestV1 | SimulationRequestV2, report: SimulationReportV1 | SimulationReportV3) -> None:
             with get_database().session() as session:
                 save_artifact(session, context.user.id, project_id, run_id, request, report)
 
@@ -362,6 +405,22 @@ def create_simulation_router(
             return saved_jobs.start(payload, on_success=persist, retry_failed=True, binding_id=str(run_id))
         except ValueError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/evidence")
+    def list_saved_evidence(project_id: uuid.UUID, run_id: uuid.UUID,
+                            context: AuthContext = Depends(require_auth_context),
+                            db: Session = Depends(database_session)):
+        saved_run(db, context, project_id, run_id)
+        ids = db.scalars(select(SimulationArtifact.request_id).where(
+            SimulationArtifact.project_id == project_id,
+            SimulationArtifact.analysis_run_id == run_id,
+        ).order_by(SimulationArtifact.created_at.desc(), SimulationArtifact.request_id.desc()).limit(100)).all()
+        ids.reverse()
+        evidence = [stored(db, context, project_id, run_id, request_id) for request_id in ids]
+        return {"schema_version": "simulation-evidence-list-v1", "items": [
+            {"request": item.request.model_dump(mode="json"), "report": item.report.model_dump(mode="json")}
+            for item in evidence if item is not None
+        ]}
 
     @router.get("/projects/{project_id}/analysis-runs/{run_id}/{request_id}",
                 response_model=SimulationRunStateV1)

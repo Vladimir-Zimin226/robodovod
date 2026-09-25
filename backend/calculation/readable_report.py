@@ -414,6 +414,12 @@ def build_readable_report(
     effective = _obj(capacity.get("effective_capacity"))
     effective_text = _quantity(effective) if effective else UNKNOWN
     process_name = PROCESS_LABELS.get(process.get("process_code"))
+    pallet_scope = (process.get("process_code") == "warehouse_receiving_shipping"
+                    and presentation_version == PRESENTATION_VERSION)
+    if pallet_scope:
+        process_name = "Перевозка подготовленных паллет между точками передачи"
+    scope_line = ("Охват: учтена перевозка подготовленных паллет; отбор коробок и упаковка не рассчитаны. "
+                  "Экономия комплектовщиков и упаковщиков не включена.")
     roles = _list(result.get("roles"))
     if run.run_kind == "CAPACITY_ANALYSIS":
         lines = [
@@ -422,6 +428,7 @@ def build_readable_report(
             ("Предварительная техническая оценка; пригодность и условия закупки требуют подтверждения.", "cover"),
             ("", "page"), ("Процесс и мощность", "section"),
             (f"Процесс: {process_name or _unknown(source_reason)}", "metric"),
+            *([(scope_line, "note")] if pallet_scope else []),
             (f"Исходный объём работ: {_with_reason(_quantity(process.get('demand')), source_reason)}", "body"),
             (f"Рекомендованный парк: {_plain(capacity.get('recommended_fleet'))} роботов", "metric"),
             (f"Выбранный парк: {_plain(capacity.get('selected_fleet'))} роботов", "metric"),
@@ -468,6 +475,7 @@ def build_readable_report(
         (f"Исходный расчёт мощности C11: {run.input_snapshot.get('capacity_run_id') or UNKNOWN}", "body"),
         ("Какой процесс оцениваем", "section"),
         (f"Процесс: {process_name or _unknown(source_reason)}", "metric"),
+        *([(scope_line, "note")] if pallet_scope else []),
         (f"Исходный объём работ: {_with_reason(_quantity(process.get('demand')), source_reason)}", "body"),
         (f"Смен в день: {_with_reason(_plain(_obj(_obj(process.get('schedule')).get('shifts_per_day')).get('normalized_value')), source_reason)}", "body"),
         (f"Часов в смене: {_with_reason(_plain(_obj(_obj(process.get('schedule')).get('shift_hours')).get('normalized_value')), source_reason)}", "body"),

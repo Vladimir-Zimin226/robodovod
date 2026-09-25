@@ -2,8 +2,8 @@ import { sceneBindingsV2 } from '../../robcraft/src/integration/scene-bindings.j
 
 const CYCLE_US = 20_000_000;
 const STAGES = [
-  { until: 0.22, code: 'TO_PICKUP', label: 'Едет за грузом', cargo: 'AT_PICKUP' },
-  { until: 0.32, code: 'LOADING', label: 'Погрузка', cargo: 'AT_PICKUP' },
+  { until: 0.22, code: 'TO_PICKUP', label: 'Едет к подготовленной паллете', cargo: 'AT_PICKUP' },
+  { until: 0.32, code: 'LOADING', label: 'Принимает готовую паллету', cargo: 'AT_PICKUP' },
   { until: 0.66, code: 'TO_DROPOFF', label: 'Везёт груз', cargo: 'ON_ROBOT' },
   { until: 0.76, code: 'UNLOADING', label: 'Выгрузка', cargo: 'AT_DROPOFF' },
   { until: 0.95, code: 'RETURN', label: 'Возврат', cargo: 'DELIVERED' },
@@ -60,7 +60,7 @@ export function buildWarehouseScene(spec) {
         y: y + 64, width: (width - 205) / 3, height: 48,
       })),
       waiting: { id: `${binding.zoneId}.waiting`, label: 'Ожидание / зарядка', x: x + 55, y: y + height - 27 },
-      receiving: { id: `${binding.zoneId}.receiving`, label: 'Приёмка', x: x + width * 0.38, y: y + height - 27 },
+      receiving: { id: `${binding.zoneId}.receiving`, label: 'Передача паллеты', x: x + width * 0.38, y: y + height - 27 },
       shipping: { id: `${binding.zoneId}.shipping`, label: 'Отгрузка', x: x + width * 0.76, y: y + height - 27 },
     };
   });
