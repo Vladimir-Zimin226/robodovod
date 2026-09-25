@@ -2,12 +2,12 @@ import DashboardOverview from './DashboardOverview';
 import ZonalDashboardOverview from './ZonalDashboardOverview';
 
 export default function HistoricalRunViewer({ run, result, userInput, onNewCalculation }) {
-  return <main className="mx-auto max-w-6xl space-y-5 p-5" aria-label="Исторический результат v1">
+  return <main className="mx-auto max-w-6xl space-y-5 p-5" aria-label="Исторический результат">
     <section className="rounded-xl border border-amber-400/50 bg-[#2b281d] p-4 text-sm">
-      <h1 className="font-semibold">Исторический расчёт v1</h1>
-      <p>Показаны сохранённые значения этого run. Для нового расчёта откройте маршрут v2; исходный snapshot и экспорт останутся неизменными.</p>
-      <button type="button" className="primary-action mt-3" onClick={onNewCalculation}>Новый расчёт v2</button>
-      {run?.id && <p className="mt-2 text-xs">Run: {run.id}</p>}
+      <h1 className="font-semibold">Исторический расчёт</h1>
+      <p>Показаны сохранённые значения этого расчёта. Для обновления входов откройте новый расчёт; исходные данные и архив останутся неизменными.</p>
+      <button type="button" className="primary-action mt-3" onClick={onNewCalculation}>Новый расчёт</button>
+      {run?.id && <details className="mt-2 text-xs"><summary>Технические подробности</summary>Идентификатор расчёта: {run.id}. Формат исторического результата: v1.</details>}
     </section>
     {result?.mode === 'zonal' ? <ZonalDashboardOverview result={result} />
       : <DashboardOverview result={result} userInput={userInput || {}} />}

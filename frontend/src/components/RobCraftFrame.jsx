@@ -83,7 +83,7 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
         }
         if (message.type === 'ROBCRAFT_REPORT') {
           if (current.reportDigest !== 'no-report' && message.payload.bindings.authoritative_report_digest !== current.reportDigest) {
-            setError('RobCraft вернул отчёт для устаревшего C23 report digest.');
+            setError('Трёхмерная сцена вернула устаревший отчёт симуляции. Повторите загрузку.');
             return;
           }
           setRendererReport(message.payload);
@@ -133,7 +133,7 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
       <div className="robcraft-frame-header flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white">
         <div>
           <div className="text-sm font-semibold">RobCraft · сценарная 3D-симуляция</div>
-          <div className="text-[11px] text-slate-400">Концептуальная визуализация · ревизия {revisionId || 'не получена'}{scenePatch.zoneId ? ` · зона ${scenePatch.zoneId}` : ''}</div>
+          <div className="text-[11px] text-slate-400">Концептуальная визуализация{scenePatch.zoneId ? ` · зона ${scenePatch.zoneId}` : ''}<details><summary>Технические подробности</summary>Версия ввода: {revisionId || 'не получена'}</details></div>
           {visualizationOnly && <div className="mt-1 text-[10px] font-semibold text-amber-300">ТЕХНИЧЕСКИЙ ВАРИАНТ · НЕ ЭКОНОМИЧЕСКАЯ РЕКОМЕНДАЦИЯ</div>}
         </div>
         <div className="text-right">
@@ -175,7 +175,7 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, c
           <strong className="text-sky-300">LOCAL VISUAL OBSERVATION ONLY</strong>
           {' · '}t={Number(rendererReport.measurement_basis.elapsed_seconds).toFixed(1)} s
           {' · '}moving {Number(rendererReport.utilization.moving_percent).toFixed(1)}% (не productive utilization)
-          {' · '}throughput {Number(rendererReport.observed.throughput_units_per_hour).toFixed(1)} {rendererReport.observed.throughput_unit} (не KPI C23)
+          {' · '}условная пропускная способность сцены {Number(rendererReport.observed.throughput_units_per_hour).toFixed(1)} {rendererReport.observed.throughput_unit} (не показатель симуляции)
           <div className="text-amber-300">SLA: NOT_EVALUATED · energy: arbitrary renderer units · failures/charging: visual demo only · не инженерная сертификация.</div>
         </div>
       )}

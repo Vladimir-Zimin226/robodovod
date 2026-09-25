@@ -117,9 +117,16 @@ class EvidenceExportManifestV2(EvidenceExportManifestV1):
     linked_capacity_snapshot_digests: dict[str, Digest | None] | None
 
 
+class EvidenceExportManifestV3(EvidenceExportManifestV2):
+    schema_version: Literal["calculation-evidence-export-manifest-v3"]
+    export_policy_version: Literal["calculation-evidence-export-policy-v3"]
+    generator_version: Literal["snapshot-evidence-export-v3"]
+    presentation_version: Literal["readable-presentation-v2"]
+
+
 @dataclass(frozen=True)
 class EvidenceExportPackage:
-    manifest: EvidenceExportManifestV1 | EvidenceExportManifestV2
+    manifest: EvidenceExportManifestV1 | EvidenceExportManifestV2 | EvidenceExportManifestV3
     archive: bytes
     files: dict[str, bytes]
 
@@ -413,6 +420,74 @@ def build_evidence_export(run: EvidenceRunSnapshotV1) -> EvidenceExportPackage:
     return EvidenceExportPackage(manifest=manifest, archive=archive_buffer.getvalue(), files=files)
 
 
+def build_evidence_export_v3(
+    run: EvidenceRunSnapshotV1,
+    capacity_run: EvidenceRunSnapshotV1 | None = None,
+) -> EvidenceExportPackage:
+    """Versioned readable presentation over unchanged verified machine snapshots."""
+    from calculation.readable_report import build_readable_report
+    from presentation import VERSION, humanize, section, status
+
+    previous = build_evidence_export_v2(run, capacity_run)
+    files = dict(previous.files)
+    files[READABLE_REPORT_FILENAME], source_digest = build_readable_report(
+        run, capacity_run, presentation_version=VERSION,
+    )
+    if source_digest != previous.manifest.source_snapshot_digests["result"]:
+        raise EvidenceExportIntegrityError("readable report source does not match run")
+    missing = [section(item.name) for item in previous.manifest.sections if item.status == "NOT_AVAILABLE"]
+    kind = "расчёт потребного парка" if run.run_kind == "CAPACITY_ANALYSIS" else "расчёт экономики роботизации"
+    lines = [
+        "# НАЧНИТЕ ЗДЕСЬ", "",
+        f"## Сохранённый расчёт от {run.finished_at:%d.%m.%Y}", "",
+        f"Это {kind}. Сначала откройте **{READABLE_REPORT_FILENAME}**: в нём результаты, ограничения и следующие шаги.",
+        f"Затем откройте **{GUIDE_FILENAME}**: он объясняет разделы данных архива.",
+        "Исходные цены, паспорт модели и условия поставки требуют отдельного подтверждения перед закупкой.",
+        f"Разделы без данных: {', '.join(missing) if missing else 'нет'}.", "",
+        "## Технические подробности", "",
+        f"Версия представления: {VERSION}. Идентификатор расчёта: {run.run_id}.",
+        f"Проект: {run.project_id}. Тип: {run.run_kind}. Ревизия: {run.revision_id or 'отсутствует'}.",
+        f"Контрольная сумма результата: {previous.manifest.source_snapshot_digests['result']}.",
+        "Snapshot.json и CSV содержат исходные машинные ключи без изменения. manifest.json содержит версии, контрольные суммы и список файлов.",
+        "Для проверки каждого файла сравните его SHA-256 с artifacts в manifest.json; manifest_digest проверяется по каноническому JSON с нулевым значением этого поля.",
+        f"{TECHNICAL_REPORT_FILENAME} сохраняет прежний формат для аудита.", "",
+    ]
+    files[ENTRYPOINT_FILENAME] = ("\n".join(lines) + "\n").encode("utf-8")
+    guide = [
+        "# Как читать разделы архива", "",
+        "Данные в таблицах взяты из сохранённого расчёта. Отсутствующий раздел не означает нулевое значение.",
+    ]
+    for item in previous.manifest.sections:
+        purpose, _, _ = _SECTION_GUIDE[item.name]
+        guide.extend(["", f"## {section(item.name)}", "", humanize(purpose),
+                      f"Состояние: {status(item.status)}. Записей: {item.record_count}."])
+    guide.extend(["", "## Технические подробности", "",
+                  f"Версия представления: {VERSION}.",
+                  "Имена CSV соответствуют машинным разделам: " + ", ".join(item.filename for item in previous.manifest.sections) + ".",
+                  "Поля path, value, source_ref, status и исходные ключи доступны в CSV. Снимки и контрольные суммы находятся в Snapshot.json и manifest.json.", ""])
+    files[GUIDE_FILENAME] = ("\n".join(guide) + "\n").encode("utf-8")
+    artifacts = [_artifact(name, "application/pdf" if name.endswith(".pdf") else "application/json" if name.endswith(".json") else "text/csv; charset=utf-8" if name.endswith(".csv") else "text/markdown; charset=utf-8", payload)
+                 for name, payload in sorted(files.items())]
+    body = previous.manifest.model_dump(mode="python")
+    body.update(schema_version="calculation-evidence-export-manifest-v3",
+                export_policy_version="calculation-evidence-export-policy-v3",
+                generator_version="snapshot-evidence-export-v3",
+                presentation_version=VERSION, sections=previous.manifest.sections, artifacts=artifacts,
+                bundle_content_digest=semantic_digest([item.model_dump(mode="json") for item in artifacts]),
+                manifest_digest="sha256:" + "0" * 64)
+    body["manifest_digest"] = semantic_digest(EvidenceExportManifestV3.model_construct(**body).model_dump(mode="json"))
+    manifest = EvidenceExportManifestV3.model_validate(body)
+    manifest_payload = json.dumps(manifest.model_dump(mode="json"), ensure_ascii=False, indent=2, sort_keys=True).encode("utf-8") + b"\n"
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for name, payload in sorted({**files, "manifest.json": manifest_payload}.items()):
+            info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, payload)
+    return EvidenceExportPackage(manifest=manifest, archive=buffer.getvalue(), files=files)
+
+
 _SECTION_GUIDE = {
     "Inputs": ("Какие исходные величины были сохранены.", "path, value и status; отличайте NULL от 0.", "input_snapshot этого run."),
     "Selection": ("Какой парк или кандидат выбран и почему.", "selected_fleet, ranking, recommendation и причины отказа.", "result_snapshot и C11, если они входят в run."),
@@ -580,7 +655,7 @@ def build_evidence_export_v2(
 
 
 __all__ = [
-    "EvidenceExportIntegrityError", "EvidenceExportManifestV1", "EvidenceExportManifestV2",
+    "EvidenceExportIntegrityError", "EvidenceExportManifestV1", "EvidenceExportManifestV2", "EvidenceExportManifestV3",
     "EvidenceExportPackage", "EvidenceRunSnapshotV1", "build_evidence_export",
-    "build_evidence_export_v2",
+    "build_evidence_export_v2", "build_evidence_export_v3",
 ]

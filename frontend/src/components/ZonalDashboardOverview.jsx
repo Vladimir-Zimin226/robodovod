@@ -19,7 +19,7 @@ export default function ZonalDashboardOverview({ result }) {
 
   return <section className="dashboard-overview" aria-label="Сводка зонального ТЭО">
     <div className="dashboard-title-row">
-      <div><span className="eyebrow">ЗОНАЛЬНЫЙ РАСЧЁТ</span><h1>Единая сводка по объекту</h1><p>{summary.zones_count} зон · {summary.horizon_years} лет · ревизия {result.revision_id}</p></div>
+      <div><span className="eyebrow">ЗОНАЛЬНЫЙ РАСЧЁТ</span><h1>Единая сводка по объекту</h1><p>{summary.zones_count} зон · {summary.horizon_years} лет</p><details><summary>Технические подробности</summary>Версия ввода: {result.revision_id}</details></div>
       <span className={`status-pill ${recommendedZones.length ? 'success' : 'danger'}`}>{recommendedZones.length} из {summary.zones_count} зон рекомендованы</span>
     </div>
     {recommendedZones.length !== summary.zones_count && <div className="economics-empty" role="status"><AppIcon name="warning" /><div><strong>Не для всех зон назначен приемлемый парк</strong><p>Отвергнутые экономикой варианты не получают рекомендацию; технически допустимые могут показываться только как явно маркированная визуализация.</p></div></div>}

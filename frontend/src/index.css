@@ -23,6 +23,21 @@
   --violet: #a96ceb;
   --danger: #ff5353;
   --success: #6eeb76;
+  --surface-bg: #111b21;
+  --surface-raised: #162127;
+  --surface-text: #eef1f2;
+  --surface-muted: #a8b2b7;
+  --surface-border: #34454c;
+  --surface-input: #0e181e;
+}
+
+.robodovod-app[data-theme="light"], .theme-light {
+  --surface-bg: #ffffff;
+  --surface-raised: #f4f7f6;
+  --surface-text: #14252a;
+  --surface-muted: #465a61;
+  --surface-border: #aebfc2;
+  --surface-input: #ffffff;
 }
 
 .simulation-2d { padding: 24px; color: #dce7f5; background: #07111f; border: 1px solid #23344a; border-radius: 18px; }
@@ -386,3 +401,32 @@ button:disabled { cursor: not-allowed; }
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+
+/* Shared readable surfaces for cards, forms, menus and notices. */
+.robodovod-app .bg-white, .robodovod-app .bg-slate-50, .robodovod-app .bg-blue-50, .robodovod-app .bg-amber-50,
+.theme-light .bg-white, .theme-light .bg-slate-50, .theme-light .bg-blue-50, .theme-light .bg-amber-50 {
+  background: var(--surface-bg); color: var(--surface-text); border-color: var(--surface-border);
+}
+.robodovod-app .text-slate-500, .robodovod-app .text-slate-600, .robodovod-app .text-slate-700,
+.robodovod-app .text-amber-800, .robodovod-app .text-amber-900,
+.theme-light .text-slate-500, .theme-light .text-slate-600, .theme-light .text-slate-700 {
+  color: var(--surface-muted);
+}
+.robodovod-app .text-red-700 { color: #ff9a9a; }
+.robodovod-app .text-emerald-700 { color: #87e7a1; }
+.robodovod-app input:not([type="checkbox"]), .robodovod-app select, .robodovod-app textarea {
+  background: var(--surface-input); color: var(--surface-text); border-color: var(--surface-border); color-scheme: dark;
+}
+.robodovod-app[data-theme="light"] input:not([type="checkbox"]), .robodovod-app[data-theme="light"] select, .robodovod-app[data-theme="light"] textarea,
+.theme-light input:not([type="checkbox"]), .theme-light select, .theme-light textarea { color-scheme: light; }
+.robodovod-app select option { background: var(--surface-input); color: var(--surface-text); }
+.robodovod-app details, .robodovod-app article, .robodovod-app section { min-width: 0; }
+.robodovod-app details { overflow-wrap: anywhere; }
+.robodovod-app [role="alert"], .robodovod-app [role="status"] { overflow-wrap: anywhere; }
+.robodovod-app :is(button, input, select, textarea, summary, a):focus-visible { outline: 3px solid #a7ff3f; outline-offset: 2px; }
+@media (max-width: 520px) {
+  .robodovod-app .grid-cols-3, .robodovod-app .grid-cols-2 { grid-template-columns: minmax(0, 1fr); }
+  .robodovod-app .col-span-3, .robodovod-app .col-span-2 { grid-column: auto; }
+  .robodovod-app .economics-inputs-v2, .robodovod-app .guest-warehouse-demo { width: calc(100% - 16px); padding: 12px; }
+  .robodovod-app .evidence-export-v2 { width: calc(100% - 16px); }
+}

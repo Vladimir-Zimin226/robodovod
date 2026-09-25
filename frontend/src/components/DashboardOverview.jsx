@@ -32,7 +32,7 @@ export default function DashboardOverview({ result, userInput }) {
         <div>
           <span className="eyebrow">ПРЕДВАРИТЕЛЬНОЕ ТЭО</span>
           <h1>{model.processType ? processName(model.processType) : 'Сценарий роботизации'}</h1>
-          <p>{model.facilityArea ? `${formatNumber(model.facilityArea)} м² · ` : ''}{model.revisionId ? `ревизия ${model.revisionId}` : 'расчётная ревизия формируется'}</p>
+          <p>{model.facilityArea ? `${formatNumber(model.facilityArea)} м²` : 'Площадь объекта уточняется'}</p><details><summary>Технические подробности</summary>{model.revisionId ? `Версия ввода: ${model.revisionId}` : 'Версия ввода формируется'}</details>
         </div>
         <span className={`status-pill ${model.hasAcceptableRecommendation ? 'success' : 'danger'}`}>
           {model.hasAcceptableRecommendation ? 'Экономика приемлема' : 'Нет приемлемой экономики'}

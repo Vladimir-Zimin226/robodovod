@@ -10,19 +10,20 @@ import {
 } from '../simulation2dModel';
 import RobCraftFrame from './RobCraftFrame';
 import Warehouse2DPlan from './Warehouse2DPlan';
+import { humanizePresentation, statusLabel } from '../presentation';
 
 const STATUS_LABELS = {
   STOPPED: 'Остановлено', RUNNING: 'Воспроизведение', PAUSED: 'Пауза',
 };
 const SLA_LABELS = {
-  PASS: 'PASS по заданному SLA',
-  FAIL: 'FAIL по заданному SLA',
-  CONDITIONAL: 'CONDITIONAL · модель неполна',
-  NOT_EVALUATED: 'NOT_EVALUATED · SLA не оценён',
+  PASS: 'Норматив времени выполнен',
+  FAIL: 'Норматив времени не выполнен',
+  CONDITIONAL: 'Условный результат · модель неполна',
+  NOT_EVALUATED: 'Норматив времени не оценён',
 };
 
 function number(value, suffix = '') {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined) return 'нет данных';
   const parsed = Number(value);
   return `${Number.isFinite(parsed) ? new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(parsed) : value}${suffix}`;
 }
@@ -142,7 +143,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     <section className="simulation-2d panel" id="visualization" aria-label="2D-симуляция и отчёт">
       <header className="simulation-2d-header">
         <div>
-          <p className="eyebrow">C23 {report?.schema_version || 'SimulationReport'} · схема процесса</p>
+          <p className="eyebrow">Симуляция процесса · схема работы</p>
           <h2>Схема работы и расчёт очереди</h2>
           <p>Координаты и движение роботов условные. Это схема процесса, не план объекта, телеметрия или инженерная сертификация.</p>
         </div>
@@ -158,10 +159,10 @@ export default function Simulation2DReport({ request, initialReport = null, scen
 
       {!report && (
         <div className="simulation-run-box">
-          <p>Запустите детерминированный C23 scheduler. KPI будут получены только из backend-отчёта.</p>
+          <p>Запустите симуляцию процесса. Показатели будут получены из сохранённого серверного отчёта.</p>
           <button type="button" className="primary-action" onClick={startRun} disabled={['PENDING', 'RUNNING'].includes(runState?.state)}>Запустить расчёт симуляции</button>
           {['PENDING', 'RUNNING'].includes(runState?.state) && <button type="button" onClick={cancelRun}>Отменить</button>}
-          {runState && <div aria-live="polite">{runState.state} · {progressValue}% · {progress?.processed_events || 0}/{progress?.total_events || 0} событий</div>}
+          {runState && <div aria-live="polite">{statusLabel(runState.state)} · {progressValue}% · {progress?.processed_events || 0}/{progress?.total_events || 0} событий</div>}
         </div>
       )}
       {(error || presentation?.failure) && <div className="simulation-error" role="alert">{error || presentation.failure.message}</div>}
@@ -169,12 +170,14 @@ export default function Simulation2DReport({ request, initialReport = null, scen
       {presentation && !presentation.failure && (
         <>
           <div className="simulation-bindings">
-            <span>scenario <code>{presentation.frame.scenarioRevisionId}</code></span>
-            <span>report <code>{presentation.frame.reportId}</code></span>
-            <span>digest <code>{presentation.frame.reportDigest.slice(0, 18)}…</code></span>
-            <span>seed <code>{presentation.frame.seed}</code></span>
-            <span>t={(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} s</span>
-            {analysisRunId && <a href={`/api/v2/simulations/projects/${encodeURIComponent(active.request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}/${encodeURIComponent(active.request.request_id)}/evidence.json`} download>Скачать evidence C23 JSON</a>}
+            <span>Время схемы: {(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} с</span>
+            {analysisRunId && <a href={`/api/v2/simulations/projects/${encodeURIComponent(active.request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}/${encodeURIComponent(active.request.request_id)}/evidence.json`} download>Скачать технические данные симуляции</a>}
+            <details><summary>Технические подробности</summary>
+              <span>scenario <code>{presentation.frame.scenarioRevisionId}</code></span>
+              <span>report <code>{presentation.frame.reportId}</code></span>
+              <span>digest <code>{presentation.frame.reportDigest.slice(0, 18)}…</code></span>
+              <span>seed <code>{presentation.frame.seed}</code></span>
+            </details>
           </div>
 
           <div className="simulation-controls" aria-label="Управление timeline">
@@ -191,32 +194,32 @@ export default function Simulation2DReport({ request, initialReport = null, scen
               <defs><marker id="simulation-flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#67e8f9" /></marker></defs>
               {presentation.scene.zones.map((zone) => <g key={zone.id}><rect className={`simulation-zone source-${zone.geometrySource.toLowerCase()}`} x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="16" /><text className="zone-name" x={zone.x + 16} y={zone.y + 26}>{zone.label}</text><text className="geometry-source" x={zone.x + 16} y={zone.y + 46}>{zone.geometryLabel}</text></g>)}
               {presentation.scene.routes.map((route) => <g key={route.id}><path className="simulation-route" d={path(route.points)} markerMid="url(#simulation-flow-arrow)" /><text className="geometry-source" x={route.points[0].x - 42} y={route.points[0].y - 20}>{route.originLabel}</text><text className="geometry-source" x={route.points[1].x - 42} y={route.points[1].y - 20}>{route.destinationLabel}</text><text className="geometry-source" x={route.points[0].x} y={route.points[0].y + 74}>{route.geometryLabel}{route.analyticalDistance ? ` · расчётный путь ${route.analyticalDistance.value} ${route.analyticalDistance.unit}` : ' · длина пути неизвестна'}</text></g>)}
-              {presentation.scene.charging.map((marker) => <g key={marker.id} aria-label={marker.label}><text className="charging-badge" x={marker.x} y={marker.y} textAnchor="end">↯ aggregate only</text></g>)}
+              {presentation.scene.charging.map((marker) => <g key={marker.id} aria-label={marker.label}><text className="charging-badge" x={marker.x} y={marker.y} textAnchor="end">↯ учтено суммарно</text></g>)}
               {presentation.frame.robots.map((robot) => <g key={robot.id} transform={`translate(${robot.x} ${robot.y})`}><circle className="simulation-robot" r="9" /><text className="robot-label" x="12" y="4">{robot.ordinal + 1} · {robot.stage}</text></g>)}
             </svg>
             <div className="simulation-legend"><span>→ направление потока · обратный ход по нижней линии</span><span><i className="legend-robot" /> условное положение робота</span><span>↯ зарядка учтена агрегированно; точка не задана</span></div>
-            <p className="simulation-schematic-note">Зоны и точки показаны схематично; даже PROVIDED означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, KPI берутся из отчёта C23.</p>
+            <p className="simulation-schematic-note">Зоны и точки показаны схематично; предоставленная схема означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, показатели берутся из отчёта симуляции.</p>
           </div>}
 
           <div className="simulation-kpis">
             {metric('Парк', number(report.workload.fleet_units, ' роботов'))}
             {metric('Спрос', number(report.capacity.required_per_hour, ` ${report.capacity.unit}`))}
-            {metric('Предел парка C11', number(report.capacity.expected_effective_per_hour, ` ${report.capacity.unit}`))}
+            {metric('Предел расчётного парка', number(report.capacity.expected_effective_per_hour, ` ${report.capacity.unit}`))}
             {metric('Выполнено до конца окна', number(report.capacity.observed_per_hour, ` ${report.capacity.unit}`), report.capacity.verdict)}
-            {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Не выполнено к концу окна', number(report.capacity.demand_shortfall_per_hour, ` ${report.capacity.unit}`), `завершено с grace ${report.queue.completed_with_grace}/${report.queue.measurement_jobs} заданий`)}
-            {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Запас до предела парка', number(report.capacity.capacity_headroom_per_hour, ` ${report.capacity.unit}`), report.capacity.ceiling_verdict)}
-            {metric('Очередь max', number(report.queue.maximum_jobs, ' jobs'), `mean wait ${number(report.queue.mean_wait_seconds, ' s')}`)}
-            {metric('P95 ожидание', number(report.queue.p95_wait_seconds, ' s'), `turnaround ${number(report.queue.p95_turnaround_seconds, ' s')}`)}
-            {metric('Загрузка busy', number(report.utilization.busy_fraction === null ? null : Number(report.utilization.busy_fraction) * 100, '%'), `productive ${number(report.utilization.productive_fraction === null ? null : Number(report.utilization.productive_fraction) * 100, '%')}`)}
+            {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Не выполнено к концу окна', number(report.capacity.demand_shortfall_per_hour, ` ${report.capacity.unit}`), `завершено после окна ${report.queue.completed_with_grace}/${report.queue.measurement_jobs} заданий`)}
+            {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Запас до предела парка', number(report.capacity.capacity_headroom_per_hour, ` ${report.capacity.unit}`), statusLabel(report.capacity.ceiling_verdict))}
+            {metric('Максимальная очередь', number(report.queue.maximum_jobs, ' заданий'), `среднее ожидание ${number(report.queue.mean_wait_seconds, ' с')}`)}
+            {metric('Ожидание 95 % заданий', number(report.queue.p95_wait_seconds, ' с'), `полный цикл ${number(report.queue.p95_turnaround_seconds, ' с')}`)}
+            {metric('Занятость парка', number(report.utilization.busy_fraction === null ? null : Number(report.utilization.busy_fraction) * 100, '%'), `полезная работа ${number(report.utilization.productive_fraction === null ? null : Number(report.utilization.productive_fraction) * 100, '%')}`)}
           </div>
 
           {hasCapacityWarning(report) && (
-            <div className="simulation-warning" role="status">{report.capacity.verdict === 'DEVIATION' ? (report.capacity.denominator === 'REQUIRED_DEMAND' ? 'К концу окна выполнено более чем на 10% меньше заданного спроса.' : 'Исторический отчёт: расхождение с максимумом парка превышает 10%.') : report.capacity.verdict === 'OVERLOADED' ? 'Спрос превышает возможности парка; очередь не закрыта к концу окна.' : 'Наблюдаемый поток несовместим с входными данными.'} Отклонение: {number(report.capacity.deviation_percent, '%')} · denominator {report.capacity.denominator}.</div>
+            <div className="simulation-warning" role="status">{report.capacity.verdict === 'DEVIATION' ? (report.capacity.denominator === 'REQUIRED_DEMAND' ? 'К концу окна выполнено более чем на 10% меньше заданного спроса.' : 'Исторический отчёт: расхождение с максимумом парка превышает 10%.') : report.capacity.verdict === 'OVERLOADED' ? 'Спрос превышает возможности парка; очередь не закрыта к концу окна.' : 'Наблюдаемый поток несовместим с входными данными.'} Отклонение: {number(report.capacity.deviation_percent, '%')}.</div>
           )}
-          <div className={`simulation-sla sla-${report.sla.verdict.toLowerCase()}`}>{SLA_LABELS[report.sla.verdict]}{report.sla.on_time_fraction !== null && ` · on-time ${number(Number(report.sla.on_time_fraction) * 100, '%')}`}</div>
+          <div className={`simulation-sla sla-${report.sla.verdict.toLowerCase()}`}>{SLA_LABELS[report.sla.verdict]}{report.sla.on_time_fraction !== null && ` · вовремя ${number(Number(report.sla.on_time_fraction) * 100, '%')}`}</div>
           <div className="simulation-notes">
-            <div><h3>Ограничения отчёта</h3><ul>{report.limitations.map((item) => <li key={item}>{item}</li>)}</ul></div>
-            <div><h3>Геометрия и экономика</h3><p>{presentation.bundle.spec.finance === null ? 'Capacity-only: финансовый snapshot не предоставлен; визуализация полностью доступна.' : 'Finance binding показан только как immutable reference; браузер не считает деньги.'}</p><p>Synthetic coordinates используются только для показа и не переписывают analytical route/distance.</p></div>
+                <div><h3>Ограничения отчёта</h3><ul>{report.limitations.map((item) => <li key={item}>{humanizePresentation(item)}</li>)}</ul></div>
+                <div><h3>Геометрия и экономика</h3><p>{presentation.bundle.spec.finance === null ? 'Финансовый расчёт не предоставлен; схема процесса доступна.' : 'Финансовый расчёт связан с симуляцией; браузер не считает деньги.'}</p><p>Условные координаты используются только для показа и не меняют расчётную длину маршрута.</p></div>
           </div>
           <RobCraftFrame scenarioSpec={active.request.scenario_spec} simulationReport={report}
             selectedZoneId={warehouseScene ? activeZoneId : null} onZoneChange={warehouseScene ? selectZone : null} compact />

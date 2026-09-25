@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AppIcon from './AppIcon';
 import { readCsrfCookie } from '../persistenceApi';
+import { humanizePresentation } from '../presentation';
 import { STARTER_QUESTIONS, INTERVIEW_FIELDS, INTERVIEW_STEPS, emptyProfile,
   editProfile, confirmField, mergeAssistantDraft, profileReadiness, canImportProfile,
   readGuestProfile, writeGuestProfile } from '../assistantInterview';
@@ -128,7 +129,7 @@ export default function ProcessScreen({ activeProject, user, hasResult, sessionK
     <section className="assistant-workspace" aria-label="Диалог с помощником">
       <div className="assistant-dialog panel"><header><span className="catalog-eyebrow">ДИАЛОГ</span><h2>Расскажите о задаче</h2><p>Например: «Перевозим 800 паллет в сутки по складу, плечо 180 м, 3 смены».</p></header>
         <div className="mb-4 flex flex-wrap gap-2" aria-label="Начальные вопросы">{STARTER_QUESTIONS.map((question) => <button key={question} type="button" className="secondary-action text-xs" onClick={() => send(null, false, question)} disabled={busy}>{question}</button>)}</div>
-        <div className="assistant-turns" aria-live="polite">{!turns.length && <p className="assistant-empty">Укажите груз или операцию, объём и ограничения. Я задам следующий вопрос и покажу совпадения в каталоге.</p>}{turns.map((t, i) => <div className={`assistant-turn ${t.role}`} key={`${i}-${t.role}`}><small>{t.role === 'user' ? 'Вы' : 'Помощник'}</small><p>{t.text}</p></div>)}</div>
+        <div className="assistant-turns" aria-live="polite">{!turns.length && <p className="assistant-empty">Укажите груз или операцию, объём и ограничения. Я задам следующий вопрос и покажу совпадения в каталоге.</p>}{turns.map((t, i) => <div className={`assistant-turn ${t.role}`} key={`${i}-${t.role}`}><small>{t.role === 'user' ? 'Вы' : 'Помощник'}</small><p>{t.role === 'user' ? t.text : humanizePresentation(t.text)}</p></div>)}</div>
         <form className="assistant-form" onSubmit={send}><label htmlFor="assistant-query">Ваш запрос</label><textarea id="assistant-query" rows="3" maxLength="400" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Какой процесс хотите роботизировать?" /><div className="assistant-form-actions"><button type="submit" className="primary-action" disabled={busy || input.trim().length < 3}>{busy ? 'Ищем…' : 'Найти в каталоге'}</button><button type="button" className="secondary-action" onClick={searchWeb} disabled={webBusy || (!input.trim() && !turns.length)}>{webBusy ? 'Ищем…' : 'Найти в интернете'}</button></div><small>Веб-поиск запускается отдельно и требует входа в аккаунт. Результаты не добавляются в каталог.</small></form>
         {error && <p className="form-error" role="alert">{error}</p>}
       </div>
@@ -150,13 +151,13 @@ export default function ProcessScreen({ activeProject, user, hasResult, sessionK
               </div>;
             })}</div>
             <div className="mt-3 flex gap-2"><button type="button" className="secondary-action" disabled={step === 0} onClick={() => setStep((value) => value - 1)}>Назад</button><button type="button" className="secondary-action" disabled={step === INTERVIEW_STEPS.length - 1} onClick={() => setStep((value) => value + 1)}>Далее</button></div>
-            <p className="mt-3 text-sm">Для C11 ещё нужно: {readiness.capacity.length ? readiness.capacity.map(fieldLabel).join(', ') : 'обязательные поля подтверждены; затем выберите модель и подтвердите её допущения'}.</p>
-            <p className="text-sm">Для труда ещё нужно: {readiness.labour.length ? readiness.labour.map(fieldLabel).join(', ') : 'поля персонала подтверждены; ручную выработку уточните после C11'}.</p>
+            <p className="mt-3 text-sm">Для расчёта парка ещё нужно: {readiness.capacity.length ? readiness.capacity.map(fieldLabel).join(', ') : 'обязательные поля подтверждены; затем выберите модель и подтвердите её допущения'}.</p>
+            <p className="text-sm">Для труда ещё нужно: {readiness.labour.length ? readiness.labour.map(fieldLabel).join(', ') : 'поля персонала подтверждены; ручную выработку уточните после расчёта парка'}.</p>
             <p className="text-sm">Для полной экономики: {readiness.economics[0]}.</p><p className="text-sm">Для 2D: {readiness.visualization[0]}.</p>
             {readiness.unconfirmed.length > 0 && <p className="text-sm text-amber-700">Не подтверждено: {readiness.unconfirmed.map(fieldLabel).join(', ')}.</p>}
             {readiness.invalid.length > 0 && <p role="alert" className="text-sm text-red-700">Проверьте значения: {readiness.invalid.map(fieldLabel).join(', ')}. Объём и график должны быть положительными, смены × часы ≤ 24, зарплата может быть нулевой.</p>}
             {conflicts.length > 0 && <p role="alert" className="text-sm text-amber-700">Новое описание противоречит сохранённым полям: {conflicts.map(fieldLabel).join(', ')}. Проверьте их вручную; помощник не заменил значения.</p>}
-            <p className="text-xs">Пиковый множитель остаётся заметкой: v2 C03 пока не имеет отдельного поля для пика. Зарплата переносится как monthly gross только после вашего подтверждения.</p>
+            <p className="text-xs">Пиковый множитель остаётся заметкой: в интервью пока нет отдельного поля для пика. Зарплата переносится как месячная сумма до удержаний только после вашего подтверждения.</p>
             {profile.fields.process_type?.value === 'transport' && <p className="text-xs">Объём в сутки и плечо не определяют, сколько единиц робот везёт за рейс. Для своего процесса укажите это число сами; один расчёт охватывает один процесс в одной зоне.</p>}
             {activeProject && <button type="button" className="secondary-action mt-2" onClick={saveProfile}>Сохранить черновик в проекте</button>}
             {profileStatus && <p role="status" className="text-xs">{profileStatus}</p>}
@@ -165,14 +166,14 @@ export default function ProcessScreen({ activeProject, user, hasResult, sessionK
                 setProfile(emptyProfile()); setProfileStatus('Срок гостевого черновика истёк. Заполните интервью заново.'); return;
               }
               if (!activeProject || await saveProfile()) onConfirmDraft(profile);
-            }}>Перенести подтверждённые поля в расчёт v2</button>
+            }}>Перенести подтверждённые поля в расчёт</button>
           </>}
         </section>
-        {answer && <section className="assistant-catalog panel" aria-label="Результаты каталога"><header><span className="catalog-eyebrow">ОФИЦИАЛЬНЫЙ КАТАЛОГ · {answer.catalog.version}</span><h2>{answer.mode === 'guidance' ? 'Ответ по сервису' : 'Совпадения в каталоге'}</h2><p>{answer.reply}</p></header>
+        {answer && <section className="assistant-catalog panel" aria-label="Результаты каталога"><header><span className="catalog-eyebrow">ОФИЦИАЛЬНЫЙ КАТАЛОГ</span><h2>{answer.mode === 'guidance' ? 'Ответ по сервису' : 'Совпадения в каталоге'}</h2><p>{humanizePresentation(answer.reply)}</p><details><summary>Версия каталога</summary>{answer.catalog.version}</details></header>
           {!answer.matches.length && answer.mode !== 'guidance' && <p className="assistant-empty">Точного ответа в каталоге нет. Уточните формулировку или используйте отдельный веб-поиск.</p>}
           <div className="assistant-cards">{answer.matches.map((card) => <article className="assistant-card" key={card.id}><div className="assistant-card-head"><h3>{card.name}</h3><span>{card.capacity.ready ? 'В capacity-пуле' : 'Требует данных для capacity'}</span></div><p>{card.use ? `Назначение: ${card.use}` : card.description ? `Исходное описание: ${card.description}` : 'Назначение не указано.'}</p><p className="assistant-facts">{factText(card)}</p>{card.limits && <p className="assistant-limits">Ограничения из исходного текста: {card.limits}</p>}<p className="assistant-source">Источник: <a href={card.source.card_url} target="_blank" rel="noreferrer">{sourceLabel(card)}</a></p><div className="assistant-card-actions"><button type="button" onClick={() => onOpenCatalog(card.id)}>Открыть карточку</button><label><input type="checkbox" checked={selected.includes(card.id)} onChange={() => toggle(card.id)} disabled={!selected.includes(card.id) && selected.length >= 3} /> Сравнить</label></div></article>)}</div>
           {selected.length >= 2 && <button type="button" className="secondary-action assistant-compare-button" onClick={() => send(null, true)} disabled={busy}>Сравнить выбранные ({selected.length})</button>}
-          <p className="assistant-caution">{answer.note}</p></section>}
+          <p className="assistant-caution">{humanizePresentation(answer.note)}</p></section>}
         {compared.length >= 2 && <section className="assistant-comparison panel" aria-label="Сравнение позиций"><header><span className="catalog-eyebrow">СРАВНЕНИЕ</span><h2>Одинаковые критерии для {compared.length} позиций</h2></header><div className="assistant-table-wrap"><table><thead><tr><th>Критерий</th>{compared.map((c) => <th key={c.id}>{c.name}</th>)}</tr></thead><tbody>
           <tr><th>Производитель</th>{compared.map((c) => <td key={c.id}>{c.manufacturer || 'Не указан'}</td>)}</tr>
           <tr><th>Назначение</th>{compared.map((c) => <td key={c.id}>{c.use || 'Не указано'}</td>)}</tr>

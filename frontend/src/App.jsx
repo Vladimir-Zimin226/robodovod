@@ -21,6 +21,7 @@ import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
 import { phaseFromHash, phaseHash } from './appNavigation';
+import { humanizePresentation } from './presentation';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
@@ -238,7 +239,7 @@ export default function App() {
             onConfirmDraft={(profile) => {
               setObjectType(profile.fields.object_type.value);
               setAssistantImport({ profile, id: Date.now() });
-              setIntakePrompt('Подтверждённые поля интервью перенесены в форму v2. Проверьте модель и отдельные условия C11.');
+              setIntakePrompt('Подтверждённые поля интервью перенесены в форму. Проверьте модель и отдельные условия расчёта парка.');
               showPhase('intake');
             }}
             onReturnToResult={() => showPhase('results')} />
@@ -352,7 +353,7 @@ export default function App() {
             {activeRun && activeProject && (
               <>
                 {activeRun.economics_runtime?.migration_notice && (
-                  <div className="save-run-bar" role="status">{activeRun.economics_runtime.migration_notice}</div>
+                  <div className="save-run-bar" role="status">{humanizePresentation(activeRun.economics_runtime.migration_notice)}</div>
                 )}
                 <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />
               </>

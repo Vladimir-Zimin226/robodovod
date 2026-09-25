@@ -210,7 +210,7 @@ test('C03 golden fixture keeps raw and normalized units visible to presentation'
 
 test('component exposes keyboard-native controls and server trace labels', async () => {
   const source = await readFile(new URL('../src/components/ProcessRoleIntakeV2.jsx', import.meta.url), 'utf8');
-  assert.match(source, /aria-label="Процессы и роли v2"/);
+  assert.match(source, /aria-label="Процессы и роли"/);
   assert.match(source, /aria-expanded=/);
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /type="checkbox"/);

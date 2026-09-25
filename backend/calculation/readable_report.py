@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from calculation.evidence_export import EvidenceExportIntegrityError, EvidenceRunSnapshotV1, _verify_snapshots
+from presentation import VERSION as PRESENTATION_VERSION, field as presentation_field, humanize
 
 
 ASSETS = Path(__file__).with_name("assets")
@@ -349,9 +350,46 @@ def _with_reason(value: str, reason: str) -> str:
 def build_readable_report(
     run: EvidenceRunSnapshotV1,
     capacity_run: EvidenceRunSnapshotV1 | None = None,
+    *,
+    presentation_version: str = "readable-presentation-v1",
 ) -> tuple[bytes, str]:
     """Return a searchable report from verified persisted values only."""
     digests = _verify_snapshots(run)
+    if presentation_version not in {"readable-presentation-v1", PRESENTATION_VERSION}:
+        raise ValueError("unsupported readable presentation version")
+
+    def render(lines: list[tuple[str, str]]) -> bytes:
+        if presentation_version == "readable-presentation-v1":
+            return _pdf(lines)
+        technical = False
+        presented: list[tuple[str, str]] = []
+        for value, kind in lines:
+            if kind == "cover" and value.startswith("Дата расчёта:"):
+                continue
+            if kind == "section" and value in {"Источник и контроль", "Приложение: техническая проверка источника"}:
+                technical = True
+                value = "Технические подробности"
+            if kind == "subtitle" and value.startswith("№ "):
+                value = f"Сохранённый расчёт от {run.finished_at:%d.%m.%Y}"
+            elif not technical:
+                if value.startswith("Исходный расчёт мощности C11:"):
+                    value = "Источник: сохранённый расчёт потребного парка."
+                elif value.startswith("Связанный расчёт мощности:"):
+                    value = "Исходный расчёт парка сохранён и связан с этой оценкой."
+                elif value == "При аренде роботов (RaaS)":
+                    value = "При аренде роботов"
+                elif value == "Техническая основа C11":
+                    value = "Расчёт потребного парка"
+                else:
+                    value = humanize(value)
+            presented.append((value, kind))
+        presented.extend([
+            ("Технические подробности" if not technical else "Версия представления", "section"),
+            (f"Версия представления: {PRESENTATION_VERSION}", "body"),
+            (f"Идентификатор расчёта: {run.run_id}", "body"),
+            (f"Версия движка: {run.versions.get('application') or UNKNOWN}", "body"),
+        ])
+        return _pdf(presented)
     linked = _capacity_source(run, capacity_run)
     result = _obj(run.result_snapshot)
     inputs = _obj(run.input_snapshot.get("economics"))
@@ -416,7 +454,7 @@ def build_readable_report(
             (f"Входные данные: {digests.get('input') or UNKNOWN}", "body"),
             ("Точные Decimal-значения и контрольные суммы сохранены в машинном ZIP без округления.", "body"),
         ])
-        return _pdf(lines), digests["result"] or ""
+        return render(lines), digests["result"] or ""
     partial = result.get("schema_version") == "economics-partial-result-v1"
     full = result.get("schema_version") == "commercial-scenarios-bundle-v2"
     lines: list[tuple[str, str]] = [
@@ -452,7 +490,7 @@ def build_readable_report(
             (f"Результат: {digests.get('result') or UNKNOWN}", "body"),
             (f"Входные данные: {digests.get('input') or UNKNOWN}", "body"),
         ])
-        return _pdf(lines), digests["result"] or ""
+        return render(lines), digests["result"] or ""
     if partial:
         lines.extend([
             ("Техническая основа C11", "section"),
@@ -489,6 +527,10 @@ def build_readable_report(
             missing = [str(field) for field in _list(branch.get("required_fields"))]
             if missing:
                 lines.append((f"{label}: не рассчитано ({branch.get('reason_code') or 'MISSING_INPUT'}). Нужны поля: {', '.join(missing)}.", "body"))
+                if presentation_version == PRESENTATION_VERSION:
+                    for field_key in missing:
+                        field_label, action = presentation_field(field_key)
+                        lines.append((f"{field_label}: {action}", "body"))
             else:
                 lines.append((f"{label}: не рассчитано ({branch.get('reason_code') or 'причина не сохранена'}).", "body"))
         for issue in _list(result.get("issues")):
@@ -517,7 +559,7 @@ def build_readable_report(
         ])
         if capacity_run is not None:
             lines.append((f"Расчёт мощности: {capacity_run.run_id}; проверенный результат: {_verify_snapshots(capacity_run).get('result') or UNKNOWN}", "body"))
-        return _pdf(lines), digests["result"] or ""
+        return render(lines), digests["result"] or ""
     if roles:
         for role in roles:
             label = ROLE_LABELS.get(role.get("role_code"), "Сотрудник")
@@ -609,7 +651,7 @@ def build_readable_report(
         source_run = capacity_run or run
         lines.append((f"Расчёт мощности: {source_run.run_id}; проверенный результат: {_verify_snapshots(source_run).get('result') or UNKNOWN}", "body"))
     lines.append(("Полные входы, результаты и контрольные суммы доступны в архиве доказательств этого расчёта.", "body"))
-    return _pdf(lines), digests["result"] or ""
+    return render(lines), digests["result"] or ""
 
 
 __all__ = ["build_readable_report"]

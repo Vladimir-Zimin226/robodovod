@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { formatServerQuantity, getCapacityResultsModel } from '../dashboardModel';
 import { formatFleet } from '../displayNumber';
 import { zoneForProcessId } from '../processRoleIntakeV2';
+import { humanizePresentation, savedCalculationLabel } from '../presentation';
 
-const issueText = (issue) => issue.message || issue.code;
+const issueText = (issue) => humanizePresentation(issue.message || issue.code);
 
 export default function CapacityResultsTrace({ response, expectedRevision = null, onRestart, zoneContext = null }) {
   const model = useMemo(
@@ -16,23 +17,22 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
       <header className="bg-white border rounded-2xl p-5">
         <div className="flex flex-wrap justify-between gap-3">
           <div>
-            <p className="text-xs text-slate-500">Capacity snapshot · revision {model.revision}</p>
+            <p className="text-xs text-slate-500">{savedCalculationLabel(response?.finished_at || response?.created_at)}</p>
             <h1 className="text-2xl font-semibold">Производительность и требуемый парк</h1>
             <p className="text-sm text-slate-600 mt-1">Процесс: {model.processId}</p>
-            <p className="text-xs text-slate-500">Зона: {zoneContext?.label || zoneForProcessId(model.processId)} · этот C11 считает только указанный процесс и не суммирует общие ресурсы других зон.</p>
-            {zoneContext?.constraints_note && <p className="text-xs text-amber-700">Ограничения зоны: {zoneContext.constraints_note} · не проверены C05.</p>}
-            <p className="text-xs text-slate-500 mt-1">Capacity source: {model.versions?.catalog_version_id || 'NOT_AVAILABLE'}</p>
+            <p className="text-xs text-slate-500">Зона: {zoneContext?.label || zoneForProcessId(model.processId)} · расчёт охватывает только указанный процесс и не суммирует общие ресурсы других зон.</p>
+            {zoneContext?.constraints_note && <p className="text-xs text-amber-700">Ограничения зоны: {zoneContext.constraints_note} · не включены в проверку пригодности на объекте.</p>}
           </div>
           <div className="text-right">
             <span className="inline-flex rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-sm font-semibold">{model.statusLabel}</span>
-            <p className="text-xs text-slate-500 mt-2">Run: {model.runId}</p>
+            <details className="text-xs text-slate-500 mt-2"><summary>Технические подробности</summary><p>Расчёт: {model.runId}. Версия ввода: {model.revision}. Каталог: {model.versions?.catalog_version_id || 'нет данных'}.</p></details>
           </div>
         </div>
       </header>
 
       <section className="bg-white border rounded-2xl p-5" aria-label="Источник модели">
         <div className="flex flex-wrap justify-between gap-3">
-          <div><h2 className="font-semibold">{model.participationLabel}</h2><p className="text-sm text-slate-600">{model.modelId} · {model.positionId}</p></div>
+          <div><h2 className="font-semibold">{model.participationLabel}</h2><details className="text-sm text-slate-600"><summary>Технические подробности модели</summary>{model.modelId} · {model.positionId}</details></div>
           <p className="max-w-md text-xs text-amber-700">{model.participationHint}</p>
         </div>
       </section>
@@ -42,7 +42,7 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
           <h2 className="font-semibold mb-3">Ограничения и предупреждения</h2>
           {[...model.blockers, ...model.warnings].map((issue) => (
             <div key={`${issue.code}-${issue.message}`} className="border-l-4 border-amber-400 pl-3 py-1 mb-2">
-              <strong className="text-sm">{issue.code}</strong><p className="text-sm text-slate-600">{issueText(issue)}</p>
+              <p className="text-sm text-slate-600">{issueText(issue)}</p><details className="text-xs"><summary>Код проверки</summary>{issue.code}</details>
             </div>
           ))}
         </section>
@@ -83,7 +83,7 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
           {model.constraints.map((item) => <p key={item.evaluation_id} className="text-sm mt-2"><code>{item.check_id}</code>: {item.status}<span className="block text-xs text-slate-500">{item.reason_code}</span></p>)}
         </details>}
         <details className="border rounded-xl p-3">
-          <summary className="cursor-pointer font-medium">Версии snapshot</summary>
+          <summary className="cursor-pointer font-medium">Версии сохранённого расчёта</summary>
           {Object.entries(model.versions || {}).map(([name, value]) => <p key={name} className="text-xs mt-2 break-all"><code>{name}</code>: {value}</p>)}
         </details>
       </section>

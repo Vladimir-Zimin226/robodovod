@@ -29,11 +29,15 @@ test('strict manifest parser binds project/run and rejects version or extra fiel
     projectId: manifest.project_id,
     runId: manifest.run_id,
   }).manifest_digest, manifest.manifest_digest);
-  assert.throws(() => parseEvidenceManifest({ ...manifest, schema_version: 'calculation-evidence-export-manifest-v3' }), /unsupported/);
+  assert.throws(() => parseEvidenceManifest({ ...manifest, schema_version: 'calculation-evidence-export-manifest-v3' }), /unknown or missing/);
   assert.throws(() => parseEvidenceManifest({ ...manifest, client_total: '1.00' }), /unknown or missing/);
   assert.throws(() => parseEvidenceManifest(structuredClone(manifest), { runId: 'another-run' }), /run binding/);
   assert.equal(parseEvidenceManifest(structuredClone(manifestV2), { runId: manifestV2.run_id }).entrypoint_filename, 'НАЧНИТЕ_ЗДЕСЬ.md');
   assert.throws(() => parseEvidenceManifest({ ...manifestV2, report_filename: 'TechnicalDump.pdf' }), /entrypoint/);
+  const readable = { ...manifestV2, schema_version: 'calculation-evidence-export-manifest-v3', presentation_version: 'readable-presentation-v2',
+    export_policy_version: 'calculation-evidence-export-policy-v3', generator_version: 'snapshot-evidence-export-v3' };
+  assert.equal(parseEvidenceManifest(readable).presentation_version, 'readable-presentation-v2');
+  assert.throws(() => parseEvidenceManifest({ ...readable, presentation_version: 'unknown' }), /presentation version/);
 });
 
 test('v2 browser download uses a Windows-friendly Russian filename and manifest binding', async () => {

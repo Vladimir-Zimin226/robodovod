@@ -167,10 +167,10 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   };
 
   return (
-    <aside className="w-[480px] border-l bg-white p-4 overflow-auto" aria-label="Процессы и роли v2">
+    <aside className="w-[480px] border-l bg-white p-4 overflow-auto" aria-label="Процессы и роли">
       <header className="mb-3">
         <div className="flex justify-between gap-3 items-start">
-          <div><h2 className="font-semibold">Процессы и роли</h2><p className="text-xs text-slate-500">Черновик v2 · {draft.inputRevision}</p></div>
+          <div><h2 className="font-semibold">Процессы и роли</h2><details className="text-xs text-slate-500"><summary>Технические подробности черновика</summary>Версия ввода: {draft.inputRevision}</details></div>
           <span className="text-[10px] rounded bg-blue-50 text-blue-700 px-2 py-1">{draft.schemaVersion}</span>
         </div>
         <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Один расчёт относится к одному процессу в одной зоне; для других процессов создайте отдельные результаты. Единицы и производные величины проверяет сервер.</p>
@@ -185,7 +185,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад предлагает 1 паллету за рейс, плечо 120 м и обмен 90 сек. как отдельные допущения. Подтвердите единицы за рейс в процессе и зарплату gross в роли.</p>}
       </header>
 
-      <section className="mb-4 rounded-xl border border-slate-600 p-3 text-xs" aria-label="Зоны v2">
+      <section className="mb-4 rounded-xl border border-slate-600 p-3 text-xs" aria-label="Зоны">
         <div className="flex items-center justify-between gap-2"><h3 className="font-semibold">Зоны объекта</h3>
           <button type="button" className="underline text-blue-700" onClick={() => {
             const next = addZone(draft, objectType);
@@ -198,16 +198,16 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           onChange={(event) => setDraft((current) => updateZone(current, selectedZoneId, { label: event.target.value }))} /></label>
         <label className="mt-2 block">Ограничения зоны · проходы, пол, потоки<textarea className="mt-1 w-full rounded border p-2" rows="2"
           value={selectedZone.constraints} onChange={(event) => setDraft((current) => updateZone(current, selectedZoneId, { constraints: event.target.value }))} /></label>
-        <p className="mt-2 text-amber-800">Ограничения здесь служат заметкой черновика. C05 не проверяет их автоматически; перенесите их в обследование объекта. Нагрузка и маршрут ниже относятся только к выбранной зоне. Одинаковая роль общая для зон: изменение её численности или зарплаты видно в каждой зоне.</p>
+        <p className="mt-2 text-amber-800">Ограничения здесь служат заметкой черновика. Проверка пригодности не учитывает их автоматически; перенесите их в обследование объекта. Нагрузка и маршрут ниже относятся только к выбранной зоне. Одинаковая роль общая для зон: изменение её численности или зарплаты видно в каждой зоне.</p>
         {selectedZoneId !== draft.zones[0].zoneId && <button type="button" className="mt-2 underline text-red-700" onClick={() => {
           setDraft((current) => removeZone(current, selectedZoneId)); setSelectedZoneId(draft.zones[0].zoneId); setExpanded(null);
         }}>Удалить эту зону из черновика</button>}
       </section>
 
       {!activeProject && <section className="mb-4 rounded-lg border border-amber-400/50 bg-[#2b281d] p-3 text-xs text-amber-100" aria-label="Проект для расчёта">
-        <p className="font-semibold">Для C11 нужен открытый сохраняемый проект</p>
+        <p className="font-semibold">Для расчёта парка нужен открытый проект</p>
         {!authChecked ? <p className="mt-1">Проверяем вход…</p> : !user ? <>
-          <p className="mt-1">Гостевой ввод можно проверить, но immutable run и полная экономика доступны после входа.</p>
+          <p className="mt-1">Гостевой ввод можно проверить, но сохранение расчёта и полная экономика доступны после входа.</p>
           <button type="button" className="mt-2 font-semibold text-lime-300 underline" onClick={onOpenAccount}>Войти или зарегистрироваться</button>
         </> : projectStatus === 'loading' ? <p className="mt-1">Восстанавливаем ваш проект…</p> : projectStatus === 'error' ? <>
           <p className="mt-1">Не удалось загрузить ваши проекты. Откройте список проектов и повторите попытку.</p>
@@ -256,8 +256,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                       {role && <div className="grid grid-cols-2 gap-2 mt-2">
                         <NumberField label="Численность, чел." value={role.headcount} issue={fieldIssue(`${role.roleId}.headcount`)} hint="Для технической и трудовой модели; например 25. Источник — штатное расписание." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value, headcountSource: 'USER' }))} />
                         <NumberField label="Зарплата gross, ₽/чел./мес." value={role.salary} issue={fieldIssue(`${role.roleId}.salary`)} hint="Для ФОТ и NPV; например 120000. Пусто — экономика неизвестна, 0 — подтверждённая бесплатная роль. Источник — ФОТ." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
-                        {role.salarySource === 'ASSUMPTION' && !role.salaryConfirmed && <label className="col-span-2 text-[10px] text-amber-700"><input type="checkbox" className="mr-1" onChange={(event) => event.target.checked && setDraft((current) => confirmRoleAssumption(current, role.roleId))} />Подтверждаю это допущение для revision</label>}
-                        {!role.salary && <p className="col-span-2 text-[10px] text-amber-700">Без monthly gross salary техническая проверка возможна, а labour/finance останутся incomplete.</p>}
+                        {role.salarySource === 'ASSUMPTION' && !role.salaryConfirmed && <label className="col-span-2 text-[10px] text-amber-700"><input type="checkbox" className="mr-1" onChange={(event) => event.target.checked && setDraft((current) => confirmRoleAssumption(current, role.roleId))} />Подтверждаю это допущение для текущего ввода</label>}
+                        {!role.salary && <p className="col-span-2 text-[10px] text-amber-700">Без месячной зарплаты до удержаний технический расчёт возможен, а экономика останется частичной.</p>}
                       </div>}
                     </div>;
                   })}
@@ -275,17 +275,17 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         {result && <NormalizationTrace result={result} />}
       </div>
       <button type="button" disabled={state === 'loading' || activeCount === 0} onClick={normalize} className="w-full rounded-xl py-3 mt-3 text-sm font-semibold bg-blue-600 text-white disabled:bg-slate-200 disabled:text-slate-400">
-        {state === 'loading' ? 'Проверяем…' : 'Проверить ввод v2'}
+        {state === 'loading' ? 'Проверяем…' : 'Проверить ввод'}
       </button>
-      {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт v2">
-        <h3 className="text-sm font-semibold">Предварительный расчёт v2</h3>
-        <p className="text-xs text-amber-800">Каждый сохранённый C11 относится только к одному выбранному процессу в одной зоне. Отдельные парки и NPV нельзя складывать при общих роботах, ролях, межзональных потоках или расходах площадки.</p>
-        <p className="text-xs text-amber-800">Демо-профиль не является паспортом изготовителя. Неизвестные проверки C05 останутся в результате; число роботов не означает готовность к закупке.</p>
-        {!activeProject && <p className="text-xs text-amber-800">Выберите проект в блоке выше, чтобы сохранить immutable run.</p>}
-        {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">Для этого процесса нет физической формулы C07/C08.</p> : <>
+      {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт">
+        <h3 className="text-sm font-semibold">Предварительный расчёт</h3>
+        <p className="text-xs text-amber-800">Каждый сохранённый расчёт парка относится только к одному выбранному процессу в одной зоне. Отдельные парки и денежные эффекты нельзя складывать при общих роботах, ролях, межзональных потоках или расходах площадки.</p>
+        <p className="text-xs text-amber-800">Демо-профиль не является паспортом изготовителя. Неизвестные проверки пригодности останутся в результате; число роботов не означает готовность к закупке.</p>
+        {!activeProject && <p className="text-xs text-amber-800">Выберите проект в блоке выше, чтобы сохранить расчёт.</p>}
+        {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">Для этого процесса пока нет расчётной модели производительности.</p> : <>
           <label className="block text-xs">Процесс
             <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); }}>
-              {activeProcesses.map((item) => <option key={item.process_id} value={item.process_id}>{draft.zones.find((zone) => item.process_id.startsWith(`${zone.zoneId}.`))?.label || 'Зона'} · {item.process_code}</option>)}
+              {activeProcesses.map((item) => <option key={item.process_id} value={item.process_id}>{draft.zones.find((zone) => item.process_id.startsWith(`${zone.zoneId}.`))?.label || 'Зона'} · {visibleProcesses.find((process) => item.process_id.endsWith(process.processId))?.label || 'Процесс'}</option>)}
             </select>
           </label>
           <label className="block text-xs">Модель из активного capacity-каталога
@@ -301,7 +301,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
           {selectedProcess?.scope === 'CLEANING_AREA' && <p className="text-xs text-slate-600">Демо-допущение: одна уборка указанной площади в сутки.</p>}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
-          <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить v2' : 'Сначала выберите проект'}</button>
+          <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}
       </section>}
     </aside>
@@ -316,7 +316,7 @@ function DemoProfile({ profile }) {
     {profile.conflictUrl && <p className="mt-2"><a className="underline text-lime-300 underline-offset-2" href={profile.conflictUrl} target="_blank" rel="noreferrer">Второй источник изготовителя с отличающейся скоростью</a></p>}
     <p className="mt-3 leading-relaxed"><strong className="text-lime-200">Допущения:</strong> {profile.assumptions}</p>
     <p className="mt-2 leading-relaxed"><strong className="text-lime-200">Неизвестно:</strong> {profile.unknown}</p>
-    <p className="mt-3 border-t border-lime-400/30 pt-3 font-semibold leading-relaxed text-amber-300">C05: требуется проверка. Результат не подтверждает пригодность к внедрению.</p>
+    <p className="mt-3 border-t border-lime-400/30 pt-3 font-semibold leading-relaxed text-amber-300">Пригодность на объекте требует проверки. Результат не подтверждает готовность к внедрению.</p>
   </details>;
 }
 
@@ -327,8 +327,8 @@ function NumberField({ id, label, value, onChange, issue, hint }) {
 
 function NormalizationTrace({ result }) {
   const response = result.response;
-  return <details className="mt-2 border rounded p-2"><summary className="cursor-pointer font-semibold">Server normalization · {response.valid ? 'валидно' : 'нужны данные'}</summary>
-    <p>Revision: {response.input_revision}</p>
+  return <details className="mt-2 border rounded p-2"><summary className="cursor-pointer font-semibold">Технические подробности проверки · {response.valid ? 'готово' : 'нужны данные'}</summary>
+    <p>Версия ввода: {response.input_revision}</p>
     {response.required_inputs?.map((field) => <div key={field} className="text-amber-700">Нужно: {field}</div>)}
     {response.conversions?.map((node) => <div key={node.node_id} className="mt-1"><code>{node.field}</code>: raw {node.raw_value} {node.raw_unit} → normalized {node.normalized_value} {node.normalized_unit} <span className="text-slate-400">({node.provenance.source})</span></div>)}
   </details>;

@@ -77,7 +77,7 @@ def _guidance_for(message: str) -> str | None:
     if exact:
         return exact
     lower = message.casefold()
-    if "npv" in lower or "нпв" in lower:
+    if "npv" in lower or "нпв" in lower or "денежного эффекта" in lower:
         return GUIDANCE["Почему нет NPV?"]
     if "2d" in lower or "2д" in lower or "визуализац" in lower:
         return GUIDANCE["Где посмотреть 2D?"]
@@ -290,10 +290,10 @@ def answer_catalog(snapshot: CatalogSnapshotDTO, request: AssistantRequest) -> d
         else:
             question = "Есть ли ограничения по массе груза, ширине проходов или графику смен?"
     reply = guidance or (
-        f"В активном каталоге {corpus['version']} нашёл {len(matches)} текстовых совпадений. "
+        f"В активном каталоге нашёл {len(matches)} текстовых совпадений. "
         "Характеристики ниже приведены только при наличии подтверждённого факта; применимость и закупку нужно проверять отдельно."
         if matches else
-        f"По этой формулировке в активном каталоге {corpus['version']} подтверждённых совпадений нет. "
+        f"По этой формулировке в активном каталоге подтверждённых совпадений нет. "
         "Попробуйте описать операцию и груз другими словами."
     )
     draft = _extract_draft(context)

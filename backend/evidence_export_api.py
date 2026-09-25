@@ -14,11 +14,12 @@ from sqlalchemy.orm import Session
 from auth import AuthContext, require_auth_context
 from calculation.evidence_export import (
     EvidenceExportIntegrityError,
-    EvidenceExportManifestV2,
+    EvidenceExportManifestV3,
     EvidenceRunSnapshotV1,
-    build_evidence_export_v2,
+    build_evidence_export_v3,
 )
 from calculation.readable_report import build_readable_report
+from presentation import VERSION as PRESENTATION_VERSION
 from database import database_session
 from persistence_models import AnalysisRun, Project
 
@@ -110,13 +111,13 @@ def create_evidence_export_router(
             # Missing, inactive and another tenant's run deliberately look identical.
             raise HTTPException(status_code=404, detail="analysis run not found")
         try:
-            return build_evidence_export_v2(run, linked_capacity_for(run, project_id, context, db))
+            return build_evidence_export_v3(run, linked_capacity_for(run, project_id, context, db))
         except EvidenceExportIntegrityError as exc:
             raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
 
     @router.get(
         "/projects/{project_id}/analysis-runs/{run_id}/exports/manifest",
-        response_model=EvidenceExportManifestV2,
+        response_model=EvidenceExportManifestV3,
     )
     def get_manifest(
         project_id: uuid.UUID,
@@ -136,8 +137,8 @@ def create_evidence_export_router(
         db: Session = Depends(database_session),
     ):
         package = package_for(project_id, run_id, context, db)
-        filename = f"Рободовод, доказательства № {run_id} от {package.manifest.snapshot_captured_at:%d.%m.%Y}.zip"
-        fallback = f"Robodovod-evidence-{run_id}.zip"
+        filename = f"Рободовод, архив расчёта от {package.manifest.snapshot_captured_at:%d.%m.%Y}.zip"
+        fallback = f"Robodovod-evidence-{package.manifest.snapshot_captured_at:%Y-%m-%d}.zip"
         return Response(
             content=package.archive,
             media_type="application/zip",
@@ -161,16 +162,43 @@ def create_evidence_export_router(
             raise HTTPException(status_code=404, detail="analysis run not found")
         try:
             linked = linked_capacity_for(run, project_id, context, db)
-            pdf, source_digest = build_readable_report(run, linked)
+            pdf, source_digest = build_readable_report(run, linked, presentation_version=PRESENTATION_VERSION)
         except EvidenceExportIntegrityError as exc:
             raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
-        filename = f"Рободовод, отчёт № {run.run_id} от {run.finished_at:%d.%m.%Y}.pdf"
-        fallback = f"Robodovod-report-{run.run_id}-{run.finished_at:%Y-%m-%d}.pdf"
+        filename = f"Рободовод, отчёт от {run.finished_at:%d.%m.%Y}.pdf"
+        fallback = f"Robodovod-report-{run.finished_at:%Y-%m-%d}.pdf"
         return Response(
             content=pdf,
             media_type="application/pdf",
             headers={
                 "Content-Disposition": f'attachment; filename="{fallback}"; filename*=UTF-8\'\'{quote(filename, safe="")}',
+                "X-Report-Source-Digest": source_digest,
+                "ETag": f'"sha256:{hashlib.sha256(pdf).hexdigest()}"',
+                "Cache-Control": "private, no-store",
+            },
+        )
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/report-preview.pdf")
+    def preview_readable_report(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        run = run_loader(db, project_id, run_id, context.user.id)
+        if run is None:
+            raise HTTPException(status_code=404, detail="analysis run not found")
+        try:
+            linked = linked_capacity_for(run, project_id, context, db)
+            pdf, source_digest = build_readable_report(run, linked, presentation_version=PRESENTATION_VERSION)
+        except EvidenceExportIntegrityError as exc:
+            raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
+        filename = f"Рободовод, отчёт от {run.finished_at:%d.%m.%Y}.pdf"
+        return Response(
+            content=pdf,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"inline; filename=Robodovod-report.pdf; filename*=UTF-8''{quote(filename, safe='')}",
                 "X-Report-Source-Digest": source_digest,
                 "ETag": f'"sha256:{hashlib.sha256(pdf).hexdigest()}"',
                 "Cache-Control": "private, no-store",

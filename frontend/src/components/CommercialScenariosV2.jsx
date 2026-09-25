@@ -7,6 +7,7 @@ import {
 } from '../commercialScenariosModel';
 import { buildEconomicsSimulationRequest } from '../economicsSimulationRequest';
 import Simulation2DReport from './Simulation2DReport';
+import { fieldPresentation, humanizePresentation, statusLabel } from '../presentation';
 
 const STATUS_LABELS = {
   COMPLETE: 'Рассчитано', INCOMPLETE: 'Недостаточно данных',
@@ -29,9 +30,10 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
     <main className="commercial-screen" aria-label="Коммерческие сценарии">
       <header className="commercial-header">
         <div>
-          <span>COMMERCIAL SCENARIOS V2 · REVISION {bundle.input_revision}</span>
-          <h1>Покупка и RaaS</h1>
-          <p>Экономический run: {bundle.run_id} · Исходный C11: {capacityRunId || 'не указан'}.</p>
+          <span>ЭКОНОМИКА РОБОТИЗАЦИИ</span>
+          <h1>Покупка и аренда</h1>
+          <p>Сохранённые варианты покупки и аренды. Источник — расчёт потребного парка.</p>
+          <details><summary>Технические подробности</summary><p>Расчёт экономики: {bundle.run_id}. Исходный расчёт парка: {capacityRunId || 'не указан'}. Версия ввода: {bundle.input_revision}.</p></details>
           <p>Шесть серверных сценариев. Интерфейс не пересчитывает финансовые показатели.</p>
         </div>
         <div className="commercial-header-actions">
@@ -41,28 +43,28 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
       </header>
 
       <section className="commercial-inputs" aria-label="Коммерческие исходные данные">
-        <div className="commercial-section-title"><div><span>01</span><h2>Исходные данные</h2></div><p>Любое изменение инвалидирует показанный AnalysisRun.</p></div>
+        <div className="commercial-section-title"><div><span>01</span><h2>Исходные данные</h2></div><p>После изменения полей сохранённый результат нужно пересчитать.</p></div>
         <div className="commercial-input-grid">
-          <Input label="Цена оборудования, RUB/robot" value={session.inputs.purchasePrice} onChange={(value) => edit('purchasePrice', value)} />
-          <ReadOnly label="Налоговая база покупки" value={session.inputs.purchaseTaxBasis} />
-          <Input label="Ставка RaaS, raw" value={session.inputs.raasRate} onChange={(value) => edit('raasRate', value)} />
-          <ReadOnly label="Налоговая база RaaS" value={session.inputs.raasTaxBasis} />
+          <Input label="Цена одного робота, ₽" value={session.inputs.purchasePrice} onChange={(value) => edit('purchasePrice', value)} />
+          <ReadOnly label="Налоговая база покупки" value={humanizePresentation(session.inputs.purchaseTaxBasis)} />
+          <Input label="Тариф аренды робота, ₽ в месяц" value={session.inputs.raasRate} onChange={(value) => edit('raasRate', value)} />
+          <ReadOnly label="Налоговая база аренды" value={humanizePresentation(session.inputs.raasTaxBasis)} />
           {bundle.roles.map((role) => (
             <Input
               key={role.role_id}
-              label={`${role.role_code} · gross RUB/person/month`}
+              label={`${role.role_code === 'forklift_driver' ? 'Водитель погрузчика' : 'Роль процесса'} · зарплата до удержаний, ₽/чел./мес.`}
               value={session.inputs.roleSalaries[role.role_id]}
-              placeholder="Обязательно для finance"
+              placeholder="Нужно для денежного расчёта"
               onChange={(value) => edit(`roleSalaries.${role.role_id}`, value)}
             />
           ))}
         </div>
         {bundle.roles.some((role) => role.monthly_gross_salary.status === 'MISSING') && (
-          <p className="commercial-warning" role="status">Есть роль без monthly gross salary: technical result доступен, finance остаётся INCOMPLETE.</p>
+          <p className="commercial-warning" role="status">У одной из ролей нет месячной зарплаты до удержаний: расчёт парка доступен, экономика остаётся частичной.</p>
         )}
         {session.stale && (
           <div className="commercial-stale" role="alert">
-            <div><strong>Результат устарел</strong><p>Поля изменены: {session.dirtyFields.join(', ')}. Старые NPV/payback скрыты.</p></div>
+            <div><strong>Результат устарел</strong><p>Поля изменены: {session.dirtyFields.map((field) => fieldPresentation(field).label).join(', ')}. Денежные показатели скрыты до нового расчёта.</p></div>
             <button type="button" onClick={() => onRecalculate?.(session.inputs)}>Пересчитать на сервере</button>
           </div>
         )}
@@ -71,12 +73,12 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
       {!session.stale && session.result && (
         <>
           <section className="commercial-scenario-section" aria-label="Шесть коммерческих сценариев">
-            <div className="commercial-section-title"><div><span>02</span><h2>Сценарии</h2></div><p>Purchase/RaaS × uncertainty. Статусы независимы.</p></div>
+            <div className="commercial-section-title"><div><span>02</span><h2>Сценарии</h2></div><p>Покупка и аренда при трёх вариантах условий.</p></div>
             <div className="commercial-tabs">
               {session.result.scenarios.map((item) => (
                 <button key={item.key} type="button" className={item.key === scenarioKey ? 'active' : ''} onClick={() => setScenarioKey(item.key)}>
                   <strong>{item.label}</strong>
-                  <small>{STATUS_LABELS[item.recommendation.status] || item.recommendation.status}</small>
+                  <small>{STATUS_LABELS[item.recommendation.status] || statusLabel(item.recommendation.status)}</small>
                 </button>
               ))}
             </div>
@@ -86,14 +88,14 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
 
           <SensitivityPanel variants={session.result.sensitivity} />
 
-          <section className="commercial-trace" aria-label="Версии и ограничения">
-            <div className="commercial-section-title"><div><span>05</span><h2>Trace и версии</h2></div><p>Все значения привязаны к server contracts.</p></div>
+          <details className="commercial-trace" aria-label="Версии и ограничения"><summary>Технические подробности</summary>
+            <p>Версии и источники сохранённого расчёта.</p>
             <dl>{Object.entries(session.result.versions).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}</dl>
             <ul>{session.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
-          </section>
+          </details>
 
           {simulationRequest && <div className="commercial-visualization">
-            <p>2D и 3D используют ScenarioSpec этого immutable run. Для C23 не заданы SLA и мощности погрузочных ресурсов; геометрия синтетическая и не является проектом площадки. Отчёт C23 сохраняется отдельным неизменяемым evidence, связанным с этим run.</p>
+            <p>2D и 3D используют сохранённый технический сценарий. Для симуляции не заданы норматив времени и мощности погрузочных ресурсов; геометрия условная и не является проектом площадки. Отчёт симуляции сохраняется отдельно и связан с этим расчётом.</p>
             <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} analysisRunId={bundle.run_id} />
           </div>}
         </>
@@ -106,52 +108,53 @@ function ScenarioDetails({ scenario }) {
   const allocation = scenario.allocation;
   return (
     <section className="commercial-details" aria-label={`Сценарий ${scenario.label}`}>
-      <div className="commercial-section-title"><div><span>03</span><h2>{scenario.label}</h2></div><p>Run status: {scenario.financial.status}</p></div>
+      <div className="commercial-section-title"><div><span>03</span><h2>{scenario.label}</h2></div><p>Состояние расчёта: {statusLabel(scenario.financial.status)}</p></div>
       <div className="commercial-status-grid">
-        <StatusCard title="Procurement" status={scenario.procurement.ready ? 'READY' : scenario.procurement.status}>
-          <p>Raw: {scenario.procurement.rawAmount == null ? 'не предоставлено' : `${scenario.procurement.rawAmount} ${scenario.procurement.currency}`}</p>
-          <p>Cash gross: {formatServerMoney(scenario.procurement.cashGross)}</p>
-          <p>Tax basis: {scenario.procurement.taxBasis}</p>
-          <p>VAT rate: {scenario.procurement.vatRate == null ? 'не задана; frontend не угадывает' : scenario.procurement.vatRate}</p>
-          <p>Supply risk: {scenario.procurement.supplyRisk}</p>
-          {scenario.procurement.blockers.map((item) => <code key={item}>{item}</code>)}
+        <StatusCard title="Условия закупки" status={scenario.procurement.ready ? 'READY' : scenario.procurement.status}>
+          <p>Исходная цена: {scenario.procurement.rawAmount == null ? 'не предоставлена' : `${scenario.procurement.rawAmount} ${scenario.procurement.currency}`}</p>
+          <p>Цена с налогами: {formatServerMoney(scenario.procurement.cashGross)}</p>
+          <p>Налоговая база: {humanizePresentation(scenario.procurement.taxBasis)}</p>
+          <p>Ставка НДС: {scenario.procurement.vatRate == null ? 'не задана' : scenario.procurement.vatRate}</p>
+          <p>Риск поставки: {statusLabel(scenario.procurement.supplyRisk)}</p>
+          {scenario.procurement.blockers.length > 0 && <p>Условия поставки требуют уточнения.</p>}
+          <details><summary>Технические подробности</summary>{scenario.procurement.blockers.map((item) => <code key={item}>{item}</code>)}</details>
         </StatusCard>
-        <StatusCard title="Financial" status={scenario.financial.status}>
-          <strong>{scenario.financial.npvProject}</strong><span>NPV project</span>
-          <strong>{scenario.financial.simplePayback}</strong><span>Simple payback</span>
-          <strong>{scenario.financial.discountedPayback}</strong><span>Discounted payback</span>
+        <StatusCard title="Денежный результат" status={scenario.financial.status}>
+          <strong>{scenario.financial.npvProject}</strong><span>Чистая приведённая стоимость проекта</span>
+          <strong>{scenario.financial.simplePayback}</strong><span>Простой срок окупаемости</span>
+          <strong>{scenario.financial.discountedPayback}</strong><span>Срок окупаемости с дисконтированием</span>
         </StatusCard>
-        <StatusCard title="Recommendation" status={scenario.recommendation.status}>
-          <p>{scenario.recommendation.candidate_id || 'Кандидат не выбран'}</p>
-          {(scenario.recommendation.reason_codes || []).map((item) => <code key={item}>{item}</code>)}
+        <StatusCard title="Вывод по сценарию" status={scenario.recommendation.status}>
+          <p>{scenario.recommendation.candidate_id ? 'Расчётный вариант выбран' : 'Вариант не выбран'}</p>
+          <details><summary>Технические подробности</summary><p>{scenario.recommendation.candidate_id}</p>{(scenario.recommendation.reason_codes || []).map((item) => <code key={item}>{item}</code>)}</details>
         </StatusCard>
       </div>
 
       <div className="commercial-ledger-grid">
         <article>
-          <h3>Baseline / scenario / delta</h3>
-          <div className="commercial-table-wrap"><table><thead><tr><th>Год</th><th>Baseline CF</th><th>Scenario CF</th><th>Delta</th><th>Sources</th></tr></thead><tbody>
-            {scenario.financial.annualLedgers.map((row) => <tr key={row.year}><td>{row.year}</td><td>{formatServerMoney(row.baseline)}</td><td>{formatServerMoney(row.scenario)}</td><td>{formatServerMoney(row.delta)}</td><td>{row.sourceRefs.join(', ') || 'financial trace'}</td></tr>)}
+          <h3>Денежные потоки по годам</h3>
+          <div className="commercial-table-wrap"><table><thead><tr><th>Год</th><th>Без роботов</th><th>С роботом</th><th>Разница</th><th>Источник</th></tr></thead><tbody>
+            {scenario.financial.annualLedgers.map((row) => <tr key={row.year}><td>{row.year}</td><td>{formatServerMoney(row.baseline)}</td><td>{formatServerMoney(row.scenario)}</td><td>{formatServerMoney(row.delta)}</td><td><details><summary>Проверить</summary>{row.sourceRefs.join(', ') || 'ход денежного расчёта'}</details></td></tr>)}
           </tbody></table></div>
         </article>
         <article>
           <h3>Расходы</h3>
-          <ul className="commercial-expenses">{scenario.expenses.map((line) => <li key={line.line_id}><span><strong>{line.label}</strong><small>{line.source_ref}</small></span><b>{line.amount == null ? line.status : formatServerMoney(line.amount)}</b></li>)}</ul>
+          <ul className="commercial-expenses">{scenario.expenses.map((line) => <li key={line.line_id}><span><strong>{line.label}</strong><details><summary>Источник</summary><small>{line.source_ref}</small></details></span><b>{line.amount == null ? statusLabel(line.status) : formatServerMoney(line.amount)}</b></li>)}</ul>
         </article>
       </div>
 
       <div className="commercial-ledger-grid">
         <article>
-          <h3>Роли и object-level staff</h3>
-          <div className="commercial-table-wrap"><table><thead><tr><th>Роль</th><th>Headcount</th><th>Released</th><th>Remaining</th></tr></thead><tbody>
-            {allocation.role_conservation.map((role) => <tr key={role.role_id}><td>{role.role_id}</td><td>{role.headcount}</td><td>{role.released}</td><td>{role.remaining}</td></tr>)}
+          <h3>Роли и численность на объекте</h3>
+          <div className="commercial-table-wrap"><table><thead><tr><th>Роль</th><th>Сейчас</th><th>Высвобождено</th><th>Остаётся</th></tr></thead><tbody>
+            {allocation.role_conservation.map((role, index) => <tr key={role.role_id}><td>Роль {index + 1}<details><summary>Идентификатор</summary>{role.role_id}</details></td><td>{role.headcount}</td><td>{role.released}</td><td>{role.remaining}</td></tr>)}
           </tbody></table></div>
-          <p className="commercial-note">Пульт: {allocation.control_required_once} · Technical staff: {allocation.technicians_required_once}. Учтены backend один раз.</p>
+          <p className="commercial-note">Диспетчеры: {allocation.control_required_once} · технические специалисты: {allocation.technicians_required_once}. Учтены в расчёте один раз.</p>
         </article>
         <article>
           <h3>Допущения и источники</h3>
-          {scenario.assumptions.map((item) => <details key={item.assumption_id}><summary>{item.label}</summary><p>{item.value} {item.unit}</p><code>{item.provenance_ref}</code></details>)}
-          <p className="commercial-note">Sources: {scenario.sourceRefs.join(', ')}</p>
+          {scenario.assumptions.map((item) => <details key={item.assumption_id}><summary>{humanizePresentation(item.label)}</summary><p>{item.value} {item.unit}</p><code>{item.provenance_ref}</code></details>)}
+          <details className="commercial-note"><summary>Технические источники</summary>{scenario.sourceRefs.join(', ')}</details>
         </article>
       </div>
     </section>
@@ -160,13 +163,13 @@ function ScenarioDetails({ scenario }) {
 
 function SensitivityPanel({ variants }) {
   return (
-    <section className="commercial-sensitivity" aria-label="Sensitivity ±10%">
-      <div className="commercial-section-title"><div><span>04</span><h2>Sensitivity ±10%</h2></div><p>Готовые server deltas; длина полос не вычисляется в браузере.</p></div>
+    <section className="commercial-sensitivity" aria-label="Чувствительность ±10 %">
+      <div className="commercial-section-title"><div><span>04</span><h2>Чувствительность ±10 %</h2></div><p>Готовые значения изменения результата; длина полос не вычисляется в браузере.</p></div>
       <div className="commercial-tornado">{variants.map((variant) => (
         <div key={variant.id} className={`direction-${variant.direction.toLowerCase()}`}>
-          <span>{variant.parameter} · {variant.direction}</span>
-          <strong>{variant.status === 'BLOCKED' ? 'BLOCKED' : formatServerMoney(variant.deltaNpv, variant.unit)}</strong>
-          <small>{variant.reasons.join(', ')}</small>
+          <span>{fieldPresentation(variant.parameter).label} · {variant.direction === 'UP' ? 'увеличение' : 'уменьшение'}</span>
+          <strong>{variant.status === 'BLOCKED' ? 'не рассчитано' : formatServerMoney(variant.deltaNpv, variant.unit)}</strong>
+          <details><summary>Технические причины</summary>{variant.reasons.join(', ')}</details>
         </div>
       ))}</div>
     </section>
@@ -174,7 +177,7 @@ function SensitivityPanel({ variants }) {
 }
 
 function StatusCard({ title, status, children }) {
-  return <article className="commercial-status-card"><header><h3>{title}</h3><span>{STATUS_LABELS[status] || status}</span></header>{children}</article>;
+  return <article className="commercial-status-card"><header><h3>{title}</h3><span>{STATUS_LABELS[status] || statusLabel(status)}</span></header>{children}</article>;
 }
 
 function Input({ label, value, onChange, placeholder = '' }) {

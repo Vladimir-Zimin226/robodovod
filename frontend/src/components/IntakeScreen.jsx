@@ -12,18 +12,18 @@ export default function IntakeScreen({ objectType, initialPrompt = '', importedA
   const applyFile = (normalized, _provenance, imported) => {
     if (normalized?.object_type === 'retail' && normalized?.process_type === 'transport') {
       setV2FileInput({ normalized, imported });
-      setFileNotice('Файл перенесён в v2: объём, график, маршрут и численность. Единиц за рейс и зарплату monthly gross подтвердите вручную.');
+      setFileNotice('Из файла перенесены объём, график, маршрут и численность. Единиц за рейс и месячную зарплату до удержаний подтвердите вручную.');
     } else {
-      setFileNotice('Файл сохранён в проекте, но автоматический перенос в v2 для этого процесса пока недоступен. Перенесите значения вручную.');
+      setFileNotice('Файл сохранён в проекте, но автоматический перенос для этого процесса пока недоступен. Перенесите значения вручную.');
     }
     onFileApplied?.(normalized);
   };
 
-  return <main className="intake-screen flex min-h-full" aria-label="Новый расчёт v2">
+  return <main className="intake-screen flex min-h-full" aria-label="Новый расчёт">
     <div className="flex-1 mx-auto max-w-3xl space-y-4 p-6">
       <header>
         <h1 className="text-xl font-bold">Расчёт сценария роботизации</h1>
-        <p className="text-sm text-slate-400">Объект → зона → процесс и роли → C11 → экономика и 2D.</p>
+        <p className="text-sm text-slate-400">Объект → зона → процесс и роли → расчёт парка → экономика и 2D.</p>
       </header>
       {initialPrompt && <section className="rounded-xl border p-4 text-sm">
         <h2 className="font-semibold">Ваше описание процесса</h2>
@@ -31,7 +31,7 @@ export default function IntakeScreen({ objectType, initialPrompt = '', importedA
         <p className="mt-2 text-xs text-amber-300">Описание сохранено только на этом экране. Перенесите подтверждённые числа в форму справа.</p>
       </section>}
       {!supported ? <section className="rounded-xl border p-5">
-        <h2 className="font-semibold">Для этого объекта v2-расчёт пока не поддержан</h2>
+        <h2 className="font-semibold">Для этого объекта расчёт пока не поддержан</h2>
         <p className="mt-2 text-sm">Выберите склад, аэропорт или клинику. Старые сохранённые результаты доступны в проектах для просмотра и экспорта.</p>
         <button type="button" className="primary-action mt-3" onClick={onOpenObjects}>Выбрать поддержанный объект</button>
       </section> : <>
@@ -40,8 +40,8 @@ export default function IntakeScreen({ objectType, initialPrompt = '', importedA
         {fileNotice && <p className="text-xs text-amber-300">{fileNotice}</p>}
         <section className="rounded-xl border p-5 text-sm">
           <h2 className="font-semibold">Один расчётный маршрут</h2>
-          <p className="mt-2">Выберите зону и процесс справа, укажите нагрузку, маршрут, график и роли. Сервер сохранит C11 для выбранного процесса. Затем можно отдельно рассчитать экономику и C23.</p>
-          <p className="mt-2 text-amber-300">Если зон или процессов несколько, каждому нужен свой C11 run. Общие роботы, роли и затраты нельзя суммировать автоматически; закупочная готовность требует отдельной проверки.</p>
+          <p className="mt-2">Выберите зону и процесс справа, укажите нагрузку, маршрут, график и роли. Сервер сохранит расчёт потребного парка для выбранного процесса. Затем можно отдельно рассчитать экономику и симуляцию.</p>
+          <p className="mt-2 text-amber-300">Если зон или процессов несколько, каждому нужен свой расчёт парка. Общие роботы, роли и затраты нельзя суммировать автоматически; закупочная готовность требует отдельной проверки.</p>
         </section>
       </>}
     </div>

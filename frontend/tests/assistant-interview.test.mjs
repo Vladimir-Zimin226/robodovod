@@ -72,7 +72,7 @@ test('missing or disputed data cannot be imported and unknown economy remains ex
   const changed = editProfile(profile, 'avg_distance_m', '200');
   assert.equal(canImportProfile(changed), false);
   assert.ok(profileReadiness(changed).capacity.includes('avg_distance_m'));
-  assert.match(profileReadiness(changed).economics[0], /закупочные/);
+  assert.match(profileReadiness(changed).economics[0], /покупки и аренды/);
   assert.equal(canImportProfile(confirmed('peak_multiplier', '0', profile)), false);
 });
 

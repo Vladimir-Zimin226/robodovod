@@ -35,25 +35,25 @@ export default function TechnicalVisualization({ run, capacityRequest, project, 
         body: JSON.stringify(body),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.issues?.[0]?.next_step || payload.detail || 'Не удалось сохранить технический run.');
+      if (!response.ok) throw new Error(payload.issues?.[0]?.next_step || payload.detail || 'Не удалось сохранить технический расчёт.');
       setTechnicalRun(payload);
     } catch (failure) { setError(failure.message); }
     finally { setBusy(false); }
   };
 
-  return <section className="technical-visualization mx-auto my-6 max-w-6xl space-y-3" aria-label="Техническая визуализация C23">
+  return <section className="technical-visualization mx-auto my-6 max-w-6xl space-y-3" aria-label="Симуляция процесса">
     <div className="technical-visualization-intro rounded-xl border p-4">
-      <h2 className="font-semibold">2D/C23 · схема работы</h2>
-      <p className="text-sm">KPI получаются из сохранённого отчёта C23. Геометрия без плана объекта условная; это не телеметрия. Денежный эффект рассчитывается отдельно.</p>
+      <h2 className="font-semibold">2D · схема работы</h2>
+      <p className="text-sm">Показатели берутся из сохранённой симуляции процесса. Геометрия без плана объекта условная; это не телеметрия. Денежный эффект рассчитывается отдельно.</p>
       {request ? <p className="text-sm text-green-800">Схема работы доступна. {current?.result_snapshot?.branches?.purchase?.status !== 'CALCULATED' ? 'Денежный эффект не рассчитан.' : 'Экономические ветки показаны отдельно.'}</p>
-        : <p className="text-sm text-amber-800">Схема работы пока недоступна. {reasons.length ? `Нужно уточнить: ${reasons.map(economicsFieldLabel).join(', ')}.` : 'Укажите календарь и создайте новый связанный run.'}</p>}
+        : <p className="text-sm text-amber-800">Схема работы пока недоступна. {reasons.length ? `Нужно уточнить: ${reasons.map(economicsFieldLabel).join(', ')}.` : 'Укажите календарь и создайте новый связанный расчёт.'}</p>}
       {!request && capacityRequest && project && capacityRunId && <form className="mt-3 flex flex-wrap items-end gap-3" onSubmit={create}>
         <label className="text-sm">Начало работы · местное время<input className="block rounded border p-2" type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} required /></label>
         <label className="text-sm">Часовой пояс IANA<input className="block rounded border p-2" value={timezone} onChange={(event) => setTimezone(event.target.value)} placeholder="Europe/Moscow" required /></label>
-        <button type="submit" className="primary-action" disabled={busy}>{busy ? 'Сохраняем…' : 'Создать технический run для 2D'}</button>
-        <p className="w-full text-xs">Исходный C11 остаётся неизменным; новый run будет связан с ним и доступен в проекте.</p>
+        <button type="submit" className="primary-action" disabled={busy}>{busy ? 'Сохраняем…' : 'Создать технический расчёт для 2D'}</button>
+        <p className="w-full text-xs">Исходный расчёт парка остаётся неизменным; новый расчёт будет связан с ним и доступен в проекте.</p>
       </form>}
-      {!request && !capacityRequest && <p className="text-xs">Для сохранённого частичного run откройте редактор ниже, заполните начало работы и часовой пояс и создайте новый run. Если не хватает маршрута или графика C11, вернитесь к вводу процесса.</p>}
+      {!request && !capacityRequest && <p className="text-xs">Для сохранённого частичного расчёта откройте редактор ниже, заполните начало работы и часовой пояс и создайте новый расчёт. Если не хватает маршрута или графика, вернитесь к вводу процесса.</p>}
       {error && <p role="alert" className="text-red-700">{error}</p>}
     </div>
     {request && <Simulation2DReport key={current.id} request={request} analysisRunId={current.id} />}

@@ -4,8 +4,8 @@ export const PROFILE_VERSION = 'assistant-interview-profile-v1';
 export const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 export const STARTER_QUESTIONS = [
   'Что умеет сервис?', 'Какие данные нужны?', 'Можно считать без цены?',
-  'Чем допущение отличается от факта?', 'Почему нет NPV?', 'Где посмотреть 2D?',
-  'Что значат C05 и закупка?', 'Как сравнить роботов?',
+  'Чем допущение отличается от факта?', 'Почему нет денежного эффекта?', 'Где посмотреть 2D?',
+  'Что значат проверка пригодности и закупка?', 'Как сравнить роботов?',
 ];
 export const INTERVIEW_FIELDS = [
   { key: 'object_type', label: 'Объект', step: 'Процесс', kind: 'choice', options: [['retail', 'Склад']] },
@@ -86,8 +86,8 @@ export function profileReadiness(profile) {
   return {
     capacity: capacity.filter((key) => !known(key)),
     labour: labour.filter((key) => !known(key)),
-    economics: ['Ручная выработка, закупочные и RaaS условия, ставка и горизонт заполняются после C11'],
-    visualization: ['Время начала и часовой пояс заполняются после C11'],
+    economics: ['Ручная выработка, условия покупки и аренды, ставка и горизонт заполняются после расчёта парка'],
+    visualization: ['Время начала и часовой пояс заполняются после расчёта парка'],
     unconfirmed: Object.keys(fields).filter((key) => !fields[key].confirmed),
     invalid: [...new Set(invalid)],
   };

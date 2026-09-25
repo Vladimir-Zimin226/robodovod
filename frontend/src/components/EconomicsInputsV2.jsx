@@ -7,6 +7,7 @@ import {
   confirmAllEconomicsAssumptions, confirmEconomicsAssumption, editEconomicsField,
   proposeDemoField,
 } from '../economicsDemoAssumptions';
+import { fieldPresentation } from '../presentation';
 
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -29,7 +30,7 @@ const FIELDS = [
   ['Визуализация', 'startSeconds', 'start_seconds_from_midnight', 'Начало смены', 'сек. от 00:00', 'Для полной версии сценария; 28800 = 08:00.', 'График работы'],
 ];
 const CHECKS = [
-  ['Труд', 'grossConfirm', 'role_salaries_confirmed_as_monthly_gross', 'Зарплаты C03 и этой формы действительно monthly gross. Неизвестный legacy fte_cost не подходит.'],
+  ['Труд', 'grossConfirm', 'role_salaries_confirmed_as_monthly_gross', 'Подтверждаю, что зарплаты ролей и этой формы указаны за месяц до удержаний.'],
   ['Покупка', 'currencyConfirm', 'organizer_price_currency_rub_confirmed', 'Для сценария трактую цену организаторов как рубли. Это не оферта поставщика.'],
   ['Покупка', 'initialBatteryConfirm', 'initial_battery_in_robot_price_confirmed', 'Для сценария начальная батарея включена в цену робота.'],
   ['Покупка', 'batteryServiceConfirm', 'battery_replacements_in_service_confirmed', 'Для сценария замены батареи включены в сервис.'],
@@ -90,13 +91,13 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
   };
   if (!project || !scenario || !capacityRunId) return null;
   const roleRefs = capacityRequest?.process?.role_refs || [];
-  return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={(event) => event.preventDefault()} noValidate aria-label="Экономика C13–C21">
+  return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={(event) => event.preventDefault()} noValidate aria-label="Расчёт экономики роботизации">
     <header><h2 className="text-xl font-semibold">Экономика: заполните то, что известно</h2>
       <p className="mt-1 text-sm">Пустое поле — неизвестно, 0 — подтверждённый ноль. Диапазон вводите как 500000..800000: он сохранится, но NPV без точечного значения не считается. Для оценки выберите «Допущение»; она не станет фактом поставщика.</p></header>
     <section className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm" aria-label="Источники и полнота входов">
       <h3 className="font-semibold">Откуда взяты значения</h3>
-      <p>Параметры объекта и C11 показаны в техническом результате со своими источниками. Здесь «Данные пользователя» — ваш ввод; «Допущение для сценария» — предлагаемое или изменённое вами число. Цена каталога и условия RaaS остаются неподтверждёнными коммерческими условиями.</p>
-      <p className="mt-2">C11: {capacityRunId ? 'сохранён' : 'нужен расчёт'} · Труд: {groupCount('Труд').join('/')} · Покупка: {groupCount('Покупка').join('/')} · RaaS: {groupCount('RaaS').join('/')} · Визуализация: {groupCount('Визуализация').join('/')}. Полноту расчёта окончательно проверяет сервер.</p>
+      <p>Параметры объекта и расчёт потребного парка показаны в техническом результате со своими источниками. Здесь «Данные пользователя» — ваш ввод; «Допущение для сценария» — предлагаемое или изменённое вами число. Цена каталога и условия аренды остаются неподтверждёнными коммерческими условиями.</p>
+      <p className="mt-2">Расчёт парка: {capacityRunId ? 'сохранён' : 'нужен расчёт'} · Труд: {groupCount('Труд').join('/')} · Покупка: {groupCount('Покупка').join('/')} · Аренда: {groupCount('RaaS').join('/')} · Визуализация: {groupCount('Визуализация').join('/')}. Полноту расчёта окончательно проверяет сервер.</p>
       <p className="mt-2">Общие затраты площадки вводятся один раз для этого сценария. Если вы рассчитали несколько зон отдельно, их NPV и парки нельзя суммировать без модели общих ресурсов и межзональных потоков.</p>
     </section>
     <section className="rounded-xl border border-blue-200 p-4 text-sm" aria-label="Обзор веток перед сохранением">
@@ -109,7 +110,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
       {!readiness.fullReady && <p className="mt-2 text-amber-900">Если сохранить частично, в PDF/ZIP разделы труда, покупки, RaaS или визуализации с недостающими входами будут помечены «не рассчитано»; NPV для этих веток не появится. Технический результат останется доступен.</p>}
     </section>
     {demoEligible && <section className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm" aria-label="Демо-допущения склада">
-      <h3 className="font-semibold">Демо склада · {WAREHOUSE_ECONOMICS_DEMO.schema_version}</h3>
+      <h3 className="font-semibold">Демо склада</h3>
       <p>{WAREHOUSE_ECONOMICS_DEMO.source}. Дата набора: {WAREHOUSE_ECONOMICS_DEMO.published_on}. Числа можно изменить или очистить.</p>
       <div className="mt-2 flex flex-wrap gap-2">
         <button type="button" className="secondary-action" onClick={() => setValues((current) => applyWarehouseEconomicsDemo(current, FIELDS))}>Предложить все числа</button>
@@ -120,8 +121,8 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
     {['Труд', 'Покупка', 'RaaS', 'Визуализация'].map((group) => <section key={group} aria-label={group}>
       <h3 className="font-semibold">{group}</h3>
       {group === 'Труд' && roleRefs.length > 1 && <label className="block mt-3 text-sm">Основная роль процесса
-        <select value={values.primaryRoleId} onChange={set('primaryRoleId')} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id) => <option key={id} value={id}>{id}</option>)}</select>
-        <small>Для сравнения труда; источник — роли C03.</small></label>}
+        <select value={values.primaryRoleId} onChange={set('primaryRoleId')} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id, index) => <option key={id} value={id}>Роль {index + 1}</option>)}</select>
+        <small>Для сравнения труда; источник — введённые роли процесса.</small></label>}
       <div className="mt-2 grid gap-3 md:grid-cols-3">{FIELDS.filter((field) => field[0] === group && !(field[1] === 'manualUnitsPerShift' && capacityRequest?.process?.scope === 'CLEANING_AREA')).map(([, key, server, label, unit, why, source]) => {
         const fieldIssues = issues.filter((item) => item.field === server);
         return <div key={key} className="block rounded border border-slate-500/40 p-3 text-sm">
@@ -134,7 +135,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
             <option value="USER">Данные пользователя</option><option value="ASSUMPTION">Допущение для сценария</option>
           </select>
           {values.sources[server] === 'ASSUMPTION' && <div className="mt-2 rounded bg-amber-50 p-2 text-xs">
-            {demoEligible && WAREHOUSE_ECONOMICS_DEMO.fields[server] ? <p>Предложение {WAREHOUSE_ECONOMICS_DEMO.schema_version} от {WAREHOUSE_ECONOMICS_DEMO.published_on}: {WAREHOUSE_ECONOMICS_DEMO.fields[server].value} {WAREHOUSE_ECONOMICS_DEMO.fields[server].unit}. {WAREHOUSE_ECONOMICS_DEMO.fields[server].rationale}. Источник: {WAREHOUSE_ECONOMICS_DEMO.source}.</p>
+            {demoEligible && WAREHOUSE_ECONOMICS_DEMO.fields[server] ? <p>Предложение для «{fieldPresentation(server).label}» от {WAREHOUSE_ECONOMICS_DEMO.published_on}: {WAREHOUSE_ECONOMICS_DEMO.fields[server].value} {WAREHOUSE_ECONOMICS_DEMO.fields[server].unit}. {WAREHOUSE_ECONOMICS_DEMO.fields[server].rationale}. Источник: {WAREHOUSE_ECONOMICS_DEMO.source}.</p>
               : <p>Для этого поля нет шаблона. Введите число вручную и подтвердите его как ваше сценарное допущение.</p>}
             {values[key] !== '' && values.assumptions[server] && <label className="mt-1 flex gap-2"><input type="checkbox" checked={values.assumptions[server].confirmed === true} onChange={(event) => setValues((current) => confirmEconomicsAssumption(current, server, event.target.checked))} />Подтверждаю число {values[key]} для этого сценария</label>}
             {values[key] !== '' && !values.assumptions[server] && <p>Нужно ввести и подтвердить число.</p>}
@@ -151,7 +152,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
       <p>Каждое подтверждение относится только к этому сценарию и не подтверждает условия поставщика. Проверьте смысл условий, затем отметьте каждое отдельно.</p>
       {CHECKS.map(([, key, server, label]) => <label key={key} className="mt-3 flex gap-2 rounded border p-2"><input id={`economics-condition-${key}`} type="checkbox" checked={values[key]} onChange={set(key)} /><span>{label}<small className="block">{ECONOMICS_CONDITIONS.find((item) => item.key === key)?.consequence}</small>{issues.some((item) => item.field === server) && <small className="block text-red-700">Нужно для этой ветки.</small>}</span></label>)}
     </section>
-    <p className="text-sm">C05 и закупочная готовность проверяются отдельно. Этот расчёт не подтверждает поставщика и не даёт рекомендации к закупке.</p>
+    <p className="text-sm">Пригодность на объекте и закупочная готовность проверяются отдельно. Этот расчёт не подтверждает поставщика и не даёт рекомендации к закупке.</p>
     {error && <p className="text-red-700" role="alert">{error}</p>}
     <div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={readiness.fullReady ? submit : goToMissing} className="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white disabled:bg-slate-300">Полный расчёт</button>
       <button type="button" disabled={busy} onClick={submit} className="secondary-action">{busy ? 'Сохраняем…' : 'Сохранить частичный результат'}</button></div>
