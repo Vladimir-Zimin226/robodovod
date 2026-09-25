@@ -55,7 +55,12 @@ API: [журнал этапа 5](planning/post-deploy-usability-stage5-solution-
 [единый расчёт v2 и зоны процесса](planning/hackathon-product-readiness-stage4.md),
 [помощник и подтверждаемый черновик](planning/hackathon-product-readiness-stage5.md),
 [лендинг и короткий путь к ценности](planning/hackathon-product-readiness-stage6.md).
-Следующим по команде владельца идёт этап 7: сквозная приёмка и выпуск.
+Этап 7 локально принят на одноразовой PostgreSQL и в Chrome на 1366/390 px:
+[журнал и короткий сценарий показа](planning/hackathon-product-readiness-stage7.md).
+Исправлено скрытое поле «Единиц/рейс» для собственного паллетного C11.
+Production-приёмка ещё открыта: SSH и HTTPS `/ready` 25 сентября завершились
+timeout; живые HEAD/Compose и пользовательский маршрут нужно зафиксировать
+после восстановления доступа.
 Для тестировщиков подготовлено [руководство пользователя текущей версии](USER_GUIDE_CURRENT_2026-09-25.md)
 и [PDF для пересылки](USER_GUIDE_CURRENT_2026-09-25.pdf). Описанные в нём
 ограничения относятся к выпуску `8aaa0e7`; после продуктовых доработок
