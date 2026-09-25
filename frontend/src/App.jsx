@@ -44,6 +44,7 @@ export default function App() {
   const [intakeInitialSources, setIntakeInitialSources] = useState(null);
   const [catalogFocusId, setCatalogFocusId] = useState(null);
   const [assistantSession, setAssistantSession] = useState(null);
+  const [assistantImport, setAssistantImport] = useState(null);
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [activeProject, setActiveProject] = useState(null);
@@ -127,6 +128,7 @@ export default function App() {
     showPhase('onboarding');
     setObjectType(null);
     setPreset(null);
+    setAssistantImport(null);
     setIntakeInitialSources(null);
     setResult(null);
     setActiveRun(null);
@@ -138,6 +140,7 @@ export default function App() {
   const assistantSessionKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}`;
 
   const openCalculation = () => {
+    setAssistantImport(null);
     setIntakeInitialSources(null);
     const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
     const nextType = savedInput?.object_type || objectType || 'retail';
@@ -197,6 +200,7 @@ export default function App() {
     if (!prompt) return;
     setObjectType(objectType && objectType !== 'other' ? objectType : 'retail');
     setPreset(null);
+    setAssistantImport(null);
     setIntakeInitialSources(null);
     setIntakePrompt(prompt);
     showPhase('intake');
@@ -215,6 +219,7 @@ export default function App() {
               setIntakeInitialSources(null);
               setIntakePrompt('');
               setObjectType(t);
+              setAssistantImport(null);
               const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
               setPreset(savedInput?.object_type === t ? savedInput : null);
               showPhase('intake');
@@ -228,11 +233,10 @@ export default function App() {
             onStartCalculation={openCalculation}
             onOpenCatalog={(positionId = null) => { setCatalogFocusId(positionId); catalogReturnPhase.current = 'process'; showPhase('catalog'); }}
             onOpenAccount={() => showPhase('account')}
-            onConfirmDraft={(draft) => {
-              setObjectType(draft.fields.object_type || 'other');
-              setPreset(draft.fields);
-              setIntakeInitialSources(Object.fromEntries(Object.keys(draft.fields).map((key) => [key, 'manual'])));
-              setIntakePrompt(draft.summary || '');
+            onConfirmDraft={(profile) => {
+              setObjectType(profile.fields.object_type.value);
+              setAssistantImport({ profile, id: Date.now() });
+              setIntakePrompt('Подтверждённые поля интервью перенесены в форму v2. Проверьте модель и отдельные условия C11.');
               showPhase('intake');
             }}
             onReturnToResult={() => showPhase('results')} />
@@ -242,6 +246,7 @@ export default function App() {
             initialCollected={preset}
             initialSources={intakeInitialSources}
             initialPrompt={intakePrompt}
+            importedAssistant={assistantImport}
             activeProject={activeProject}
             user={user}
             authChecked={authChecked}

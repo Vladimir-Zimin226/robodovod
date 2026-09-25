@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ProjectFileIntake from './ProjectFileIntake';
 import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 
-export default function IntakeScreen({ objectType, initialPrompt = '', activeProject, user, authChecked,
+export default function IntakeScreen({ objectType, initialPrompt = '', importedAssistant, activeProject, user, authChecked,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
   onFileApplied, onIntakeV2Normalized, onCapacityResult }) {
   const [v2FileInput, setV2FileInput] = useState(null);
@@ -45,8 +45,8 @@ export default function IntakeScreen({ objectType, initialPrompt = '', activePro
         </section>
       </>}
     </div>
-    {supported && <ProcessRoleIntakeV2 key={`${objectType}:${v2FileInput?.imported?.id || 'manual'}`}
-      objectType={objectType} importedFile={v2FileInput} activeProject={activeProject} user={user}
+    {supported && <ProcessRoleIntakeV2 key={`${objectType}:${v2FileInput?.imported?.id || importedAssistant?.id || 'manual'}`}
+      objectType={objectType} importedFile={v2FileInput} importedAssistant={importedAssistant?.profile} activeProject={activeProject} user={user}
       authChecked={authChecked} projectChoices={projectChoices} projectStatus={projectStatus}
       onChooseProject={onChooseProject} onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount}
       onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />}

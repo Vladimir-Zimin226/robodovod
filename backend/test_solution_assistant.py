@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 import uuid
 from datetime import date
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -61,6 +63,39 @@ def test_no_answer_and_disputed_spec_are_not_invented():
     assert "нет" in missing["reply"]
     assert all(fact["code"] != "max_speed_m_s" for card in disputed["matches"] for fact in card["facts"])
     assert "100 м/с" not in disputed["reply"]
+    assert all(fact["status"] == "RESOLVED" for card in disputed["matches"] for fact in card["facts"])
+
+
+def test_guidance_and_normalized_comparison_show_missing_facts_with_source():
+    guidance = assistant.answer_catalog(snapshot(), assistant.AssistantRequest(message="Почему нет NPV?"))
+    assert guidance["mode"] == "guidance"
+    assert "денежного потока" in guidance["reply"]
+    assert guidance["matches"] == []
+    assert assistant.answer_catalog(snapshot(), assistant.AssistantRequest(message="Объясни, почему нет NPV"))["mode"] == "guidance"
+    result = assistant.answer_catalog(snapshot(), assistant.AssistantRequest(message="Перевозка паллет"))
+    payload = result["comparison_criteria"][0]
+    assert payload["code"] == "payload_kg"
+    assert [item["value"] for item in payload["values"]] == ["500", "500"]
+    assert all(item["card_url"].startswith("/api/catalog/positions/") for item in payload["values"])
+    assert result["comparison_criteria"][1]["values"][0]["status"] == "MISSING"
+
+
+def test_process_concept_retrieval_on_organizer_product_text():
+    path = Path(__file__).resolve().parents[1] / "data/import/organizer-catalog-v4/catalog_products.json"
+    products = json.loads(path.read_text(encoding="utf-8"))["products"]
+    cards = [{"id": item["product_id"], "name": item["name"],
+              "family": item.get("system_family"), "type": item.get("type"), "use": "",
+              "description": (item.get("description") or {}).get("normalized"), "facts": []}
+             for item in products]
+    assert len(cards) == 187
+    pallet = [item["name"] for item in assistant._rank(cards, "перевозка паллет по складу")[:3]]
+    assert any("Ronavi H1500" in name for name in pallet)
+    floor = [item["name"] for item in assistant._rank(cards, "уборка пола на складе")[:3]]
+    assert "Unit" in floor and "АК-SC80" in floor
+    assert all("Astramis" not in name and not name.startswith("AMR ") for name in floor)
+    stacker = assistant._rank(cards, "робот штабелер")[:3]
+    assert any("RoboCV" in item["name"] for item in stacker)
+    assert assistant._rank(cards, "квантовый тоннель зефир") == []
 
 
 def test_conversation_creates_unconfirmed_intake_draft():

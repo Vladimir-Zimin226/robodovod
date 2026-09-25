@@ -219,6 +219,31 @@ def test_registration_session_csrf_and_three_scenarios():
         assert PASSWORD_A not in user.password_hash
 
 
+def test_assistant_interview_profile_is_saved_in_owned_project_only():
+    with TestClient(main.app) as owner, TestClient(main.app) as other:
+        _, owner_headers = _register(owner, "assistant-owner@example.com")
+        project = _create_project(owner, owner_headers)
+        _, other_headers = _register(other, "assistant-other@example.com")
+        endpoint = f"/api/assistant/projects/{project['id']}/profile"
+        profile = {"schema_version": "assistant-interview-profile-v1", "fields": {
+            "operations_per_day": {"value": "800", "source": "USER_STATEMENT",
+                                   "evidence": "800 паллет в сутки", "confirmed": False},
+        }}
+        assert owner.get(endpoint).json() == {"profile": None}
+        assert owner.put(endpoint, json=profile).status_code == 403
+        saved = owner.put(endpoint, headers=owner_headers, json=profile)
+        assert saved.status_code == 200, saved.text
+        assert owner.get(endpoint).json()["profile"] == profile
+        assert other.get(endpoint).status_code == 404
+        assert other.put(endpoint, headers=other_headers, json=profile).status_code == 404
+        assert owner.put(endpoint, headers=owner_headers, json={**profile, "fields": {
+            "unknown_field": {"value": "1", "source": "USER_ENTRY", "confirmed": True},
+        }}).status_code == 422
+        with get_database().session() as db:
+            stored = db.get(Project, uuid.UUID(project["id"]))
+            assert stored.profile["assistant_interview_v1"] == profile
+
+
 def test_owner_predicate_hides_projects_and_runs_from_another_user():
     with TestClient(main.app) as owner:
         _, owner_headers = _register(owner, "owner@example.com")
