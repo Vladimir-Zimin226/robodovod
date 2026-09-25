@@ -556,6 +556,14 @@ def build_readable_report(
             lines.append((f"Изменение: покупка {_with_reason(_money(p.get('effect')), finance_reason)}; аренда {_with_reason(_money(r.get('effect')), finance_reason)}.", "body"))
     else:
         lines.append((_unknown("годовые денежные потоки отсутствуют в сохранённом результате"), "body"))
+    evidence = _obj(inputs.get("assumption_evidence"))
+    if evidence:
+        lines.append(("Подтверждённые допущения сценария", "section"))
+        lines.append(("Эти значения сохранены как предварительные условия пользователя, а не паспорт или предложение поставщика.", "note"))
+        for field, item in sorted(evidence.items()):
+            source = _obj(item)
+            if source.get("confirmed") is True:
+                lines.append((f"{field}: {_plain(source.get('confirmed_value'))}; набор {source.get('template_id') or source.get('version') or UNKNOWN}; источник {source.get('source') or UNKNOWN}; дата {source.get('published_on') or UNKNOWN}. {source.get('rationale') or UNKNOWN}.", "body"))
     c05 = _obj(result.get("c05"))
     eligibility = {
         "ELIGIBLE": "по сохранённой проверке препятствий не выявлено; паспорт модели и объект всё равно требуют подтверждения",

@@ -47,11 +47,14 @@ test('partial request distinguishes unknown, confirmed zero and assumptions', ()
       sources: { shared_site_capital_gross: 'ASSUMPTION' } },
     capacityRequest, project: { id: 'project.1' }, scenario: { id: 'scenario.1' },
   });
-  assert.equal(result.input.schema_version, 'economics-explicit-inputs-v2');
+  assert.equal(result.input.schema_version, 'economics-explicit-inputs-v3');
   assert.equal(result.input.annual_service_per_robot_gross, null);
   assert.equal(result.input.raas_monthly_per_robot_gross, null);
   assert.equal(result.input.shared_site_capital_gross, '0');
   assert.equal(result.input.field_sources.shared_site_capital_gross, 'ASSUMPTION');
+  assert.equal(result.input.field_sources.control_headcount, 'USER');
+  assert.equal(result.input.field_sources.raas_monthly_per_robot_gross, undefined);
+  assert.deepEqual(result.input.assumption_evidence, {});
   assert.equal('fte_cost_rub' in result.input, false);
 });
 

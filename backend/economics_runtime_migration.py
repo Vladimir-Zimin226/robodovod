@@ -202,7 +202,7 @@ def historical_mapping(
 
         economics_input = input_snapshot.get("economics", {})
         partial_basis_complete = (
-            input_snapshot.get("schema_version") != "economics-run-input-v3"
+            input_snapshot.get("schema_version") not in {"economics-run-input-v3", "economics-run-input-v4"}
             or (
                 isinstance(economics_input, dict)
                 and economics_input.get("role_salaries_confirmed_as_monthly_gross") is True

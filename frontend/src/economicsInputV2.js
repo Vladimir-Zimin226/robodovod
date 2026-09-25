@@ -74,7 +74,7 @@ export function buildEconomicsRunRequest({ values, capacityRequest, project, sce
 
 // Partial inputs preserve an empty field as unknown. Validation and branch
 // readiness are owned by the server and saved with the resulting run.
-export function buildPartialEconomicsRunRequest({ values, capacityRequest, project, scenario }) {
+export function buildPartialEconomicsRunRequest({ values, capacityRequest, project, scenario, sourceRunId = null }) {
   if (!project?.id || !scenario?.id || !capacityRequest?.input_revision || !values.capacityRunId) {
     throw new Error('Откройте сохранённый расчёт мощности C11 и сценарий проекта.');
   }
@@ -97,11 +97,23 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
     raas_infrastructure_owner: optional(values.raasInfrastructureOwner), raas_vendor_scope_confirmed: values.raasScopeConfirm === true,
     start_seconds_from_midnight: optional(values.startSeconds), timezone: optional(values.timezone),
   };
-  const field_sources = Object.fromEntries(
-    Object.entries(values.sources || {}).filter(([, source]) => ['USER', 'ASSUMPTION'].includes(source)),
-  );
+  const numericFields = [
+    'horizon_years', 'discount_rate', 'manual_units_per_shift', 'control_headcount',
+    'control_monthly_gross', 'technician_headcount', 'technician_monthly_gross',
+    'implementation_cost_total_gross', 'annual_service_per_robot_gross',
+    'warranty_years', 'average_power_w', 'shared_site_capital_gross',
+    'shared_annual_cost_gross', 'raas_monthly_per_robot_gross',
+    'raas_contract_months', 'start_seconds_from_midnight',
+  ];
+  const field_sources = Object.fromEntries(numericFields.filter((field) => fields[field] !== null)
+    .map((field) => [field, values.sources?.[field] === 'ASSUMPTION' ? 'ASSUMPTION' : 'USER']));
+  const assumption_evidence = Object.fromEntries(Object.entries(values.assumptions || {}).filter(
+    ([field, evidence]) => field_sources[field] === 'ASSUMPTION' && evidence,
+  ));
   return {
     scenario_id: scenario.id, capacity_run_id: values.capacityRunId,
-    input: { schema_version: 'economics-explicit-inputs-v2', input_revision: capacityRequest.input_revision, ...fields, field_sources },
+    ...(sourceRunId ? { source_run_id: sourceRunId } : {}),
+    input: { schema_version: 'economics-explicit-inputs-v3', input_revision: capacityRequest.input_revision,
+      ...fields, field_sources, assumption_evidence },
   };
 }

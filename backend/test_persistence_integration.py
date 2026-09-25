@@ -33,6 +33,7 @@ from economics_route_activation import (
     rollback_economics_route,
 )
 from economics_runtime_migration import EconomicsDualRunReportV1, EconomicsV2ExecutionV1
+from economics_partial import DEMO_SCENARIO
 from persistence_api import create_persistence_router, purge_expired_tombstones
 from persistence_models import (
     AnalysisRun,
@@ -653,6 +654,42 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert rerun["id"] != created["id"]
         assert rerun["parent_run_id"] == created["id"]
         assert rerun["input_snapshot"]["economics"] == created["input_snapshot"]["economics"]
+
+        assumption = DEMO_SCENARIO["fields"]["implementation_cost_total_gross"]
+        versioned = {**economics_inputs(), "schema_version": "economics-explicit-inputs-v3",
+                     "field_sources": {"implementation_cost_total_gross": "ASSUMPTION"},
+                     "assumption_evidence": {"implementation_cost_total_gross": {
+                         "schema_version": "scenario-assumption-evidence-v1",
+                         "template_id": DEMO_SCENARIO["schema_version"], "version": "v1",
+                         "source": DEMO_SCENARIO["source"], "rationale": assumption["rationale"],
+                         "published_on": DEMO_SCENARIO["published_on"],
+                         "confirmed_value": assumption["value"], "confirmed": True,
+                     }}}
+        versioned_response = owner.post(endpoint, headers=headers, json={
+            "scenario_id": scenario["id"], "capacity_run_id": capacity["run_id"], "input": versioned,
+        })
+        assert versioned_response.status_code == 201, versioned_response.text
+        versioned_run = versioned_response.json()
+        assert versioned_run["input_snapshot"]["schema_version"] == "economics-run-input-v4"
+        assert versioned_run["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v2"
+        assert owner.post(f"{endpoint}/{versioned_run['id']}/replay", headers=headers).json()["status"] == "MATCH"
+        changed = json.loads(json.dumps(versioned))
+        changed["implementation_cost_total_gross"] = "600000"
+        changed["assumption_evidence"]["implementation_cost_total_gross"] = {
+            "schema_version": "scenario-assumption-evidence-v1", "template_id": None,
+            "version": "custom-v1", "source": "USER", "rationale": "Изменено пользователем",
+            "published_on": "2026-09-25", "confirmed_value": "600000", "confirmed": True,
+        }
+        changed_response = owner.post(endpoint, headers=headers, json={
+            "scenario_id": scenario["id"], "capacity_run_id": capacity["run_id"],
+            "source_run_id": versioned_run["id"], "input": changed,
+        })
+        assert changed_response.status_code == 201, changed_response.text
+        changed_run = changed_response.json()
+        assert changed_run["id"] != versioned_run["id"]
+        assert changed_run["parent_run_id"] == versioned_run["id"]
+        assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{versioned_run['id']}").json()["checksums"] == versioned_run["checksums"]
+        assert owner.post(f"{endpoint}/{changed_run['id']}/replay", headers=headers).json()["status"] == "MATCH"
 
         manifest = owner.get(
             f"/api/projects/{project['id']}/analysis-runs/{created['id']}/exports/manifest"

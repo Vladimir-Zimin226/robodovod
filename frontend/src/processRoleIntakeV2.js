@@ -91,6 +91,33 @@ export function createWarehouseDemoDraft() {
   });
 }
 
+export function createWarehouseFileDraft(normalized, imported) {
+  if (normalized?.object_type !== 'retail' || normalized?.process_type !== 'transport') {
+    throw new Error('Файл не описывает поддержанный складской транспортный процесс v2.');
+  }
+  const file = Object.values(imported?.parameter_provenance || {})[0]?.source;
+  if (!/^[0-9a-f]{64}$/.test(file?.sha256 || '')) {
+    throw new Error('У импортированного файла нет проверенной контрольной суммы.');
+  }
+  let draft = createDraft('retail');
+  const fields = {
+    demand: normalized.pallets_per_day, shifts: normalized.shifts_count,
+    hours: normalized.shift_hours, days: normalized.operating_days,
+    distance: normalized.avg_distance_m,
+  };
+  const patch = { active: true, activationSource: 'FILE', fileSource: { sha256: file.sha256, name: file.name }, fieldSources: {} };
+  for (const [key, value] of Object.entries(fields)) {
+    if (value != null && value !== '') { patch[key] = String(value); patch.fieldSources[key] = 'FILE'; }
+  }
+  draft = updateProcess(draft, 'warehouse_receiving_shipping', patch);
+  draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);
+  return updateRole(draft, `${draft.objectId}.forklift_driver`, {
+    headcount: normalized.staff_headcount == null ? '' : String(normalized.staff_headcount),
+    headcountSource: 'FILE', fileSource: { sha256: file.sha256, name: file.name },
+    salary: '', salarySource: 'USER', salaryConfirmed: true,
+  });
+}
+
 function revise(draft, patch) {
   const revisionNumber = draft.revisionNumber + 1;
   return { ...draft, ...patch, revisionNumber, inputRevision: `draft.${revisionNumber}` };
@@ -183,13 +210,14 @@ export function validateDraft(draft) {
   return issues;
 }
 
-function provenance(value, source = 'USER', confirmed = false) {
-  return { source, raw_text: String(value), user_confirmed: source === 'USER' || confirmed };
+function provenance(value, source = 'USER', confirmed = false, fileSource = null) {
+  return { source, raw_text: String(value), user_confirmed: source === 'USER' || confirmed,
+    ...(source === 'FILE' ? { file_sha256: fileSource?.sha256, file_name: fileSource?.name } : {}) };
 }
 
-function quantity(value, unit, source = 'USER', confirmed = false) {
+function quantity(value, unit, source = 'USER', confirmed = false, fileSource = null) {
   if (value === '' || value == null) return null;
-  return { value: String(value), unit, provenance: provenance(value, source, confirmed) };
+  return { value: String(value), unit, provenance: provenance(value, source, confirmed, fileSource) };
 }
 
 export function serializeDraft(draft) {
@@ -207,22 +235,22 @@ export function serializeDraft(draft) {
       active: process.active,
       activation_source: process.activationSource,
       quantity_kind: process.quantityKind,
-      demand: quantity(process.demand, process.unit, process.fieldSources?.demand || 'USER'),
+      demand: quantity(process.demand, process.unit, process.fieldSources?.demand || 'USER', false, process.fileSource),
       schedule: process.shifts !== '' || process.hours !== '' || process.days !== '' ? {
-        shifts_per_day: quantity(process.shifts, 'shift', process.fieldSources?.shifts || 'USER'),
-        shift_hours: quantity(process.hours, 'h', process.fieldSources?.hours || 'USER'),
-        days_per_year: quantity(process.days, 'day', process.fieldSources?.days || 'USER'),
+        shifts_per_day: quantity(process.shifts, 'shift', process.fieldSources?.shifts || 'USER', false, process.fileSource),
+        shift_hours: quantity(process.hours, 'h', process.fieldSources?.hours || 'USER', false, process.fileSource),
+        days_per_year: quantity(process.days, 'day', process.fieldSources?.days || 'USER', false, process.fileSource),
       } : null,
-      route_distance: quantity(process.distance, 'm', process.fieldSources?.distance || 'USER'),
-      explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER'),
+      route_distance: quantity(process.distance, 'm', process.fieldSources?.distance || 'USER', false, process.fileSource),
+      explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER', false, process.fileSource),
       role_refs: draft.roles.filter((role) => role.processIds.includes(process.processId)).map((role) => role.roleId),
     })),
     roles: draft.roles.map((role) => ({
       role_id: role.roleId,
       object_scope: draft.objectKind,
       role_code: role.roleCode,
-      headcount: quantity(role.headcount, 'person', role.headcountSource || 'USER'),
-      monthly_gross_salary: quantity(role.salary, 'RUB/person/month', role.salarySource, role.salaryConfirmed),
+      headcount: quantity(role.headcount, 'person', role.headcountSource || 'USER', false, role.fileSource),
+      monthly_gross_salary: quantity(role.salary, 'RUB/person/month', role.salarySource, role.salaryConfirmed, role.fileSource),
       zero_cost_marker: nonNegative(role.salary) && Number(role.salary) === 0 ? 'ZERO_COST_ROLE' : null,
       process_ids: role.processIds,
     })),

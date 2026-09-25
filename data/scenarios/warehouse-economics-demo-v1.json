@@ -1,0 +1,26 @@
+{
+  "schema_version": "warehouse-economics-demo-v1",
+  "scenario_id": "warehouse-pallet-transport",
+  "published_on": "2026-09-25",
+  "source": "Авторский проверочный сценарий по backend/test_economics_orchestrator.py::_inputs; значения не являются ценами или нормативами организаторов",
+  "scope": "Склад, паллетные перемещения; технический C11 рассчитывается отдельно по выбранному профилю",
+  "fields": {
+    "manual_units_per_shift": {"value": "100", "unit": "паллет/чел./смену", "rationale": "Условная ручная выработка для сравнения труда"},
+    "control_headcount": {"value": "0", "unit": "чел.", "rationale": "В тестовом baseline отдельного пульта нет; ноль является явным условием"},
+    "control_monthly_gross": {"value": "100000", "unit": "₽/чел./мес. gross", "rationale": "Условная ставка будущего диспетчера, даже при нулевой исходной численности"},
+    "technician_headcount": {"value": "0", "unit": "чел.", "rationale": "В тестовом baseline отдельного техника нет; ноль является явным условием"},
+    "technician_monthly_gross": {"value": "120000", "unit": "₽/чел./мес. gross", "rationale": "Условная ставка будущего технического персонала"},
+    "implementation_cost_total_gross": {"value": "500000", "unit": "₽ gross", "rationale": "Условная смета внедрения, не коммерческое предложение"},
+    "annual_service_per_robot_gross": {"value": "120000", "unit": "₽/робот/год gross", "rationale": "Условный сервисный расход, не тариф поставщика"},
+    "warranty_years": {"value": "1", "unit": "год", "rationale": "Условный гарантийный срок для модели затрат"},
+    "average_power_w": {"value": "1000", "unit": "Вт", "rationale": "Условная средняя мощность для оценки энергии, не паспорт выбранной комплектации"},
+    "shared_site_capital_gross": {"value": "0", "unit": "₽ gross", "rationale": "Условный ноль общих разовых затрат; подтвердите его отдельно для своего объекта"},
+    "shared_annual_cost_gross": {"value": "0", "unit": "₽/год gross", "rationale": "Условный ноль общих ежегодных затрат; подтвердите его отдельно для своего объекта"},
+    "horizon_years": {"value": "5", "unit": "лет", "rationale": "Условный горизонт предварительного сравнения"},
+    "discount_rate": {"value": "0.15", "unit": "доля (15 %)", "rationale": "Сценарная ставка, не финансовая политика заказчика"},
+    "raas_monthly_per_robot_gross": {"value": "180000", "unit": "₽/робот/мес. gross", "rationale": "Условный тариф RaaS, не оферта поставщика"},
+    "raas_contract_months": {"value": "60", "unit": "мес.", "rationale": "Договор покрывает весь пятилетний горизонт"},
+    "start_seconds_from_midnight": {"value": "28800", "unit": "сек. от 00:00", "rationale": "Условное начало смены в 08:00 для календаря визуализации"}
+  },
+  "other_inputs": {"evaluation_date": "2026-09-25", "raas_infrastructure_owner": "VENDOR", "timezone": "Europe/Moscow"}
+}

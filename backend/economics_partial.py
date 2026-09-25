@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal, InvalidOperation
+import json
+from pathlib import Path
 import re
 from typing import Any
 
@@ -28,6 +30,7 @@ from economics_orchestrator import (
 from economics_runtime_migration import EconomicsV2ExecutionV1
 
 INPUT_VERSION = "economics-explicit-inputs-v2"
+INPUT_VERSION_V3 = "economics-explicit-inputs-v3"
 RESULT_VERSION = "economics-partial-result-v1"
 PARTIAL_RULES_VERSION = "calculation-rules-c13-c21-partial-v1"
 
@@ -76,6 +79,30 @@ RAAS_FIELDS = (
     "raas_infrastructure_owner", "raas_vendor_scope_confirmed",
 )
 VISUAL_FIELDS = ("start_seconds_from_midnight", "timezone")
+DEMO_SCENARIO = json.loads((Path(__file__).resolve().parents[1] / "data/scenarios/warehouse-economics-demo-v1.json").read_text(encoding="utf-8"))
+
+
+def _valid_assumption_evidence(field: str, value: str, evidence: Any) -> bool:
+    if not isinstance(evidence, dict) or set(evidence) != {
+        "schema_version", "template_id", "version", "source", "rationale",
+        "published_on", "confirmed_value", "confirmed",
+    } or evidence.get("schema_version") != "scenario-assumption-evidence-v1":
+        return False
+    if evidence.get("confirmed") is not True or evidence.get("confirmed_value") != value:
+        return False
+    try:
+        date.fromisoformat(evidence["published_on"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    if evidence.get("template_id") == DEMO_SCENARIO["schema_version"]:
+        proposal = DEMO_SCENARIO["fields"].get(field)
+        return bool(proposal and value == proposal["value"] and evidence.get("version") == "v1"
+                    and evidence.get("source") == DEMO_SCENARIO["source"]
+                    and evidence.get("rationale") == proposal["rationale"]
+                    and evidence.get("published_on") == DEMO_SCENARIO["published_on"])
+    return (evidence.get("template_id") is None and evidence.get("version") == "custom-v1"
+            and evidence.get("source") == "USER" and isinstance(evidence.get("rationale"), str)
+            and bool(evidence["rationale"].strip()))
 
 
 def _issue(field: str, code: str, message: str, next_step: str) -> dict[str, str]:
@@ -83,7 +110,7 @@ def _issue(field: str, code: str, message: str, next_step: str) -> dict[str, str
 
 
 def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
-    values: dict[str, Any] = {"schema_version": INPUT_VERSION, "input_ranges": {}}
+    values: dict[str, Any] = {"schema_version": raw.get("schema_version"), "input_ranges": {}}
     issues: list[dict[str, str]] = []
     for field, (minimum, maximum) in DECIMALS.items():
         value = raw.get(field)
@@ -143,6 +170,21 @@ def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
     values["field_sources"] = {key: source for key, source in sources.items()
                                if key in DECIMALS | INTEGERS and source in ("USER", "ASSUMPTION")
                                and (values.get(key) is not None or key in values["input_ranges"])} if isinstance(sources, dict) else {}
+    evidence = raw.get("assumption_evidence", {})
+    values["assumption_evidence"] = {}
+    if raw.get("schema_version") == INPUT_VERSION_V3:
+        if not isinstance(evidence, dict):
+            evidence = {}
+        for field, source in values["field_sources"].copy().items():
+            if source != "ASSUMPTION" or values.get(field) is None:
+                continue
+            item = evidence.get(field)
+            if _valid_assumption_evidence(field, str(values[field]), item):
+                values["assumption_evidence"][field] = item
+            else:
+                values[field] = None
+                values["field_sources"].pop(field, None)
+                issues.append(_issue(field, "ASSUMPTION_UNCONFIRMED", "Сценарное число не подтверждено или его источник не совпадает с версией набора.", "Проверьте значение и явно подтвердите допущение."))
     return values, issues
 
 
@@ -157,10 +199,17 @@ def _status(missing: list[str], *, reason: str = "MISSING_INPUT") -> dict[str, A
 def execute_partial_economics_v2(
     raw: dict[str, Any], snapshot: Any, context: EconomicsExecutionContextV1
 ) -> EconomicsV2ExecutionV1:
-    if raw.get("schema_version") != INPUT_VERSION:
+    if raw.get("schema_version") not in {INPUT_VERSION, INPUT_VERSION_V3}:
         raise ValueError("unsupported partial economics input version")
     values, issues = _parse(raw)
     request = context.capacity_request
+    if raw.get("schema_version") == INPUT_VERSION_V3 and request.process.process_code != "warehouse_receiving_shipping":
+        for field, evidence in list(values["assumption_evidence"].items()):
+            if evidence.get("template_id") == DEMO_SCENARIO["schema_version"]:
+                values[field] = None
+                values["field_sources"].pop(field, None)
+                values["assumption_evidence"].pop(field, None)
+                issues.append(_issue(field, "DEMO_SCOPE_MISMATCH", "Складской набор допущений неприменим к этому процессу.", "Введите свои данные или используйте складской C11."))
     if values["input_revision"] != request.input_revision:
         issues.append(_issue("input_revision", "SNAPSHOT_MISMATCH", "Версия входа не совпадает с сохранённым C11.", "Откройте исходный C11 run и повторите ввод."))
     role_refs = request.process.role_refs

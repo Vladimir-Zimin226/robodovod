@@ -15,6 +15,8 @@ import Simulation2DReport from './components/Simulation2DReport';
 import EvidenceExportPanel from './components/EvidenceExportPanel';
 import EconomicsInputsV2 from './components/EconomicsInputsV2';
 import PartialEconomicsResult from './components/PartialEconomicsResult';
+import SavedEconomicsEditor from './components/SavedEconomicsEditor';
+import GuestWarehouseDemo from './components/GuestWarehouseDemo';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
@@ -288,8 +290,11 @@ export default function App() {
     <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
       {['onboarding', 'intake'].includes(phase) && <Stepper current={currentStep} />}
       <div className="phase-content">
-        {phase === 'onboarding' ? (
+        {phase === 'guestDemo' ? (
+          <GuestWarehouseDemo onContinue={() => { setObjectType('retail'); showPhase('intake'); }} onBack={restart} />
+        ) : phase === 'onboarding' ? (
           <OnboardingScreen
+            onGuestDemo={() => showPhase('guestDemo')}
             onChoose={(t) => {
               setIntakeInitialSources(null);
               setObjectType(t);
@@ -425,7 +430,12 @@ export default function App() {
                 setSaveState('saved');
               }} />
             ) : isCommercialScenariosBundle(result) ? (
-              <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={openCalculation} />
+              <>
+                <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={openCalculation} />
+                <SavedEconomicsEditor key={activeRun?.id || result.run_id} project={activeProject} run={activeRun} onComplete={(run) => {
+                  setActiveRun(run); setResult(run.result_snapshot); setSaveState('saved');
+                }} />
+              </>
             ) : (
               <ResultsPanel
                 result={result}

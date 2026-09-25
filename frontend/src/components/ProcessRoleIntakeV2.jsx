@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   createDraft,
   createWarehouseDemoDraft,
+  createWarehouseFileDraft,
   createNormalizationClient,
   confirmRoleAssumption,
   setRoleActive,
@@ -38,8 +39,9 @@ const statusFor = (process, issues, response) => {
   return ['Готов к нормализации', 'text-green-600'];
 };
 
-export default function ProcessRoleIntakeV2({ objectType, activeProject, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
-  const [draft, setDraft] = useState(() => createDraft(objectType));
+export default function ProcessRoleIntakeV2({ objectType, importedFile, activeProject, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
+  const [draft, setDraft] = useState(() => importedFile
+    ? createWarehouseFileDraft(importedFile.normalized, importedFile.imported) : createDraft(objectType));
   const [expanded, setExpanded] = useState(null);
   const [result, setResult] = useState(null);
   const [state, setState] = useState('');

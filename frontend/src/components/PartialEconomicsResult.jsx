@@ -1,4 +1,4 @@
-import EconomicsInputsV2 from './EconomicsInputsV2';
+import SavedEconomicsEditor from './SavedEconomicsEditor';
 import { economicsFieldLabel } from '../economicsFieldLabels';
 import { formatServerMoney } from '../commercialScenariosModel';
 import { formatFleet } from '../displayNumber';
@@ -37,7 +37,6 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
         <p>Закупка: {scenario.procurement?.procurement_status || 'не подтверждена'}</p>
       </article>)}</div>
     </section>}
-    <EconomicsInputsV2 key={run?.id} capacityRequest={result.capacity_input} capacityRunId={result.capacity_run_id}
-      project={project} initialInput={run?.input_snapshot?.economics} savedResult={result} onComplete={onComplete} />
+    <SavedEconomicsEditor key={run?.id} project={project} run={run} onComplete={onComplete} />
   </div>;
 }

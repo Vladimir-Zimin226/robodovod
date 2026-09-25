@@ -87,6 +87,25 @@ def test_full_report_has_readable_source_bound_financial_values():
     assert digest in text
 
 
+def test_full_report_discloses_confirmed_versioned_assumptions_from_saved_input():
+    run, linked = _full_runs()
+    raw = run.model_dump(mode="json")
+    raw["input_snapshot"]["economics"]["assumption_evidence"] = {
+        "implementation_cost_total_gross": {
+            "schema_version": "scenario-assumption-evidence-v1", "template_id": "warehouse-economics-demo-v1",
+            "version": "v1", "source": "Авторский тест", "rationale": "Условная смета",
+            "published_on": "2026-09-25", "confirmed_value": "500000", "confirmed": True,
+        }
+    }
+    raw["checksums"]["input"] = _checksum(raw["input_snapshot"])
+    pdf, _ = build_readable_report(EvidenceRunSnapshotV1.model_validate(raw), linked)
+    text = _text(pdf)
+    assert "Подтверждённые допущения сценария" in text
+    assert "implementation_cost_total_gross: 500 000" in text
+    assert "не паспорт или предложение поставщика" in " ".join(text.split())
+    assert "источник Авторский тест" in " ".join(text.split())
+
+
 def test_partial_report_explains_missing_values_and_historical_error():
     raw = golden_run().model_dump(mode="json")
     raw["versions"]["application"] = "production-economics-orchestrator-v1"

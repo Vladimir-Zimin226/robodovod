@@ -1,6 +1,7 @@
 const PHASE_HASH = Object.freeze({
   onboarding: '', process: '#process', intake: '#calculation', catalog: '#catalog',
   results: '#results', projects: '#projects', account: '#account', admin: '#admin',
+  guestDemo: '#demo-warehouse',
 });
 
 const HASH_PHASE = Object.fromEntries(Object.entries(PHASE_HASH).map(([phase, hash]) => [hash, phase]));

@@ -41,6 +41,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialSour
       : {}
   );
   const [fileContext, setFileContext] = useState(null);
+  const [v2FileInput, setV2FileInput] = useState(null);
 
   const setManual = (field, value) => {
     setCollected((c) => ({ ...c, [field]: value }));
@@ -110,6 +111,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialSour
       Object.entries(provenance || {}).map(([field, item]) => [field, item.kind.toLowerCase()]),
     ));
     setFileContext(imported || null);
+    if (objectType === 'retail' && mode === 'process-role-v2') setV2FileInput({ normalized, imported });
     onFileApplied?.(normalized);
   };
 
@@ -129,6 +131,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialSour
           scenario={activeProject?.scenarios?.find((item) => item.slot === 'BASE')}
           onApplied={applyFile}
         />
+        {v2FileInput && mode === 'process-role-v2' && <p className="mb-3 text-xs text-amber-800">Файл перенесён в v2: объём, график, маршрут и численность. Укажите единиц за рейс и подтвердите зарплату monthly gross вручную: старый fte_cost_rub не имеет известной базы.</p>}
 
         {/* ─── Переключатель режима ─── */}
         <div className="flex gap-1 mb-4 bg-slate-100 rounded-xl p-1 w-fit">
@@ -212,7 +215,7 @@ export default function IntakeScreen({ objectType, initialCollected, initialSour
       </div>
 
       {mode === 'process-role-v2' ? (
-        <ProcessRoleIntakeV2 key={objectType} objectType={objectType} activeProject={activeProject} user={user} authChecked={authChecked} projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject} onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />
+        <ProcessRoleIntakeV2 key={`${objectType}:${v2FileInput?.imported?.id || 'manual'}`} objectType={objectType} importedFile={v2FileInput} activeProject={activeProject} user={user} authChecked={authChecked} projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject} onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />
       ) : mode === 'whole' ? (
         <ParamsPanel
           collected={collected}

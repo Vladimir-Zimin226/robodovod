@@ -2,7 +2,7 @@ import pytest
 
 from calculation.service import analyze_capacity
 from economics_orchestrator import EconomicsExecutionContextV1
-from economics_partial import execute_partial_economics_v2
+from economics_partial import DEMO_SCENARIO, INPUT_VERSION_V3, execute_partial_economics_v2
 from economics_runtime_migration import historical_mapping
 from test_economics_orchestrator import _capacity_request, _inputs, _snapshot
 
@@ -33,6 +33,7 @@ def test_empty_inputs_save_capacity_and_no_false_finance():
         snapshot, context,
     ).result_snapshot
     assert result["schema_version"] == "economics-partial-result-v1"
+    assert "assumption_evidence" not in result
     assert result["branches"]["capacity"]["status"] == "AVAILABLE"
     assert result["branches"]["purchase"]["status"] == "NOT_CALCULATED"
     assert result["branches"]["raas"]["status"] == "NOT_CALCULATED"
@@ -112,6 +113,71 @@ def test_complete_v2_inputs_use_existing_full_engine():
     result = execute_partial_economics_v2(_input(), snapshot, context)
     assert result.result_snapshot["schema_version"] == "commercial-scenarios-bundle-v2"
     assert len(result.result_snapshot["scenarios"]) == 6
+
+
+def _confirmed_demo_input():
+    raw = _input()
+    raw["schema_version"] = INPUT_VERSION_V3
+    raw["field_sources"] = {field: "ASSUMPTION" for field in DEMO_SCENARIO["fields"]}
+    raw["assumption_evidence"] = {}
+    for field, proposal in DEMO_SCENARIO["fields"].items():
+        raw[field] = proposal["value"]
+        raw["assumption_evidence"][field] = {
+            "schema_version": "scenario-assumption-evidence-v1",
+            "template_id": DEMO_SCENARIO["schema_version"], "version": "v1",
+            "source": DEMO_SCENARIO["source"], "rationale": proposal["rationale"],
+            "published_on": DEMO_SCENARIO["published_on"],
+            "confirmed_value": proposal["value"], "confirmed": True,
+        }
+    raw.update(DEMO_SCENARIO["other_inputs"])
+    return raw
+
+
+def test_confirmed_versioned_warehouse_demo_computes_six_scenarios_without_procurement_upgrade():
+    snapshot, context = _context()
+    raw = _confirmed_demo_input()
+    result = execute_partial_economics_v2(raw, snapshot, context)
+    assert result.result_snapshot["schema_version"] == "commercial-scenarios-bundle-v2"
+    assert len(result.result_snapshot["scenarios"]) == 6
+    assert all(item["procurement"]["procurement_status"] == "UNVERIFIED" for item in result.result_snapshot["scenarios"])
+    assert context.constraint_report["eligibility"] == "NEEDS_VALIDATION"
+    assert len(result.result_snapshot["sensitivity"]["variants"]) == 6
+
+
+def test_unconfirmed_or_modified_demo_value_stays_partial_and_never_substitutes_zero():
+    snapshot, context = _context()
+    raw = _confirmed_demo_input()
+    raw["assumption_evidence"]["raas_monthly_per_robot_gross"]["confirmed"] = False
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["schema_version"] == "economics-partial-result-v1"
+    assert result["branches"]["raas"]["status"] == "NOT_CALCULATED"
+    assert any(item["code"] == "ASSUMPTION_UNCONFIRMED" for item in result["issues"])
+    raw = _confirmed_demo_input()
+    raw["implementation_cost_total_gross"] = "600000"
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert result["scenarios"] == []
+
+
+def test_confirmed_custom_revision_changes_result_without_mutating_original_input():
+    from copy import deepcopy
+
+    snapshot, context = _context()
+    original = _confirmed_demo_input()
+    saved = deepcopy(original)
+    first = execute_partial_economics_v2(original, snapshot, context).result_snapshot
+    edited = deepcopy(original)
+    edited["implementation_cost_total_gross"] = "600000"
+    edited["assumption_evidence"]["implementation_cost_total_gross"] = {
+        "schema_version": "scenario-assumption-evidence-v1", "template_id": None,
+        "version": "custom-v1", "source": "USER", "rationale": "Изменено для нового сценария",
+        "published_on": "2026-09-25", "confirmed_value": "600000", "confirmed": True,
+    }
+    second = execute_partial_economics_v2(edited, snapshot, context).result_snapshot
+    first_npv = next(item for item in first["scenarios"] if item["acquisition"] == "PURCHASE" and item["uncertainty"] == "BASE")["financial"]["npv_project"]["value"]
+    second_npv = next(item for item in second["scenarios"] if item["acquisition"] == "PURCHASE" and item["uncertainty"] == "BASE")["financial"]["npv_project"]["value"]
+    assert first_npv != second_npv
+    assert original == saved
 
 
 def test_partial_replay_is_deterministic_and_keeps_c05():

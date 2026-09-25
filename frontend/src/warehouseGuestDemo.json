@@ -1,0 +1,548 @@
+{
+  "as_of": "2026-09-25",
+  "assumptions_version": "warehouse-economics-demo-v1",
+  "c05": "NEEDS_VALIDATION",
+  "capacity": {
+    "blockers": [],
+    "process_id": "process.receiving",
+    "schema_version": "capacity-result-v1",
+    "status": "WITH_ASSUMPTIONS",
+    "trace_ref": "trace.run.demo.warehouse.c11",
+    "value": {
+      "coverage": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "FRACTION",
+        "unit": "1",
+        "value": "1"
+      },
+      "effective_capacity": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "RATE",
+        "unit": "unit/h",
+        "value": "137.4545454545454545454545455"
+      },
+      "nominal_capacity": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "RATE",
+        "unit": "unit/h",
+        "value": "196.3636363636363636363636364"
+      },
+      "overloaded": false,
+      "raw_load_ratio": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "FRACTION",
+        "unit": "1",
+        "value": "0.992063492063492063492063492"
+      },
+      "recommended_fleet": 18,
+      "selected_fleet": 18,
+      "utilization": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "FRACTION",
+        "unit": "1",
+        "value": "0.992063492063492063492063492"
+      }
+    },
+    "warnings": [
+      {
+        "code": "demo-applicability-unverified",
+        "decision_refs": [
+          "K15"
+        ],
+        "field_refs": [
+          "constraints.validation_codes"
+        ],
+        "message": "Preliminary calculation only; critical C05 checks need validation before procurement or deployment",
+        "node_refs": [],
+        "reason": "MISSING_SAFE_FACT",
+        "severity": "WARNING"
+      },
+      {
+        "code": "speed-safe-max-proxy",
+        "decision_refs": [
+          "K02"
+        ],
+        "field_refs": [
+          "operating_speed"
+        ],
+        "message": "Safe maximum used as disclosed optimistic speed proxy",
+        "node_refs": [],
+        "reason": "UNAPPROVED_ASSUMPTION",
+        "severity": "WARNING"
+      }
+    ]
+  },
+  "input_digest": "sha256:7e851c4a5498522206304a053959307636281864d73f7e03005fadfb18ad7c3d",
+  "model_notice": "Авторский расчётный профиль MULE из проверочного сценария, не паспорт и не коммерческое предложение",
+  "process": "Паллетные перемещения на условном складе: 2 000 паллет/сутки, 2 × 11 ч, плечо 120 м, обмен 90 с",
+  "procurement": "UNVERIFIED",
+  "result_digest": "sha256:0bfa1c53c0c343acc557950fc4177a91753b82879605f1800ffc28faf4676f7f",
+  "scenarios": [
+    {
+      "acquisition": "PURCHASE",
+      "annual_ledgers": [
+        {
+          "differential_cf": "29480182.59",
+          "primary_cf_base": "-108296640.00",
+          "primary_cf_scenario": "-78816457.41",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.pessimistic.year-1"
+          ],
+          "status": "COMPLETE",
+          "year": 1
+        },
+        {
+          "differential_cf": "55330087.74",
+          "primary_cf_base": "-116960371.20",
+          "primary_cf_scenario": "-61630283.46",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.pessimistic.year-2"
+          ],
+          "status": "COMPLETE",
+          "year": 2
+        },
+        {
+          "differential_cf": "80368041.42",
+          "primary_cf_base": "-126317200.90",
+          "primary_cf_scenario": "-45949159.48",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.pessimistic.year-3"
+          ],
+          "status": "COMPLETE",
+          "year": 3
+        },
+        {
+          "differential_cf": "96451896.95",
+          "primary_cf_base": "-136422576.97",
+          "primary_cf_scenario": "-39970680.02",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.pessimistic.year-4"
+          ],
+          "status": "COMPLETE",
+          "year": 4
+        },
+        {
+          "differential_cf": "123313748.18",
+          "primary_cf_base": "-147336383.13",
+          "primary_cf_scenario": "-24022634.94",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.pessimistic.year-5"
+          ],
+          "status": "COMPLETE",
+          "year": 5
+        }
+      ],
+      "npv_project": {
+        "status": "COMPLETE",
+        "unit": "RUB",
+        "value": "164781140.51"
+      },
+      "uncertainty": "PESSIMISTIC"
+    },
+    {
+      "acquisition": "PURCHASE",
+      "annual_ledgers": [
+        {
+          "differential_cf": "39449548.24",
+          "primary_cf_base": "-108296640.00",
+          "primary_cf_scenario": "-68847091.76",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.base.year-1"
+          ],
+          "status": "COMPLETE",
+          "year": 1
+        },
+        {
+          "differential_cf": "72355602.48",
+          "primary_cf_base": "-116960371.20",
+          "primary_cf_scenario": "-44604768.72",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.base.year-2"
+          ],
+          "status": "COMPLETE",
+          "year": 2
+        },
+        {
+          "differential_cf": "94023444.96",
+          "primary_cf_base": "-126317200.90",
+          "primary_cf_scenario": "-32293755.94",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.base.year-3"
+          ],
+          "status": "COMPLETE",
+          "year": 3
+        },
+        {
+          "differential_cf": "102350679.12",
+          "primary_cf_base": "-136422576.97",
+          "primary_cf_scenario": "-34071897.85",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.base.year-4"
+          ],
+          "status": "COMPLETE",
+          "year": 4
+        },
+        {
+          "differential_cf": "126904177.99",
+          "primary_cf_base": "-147336383.13",
+          "primary_cf_scenario": "-20432205.13",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.base.year-5"
+          ],
+          "status": "COMPLETE",
+          "year": 5
+        }
+      ],
+      "npv_project": {
+        "status": "COMPLETE",
+        "unit": "RUB",
+        "value": "212500264.78"
+      },
+      "uncertainty": "BASE"
+    },
+    {
+      "acquisition": "PURCHASE",
+      "annual_ledgers": [
+        {
+          "differential_cf": "57329799.53",
+          "primary_cf_base": "-108296640.00",
+          "primary_cf_scenario": "-50966840.47",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.optimistic.year-1"
+          ],
+          "status": "COMPLETE",
+          "year": 1
+        },
+        {
+          "differential_cf": "86683566.04",
+          "primary_cf_base": "-116960371.20",
+          "primary_cf_scenario": "-30276805.16",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.optimistic.year-2"
+          ],
+          "status": "COMPLETE",
+          "year": 2
+        },
+        {
+          "differential_cf": "101241235.05",
+          "primary_cf_base": "-126317200.90",
+          "primary_cf_scenario": "-25075965.84",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.optimistic.year-3"
+          ],
+          "status": "COMPLETE",
+          "year": 3
+        },
+        {
+          "differential_cf": "109811176.12",
+          "primary_cf_base": "-136422576.97",
+          "primary_cf_scenario": "-26611400.85",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.optimistic.year-4"
+          ],
+          "status": "COMPLETE",
+          "year": 4
+        },
+        {
+          "differential_cf": "134140262.64",
+          "primary_cf_base": "-147336383.13",
+          "primary_cf_scenario": "-13196120.49",
+          "source_refs": [
+            "run.demo.warehouse.economics.finance.optimistic.year-5"
+          ],
+          "status": "COMPLETE",
+          "year": 5
+        }
+      ],
+      "npv_project": {
+        "status": "COMPLETE",
+        "unit": "RUB",
+        "value": "257051298.75"
+      },
+      "uncertainty": "OPTIMISTIC"
+    },
+    {
+      "acquisition": "RAAS",
+      "annual_ledgers": [
+        {
+          "differential_cf": "-7656265.41",
+          "primary_cf_base": "-108296640.00",
+          "primary_cf_scenario": "-115952905.41",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.pessimistic.year-1"
+          ],
+          "status": "COMPLETE",
+          "year": 1
+        },
+        {
+          "differential_cf": "21598357.02",
+          "primary_cf_base": "-116960371.20",
+          "primary_cf_scenario": "-95362014.18",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.pessimistic.year-2"
+          ],
+          "status": "COMPLETE",
+          "year": 2
+        },
+        {
+          "differential_cf": "48492876.45",
+          "primary_cf_base": "-126317200.90",
+          "primary_cf_scenario": "-77824324.45",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.pessimistic.year-3"
+          ],
+          "status": "COMPLETE",
+          "year": 3
+        },
+        {
+          "differential_cf": "65809810.28",
+          "primary_cf_base": "-136422576.97",
+          "primary_cf_scenario": "-70612766.69",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.pessimistic.year-4"
+          ],
+          "status": "COMPLETE",
+          "year": 4
+        },
+        {
+          "differential_cf": "74524411.46",
+          "primary_cf_base": "-147336383.13",
+          "primary_cf_scenario": "-72811971.67",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.pessimistic.year-5"
+          ],
+          "status": "COMPLETE",
+          "year": 5
+        }
+      ],
+      "npv_project": {
+        "status": "COMPLETE",
+        "unit": "RUB",
+        "value": "116237468.42"
+      },
+      "uncertainty": "PESSIMISTIC"
+    },
+    {
+      "acquisition": "RAAS",
+      "annual_ledgers": [
+        {
+          "differential_cf": "2586988.24",
+          "primary_cf_base": "-108296640.00",
+          "primary_cf_scenario": "-105709651.76",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.base.year-1"
+          ],
+          "status": "COMPLETE",
+          "year": 1
+        },
+        {
+          "differential_cf": "39052342.32",
+          "primary_cf_base": "-116960371.20",
+          "primary_cf_scenario": "-77908028.88",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.base.year-2"
+          ],
+          "status": "COMPLETE",
+          "year": 2
+        },
+        {
+          "differential_cf": "62093105.00",
+          "primary_cf_base": "-126317200.90",
+          "primary_cf_scenario": "-64224095.90",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.base.year-3"
+          ],
+          "status": "COMPLETE",
+          "year": 3
+        },
+        {
+          "differential_cf": "70833427.95",
+          "primary_cf_base": "-136422576.97",
+          "primary_cf_scenario": "-65589149.02",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.base.year-4"
+          ],
+          "status": "COMPLETE",
+          "year": 4
+        },
+        {
+          "differential_cf": "79625918.54",
+          "primary_cf_base": "-147336383.13",
+          "primary_cf_scenario": "-67710464.59",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.base.year-5"
+          ],
+          "status": "COMPLETE",
+          "year": 5
+        }
+      ],
+      "npv_project": {
+        "status": "COMPLETE",
+        "unit": "RUB",
+        "value": "152693357.34"
+      },
+      "uncertainty": "BASE"
+    },
+    {
+      "acquisition": "RAAS",
+      "annual_ledgers": [
+        {
+          "differential_cf": "21198615.53",
+          "primary_cf_base": "-108296640.00",
+          "primary_cf_scenario": "-87098024.47",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.optimistic.year-1"
+          ],
+          "status": "COMPLETE",
+          "year": 1
+        },
+        {
+          "differential_cf": "53713202.92",
+          "primary_cf_base": "-116960371.20",
+          "primary_cf_scenario": "-63247168.28",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.optimistic.year-2"
+          ],
+          "status": "COMPLETE",
+          "year": 2
+        },
+        {
+          "differential_cf": "68953685.09",
+          "primary_cf_base": "-126317200.90",
+          "primary_cf_scenario": "-57363515.81",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.optimistic.year-3"
+          ],
+          "status": "COMPLETE",
+          "year": 3
+        },
+        {
+          "differential_cf": "77918854.46",
+          "primary_cf_base": "-136422576.97",
+          "primary_cf_scenario": "-58503722.51",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.optimistic.year-4"
+          ],
+          "status": "COMPLETE",
+          "year": 4
+        },
+        {
+          "differential_cf": "87278179.17",
+          "primary_cf_base": "-147336383.13",
+          "primary_cf_scenario": "-60058203.96",
+          "source_refs": [
+            "run.demo.warehouse.economics.raas.optimistic.year-5"
+          ],
+          "status": "COMPLETE",
+          "year": 5
+        }
+      ],
+      "npv_project": {
+        "status": "COMPLETE",
+        "unit": "RUB",
+        "value": "192329682.31"
+      },
+      "uncertainty": "OPTIMISTIC"
+    }
+  ],
+  "schema_version": "warehouse-guest-demo-v1",
+  "sensitivity": [
+    {
+      "npv_project": {
+        "delta_value": "6609761.95",
+        "unit": "RUB"
+      },
+      "override": {
+        "direction": "LOWER",
+        "parameter_id": "EQUIPMENT_PRICE"
+      },
+      "status": "COMPLETE",
+      "step_reasons": [
+        "no-discrete-fleet-step",
+        "no-headcount-step"
+      ],
+      "variant_id": "variant.equipment_price.lower"
+    },
+    {
+      "npv_project": {
+        "delta_value": "-6609761.94",
+        "unit": "RUB"
+      },
+      "override": {
+        "direction": "UPPER",
+        "parameter_id": "EQUIPMENT_PRICE"
+      },
+      "status": "COMPLETE",
+      "step_reasons": [
+        "no-discrete-fleet-step",
+        "no-headcount-step"
+      ],
+      "variant_id": "variant.equipment_price.upper"
+    },
+    {
+      "npv_project": {
+        "delta_value": "4181351.65",
+        "unit": "RUB"
+      },
+      "override": {
+        "direction": "LOWER",
+        "parameter_id": "OPERATION_VOLUME"
+      },
+      "status": "COMPLETE",
+      "step_reasons": [
+        "discrete-fleet-step",
+        "no-headcount-step"
+      ],
+      "variant_id": "variant.operation_volume.lower"
+    },
+    {
+      "npv_project": {
+        "delta_value": "-8362703.30",
+        "unit": "RUB"
+      },
+      "override": {
+        "direction": "UPPER",
+        "parameter_id": "OPERATION_VOLUME"
+      },
+      "status": "COMPLETE",
+      "step_reasons": [
+        "discrete-fleet-step",
+        "no-headcount-step"
+      ],
+      "variant_id": "variant.operation_volume.upper"
+    },
+    {
+      "npv_project": {
+        "delta_value": "-11940430.41",
+        "unit": "RUB"
+      },
+      "override": {
+        "direction": "LOWER",
+        "parameter_id": "ROLE_SALARY"
+      },
+      "status": "COMPLETE",
+      "step_reasons": [
+        "no-discrete-fleet-step",
+        "no-headcount-step"
+      ],
+      "variant_id": "variant.role_salary.lower"
+    },
+    {
+      "npv_project": {
+        "delta_value": "11940430.41",
+        "unit": "RUB"
+      },
+      "override": {
+        "direction": "UPPER",
+        "parameter_id": "ROLE_SALARY"
+      },
+      "status": "COMPLETE",
+      "step_reasons": [
+        "no-discrete-fleet-step",
+        "no-headcount-step"
+      ],
+      "variant_id": "variant.role_salary.upper"
+    }
+  ],
+  "source": "offline engine capture: scripts/build_warehouse_guest_demo.py"
+}

@@ -6,6 +6,7 @@ import {
   PROCESS_DEFINITIONS,
   confirmRoleAssumption,
   createDraft,
+  createWarehouseFileDraft,
   createNormalizationClient,
   definitionsFor,
   serializeDraft,
@@ -14,6 +15,22 @@ import {
   updateRole,
   validateDraft,
 } from '../src/processRoleIntakeV2.js';
+
+test('warehouse file feeds v2 with FILE provenance and never converts legacy FTE cost to gross salary', () => {
+  const sha = 'a'.repeat(64);
+  const draft = createWarehouseFileDraft({ object_type: 'retail', process_type: 'transport', pallets_per_day: 2000,
+    shifts_count: 2, shift_hours: 11, operating_days: 365, avg_distance_m: 120,
+    staff_headcount: 25, fte_cost_rub: 1562400 },
+  { parameter_provenance: { volume: { source: { name: 'warehouse.csv', sha256: sha } } } });
+  const process = draft.processes.find((item) => item.code === 'warehouse_receiving_shipping');
+  const request = serializeDraft(draft);
+  assert.equal(process.batch, '');
+  assert.equal(request.processes.find((item) => item.active).demand.provenance.source, 'FILE');
+  assert.equal(request.processes.find((item) => item.active).demand.provenance.file_sha256, sha);
+  assert.equal(request.roles[0].headcount.provenance.file_sha256, sha);
+  assert.equal(request.roles[0].monthly_gross_salary, null);
+  assert.equal('fte_cost_rub' in request, false);
+});
 
 function validWarehouseDraft() {
   let draft = createDraft('retail');
