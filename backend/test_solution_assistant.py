@@ -20,6 +20,22 @@ from catalog_repository import (
 )
 
 
+def test_transport_interview_asks_for_trip_quantity_and_project_profile_accepts_it():
+    reply = assistant.answer_catalog(snapshot(), assistant.AssistantRequest(
+        message="Перевозим 220 паллет в сутки, плечо 120 м"))
+    assert "за один рейс" in reply["question"]
+    assert "units_per_trip" not in reply["draft"]["fields"]
+    proposed = assistant.answer_catalog(snapshot(), assistant.AssistantRequest(
+        message="Перевозим 220 паллет в сутки, плечо 120 м, 1 паллета за рейс"))
+    assert proposed["draft"]["fields"]["units_per_trip"] == 1
+    profile = assistant.AssistantProfileV1.model_validate({
+        "schema_version": "assistant-interview-profile-v1", "fields": {
+            "units_per_trip": {"value": "1", "source": "USER_ENTRY", "confirmed": True},
+        },
+    })
+    assert profile.fields["units_per_trip"].confirmed is True
+
+
 def snapshot(code="catalog-v1"):
     positions = []
     models = []

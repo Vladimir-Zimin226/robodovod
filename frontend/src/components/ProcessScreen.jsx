@@ -139,7 +139,7 @@ export default function ProcessScreen({ activeProject, user, hasResult, sessionK
           <p>{activeProject ? `Черновик проекта «${activeProject.name}»` : 'Гостевой черновик хранится в этой вкладке 8 часов.'}</p>
           {profileLoading ? <p role="status">Загружаем черновик…</p> : <>
             <nav className="mt-3 flex flex-wrap gap-2" aria-label="Шаги интервью">{INTERVIEW_STEPS.map((name, index) => <button key={name} type="button" className="secondary-action text-xs" aria-current={step === index ? 'step' : undefined} onClick={() => setStep(index)}>{index + 1}. {name}</button>)}</nav>
-            <div className="mt-3 grid gap-3">{INTERVIEW_FIELDS.filter((field) => field.step === INTERVIEW_STEPS[step]).map((field) => {
+            <div className="mt-3 grid gap-3">{INTERVIEW_FIELDS.filter((field) => field.step === INTERVIEW_STEPS[step] && (field.key !== 'units_per_trip' || profile.fields.process_type?.value === 'transport')).map((field) => {
               const entry = profile.fields[field.key];
               return <div key={field.key} className="rounded border p-3"><label className="block text-sm font-semibold">{field.label}
                 {field.kind === 'choice' ? <select className="mt-1 w-full rounded border p-2" value={entry?.value || ''} onChange={(event) => editField(field.key, event.target.value)}>
@@ -157,6 +157,7 @@ export default function ProcessScreen({ activeProject, user, hasResult, sessionK
             {readiness.invalid.length > 0 && <p role="alert" className="text-sm text-red-700">Проверьте значения: {readiness.invalid.map(fieldLabel).join(', ')}. Объём и график должны быть положительными, смены × часы ≤ 24, зарплата может быть нулевой.</p>}
             {conflicts.length > 0 && <p role="alert" className="text-sm text-amber-700">Новое описание противоречит сохранённым полям: {conflicts.map(fieldLabel).join(', ')}. Проверьте их вручную; помощник не заменил значения.</p>}
             <p className="text-xs">Пиковый множитель остаётся заметкой: v2 C03 пока не имеет отдельного поля для пика. Зарплата переносится как monthly gross только после вашего подтверждения.</p>
+            {profile.fields.process_type?.value === 'transport' && <p className="text-xs">Объём в сутки и плечо не определяют, сколько единиц робот везёт за рейс. Для своего процесса укажите это число сами; один расчёт охватывает один процесс в одной зоне.</p>}
             {activeProject && <button type="button" className="secondary-action mt-2" onClick={saveProfile}>Сохранить черновик в проекте</button>}
             {profileStatus && <p role="status" className="text-xs">{profileStatus}</p>}
             <button type="button" className="primary-action mt-2" disabled={!canImportProfile(profile)} onClick={async () => {

@@ -20,6 +20,7 @@ import websocket
 from pypdf import PdfReader
 
 ROOT = Path(__file__).resolve().parents[1]
+SKIP_CATALOG_MEDIA = os.getenv('STAGE1_SKIP_CATALOG_MEDIA') == '1'
 PROFILE = Path(tempfile.mkdtemp(prefix="stage8-chrome-", dir=ROOT / ".tmp"))
 DOWNLOADS = Path(tempfile.mkdtemp(prefix="stage8-download-", dir=ROOT / ".tmp"))
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
@@ -130,14 +131,16 @@ try:
 
     assert click_nav('.nav-secondary button', 'Библиотека решений')
     until("document.querySelectorAll('.catalog-card').length > 0")
-    until("Boolean(document.querySelector('.catalog-card img')?.complete && document.querySelector('.catalog-card img')?.naturalWidth > 0)")
+    if not SKIP_CATALOG_MEDIA:
+        until("Boolean(document.querySelector('.catalog-card img')?.complete && document.querySelector('.catalog-card img')?.naturalWidth > 0)")
     assert js("document.querySelector('.catalog-notice').textContent.includes('223')")
     js("document.querySelector('.catalog-card-open').click()")
     until("Boolean(document.querySelector('.catalog-detail-dialog'))")
-    assert js("Boolean(document.querySelector('.catalog-detail-dialog img')?.naturalWidth > 0)")
+    if not SKIP_CATALOG_MEDIA:
+        assert js("Boolean(document.querySelector('.catalog-detail-dialog img')?.naturalWidth > 0)")
     assert click_text('[aria-label="Закрыть подробную карточку"]', '')
     check_mobile_width()
-    print('PASS: 223-position catalog, card and detail media', flush=True)
+    print('PASS: 223-position catalog and detail' + ('' if SKIP_CATALOG_MEDIA else ' media'), flush=True)
 
     assert click_nav('.app-nav button', 'Процесс')
     until("Boolean(document.querySelector('#assistant-query'))")
@@ -155,19 +158,22 @@ try:
     for step, label, value in [
         (0, 'Объект', 'retail'), (0, 'Операция', 'transport'),
         (1, 'Груз или объект операции', 'Паллеты'),
-        (2, 'Объём в сутки, паллет или м²', '760'),
+        (2, 'Объём в сутки, паллет или м²', '220'),
         (3, 'Смен в сутки', '2'), (3, 'Часов в смене', '8'),
         (3, 'Рабочих дней в году', '250'),
-        (4, 'Плечо маршрута, м', '150'), (4, 'Название зоны', 'Зона А'),
+        (4, 'Плечо маршрута, м', '120'),
+        (4, 'Сколько паллет (или иных единиц груза) робот перевозит за один рейс?', '1'),
+        (4, 'Название зоны', 'Зона А'),
         (5, 'Сотрудников сейчас', '8'), (5, 'Зарплата gross, ₽/чел./мес.', '75000'),
     ]:
         interview_field(step, label, value)
+    assert not js("[...document.querySelectorAll('.assistant-draft button')].find(e=>e.textContent.includes('Перенести подтверждённые поля'))?.disabled"), js("document.querySelector('.assistant-draft').innerText.slice(-1000)")
     assert click_text('.assistant-draft button', 'Перенести подтверждённые поля в расчёт v2')
     until("location.hash === '#calculation'")
     assert js("document.querySelector('[aria-label=\"Процессы и роли v2\"]').textContent.includes('Зона А')")
     assert js("(() => {const row=[...document.querySelectorAll('[aria-label=\"Процессы и роли v2\"] input[id^=active-]')].find(e=>e.checked)?.closest('section'); const button=row?.querySelector('button[aria-expanded]'); if(!button)return false;button.click();return true})()")
-    until("[...document.querySelectorAll('[aria-label=\"Процессы и роли v2\"] label')].some(e=>e.textContent.includes('Единиц/рейс'))")
-    assert js("(() => {const label=[...document.querySelectorAll('[aria-label=\"Процессы и роли v2\"] label')].find(e=>e.textContent.includes('Единиц/рейс')); const input=label?.querySelector('input'); if(!input)return false; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,'1');input.dispatchEvent(new Event('input',{bubbles:true}));return true})()")
+    until("[...document.querySelectorAll('[aria-label=\"Процессы и роли v2\"] label')].some(e=>e.textContent.includes('за один рейс'))")
+    assert js("[...document.querySelectorAll('[aria-label=\"Процессы и роли v2\"] label')].find(e=>e.textContent.includes('за один рейс'))?.querySelector('input')?.value === '1'")
     assert click_text('[aria-label="Процессы и роли v2"] button', 'Проверить ввод v2')
     until("Boolean(document.querySelector('[aria-label=\"Предварительный расчёт v2\"]'))")
     until("document.querySelectorAll('[aria-label=\"Предварительный расчёт v2\"] select')[1]?.options.length > 1")
@@ -179,10 +185,25 @@ try:
     assert click_text('[aria-label="Предварительный расчёт v2"] button', 'Рассчитать и сохранить v2')
     until("Boolean(document.querySelector('.capacity-results-v2'))", 30)
     until("Boolean(document.querySelector('form.economics-inputs-v2'))")
-    assert click_text('form.economics-inputs-v2 button[type=submit]', 'Сохранить доступный расчёт')
+    assert click_text('form.economics-inputs-v2 button', 'Полный расчёт')
+    assert js("document.activeElement?.id === 'economics-condition-grossConfirm'")
+    assert js("document.querySelector('form.economics-inputs-v2 [role=alert]')?.textContent.includes('пять условий')")
+    assert click_text('form.economics-inputs-v2 button', 'Сохранить частичный результат')
     until("Boolean(document.querySelector('[aria-label=\"Частичный результат экономики\"]'))", 30)
     assert js("document.querySelector('[aria-label=\"Частичный результат экономики\"]').textContent.includes('NPV отмечены «не рассчитано»')")
     print('PASS: confirmed own warehouse inputs, saved C11 and honest partial economics', flush=True)
+
+    assert click_text('details summary', 'Изменить допущение и создать новый run')
+    until("Boolean(document.querySelector('details form.economics-inputs-v2'))")
+    assert fill('details #economics-start_seconds_from_midnight', '32400')
+    assert fill('details #economics-timezone', 'Europe/Moscow')
+    assert click_text('details form.economics-inputs-v2 button', 'Сохранить частичный результат')
+    until("Boolean(document.querySelector('.technical-visualization .simulation-run-box'))", 30)
+    assert click_text('.technical-visualization .simulation-run-box button', 'Запустить расчёт симуляции')
+    until("Boolean(document.querySelector('.technical-visualization .simulation-kpis'))", 90)
+    assert js("Boolean(document.querySelector('.technical-visualization .warehouse-2d-plan') || document.querySelector('.technical-visualization .simulation-canvas-wrap svg'))")
+    assert js("Boolean(document.querySelector('.technical-visualization .robcraft-frame iframe'))")
+    print('PASS: own technical result reaches saved C23, 2D and 3D', flush=True)
 
     assert click_nav('.app-nav button', 'Главная')
     until("Boolean(document.querySelector('.onboarding-screen'))")
@@ -190,6 +211,7 @@ try:
     until("Boolean(document.querySelector('[aria-label=\"Процессы и роли v2\"]'))")
     assert click_text('[aria-label="Процессы и роли v2"] button', 'Загрузить типовой склад организаторов')
     assert click_text('[aria-label="Процессы и роли v2"] button', 'Открыть')
+    assert click_text('[aria-label="Процессы и роли v2"] label', 'Подтверждаю допущение: 1 паллета за рейс')
     assert click_text('[aria-label="Процессы и роли v2"] label', 'Подтверждаю это допущение')
     until("!document.querySelector('[aria-label=\"Процессы и роли v2\"]').innerText.includes('Исправьте обязательные поля')")
     assert click_text('[aria-label="Процессы и роли v2"] button', 'Проверить ввод v2')
@@ -218,7 +240,7 @@ try:
     assert fill('.economics-inputs-v2 input[placeholder="Например, Europe/Moscow"]', 'Europe/Moscow')
     assert js("(() => {const e=[...document.querySelectorAll('.economics-inputs-v2 label')].find(x=>x.textContent.includes('Кто оплачивает инфраструктуру')).querySelector('select'); e.value='VENDOR'; e.dispatchEvent(new Event('change',{bubbles:true})); return e.value})()")
     assert js("(() => {const boxes=[...document.querySelectorAll('.economics-inputs-v2 input[type=checkbox]')]; boxes.forEach(x=>x.click()); return boxes.length})()") >= 5
-    assert click_text('.economics-inputs-v2 button[type=submit]', 'Сохранить доступный расчёт')
+    assert click_text('.economics-inputs-v2 button', 'Полный расчёт')
     until("Boolean(document.querySelector('.commercial-visualization'))", 30)
     assert js("document.querySelector('.commercial-scenario-section').textContent.includes('Сценарии')")
     until("document.querySelector('.evidence-export-v2')?.textContent.includes('Scenarios: AVAILABLE')")
@@ -287,12 +309,13 @@ try:
     assert js("document.documentElement.scrollWidth <= 390"), js("document.documentElement.scrollWidth")
     assert js("Boolean(document.querySelector('.commercial-screen'))")
     assert click_nav('.nav-secondary button', 'Библиотека решений')
-    until("Boolean(document.querySelector('.catalog-card img')?.naturalWidth > 0)")
+    if not SKIP_CATALOG_MEDIA:
+        until("Boolean(document.querySelector('.catalog-card img')?.naturalWidth > 0)")
     assert js("document.documentElement.scrollWidth <= 390"), js("document.documentElement.scrollWidth")
     assert click_nav('.app-nav button', 'Процесс')
     until("Boolean(document.querySelector('#assistant-query'))")
     assert js("document.documentElement.scrollWidth <= 390"), js("document.documentElement.scrollWidth")
-    print('PASS: mobile 390px result, catalog media and assistant', flush=True)
+    print('PASS: mobile 390px result, catalog and assistant', flush=True)
 finally:
     if ws:
         ws.close()

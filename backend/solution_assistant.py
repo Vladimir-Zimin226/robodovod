@@ -50,7 +50,7 @@ _CONCEPT_PREFIXES = (
 _LIMITS = ("огранич", "не поддерж", "не подходит", "требует", "невозмож", "запрещ")
 INTERVIEW_FIELDS = frozenset({
     "object_type", "process_type", "cargo_type", "operations_per_day", "peak_multiplier",
-    "shifts_count", "shift_hours", "operating_days", "avg_distance_m", "zone_label",
+    "shifts_count", "shift_hours", "operating_days", "avg_distance_m", "units_per_trip", "zone_label",
     "zone_constraints", "staff_headcount", "monthly_gross_salary",
 })
 GUIDANCE = {
@@ -241,6 +241,7 @@ def _extract_draft(text: str) -> dict[str, Any]:
     patterns = {
         "pallets_per_day": r"\b(\d{1,6})\s*(?:паллет\w*|поддон\w*|рейс\w*|достав\w*)\s*(?:в\s*(?:сутки|день)|/\s*(?:сутки|день))",
         "avg_distance_m": r"\b(?:плечо|расстояние|маршрут)\s*(\d{1,5}(?:[.,]\d+)?)\s*м\b",
+        "units_per_trip": r"\b(\d{1,4})\s*(?:паллет\w*|поддон\w*|короб\w*|единиц\w*)\s*(?:за\s*(?:один\s*)?|/\s*)рейс\b",
         "shifts_count": r"\b([1-4])\s*смен\w*\b",
         "staff_headcount": r"\b(\d{1,3})\s*(?:человек|сотрудник\w*|водител\w*)\b",
     }
@@ -284,6 +285,8 @@ def answer_catalog(snapshot: CatalogSnapshotDTO, request: AssistantRequest) -> d
             question = "Сколько операций или единиц груза нужно обрабатывать за день?"
         elif "avg_distance_m" not in _extract_draft(context)["fields"]:
             question = "Каково среднее расстояние одного рейса и есть ли ограничения по проходам?"
+        elif _extract_draft(context)["fields"].get("process_type") == "transport" and "units_per_trip" not in _extract_draft(context)["fields"]:
+            question = "Сколько паллет (или иных единиц груза) робот перевозит за один рейс?"
         else:
             question = "Есть ли ограничения по массе груза, ширине проходов или графику смен?"
     reply = guidance or (

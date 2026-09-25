@@ -77,6 +77,7 @@ export function createDraft(objectType, sequence = 1) {
       distance: '',
       batch: '',
       fieldSources: {},
+      fieldConfirmations: {},
     })),
     roles: [],
     overrideEvents: [],
@@ -91,7 +92,7 @@ export function addZone(draft, objectType) {
     ...definition, zoneId, blockId: `block.${zoneId}.${definition.code}`,
     processId: `${zoneId}.${definition.code}`, active: false,
     activationSource: 'USER', demand: '', shifts: '', hours: '', days: '',
-    distance: '', batch: '', fieldSources: {},
+    distance: '', batch: '', fieldSources: {}, fieldConfirmations: {},
   }));
   return revise(draft, { zones: [...draft.zones, { zoneId, label: `Зона ${number}`, constraints: '' }],
     processes: [...draft.processes, ...processes] });
@@ -121,6 +122,7 @@ export function createWarehouseDemoDraft() {
       demand: 'ASSUMPTION', shifts: 'ASSUMPTION', hours: 'ASSUMPTION',
       days: 'ASSUMPTION', distance: 'ASSUMPTION', batch: 'ASSUMPTION',
     },
+    fieldConfirmations: { batch: false },
   });
   draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);
   return updateRole(draft, `${draft.objectId}.forklift_driver`, {
@@ -173,12 +175,21 @@ export function updateProcess(draft, processKey, patch) {
     processes: draft.processes.map((item) => {
       if (item.processId !== target.processId) return item;
       const fieldSources = { ...item.fieldSources };
+      const fieldConfirmations = { ...item.fieldConfirmations };
       for (const key of ['demand', 'shifts', 'hours', 'days', 'distance', 'batch']) {
-        if (Object.hasOwn(patch, key)) fieldSources[key] = 'USER';
+        if (Object.hasOwn(patch, key)) { fieldSources[key] = 'USER'; fieldConfirmations[key] = false; }
       }
-      return { ...item, ...patch, fieldSources: { ...fieldSources, ...(patch.fieldSources || {}) } };
+      return { ...item, ...patch, fieldSources: { ...fieldSources, ...(patch.fieldSources || {}) },
+        fieldConfirmations: { ...fieldConfirmations, ...(patch.fieldConfirmations || {}) } };
     }),
   });
+}
+
+export function confirmProcessAssumption(draft, processKey, key) {
+  const process = findProcess(draft, processKey);
+  if (!process || process.fieldSources?.[key] !== 'ASSUMPTION' || !process[key]) throw new Error('PROCESS_ASSUMPTION_NOT_FOUND');
+  return revise(draft, { processes: draft.processes.map((item) => item.processId === process.processId
+    ? { ...item, fieldConfirmations: { ...item.fieldConfirmations, [key]: true } } : item) });
 }
 
 export function setRoleActive(draft, processKey, roleCode, active) {
@@ -248,6 +259,11 @@ export function validateDraft(draft) {
     } else if (Number(process.shifts) * Number(process.hours) > 24) {
       issues.push({ severity: 'BLOCKER', code: 'SCHEDULE_OVER_24H', ref: `${process.processId}.schedule` });
     }
+    if (['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope)) {
+      if (!positive(process.distance)) issues.push({ severity: 'BLOCKER', code: 'ROUTE_REQUIRED', ref: `${process.processId}.distance` });
+      if (!/^[1-9][0-9]*$/.test(String(process.batch))) issues.push({ severity: 'BLOCKER', code: 'BATCH_REQUIRED', ref: `${process.processId}.batch` });
+      if (process.fieldSources?.batch === 'ASSUMPTION' && !process.fieldConfirmations?.batch) issues.push({ severity: 'BLOCKER', code: 'BATCH_CONFIRMATION_REQUIRED', ref: `${process.processId}.batch` });
+    }
     const assigned = draft.roles.filter((role) => role.processIds.includes(process.processId));
     if (assigned.length === 0) issues.push({ severity: 'INFO', code: 'NO_FOT_BENEFIT', ref: process.processId });
   }
@@ -291,7 +307,7 @@ export function serializeDraft(draft) {
         days_per_year: quantity(process.days, 'day', process.fieldSources?.days || 'USER', false, process.fileSource),
       } : null,
       route_distance: quantity(process.distance, 'm', process.fieldSources?.distance || 'USER', false, process.fileSource),
-      explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER', false, process.fileSource),
+      explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER', process.fieldConfirmations?.batch === true, process.fileSource),
       role_refs: draft.roles.filter((role) => role.processIds.includes(process.processId)).map((role) => role.roleId),
     })),
     roles: draft.roles.map((role) => ({

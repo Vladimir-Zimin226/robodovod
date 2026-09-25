@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../src/demoCapacityFlow.js';
-import { createWarehouseDemoDraft, confirmRoleAssumption, serializeDraft } from '../src/processRoleIntakeV2.js';
+import { createWarehouseDemoDraft, confirmRoleAssumption, confirmProcessAssumption, serializeDraft } from '../src/processRoleIntakeV2.js';
 
 const mule = {
   model_id: '4f866b44-1052-59cc-aa0d-ed1e80729f35',
@@ -103,11 +103,12 @@ test('organizer warehouse preset requires explicit salary confirmation', () => {
   assert.equal(receiving.demand, '2000');
   assert.equal(receiving.distance, '120');
   assert.throws(() => serializeDraft(draft), /INTAKE_DRAFT_INVALID/);
-  const confirmed = confirmRoleAssumption(draft, draft.roles[0].roleId);
+  const confirmed = confirmProcessAssumption(confirmRoleAssumption(draft, draft.roles[0].roleId), receiving.processId, 'batch');
   const request = serializeDraft(confirmed);
   const input = request.processes.find((item) => item.process_code === 'warehouse_receiving_shipping');
   assert.equal(input.demand.provenance.source, 'ASSUMPTION');
   assert.equal(input.route_distance.provenance.source, 'ASSUMPTION');
+  assert.equal(input.explicit_batch.provenance.user_confirmed, true);
   assert.equal(request.roles[0].headcount.provenance.source, 'ASSUMPTION');
   assert.equal(request.roles[0].monthly_gross_salary.provenance.source, 'ASSUMPTION');
   assert.equal(request.roles[0].monthly_gross_salary.provenance.user_confirmed, true);

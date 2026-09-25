@@ -6,6 +6,7 @@ import {
   createWarehouseFileDraft,
   createNormalizationClient,
   confirmRoleAssumption,
+  confirmProcessAssumption,
   removeZone,
   setRoleActive,
   updateProcess,
@@ -58,6 +59,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [exchangeSeconds, setExchangeSeconds] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
   const [capacityBusy, setCapacityBusy] = useState(false);
+  const [focusIssue, setFocusIssue] = useState('');
   const latestRevision = useRef(draft.inputRevision);
   const normalizationClient = useRef(null);
   const capacityClient = useRef(createCapacityAnalysisClient());
@@ -106,7 +108,18 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const selectedPosition = candidatePositions.find((item) => item.position_id === positionId);
 
   const normalize = async () => {
-    if (blockers.length || activeCount === 0) return;
+    if (blockers.length || activeCount === 0) {
+      const issue = blockers[0];
+      const process = draft.processes.find((item) => issue?.ref.startsWith(`${item.processId}.`));
+      if (process) { setSelectedZoneId(process.zoneId); setExpanded(process.processId); }
+      setFocusIssue(issue?.ref || '');
+      setError(issue?.code === 'BATCH_REQUIRED'
+        ? `Для «${process.label}» в зоне «${draft.zones.find((zone) => zone.zoneId === process.zoneId)?.label}» укажите, сколько единиц груза робот перевозит за один рейс.`
+        : issue?.code === 'BATCH_CONFIRMATION_REQUIRED'
+          ? `Подтвердите допущение о числе единиц за рейс для «${process.label}».`
+          : 'Заполните отмеченное обязательное поле выбранного процесса и зоны.');
+      return;
+    }
     setState('loading');
     setError('');
     try {
@@ -123,6 +136,16 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       setState('');
     }
   };
+  useEffect(() => {
+    if (!focusIssue) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const field = document.getElementById(`intake-${focusIssue}`);
+      field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      field?.focus({ preventScroll: true });
+      setFocusIssue('');
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusIssue, expanded, selectedZoneId]);
 
   const runCapacity = async () => {
     setError('');
@@ -150,7 +173,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <div><h2 className="font-semibold">Процессы и роли</h2><p className="text-xs text-slate-500">Черновик v2 · {draft.inputRevision}</p></div>
           <span className="text-[10px] rounded bg-blue-50 text-blue-700 px-2 py-1">{draft.schemaVersion}</span>
         </div>
-        <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Единицы и производные величины проверяет сервер.</p>
+        <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Один расчёт относится к одному процессу в одной зоне; для других процессов создайте отдельные результаты. Единицы и производные величины проверяет сервер.</p>
         {objectType === 'retail' && <button type="button" className="mt-2 text-xs underline text-blue-700" onClick={() => {
           setDraft(createWarehouseDemoDraft());
           setSelectedZoneId(`zone.${draft.objectId}.main`);
@@ -159,7 +182,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           setResult(null);
           setError('');
         }}>Загрузить типовой склад организаторов</button>}
-        {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">120 м плеча и 90 сек. обмена — отдельные демо-допущения; зарплату gross подтвердите в роли.</p>}
+        {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад предлагает 1 паллету за рейс, плечо 120 м и обмен 90 сек. как отдельные допущения. Подтвердите единицы за рейс в процессе и зарплату gross в роли.</p>}
       </header>
 
       <section className="mb-4 rounded-xl border border-slate-600 p-3 text-xs" aria-label="Зоны v2">
@@ -217,12 +240,13 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
               <div className="px-3 pb-2 flex justify-between text-[10px]"><span>{process.scope}</span><span className={statusClass}>{status}</span></div>
               {open && <div id={`panel-${process.processId}`} className="border-t bg-slate-50 p-3 space-y-3">
                 <div className="grid grid-cols-3 gap-2">
-                  <NumberField label={`Объём, ${process.unit}`} value={process.demand} issue={fieldIssue(`${process.processId}.demand`)} hint="Для мощности робота; например 2000 в сутки. Пусто — неизвестно, 0 означает отсутствие процесса." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { demand: value }))} />
+                  <NumberField id={`intake-${process.processId}.demand`} label={`Объём, ${process.unit}`} value={process.demand} issue={fieldIssue(`${process.processId}.demand`)} hint="Для мощности робота; например 2000 в сутки. Пусто — неизвестно, 0 означает отсутствие процесса." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { demand: value }))} />
                   <NumberField label="Смен/сут" value={process.shifts} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для доступного времени; например 2. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { shifts: value }))} />
                   <NumberField label="Часов/смена" value={process.hours} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для доступного времени; например 8. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { hours: value }))} />
                   <NumberField label="Дней/год" value={process.days} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для годовой загрузки; например 250. Источник — календарь работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { days: value }))} />
-                  {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField label="Плечо, m" value={process.distance} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { distance: value }))} />}
-                  {['PALLET', 'BOX', 'CASE', 'KILOGRAM', 'SAMPLE', 'SET', 'BIN', 'ITEM', 'PORTION'].includes(process.quantityKind) && <NumberField label="Единиц/рейс" value={process.batch} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />}
+                  {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField id={`intake-${process.processId}.distance`} label="Одностороннее плечо, м" value={process.distance} issue={fieldIssue(`${process.processId}.distance`)} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { distance: value }))} />}
+                  {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <div className="col-span-3 rounded border border-amber-300 p-2"><NumberField id={`intake-${process.processId}.batch`} label={`Сколько ${process.quantityKind === 'PALLET' ? 'паллет' : 'единиц груза'} робот перевозит за один рейс?`} value={process.batch} issue={fieldIssue(`${process.processId}.batch`)} hint={`Для «${process.label}» в зоне «${selectedZone.label}». Объём ${process.demand || 'неизвестен'} ${process.unit}, плечо ${process.distance || 'неизвестно'} м. Укажите целое число; для своего процесса значение не подставляется.`} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />
+                    {process.fieldSources?.batch === 'ASSUMPTION' && <label className="mt-2 flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={process.fieldConfirmations?.batch === true} onChange={(event) => event.target.checked && setDraft((current) => confirmProcessAssumption(current, process.processId, 'batch'))} />Подтверждаю допущение: {process.batch} паллета за рейс для типового склада</label>}</div>}
                 </div>
                 <fieldset><legend className="text-xs font-semibold">Роли</legend>
                   {process.roles.length === 0 ? <p className="text-xs text-slate-500 mt-1">Роль не требуется: ФОТ-эффект не рассчитывается.</p> : process.roles.map((roleCode) => {
@@ -250,7 +274,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         {error && <p className="text-red-600">{error}</p>}
         {result && <NormalizationTrace result={result} />}
       </div>
-      <button type="button" disabled={state === 'loading' || activeCount === 0 || blockers.length > 0} onClick={normalize} className="w-full rounded-xl py-3 mt-3 text-sm font-semibold bg-blue-600 text-white disabled:bg-slate-200 disabled:text-slate-400">
+      <button type="button" disabled={state === 'loading' || activeCount === 0} onClick={normalize} className="w-full rounded-xl py-3 mt-3 text-sm font-semibold bg-blue-600 text-white disabled:bg-slate-200 disabled:text-slate-400">
         {state === 'loading' ? 'Проверяем…' : 'Проверить ввод v2'}
       </button>
       {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт v2">
@@ -296,8 +320,8 @@ function DemoProfile({ profile }) {
   </details>;
 }
 
-function NumberField({ label, value, onChange, issue, hint }) {
-  return <label className="text-[11px] text-slate-600">{label}<input type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={Boolean(issue)} className="w-full border rounded px-2 py-1 text-sm" />
+function NumberField({ id, label, value, onChange, issue, hint }) {
+  return <label className="text-[11px] text-slate-600">{label}<input id={id} type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={Boolean(issue)} className="w-full border rounded px-2 py-1 text-sm" />
     {hint && <small className="block">{hint}</small>}{issue && <small className="block text-red-700" role="alert">{issue.message || issue.code}: укажите допустимое значение или проверьте единицу.</small>}</label>;
 }
 

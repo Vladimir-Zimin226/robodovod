@@ -11,7 +11,7 @@ function warehouseProfile() {
   for (const [key, value] of Object.entries({
     object_type: 'retail', process_type: 'transport', cargo_type: 'pallets',
     operations_per_day: '800', shifts_count: '2', shift_hours: '11', operating_days: '250',
-    avg_distance_m: '180', zone_label: 'Отгрузка', zone_constraints: 'Узкий проход',
+    avg_distance_m: '180', units_per_trip: '1', zone_label: 'Отгрузка', zone_constraints: 'Узкий проход',
     staff_headcount: '12', monthly_gross_salary: '120000',
   })) profile = confirmed(key, value, profile);
   return profile;
@@ -43,12 +43,28 @@ test('confirmed warehouse interview transfers numbers, source and zone into v2 w
   assert.equal(process.demand.value, '800');
   assert.equal(process.demand.provenance.source, 'USER');
   assert.equal(process.route_distance.value, '180');
+  assert.equal(process.explicit_batch.value, '1');
   assert.equal(draft.zones[0].label, 'Отгрузка');
   assert.equal(draft.zones[0].constraints, 'Узкий проход');
   assert.equal(request.roles[0].monthly_gross_salary.value, '120000');
   assert.equal(request.roles[0].monthly_gross_salary.provenance.user_confirmed, true);
   assert.equal('model_id' in request, false);
   assert.equal('run_id' in request, false);
+});
+
+test('220 pallets and 120 m require an explicit confirmed trip quantity', () => {
+  let profile = warehouseProfile();
+  profile = confirmed('operations_per_day', '220', profile);
+  profile = confirmed('avg_distance_m', '120', profile);
+  profile = editProfile(profile, 'units_per_trip', '');
+  assert.equal(canImportProfile(profile), false);
+  assert.ok(profileReadiness(profile).capacity.includes('units_per_trip'));
+  profile = confirmed('units_per_trip', '1', profile);
+  const process = serializeDraft(toV2Draft(profile)).processes.find((item) => item.active);
+  assert.equal(process.demand.value, '220');
+  assert.equal(process.route_distance.value, '120');
+  assert.equal(process.explicit_batch.value, '1');
+  assert.equal(process.explicit_batch.provenance.source, 'USER');
 });
 
 test('missing or disputed data cannot be imported and unknown economy remains explicit', () => {

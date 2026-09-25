@@ -17,6 +17,7 @@ export const INTERVIEW_FIELDS = [
   { key: 'shift_hours', label: 'Часов в смене', step: 'Режим', kind: 'number' },
   { key: 'operating_days', label: 'Рабочих дней в году', step: 'Режим', kind: 'number' },
   { key: 'avg_distance_m', label: 'Плечо маршрута, м', step: 'Маршрут и зоны', kind: 'number' },
+  { key: 'units_per_trip', label: 'Сколько паллет (или иных единиц груза) робот перевозит за один рейс?', step: 'Маршрут и зоны', kind: 'number' },
   { key: 'zone_label', label: 'Название зоны', step: 'Маршрут и зоны', kind: 'text' },
   { key: 'zone_constraints', label: 'Ограничения зоны', step: 'Маршрут и зоны', kind: 'text' },
   { key: 'staff_headcount', label: 'Сотрудников сейчас', step: 'Персонал и экономика', kind: 'number' },
@@ -66,7 +67,7 @@ export function profileReadiness(profile) {
   const known = (key) => Boolean(fields[key]?.value && fields[key]?.confirmed);
   const process = fields.process_type?.value;
   const capacity = ['object_type', 'process_type', 'operations_per_day', 'shifts_count', 'shift_hours', 'operating_days',
-    ...(process === 'transport' ? ['avg_distance_m'] : [])];
+    ...(process === 'transport' ? ['avg_distance_m', 'units_per_trip'] : [])];
   const labour = [...capacity, 'staff_headcount', 'monthly_gross_salary'];
   const invalid = [];
   for (const key of NUMERIC) {
@@ -76,6 +77,7 @@ export function profileReadiness(profile) {
       || (key !== 'monthly_gross_salary' && Number(value) <= 0)) invalid.push(key);
   }
   if (Number(fields.shifts_count?.value) * Number(fields.shift_hours?.value) > 24) invalid.push('shifts_count');
+  if (fields.units_per_trip?.value && !/^[1-9]\d*$/.test(fields.units_per_trip.value)) invalid.push('units_per_trip');
   if ((fields.zone_label?.value != null && !fields.zone_label.value.trim())
     || fields.zone_label?.value?.length > 128 || fields.zone_constraints?.value?.length > 1000) invalid.push('zone_label');
   if (Number(fields.shifts_count?.value) > 4 || Number(fields.shift_hours?.value) > 24
@@ -112,6 +114,7 @@ export function toV2Draft(profile) {
     active: true, demand: get('operations_per_day'), shifts: get('shifts_count'),
     hours: get('shift_hours'), days: get('operating_days'),
     distance: processType === 'transport' ? get('avg_distance_m') : '',
+    batch: processType === 'transport' ? get('units_per_trip') : '',
   });
   if (get('staff_headcount')) {
     const roleCode = processType === 'cleaning' ? 'cleaner' : 'forklift_driver';

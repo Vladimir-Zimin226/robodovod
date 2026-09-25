@@ -6,7 +6,9 @@ import {
   addZone,
   PROCESS_DEFINITIONS,
   confirmRoleAssumption,
+  confirmProcessAssumption,
   createDraft,
+  createWarehouseDemoDraft,
   createWarehouseFileDraft,
   createNormalizationClient,
   definitionsFor,
@@ -27,8 +29,9 @@ test('warehouse file feeds v2 with FILE provenance and never converts legacy FTE
     staff_headcount: 25, fte_cost_rub: 1562400 },
   { parameter_provenance: { volume: { source: { name: 'warehouse.csv', sha256: sha } } } });
   const process = draft.processes.find((item) => item.code === 'warehouse_receiving_shipping');
-  const request = serializeDraft(draft);
   assert.equal(process.batch, '');
+  assert.ok(validateDraft(draft).some((issue) => issue.code === 'BATCH_REQUIRED'));
+  const request = serializeDraft(updateProcess(draft, process.processId, { batch: '1' }));
   assert.equal(request.processes.find((item) => item.active).demand.provenance.source, 'FILE');
   assert.equal(request.processes.find((item) => item.active).demand.provenance.file_sha256, sha);
   assert.equal(request.roles[0].headcount.provenance.file_sha256, sha);
@@ -36,11 +39,25 @@ test('warehouse file feeds v2 with FILE provenance and never converts legacy FTE
   assert.equal('fte_cost_rub' in request, false);
 });
 
+test('demo pallet per trip remains an assumption until explicitly confirmed', () => {
+  let draft = createWarehouseDemoDraft();
+  const process = draft.processes.find((item) => item.active);
+  assert.equal(process.batch, '1');
+  assert.ok(validateDraft(draft).some((issue) => issue.code === 'BATCH_CONFIRMATION_REQUIRED'));
+  draft = confirmProcessAssumption(draft, process.processId, 'batch');
+  assert.equal(validateDraft(draft).some((issue) => issue.code === 'BATCH_CONFIRMATION_REQUIRED'), false);
+  // The salary is a separate demo assumption; this test only checks batch provenance.
+  const updated = draft.processes.find((item) => item.active);
+  assert.equal(updated.fieldConfirmations.batch, true);
+  draft = updateProcess(draft, process.processId, { batch: '2' });
+  assert.equal(draft.processes.find((item) => item.active).fieldConfirmations.batch, false);
+});
+
 function validWarehouseDraft() {
   let draft = createDraft('retail');
   const code = 'warehouse_receiving_shipping';
   draft = updateProcess(draft, code, {
-    active: true, demand: '2000', shifts: '2', hours: '11', days: '365', distance: '120',
+    active: true, demand: '2000', shifts: '2', hours: '11', days: '365', distance: '120', batch: '1',
   });
   return draft;
 }
