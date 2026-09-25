@@ -40,6 +40,12 @@ export const PROCESS_DEFINITIONS = Object.freeze(DEFINITIONS.map(
 
 export const OBJECT_KIND = Object.freeze({ retail: 'WAREHOUSE', airport: 'AIRPORT', clinic: 'CLINIC' });
 
+export function zoneForProcessId(processId) {
+  if (typeof processId !== 'string') return null;
+  if (processId.startsWith('zone.')) return processId.slice(0, processId.lastIndexOf('.'));
+  return `zone.${processId}`;
+}
+
 export function definitionsFor(objectType) {
   const objectKind = OBJECT_KIND[objectType];
   return PROCESS_DEFINITIONS.filter((item) => item.objectKind === objectKind);
@@ -49,16 +55,19 @@ export function createDraft(objectType, sequence = 1) {
   const objectKind = OBJECT_KIND[objectType];
   if (!objectKind) throw new Error('UNSUPPORTED_OBJECT_KIND');
   const objectId = `draft.${objectKind.toLowerCase()}`;
+  const zoneId = `zone.${objectId}.main`;
   return {
     schemaVersion: INTAKE_SCHEMA_VERSION,
     revisionNumber: sequence,
     inputRevision: `draft.${sequence}`,
     objectId,
     objectKind,
+    zones: [{ zoneId, label: 'Основная зона', constraints: '' }],
     processes: definitionsFor(objectType).map((definition) => ({
       ...definition,
-      blockId: `block.${definition.code}`,
-      processId: `${objectId}.${definition.code}`,
+      zoneId,
+      blockId: `block.${zoneId}.${definition.code}`,
+      processId: `${zoneId}.${definition.code}`,
       active: false,
       activationSource: 'USER',
       demand: '',
@@ -72,6 +81,35 @@ export function createDraft(objectType, sequence = 1) {
     roles: [],
     overrideEvents: [],
   };
+}
+
+export function addZone(draft, objectType) {
+  // Revision numbers never repeat after deleting a zone in the same draft.
+  const number = draft.revisionNumber + 1;
+  const zoneId = `zone.${draft.objectId}.${number}`;
+  const processes = definitionsFor(objectType).map((definition) => ({
+    ...definition, zoneId, blockId: `block.${zoneId}.${definition.code}`,
+    processId: `${zoneId}.${definition.code}`, active: false,
+    activationSource: 'USER', demand: '', shifts: '', hours: '', days: '',
+    distance: '', batch: '', fieldSources: {},
+  }));
+  return revise(draft, { zones: [...draft.zones, { zoneId, label: `Зона ${number}`, constraints: '' }],
+    processes: [...draft.processes, ...processes] });
+}
+
+export function updateZone(draft, zoneId, patch) {
+  return revise(draft, { zones: draft.zones.map((zone) => zone.zoneId === zoneId ? { ...zone, ...patch } : zone) });
+}
+
+export function removeZone(draft, zoneId) {
+  if (zoneId === draft.zones[0]?.zoneId) throw new Error('MAIN_ZONE_REQUIRED');
+  const removed = new Set(draft.processes.filter((process) => process.zoneId === zoneId).map((process) => process.processId));
+  return revise(draft, {
+    zones: draft.zones.filter((zone) => zone.zoneId !== zoneId),
+    processes: draft.processes.filter((process) => process.zoneId !== zoneId),
+    roles: draft.roles.map((role) => ({ ...role, processIds: role.processIds.filter((id) => !removed.has(id)) }))
+      .filter((role) => role.processIds.length > 0),
+  });
 }
 
 export function createWarehouseDemoDraft() {
@@ -123,10 +161,17 @@ function revise(draft, patch) {
   return { ...draft, ...patch, revisionNumber, inputRevision: `draft.${revisionNumber}` };
 }
 
-export function updateProcess(draft, processCode, patch) {
+function findProcess(draft, processKey) {
+  return draft.processes.find((item) => item.processId === processKey)
+    || draft.processes.find((item) => item.code === processKey);
+}
+
+export function updateProcess(draft, processKey, patch) {
+  const target = findProcess(draft, processKey);
+  if (!target) throw new Error('PROCESS_NOT_FOUND');
   return revise(draft, {
     processes: draft.processes.map((item) => {
-      if (item.code !== processCode) return item;
+      if (item.processId !== target.processId) return item;
       const fieldSources = { ...item.fieldSources };
       for (const key of ['demand', 'shifts', 'hours', 'days', 'distance', 'batch']) {
         if (Object.hasOwn(patch, key)) fieldSources[key] = 'USER';
@@ -136,8 +181,8 @@ export function updateProcess(draft, processCode, patch) {
   });
 }
 
-export function setRoleActive(draft, processCode, roleCode, active) {
-  const process = draft.processes.find((item) => item.code === processCode);
+export function setRoleActive(draft, processKey, roleCode, active) {
+  const process = findProcess(draft, processKey);
   if (!process || !process.roles.includes(roleCode)) throw new Error('ROLE_NOT_ALLOWED_FOR_PROCESS');
   const roleId = `${draft.objectId}.${roleCode}`;
   const existing = draft.roles.find((item) => item.roleId === roleId);
@@ -191,16 +236,20 @@ const nonNegative = (value) => value !== '' && DECIMAL_PATTERN.test(String(value
 
 export function validateDraft(draft) {
   const issues = [];
+  for (const zone of draft.zones) {
+    if (!zone.label.trim() || zone.label.length > 128) issues.push({ severity: 'BLOCKER', code: 'ZONE_LABEL_REQUIRED', ref: `${zone.zoneId}.label` });
+    if (zone.constraints.length > 1000) issues.push({ severity: 'BLOCKER', code: 'ZONE_CONSTRAINTS_TOO_LONG', ref: `${zone.zoneId}.constraints` });
+  }
   for (const process of draft.processes) {
     if (!process.active) continue;
-    if (!positive(process.demand)) issues.push({ severity: 'BLOCKER', code: 'DEMAND_REQUIRED', ref: `${process.code}.demand` });
+    if (!positive(process.demand)) issues.push({ severity: 'BLOCKER', code: 'DEMAND_REQUIRED', ref: `${process.processId}.demand` });
     if (!positive(process.shifts) || !positive(process.hours) || !positive(process.days)) {
-      issues.push({ severity: 'BLOCKER', code: 'SCHEDULE_REQUIRED', ref: `${process.code}.schedule` });
+      issues.push({ severity: 'BLOCKER', code: 'SCHEDULE_REQUIRED', ref: `${process.processId}.schedule` });
     } else if (Number(process.shifts) * Number(process.hours) > 24) {
-      issues.push({ severity: 'BLOCKER', code: 'SCHEDULE_OVER_24H', ref: `${process.code}.schedule` });
+      issues.push({ severity: 'BLOCKER', code: 'SCHEDULE_OVER_24H', ref: `${process.processId}.schedule` });
     }
     const assigned = draft.roles.filter((role) => role.processIds.includes(process.processId));
-    if (assigned.length === 0) issues.push({ severity: 'INFO', code: 'NO_FOT_BENEFIT', ref: process.code });
+    if (assigned.length === 0) issues.push({ severity: 'INFO', code: 'NO_FOT_BENEFIT', ref: process.processId });
   }
   for (const role of draft.roles) {
     if (!positive(role.headcount)) issues.push({ severity: 'BLOCKER', code: 'HEADCOUNT_REQUIRED', ref: `${role.roleId}.headcount` });

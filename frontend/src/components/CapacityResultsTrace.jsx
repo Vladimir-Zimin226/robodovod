@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { formatServerQuantity, getCapacityResultsModel } from '../dashboardModel';
 import { formatFleet } from '../displayNumber';
+import { zoneForProcessId } from '../processRoleIntakeV2';
 
 const issueText = (issue) => issue.message || issue.code;
 
-export default function CapacityResultsTrace({ response, expectedRevision = null, onRestart }) {
+export default function CapacityResultsTrace({ response, expectedRevision = null, onRestart, zoneContext = null }) {
   const model = useMemo(
     () => getCapacityResultsModel(response, expectedRevision),
     [response, expectedRevision],
@@ -18,6 +19,8 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
             <p className="text-xs text-slate-500">Capacity snapshot · revision {model.revision}</p>
             <h1 className="text-2xl font-semibold">Производительность и требуемый парк</h1>
             <p className="text-sm text-slate-600 mt-1">Процесс: {model.processId}</p>
+            <p className="text-xs text-slate-500">Зона: {zoneContext?.label || zoneForProcessId(model.processId)} · этот C11 считает только указанный процесс и не суммирует общие ресурсы других зон.</p>
+            {zoneContext?.constraints_note && <p className="text-xs text-amber-700">Ограничения зоны: {zoneContext.constraints_note} · не проверены C05.</p>}
             <p className="text-xs text-slate-500 mt-1">Capacity source: {model.versions?.catalog_version_id || 'NOT_AVAILABLE'}</p>
           </div>
           <div className="text-right">

@@ -76,6 +76,7 @@ from calculation.service import (
 )
 from calculation_contracts import (
     CapacityAnalysisRequest,
+    parse_capacity_analysis_request,
     CapacityAnalysisResponse,
     DecimalString,
     KnownQuantity,
@@ -1051,7 +1052,7 @@ def _sensitivity(
                 raw_request = request.model_dump(mode="json")
                 raw_request["process"]["demand"]["raw_value"] = variant_value
                 raw_request["process"]["demand"]["normalized_value"] = variant_value
-                variant_request = CapacityAnalysisRequest.model_validate(raw_request)
+                variant_request = parse_capacity_analysis_request(raw_request)
                 capacity_execution = analyze_capacity(
                     variant_request,
                     snapshot,
@@ -1426,9 +1427,16 @@ def _scenario_spec(
         for window_id, start, duration in window_parts
     ]
     assumption_ref = "assumption.synthetic-geometry"
+    process_zone_id = (request.process.process_id.rsplit(".", 1)[0]
+                       if request.process.process_id.startswith("zone.")
+                       else f"zone.{request.process.process_id}")
+    zone_context = getattr(request, "zone_context", None)
     zone = ScenarioZoneV2(
-        zone_id=f"zone.{request.process.process_id}",
-        label=str(request.process.process_code),
+        zone_id=process_zone_id,
+        label=(zone_context.label if zone_context is not None
+               else f"Зона {process_zone_id.rsplit('.', 1)[-1]}"
+               if request.process.process_id.startswith("zone.")
+               else str(request.process.process_code)),
         geometry_source="SYNTHETIC",
         assumption_ref=assumption_ref,
     )
@@ -1490,6 +1498,8 @@ def _scenario_spec(
         warnings=[
             "Предварительный demo: неподтверждённые C05 checks не являются PASS.",
             "ScenarioSpec не является инженерным цифровым двойником.",
+            *([f"Ограничения зоны {process_zone_id}: {zone_context.constraints_note}. Статус UNVERIFIED; C05 не повышен."]
+              if zone_context is not None and zone_context.constraints_note else []),
         ],
     )
     return spec.model_dump(mode="json")

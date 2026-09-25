@@ -594,6 +594,29 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
             f"/api/projects/{project['id']}/analysis-runs/{capacity['run_id']}"
         ).json()["checksums"]
 
+        zone_payload = json.loads(json.dumps(capacity_payload))
+        zone_id = "zone.project.warehouse.2"
+        zone_process_id = f"{zone_id}.warehouse_receiving_shipping"
+        old_process_id = zone_payload["process"]["process_id"]
+        zone_payload["schema_version"] = "capacity-analysis-request-v3"
+        zone_payload["zone_context"] = {
+            "schema_version": "capacity-zone-context-v1", "zone_id": zone_id,
+            "label": "Отгрузка", "constraints_note": "Узкий проход",
+            "constraints_status": "UNVERIFIED",
+        }
+        zone_payload["process"]["process_id"] = zone_process_id
+        for role in zone_payload["role_pool"]["roles"]:
+            role["process_ids"] = [zone_process_id if item == old_process_id else item
+                                   for item in role["process_ids"]]
+        zone_response = owner.post("/api/v2/capacity-analyses", headers=headers, json=zone_payload)
+        assert zone_response.status_code == 201, zone_response.text
+        zone_capacity = zone_response.json()
+        assert zone_capacity["capacity"]["process_id"] == zone_process_id
+        saved_zone_capacity = owner.get(
+            f"/api/projects/{project['id']}/analysis-runs/{zone_capacity['run_id']}"
+        ).json()
+        assert saved_zone_capacity["input_snapshot"]["zone_context"]["constraints_note"] == "Узкий проход"
+
         endpoint = f"/api/v2/projects/{project['id']}/economics-runs"
         economics_payload = {
             "scenario_id": scenario["id"],
@@ -649,6 +672,16 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert visual["result_snapshot"]["branches"]["purchase"]["status"] == "NOT_CALCULATED"
         assert all(item["npv_project"] is None for item in visual["result_snapshot"]["scenario_statuses"])
         assert visual["scenario_spec_snapshot"]["schema_version"] == "scenario-spec-v2"
+        zone_visual_response = owner.post(endpoint, headers=headers, json={
+            "scenario_id": scenario["id"], "capacity_run_id": zone_capacity["run_id"],
+            "input": visual_input,
+        })
+        assert zone_visual_response.status_code == 201, zone_visual_response.text
+        zone_visual = zone_visual_response.json()
+        assert zone_visual["scenario_spec_snapshot"]["zones"][0]["zone_id"] == zone_id
+        assert zone_visual["scenario_spec_snapshot"]["zones"][0]["label"] == "Отгрузка"
+        assert zone_visual["scenario_spec_snapshot"]["tasks"][0]["zone_id"] == zone_id
+        assert owner.post(f"{endpoint}/{zone_visual['id']}/replay", headers=headers).json()["status"] == "MATCH"
         assert owner.post(f"{endpoint}/{visual['id']}/replay", headers=headers).json()["status"] == "MATCH"
         visual_request_id = f"simulation.{visual['id']}"
         simulation_base = f"/api/v2/simulations/projects/{project['id']}/analysis-runs/{visual['id']}"

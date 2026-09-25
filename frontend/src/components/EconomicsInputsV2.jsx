@@ -85,6 +85,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
       <h3 className="font-semibold">Откуда взяты значения</h3>
       <p>Параметры объекта и C11 показаны в техническом результате со своими источниками. Здесь «Данные пользователя» — ваш ввод; «Допущение для сценария» — предлагаемое или изменённое вами число. Цена каталога и условия RaaS остаются неподтверждёнными коммерческими условиями.</p>
       <p className="mt-2">C11: {capacityRunId ? 'сохранён' : 'нужен расчёт'} · Труд: {groupCount('Труд').join('/')} · Покупка: {groupCount('Покупка').join('/')} · RaaS: {groupCount('RaaS').join('/')} · Визуализация: {groupCount('Визуализация').join('/')}. Полноту расчёта окончательно проверяет сервер.</p>
+      <p className="mt-2">Общие затраты площадки вводятся один раз для этого сценария. Если вы рассчитали несколько зон отдельно, их NPV и парки нельзя суммировать без модели общих ресурсов и межзональных потоков.</p>
     </section>
     {demoEligible && <section className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm" aria-label="Демо-допущения склада">
       <h3 className="font-semibold">Демо склада · {WAREHOUSE_ECONOMICS_DEMO.schema_version}</h3>

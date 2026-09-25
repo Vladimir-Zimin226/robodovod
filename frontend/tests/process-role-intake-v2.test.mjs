@@ -3,17 +3,21 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import {
+  addZone,
   PROCESS_DEFINITIONS,
   confirmRoleAssumption,
   createDraft,
   createWarehouseFileDraft,
   createNormalizationClient,
   definitionsFor,
+  removeZone,
   serializeDraft,
   setRoleActive,
   updateProcess,
   updateRole,
+  updateZone,
   validateDraft,
+  zoneForProcessId,
 } from '../src/processRoleIntakeV2.js';
 
 test('warehouse file feeds v2 with FILE provenance and never converts legacy FTE cost to gross salary', () => {
@@ -58,9 +62,30 @@ test('every suggested role can be activated and remains process-scoped', () => {
       draft = setRoleActive(draft, definition.code, roleCode, true);
       assert.equal(draft.roles.length, 1);
       assert.equal(draft.roles[0].roleCode, roleCode);
-      assert.deepEqual(draft.roles[0].processIds, [`${draft.objectId}.${definition.code}`]);
+      assert.deepEqual(draft.roles[0].processIds, [`${draft.zones[0].zoneId}.${definition.code}`]);
     }
   }
+});
+
+test('zones keep separate process inputs and stable C11/C23 identities', () => {
+  let draft = validWarehouseDraft();
+  draft = addZone(draft, 'retail');
+  const first = draft.processes.find((item) => item.zoneId === draft.zones[0].zoneId && item.code === 'warehouse_receiving_shipping');
+  const second = draft.processes.find((item) => item.zoneId === draft.zones[1].zoneId && item.code === 'warehouse_receiving_shipping');
+  draft = updateZone(draft, second.zoneId, { label: 'Отгрузка', constraints: 'Узкий проход' });
+  draft = updateProcess(draft, second.processId, { active: true, demand: '600', shifts: '2', hours: '8', days: '250', distance: '80', batch: '1' });
+  assert.equal(draft.processes.find((item) => item.processId === first.processId).demand, '2000');
+  assert.equal(draft.processes.find((item) => item.processId === second.processId).demand, '600');
+  assert.equal(zoneForProcessId(second.processId), second.zoneId);
+  assert.equal(draft.zones[1].constraints, 'Узкий проход');
+  const request = serializeDraft(draft);
+  assert.equal(request.processes.find((item) => item.process_id === second.processId).route_distance.value, '80');
+  assert.equal(new Set(request.processes.map((item) => item.process_id)).size, request.processes.length);
+  const removed = removeZone(draft, second.zoneId);
+  assert.equal(removed.zones.length, 1);
+  assert.equal(removed.processes.length, definitionsFor('retail').length);
+  const addedAgain = addZone(removed, 'retail');
+  assert.notEqual(addedAgain.zones[1].zoneId, second.zoneId);
 });
 
 test('empty inactive blocks serialize without hidden normalized quantities', () => {

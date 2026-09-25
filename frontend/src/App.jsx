@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import OnboardingScreen from './OnboardingScreen';
 import IntakeScreen from './components/IntakeScreen';
 import ProcessScreen from './components/ProcessScreen';
-import ResultsPanel from './components/ResultsPanel';
+import HistoricalRunViewer from './components/HistoricalRunViewer';
 import CapacityResultsTrace from './components/CapacityResultsTrace';
 import CommercialScenariosV2 from './components/CommercialScenariosV2';
 import CatalogScreen from './components/CatalogScreen';
 import { AppShell } from './components/AppShell';
 import { AdminUsersScreen, AuthScreen, ProjectsScreen } from './components/PersistenceScreens';
-import { readCsrfCookie } from './persistenceApi';
 import { isCapacityAnalysisResponse } from './capacityResultsModel';
 import { isCommercialScenariosBundle } from './commercialScenariosModel';
 import Simulation2DReport from './components/Simulation2DReport';
@@ -36,7 +35,7 @@ const sessionStore = () => {
 
 export default function App() {
   const [phase, setPhase] = useState(() => phaseFromHash(window.location.hash));
-  const [objectType, setObjectType] = useState(() => window.location.hash === '#calculation' ? 'other' : null);
+  const [objectType, setObjectType] = useState(() => window.location.hash === '#calculation' ? 'retail' : null);
   const [preset, setPreset] = useState(null);
   const [userInput, setUserInput] = useState(null);
   const [result, setResult] = useState(null);
@@ -51,10 +50,7 @@ export default function App() {
   const [projectChoices, setProjectChoices] = useState([]);
   const [projectStatus, setProjectStatus] = useState('loading');
   const [activeRun, setActiveRun] = useState(null);
-  const [saveState, setSaveState] = useState('');
-  const [inputProvenance, setInputProvenance] = useState({});
-  const [projectFileContext, setProjectFileContext] = useState(null);
-  const calculationSequence = useRef(0);
+  const [, setSaveState] = useState('');
   const intakeV2Snapshot = useRef(null);
   const catalogReturnPhase = useRef('onboarding');
   const pendingResultTarget = useRef(null);
@@ -127,59 +123,6 @@ export default function App() {
     rememberProjectId(sessionStore(), user?.id, project.id);
   };
 
-  const recalc = async (inp, provenance = inputProvenance, fileContext = projectFileContext) => {
-    setActiveRun(null);
-    calculationSequence.current += 1;
-    const sequence = calculationSequence.current;
-    const apiInput = Object.fromEntries(
-      Object.entries(inp).filter(([key]) => !key.startsWith('_'))
-    );
-    try {
-      const requestOptions = {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      };
-      const [res, readinessRes] = await Promise.all([
-        fetch(`${API}/api/calculate`, { ...requestOptions, body: JSON.stringify(apiInput) }),
-        fetch(`${API}/api/readiness`, {
-          ...requestOptions,
-          body: JSON.stringify({
-            input: apiInput,
-            provenance: Object.fromEntries(Object.entries(provenance || {}).map(([field, kind]) => [
-              field,
-              { kind: ({ file: 'FILE', preset: 'PRESET', assumed: 'ASSUMPTION', calculated: 'CALCULATED' }[kind] || 'USER') },
-            ])),
-            parameter_values: fileContext?.parameter_values || {},
-            parameter_provenance: fileContext?.parameter_provenance || {},
-          }),
-        }).catch(() => null),
-      ]);
-      if (!res.ok) {
-        const e = await res.json().catch(() => ({}));
-        if (sequence === calculationSequence.current) alert(e.detail || 'Ошибка расчёта');
-        return;
-      }
-      const nextResult = await res.json();
-      const readinessReport = readinessRes?.ok ? await readinessRes.json() : null;
-      if (sequence !== calculationSequence.current) return;
-      setUserInput(inp);
-      setResult({ ...nextResult, readiness_report: readinessReport });
-    } catch {
-      if (sequence === calculationSequence.current) {
-        alert('Бэкенд недоступен. Запустите uvicorn main:app на порту 8000.');
-      }
-    }
-  };
-
-  const handleReady = (collected, provenance = {}, fileContext = null) => {
-    const inp = { object_type: objectType, ...collected };
-    setInputProvenance(provenance);
-    setProjectFileContext(fileContext);
-    setUserInput(inp);
-    showPhase('results');
-    recalc(inp, provenance, fileContext);
-  };
-
   const restart = () => {
     showPhase('onboarding');
     setObjectType(null);
@@ -188,8 +131,6 @@ export default function App() {
     setResult(null);
     setActiveRun(null);
     setSaveState('');
-    setInputProvenance({});
-    setProjectFileContext(null);
     intakeV2Snapshot.current = null;
   };
 
@@ -199,7 +140,7 @@ export default function App() {
   const openCalculation = () => {
     setIntakeInitialSources(null);
     const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
-    const nextType = savedInput?.object_type || objectType || 'other';
+    const nextType = savedInput?.object_type || objectType || 'retail';
     setObjectType(nextType);
     setPreset(savedInput || (preset?.object_type === nextType ? preset : null));
     showPhase('intake');
@@ -254,37 +195,11 @@ export default function App() {
     event.preventDefault();
     const prompt = command.trim();
     if (!prompt) return;
-    setObjectType('other');
+    setObjectType(objectType && objectType !== 'other' ? objectType : 'retail');
     setPreset(null);
     setIntakeInitialSources(null);
     setIntakePrompt(prompt);
     showPhase('intake');
-  };
-
-  const saveAnalysis = async () => {
-    if (!user || !activeProject || !userInput || !result) return;
-    const scenario = activeProject.scenarios.find((item) => item.slot === 'BASE');
-    if (!scenario) return;
-    const apiInput = Object.fromEntries(
-      Object.entries(userInput).filter(([key]) => !key.startsWith('_'))
-    );
-    setSaveState('saving');
-    try {
-      const endpoint = isCommercialScenariosBundle(result)
-        ? `/api/v2/projects/${activeProject.id}/economics-runs`
-        : `/api/projects/${activeProject.id}/analysis-runs`;
-      const response = await fetch(`${API}${endpoint}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
-        body: JSON.stringify({ scenario_id: scenario.id, input: apiInput }),
-      });
-      if (!response.ok) throw new Error('Не удалось сохранить расчёт');
-      setActiveRun(await response.json());
-      setSaveState('saved');
-    } catch (error) {
-      setSaveState(error.message);
-    }
   };
 
   return (
@@ -292,21 +207,16 @@ export default function App() {
       {['onboarding', 'intake'].includes(phase) && <Stepper current={currentStep} />}
       <div className="phase-content">
         {phase === 'guestDemo' ? (
-          <GuestWarehouseDemo onContinue={() => { setObjectType('retail'); showPhase('intake'); }} onBack={restart} />
+          <GuestWarehouseDemo onContinue={() => { setIntakePrompt(''); setObjectType('retail'); showPhase('intake'); }} onBack={restart} />
         ) : phase === 'onboarding' ? (
           <OnboardingScreen
             onGuestDemo={() => showPhase('guestDemo')}
             onChoose={(t) => {
               setIntakeInitialSources(null);
+              setIntakePrompt('');
               setObjectType(t);
               const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
               setPreset(savedInput?.object_type === t ? savedInput : null);
-              showPhase('intake');
-            }}
-            onPreset={(t, d) => {
-              setIntakeInitialSources(null);
-              setObjectType(t);
-              setPreset(d);
               showPhase('intake');
             }}
           />
@@ -349,7 +259,7 @@ export default function App() {
                 )),
               }) : project);
             }}
-            onReady={handleReady}
+            onOpenObjects={() => showPhase('onboarding')}
             onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; }}
             onCapacityResult={(response, request) => {
               setResult(response);
@@ -399,20 +309,11 @@ export default function App() {
           <AdminUsersScreen />
         ) : (
           <>
-            {user && activeProject && result && !isCapacityAnalysisResponse(result) && !isCommercialScenariosBundle(result) && result.schema_version !== 'economics-partial-result-v1' && (
-              <div className="save-run-bar">
-                <span>Проект: <strong>{activeProject.name}</strong> · базовый сценарий</span>
-                <button className="primary-action" disabled={saveState === 'saving' || saveState === 'saved'} onClick={saveAnalysis}>
-                  {saveState === 'saving' ? 'Сохраняем…' : saveState === 'saved' ? 'Расчёт сохранён' : 'Сохранить AnalysisRun'}
-                </button>
-                {saveState && !['saving', 'saved'].includes(saveState) && <small>{saveState}</small>}
-              </div>
-            )}
             {result?.schema_version === 'simulation-2d-bundle-v1' ? (
               <Simulation2DReport key={result.request?.request_id || result.run_id} request={result.request} initialReport={result.report} scenarios={result.scenarios} />
             ) : isCapacityAnalysisResponse(result) ? (
               <>
-                <CapacityResultsTrace response={result} onRestart={restart} />
+                <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
                 <TechnicalVisualization key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <EconomicsInputsV2
                   capacityRequest={userInput}
@@ -439,12 +340,7 @@ export default function App() {
                 }} />
               </>
             ) : (
-              <ResultsPanel
-                result={result}
-                userInput={userInput}
-                onRecalc={(input) => { setSaveState(''); recalc(input, inputProvenance, projectFileContext); }}
-                onRestart={restart}
-              />
+              <HistoricalRunViewer run={activeRun} result={result} userInput={userInput} onNewCalculation={openCalculation} />
             )}
             {activeRun && activeProject && (
               <>

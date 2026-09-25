@@ -22,7 +22,7 @@ const q = (name, value, unit) => ({
 const normalized = {
   response: {
     input_revision: 'draft.1', role_pool: { roles: [] }, normalized_processes: [{
-      active: true, process_id: 'process.warehouse.transport', input_revision: 'draft.1',
+      active: true, process_id: 'zone.draft.warehouse.main.warehouse_receiving_shipping', input_revision: 'draft.1',
       scope: 'TRANSPORT_CYCLE', route_distance: q('one_way_distance', '120', 'm'),
       explicit_batch: q('units_per_trip', '1', 'unit/trip'),
     }],
@@ -45,7 +45,8 @@ test('every selectable demo identity has visible source, assumptions and unknown
 });
 
 test('preliminary request requires acknowledgement, project and explicit exchange', () => {
-  const args = { normalized, projectId: 'project.1', processId: 'process.warehouse.transport',
+  const args = { normalized, projectId: 'project.1', processId: 'zone.draft.warehouse.main.warehouse_receiving_shipping',
+    zone: { zoneId: 'zone.draft.warehouse.main', label: 'Основная зона', constraints: 'Узкий проход' },
     position: mule, exchangeSeconds: '90', acknowledged: true };
   const request = buildDemoCapacityRequest(args);
   assert.equal(request.execution_mode, 'PRELIMINARY_DEMO');
@@ -54,20 +55,43 @@ test('preliminary request requires acknowledgement, project and explicit exchang
   assert.equal(request.demo_assumptions_confirmed, true);
   assert.equal(request.process.exchange.total_time.normalized_value, '90');
   assert.equal(request.provenance[0].kind, 'ASSUMPTION');
+  assert.equal(request.schema_version, 'capacity-analysis-request-v3');
+  assert.equal(request.zone_context.constraints_status, 'UNVERIFIED');
   assert.throws(() => buildDemoCapacityRequest({ ...args, acknowledged: false }), /Подтвердите/);
   assert.throws(() => buildDemoCapacityRequest({ ...args, projectId: null }), /проект/);
   assert.throws(() => buildDemoCapacityRequest({ ...args, exchangeSeconds: '' }), /время/);
   assert.throws(() => buildDemoCapacityRequest({ ...args, position: cleaner }), /профилю/);
 });
 
+test('C11 request binds a shared role only to the selected zone process', () => {
+  const firstId = 'zone.draft.warehouse.main.warehouse_receiving_shipping';
+  const secondId = 'zone.draft.warehouse.2.warehouse_receiving_shipping';
+  const input = structuredClone(normalized);
+  input.response.normalized_processes[0].role_refs = ['role.shared'];
+  input.response.role_pool.roles = [{ role_id: 'role.shared', process_ids: [firstId, secondId] }];
+  const request = buildDemoCapacityRequest({
+    normalized: input, projectId: 'project.1', processId: firstId, position: mule,
+    exchangeSeconds: '90', acknowledged: true,
+    zone: { zoneId: 'zone.draft.warehouse.main', label: 'Основная зона', constraints: '' },
+  });
+  assert.deepEqual(request.role_pool.roles[0].process_ids, [firstId]);
+  assert.deepEqual(request.process.role_refs, ['role.shared']);
+  assert.throws(() => buildDemoCapacityRequest({
+    normalized: input, projectId: 'project.1', processId: firstId, position: mule,
+    exchangeSeconds: '90', acknowledged: true,
+    zone: { zoneId: 'zone.draft.warehouse.2', label: 'Другая зона', constraints: '' },
+  }), /Выберите зону/);
+});
+
 test('cleaning demo exposes one pass per day rather than inventing vendor availability', () => {
   const cleaning = structuredClone(normalized);
   cleaning.response.normalized_processes[0] = {
-    active: true, process_id: 'process.warehouse.cleaning', input_revision: 'draft.1',
+    active: true, process_id: 'zone.draft.warehouse.main.warehouse_cleaning', input_revision: 'draft.1',
     scope: 'CLEANING_AREA', demand: q('demand_per_day', '10000', 'm2/day'),
   };
   const request = buildDemoCapacityRequest({ normalized: cleaning, projectId: 'project.1',
-    processId: 'process.warehouse.cleaning', position: cleaner, acknowledged: true });
+    processId: 'zone.draft.warehouse.main.warehouse_cleaning', position: cleaner, acknowledged: true,
+    zone: { zoneId: 'zone.draft.warehouse.main', label: 'Основная зона', constraints: '' } });
   assert.equal(request.cleaning_area.normalized_value, '10000');
   assert.equal(request.cleaning_frequency.normalized_value, '1');
   assert.equal(request.availability, undefined);

@@ -35,8 +35,9 @@ test('v2 runs select the commercial scenarios viewer and mismatches fail closed'
   assert.throws(() => economicsRunView({ ...run, versions: { economics: 'unknown' } }), /MISMATCH/);
 });
 
-test('saving a commercial result uses only the versioned economics route', () => {
+test('new UI cannot create a legacy analysis run from the historical viewer', () => {
   const source = fs.readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8');
-  assert.match(source, /isCommercialScenariosBundle\(result\)[\s\S]*\/api\/v2\/projects\/\$\{activeProject\.id\}\/economics-runs/);
-  assert.match(source, /: `\/api\/projects\/\$\{activeProject\.id\}\/analysis-runs`/);
+  assert.doesNotMatch(source, /\/api\/calculate|\/api\/projects\/\$\{activeProject\.id\}\/analysis-runs/);
+  assert.match(source, /HistoricalRunViewer/);
+  assert.match(source, /<EconomicsInputsV2/);
 });

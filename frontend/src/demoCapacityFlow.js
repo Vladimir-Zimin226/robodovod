@@ -46,7 +46,7 @@ export function demoCandidates(items, scope) {
     item.calculation_profile === profile && DEMO_MODELS[item.organizer_id]);
 }
 
-export function buildDemoCapacityRequest({ normalized, projectId, processId, position, exchangeSeconds, acknowledged }) {
+export function buildDemoCapacityRequest({ normalized, projectId, processId, position, exchangeSeconds, acknowledged, zone }) {
   if (!acknowledged) throw new Error('Подтвердите демонстрационные допущения.');
   if (!projectId) throw new Error('Откройте проект для сохранения расчёта.');
   const process = normalized?.response?.normalized_processes?.find((item) => item.process_id === processId);
@@ -68,9 +68,20 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
     permitted_scope: process.scope, confirmation_state: 'USER_CONFIRMED',
   }];
   const requestProcess = { ...process };
+  if (!zone || !process.process_id.startsWith(`${zone.zoneId}.`) || !zone.label?.trim()) {
+    throw new Error('Выберите зону для процесса и укажите её название.');
+  }
   const request = {
+    schema_version: 'capacity-analysis-request-v3',
     project_id: projectId, input_revision: process.input_revision,
-    process: requestProcess, role_pool: normalized.response.role_pool,
+    process: requestProcess,
+    zone_context: { schema_version: 'capacity-zone-context-v1', zone_id: zone.zoneId,
+      label: zone.label.trim(), constraints_note: String(zone.constraints || '').trim(), constraints_status: 'UNVERIFIED' },
+    role_pool: normalized.response.role_pool ? {
+      ...normalized.response.role_pool,
+      roles: normalized.response.role_pool.roles.filter((role) => (process.role_refs || []).includes(role.role_id))
+        .map((role) => ({ ...role, process_ids: [process.process_id] })),
+    } : null,
     model_id: position.model_id, position_id: position.position_id,
     acquisition: 'PURCHASE', uncertainty: 'BASE',
     execution_mode: 'PRELIMINARY_DEMO', demo_assumptions_confirmed: true,

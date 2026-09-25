@@ -67,6 +67,76 @@ def _request(source: str = "USER") -> dict:
     }
 
 
+def test_zone_process_ids_survive_c03_c11_and_c23_without_aggregating_shared_role():
+    from calculation.service import analyze_capacity
+    from economics_orchestrator import EconomicsExecutionContextV1
+    from economics_partial import execute_partial_economics_v2
+    from test_economics_orchestrator import _capacity_request, _snapshot
+    from calculation_contracts import parse_capacity_analysis_request
+
+    raw = _request()
+    first, second = "zone.object.warehouse.main", "zone.object.warehouse.2"
+    raw["processes"][0]["block_id"] = f"block.{first}.warehouse_receiving_shipping"
+    raw["processes"][0]["process_id"] = f"{first}.warehouse_receiving_shipping"
+    another = copy.deepcopy(raw["processes"][0])
+    another["block_id"] = f"block.{second}.warehouse_receiving_shipping"
+    another["process_id"] = f"{second}.warehouse_receiving_shipping"
+    another["demand"]["value"] = "600"
+    another["route_distance"]["value"] = "0.08"
+    raw["processes"].append(another)
+    raw["roles"][0]["process_ids"] = [item["process_id"] for item in raw["processes"]]
+    response = normalize_intake(CalculationIntakeRequestV2.model_validate(raw))
+    assert response.valid
+    assert len(response.normalized_processes) == 2
+    assert [item.route_distance.normalized_value for item in response.normalized_processes] == ["120", "80"]
+
+    selected = response.normalized_processes[1]
+    role_pool = response.role_pool.model_copy(update={"roles": [
+        role.model_copy(update={"process_ids": [selected.process_id]})
+        for role in response.role_pool.roles if role.role_id in selected.role_refs
+    ]})
+    base = _capacity_request()
+    selected = selected.model_copy(update={
+        "exchange": base.process.exchange,
+        "explicit_batch": base.process.explicit_batch,
+    })
+    request_raw = base.model_dump(mode="json")
+    request_raw.update(schema_version="capacity-analysis-request-v3",
+                       input_revision=selected.input_revision,
+                       process=selected.model_dump(mode="json"),
+                       role_pool=role_pool.model_dump(mode="json"),
+                       zone_context={"schema_version": "capacity-zone-context-v1",
+                                     "zone_id": second, "label": "Отгрузка",
+                                     "constraints_note": "Узкий проход", "constraints_status": "UNVERIFIED"})
+    request = parse_capacity_analysis_request(request_raw)
+    with pytest.raises(ValidationError, match="zone context must bind"):
+        parse_capacity_analysis_request({**request_raw, "zone_context": {
+            **request_raw["zone_context"], "zone_id": first,
+        }})
+    with pytest.raises(ValidationError, match="extra_forbidden"):
+        parse_capacity_analysis_request({**request_raw, "schema_version": "capacity-analysis-request-v2"})
+    snapshot = _snapshot()
+    capacity = analyze_capacity(request, snapshot, "run.zone.2")
+    assert capacity.response.capacity.process_id == selected.process_id
+    assert capacity.response.capacity.value is not None
+    context = EconomicsExecutionContextV1(
+        run_id="run.zone.2.economics", project_id=request.project_id, tenant_id="tenant.zone",
+        capacity_request=request, capacity_response=capacity.response,
+        constraint_report=capacity.constraints.model_dump(mode="json"),
+        executability=capacity.executability.model_dump(mode="json"),
+    )
+    technical = execute_partial_economics_v2({
+        "schema_version": "economics-explicit-inputs-v4", "input_revision": request.input_revision,
+        "start_seconds_from_midnight": "28800", "timezone": "Europe/Moscow",
+    }, snapshot, context)
+    assert technical.result_snapshot["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert technical.scenario_spec_snapshot["zones"][0]["zone_id"] == second
+    assert technical.scenario_spec_snapshot["zones"][0]["label"] == "Отгрузка"
+    assert any("Узкий проход" in warning for warning in technical.scenario_spec_snapshot["warnings"])
+    assert technical.scenario_spec_snapshot["tasks"][0]["zone_id"] == second
+    assert technical.scenario_spec_snapshot["fleet"][0]["zone_id"] == second
+
+
 def test_strict_contract_rejects_extra_fields_unknown_codes_and_duplicate_roles():
     raw = _request()
     raw["hidden"] = 1

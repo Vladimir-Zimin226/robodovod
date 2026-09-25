@@ -764,6 +764,30 @@ class CapacityAnalysisRequest(StrictContractModel):
         return self
 
 
+class CapacityZoneContextV1(StrictContractModel):
+    schema_version: Literal["capacity-zone-context-v1"] = "capacity-zone-context-v1"
+    zone_id: StableId
+    label: Annotated[str, Field(min_length=1, max_length=128)]
+    constraints_note: Annotated[str, Field(max_length=1000)] = ""
+    constraints_status: Literal["UNVERIFIED"] = "UNVERIFIED"
+
+
+class CapacityAnalysisRequestV3(CapacityAnalysisRequest):
+    schema_version: Literal["capacity-analysis-request-v3"] = "capacity-analysis-request-v3"
+    zone_context: CapacityZoneContextV1
+
+    @model_validator(mode="after")
+    def validate_zone(self) -> "CapacityAnalysisRequestV3":
+        if not self.process.process_id.startswith(f"{self.zone_context.zone_id}."):
+            raise ValueError("v3 zone context must bind the selected process")
+        return self
+
+
+def parse_capacity_analysis_request(raw: dict[str, Any]) -> CapacityAnalysisRequest | CapacityAnalysisRequestV3:
+    model = CapacityAnalysisRequestV3 if raw.get("schema_version") == "capacity-analysis-request-v3" else CapacityAnalysisRequest
+    return model.model_validate(raw)
+
+
 class CapacityAnalysisResponse(StrictContractModel):
     schema_version: Literal["capacity-analysis-response-v2"] = (
         "capacity-analysis-response-v2"

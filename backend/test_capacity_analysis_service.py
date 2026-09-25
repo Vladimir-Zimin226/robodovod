@@ -204,7 +204,10 @@ def test_openapi_publishes_v2_contract_and_keeps_legacy_endpoint():
     import main
     schema = main.app.openapi()
     operation = schema["paths"]["/api/v2/capacity-analyses"]["post"]
-    assert operation["requestBody"]["content"]["application/json"]["schema"]["$ref"].endswith("CapacityAnalysisRequest")
+    request_schema = operation["requestBody"]["content"]["application/json"]["schema"]
+    assert {item["$ref"].rsplit("/", 1)[-1] for item in request_schema["anyOf"]} == {
+        "CapacityAnalysisRequest", "CapacityAnalysisRequestV3",
+    }
     assert operation["responses"]["201"]["content"]["application/json"]["schema"]["$ref"].endswith("CapacityAnalysisResponse")
     assert operation["responses"]["503"]["content"]["application/json"]["schema"]["$ref"].endswith("CapacityAnalysisErrorResponse")
     assert "/api/v2/capacity-analyses/{run_id}" in schema["paths"]

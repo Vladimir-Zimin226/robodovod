@@ -132,5 +132,6 @@ test('legacy report utilities are offline server adapters without report arithme
   }
   const app = await readFile(path.join(ROOT, 'frontend/src/App.jsx'), 'utf8');
   assert.match(app, /EvidenceExportPanel/);
-  assert.match(app, /setActiveRun\(await response\.json\(\)\)/);
+  assert.match(app, /HistoricalRunViewer/);
+  assert.doesNotMatch(app, /saveAnalysis/);
 });

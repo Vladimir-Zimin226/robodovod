@@ -34,7 +34,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, Upl
 from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
 from calculation.service import CapacityExecutionSnapshotV2, capacity_version_bindings
-from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisResponse, ContractIssue, KnownQuantity
+from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisRequestV3, CapacityAnalysisResponse, ContractIssue, KnownQuantity, parse_capacity_analysis_request
 from economics_runtime_migration import (
     EconomicsMigrationError,
     EconomicsV2ExecutionV1,
@@ -471,7 +471,7 @@ def _economics_capacity_context(
             detail="capacity catalog version is no longer active for economics",
         )
     try:
-        request = CapacityAnalysisRequest.model_validate(source.input_snapshot)
+        request = parse_capacity_analysis_request(source.input_snapshot)
         response = CapacityAnalysisResponse.model_validate(source.result_snapshot)
         constraints = source.diagnostics["constraints"]
         executability = source.diagnostics["executability"]
@@ -1657,7 +1657,7 @@ def create_persistence_router(
         status_code=status.HTTP_201_CREATED,
     )
     def create_capacity_analysis(
-        payload: CapacityAnalysisRequest,
+        payload: CapacityAnalysisRequest | CapacityAnalysisRequestV3,
         context: AuthContext = Depends(require_csrf),
         db: Session = Depends(database_session),
     ):
