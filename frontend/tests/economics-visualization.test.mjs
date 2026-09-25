@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { buildEconomicsSimulationRequest } from '../src/economicsSimulationRequest.js';
+import { buildEconomicsSimulationRequest, buildTechnicalSimulationRequest } from '../src/economicsSimulationRequest.js';
 
 const scenarioSpec = JSON.parse(await readFile(new URL('../../contracts/fixtures/scenario-spec-v2.capacity-only-cleaner.golden.json', import.meta.url), 'utf8'));
 const bundle = {
@@ -24,6 +24,19 @@ test('economics visualization binds only the same immutable project, tenant and 
   assert.equal(buildEconomicsSimulationRequest({ ...bundle, project_id: 'other' }, scenarioSpec), null);
   assert.equal(buildEconomicsSimulationRequest({ ...bundle, input_revision: 'stale' }, scenarioSpec), null);
   assert.equal(buildEconomicsSimulationRequest(bundle, null), null);
+});
+
+test('partial technical run builds a saved C23 request only for matching C11 identity', () => {
+  const run = { id: '00000000-0000-0000-0000-000000000002', run_kind: 'FULL_ANALYSIS',
+    scenario_spec_snapshot: scenarioSpec,
+    result_snapshot: { schema_version: 'economics-partial-result-v1',
+      capacity_run_id: scenarioSpec.analysis.capacity_run_id,
+      project_id: scenarioSpec.analysis.project_id, tenant_id: scenarioSpec.analysis.tenant_id } };
+  const request = buildTechnicalSimulationRequest(run);
+  assert.equal(request.request_id, `simulation.${run.id}`);
+  assert.equal(request.scenario_spec, scenarioSpec);
+  assert.equal(buildTechnicalSimulationRequest({ ...run, result_snapshot: { ...run.result_snapshot, capacity_run_id: 'other' } }), null);
+  assert.equal(buildTechnicalSimulationRequest({ ...run, scenario_spec_snapshot: { schema_version: 'scenario-spec-partial-v1' } }), null);
 });
 
 test('v2 result and economics form use the dark application palette', async () => {

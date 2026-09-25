@@ -2,7 +2,7 @@ import pytest
 
 from calculation.service import analyze_capacity
 from economics_orchestrator import EconomicsExecutionContextV1
-from economics_partial import DEMO_SCENARIO, INPUT_VERSION_V3, execute_partial_economics_v2
+from economics_partial import DEMO_SCENARIO, INPUT_VERSION_V3, INPUT_VERSION_V4, execute_partial_economics_v2
 from economics_runtime_migration import historical_mapping
 from test_economics_orchestrator import _capacity_request, _inputs, _snapshot
 
@@ -42,6 +42,46 @@ def test_empty_inputs_save_capacity_and_no_false_finance():
     assert all(item["npv_project"] is None for item in result["scenario_statuses"])
     assert result["c05"]["procurement_ready"] is False
     assert "raas_monthly_per_robot_gross" in result["branches"]["raas"]["required_fields"]
+
+
+def test_visual_only_v4_builds_valid_spec_without_inventing_npv():
+    from calculation.scheduling import SimulationReportV1, SimulationRequestV1, run_simulation
+    from scenario_spec_v2 import ScenarioSpecV2
+
+    snapshot, context = _context()
+    raw = {"schema_version": INPUT_VERSION_V4, "input_revision": context.capacity_request.input_revision,
+           "start_seconds_from_midnight": "28800", "timezone": "Europe/Moscow"}
+    execution = execute_partial_economics_v2(raw, snapshot, context)
+    result = execution.result_snapshot
+    assert result["visualization"]["status"] == "AVAILABLE"
+    assert result["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert all(item["npv_project"] is None for item in result["scenario_statuses"])
+    spec = ScenarioSpecV2.model_validate(execution.scenario_spec_snapshot)
+    assert spec.analysis.capacity_run_id == context.capacity_response.run_id
+    assert spec.finance is None
+    assert execute_partial_economics_v2(raw, snapshot, context).scenario_spec_snapshot == execution.scenario_spec_snapshot
+    simulation = SimulationRequestV1.model_validate({
+        "schema_version": "simulation-request-v1", "request_id": "simulation.partial",
+        "tenant_id": context.tenant_id, "project_id": context.project_id,
+        "scenario_spec": execution.scenario_spec_snapshot, "mode": "DAILY",
+        "peak_factor": None, "sla": None, "resources": [],
+        "limits": {"max_jobs_per_day": 10000, "max_fleet": 100,
+                   "max_runtime_seconds": 60, "progress_event_batch": 1000},
+    })
+    report = run_simulation(simulation)
+    assert isinstance(report, SimulationReportV1)
+    assert report.scenario_revision_id == spec.revision_id
+
+
+def test_visual_v4_lists_missing_calendar_and_old_v2_keeps_historical_stub():
+    snapshot, context = _context()
+    raw = {"schema_version": INPUT_VERSION_V4, "input_revision": context.capacity_request.input_revision,
+           "start_seconds_from_midnight": "28800"}
+    execution = execute_partial_economics_v2(raw, snapshot, context)
+    assert execution.scenario_spec_snapshot["schema_version"] == "scenario-spec-partial-v1"
+    assert "timezone" in execution.scenario_spec_snapshot["required_fields"]
+    old = execute_partial_economics_v2({**raw, "schema_version": "economics-explicit-inputs-v2", "timezone": "Europe/Moscow"}, snapshot, context)
+    assert old.scenario_spec_snapshot["reason_code"] == "PARTIAL_FINANCIAL_INPUT"
 
 
 def test_purchase_calculates_without_raas_tariff_or_recommendation():
@@ -142,6 +182,16 @@ def test_confirmed_versioned_warehouse_demo_computes_six_scenarios_without_procu
     assert all(item["procurement"]["procurement_status"] == "UNVERIFIED" for item in result.result_snapshot["scenarios"])
     assert context.constraint_report["eligibility"] == "NEEDS_VALIDATION"
     assert len(result.result_snapshot["sensitivity"]["variants"]) == 6
+
+
+def test_confirmed_v4_demo_keeps_full_financial_and_visual_bundle():
+    snapshot, context = _context()
+    raw = _confirmed_demo_input()
+    raw["schema_version"] = INPUT_VERSION_V4
+    result = execute_partial_economics_v2(raw, snapshot, context)
+    assert result.result_snapshot["schema_version"] == "commercial-scenarios-bundle-v2"
+    assert len(result.result_snapshot["scenarios"]) == 6
+    assert result.scenario_spec_snapshot["schema_version"] == "scenario-spec-v2"
 
 
 def test_unconfirmed_or_modified_demo_value_stays_partial_and_never_substitutes_zero():

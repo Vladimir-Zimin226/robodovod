@@ -1394,7 +1394,7 @@ def _bundle(
 def _scenario_spec(
     context: EconomicsExecutionContextV1,
     inputs: EconomicsExplicitInputsV1,
-    finance: MultiprocessAllocationResultV1,
+    finance: MultiprocessAllocationResultV1 | None,
 ) -> dict[str, Any]:
     request = context.capacity_request
     schedule = request.process.schedule

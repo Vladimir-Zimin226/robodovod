@@ -113,7 +113,7 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
   return {
     scenario_id: scenario.id, capacity_run_id: values.capacityRunId,
     ...(sourceRunId ? { source_run_id: sourceRunId } : {}),
-    input: { schema_version: 'economics-explicit-inputs-v3', input_revision: capacityRequest.input_revision,
+    input: { schema_version: 'economics-explicit-inputs-v4', input_revision: capacityRequest.input_revision,
       ...fields, field_sources, assumption_evidence },
   };
 }

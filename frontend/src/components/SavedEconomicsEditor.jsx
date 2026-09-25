@@ -27,7 +27,7 @@ export default function SavedEconomicsEditor({ project, run, onComplete }) {
     return () => controller.abort();
   }, [project?.id, capacityRunId]);
 
-  if (!capacityRunId || !['economics-explicit-inputs-v2', 'economics-explicit-inputs-v3'].includes(initialInput?.schema_version)) return null;
+  if (!capacityRunId || !['economics-explicit-inputs-v2', 'economics-explicit-inputs-v3', 'economics-explicit-inputs-v4'].includes(initialInput?.schema_version)) return null;
   return <details className="mx-auto my-6 max-w-6xl rounded-xl border p-4">
     <summary className="cursor-pointer font-semibold">Изменить допущение и создать новый run</summary>
     <p className="text-sm mt-2">Исходный экономический run {run.id} останется доступен для повторного открытия.</p>

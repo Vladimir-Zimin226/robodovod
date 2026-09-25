@@ -26,6 +26,11 @@
 }
 
 .simulation-2d { padding: 24px; color: #dce7f5; background: #07111f; border: 1px solid #23344a; border-radius: 18px; }
+.technical-visualization-intro { background: var(--bg-panel); border-color: var(--border-subtle); color: var(--text-primary); }
+.technical-visualization-intro .text-green-800 { color: var(--success); }
+.technical-visualization-intro .text-amber-800 { color: var(--amber); }
+.technical-visualization-intro .text-red-700 { color: #ff9a9a; }
+.technical-visualization-intro input { background: var(--bg-input); color: var(--text-primary); border-color: var(--border-medium); color-scheme: dark; }
 .simulation-2d-header, .simulation-controls, .simulation-bindings, .simulation-kpis, .simulation-notes { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .simulation-2d-header h2 { margin: 2px 0; font-size: 22px; }
 .simulation-2d-header p, .simulation-run-box p { color: #8fa6bf; }

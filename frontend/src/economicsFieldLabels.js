@@ -12,6 +12,8 @@ const LABELS = {
   raas_infrastructure_owner: 'Плательщик инфраструктуры', primary_role_id: 'Основная роль',
   role_pool: 'Роли C03', capacity_run_id: 'Расчёт C11', capacity_technical_result: 'Доступный технический результат C11', catalog_position: 'Позиция каталога',
   organizer_price: 'Исходная цена каталога', input_revision: 'Версия входа', labour: 'Данные труда',
+  'process.schedule': 'График работы C11', 'process.demand': 'Нагрузка C11',
+  'process.route_distance': 'Маршрут C11', scenario_spec: 'Совместимые технические данные C11',
 };
 export function economicsFieldLabel(server) {
   if (server.startsWith('role_pool.')) return `зарплата роли C03 (${server.split('.')[1]})`;

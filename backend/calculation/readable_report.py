@@ -461,6 +461,13 @@ def build_readable_report(
             (f"Эффективная мощность: {effective_text}", "body"),
             ("Рассчитанные ветки", "section"),
         ])
+        visualization = _obj(result.get("visualization"))
+        if visualization:
+            if visualization.get("status") == "AVAILABLE" and _obj(run.scenario_spec_snapshot).get("schema_version") == "scenario-spec-v2":
+                lines.append(("Техническая схема работы C23 доступна для этого run; денежный эффект проверяется отдельно. Геометрия без плана объекта условная.", "body"))
+            else:
+                missing_visual = ", ".join(str(field) for field in _list(visualization.get("required_fields")))
+                lines.append((f"Техническая схема C23 не рассчитана. Нужны поля: {missing_visual or 'уточнение технических входов'}.", "body"))
         available = False
         for acquisition, scenario in (("Покупка", purchase), ("RaaS", raas)):
             facts = _facts(scenario)

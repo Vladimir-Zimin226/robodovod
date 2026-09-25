@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import io
 import os
+import time
 import uuid
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
@@ -589,6 +590,9 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert capacity_created.status_code == 201, capacity_created.text
         capacity = capacity_created.json()
         assert capacity["capacity"]["status"] == "WITH_ASSUMPTIONS"
+        original_capacity_checksums = owner.get(
+            f"/api/projects/{project['id']}/analysis-runs/{capacity['run_id']}"
+        ).json()["checksums"]
 
         endpoint = f"/api/v2/projects/{project['id']}/economics-runs"
         economics_payload = {
@@ -629,6 +633,45 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         partial_replay = owner.post(f"{endpoint}/{partial['id']}/replay", headers=headers)
         assert partial_replay.status_code == 200, partial_replay.text
         assert partial_replay.json()["status"] == "MATCH"
+
+        visual_input = {"schema_version": "economics-explicit-inputs-v4",
+                        "input_revision": capacity_payload["input_revision"],
+                        "start_seconds_from_midnight": "28800", "timezone": "Europe/Moscow"}
+        visual_response = owner.post(endpoint, headers=headers, json={
+            "scenario_id": scenario["id"], "capacity_run_id": capacity["run_id"],
+            "input": visual_input,
+        })
+        assert visual_response.status_code == 201, visual_response.text
+        visual = visual_response.json()
+        assert visual["parent_run_id"] == capacity["run_id"]
+        assert visual["input_snapshot"]["schema_version"] == "economics-run-input-v5"
+        assert visual["result_snapshot"]["visualization"]["status"] == "AVAILABLE"
+        assert visual["result_snapshot"]["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+        assert all(item["npv_project"] is None for item in visual["result_snapshot"]["scenario_statuses"])
+        assert visual["scenario_spec_snapshot"]["schema_version"] == "scenario-spec-v2"
+        assert owner.post(f"{endpoint}/{visual['id']}/replay", headers=headers).json()["status"] == "MATCH"
+        visual_request_id = f"simulation.{visual['id']}"
+        simulation_base = f"/api/v2/simulations/projects/{project['id']}/analysis-runs/{visual['id']}"
+        simulation_request = {
+            "schema_version": "simulation-request-v1", "request_id": visual_request_id,
+            "tenant_id": visual["result_snapshot"]["tenant_id"], "project_id": project["id"],
+            "scenario_spec": visual["scenario_spec_snapshot"], "mode": "DAILY",
+            "peak_factor": None, "sla": None, "resources": [],
+            "limits": {"max_jobs_per_day": 10000, "max_fleet": 100,
+                       "max_runtime_seconds": 60, "progress_event_batch": 1000},
+        }
+        started = owner.post(simulation_base, headers=headers, json=simulation_request)
+        assert started.status_code == 202, started.text
+        for _ in range(200):
+            simulation_state = owner.get(f"{simulation_base}/{visual_request_id}")
+            if simulation_state.json().get("state") in ("SUCCEEDED", "FAILED"):
+                break
+            time.sleep(0.02)
+        assert simulation_state.json()["state"] == "SUCCEEDED", simulation_state.text
+        assert owner.get(f"{simulation_base}/{visual_request_id}/evidence.json").status_code == 200
+        assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{visual['id']}").json()["checksums"] == visual["checksums"]
+        assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{capacity['run_id']}").json()["checksums"] == original_capacity_checksums
+        assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{partial['id']}").json()["checksums"] == partial["checksums"]
 
         reopened = owner.get(
             f"/api/projects/{project['id']}/analysis-runs/{created['id']}"

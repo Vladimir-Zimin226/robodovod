@@ -11,7 +11,9 @@ from decimal import Decimal, InvalidOperation
 import json
 from pathlib import Path
 import re
+from types import SimpleNamespace
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from calculation_contracts import KnownQuantity
 from economics_orchestrator import (
@@ -25,12 +27,14 @@ from economics_orchestrator import (
     _position,
     _procurement_projection,
     _scenario_artifacts,
+    _scenario_spec,
     execute_economics_v2,
 )
 from economics_runtime_migration import EconomicsV2ExecutionV1
 
 INPUT_VERSION = "economics-explicit-inputs-v2"
 INPUT_VERSION_V3 = "economics-explicit-inputs-v3"
+INPUT_VERSION_V4 = "economics-explicit-inputs-v4"
 RESULT_VERSION = "economics-partial-result-v1"
 PARTIAL_RULES_VERSION = "calculation-rules-c13-c21-partial-v1"
 
@@ -172,7 +176,7 @@ def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
                                and (values.get(key) is not None or key in values["input_ranges"])} if isinstance(sources, dict) else {}
     evidence = raw.get("assumption_evidence", {})
     values["assumption_evidence"] = {}
-    if raw.get("schema_version") == INPUT_VERSION_V3:
+    if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4}:
         if not isinstance(evidence, dict):
             evidence = {}
         for field, source in values["field_sources"].copy().items():
@@ -199,11 +203,11 @@ def _status(missing: list[str], *, reason: str = "MISSING_INPUT") -> dict[str, A
 def execute_partial_economics_v2(
     raw: dict[str, Any], snapshot: Any, context: EconomicsExecutionContextV1
 ) -> EconomicsV2ExecutionV1:
-    if raw.get("schema_version") not in {INPUT_VERSION, INPUT_VERSION_V3}:
+    if raw.get("schema_version") not in {INPUT_VERSION, INPUT_VERSION_V3, INPUT_VERSION_V4}:
         raise ValueError("unsupported partial economics input version")
     values, issues = _parse(raw)
     request = context.capacity_request
-    if raw.get("schema_version") == INPUT_VERSION_V3 and request.process.process_code != "warehouse_receiving_shipping":
+    if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4} and request.process.process_code != "warehouse_receiving_shipping":
         for field, evidence in list(values["assumption_evidence"].items()):
             if evidence.get("template_id") == DEMO_SCENARIO["schema_version"]:
                 values[field] = None
@@ -232,6 +236,32 @@ def execute_partial_economics_v2(
     context_missing = [] if capacity_available else ["capacity_technical_result"]
     if values["input_revision"] != request.input_revision:
         context_missing.append("input_revision")
+    visual_missing: list[str] = []
+    visual_spec = None
+    if raw.get("schema_version") == INPUT_VERSION_V4:
+        visual_missing = _missing(values, VISUAL_FIELDS) + context_missing
+        if request.process.schedule is None:
+            visual_missing.append("process.schedule")
+        if not isinstance(request.process.demand, KnownQuantity):
+            visual_missing.append("process.demand")
+        if ((request.process.scope == "TRANSPORT_CYCLE" or request.process.route_distance is not None)
+                and not isinstance(request.process.route_distance, KnownQuantity)):
+            visual_missing.append("process.route_distance")
+        if values["timezone"] is not None:
+            try:
+                ZoneInfo(values["timezone"])
+            except (ZoneInfoNotFoundError, ValueError, KeyError):
+                visual_missing.append("timezone")
+                issues.append(_issue("timezone", "INVALID_TIMEZONE", "Часовой пояс не найден в базе IANA.", "Укажите, например, Europe/Moscow."))
+        if not visual_missing:
+            try:
+                visual_spec = _scenario_spec(context, SimpleNamespace(
+                    start_seconds_from_midnight=values["start_seconds_from_midnight"],
+                    timezone=values["timezone"],
+                ), None)
+            except ValueError as exc:
+                visual_missing.append("scenario_spec")
+                issues.append(_issue("scenario_spec", "TECHNICAL_INPUT_INVALID", str(exc), "Проверьте график и маршрут исходного C11."))
     labour_missing = _missing(values, LABOUR_FIELDS) + missing_salaries + context_missing
     if request.process.scope != "CLEANING_AREA" and values["manual_units_per_shift"] is None:
         labour_missing.append("manual_units_per_shift")
@@ -316,6 +346,8 @@ def execute_partial_economics_v2(
     # A complete input uses the established full engine and its six-scenario
     # bundle. This preserves all existing calculations and golden snapshots.
     complete = not issues and not raas_missing and not _missing(values, VISUAL_FIELDS)
+    if raw.get("schema_version") == INPUT_VERSION_V4:
+        complete = complete and visual_spec is not None
     if complete:
         full = {key: value for key, value in values.items() if key in EconomicsExplicitInputsV1.model_fields}
         full["schema_version"] = "economics-explicit-inputs-v1"
@@ -343,10 +375,16 @@ def execute_partial_economics_v2(
         "input_provenance": values["field_sources"], "input_ranges": values["input_ranges"],
         "limitations": ["Частичный расчёт: отсутствующие показатели не заменены нулём.", "Сценарные допущения пользователя не являются подтверждением поставщика.", "C05 и закупочная готовность требуют отдельной проверки."],
     }
+    if raw.get("schema_version") == INPUT_VERSION_V4:
+        result["visualization"] = {
+            "status": "AVAILABLE" if visual_spec is not None else "NOT_CALCULATED",
+            "required_fields": sorted(set(visual_missing)),
+            "source_run_id": context.capacity_response.run_id,
+        }
     return EconomicsV2ExecutionV1(
         result_snapshot=result,
-        scenario_spec_snapshot={"schema_version": "scenario-spec-partial-v1", "status": "NOT_CALCULATED", "reason_code": "PARTIAL_FINANCIAL_INPUT", "capacity_run_id": context.capacity_response.run_id},
-        revision_id=request.input_revision, rules_version=PARTIAL_RULES_VERSION,
+        scenario_spec_snapshot=visual_spec or {"schema_version": "scenario-spec-partial-v1", "status": "NOT_CALCULATED", "reason_code": "TECHNICAL_INPUT_MISSING" if raw.get("schema_version") == INPUT_VERSION_V4 else "PARTIAL_FINANCIAL_INPUT", "capacity_run_id": context.capacity_response.run_id, **({"required_fields": sorted(set(visual_missing))} if raw.get("schema_version") == INPUT_VERSION_V4 else {})},
+        revision_id=visual_spec["revision_id"] if visual_spec else request.input_revision, rules_version=PARTIAL_RULES_VERSION,
         object_profile_version="calculation-intake-normalization-v2",
         application_version="production-economics-partial-v1",
         diagnostics={"route": "ECONOMICS_PARTIAL_V1", "capacity_run_id": context.capacity_response.run_id, "catalog_version": snapshot.version.code, "procurement_ready": False, "issue_codes": [item["code"] for item in issues]},

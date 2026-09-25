@@ -102,6 +102,7 @@ class EconomicsV2ExecutionV1(StrictContractModel):
         if versions not in {
             ("commercial-scenarios-bundle-v2", "scenario-spec-v2"),
             ("economics-partial-result-v1", "scenario-spec-partial-v1"),
+            ("economics-partial-result-v1", "scenario-spec-v2"),
         }:
             raise ValueError("v2 execution requires a matching result/scenario-spec version")
         return self
@@ -202,7 +203,7 @@ def historical_mapping(
 
         economics_input = input_snapshot.get("economics", {})
         partial_basis_complete = (
-            input_snapshot.get("schema_version") not in {"economics-run-input-v3", "economics-run-input-v4"}
+            input_snapshot.get("schema_version") not in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5"}
             or (
                 isinstance(economics_input, dict)
                 and economics_input.get("role_salaries_confirmed_as_monthly_gross") is True

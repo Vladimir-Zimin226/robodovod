@@ -1,4 +1,5 @@
 import SavedEconomicsEditor from './SavedEconomicsEditor';
+import TechnicalVisualization from './TechnicalVisualization';
 import { economicsFieldLabel } from '../economicsFieldLabels';
 import { formatServerMoney } from '../commercialScenariosModel';
 import { formatFleet } from '../displayNumber';
@@ -37,6 +38,7 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
         <p>Закупка: {scenario.procurement?.procurement_status || 'не подтверждена'}</p>
       </article>)}</div>
     </section>}
+    <TechnicalVisualization run={run} />
     <SavedEconomicsEditor key={run?.id} project={project} run={run} onComplete={onComplete} />
   </div>;
 }

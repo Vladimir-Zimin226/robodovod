@@ -17,6 +17,7 @@ import EconomicsInputsV2 from './components/EconomicsInputsV2';
 import PartialEconomicsResult from './components/PartialEconomicsResult';
 import SavedEconomicsEditor from './components/SavedEconomicsEditor';
 import GuestWarehouseDemo from './components/GuestWarehouseDemo';
+import TechnicalVisualization from './components/TechnicalVisualization';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
@@ -412,6 +413,7 @@ export default function App() {
             ) : isCapacityAnalysisResponse(result) ? (
               <>
                 <CapacityResultsTrace response={result} onRestart={restart} />
+                <TechnicalVisualization key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <EconomicsInputsV2
                   capacityRequest={userInput}
                   capacityRunId={activeRun?.id || result.run_id}
