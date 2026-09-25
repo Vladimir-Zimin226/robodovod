@@ -7,6 +7,7 @@ RUN npm ci
 
 COPY frontend/ .
 COPY robcraft/ /robcraft/
+COPY data/scenarios/warehouse-economics-demo-v1.json /data/scenarios/warehouse-economics-demo-v1.json
 RUN npm run build
 
 FROM nginx:1.27-alpine

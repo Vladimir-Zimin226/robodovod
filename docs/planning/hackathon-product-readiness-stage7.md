@@ -39,3 +39,16 @@ curl.exe -f https://robodovod.ru/api/catalog/status
 ```
 
 Затем в обычном браузере по HTTPS пройти пункты 1–4, включая новый пользовательский проект, C11, частичный и полный результаты, C23, reopen и PDF/ZIP. Зафиксировать HEAD, Compose, ответы `/ready` и результат браузера **раздельно**. Если SSH/HTTPS недоступны или любой шаг не прошёл, не объявлять production готовым.
+
+### Исправление после первого server build
+
+При первом fast-forward сервер получил `1d72cfd`, но `docker compose build backend frontend`
+остановился на сборке frontend: оба импорта `warehouse-economics-demo-v1.json`
+не находили файл внутри build stage. Тот же файл нужен backend при импорте
+`economics_partial.py`. Dockerfiles обоих сервисов теперь копируют только этот
+версионированный JSON в `/data/scenarios/`; код расчёта и сохранённые runs не
+изменялись. Локально успешно собраны оба Docker image, а исправленный backend
+image импортировал `economics_partial` и `main`. На сервере после публикации
+исправления нужно повторить `build backend frontend`, затем `up -d --wait
+--no-deps backend frontend` и HTTPS-приёмку. Production готовность до этих
+шагов не подтверждена.
