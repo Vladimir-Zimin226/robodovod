@@ -14,7 +14,7 @@ const STATUS_LABELS = {
   ALTERNATIVE: 'Альтернатива', NO_POSITIVE_CASE: 'Нет положительного кейса',
 };
 
-export default function CommercialScenariosV2({ bundle, scenarioSpec, onRecalculate, onRestart }) {
+export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRunId, onRecalculate, onRestart }) {
   const initial = useMemo(() => createCommercialSession(bundle), [bundle]);
   const [session, setSession] = useState(initial);
   const [scenarioKey, setScenarioKey] = useState('PURCHASE:BASE');
@@ -31,6 +31,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, onRecalcul
         <div>
           <span>COMMERCIAL SCENARIOS V2 · REVISION {bundle.input_revision}</span>
           <h1>Покупка и RaaS</h1>
+          <p>Экономический run: {bundle.run_id} · Исходный C11: {capacityRunId || 'не указан'}.</p>
           <p>Шесть серверных сценариев. Интерфейс не пересчитывает финансовые показатели.</p>
         </div>
         <div className="commercial-header-actions">

@@ -92,11 +92,15 @@ def test_partial_report_explains_missing_values_and_historical_error():
     raw["versions"]["application"] = "production-economics-orchestrator-v1"
     raw["input_snapshot"]["fte_cost_rub"] = "100000"
     raw["checksums"]["input"] = _checksum(raw["input_snapshot"])
-    pdf, _ = build_readable_report(EvidenceRunSnapshotV1.model_validate(raw))
+    saved_input = deepcopy(raw["input_snapshot"])
+    saved_result = deepcopy(raw["result_snapshot"])
+    pdf, digest = build_readable_report(EvidenceRunSnapshotV1.model_validate(raw))
     text = _text(pdf)
     assert "C16 v1" in text and "известную ошибку" in text
     assert "нет данных для оценки" in text and "связанный расчёт мощности" in text
     assert "не известна база начисления" in text
+    assert digest == "sha256:" + raw["checksums"]["result"]
+    assert raw["input_snapshot"] == saved_input and raw["result_snapshot"] == saved_result
 
 
 def test_partial_v2_report_reads_saved_purchase_finance_without_inventing_raas():
@@ -108,6 +112,9 @@ def test_partial_v2_report_reads_saved_purchase_finance_without_inventing_raas()
         "schema_version": "economics-partial-result-v1",
         "input_revision": "revision.report.v1",
         "c05": {"eligibility": "NEEDS_VALIDATION", "procurement_ready": False},
+        "capacity_run_id": linked.run_id,
+        "branches": {"purchase": {"status": "CALCULATED"}, "raas": {"status": "NOT_CALCULATED", "reason_code": "MISSING_INPUT", "required_fields": ["raas_monthly_per_robot_gross"]}},
+        "issues": [{"field": "raas_monthly_per_robot_gross", "code": "MISSING_INPUT", "message": "Тариф не сохранён.", "next_step": "Укажите тариф RaaS."}],
         "scenarios": [{
             "acquisition": "PURCHASE", "uncertainty": "BASE",
             "procurement": {"procurement_status": "UNVERIFIED"},
@@ -122,7 +129,9 @@ def test_partial_v2_report_reads_saved_purchase_finance_without_inventing_raas()
     assert "Год 1: без роботов -100,00 ₽" in text
     assert "нужна проверка паспортных данных" in text
     assert "условия закупки поставщиком не подтверждены" in text
-    assert "тариф не сохранён" in text
+    assert "Тариф не сохранён" in text
+    assert "raas_monthly_per_robot_gross" in text
+    assert "При аренде роботов (RaaS)" not in text
 
 
 def test_capacity_only_report_uses_its_own_verified_snapshot():
@@ -133,6 +142,30 @@ def test_capacity_only_report_uses_its_own_verified_snapshot():
     assert "1 000 паллет/день" in text
     assert "нет данных для оценки" in text
     assert "Расчёт мощности:" in text
+    assert "Техническая мощность C11" in text
+    assert "После покупки роботов" not in text
+    assert "Сравнение денег по годам" not in text
+
+
+def test_capacity_display_rounds_only_pdf_and_keeps_exact_snapshot():
+    _, linked = _full_runs()
+    raw = linked.model_dump(mode="json")
+    value = raw["result_snapshot"]["capacity"]["value"]
+    value["selected_fleet"] = 15
+    value["nominal_capacity"] = {"value": "196.635", "unit": "unit/h"}
+    value["effective_capacity"] = {"value": "137.650001", "unit": "unit/h"}
+    value["coverage"] = {"value": "1", "unit": "1", "quantity_kind": "FRACTION"}
+    value["raw_load_ratio"] = {"value": "0.990675", "unit": "1", "quantity_kind": "FRACTION"}
+    raw["checksums"]["result"] = _checksum(raw["result_snapshot"])
+    run = EvidenceRunSnapshotV1.model_validate(raw)
+    saved = deepcopy(run.result_snapshot)
+    pdf, digest = build_readable_report(run)
+    text = _text(pdf)
+    for value in ("15 роботов", "196,64 ед./ч", "137,65 ед./ч", "100 %", "99,07 %"):
+        assert value in text
+    assert run.result_snapshot == saved
+    assert run.result_snapshot["capacity"]["value"]["effective_capacity"]["value"] == "137.650001"
+    assert digest == "sha256:" + run.checksums["result"]
 
 
 def test_linked_run_requires_matching_binding_and_verified_digest():

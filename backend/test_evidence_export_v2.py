@@ -107,6 +107,22 @@ def test_missing_sections_and_partial_finance_are_explained_without_false_npv():
     assert "нет данных для оценки" in _pdf_text(package.files[READABLE_REPORT_FILENAME])
 
 
+def test_partial_zip_keeps_exact_saved_values_and_identifies_result_type():
+    run, linked = _full_runs()
+    raw = run.model_dump(mode="json")
+    raw["result_snapshot"] = {
+        "schema_version": "economics-partial-result-v1", "input_revision": "revision.report.v1",
+        "branches": {"purchase": {"status": "CALCULATED"}, "raas": {"status": "NOT_CALCULATED", "required_fields": ["raas_monthly_per_robot_gross"]}},
+        "scenarios": [{"acquisition": "PURCHASE", "uncertainty": "BASE", "financial": {"status": "COMPLETE", "npv_project": {"status": "COMPLETE", "value": "12345.678901", "unit": "RUB"}}}],
+    }
+    raw["checksums"]["result"] = _checksum(raw["result_snapshot"])
+    package = build_evidence_export_v2(EvidenceRunSnapshotV1.model_validate(raw), linked)
+    assert "Вид результата: Частичная экономика" in package.files[ENTRYPOINT_FILENAME].decode("utf-8")
+    assert "12 345,68 ₽" in _pdf_text(package.files[READABLE_REPORT_FILENAME])
+    assert json.loads(package.files["Snapshot.json"])["result_snapshot"]["scenarios"][0]["financial"]["npv_project"]["value"] == "12345.678901"
+    assert package.manifest.linked_capacity_run_id == linked.run_id
+
+
 def test_v2_contract_and_golden_are_current_and_v1_is_unchanged():
     from scripts.build_evidence_export_contract import expected_outputs
 

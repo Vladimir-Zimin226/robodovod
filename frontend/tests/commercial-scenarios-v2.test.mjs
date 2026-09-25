@@ -65,7 +65,8 @@ test('financial display consumes server metrics without deriving them from cashf
 test('golden displayed money preserves exact server decimals', () => {
   assert.equal(formatServerMoney('3000000.00'), '3 000 000,00 ₽');
   assert.equal(formatServerMoney('-1500000.00'), '-1 500 000,00 ₽');
-  assert.equal(formatServerMetric({ status: 'COMPLETE', value: '2.75', unit: 'YEAR' }), '2.75 YEAR');
+  assert.equal(formatServerMetric({ status: 'COMPLETE', value: '2.75', unit: 'YEAR' }), '2,75 лет');
+  assert.equal(formatServerMoney('123456789.87654321'), '123 456 789,88 ₽');
 });
 
 test('user edit invalidates the old result instead of recalculating in browser', () => {

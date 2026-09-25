@@ -9,7 +9,7 @@ from __future__ import annotations
 import io
 import json
 import zlib
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any
 
@@ -85,10 +85,11 @@ UNIT_LABELS = {
     "cart/day": "тележек/день", "delivery/day": "доставок/день",
     "sample/day": "образцов/день", "set/day": "наборов/день",
     "kg/day": "кг/день", "m2/day": "м²/день", "unit/day": "единиц/день",
-    "unit/h": "единиц/час", "pick/h": "операций подбора/час",
+    "unit/h": "ед./ч", "pick/h": "операций подбора/час",
     "m2/h": "м²/час", "trip/h": "рейсов/час",
     "box/day": "коробок/день", "case/day": "коробов/день",
     "bin/day": "контейнеров/день",
+    "robot": "роботов", "1": "",
 }
 SERVICE_LABELS = {
     "HARDWARE": "роботы", "BATTERY": "аккумуляторы", "CHARGING": "зарядка",
@@ -114,7 +115,7 @@ def _number(value: Any, *, money: bool = False) -> str | None:
         return None
     if not amount.is_finite():
         return None
-    rendered = format(amount, ",.2f")
+    rendered = format(amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), ",.2f")
     if not money:
         rendered = rendered.rstrip("0").rstrip(".")
     return rendered.replace(",", " ").replace(".", ",")
@@ -131,10 +132,18 @@ def _plain(value: Any) -> str:
 
 def _quantity(value: Any) -> str:
     item = _obj(value)
-    number = _number(item.get("normalized_value", item.get("value")))
+    raw = item.get("normalized_value", item.get("value"))
+    if item.get("quantity_kind") == "FRACTION" and raw is not None:
+        try:
+            number = _number(Decimal(str(raw)) * 100)
+        except (InvalidOperation, ValueError):
+            number = None
+        return f"{number} %" if number is not None else UNKNOWN
+    number = _number(raw)
     if number is None:
         return UNKNOWN
-    return f"{number} {UNIT_LABELS.get(item.get('unit'), item.get('unit') or 'единиц')}"
+    unit = UNIT_LABELS.get(item.get('unit'), item.get('unit') or 'единиц')
+    return f"{number} {unit}".strip()
 
 
 def _metric(value: Any) -> str:
@@ -368,14 +377,57 @@ def build_readable_report(
     effective_text = _quantity(effective) if effective else UNKNOWN
     process_name = PROCESS_LABELS.get(process.get("process_code"))
     roles = _list(result.get("roles"))
+    if run.run_kind == "CAPACITY_ANALYSIS":
+        lines = [
+            ("РОБОДОВОД", "brand"), ("Техническая мощность C11", "title"),
+            (f"№ {run.run_id}", "subtitle"), (f"Дата расчёта: {date}", "cover"),
+            ("Предварительная техническая оценка; пригодность и условия закупки требуют подтверждения.", "cover"),
+            ("", "page"), ("Процесс и мощность", "section"),
+            (f"Процесс: {process_name or _unknown(source_reason)}", "metric"),
+            (f"Исходный объём работ: {_with_reason(_quantity(process.get('demand')), source_reason)}", "body"),
+            (f"Рекомендованный парк: {_plain(capacity.get('recommended_fleet'))} роботов", "metric"),
+            (f"Выбранный парк: {_plain(capacity.get('selected_fleet'))} роботов", "metric"),
+            (f"Номинальная производительность: {_quantity(capacity.get('nominal_capacity'))}", "body"),
+            (f"Эффективная производительность: {effective_text}", "metric"),
+            (f"Покрытие требуемого объёма: {_quantity(capacity.get('coverage'))}", "body"),
+            ("Покрытие — доля требуемого объёма, которую может выполнить выбранный парк.", "note"),
+            (f"Фактическая загрузка: {_quantity(capacity.get('raw_load_ratio'))}", "body"),
+            ("Загрузка — отношение требуемой работы к доступной мощности; более 100 % означает перегрузку.", "note"),
+            ("Допущения и ограничения", "section"),
+        ]
+        capacity_result = _obj(_obj(linked.get("result")).get("capacity"))
+        for name in ("warnings", "blockers"):
+            for issue in _list(capacity_result.get(name)):
+                if isinstance(issue, dict):
+                    lines.append((f"{issue.get('code', 'Проверка')}: {issue.get('message') or issue.get('reason') or UNKNOWN}", "body"))
+        assumptions = _list(_obj(_obj(linked.get("result")).get("trace")).get("assumptions"))
+        for item in assumptions:
+            if isinstance(item, dict):
+                lines.append((f"Допущение {item.get('assumption_id', '')}: {item.get('rationale') or UNKNOWN}", "body"))
+        if not assumptions and not capacity_result.get("warnings") and not capacity_result.get("blockers"):
+            lines.append(("Отдельные ограничения не записаны в этом результате; паспорт модели и условия объекта требуют проверки.", "body"))
+        lines.extend([
+            ("Какие данные нужны дальше", "section"),
+            ("Для экономики укажите ручную выработку, численность и оплату ролей, затраты внедрения и обслуживания, ставку и горизонт оценки, условия покупки и RaaS.", "body"),
+            ("Для закупки подтвердите паспорт выбранной комплектации, цену, состав поставки и доступность.", "body"),
+            ("Источник и контроль", "section"),
+            (f"Расчёт мощности: {run.run_id}", "body"),
+            (f"Результат: {digests.get('result') or UNKNOWN}", "body"),
+            (f"Входные данные: {digests.get('input') or UNKNOWN}", "body"),
+            ("Точные Decimal-значения и контрольные суммы сохранены в машинном ZIP без округления.", "body"),
+        ])
+        return _pdf(lines), digests["result"] or ""
+    partial = result.get("schema_version") == "economics-partial-result-v1"
+    full = result.get("schema_version") == "commercial-scenarios-bundle-v2"
     lines: list[tuple[str, str]] = [
         ("РОБОДОВОД", "brand"),
-        ("Отчёт по расчёту", "title"),
+        ("Частичная экономика" if partial else "Экономика: baseline, покупка и RaaS" if full else "Исторический расчёт", "title"),
         (f"№ {run.run_id}", "subtitle"),
         (f"Дата расчёта: {date}", "cover"),
         ("Предварительная оценка для выбора способа роботизации.", "cover"),
         ("Данные о цене, комплектации и работе на объекте требуют подтверждения.", "cover"),
         ("", "page"),
+        (f"Исходный расчёт мощности C11: {run.input_snapshot.get('capacity_run_id') or UNKNOWN}", "body"),
         ("Какой процесс оцениваем", "section"),
         (f"Процесс: {process_name or _unknown(source_reason)}", "metric"),
         (f"Исходный объём работ: {_with_reason(_quantity(process.get('demand')), source_reason)}", "body"),
@@ -384,6 +436,81 @@ def build_readable_report(
         (f"Рабочих дней в год: {_with_reason(_plain(_obj(_obj(process.get('schedule')).get('days_per_year')).get('normalized_value')), source_reason)}", "body"),
         ("Сейчас", "section"),
     ]
+    if not partial and not full:
+        lines.extend([
+            (_unknown("финансовые разделы этого формата не представлены в читаемом отчёте"), "body"),
+            ("Исторический результат", "section"),
+            ("Сохранённые числовые значения доступны без изменения в Snapshot.json и CSV архива доказательств.", "body"),
+            (f"Связанный расчёт мощности: {run.input_snapshot.get('capacity_run_id') or _unknown(source_reason)}", "body"),
+        ])
+        if historical:
+            lines.append(("ВНИМАНИЕ: исторический расчёт C16 v1 содержит известную ошибку повторного учёта стоимости дефицита персонала. Денежные результаты требуют нового расчёта.", "metric"))
+        if "fte_cost_rub" in run.input_snapshot:
+            lines.append(("Для старой суммы затрат на сотрудника не известна база начисления; месячная зарплата до удержаний из неё не выводится.", "body"))
+        lines.extend([
+            ("Источник и контроль", "section"),
+            (f"Результат: {digests.get('result') or UNKNOWN}", "body"),
+            (f"Входные данные: {digests.get('input') or UNKNOWN}", "body"),
+        ])
+        return _pdf(lines), digests["result"] or ""
+    if partial:
+        lines.extend([
+            ("Техническая основа C11", "section"),
+            (f"Связанный расчёт мощности: {run.input_snapshot.get('capacity_run_id') or UNKNOWN}", "body"),
+            (f"Выбранный парк: {_plain(fleet)} роботов", "metric"),
+            (f"Эффективная мощность: {effective_text}", "body"),
+            ("Рассчитанные ветки", "section"),
+        ])
+        available = False
+        for acquisition, scenario in (("Покупка", purchase), ("RaaS", raas)):
+            facts = _facts(scenario)
+            flows = _cashflows(scenario)
+            if not scenario:
+                continue
+            available = True
+            lines.append((f"{acquisition}: чистая приведённая стоимость {_metric(facts.get('project_npv'))}.", "metric"))
+            for flow in flows:
+                lines.append((f"Год {flow.get('year')}: без роботов {_money(flow.get('baseline'))}; {acquisition.lower()} {_money(flow.get('scenario'))}; эффект {_money(flow.get('effect'))}.", "body"))
+        if not available:
+            lines.append(("Денежные ветки пока не рассчитаны; сумма и NPV отсутствуют.", "body"))
+        lines.append(("Что мешает остальным веткам", "section"))
+        branches = _obj(result.get("branches"))
+        for key, label in (("labour", "Труд"), ("purchase", "Покупка"), ("raas", "RaaS")):
+            branch = _obj(branches.get(key))
+            if branch.get("status") in {"CALCULATED", "AVAILABLE"}:
+                continue
+            missing = [str(field) for field in _list(branch.get("required_fields"))]
+            if missing:
+                lines.append((f"{label}: не рассчитано ({branch.get('reason_code') or 'MISSING_INPUT'}). Нужны поля: {', '.join(missing)}.", "body"))
+            else:
+                lines.append((f"{label}: не рассчитано ({branch.get('reason_code') or 'причина не сохранена'}).", "body"))
+        for issue in _list(result.get("issues")):
+            if isinstance(issue, dict):
+                lines.append((f"{issue.get('field') or 'Вход'}: {issue.get('message') or issue.get('code') or UNKNOWN} {issue.get('next_step') or ''}", "body"))
+        eligibility_text = {
+            "ELIGIBLE": "по сохранённой проверке препятствий не выявлено; паспорт и объект требуют подтверждения",
+            "NEEDS_VALIDATION": "нужна проверка паспортных данных и условий объекта",
+            "INELIGIBLE": "обнаружены препятствия для применения",
+        }.get(_obj(result.get("c05")).get("eligibility"), "статус не сохранён")
+        procurement_text = {
+            "VERIFIED": "условия закупки подтверждены в сохранённом расчёте",
+            "UNVERIFIED": "условия закупки поставщиком не подтверждены",
+            "INCOMPLETE": "данных об условиях закупки недостаточно",
+        }.get(_obj(purchase.get("procurement")).get("procurement_status"), "статус не сохранён")
+        lines.extend([
+            ("Следующий шаг", "section"),
+            ("Заполните недостающие поля и сохраните новый расчёт от исходного C11. Текущий run остаётся неизменным.", "body"),
+            ("C05 и условия закупки требуют отдельного подтверждения; рассчитанный NPV сам по себе не является рекомендацией к закупке.", "body"),
+            (f"Проверка технических ограничений: {eligibility_text}.", "body"),
+            (f"Условия закупки: {procurement_text}.", "body"),
+            ("Источник и контроль", "section"),
+            (f"Результат: {digests.get('result') or UNKNOWN}", "body"),
+            (f"Входные данные: {digests.get('input') or UNKNOWN}", "body"),
+            ("Точные Decimal-значения и контрольные суммы сохранены в машинном ZIP без округления.", "body"),
+        ])
+        if capacity_run is not None:
+            lines.append((f"Расчёт мощности: {capacity_run.run_id}; проверенный результат: {_verify_snapshots(capacity_run).get('result') or UNKNOWN}", "body"))
+        return _pdf(lines), digests["result"] or ""
     if roles:
         for role in roles:
             label = ROLE_LABELS.get(role.get("role_code"), "Сотрудник")

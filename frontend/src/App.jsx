@@ -425,7 +425,7 @@ export default function App() {
                 setSaveState('saved');
               }} />
             ) : isCommercialScenariosBundle(result) ? (
-              <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} onRestart={restart} onRecalculate={openCalculation} />
+              <CommercialScenariosV2 key={result.run_id} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={openCalculation} />
             ) : (
               <ResultsPanel
                 result={result}
@@ -439,7 +439,7 @@ export default function App() {
                 {activeRun.economics_runtime?.migration_notice && (
                   <div className="save-run-bar" role="status">{activeRun.economics_runtime.migration_notice}</div>
                 )}
-                {result?.schema_version !== 'economics-partial-result-v1' && <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />}
+                <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />
               </>
             )}
           </>

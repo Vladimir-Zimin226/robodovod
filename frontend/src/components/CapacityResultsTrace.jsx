@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { formatServerQuantity, getCapacityResultsModel } from '../dashboardModel';
+import { formatFleet } from '../displayNumber';
 
 const issueText = (issue) => issue.message || issue.code;
 
@@ -45,13 +46,13 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
       )}
 
       <section className="grid md:grid-cols-2 gap-4" aria-label="Парк и производительность">
-        <ResultCard label="Рекомендованный парк" value={model.recommendedFleet == null ? '—' : `${model.recommendedFleet} robot`} />
-        <ResultCard label={model.fleetMode === 'MANUAL' ? 'Выбранный парк · ручной ввод' : 'Выбранный парк'} value={model.selectedFleet == null ? '—' : `${model.selectedFleet} robot`} />
+        <ResultCard label="Рекомендованный парк" value={formatFleet(model.recommendedFleet)} />
+        <ResultCard label={model.fleetMode === 'MANUAL' ? 'Выбранный парк · ручной ввод' : 'Выбранный парк'} value={formatFleet(model.selectedFleet)} />
         <ResultCard label="Номинальная производительность" value={formatServerQuantity(model.nominalCapacity)} />
         <ResultCard label="Эффективная производительность" value={formatServerQuantity(model.effectiveCapacity)} />
-        <ResultCard label="Покрытие" value={formatServerQuantity(model.coverage)} />
-        <ResultCard label="Фактическая загрузка" value={formatServerQuantity(model.rawLoadRatio)} />
-        <ResultCard label="Отображаемая утилизация" value={formatServerQuantity(model.utilization)} />
+        <ResultCard label="Покрытие" value={formatServerQuantity(model.coverage)} hint="Доля требуемого объёма работ, которую покрывает выбранный парк." />
+        <ResultCard label="Фактическая загрузка" value={formatServerQuantity(model.rawLoadRatio)} hint="Требуемая нагрузка относительно доступной мощности; более 100 % означает перегрузку." />
+        <ResultCard label="Отображаемая утилизация" value={formatServerQuantity(model.utilization)} hint="Загрузка для показа, ограниченная 100 %; число роботов указано отдельно." />
         <ResultCard label="Перегрузка" value={model.overloaded == null ? '—' : model.overloaded ? 'Да' : 'Нет'} />
       </section>
 
@@ -89,6 +90,6 @@ export default function CapacityResultsTrace({ response, expectedRevision = null
   );
 }
 
-function ResultCard({ label, value }) {
-  return <article className="bg-white border rounded-xl p-4"><p className="text-xs text-slate-500">{label}</p><p className="text-xl font-semibold mt-1">{value}</p></article>;
+function ResultCard({ label, value, hint }) {
+  return <article className="bg-white border rounded-xl p-4"><p className="text-xs text-slate-500">{label}</p><p className="text-xl font-semibold mt-1">{value}</p>{hint && <p className="text-xs text-slate-500 mt-2">{hint}</p>}</article>;
 }

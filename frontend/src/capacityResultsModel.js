@@ -37,9 +37,18 @@ export function assertCapacityResponse(response, expectedRevision = null) {
   return response;
 }
 
+import { formatDecimal, formatPercent } from './displayNumber.js';
+
+const UNIT_LABELS = { 'unit/h': 'ед./ч', 'pallet/h': 'паллет/ч', 'unit/day': 'ед./день',
+  'pallet/day': 'паллет/день', robot: 'роботов', '1': '' };
+
 export function formatServerQuantity(quantity) {
   if (!quantity || quantity.value == null || !quantity.unit) return '—';
-  return `${quantity.value} ${quantity.unit}`;
+  if (quantity.quantity_kind === 'FRACTION') return formatPercent(quantity.value);
+  const value = formatDecimal(quantity.value, quantity.quantity_kind === 'COUNT' || quantity.unit === 'robot' ? 0 : 2);
+  if (value == null) return '—';
+  const unit = UNIT_LABELS[quantity.unit] ?? quantity.unit;
+  return unit ? `${value} ${unit}` : value;
 }
 
 function provenanceLabel(item) {
@@ -68,7 +77,7 @@ function traceSteps(trace) {
       const input = inputs.get(name);
       return {
         name,
-        value: input?.status === 'KNOWN' ? formatServerQuantity({ value: input.normalized_value, unit: input.unit }) : 'Нет значения',
+        value: input?.status === 'KNOWN' ? formatServerQuantity({ value: input.normalized_value, unit: input.unit, quantity_kind: input.quantity_kind }) : 'Нет значения',
         source: provenanceLabel(provenance.get(input?.provenance_ref)),
       };
     }),

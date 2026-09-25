@@ -467,10 +467,15 @@ def _human_entrypoint(
     missing = [item.name for item in sections if item.status == "NOT_AVAILABLE"]
     c05 = run.result_snapshot.get("c05")
     c05_state = (c05.get("eligibility") if isinstance(c05, dict) else None) or run.diagnostics.get("constraint_eligibility")
-    capacity_label = run.run_id if run.run_kind == "CAPACITY_ANALYSIS" else linked.run_id if linked is not None else "NOT_AVAILABLE"
+    capacity_label = run.run_id if run.run_kind == "CAPACITY_ANALYSIS" else linked.run_id if linked is not None else run.input_snapshot.get("capacity_run_id") or "NOT_AVAILABLE"
+    report_kind = ("Техническая мощность C11" if run.run_kind == "CAPACITY_ANALYSIS" else
+                   "Частичная экономика" if run.result_snapshot.get("schema_version") == "economics-partial-result-v1" else
+                   "Полная экономика: baseline, покупка и RaaS" if run.result_snapshot.get("schema_version") == "commercial-scenarios-bundle-v2" else
+                   "Исторический расчёт")
     lines = [
         "# НАЧНИТЕ ЗДЕСЬ", "",
         f"**Отчёт № {run.run_id}** · дата сохранённого расчёта {run.finished_at:%d.%m.%Y}.",
+        f"Вид результата: {report_kind}.",
         f"Проект: {run.project_id}. Тип run: {run.run_kind}. Ревизия: {run.revision_id or 'NOT_AVAILABLE'}.",
         f"Версии: правила {run.versions.get('rules') or 'NOT_AVAILABLE'}; экономика {run.versions.get('economics') or 'NOT_AVAILABLE'}; приложение {run.versions.get('application') or 'NOT_AVAILABLE'}.",
         f"SHA-256 сохранённого результата: {digests['result']}. Полный перечень SHA-256 файлов — в manifest.json.",

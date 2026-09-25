@@ -51,7 +51,12 @@ function response(status = 'COMPLETE', selected = 9) {
 test('complete and assumption snapshots preserve server decimal strings and units', () => {
   const complete = getCapacityResultsModel(response());
   const partial = getCapacityResultsModel(response('WITH_ASSUMPTIONS'));
-  assert.equal(formatServerQuantity(complete.nominalCapacity), '13.10924369747899159663865546 pallet/h');
+  assert.equal(formatServerQuantity(complete.nominalCapacity), '13,11 паллет/ч');
+  assert.equal(formatServerQuantity(complete.coverage), '87,5 %');
+  assert.equal(formatServerQuantity(complete.utilization), '100 %');
+  assert.equal(formatServerQuantity(quantity('0.990675', '1', 'FRACTION')), '99,07 %');
+  assert.equal(formatServerQuantity(quantity('196.635', 'unit/h')), '196,64 ед./ч');
+  assert.equal(formatServerQuantity(quantity('137.65', 'unit/h')), '137,65 ед./ч');
   assert.equal(complete.steps[0].outputs[0].value.value, complete.nominalCapacity.value);
   assert.equal(complete.steps[0].inputs[0].source, 'Ввод пользователя');
   assert.equal(partial.statusLabel, 'Выполнен с допущениями');

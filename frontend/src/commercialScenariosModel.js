@@ -1,4 +1,5 @@
 export const COMMERCIAL_SCENARIOS_SCHEMA = 'commercial-scenarios-bundle-v2';
+import { formatDecimal } from './displayNumber.js';
 
 export const ACQUISITIONS = Object.freeze(['PURCHASE', 'RAAS']);
 export const UNCERTAINTIES = Object.freeze(['PESSIMISTIC', 'BASE', 'OPTIMISTIC']);
@@ -122,12 +123,8 @@ export function isCommercialScenariosBundle(value) {
 
 export function formatServerMoney(value, unit = 'RUB') {
   if (value == null) return '—';
-  const source = String(value);
-  const [integer, fraction] = source.split('.');
-  const sign = integer.startsWith('-') ? '-' : '';
-  const digits = sign ? integer.slice(1) : integer;
-  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  return `${sign}${grouped}${fraction ? `,${fraction}` : ''} ${unit === 'RUB' ? '₽' : unit}`;
+  const number = formatDecimal(value, 2, 2);
+  return number == null ? '—' : `${number} ${unit === 'RUB' ? '₽' : unit}`;
 }
 
 export function formatServerMetric(metric) {
@@ -135,7 +132,7 @@ export function formatServerMetric(metric) {
   if (metric.status === 'NOT_REACHED') return 'Не достигнута';
   if (metric.status === 'INCOMPLETE') return 'Недостаточно данных';
   if (metric.status === 'N_A') return 'Не применяется';
-  return metric.unit === 'RUB' ? formatServerMoney(metric.value) : `${metric.value} ${metric.unit}`;
+  return metric.unit === 'RUB' ? formatServerMoney(metric.value) : `${formatDecimal(metric.value) ?? '—'} ${metric.unit === 'YEAR' ? 'лет' : metric.unit}`;
 }
 
 function scenarioLabel(acquisition, uncertainty) {

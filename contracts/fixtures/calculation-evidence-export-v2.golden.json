@@ -67,16 +67,16 @@
       "sha256": "sha256:a4138b25b8b6f4c8812fceaf839417c700eb177cb657a71786cfec1cc99b2f15"
     },
     {
-      "byte_size": 2892,
+      "byte_size": 2960,
       "filename": "НАЧНИТЕ_ЗДЕСЬ.md",
       "media_type": "text/markdown; charset=utf-8",
-      "sha256": "sha256:8df0bbec88312cf7fb115f7f822703ac6c7c620e204624b400cdd46547408437"
+      "sha256": "sha256:0927abaedf51d8d196c39bab12c7dd9ca219e28686d5696e313a413f40be8ad9"
     },
     {
-      "byte_size": 404136,
+      "byte_size": 389935,
       "filename": "Отчёт_Рободовод.pdf",
       "media_type": "application/pdf",
-      "sha256": "sha256:eff0f44c08bb2b6bd5dca2cb67643155e10b77370b0829fea5381ea3f123771e"
+      "sha256": "sha256:5b0ee7d126426bb3df322485d9e57402cc8241e6376bf61361a3c018ce86ff3c"
     },
     {
       "byte_size": 11434,
@@ -85,7 +85,7 @@
       "sha256": "sha256:45c749d353c466fdab38cd6c1af0c8080c58c2caac82e3320474fdbe2b9a1175"
     }
   ],
-  "bundle_content_digest": "sha256:a970831f809a1aa22a710d33d21a62027031953c524a6c68764e90379ed9d6cf",
+  "bundle_content_digest": "sha256:52fd2f0f6bfeb008b5dc697a00ba1f38af24bf5d45ba7eb7b5004d04da49c310",
   "entrypoint_filename": "НАЧНИТЕ_ЗДЕСЬ.md",
   "export_policy_version": "calculation-evidence-export-policy-v2",
   "generator_version": "snapshot-evidence-export-v2",
@@ -99,7 +99,7 @@
   ],
   "linked_capacity_run_id": null,
   "linked_capacity_snapshot_digests": null,
-  "manifest_digest": "sha256:9a18af09a1d72275c5e058ab231d6d5c14f89dbd283ae8904317761681ae68c9",
+  "manifest_digest": "sha256:2adddc1490df877756e2bc3c6a1a022412c0331da53476ff24573cb50417c21e",
   "project_id": "00000000-0000-4000-8000-000000000001",
   "report_filename": "Отчёт_Рободовод.pdf",
   "revision_id": "calc_golden_c26",

@@ -1,6 +1,7 @@
 import EconomicsInputsV2 from './EconomicsInputsV2';
 import { economicsFieldLabel } from '../economicsFieldLabels';
 import { formatServerMoney } from '../commercialScenariosModel';
+import { formatFleet } from '../displayNumber';
 
 const BRANCHES = [
   ['capacity', 'Мощность C11'], ['labour', 'Труд C14'],
@@ -13,12 +14,13 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
     <section className="economics-inputs-v2 rounded-2xl border p-5">
       <h2 className="text-xl font-semibold">Сохранён частичный расчёт</h2>
       <p>Неизвестные суммы и NPV отмечены «не рассчитано». Технический результат C11 сохранён отдельно.</p>
+      <p className="text-sm">Экономический run: {run?.id || result.run_id} · Исходный C11: {result.capacity_run_id || 'не указан'}.</p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">{BRANCHES.map(([key, label]) => {
         const branch = branches[key] || {};
         return <article key={key} className="rounded border p-3">
           <h3 className="font-semibold">{label}</h3>
           <p>{branch.status === 'CALCULATED' || branch.status === 'AVAILABLE' ? 'Доступно' : 'Не рассчитано'}</p>
-          {key === 'capacity' && branch.selected_fleet != null && <p>Выбранный парк: {branch.selected_fleet} роботов (предварительная оценка).</p>}
+          {key === 'capacity' && branch.selected_fleet != null && <p>Выбранный парк: {formatFleet(branch.selected_fleet)} (предварительная оценка).</p>}
           {branch.required_fields?.length > 0 && <p>Далее укажите: {branch.required_fields.map(economicsFieldLabel).join(', ')}.</p>}
           {branch.required_fields?.some((field) => field.startsWith('role_pool')) && <p>Исправьте зарплату в «Процессах», сохраните новый C11 и начните экономику от него.</p>}
           {branch.reason_code === 'DOMAIN_INCOMPLETE' && <p>Проверьте входные данные этой ветки.</p>}
