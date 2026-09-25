@@ -1,53 +1,103 @@
 import AppIcon from './components/AppIcon';
+import demo from './warehouseGuestDemo.json' with { type: 'json' };
+import { formatFleet } from './displayNumber';
+import { formatServerQuantity } from './capacityResultsModel';
+import './landing.css';
 
-const CARDS = [
-  { type: 'retail', title: 'Торговля', sub: 'Склад', icon: 'cube' },
-  { type: 'airport', title: 'Логистика', sub: 'Аэропорт', icon: 'process' },
-  { type: 'clinic', title: 'Соц. сфера', sub: 'Медучреждение', icon: 'home' },
-  { type: 'other', title: 'Другое', sub: 'Производственный объект', icon: 'chart' },
+const OUTCOMES = [
+  { number: '01', icon: 'library', title: 'Подбор с источниками',
+    text: 'Сравните позиции активного каталога по одинаковым критериям. Пропуски и неподтверждённые характеристики остаются видимыми.' },
+  { number: '02', icon: 'chart', title: 'Мощность и экономика',
+    text: 'Узнайте предварительный парк и доступные ветки экономики. Демо-допущения, свои данные и неизвестные условия показаны отдельно.' },
+  { number: '03', icon: 'cube', title: '2D-схема с KPI',
+    text: 'Посмотрите условную работу роботов по маршруту и измеримые KPI C23, когда для визуализации хватает технических данных.' },
 ];
 
-export default function OnboardingScreen({ onChoose, onGuestDemo }) {
-  return (
-    <div className="onboarding-screen min-h-full flex flex-col items-center justify-center p-8">
-      <h1 className="text-3xl font-bold">РОБОДОВОД</h1>
-      <p className="text-slate-500 mb-5 text-center">
-        Предварительная оценка мощности, затрат и условий роботизации
-      </p>
-      <div className="mb-6 grid w-full max-w-5xl gap-4 md:grid-cols-2" aria-label="Как начать">
-        <section className="rounded-2xl border border-blue-300 bg-white p-5">
-          <h2 className="text-lg font-semibold">Посмотреть демо склада</h2>
-          <p className="my-2 text-sm">Готовый расчёт паллетных перемещений: парк, baseline, покупка, RaaS и чувствительность. Откроется без регистрации и ввода ваших данных.</p>
-          <button type="button" className="primary-action" onClick={onGuestDemo}>Открыть гостевое демо</button>
-          <p className="mt-2 text-xs text-amber-800">Фиксированный пример с явными допущениями, C05 и закупка не подтверждены.</p>
-        </section>
-        <section className="rounded-2xl border border-blue-300 bg-white p-5">
-          <h2 className="text-lg font-semibold">Рассчитать свой процесс</h2>
-          <p className="my-2 text-sm">Выберите объект, внесите данные вручную или из файла и сохраните проект. Неизвестные поля дадут частичный результат без вымышленного NPV.</p>
-          <button type="button" className="primary-action" onClick={() => onChoose('retail')}>Начать со склада и проекта</button>
-          <p className="mt-2 text-xs text-slate-600">Технический C11 можно выполнить отдельно; экономика и условия закупки проверяются по своим данным.</p>
-        </section>
-      </div>
-      <div className="grid w-full max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {CARDS.map((c) => (
-          <div
-            key={c.type}
-            className="bg-white rounded-2xl border p-6 text-center hover:shadow-lg transition"
-          >
-            <div className="onboarding-icon"><AppIcon name={c.icon} size={30} /></div>
-            <div className="font-semibold">{c.title}</div>
-            <div className="text-sm text-slate-500 mb-4">{c.sub}</div>
-            <button
-              onClick={() => onChoose(c.type)}
-              disabled={c.type === 'other'}
-              className="w-full bg-blue-600 text-white rounded-xl py-2 text-sm mb-2"
-            >
-              {c.type === 'other' ? 'Расчёт пока недоступен' : 'Выбрать'}
-            </button>
-            {c.type === 'retail' && <p className="text-xs text-slate-500">Типовой склад доступен внутри формы v2.</p>}
-          </div>
-        ))}
-      </div>
+const STEPS = [
+  ['Опишите процесс', 'Груз или операция, объём, график, маршрут и ограничения.'],
+  ['Проверьте варианты', 'Сопоставьте характеристики и источники; подтвердите поля и допущения.'],
+  ['Получите расчёт', 'C11 и доступные ветки экономики показывают результат и недостающие данные.'],
+  ['Изучите сценарий', 'Для достаточного ввода откройте 2D с KPI, затем сохраните run и экспорт.'],
+];
+
+const FAQ = [
+  ['Нужна ли регистрация для демо?', 'Нет. Гостевое демо склада открывается сразу и использует фиксированный пример. Для сохранения расчёта со своими данными нужен проект и вход в аккаунт.'],
+  ['Можно ли считать без цены робота?', 'Да. Техническая мощность C11 не требует цены. Денежные ветки без необходимых коммерческих условий останутся частичными; NPV не подставляется автоматически.'],
+  ['Что означают C05 и статус закупки?', 'C05 NEEDS_VALIDATION означает, что условия объекта требуют проверки. UNVERIFIED означает, что поставка и коммерческие условия не подтверждены. Положительная экономика не меняет эти статусы.'],
+  ['Что показывает 2D?', 'Схему условного маршрута и KPI, связанные с сохранённым техническим сценарием C23. Геометрия без плана объекта условна; это не телеметрия.'],
+];
+
+function WarehousePreview() {
+  return <div className="landing-preview" role="group" aria-label="Пример результата условного склада">
+    <div className="landing-preview-top"><span className="landing-live-dot" /> ПРИМЕР · УСЛОВНЫЙ СКЛАД <span className="landing-preview-code">C11 / v2</span></div>
+    <div className="landing-route" aria-hidden="true">
+      <svg viewBox="0 0 390 158" role="presentation" focusable="false">
+        <defs><pattern id="landing-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#254047" strokeWidth="1" /></pattern></defs>
+        <rect x="1" y="1" width="388" height="156" rx="12" fill="url(#landing-grid)" />
+        <rect x="28" y="31" width="71" height="93" rx="6" fill="#294038" stroke="#55785b" />
+        <rect x="292" y="31" width="71" height="93" rx="6" fill="#294038" stroke="#55785b" />
+        <path d="M100 79 H292" stroke="#4ccfe3" strokeWidth="3" strokeDasharray="7 6" fill="none" />
+        <circle cx="103" cy="79" r="7" fill="#efb55f" stroke="#ffdf9d" />
+        <circle cx="287" cy="79" r="7" fill="#4ccfe3" stroke="#b3f5f9" />
+        <rect x="171" y="62" width="48" height="34" rx="8" fill="#93ed43" stroke="#c6ff83" strokeWidth="2" />
+        <path d="M184 79h22m-5-5 5 5-5 5" stroke="#183022" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="40" y="142">ПРИЁМКА</text><text x="299" y="142">ОТГРУЗКА</text>
+      </svg>
     </div>
-  );
+    <div className="landing-preview-metrics">
+      <div><span>Предварительный парк</span><strong>{formatFleet(demo.capacity.value.selected_fleet)}</strong></div>
+      <div><span>Эффективная мощность</span><strong>{formatServerQuantity(demo.capacity.value.effective_capacity)}</strong></div>
+      <div><span>Покрытие нагрузки</span><strong>{formatServerQuantity(demo.capacity.value.coverage)}</strong></div>
+    </div>
+    <p className="landing-preview-note">Фиксированный пример от {demo.as_of} · C05 требует проверки · закупка не подтверждена</p>
+  </div>;
+}
+
+export default function OnboardingScreen({ onChoose, onGuestDemo, onOwnProcess, onOpenCatalog }) {
+  return <main className="onboarding-screen landing-page">
+    <div className="landing-shell">
+      <section className="landing-hero" aria-labelledby="landing-title">
+        <div className="landing-hero-copy">
+          <p className="landing-eyebrow"><span className="landing-eyebrow-line" /> РОБОДОВОД · ПРЕДВАРИТЕЛЬНАЯ ОЦЕНКА</p>
+          <h1 id="landing-title">От процесса до <span>предварительного сценария</span> роботизации</h1>
+          <p className="landing-lead">Для руководителей складов и объектов, которые хотят понять, какие решения рассмотреть, сколько роботов может потребоваться и какие данные нужны для экономики.</p>
+          <div className="landing-actions">
+            <button type="button" className="landing-button landing-button-primary" onClick={onGuestDemo}>Попробовать демо <AppIcon name="arrow" size={18} /></button>
+            <button type="button" className="landing-button landing-button-secondary" onClick={onOwnProcess}>Рассчитать свой процесс <AppIcon name="arrow" size={18} /></button>
+          </div>
+          <p className="landing-entry-note">Демо открывается без регистрации. Свой процесс начинается с короткого интервью; для сохранения расчёта понадобится проект.</p>
+          <button type="button" className="landing-catalog-link" onClick={onOpenCatalog}><AppIcon name="library" size={18} /> Смотреть каталог решений <AppIcon name="arrow" size={16} /></button>
+        </div>
+        <WarehousePreview />
+      </section>
+
+      <section className="landing-section landing-outcomes" aria-labelledby="landing-outcomes-title">
+        <div className="landing-section-heading"><p className="landing-eyebrow">ЧТО ВЫ ПОЛУЧИТЕ</p><h2 id="landing-outcomes-title">Один маршрут — три ответа</h2></div>
+        <div className="landing-outcome-grid">{OUTCOMES.map((outcome) => <article className="landing-outcome" key={outcome.number}>
+          <div className="landing-outcome-top"><span>{outcome.number}</span><AppIcon name={outcome.icon} size={25} /></div>
+          <h3>{outcome.title}</h3><p>{outcome.text}</p>
+        </article>)}</div>
+      </section>
+
+      <section className="landing-section landing-method" aria-labelledby="landing-method-title">
+        <div className="landing-section-heading"><p className="landing-eyebrow">КАК ЭТО РАБОТАЕТ</p><h2 id="landing-method-title">Четыре шага к предварительному сценарию</h2></div>
+        <ol className="landing-steps">{STEPS.map(([title, text], index) => <li key={title}><span className="landing-step-number">0{index + 1}</span><h3>{title}</h3><p>{text}</p></li>)}</ol>
+      </section>
+
+      <section className="landing-section landing-contexts" aria-labelledby="landing-contexts-title">
+        <div className="landing-section-heading"><p className="landing-eyebrow">СВОИ ДАННЫЕ</p><h2 id="landing-contexts-title">С чего начать расчёт</h2><p>Проверенный полный пример — паллетные перемещения на складе. Для других процессов результат зависит от доступной модели и полноты ввода.</p></div>
+        <div className="landing-context-grid">
+          <button type="button" onClick={() => onChoose('retail')}><AppIcon name="cube" size={22} /><span><strong>Склад</strong><small>Паллеты и уборка · типовой демо-профиль</small></span><AppIcon name="arrow" size={17} /></button>
+          <button type="button" onClick={() => onChoose('airport')}><AppIcon name="process" size={22} /><span><strong>Аэропорт</strong><small>Процессы и роли v2 · доступность модели проверяется отдельно</small></span><AppIcon name="arrow" size={17} /></button>
+          <button type="button" onClick={() => onChoose('clinic')}><AppIcon name="home" size={22} /><span><strong>Клиника</strong><small>Доставка и уборка · доступность модели проверяется отдельно</small></span><AppIcon name="arrow" size={17} /></button>
+        </div>
+      </section>
+
+      <section className="landing-section landing-faq" aria-labelledby="landing-faq-title">
+        <div className="landing-section-heading"><p className="landing-eyebrow">КОРОТКО О ГЛАВНОМ</p><h2 id="landing-faq-title">Частые вопросы</h2></div>
+        <div>{FAQ.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}</div>
+      </section>
+      <footer className="landing-footer"><p>Результат — предварительная оценка по введённым данным и допущениям. Проверка объекта, модели и коммерческих условий остаётся необходимой.</p><button type="button" className="landing-button landing-button-primary" onClick={onGuestDemo}>Открыть демо склада <AppIcon name="arrow" size={18} /></button></footer>
+    </div>
+  </main>;
 }

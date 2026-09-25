@@ -48,13 +48,14 @@ API: [журнал этапа 5](planning/post-deploy-usability-stage5-solution-
 представление чисел, пустые финансовые ветки, отсутствие 2D у частичного
 результата, два legacy режима в новом расчёте и слабый первый экран.
 Следующий порядок работ: [план продуктовой готовности к хакатону](planning/hackathon-product-readiness-2026-09-25.md).
-Этапы 1–5 этого плана локально выполнены отдельными коммитами:
+Этапы 1–6 этого плана локально выполнены отдельными коммитами:
 [читаемые результаты и PDF](planning/hackathon-product-readiness-stage1.md),
 [версионированное демо склада и собственные входы](planning/hackathon-product-readiness-stage2.md),
 [2D/C23 для технического и частичного расчёта](planning/hackathon-product-readiness-stage3.md),
 [единый расчёт v2 и зоны процесса](planning/hackathon-product-readiness-stage4.md),
-[помощник и подтверждаемый черновик](planning/hackathon-product-readiness-stage5.md).
-Следующим по команде владельца идёт этап 6: лендинг и короткий путь к ценности.
+[помощник и подтверждаемый черновик](planning/hackathon-product-readiness-stage5.md),
+[лендинг и короткий путь к ценности](planning/hackathon-product-readiness-stage6.md).
+Следующим по команде владельца идёт этап 7: сквозная приёмка и выпуск.
 Для тестировщиков подготовлено [руководство пользователя текущей версии](USER_GUIDE_CURRENT_2026-09-25.md)
 и [PDF для пересылки](USER_GUIDE_CURRENT_2026-09-25.pdf). Описанные в нём
 ограничения относятся к выпуску `8aaa0e7`; после продуктовых доработок

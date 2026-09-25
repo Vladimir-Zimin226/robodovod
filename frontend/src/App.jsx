@@ -215,6 +215,8 @@ export default function App() {
         ) : phase === 'onboarding' ? (
           <OnboardingScreen
             onGuestDemo={() => showPhase('guestDemo')}
+            onOwnProcess={() => showPhase('process')}
+            onOpenCatalog={() => { setCatalogFocusId(null); catalogReturnPhase.current = 'onboarding'; showPhase('catalog'); }}
             onChoose={(t) => {
               setIntakeInitialSources(null);
               setIntakePrompt('');
