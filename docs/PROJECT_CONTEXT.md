@@ -29,10 +29,20 @@ lint/build и Chrome 1366×768/390 px прошли. Production не обновл
 и native Excel roundtrip восьми книг прошли. История runs/artifacts/PDF и все
 30 файлов архива неизменны. Production не обновлялся.
 [Отчёт F2 и свидетельства](planning/final-product-remediation-f2-2026-09-26.md).
-Следующий этап — **F3** [плана финальных доработок](planning/final-product-remediation-2026-09-26.md),
+**F3 принят локально:** ADMIN web catalog create/edit, источники/ТТХ/цены/НДС,
+отдельные предложения, справочники и разрешённые нормы; JSON import/diff,
+validate/publish/atomic activation/rollback, owner/CSRF/role/concurrency и audit.
+Новые физические профили informational до evidence/rollout; исходный
+утверждённый пул сохраняется, формулы/registry не меняются. Backend 102,
+frontend 133, lint/build, Chrome desktop/mobile и новый каталог → C11 →
+экономика → C23 → 2D/3D → SVG/PDF прошли на 220/120 и типовом складе.
+История runs/artifacts/catalog versions, PDF/XLSX и 30 файлов архива неизменны.
+Production не обновлялся; для deploy понадобится миграция 0012.
+[Отчёт F3 и свидетельства](planning/final-product-remediation-f3-2026-09-26.md).
+Следующий этап — **F4** [плана финальных доработок](planning/final-product-remediation-2026-09-26.md),
 только после следующего сообщения пользователя.
 [Полная матрица соответствия и доказательства](planning/final-tz-compliance-audit-2026-09-26.md).
-F3–F8 не начаты. Исторические runs/снимки/артефакты сохраняются; серверные бекапы
+F4–F8 не начаты. Исторические runs/снимки/артефакты сохраняются; серверные бекапы
 не требовать, серверные команды — Windows CMD. Ниже сохранена история
 предыдущих выпусков; её старые release статусы не заменяют этот абзац.
 

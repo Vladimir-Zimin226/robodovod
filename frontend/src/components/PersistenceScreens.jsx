@@ -59,6 +59,7 @@ export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
           {user.role === 'ADMIN' && (
             <button className="secondary-action" onClick={() => onNavigate('admin')}>Пользователи</button>
           )}
+          {user.role === 'ADMIN' && <button className="secondary-action" onClick={() => onNavigate('adminCatalog')}>Каталог и источники</button>}
           <button className="danger-action" disabled={busy} onClick={logout}>Выйти</button>
         </div>
         {error && <p className="form-error">{error}</p>}

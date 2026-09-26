@@ -446,8 +446,42 @@ def _call_model(message: str, profile: dict[str, Any]) -> tuple[BrainTurn, dict[
         raise HTTPException(503, "Модель не ответила корректно. Черновик сохранён; повторите запрос или исправьте поля вручную.") from exc
 
 
+class DefaultRequest(BaseModel):
+    model_config = {"extra": "forbid", "strict": True}
+    expected_version: int = Field(ge=0)
+    catalog_code: str = Field(min_length=1, max_length=180)
+    field: Literal["exchange_seconds", "units_per_trip", "operating_days"]
+
+
 def create_brain_router() -> APIRouter:
     router = APIRouter(prefix="/api/brain")
+
+    @router.post("/projects/{project_id}/catalog-default")
+    def propose_default(project_id: uuid.UUID, payload: DefaultRequest,
+                        context: AuthContext = CSRF_DEP, db: Session = DB_DEP):
+        from catalog_runtime import CatalogRuntime
+
+        project = _owned(db, project_id, context.user.id, lock=True)
+        state = _state(project)
+        _check_version(state, payload.expected_version)
+        old = _current(state, project_id)
+        snapshot = CatalogRuntime().load_discovery()
+        norm = next((item for item in snapshot.admin_defaults if item["key"] == payload.field), None)
+        if payload.catalog_code != snapshot.version.code or norm is None:
+            raise HTTPException(409, "catalog default changed; reload before applying")
+        if old["fields"].get(payload.field, {}).get("confirmed_by_user"):
+            raise HTTPException(409, "confirmed user value cannot be replaced by a catalog default")
+        fields = deepcopy(old["fields"])
+        fields[payload.field] = {"value": norm["value"], "unit": norm["unit"], "raw_text": norm["value"],
+            "provenance": "expert_assumption", "source_ref": f"catalog:{snapshot.version.code}:{norm['source']}",
+            "confidence": "low", "confirmed_by_user": False, "updated_at": datetime.now(timezone.utc).isoformat(),
+            "catalog_default": {**norm, "catalog_code": snapshot.version.code, "sha256": snapshot.version.content_sha256}}
+        process_fields = deepcopy(old.get("process_fields") or {})
+        if old.get("selected_process"):
+            process_fields[old["selected_process"]] = deepcopy(fields)
+        current = _next(state, old, fields=fields, process_fields=process_fields, utterance="catalog-default:" + payload.field)
+        _save(db, project, state)
+        return {"profile": current, "readiness": readiness(current)}
 
     @router.get("/projects/{project_id}")
     def read(project_id: uuid.UUID, context: AuthContext = AUTH_DEP, db: Session = DB_DEP):

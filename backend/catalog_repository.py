@@ -225,6 +225,8 @@ class CatalogSnapshotDTO:
     version: CatalogVersionDTO
     models: tuple[CatalogModelDTO, ...]
     positions: tuple[CatalogPositionDTO, ...] = ()
+    admin_defaults: tuple[dict[str, Any], ...] = ()
+    rollout_reference: CatalogSnapshotDTO | None = None
 
     def by_source_key(self) -> dict[str, CatalogModelDTO]:
         return {model.source_record_key: model for model in self.models}
@@ -490,6 +492,23 @@ class PostgresCatalogRepository:
             )
             if version is None:
                 raise CatalogRepositoryError("catalog version was not found")
+
+            if version.schema_version == "admin-catalog-v1":
+                from admin_catalog import digest, project_document, validate_document
+                from admin_catalog_models import AdminCatalogDocument
+
+                row = session.get(AdminCatalogDocument, version.id)
+                if row is None or (version.status == "PUBLISHED" and digest(row.document) != version.content_sha256):
+                    raise CatalogRepositoryError("admin catalog document checksum mismatch")
+                base_code = row.document.get("base_catalog_code")
+                if base_code == version.code:
+                    raise CatalogRepositoryError("admin catalog cannot inherit itself")
+                baseline = PostgresCatalogRepository(self._database, base_code).load()
+                if baseline.rollout_reference is not None or baseline.version.status != "PUBLISHED":
+                    raise CatalogRepositoryError("admin catalog requires a published root baseline")
+                document = validate_document(row.document, baseline)
+                return project_document(document, baseline, CatalogVersionDTO(
+                    str(version.id), version.code, version.status, version.schema_version, version.content_sha256))
 
             model_rows = session.execute(
                 select(EquipmentModel, Manufacturer.name)

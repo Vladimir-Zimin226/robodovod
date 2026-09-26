@@ -23,6 +23,7 @@ import RoboExpertScreen from './components/RoboExpertScreen';
 import EconomicsGlossaryScreen from './components/EconomicsGlossaryScreen';
 import ReportsScreen from './components/ReportsScreen';
 import ProjectTemplatesScreen from './components/ProjectTemplatesScreen';
+import AdminCatalogScreen from './components/AdminCatalogScreen';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
@@ -375,8 +376,12 @@ export default function App() {
             onOpenProject={(project) => { selectActiveProject(project); showPhase('onboarding'); }}
             onOpenRun={openSavedRun}
           />
-        ) : phase === 'admin' && user?.role === 'ADMIN' ? (
-          <AdminUsersScreen />
+        ) : phase === 'admin' ? (
+          user?.role === 'ADMIN' ? <><div className="persistence-screen"><button className="secondary-action" onClick={() => showPhase('adminCatalog')}>Каталог и источники</button></div><AdminUsersScreen /></>
+            : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
+        ) : phase === 'adminCatalog' ? (
+          user?.role === 'ADMIN' ? <AdminCatalogScreen user={user} />
+            : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
         ) : (
           <>
             {result?.schema_version === 'simulation-2d-bundle-v1' ? (

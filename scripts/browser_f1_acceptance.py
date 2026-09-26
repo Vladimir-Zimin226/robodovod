@@ -27,7 +27,7 @@ import websocket
 
 ROOT = Path(__file__).resolve().parents[1]
 API, WEB = "http://127.0.0.1:8000", "http://127.0.0.1:5173"
-OUT = ROOT / ".tmp/f1/acceptance"
+OUT = ROOT / (".tmp/f3/physical" if os.getenv("F1_ACCEPTANCE_STAGE") == "F3" else ".tmp/f1/acceptance")
 OUT.mkdir(parents=True, exist_ok=True)
 url = os.environ["F1_DATABASE_URL"].replace("postgresql+psycopg:", "postgresql:")
 parsed = urlparse(url)
@@ -51,6 +51,8 @@ def get_run(rid):
 
 history = owner.get(base, timeout=10).json()["items"]
 runs = [get_run(row["id"]) for row in history if row["run_kind"] == "FULL_ANALYSIS"]
+if os.getenv("F1_ACCEPTANCE_STAGE") == "F3":
+    runs.sort(key=lambda run: run["versions"]["catalog"] != "organizer-catalog-v4")
 small = next(run for run in runs if run["scenario_spec_snapshot"]["tasks"][0]["demand"]["value"] == "220"
              and run["scenario_spec_snapshot"]["routes"][0]["one_way_distance"]["value"] == "120")
 typical = next(run for run in runs if run["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v2")

@@ -1,0 +1,51 @@
+{
+  "manual_catalog_code": "f3-browser-d205a4e084ed",
+  "imported_catalog_code": "f3-browser-d205a4e084ed-import",
+  "diff_count": 6,
+  "new_runs": [
+    {
+      "run_id": "d3f862ab-e780-4996-9c7f-10ab3f9273bb",
+      "catalog_version": "f3-browser-d205a4e084ed",
+      "demand": "220"
+    },
+    {
+      "run_id": "4eab5494-4308-4a38-ab9b-dd2848a7f7ab",
+      "catalog_version": "f3-browser-d205a4e084ed",
+      "demand": "2000"
+    }
+  ],
+  "historical_runs_unchanged": 105,
+  "historical_artifacts_unchanged": 28,
+  "published_versions_unchanged": 15,
+  "old_exports_sha256": {
+    "/api/projects/e5c3a488-875c-490d-a0ae-474eca2d2c9f/analysis-runs/28c192e3-db83-4c98-9fcc-004c3683e68b/exports/report.pdf": "3afcfc8d0ffaa54f18b4c9d3252225d6f3644a6e8fba628c25576d5fb6cbc580",
+    "/api/projects/e5c3a488-875c-490d-a0ae-474eca2d2c9f/analysis-runs/28c192e3-db83-4c98-9fcc-004c3683e68b/exports/evidence.zip": "bc5d1b11f870c2cc38ead80bf7aeac3c2282a1d463de424114a0cce1d9cdbd31",
+    "/api/projects/e5c3a488-875c-490d-a0ae-474eca2d2c9f/analysis-runs/5b144531-76aa-4e23-9202-33354a89f59a/exports/report.pdf": "205ba90fafd032b7b58088e611e1f319093513da077ba8bf625d0a07edfed807",
+    "/api/projects/e5c3a488-875c-490d-a0ae-474eca2d2c9f/analysis-runs/5b144531-76aa-4e23-9202-33354a89f59a/exports/evidence.zip": "0b0c06c1b7c66554a9dcfce46254273038d77b7a78e95a594ea142ef90a83553"
+  },
+  "duplicate_offers": [
+    1000000,
+    2000000
+  ],
+  "browser_errors": [],
+  "saved_xlsx_unchanged": {
+    "route": "/api/projects/66a700b8-ded7-4be4-826a-62746cfae3cb/files/27cac347-5587-4c5f-ae29-cbda6181eea8",
+    "sha256": "5af828f646769da25060a93e4dbdcd3865ad694f9dbdb74cd3c847a94cef5b36"
+  },
+  "confirmed_norm_run": {
+    "run_id": "bd2cbe8d-49be-406b-aff6-48bb4091483e",
+    "catalog_version": "f3-browser-d205a4e084ed",
+    "exchange_seconds": "40"
+  },
+  "checks": [
+    "ADMIN manual model/offers/source/default/dictionary",
+    "preview/validate/publish/atomic activation",
+    "JSON download/import/idempotent repeat/edit/publish",
+    "UI rollback",
+    "desktop/mobile",
+    "new version calculation",
+    "immutable history"
+  ],
+  "catalog_versions_unchanged": 16,
+  "catalog_documents_unchanged": 15
+}

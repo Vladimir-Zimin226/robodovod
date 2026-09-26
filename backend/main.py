@@ -317,6 +317,7 @@ def _discovery_position(
         "maturity_status": model.maturity_status,
         "trl": model.trl,
         "description": description,
+        "admin_metadata": _json_value(model.attributes.get("admin_metadata", {})),
         "industries": [applicability.industry] if applicability.industry else [],
         "use_cases": [applicability.scenario] if applicability.scenario else [],
         "regions": [applicability.region] if applicability.region else [],
@@ -649,6 +650,13 @@ def catalog_media(catalog_code: str, sha256: str):
     if not re.fullmatch(r"[0-9a-f]{64}", sha256):
         raise HTTPException(404, "catalog media not found")
     with get_database().session() as session:
+        media_catalog_code = catalog_code
+        media_version = session.scalar(select(CatalogVersion).where(CatalogVersion.code == catalog_code))
+        if media_version and media_version.status == "PUBLISHED" and media_version.schema_version == "admin-catalog-v1":
+            from admin_catalog_models import AdminCatalogDocument
+
+            media_document = session.get(AdminCatalogDocument, media_version.id)
+            media_catalog_code = media_document.document["base_catalog_code"] if media_document else catalog_code
         asset = session.scalar(
             select(CatalogMediaAsset)
             .join(
@@ -656,7 +664,7 @@ def catalog_media(catalog_code: str, sha256: str):
                 CatalogVersion.id == CatalogMediaAsset.catalog_version_id,
             )
             .where(
-                CatalogVersion.code == catalog_code,
+                CatalogVersion.code == media_catalog_code,
                 CatalogVersion.status == "PUBLISHED",
                 CatalogMediaAsset.sha256 == sha256,
             )
@@ -918,6 +926,9 @@ app.include_router(
 app.include_router(create_simulation_router())
 app.include_router(create_solution_assistant_router(_discovery_snapshot))
 app.include_router(create_brain_router())
+from admin_catalog_api import public_router as catalog_defaults_router, router as admin_catalog_router  # noqa: E402
+app.include_router(admin_catalog_router)
+app.include_router(catalog_defaults_router)
 app.include_router(create_warehouse_chain_router(_discovery_snapshot))
 app.include_router(create_comparison_router(_capacity_snapshot))
 app.include_router(create_roboexpert_router(_discovery_snapshot))

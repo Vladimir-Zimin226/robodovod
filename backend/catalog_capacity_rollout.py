@@ -156,6 +156,18 @@ def summarize_capacity_snapshot(snapshot: CatalogSnapshotDTO, policy: CapacitySo
 def validate_capacity_source(snapshot: CatalogSnapshotDTO, policy: CapacitySourceActivationPolicyV1 | None = None) -> CapacityPoolSummaryV1:
     policy = policy or load_capacity_source_policy()
     summary = summarize_capacity_snapshot(snapshot, policy)
+    if snapshot.rollout_reference is not None:
+        # Additive admin versions may change descriptive/commercial data and scenario
+        # proposals. Their executable physical pool must remain exactly approved.
+        reference = snapshot.rollout_reference
+        validate_capacity_source(reference, policy)
+        if snapshot.version.status != "PUBLISHED" or snapshot.version.schema_version != "admin-catalog-v1":
+            raise CapacityRolloutPolicyError("derived capacity source is not published")
+        if _projection(snapshot) != _projection(reference):
+            raise CapacityRolloutPolicyError("derived physical projection requires a new rollout approval")
+        if sorted(m.organizer_id for m in snapshot.calculation_ready_models()) != policy.model_ids:
+            raise CapacityRolloutPolicyError("derived model membership differs from approved policy")
+        return summary
     model_ids = sorted(item.organizer_id for item in snapshot.calculation_ready_models() if item.organizer_id)
     position_keys = sorted(item.source_record_key for item in snapshot.calculation_ready_positions())
     versions = {item.capacity_runtime.runtime_catalog_version for item in snapshot.calculation_ready_models()}
