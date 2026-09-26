@@ -5,18 +5,20 @@ import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 export default function IntakeScreen({ objectType, initialPrompt = '', importedAssistant, activeProject, user, authChecked,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
   onFileApplied, onIntakeV2Normalized, onCapacityResult }) {
-  const [v2FileInput, setV2FileInput] = useState(null);
+  const [v2FileInput, setV2FileInput] = useState(() => activeProject?.profile?.file_intake_v2?.object_type === objectType
+    ? { normalized: activeProject.profile.file_intake_v2, imported: { id: activeProject.profile.project_file_import_id } } : null);
   const [fileNotice, setFileNotice] = useState('');
   const supported = ['retail', 'airport', 'clinic'].includes(objectType);
 
   const applyFile = (normalized, _provenance, imported) => {
-    if (normalized?.object_type === 'retail' && normalized?.process_type === 'transport') {
+    if (normalized?.schema_version === 'project-workbook-v1' || (normalized?.object_type === 'retail' && normalized?.process_type === 'transport')) {
       setV2FileInput({ normalized, imported });
-      setFileNotice('Из файла перенесены объём, график, маршрут и численность. Единиц за рейс и месячную зарплату до удержаний подтвердите вручную.');
+      setFileNotice(normalized.schema_version === 'project-workbook-v1' ? 'Перенесены зоны, процессы, batch, gross зарплаты и предложения экономики. Проверьте и отдельно подтвердите входы.'
+        : 'Из файла перенесены объём, график, маршрут и численность. Единиц за рейс и месячную зарплату до удержаний подтвердите вручную.');
     } else {
       setFileNotice('Файл сохранён в проекте, но автоматический перенос для этого процесса пока недоступен. Перенесите значения вручную.');
     }
-    onFileApplied?.(normalized);
+    onFileApplied?.(normalized, imported);
   };
 
   return <main className="intake-screen flex min-h-full" aria-label="Новый расчёт">

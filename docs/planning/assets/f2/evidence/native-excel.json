@@ -1,0 +1,50 @@
+﻿[
+    {
+        "file":  "airport-project-workbook-v1-blank.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    },
+    {
+        "file":  "airport-project-workbook-v1-demo.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    },
+    {
+        "file":  "interview-220-120.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    },
+    {
+        "file":  "medical_facility-project-workbook-v1-blank.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    },
+    {
+        "file":  "medical_facility-project-workbook-v1-demo.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    },
+    {
+        "file":  "typical-warehouse.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    },
+    {
+        "file":  "warehouse-project-workbook-v1-blank.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    },
+    {
+        "file":  "warehouse-project-workbook-v1-demo.xlsx",
+        "native_excel_open":  true,
+        "read_only":  true,
+        "sheets":  8
+    }
+]

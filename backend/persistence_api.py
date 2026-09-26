@@ -966,6 +966,22 @@ def create_persistence_router(
     ):
         return _project_dict(db, _owned_project(db, project_id, context.user.id))
 
+    @router.get("/project-workbooks/{profile_code}/{variant}.{extension}")
+    def download_project_workbook(profile_code: str, variant: str, extension: str):
+        from project_workbook import build_workbook, interview_prompt
+        from object_profiles import ObjectProfileError
+        if variant not in {'blank', 'demo', 'interview'} or extension not in {'xlsx', 'csv', 'txt'} or (extension == 'txt') != (variant == 'interview'):
+            raise HTTPException(404, 'template not found')
+        try:
+            if extension == 'txt':
+                filename, payload = f'{profile_code}-interview.txt', interview_prompt(profile_code).encode('utf-8')
+            else:
+                filename, payload = build_workbook(profile_code, variant == 'demo', extension)
+        except (ValueError, KeyError, ObjectProfileError) as exc:
+            raise HTTPException(404, 'profile not found') from exc
+        return Response(payload, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' if extension == 'xlsx' else 'text/plain; charset=utf-8',
+                        headers={'Content-Disposition': f'attachment; filename="{filename}"'})
+
     @router.get("/project-file-templates/{profile_code}.csv")
     def download_project_file_template(profile_code: str):
         try:
@@ -986,9 +1002,27 @@ def create_persistence_router(
         context: AuthContext = Depends(require_auth_context),
         db: Session = Depends(database_session),
     ):
-        _owned_project(db, project_id, context.user.id)
+        project = _owned_project(db, project_id, context.user.id)
         payload = await _read_project_upload(file)
-        return _inspect_upload(file.filename, payload, profile_code).public_dict()
+        result = _inspect_upload(file.filename, payload, profile_code)
+        previous = (project.profile.get('file_intake_v2') or {}).get('records', {})
+        diff = []
+        for sheet, records in (result.normalized_input or {}).get('records', {}).items():
+            for rid, fields in records.items():
+                for field, item in fields.items():
+                    old = previous.get(sheet, {}).get(rid, {}).get(field)
+                    if old != item:
+                        diff.append({'field': f'{sheet}.{rid}.{field}', 'before': old, 'after': item})
+        if (result.normalized_input or {}).get('schema_version') == 'project-workbook-v1':
+            from project_workbook import _brain_projection
+            versions = (project.profile.get('brain_v1') or {}).get('versions', [])
+            current_fields = versions[-1].get('fields', {}) if versions else {}
+            rid, process = next(iter(result.normalized_input['records']['Процессы'].items()))
+            for field, item in _brain_projection(result.normalized_input, rid, process).items():
+                if current_fields.get(field) != item:
+                    diff.append({'field': f'Brain.{field}', 'before': current_fields.get(field), 'after': item})
+        return {**result.public_dict(), 'diff': diff, 'previous_import_id': project.profile.get('project_file_import_id', '__none__'),
+                'project_profile_sha256': hashlib.sha256(json.dumps(project.profile, sort_keys=True, ensure_ascii=False).encode('utf-8')).hexdigest()}
 
     @router.post(
         "/projects/{project_id}/files/apply", status_code=status.HTTP_201_CREATED
@@ -997,11 +1031,19 @@ def create_persistence_router(
         project_id: uuid.UUID,
         scenario_id: uuid.UUID = Form(...),
         profile_code: str = Form(...),
+        expected_import_id: str | None = Form(None),
+        expected_profile_sha256: str | None = Form(None),
+        expected_file_sha256: str | None = Form(None),
         file: UploadFile = File(...),
         context: AuthContext = Depends(require_csrf),
         db: Session = Depends(database_session),
     ):
         project = _owned_project(db, project_id, context.user.id)
+        db.refresh(project, with_for_update=True)
+        if expected_import_id is not None and expected_import_id != project.profile.get('project_file_import_id', '__none__'):
+            raise HTTPException(409, 'Проект изменился; повторите preview.')
+        if expected_profile_sha256 is not None and expected_profile_sha256 != hashlib.sha256(json.dumps(project.profile, sort_keys=True, ensure_ascii=False).encode('utf-8')).hexdigest():
+            raise HTTPException(409, 'Профиль изменился; повторите preview.')
         scenario = db.scalar(
             select(Scenario)
             .where(Scenario.id == scenario_id, Scenario.project_id == project.id)
@@ -1011,6 +1053,8 @@ def create_persistence_router(
             raise HTTPException(status_code=404, detail="scenario not found")
         payload = await _read_project_upload(file)
         result = _inspect_upload(file.filename, payload, profile_code)
+        if expected_file_sha256 is not None and expected_file_sha256 != result.sha256:
+            raise HTTPException(409, 'Файл изменился; повторите preview.')
         if not result.valid:
             raise HTTPException(
                 status_code=422,
@@ -1052,6 +1096,9 @@ def create_persistence_router(
             )
             db.add(project_file)
             db.add(imported)
+            if (result.normalized_input or {}).get('schema_version') == 'project-workbook-v1':
+                from project_workbook import stage_brain_profile
+                project.profile = stage_brain_profile(project, result.normalized_input)
             scenario.inputs = result.normalized_input or {}
             scenario.updated_at = utcnow()
             project.profile = {

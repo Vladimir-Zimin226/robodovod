@@ -2,6 +2,7 @@ const PHASE_HASH = Object.freeze({
   onboarding: '', process: '#assistant', model: '#model', intake: '#calculation', catalog: '#catalog',
   results: '#results', reports: '#reports', projects: '#projects', account: '#account', admin: '#admin',
   guestDemo: '#demo-warehouse', expert: '#roboexpert', economics: '#economics',
+  templates: '#templates',
 });
 
 const HASH_PHASE = Object.fromEntries(Object.entries(PHASE_HASH).map(([phase, hash]) => [hash, phase]));

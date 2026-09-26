@@ -22,6 +22,7 @@ import CandidateComparisonPanel from './components/CandidateComparisonPanel';
 import RoboExpertScreen from './components/RoboExpertScreen';
 import EconomicsGlossaryScreen from './components/EconomicsGlossaryScreen';
 import ReportsScreen from './components/ReportsScreen';
+import ProjectTemplatesScreen from './components/ProjectTemplatesScreen';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
 } from './projectSelection';
@@ -183,6 +184,7 @@ export default function App() {
   };
 
   const navigate = ({ id, target }) => {
+    if (id === 'templates') { showPhase('templates'); return; }
     if (id === 'home') {
       restart();
       return;
@@ -259,7 +261,14 @@ export default function App() {
     <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
       {['onboarding', 'intake'].includes(phase) && <Stepper current={currentStep} />}
       <div className="phase-content">
-        {phase === 'guestDemo' ? (
+        {phase === 'templates' ? (
+          <ProjectTemplatesScreen user={user} project={activeProject} projects={projectChoices} onChooseProject={selectActiveProject}
+            onNavigate={(next, type) => { if (type) setObjectType(type); if (next === 'intake') setAssistantImport(null); showPhase(next); }}
+            onApplied={async () => {
+              const response = await fetch(`${API}/api/projects/${activeProject.id}`, { credentials: 'include' });
+              if (response.ok) setActiveProject(await response.json());
+            }} />
+        ) : phase === 'guestDemo' ? (
           <GuestWarehouseDemo onContinue={() => { setIntakePrompt(''); setObjectType('retail'); showPhase('intake'); }} onBack={restart} />
         ) : phase === 'onboarding' ? (
           <OnboardingScreen
@@ -302,6 +311,7 @@ export default function App() {
             onOpenAccount={() => showPhase('account')} />
         ) : phase === 'intake' ? (
           <IntakeScreen
+            key={`${activeProject?.id || 'guest'}:${objectType}`}
             objectType={objectType}
             initialCollected={preset}
             initialSources={intakeInitialSources}
@@ -315,10 +325,12 @@ export default function App() {
             onChooseProject={selectActiveProject}
             onOpenProjects={() => showPhase('projects')}
             onOpenAccount={() => showPhase('account')}
-            onFileApplied={(normalized) => {
+            onFileApplied={(normalized, imported) => {
               setPreset(normalized);
               setActiveProject((project) => project ? ({
                 ...project,
+                profile: { ...project.profile, project_file_import_id: imported?.id,
+                  ...(normalized.schema_version === 'project-workbook-v1' ? { file_intake_v2: normalized } : {}) },
                 scenarios: project.scenarios.map((scenario) => (
                   scenario.slot === 'BASE' ? { ...scenario, inputs: normalized } : scenario
                 )),

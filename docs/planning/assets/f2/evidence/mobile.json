@@ -1,0 +1,92 @@
+{
+  "results": [
+    {
+      "example": "interview-220-120",
+      "project_id": "e1d1206c-389f-4e33-9971-077c4ada9ea4",
+      "capacity_run_id": "5f543393-c78a-42d9-b1e2-68c835c9a419",
+      "capacity": {
+        "coverage": {
+          "unit": "1",
+          "value": "1",
+          "quantity_kind": "FRACTION",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "overloaded": false,
+        "utilization": {
+          "unit": "1",
+          "value": "0.8173076923076923076923076926",
+          "quantity_kind": "FRACTION",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "raw_load_ratio": {
+          "unit": "1",
+          "value": "0.8173076923076923076923076926",
+          "quantity_kind": "FRACTION",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "selected_fleet": 1,
+        "nominal_capacity": {
+          "unit": "unit/h",
+          "value": "26.21848739495798319327731092",
+          "quantity_kind": "RATE",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "recommended_fleet": 1,
+        "effective_capacity": {
+          "unit": "unit/h",
+          "value": "18.35294117647058823529411764",
+          "quantity_kind": "RATE",
+          "numeric_encoding": "DECIMAL_STRING"
+        }
+      },
+      "manual_equal": true,
+      "brain_equal": true
+    },
+    {
+      "example": "typical-warehouse",
+      "project_id": "06c47199-b69d-4526-8f7b-59a69c555351",
+      "capacity_run_id": "2843e4af-ff3c-45d4-b574-7d6e6b7a7d1e",
+      "capacity": {
+        "coverage": {
+          "unit": "1",
+          "value": "1",
+          "quantity_kind": "FRACTION",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "overloaded": false,
+        "utilization": {
+          "unit": "1",
+          "value": "0.9906759906759906759906759913",
+          "quantity_kind": "FRACTION",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "raw_load_ratio": {
+          "unit": "1",
+          "value": "0.9906759906759906759906759913",
+          "quantity_kind": "FRACTION",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "selected_fleet": 15,
+        "nominal_capacity": {
+          "unit": "unit/h",
+          "value": "196.6386554621848739495798319",
+          "quantity_kind": "RATE",
+          "numeric_encoding": "DECIMAL_STRING"
+        },
+        "recommended_fleet": 15,
+        "effective_capacity": {
+          "unit": "unit/h",
+          "value": "137.6470588235294117647058823",
+          "quantity_kind": "RATE",
+          "numeric_encoding": "DECIMAL_STRING"
+        }
+      },
+      "manual_equal": true,
+      "brain_equal": true
+    }
+  ],
+  "historical_runs_unchanged": 85,
+  "historical_simulation_artifacts_unchanged": 25,
+  "historical_pdf_sha256": "63c3175756dbf2ddd11241e4515ab3586b071d0515129883d989f7ae4bce6273",
+  "browser_errors": []
+}

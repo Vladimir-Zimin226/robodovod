@@ -202,11 +202,15 @@ def _check_xlsx_archive(payload: bytes) -> None:
     try:
         with zipfile.ZipFile(io.BytesIO(payload)) as archive:
             infos = archive.infolist()
+            if any('vbaproject' in item.filename.lower() or 'macrosheet' in item.filename.lower() for item in infos):
+                raise IntakeError("XLSX_MACROS_FORBIDDEN")
             if len(infos) > 1000 or sum(item.file_size for item in infos) > MAX_XLSX_EXPANDED_BYTES:
                 raise IntakeError("XLSX_ARCHIVE_LIMIT_EXCEEDED")
+            if '[Content_Types].xml' in archive.namelist() and b'macroEnabled' in archive.read('[Content_Types].xml'):
+                raise IntakeError('XLSX_MACROS_FORBIDDEN')
             if any(item.filename.startswith("/") or ".." in Path(item.filename).parts for item in infos):
                 raise IntakeError("XLSX_ARCHIVE_INVALID")
-    except zipfile.BadZipFile as exc:
+    except (zipfile.BadZipFile, OSError, RuntimeError, NotImplementedError) as exc:
         raise IntakeError("XLSX_ARCHIVE_INVALID") from exc
 
 
@@ -295,6 +299,11 @@ def inspect_project_file(
     except ObjectProfileError as exc:
         raise IntakeError("PROFILE_UNSUPPORTED") from exc
     file_format = detect_format(safe_name, payload)
+    from project_workbook import is_workbook, inspect_workbook
+    if file_format == "XLSX":
+        _check_xlsx_archive(payload)
+    if is_workbook(payload, file_format):
+        return inspect_workbook(safe_name, payload, profile.code, file_format)
     sha256 = hashlib.sha256(payload).hexdigest()
     if file_format == "XLSX":
         values, errors, warnings, locations = _parse_xlsx(payload, profile)

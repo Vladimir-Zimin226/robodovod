@@ -389,6 +389,7 @@ button:disabled { cursor: not-allowed; }
 .file-report.valid { border: 1px solid rgba(147,237,67,.4); background: rgba(147,237,67,.08); }
 .file-report.invalid { border: 1px solid rgba(255,100,100,.4); background: rgba(255,100,100,.08); }
 .file-report span,.file-report small { color: var(--text-secondary); }
+.project-templates-screen, .file-report { overflow-wrap: anywhere; }
 .file-applied { margin-top: 8px; color: var(--lime); font-size: 11px; }
 .file-error { margin-top: 8px; color: #ff7777; font-size: 11px; }
 .run-list { grid-column: 1/-1; display: grid; gap: 6px; padding-top: 14px; border-top: 1px solid var(--border-subtle); }.run-list > button { min-height: 48px; display: grid; grid-template-columns: 110px minmax(180px,1fr) auto; align-items: center; gap: 12px; padding: 0 12px; border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--bg-input); color: var(--text-primary); text-align: left; }.run-list strong { color: var(--lime); font-size: 10px; }.run-list span,.run-list small { color: var(--text-secondary); font-size: 11px; }

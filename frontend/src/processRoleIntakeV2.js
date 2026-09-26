@@ -247,6 +247,7 @@ const nonNegative = (value) => value !== '' && DECIMAL_PATTERN.test(String(value
 
 export function validateDraft(draft) {
   const issues = [];
+  if (draft.importPending) issues.push({ severity: 'BLOCKER', code: 'IMPORT_CONFIRMATION_REQUIRED', ref: draft.objectId });
   for (const zone of draft.zones) {
     if (!zone.label.trim() || zone.label.length > 128) issues.push({ severity: 'BLOCKER', code: 'ZONE_LABEL_REQUIRED', ref: `${zone.zoneId}.label` });
     if (zone.constraints.length > 1000) issues.push({ severity: 'BLOCKER', code: 'ZONE_CONSTRAINTS_TOO_LONG', ref: `${zone.zoneId}.constraints` });
@@ -277,7 +278,7 @@ export function validateDraft(draft) {
 
 function provenance(value, source = 'USER', confirmed = false, fileSource = null) {
   return { source, raw_text: String(value), user_confirmed: source === 'USER' || confirmed,
-    ...(source === 'FILE' ? { file_sha256: fileSource?.sha256, file_name: fileSource?.name } : {}) };
+    ...(fileSource && ['FILE', 'ASSUMPTION'].includes(source) ? { file_sha256: fileSource.sha256, file_name: fileSource.name } : {}) };
 }
 
 function quantity(value, unit, source = 'USER', confirmed = false, fileSource = null) {
@@ -300,13 +301,13 @@ export function serializeDraft(draft) {
       active: process.active,
       activation_source: process.activationSource,
       quantity_kind: process.quantityKind,
-      demand: quantity(process.demand, process.unit, process.fieldSources?.demand || 'USER', false, process.fileSource),
+      demand: quantity(process.demand, process.unit, process.fieldSources?.demand || 'USER', process.fieldConfirmations?.demand === true, process.fileSource),
       schedule: process.shifts !== '' || process.hours !== '' || process.days !== '' ? {
-        shifts_per_day: quantity(process.shifts, 'shift', process.fieldSources?.shifts || 'USER', false, process.fileSource),
-        shift_hours: quantity(process.hours, 'h', process.fieldSources?.hours || 'USER', false, process.fileSource),
-        days_per_year: quantity(process.days, 'day', process.fieldSources?.days || 'USER', false, process.fileSource),
+        shifts_per_day: quantity(process.shifts, 'shift', process.fieldSources?.shifts || 'USER', process.fieldConfirmations?.shifts === true, process.fileSource),
+        shift_hours: quantity(process.hours, 'h', process.fieldSources?.hours || 'USER', process.fieldConfirmations?.hours === true, process.fileSource),
+        days_per_year: quantity(process.days, 'day', process.fieldSources?.days || 'USER', process.fieldConfirmations?.days === true, process.fileSource),
       } : null,
-      route_distance: quantity(process.distance, 'm', process.fieldSources?.distance || 'USER', false, process.fileSource),
+      route_distance: quantity(process.distance, 'm', process.fieldSources?.distance || 'USER', process.fieldConfirmations?.distance === true, process.fileSource),
       explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER', process.fieldConfirmations?.batch === true, process.fileSource),
       role_refs: draft.roles.filter((role) => role.processIds.includes(process.processId)).map((role) => role.roleId),
     })),
@@ -314,7 +315,7 @@ export function serializeDraft(draft) {
       role_id: role.roleId,
       object_scope: draft.objectKind,
       role_code: role.roleCode,
-      headcount: quantity(role.headcount, 'person', role.headcountSource || 'USER', false, role.fileSource),
+      headcount: quantity(role.headcount, 'person', role.headcountSource || 'USER', role.headcountConfirmed === true, role.fileSource),
       monthly_gross_salary: quantity(role.salary, 'RUB/person/month', role.salarySource, role.salaryConfirmed, role.fileSource),
       zero_cost_marker: nonNegative(role.salary) && Number(role.salary) === 0 ? 'ZERO_COST_ROLE' : null,
       process_ids: role.processIds,

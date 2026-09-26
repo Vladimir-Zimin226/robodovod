@@ -161,6 +161,9 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
   return <main className="mx-auto max-w-6xl space-y-5 p-4" aria-label="Моделирование процесса">
     <header><h1 className="text-2xl font-semibold">Моделирование процесса</h1><p>Расскажите о процессе своими словами. Brain предложит профиль; числа и допущения вы проверите до расчёта.</p>
       <p className="text-sm">Проект: {project.name} · версия профиля: {profile?.profile_version ?? '…'} · модель диалога: DeepSeek V4 Flash</p></header>
+    {profile?.imported_workbook && <section className="panel p-4"><p>Книга сохранена полностью: зоны, процессы, роли, паспорт и экономика. Brain показывает первый процесс книги; для нескольких зон и процессов используйте форму расчёта. Коммерческие условия подтверждаются отдельно.</p>
+      <a className="secondary-action" href="#calculation">Открыть все процессы в форме</a>
+      <details><summary>Паспорт и источники книги</summary>{Object.entries(profile.imported_workbook.records).map(([sheet, records]) => <section key={sheet}><h3>{sheet}</h3>{Object.entries(records).flatMap(([id, fields]) => Object.entries(fields).map(([field, item]) => <p key={`${id}.${field}`}>{id}.{field}: {item.value ?? 'неизвестно'} {item.unit} · {item.status} · {item.source}</p>))}</section>)}</details></section>}
     {error && <p role="alert" className="rounded border border-red-400 p-3 text-red-700">{error}</p>}
     {profile && <div className="grid gap-5 lg:grid-cols-[1.1fr_1fr]">
       <section className="panel space-y-4 p-4" aria-label="Диалог Brain">

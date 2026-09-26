@@ -9,6 +9,7 @@ import {
 } from '../economicsDemoAssumptions';
 import { fieldPresentation } from '../presentation';
 import { MODEL_START_SECONDS, modelTimezone, timezoneChoices } from '../simulationDefaults';
+import { workbookEconomics } from '../projectWorkbook';
 
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -44,13 +45,13 @@ function restored(capacityRunId, input, project) {
   FIELDS.forEach(([, key, server]) => { values[key] = String(input?.[server] ?? ''); });
   CHECKS.forEach(([, key, server]) => { values[key] = input?.[server] === true; });
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
-    raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: input.timezone || modelTimezone(project),
+    raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
     startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
   else Object.assign(values, { startSeconds: String(MODEL_START_SECONDS), timezone: modelTimezone(project) });
   return values;
 }
 export default function EconomicsInputsV2({ capacityRequest, capacityRunId, project, onComplete, initialInput, savedResult, sourceRunId }) {
-  const [values, setValues] = useState(() => restored(capacityRunId, initialInput, project));
+  const [values, setValues] = useState(() => restored(capacityRunId, initialInput || workbookEconomics(project?.profile?.file_intake_v2), project));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const scenario = project?.scenarios?.find((item) => item.slot === 'BASE');

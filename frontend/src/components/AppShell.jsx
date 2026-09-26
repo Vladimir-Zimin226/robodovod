@@ -47,6 +47,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
           ))}
         </nav>
         <div className="nav-secondary">
+          <button className={activeNav === 'templates' ? 'active' : ''} onClick={() => navigate({ id: 'templates' })}><AppIcon name="report" /><span>Шаблоны и загрузка данных</span></button>
           <button className={activeNav === 'library' ? 'active' : ''} aria-current={activeNav === 'library' ? 'page' : undefined} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>
           {user && <button className={activeNav === 'projects' ? 'active' : ''} onClick={() => navigate({ id: 'projects' })}><AppIcon name="report" /><span>Мои проекты</span></button>}
           {user?.role === 'ADMIN' && <button className={activeNav === 'admin' ? 'active' : ''} onClick={() => navigate({ id: 'admin' })}><AppIcon name="process" /><span>Пользователи</span></button>}

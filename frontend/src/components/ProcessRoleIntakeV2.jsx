@@ -19,6 +19,7 @@ import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } 
 import { readCsrfCookie } from '../persistenceApi';
 import { toV2Draft } from '../assistantInterview';
 import WarehouseChainPanel from './WarehouseChainPanel';
+import { workbookDraft, confirmWorkbookDraft } from '../projectWorkbook';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -47,7 +48,8 @@ const statusFor = (process, issues, response) => {
 
 export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
   const [draft, setDraft] = useState(() => importedAssistant ? toV2Draft(importedAssistant)
-    : importedFile ? createWarehouseFileDraft(importedFile.normalized, importedFile.imported) : createDraft(objectType));
+    : importedFile ? (importedFile.normalized?.schema_version === 'project-workbook-v1' ? workbookDraft(importedFile.normalized)
+      : createWarehouseFileDraft(importedFile.normalized, importedFile.imported)) : createDraft(objectType));
   const [selectedZoneId, setSelectedZoneId] = useState(() => draft.zones[0].zoneId);
   const [expanded, setExpanded] = useState(null);
   const [result, setResult] = useState(null);
@@ -57,7 +59,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [catalogState, setCatalogState] = useState('loading');
   const [processId, setProcessId] = useState('');
   const [positionId, setPositionId] = useState('');
-  const [exchangeSeconds, setExchangeSeconds] = useState('');
+  const [exchangeSeconds, setExchangeSeconds] = useState(draft.processes.find((item) => item.active)?.exchangeSeconds || '');
+  const [cleaningFrequency, setCleaningFrequency] = useState(draft.processes.find((item) => item.active)?.cleaningFrequency ?? '1');
   const [acknowledged, setAcknowledged] = useState(false);
   const [capacityBusy, setCapacityBusy] = useState(false);
   const [focusIssue, setFocusIssue] = useState('');
@@ -107,6 +110,10 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const selectedProcess = activeProcesses.find((item) => item.process_id === processId) || activeProcesses[0];
   const candidatePositions = demoCandidates(positions, selectedProcess?.scope);
   const selectedPosition = candidatePositions.find((item) => item.position_id === positionId);
+  const choosePhysicalInputs = (raw) => {
+    if (raw?.exchangeSeconds != null) setExchangeSeconds(raw.exchangeSeconds);
+    setCleaningFrequency(raw?.cleaningFrequency ?? '1');
+  };
 
   const normalize = async () => {
     if (blockers.length || activeCount === 0) {
@@ -128,6 +135,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       setResult(normalized);
       setProcessId(normalized.response.normalized_processes.find((item) => item.active &&
         ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(item.scope))?.process_id || '');
+      choosePhysicalInputs(draft.processes.find((item) => item.active && item.zoneId === selectedZoneId));
       setPositionId('');
       onNormalized?.(normalized);
       setState('ready');
@@ -155,6 +163,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       const payload = buildDemoCapacityRequest({
         normalized: result, projectId: activeProject?.id, processId: selectedProcess?.process_id,
         position: selectedPosition, exchangeSeconds, acknowledged,
+        cleaningFrequency,
         zone: draft.zones.find((item) => selectedProcess?.process_id.startsWith(`${item.zoneId}.`)),
       });
       const response = await capacityClient.current.create(payload, readCsrfCookie());
@@ -169,6 +178,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
 
   return (
     <aside className="w-[480px] border-l bg-white p-4 overflow-auto" aria-label="Процессы и роли">
+      {draft.importPending && <section className="file-report"><p>Проверьте предложения книги, единицы, источники и допущения. Apply не подтверждает ввод для расчёта.</p>
+        <button type="button" className="primary-action" onClick={() => setDraft(confirmWorkbookDraft(draft))}>Подтвердить входы книги для расчёта</button></section>}
       <header className="mb-3">
         <div className="flex justify-between gap-3 items-start">
           <div><h2 className="font-semibold">Процессы и роли</h2><details className="text-xs text-slate-500"><summary>Технические подробности черновика</summary>Версия ввода: {draft.inputRevision}</details></div>
@@ -194,7 +205,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           }}>Добавить зону</button></div>
         <div className="mt-2 flex flex-wrap gap-2">{draft.zones.map((zone) => <button key={zone.zoneId} type="button"
           className={`rounded border px-2 py-1 ${zone.zoneId === selectedZoneId ? 'border-blue-600 text-blue-700' : 'border-slate-600'}`}
-          onClick={() => { setSelectedZoneId(zone.zoneId); setExpanded(null); }}>{zone.label}</button>)}</div>
+          onClick={() => { setSelectedZoneId(zone.zoneId); setProcessId(''); setPositionId(''); choosePhysicalInputs(draft.processes.find((item) => item.active && item.zoneId === zone.zoneId)); setExpanded(null); }}>{zone.label}</button>)}</div>
         <label className="mt-3 block">Название зоны<input className="mt-1 w-full rounded border p-2" value={selectedZone.label}
           onChange={(event) => setDraft((current) => updateZone(current, selectedZoneId, { label: event.target.value }))} /></label>
         <label className="mt-2 block">Ограничения зоны · проходы, пол, потоки<textarea className="mt-1 w-full rounded border p-2" rows="2"
@@ -285,7 +296,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         {!activeProject && <p className="text-xs text-amber-800">Выберите проект в блоке выше, чтобы сохранить расчёт.</p>}
         {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">Для этого процесса пока нет расчётной модели производительности.</p> : <>
           <label className="block text-xs">Процесс
-            <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); }}>
+            <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); choosePhysicalInputs(draft.processes.find((item) => item.processId === event.target.value)); }}>
               {activeProcesses.map((item) => <option key={item.process_id} value={item.process_id}>{draft.zones.find((zone) => item.process_id.startsWith(`${zone.zoneId}.`))?.label || 'Зона'} · {visibleProcesses.find((process) => item.process_id.endsWith(process.processId))?.label || 'Процесс'}</option>)}
             </select>
           </label>
@@ -300,7 +311,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">В активном каталоге нет подходящего авторского демо-профиля для этого процесса. Проверьте capacity-активацию.</p>}
           {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.organizer_id]} />}
           {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
-          {selectedProcess?.scope === 'CLEANING_AREA' && <p className="text-xs text-slate-600">Демо-допущение: одна уборка указанной площади в сутки.</p>}
+          {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={setCleaningFrequency} />}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}

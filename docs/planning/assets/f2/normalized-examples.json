@@ -1,0 +1,1464 @@
+{
+  "interview-220-120": {
+    "schema_version": "project-workbook-v1",
+    "object_type": "retail",
+    "records": {
+      "Объект": {
+        "main": {
+          "name": {
+            "value": "Типовой объект — пример",
+            "status": "DATA",
+            "unit": "text",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "timezone": {
+            "value": "Asia/Sakhalin",
+            "status": "DATA",
+            "unit": "IANA",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Зоны": {
+        "main": {
+          "label": {
+            "value": "Основная зона",
+            "status": "DATA",
+            "unit": "text",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "constraints": {
+            "value": "Синтетический склад: проход 3 м; пол ровный; груз 800 кг; обследование не выполнено",
+            "status": "DATA",
+            "unit": "text",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Процессы": {
+        "operation": {
+          "process_code": {
+            "value": "warehouse_receiving_shipping",
+            "status": "DATA",
+            "unit": "code",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "zone_id": {
+            "value": "main",
+            "status": "DATA",
+            "unit": "code",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "active": {
+            "value": "YES",
+            "status": "DATA",
+            "unit": "YES/NO",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "demand": {
+            "value": "220",
+            "status": "DATA",
+            "unit": "pallet/day",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shifts": {
+            "value": "2",
+            "status": "DATA",
+            "unit": "shift",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "hours": {
+            "value": "11",
+            "status": "DATA",
+            "unit": "h",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "days": {
+            "value": "365",
+            "status": "DATA",
+            "unit": "day",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "distance": {
+            "value": "120",
+            "status": "DATA",
+            "unit": "m",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "batch": {
+            "value": "2",
+            "status": "DATA",
+            "unit": "unit/trip",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "exchange_seconds": {
+            "value": "90",
+            "status": "DATA",
+            "unit": "s",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "cleaning_frequency": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "1/day",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Роли": {
+        "staff": {
+          "role_code": {
+            "value": "forklift_driver",
+            "status": "DATA",
+            "unit": "code",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "process_ids": {
+            "value": "operation",
+            "status": "DATA",
+            "unit": "code",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "headcount": {
+            "value": "25",
+            "status": "DATA",
+            "unit": "person",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "salary": {
+            "value": "120000",
+            "status": "DATA",
+            "unit": "RUB/person/month",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Экономика": {
+        "main": {
+          "evaluation_date": {
+            "value": "2026-09-26",
+            "status": "DATA",
+            "unit": "YYYY-MM-DD",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "horizon_years": {
+            "value": "5",
+            "status": "DATA",
+            "unit": "year",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "discount_rate": {
+            "value": "0.15",
+            "status": "DATA",
+            "unit": "1",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "manual_units_per_shift": {
+            "value": "100",
+            "status": "DATA",
+            "unit": "unit/shift",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "control_headcount": {
+            "value": "0",
+            "status": "DATA",
+            "unit": "person",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "control_monthly_gross": {
+            "value": "100000",
+            "status": "DATA",
+            "unit": "RUB/person/month",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "technician_headcount": {
+            "value": "0",
+            "status": "DATA",
+            "unit": "person",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "technician_monthly_gross": {
+            "value": "120000",
+            "status": "DATA",
+            "unit": "RUB/person/month",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "implementation_cost_total_gross": {
+            "value": "500000",
+            "status": "DATA",
+            "unit": "RUB",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "annual_service_per_robot_gross": {
+            "value": "120000",
+            "status": "DATA",
+            "unit": "RUB/year",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "warranty_years": {
+            "value": "1",
+            "status": "DATA",
+            "unit": "year",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "average_power_w": {
+            "value": "1000",
+            "status": "DATA",
+            "unit": "W",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shared_site_capital_gross": {
+            "value": "0",
+            "status": "DATA",
+            "unit": "RUB",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shared_annual_cost_gross": {
+            "value": "0",
+            "status": "DATA",
+            "unit": "RUB/year",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_monthly_per_robot_gross": {
+            "value": "180000",
+            "status": "DATA",
+            "unit": "RUB/robot/month",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_contract_months": {
+            "value": "60",
+            "status": "DATA",
+            "unit": "month",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_infrastructure_owner": {
+            "value": "VENDOR",
+            "status": "DATA",
+            "unit": "code",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "start_seconds_from_midnight": {
+            "value": "32400",
+            "status": "DATA",
+            "unit": "s",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "purchase_price": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "RUB",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "currency": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "code",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "vat_basis": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "text",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "role_salaries_confirmed_as_monthly_gross": {
+            "value": "YES",
+            "status": "DATA",
+            "unit": "YES/NO",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "organizer_price_currency_rub_confirmed": {
+            "value": "YES",
+            "status": "DATA",
+            "unit": "YES/NO",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "initial_battery_in_robot_price_confirmed": {
+            "value": "YES",
+            "status": "DATA",
+            "unit": "YES/NO",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "battery_replacements_in_service_confirmed": {
+            "value": "YES",
+            "status": "DATA",
+            "unit": "YES/NO",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_vendor_scope_confirmed": {
+            "value": "YES",
+            "status": "DATA",
+            "unit": "YES/NO",
+            "source": "Синтетический ответ для acceptance; не данные клиента",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Паспорт": {
+        "main": {
+          "obschaya_ploschad_sklada": {
+            "value": "20000",
+            "status": "ASSUMPTION",
+            "unit": "м²",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "ploschad_aktivnoy_robotiziruemoy_zony": {
+            "value": "10000",
+            "status": "ASSUMPTION",
+            "unit": "м²",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "vysota_potolkov_v_zone_hraneniya": {
+            "value": "10",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_etazhey_mezoninov": {
+            "value": "1",
+            "status": "ASSUMPTION",
+            "unit": "шт.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shirina_glavnyh_proezdov": {
+            "value": "3.5",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shirina_rabochih_prohodov_mezhdu_stellazhami": {
+            "value": "2.8",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "tip_napolnogo_pokrytiya": {
+            "value": "Промышленный бетон",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "rovnost_pola_otklonenie": {
+            "value": "3",
+            "status": "ASSUMPTION",
+            "unit": "мм/2м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_rabochih_smen_v_sutki": {
+            "value": "2",
+            "status": "ASSUMPTION",
+            "unit": "смен",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "rabochih_dney_v_godu": {
+            "value": "365",
+            "status": "ASSUMPTION",
+            "unit": "дн.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "prodolzhitelnost_smeny": {
+            "value": "11",
+            "status": "ASSUMPTION",
+            "unit": "ч",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "pikovyy_koefficient_nagruzki": {
+            "value": "1.5",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_priemki_poddony_sutki": {
+            "value": "1000",
+            "status": "ASSUMPTION",
+            "unit": "поддон/сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_otgruzki_poddony_sutki": {
+            "value": "1000",
+            "status": "ASSUMPTION",
+            "unit": "поддон/сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_otbora_strok_sutki_vsego": {
+            "value": "100000",
+            "status": "ASSUMPTION",
+            "unit": "строк/сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_otbora_shtuk_sutki_vsego": {
+            "value": "150000",
+            "status": "ASSUMPTION",
+            "unit": "шт./сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "dolya_melkoshtuchnogo_otbora_piece_pick": {
+            "value": "30",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_sku_aktivnyh": {
+            "value": "2000",
+            "status": "ASSUMPTION",
+            "unit": "SKU",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "dolya_sku_s_bystrym_oborotom_a_klass": {
+            "value": "20",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obschaya_chislennost_personala_sklada": {
+            "value": "180",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "iz_nih_otborschiki_komplektovschiki": {
+            "value": "100",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "iz_nih_operatory_pogruzchikov": {
+            "value": "25",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "iz_nih_operatory_upakovochnyh_liniy": {
+            "value": "20",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_z_p_otborschika_gross": {
+            "value": "100000",
+            "status": "ASSUMPTION",
+            "unit": "руб./мес.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_z_p_operatora_pogruzchika_gross": {
+            "value": "120000",
+            "status": "ASSUMPTION",
+            "unit": "руб./мес.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "koefficient_nachisleniy_na_fot_strahovye_vznosy": {
+            "value": "1.302",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_vyrabotka_otborschika_strok_ch": {
+            "value": "150",
+            "status": "ASSUMPTION",
+            "unit": "строк/ч·чел",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "koefficient_poter_rabochego_vremeni_otpusk_bolezn_tekuchest": {
+            "value": "25",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_dlina_marshruta_otborschika_na_1_stroku": {
+            "value": "25",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "protyazhennost_konveyernoy_transportnoy_sistemy": {
+            "value": "350",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "tip_stellazhnoy_sistemy": {
+            "value": "Фронтальные паллетные",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_palletomest": {
+            "value": "20000",
+            "status": "ASSUMPTION",
+            "unit": "м/п",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_massa_gruzovoy_edinicy_pallet": {
+            "value": "800",
+            "status": "ASSUMPTION",
+            "unit": "кг",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_massa_shtuchnoy_edinicy_sku": {
+            "value": "1.8",
+            "status": "ASSUMPTION",
+            "unit": "кг",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednie_gabarity_pallety_d_sh_v": {
+            "value": "1200×800×1600",
+            "status": "ASSUMPTION",
+            "unit": "мм",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednie_gabarity_shtuchnoy_edinicy_d_sh_v": {
+            "value": "300×200×150",
+            "status": "ASSUMPTION",
+            "unit": "мм",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "dolya_negabaritnyh_nestandartnyh_gruzov": {
+            "value": "5",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "moschnost_elektrosnabzheniya_dostupnaya": {
+            "value": "500",
+            "status": "ASSUMPTION",
+            "unit": "кВт",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "nalichie_wms": {
+            "value": "Да",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "nalichie_erp_1s": {
+            "value": "1С:ERP",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+            "value": "80",
+            "status": "ASSUMPTION",
+            "unit": "млн руб.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "gorizont_rascheta_okupaemosti": {
+            "value": "5",
+            "status": "ASSUMPTION",
+            "unit": "лет",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      }
+    },
+    "file_source": {
+      "name": "interview-220-120.xlsx",
+      "sha256": "5ac2b8375d3b03c8d24476af8216905ac36477c89e345e4a47f72cfc876ef4f1"
+    },
+    "confirmations_pending": true
+  },
+  "typical-warehouse": {
+    "schema_version": "project-workbook-v1",
+    "object_type": "retail",
+    "records": {
+      "Объект": {
+        "main": {
+          "name": {
+            "value": "Типовой объект — пример",
+            "status": "ASSUMPTION",
+            "unit": "text",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "timezone": {
+            "value": "Asia/Sakhalin",
+            "status": "ASSUMPTION",
+            "unit": "IANA",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Зоны": {
+        "main": {
+          "label": {
+            "value": "Основная зона",
+            "status": "ASSUMPTION",
+            "unit": "text",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "constraints": {
+            "value": "Синтетический склад: проход 3 м; пол ровный; груз 800 кг; обследование не выполнено",
+            "status": "ASSUMPTION",
+            "unit": "text",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Процессы": {
+        "operation": {
+          "process_code": {
+            "value": "warehouse_receiving_shipping",
+            "status": "ASSUMPTION",
+            "unit": "code",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "zone_id": {
+            "value": "main",
+            "status": "ASSUMPTION",
+            "unit": "code",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "active": {
+            "value": "YES",
+            "status": "ASSUMPTION",
+            "unit": "YES/NO",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "demand": {
+            "value": "2000",
+            "status": "ASSUMPTION",
+            "unit": "pallet/day",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shifts": {
+            "value": "2",
+            "status": "ASSUMPTION",
+            "unit": "shift",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "hours": {
+            "value": "11",
+            "status": "ASSUMPTION",
+            "unit": "h",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "days": {
+            "value": "365",
+            "status": "ASSUMPTION",
+            "unit": "day",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "distance": {
+            "value": "120",
+            "status": "ASSUMPTION",
+            "unit": "m",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "batch": {
+            "value": "1",
+            "status": "ASSUMPTION",
+            "unit": "unit/trip",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "exchange_seconds": {
+            "value": "90",
+            "status": "ASSUMPTION",
+            "unit": "s",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "cleaning_frequency": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "1/day",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Роли": {
+        "staff": {
+          "role_code": {
+            "value": "forklift_driver",
+            "status": "ASSUMPTION",
+            "unit": "code",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "process_ids": {
+            "value": "operation",
+            "status": "ASSUMPTION",
+            "unit": "code",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "headcount": {
+            "value": "25",
+            "status": "ASSUMPTION",
+            "unit": "person",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "salary": {
+            "value": "120000",
+            "status": "ASSUMPTION",
+            "unit": "RUB/person/month",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Экономика": {
+        "main": {
+          "evaluation_date": {
+            "value": "2026-09-26",
+            "status": "ASSUMPTION",
+            "unit": "YYYY-MM-DD",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "horizon_years": {
+            "value": "5",
+            "status": "ASSUMPTION",
+            "unit": "year",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "discount_rate": {
+            "value": "0.15",
+            "status": "ASSUMPTION",
+            "unit": "1",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "manual_units_per_shift": {
+            "value": "100",
+            "status": "ASSUMPTION",
+            "unit": "unit/shift",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "control_headcount": {
+            "value": "0",
+            "status": "ASSUMPTION",
+            "unit": "person",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "control_monthly_gross": {
+            "value": "100000",
+            "status": "ASSUMPTION",
+            "unit": "RUB/person/month",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "technician_headcount": {
+            "value": "0",
+            "status": "ASSUMPTION",
+            "unit": "person",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "technician_monthly_gross": {
+            "value": "120000",
+            "status": "ASSUMPTION",
+            "unit": "RUB/person/month",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "implementation_cost_total_gross": {
+            "value": "500000",
+            "status": "ASSUMPTION",
+            "unit": "RUB",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "annual_service_per_robot_gross": {
+            "value": "120000",
+            "status": "ASSUMPTION",
+            "unit": "RUB/year",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "warranty_years": {
+            "value": "1",
+            "status": "ASSUMPTION",
+            "unit": "year",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "average_power_w": {
+            "value": "1000",
+            "status": "ASSUMPTION",
+            "unit": "W",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shared_site_capital_gross": {
+            "value": "0",
+            "status": "ASSUMPTION",
+            "unit": "RUB",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shared_annual_cost_gross": {
+            "value": "0",
+            "status": "ASSUMPTION",
+            "unit": "RUB/year",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_monthly_per_robot_gross": {
+            "value": "180000",
+            "status": "ASSUMPTION",
+            "unit": "RUB/robot/month",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_contract_months": {
+            "value": "60",
+            "status": "ASSUMPTION",
+            "unit": "month",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_infrastructure_owner": {
+            "value": "VENDOR",
+            "status": "ASSUMPTION",
+            "unit": "code",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "start_seconds_from_midnight": {
+            "value": "32400",
+            "status": "ASSUMPTION",
+            "unit": "s",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "purchase_price": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "RUB",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "currency": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "code",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "vat_basis": {
+            "value": null,
+            "status": "UNKNOWN",
+            "unit": "text",
+            "source": "",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "role_salaries_confirmed_as_monthly_gross": {
+            "value": "YES",
+            "status": "ASSUMPTION",
+            "unit": "YES/NO",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "organizer_price_currency_rub_confirmed": {
+            "value": "YES",
+            "status": "ASSUMPTION",
+            "unit": "YES/NO",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "initial_battery_in_robot_price_confirmed": {
+            "value": "YES",
+            "status": "ASSUMPTION",
+            "unit": "YES/NO",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "battery_replacements_in_service_confirmed": {
+            "value": "YES",
+            "status": "ASSUMPTION",
+            "unit": "YES/NO",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "raas_vendor_scope_confirmed": {
+            "value": "YES",
+            "status": "ASSUMPTION",
+            "unit": "YES/NO",
+            "source": "Типовой сценарий — допущение для acceptance",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      },
+      "Паспорт": {
+        "main": {
+          "obschaya_ploschad_sklada": {
+            "value": "20000",
+            "status": "ASSUMPTION",
+            "unit": "м²",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "ploschad_aktivnoy_robotiziruemoy_zony": {
+            "value": "10000",
+            "status": "ASSUMPTION",
+            "unit": "м²",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "vysota_potolkov_v_zone_hraneniya": {
+            "value": "10",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_etazhey_mezoninov": {
+            "value": "1",
+            "status": "ASSUMPTION",
+            "unit": "шт.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shirina_glavnyh_proezdov": {
+            "value": "3.5",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "shirina_rabochih_prohodov_mezhdu_stellazhami": {
+            "value": "2.8",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "tip_napolnogo_pokrytiya": {
+            "value": "Промышленный бетон",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "rovnost_pola_otklonenie": {
+            "value": "3",
+            "status": "ASSUMPTION",
+            "unit": "мм/2м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_rabochih_smen_v_sutki": {
+            "value": "2",
+            "status": "ASSUMPTION",
+            "unit": "смен",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "rabochih_dney_v_godu": {
+            "value": "365",
+            "status": "ASSUMPTION",
+            "unit": "дн.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "prodolzhitelnost_smeny": {
+            "value": "11",
+            "status": "ASSUMPTION",
+            "unit": "ч",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "pikovyy_koefficient_nagruzki": {
+            "value": "1.5",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_priemki_poddony_sutki": {
+            "value": "1000",
+            "status": "ASSUMPTION",
+            "unit": "поддон/сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_otgruzki_poddony_sutki": {
+            "value": "1000",
+            "status": "ASSUMPTION",
+            "unit": "поддон/сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_otbora_strok_sutki_vsego": {
+            "value": "100000",
+            "status": "ASSUMPTION",
+            "unit": "строк/сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obem_otbora_shtuk_sutki_vsego": {
+            "value": "150000",
+            "status": "ASSUMPTION",
+            "unit": "шт./сут",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "dolya_melkoshtuchnogo_otbora_piece_pick": {
+            "value": "30",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_sku_aktivnyh": {
+            "value": "2000",
+            "status": "ASSUMPTION",
+            "unit": "SKU",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "dolya_sku_s_bystrym_oborotom_a_klass": {
+            "value": "20",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "obschaya_chislennost_personala_sklada": {
+            "value": "180",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "iz_nih_otborschiki_komplektovschiki": {
+            "value": "100",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "iz_nih_operatory_pogruzchikov": {
+            "value": "25",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "iz_nih_operatory_upakovochnyh_liniy": {
+            "value": "20",
+            "status": "ASSUMPTION",
+            "unit": "чел.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_z_p_otborschika_gross": {
+            "value": "100000",
+            "status": "ASSUMPTION",
+            "unit": "руб./мес.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_z_p_operatora_pogruzchika_gross": {
+            "value": "120000",
+            "status": "ASSUMPTION",
+            "unit": "руб./мес.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "koefficient_nachisleniy_na_fot_strahovye_vznosy": {
+            "value": "1.302",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_vyrabotka_otborschika_strok_ch": {
+            "value": "150",
+            "status": "ASSUMPTION",
+            "unit": "строк/ч·чел",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "koefficient_poter_rabochego_vremeni_otpusk_bolezn_tekuchest": {
+            "value": "25",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_dlina_marshruta_otborschika_na_1_stroku": {
+            "value": "25",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "protyazhennost_konveyernoy_transportnoy_sistemy": {
+            "value": "350",
+            "status": "ASSUMPTION",
+            "unit": "м",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "tip_stellazhnoy_sistemy": {
+            "value": "Фронтальные паллетные",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "kolichestvo_palletomest": {
+            "value": "20000",
+            "status": "ASSUMPTION",
+            "unit": "м/п",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_massa_gruzovoy_edinicy_pallet": {
+            "value": "800",
+            "status": "ASSUMPTION",
+            "unit": "кг",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednyaya_massa_shtuchnoy_edinicy_sku": {
+            "value": "1.8",
+            "status": "ASSUMPTION",
+            "unit": "кг",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednie_gabarity_pallety_d_sh_v": {
+            "value": "1200×800×1600",
+            "status": "ASSUMPTION",
+            "unit": "мм",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "srednie_gabarity_shtuchnoy_edinicy_d_sh_v": {
+            "value": "300×200×150",
+            "status": "ASSUMPTION",
+            "unit": "мм",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "dolya_negabaritnyh_nestandartnyh_gruzov": {
+            "value": "5",
+            "status": "ASSUMPTION",
+            "unit": "%",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "moschnost_elektrosnabzheniya_dostupnaya": {
+            "value": "500",
+            "status": "ASSUMPTION",
+            "unit": "кВт",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "nalichie_wms": {
+            "value": "Да",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "nalichie_erp_1s": {
+            "value": "1С:ERP",
+            "status": "ASSUMPTION",
+            "unit": "-",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "planiruemyy_byudzhet_na_robotizaciyu_capex": {
+            "value": "80",
+            "status": "ASSUMPTION",
+            "unit": "млн руб.",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          },
+          "gorizont_rascheta_okupaemosti": {
+            "value": "5",
+            "status": "ASSUMPTION",
+            "unit": "лет",
+            "source": "Типовой пример организаторов / сценарное допущение; проверить на объекте",
+            "notes": "",
+            "confirmed_by_user": false
+          }
+        }
+      }
+    },
+    "file_source": {
+      "name": "typical-warehouse.xlsx",
+      "sha256": "f237e32b217f33c38a651020f0370e4134685389e2fe7a2b0151fcba89fedf04"
+    },
+    "confirmations_pending": true
+  }
+}
