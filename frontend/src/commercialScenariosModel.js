@@ -1,4 +1,5 @@
 export const COMMERCIAL_SCENARIOS_SCHEMA = 'commercial-scenarios-bundle-v2';
+export const FINAL_COMMERCIAL_SCHEMA = 'commercial-scenarios-bundle-v3';
 import { formatDecimal } from './displayNumber.js';
 
 export const ACQUISITIONS = Object.freeze(['PURCHASE', 'RAAS']);
@@ -9,6 +10,11 @@ const FINANCE_SCHEMAS = Object.freeze({
   PURCHASE: 'financial-result-v1',
   RAAS: 'raas-financial-result-v1',
 });
+const FINAL_METRICS = Object.freeze([
+  'capex', 'opex_year_1', 'opex_change_year_1', 'fot_year_1',
+  'effect_year_1', 'effect_total', 'net_benefit', 'simple_payback',
+  'roi', 'tco', 'npv', 'discounted_payback',
+]);
 
 function contractError(code) {
   const error = new Error(code);
@@ -79,9 +85,45 @@ function assertScenario(scenario, identities) {
   return scenario;
 }
 
+function assertFinalComparison(comparison) {
+  requireObject(comparison, 'COMMERCIAL_COMPARISON_INVALID');
+  if (comparison.schema_version !== 'financial-comparison-v1'
+    || comparison.currency !== 'RUB' || !Number.isInteger(comparison.horizon_years)
+    || comparison.horizon_years < 5) throw contractError('COMMERCIAL_COMPARISON_VERSION');
+  const baseline = requireObject(comparison.baseline, 'COMMERCIAL_BASELINE');
+  const scenarios = requireArray(comparison.scenarios, 'COMMERCIAL_FINAL_SCENARIOS');
+  const expected = ['scenario.baseline.base', ...ACQUISITIONS.flatMap((acquisition) =>
+    UNCERTAINTIES.map((uncertainty) => `scenario.${acquisition.toLowerCase()}.${uncertainty.toLowerCase()}`))];
+  const rows = [baseline, ...scenarios];
+  if (rows.length !== 7 || rows.some((row, index) => row?.scenario_id !== expected[index])) {
+    throw contractError('COMMERCIAL_COMPARISON_SCENARIOS');
+  }
+  for (const row of rows) {
+    const metrics = requireObject(row.metrics, 'COMMERCIAL_FINAL_METRICS');
+    for (const key of FINAL_METRICS) {
+      const metric = requireObject(metrics[key], 'COMMERCIAL_FINAL_METRIC');
+      if (!METRIC_STATUS.has(metric.status) || (metric.status === 'COMPLETE') !== (typeof metric.value === 'string')
+        || !metric.unit || !metric.basis || !metric.source_ref) throw contractError('COMMERCIAL_FINAL_METRIC');
+    }
+  }
+  const sensitivity = requireObject(comparison.sensitivity, 'COMMERCIAL_FINAL_SENSITIVITY');
+  if (sensitivity.schema_version !== 'scenario-sensitivity-v1') throw contractError('COMMERCIAL_FINAL_SENSITIVITY');
+  const byScenario = requireObject(sensitivity.by_scenario, 'COMMERCIAL_FINAL_SENSITIVITY');
+  if (Object.keys(byScenario).length !== 7) throw contractError('COMMERCIAL_FINAL_SENSITIVITY');
+  for (const row of rows) {
+    const variants = requireArray(byScenario[row.scenario_id], 'COMMERCIAL_FINAL_SENSITIVITY');
+    const keys = variants.map((item) => `${item.parameter}:${item.direction}`);
+    if (variants.length !== 6 || new Set(keys).size !== 6
+      || !['LOWER', 'UPPER'].every((direction) => keys.filter((key) => key.endsWith(`:${direction}`)).length === 3)) {
+      throw contractError('COMMERCIAL_FINAL_SENSITIVITY');
+    }
+  }
+}
+
 export function assertCommercialScenariosBundle(bundle, expectedRevision = null) {
   requireObject(bundle, 'COMMERCIAL_BUNDLE_INVALID');
-  if (bundle.schema_version !== COMMERCIAL_SCENARIOS_SCHEMA) throw contractError('COMMERCIAL_SCHEMA_VERSION');
+  if (![COMMERCIAL_SCENARIOS_SCHEMA, FINAL_COMMERCIAL_SCHEMA].includes(bundle.schema_version)) throw contractError('COMMERCIAL_SCHEMA_VERSION');
+  if (bundle.schema_version === FINAL_COMMERCIAL_SCHEMA) assertFinalComparison(bundle.comparison);
   const identities = {
     projectId: requireString(bundle.project_id, 'COMMERCIAL_PROJECT_ID'),
     tenantId: requireString(bundle.tenant_id, 'COMMERCIAL_TENANT_ID'),
@@ -118,7 +160,7 @@ export function assertCommercialScenariosBundle(bundle, expectedRevision = null)
 }
 
 export function isCommercialScenariosBundle(value) {
-  return value?.schema_version === COMMERCIAL_SCENARIOS_SCHEMA;
+  return [COMMERCIAL_SCENARIOS_SCHEMA, FINAL_COMMERCIAL_SCHEMA].includes(value?.schema_version);
 }
 
 export function formatServerMoney(value, unit = 'RUB') {
@@ -214,6 +256,7 @@ export function getCommercialScenariosModel(bundle, expectedRevision = null) {
     },
     versions: { ...bundle.versions },
     limitations: [...bundle.limitations],
+    comparison: bundle.comparison || null,
   };
 }
 

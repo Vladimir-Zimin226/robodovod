@@ -4,12 +4,16 @@ import hashlib
 import io
 import json
 import os
+import time
 import zipfile
 from pathlib import Path
 
 import main
 import pytest
 from pypdf import PdfReader
+from openpyxl import load_workbook
+from calculation.scheduling import SimulationRequestV1
+from calculation_contracts import semantic_digest
 from alembic import command
 from alembic.config import Config
 from catalog_activation import activate_catalog_version, publish_catalog_version
@@ -243,3 +247,48 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
         assert "Параметры поставщика" in report_text
         assert "После покупки роботов" in report_text
         assert "При аренде роботов" in report_text
+        assert "Полное сравнение экономики F5" in report_text
+        assert run["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v3"
+        assert len(run["result_snapshot"]["comparison"]["sensitivity"]["by_scenario"]) == 7
+        xlsx = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/result.xlsx")
+        csv_file = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/comparison.csv")
+        assert xlsx.status_code == csv_file.status_code == 200
+        assert xlsx.headers["x-export-manifest-digest"] == manifest.json()["manifest_digest"]
+        assert csv_file.headers["x-export-manifest-digest"] == manifest.json()["manifest_digest"]
+        assert load_workbook(io.BytesIO(xlsx.content), read_only=True).sheetnames[0] == "Итог"
+        assert csv_file.content.startswith(b"\xef\xbb\xbf")
+        with zipfile.ZipFile(io.BytesIO(archive.content)) as evidence:
+            assert evidence.read("Отчёт_Рободовод.pdf") == report.content
+            assert evidence.read("Результат.xlsx") == xlsx.content
+            assert evidence.read("Сравнение.csv") == csv_file.content
+
+        simulation_request = SimulationRequestV1.model_validate({
+            "schema_version": "simulation-request-v1", "request_id": "simulation.f5.http",
+            "tenant_id": run["result_snapshot"]["tenant_id"], "project_id": project["id"],
+            "scenario_spec": run["scenario_spec_snapshot"], "mode": "DAILY",
+            "peak_factor": None, "sla": None, "resources": [],
+            "limits": {"max_jobs_per_day": 10000, "max_fleet": 100,
+                       "max_runtime_seconds": 60, "progress_event_batch": 1000},
+        })
+        simulation_base = f"/api/v2/simulations/projects/{project['id']}/analysis-runs/{run['id']}"
+        started = client.post(simulation_base, headers=headers, json=simulation_request.model_dump(mode="json"))
+        assert started.status_code == 202, started.text
+        for _ in range(100):
+            saved = client.get(f"{simulation_base}/{simulation_request.request_id}")
+            if saved.json()["state"] == "SUCCEEDED":
+                break
+            time.sleep(0.1)
+        assert saved.json()["state"] == "SUCCEEDED", saved.text
+        query = f"?simulation_request_id={simulation_request.request_id}"
+        linked_manifest = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/manifest{query}")
+        linked_archive = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/evidence.zip{query}")
+        svg = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/visualization.svg{query}")
+        linked_pdf = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/report.pdf{query}")
+        assert linked_manifest.status_code == linked_archive.status_code == svg.status_code == linked_pdf.status_code == 200
+        assert linked_manifest.json()["simulation_request_id"] == simulation_request.request_id
+        assert linked_manifest.json()["simulation_report_digest"] == semantic_digest(saved.json()["report"])
+        with zipfile.ZipFile(io.BytesIO(linked_archive.content)) as evidence:
+            assert evidence.read("Отчёт_Рободовод.pdf") == linked_pdf.content
+            assert evidence.read("Схема_2D.svg") == svg.content
+        assert client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/manifest?simulation_request_id=foreign.request").status_code == 404
+        assert client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}").json()["checksums"] == run["checksums"]

@@ -165,7 +165,7 @@ def _same_input(left: Any, right: Any) -> bool:
 def _money_from_run(run: AnalysisRun, process_code: str) -> str | None:
     if run.run_kind != "FULL_ANALYSIS" or run.status != "SUCCEEDED" or not isinstance(run.result_snapshot, dict):
         return None
-    if run.result_snapshot.get("schema_version") != "commercial-scenarios-bundle-v2":
+    if run.result_snapshot.get("schema_version") not in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3"}:
         return None
     if process_code == "warehouse_receiving_shipping":
         roles = {item.get("role_id"): item for item in run.result_snapshot.get("roles", [])}

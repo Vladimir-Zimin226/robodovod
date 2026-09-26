@@ -138,6 +138,8 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     technician_headcount: Annotated[int, Field(ge=0)]
     technician_monthly_gross: DecimalString
     organizer_price_currency_rub_confirmed: bool
+    purchase_price_override_gross: DecimalString | None = None
+    purchase_price_source: Annotated[str, Field(min_length=3, max_length=240)] | None = None
     implementation_cost_total_gross: DecimalString
     annual_service_per_robot_gross: DecimalString
     warranty_years: Annotated[int, Field(ge=0, le=15)]
@@ -170,6 +172,11 @@ class EconomicsExplicitInputsV1(StrictContractModel):
             raise ValueError("discount_rate must be within 0..1")
         if Decimal(self.average_power_w) <= 0:
             raise ValueError("average_power_w must be positive")
+        if self.purchase_price_override_gross is not None:
+            if Decimal(self.purchase_price_override_gross) < 0 or self.purchase_price_source is None:
+                raise ValueError("purchase price override needs a non-negative price and source")
+        elif self.purchase_price_source is not None:
+            raise ValueError("purchase price source requires an override price")
         if (
             self.manual_units_per_shift is not None
             and Decimal(self.manual_units_per_shift) <= 0
@@ -454,14 +461,16 @@ def _purchase_report(
 ) -> Any:
     position = _position(snapshot, request)
     catalog_money = catalog_commercial_money(position)
-    if catalog_money is None:
+    effective_price = primary_price_override if primary_price_override is not None else inputs.purchase_price_override_gross
+    if catalog_money is None and effective_price is None:
         raise ValueError("selected catalog position has no usable organizer price")
     primary_money = (
         catalog_money
-        if primary_price_override is None
+        if effective_price is None
         else _user_money(
-            primary_price_override,
-            source_id="input.economics.sensitivity.equipment-price",
+            effective_price,
+            source_id=("input.economics.sensitivity.equipment-price"
+                       if primary_price_override is not None else "input.economics.purchase-price-override"),
             request=request,
             boundary="BARE_EQUIPMENT",
         )

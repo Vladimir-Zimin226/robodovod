@@ -14,14 +14,13 @@ from sqlalchemy.orm import Session
 from auth import AuthContext, require_auth_context
 from calculation.evidence_export import (
     EvidenceExportIntegrityError,
-    EvidenceExportManifestV3,
+    EvidenceExportManifestV4,
     EvidenceRunSnapshotV1,
-    build_evidence_export_v3,
 )
-from calculation.readable_report import build_readable_report
-from presentation import VERSION as PRESENTATION_VERSION
+from calculation.final_export import build_final_export
 from database import database_session
-from persistence_models import AnalysisRun, Project
+from persistence_models import AnalysisRun, Project, SimulationArtifact
+from simulation_artifacts import SimulationArtifactIntegrityError, load_artifact
 
 
 RunLoader = Callable[[Session, uuid.UUID, uuid.UUID, uuid.UUID], EvidenceRunSnapshotV1 | None]
@@ -105,38 +104,50 @@ def create_evidence_export_router(
         run_id: uuid.UUID,
         context: AuthContext,
         db: Session,
+        simulation_request_id: str | None = None,
     ):
         run = run_loader(db, project_id, run_id, context.user.id)
         if run is None:
             # Missing, inactive and another tenant's run deliberately look identical.
             raise HTTPException(status_code=404, detail="analysis run not found")
         try:
-            return build_evidence_export_v3(run, linked_capacity_for(run, project_id, context, db))
-        except EvidenceExportIntegrityError as exc:
+            chosen = simulation_request_id or (db.scalar(
+                select(SimulationArtifact.request_id).where(
+                    SimulationArtifact.project_id == project_id,
+                    SimulationArtifact.analysis_run_id == run_id,
+                ).order_by(SimulationArtifact.created_at.desc(), SimulationArtifact.id.desc()).limit(1)
+            ) if hasattr(db, "scalar") else None)
+            simulation = load_artifact(db, context.user.id, project_id, run_id, chosen) if chosen and hasattr(db, "scalar") else None
+            if simulation_request_id is not None and simulation is None:
+                raise HTTPException(status_code=404, detail="simulation artifact not found")
+            return build_final_export(run, linked_capacity_for(run, project_id, context, db), simulation)
+        except (EvidenceExportIntegrityError, SimulationArtifactIntegrityError) as exc:
             raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
 
     @router.get(
         "/projects/{project_id}/analysis-runs/{run_id}/exports/manifest",
-        response_model=EvidenceExportManifestV3,
+        response_model=EvidenceExportManifestV4,
     )
     def get_manifest(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
         response: Response,
+        simulation_request_id: str | None = None,
         context: AuthContext = Depends(require_auth_context),
         db: Session = Depends(database_session),
     ):
         response.headers["Cache-Control"] = "private, no-store"
-        return package_for(project_id, run_id, context, db).manifest
+        return package_for(project_id, run_id, context, db, simulation_request_id).manifest
 
     @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/evidence.zip")
     def download_bundle(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
+        simulation_request_id: str | None = None,
         context: AuthContext = Depends(require_auth_context),
         db: Session = Depends(database_session),
     ):
-        package = package_for(project_id, run_id, context, db)
+        package = package_for(project_id, run_id, context, db, simulation_request_id)
         filename = f"Рободовод, архив расчёта от {package.manifest.snapshot_captured_at:%d.%m.%Y}.zip"
         fallback = f"Robodovod-evidence-{package.manifest.snapshot_captured_at:%Y-%m-%d}.zip"
         return Response(
@@ -154,19 +165,15 @@ def create_evidence_export_router(
     def download_readable_report(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
+        simulation_request_id: str | None = None,
         context: AuthContext = Depends(require_auth_context),
         db: Session = Depends(database_session),
     ):
-        run = run_loader(db, project_id, run_id, context.user.id)
-        if run is None:
-            raise HTTPException(status_code=404, detail="analysis run not found")
-        try:
-            linked = linked_capacity_for(run, project_id, context, db)
-            pdf, source_digest = build_readable_report(run, linked, presentation_version=PRESENTATION_VERSION)
-        except EvidenceExportIntegrityError as exc:
-            raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
-        filename = f"Рободовод, отчёт от {run.finished_at:%d.%m.%Y}.pdf"
-        fallback = f"Robodovod-report-{run.finished_at:%Y-%m-%d}.pdf"
+        package = package_for(project_id, run_id, context, db, simulation_request_id)
+        pdf = package.files[package.manifest.report_filename]
+        source_digest = package.manifest.source_snapshot_digests["result"]
+        filename = f"Рободовод, отчёт от {package.manifest.snapshot_captured_at:%d.%m.%Y}.pdf"
+        fallback = f"Robodovod-report-{package.manifest.snapshot_captured_at:%Y-%m-%d}.pdf"
         return Response(
             content=pdf,
             media_type="application/pdf",
@@ -182,18 +189,14 @@ def create_evidence_export_router(
     def preview_readable_report(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
+        simulation_request_id: str | None = None,
         context: AuthContext = Depends(require_auth_context),
         db: Session = Depends(database_session),
     ):
-        run = run_loader(db, project_id, run_id, context.user.id)
-        if run is None:
-            raise HTTPException(status_code=404, detail="analysis run not found")
-        try:
-            linked = linked_capacity_for(run, project_id, context, db)
-            pdf, source_digest = build_readable_report(run, linked, presentation_version=PRESENTATION_VERSION)
-        except EvidenceExportIntegrityError as exc:
-            raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
-        filename = f"Рободовод, отчёт от {run.finished_at:%d.%m.%Y}.pdf"
+        package = package_for(project_id, run_id, context, db, simulation_request_id)
+        pdf = package.files[package.manifest.report_filename]
+        source_digest = package.manifest.source_snapshot_digests["result"]
+        filename = f"Рободовод, отчёт от {package.manifest.snapshot_captured_at:%d.%m.%Y}.pdf"
         return Response(
             content=pdf,
             media_type="application/pdf",
@@ -204,6 +207,48 @@ def create_evidence_export_router(
                 "Cache-Control": "private, no-store",
             },
         )
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/comparison.csv")
+    def download_comparison_csv(
+        project_id: uuid.UUID, run_id: uuid.UUID,
+        simulation_request_id: str | None = None,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        package = package_for(project_id, run_id, context, db, simulation_request_id)
+        return Response(content=package.files["Сравнение.csv"], media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": 'attachment; filename="Robodovod-comparison.csv"',
+                                 "X-Export-Manifest-Digest": package.manifest.manifest_digest,
+                                 "Cache-Control": "private, no-store"})
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/result.xlsx")
+    def download_result_xlsx(
+        project_id: uuid.UUID, run_id: uuid.UUID,
+        simulation_request_id: str | None = None,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        package = package_for(project_id, run_id, context, db, simulation_request_id)
+        return Response(content=package.files["Результат.xlsx"],
+                        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        headers={"Content-Disposition": 'attachment; filename="Robodovod-result.xlsx"',
+                                 "X-Export-Manifest-Digest": package.manifest.manifest_digest,
+                                 "Cache-Control": "private, no-store"})
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/visualization.svg")
+    def download_visualization_svg(
+        project_id: uuid.UUID, run_id: uuid.UUID,
+        simulation_request_id: str | None = None,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        package = package_for(project_id, run_id, context, db, simulation_request_id)
+        if package.manifest.visualization_filename is None:
+            raise HTTPException(status_code=404, detail="saved simulation visualization not found")
+        return Response(content=package.files["Схема_2D.svg"], media_type="image/svg+xml",
+                        headers={"Content-Disposition": 'attachment; filename="Robodovod-simulation-2d.svg"',
+                                 "X-Export-Manifest-Digest": package.manifest.manifest_digest,
+                                 "Cache-Control": "private, no-store"})
 
     return router
 

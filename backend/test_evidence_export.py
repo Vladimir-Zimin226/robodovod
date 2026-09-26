@@ -123,7 +123,7 @@ def test_api_is_owner_scoped_and_binds_bundle_to_manifest_digest():
     assert bundle_response.status_code == 200
     assert bundle_response.headers["x-export-manifest-digest"] == manifest_response.json()["manifest_digest"]
     assert bundle_response.headers["content-type"] == "application/zip"
-    assert manifest_response.json()["schema_version"] == "calculation-evidence-export-manifest-v3"
+    assert manifest_response.json()["schema_version"] == "calculation-evidence-export-manifest-v4"
     assert manifest_response.json()["presentation_version"] == "readable-presentation-v2"
     assert "filename*=UTF-8''" in bundle_response.headers["content-disposition"]
     assert unquote(bundle_response.headers["content-disposition"].split("filename*=UTF-8''", 1)[1]) == (

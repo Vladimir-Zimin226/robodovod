@@ -657,7 +657,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         created = created_response.json()
         assert created["status"] == "SUCCEEDED"
         assert created["parent_run_id"] == capacity["run_id"]
-        assert created["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v2"
+        assert created["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v3"
         assert len(created["result_snapshot"]["scenarios"]) == 6
         assert all(
             item["procurement"]["procurement_status"] == "UNVERIFIED"
@@ -773,7 +773,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert versioned_response.status_code == 201, versioned_response.text
         versioned_run = versioned_response.json()
         assert versioned_run["input_snapshot"]["schema_version"] == "economics-run-input-v4"
-        assert versioned_run["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v2"
+        assert versioned_run["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v3"
         assert owner.post(f"{endpoint}/{versioned_run['id']}/replay", headers=headers).json()["status"] == "MATCH"
         changed = json.loads(json.dumps(versioned))
         changed["implementation_cost_total_gross"] = "600000"

@@ -46,6 +46,7 @@ DECIMALS = {
     "implementation_cost_total_gross": (Decimal("0"), None),
     "annual_service_per_robot_gross": (Decimal("0"), None),
     "average_power_w": (Decimal("0"), None),
+    "purchase_price_override_gross": (Decimal("0"), None),
     "shared_site_capital_gross": (Decimal("0"), None),
     "shared_annual_cost_gross": (Decimal("0"), None),
     "raas_monthly_per_robot_gross": (Decimal("0"), None),
@@ -158,6 +159,10 @@ def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
     for field in ("input_revision", "primary_role_id", "raas_infrastructure_owner", "timezone"):
         value = raw.get(field)
         values[field] = value if isinstance(value, str) and value.strip() else None
+    price_source = raw.get("purchase_price_source")
+    values["purchase_price_source"] = price_source.strip() if isinstance(price_source, str) and 3 <= len(price_source.strip()) <= 240 else None
+    if values["purchase_price_override_gross"] is not None and values["purchase_price_source"] is None:
+        issues.append(_issue("purchase_price_source", "MISSING_SOURCE", "Для изменённой цены нужен источник.", "Укажите документ, дату или явно назовите пользовательское допущение."))
     value = raw.get("evaluation_date")
     try:
         values["evaluation_date"] = date.fromisoformat(value) if isinstance(value, str) else None
@@ -201,7 +206,8 @@ def _status(missing: list[str], *, reason: str = "MISSING_INPUT") -> dict[str, A
 
 
 def execute_partial_economics_v2(
-    raw: dict[str, Any], snapshot: Any, context: EconomicsExecutionContextV1
+    raw: dict[str, Any], snapshot: Any, context: EconomicsExecutionContextV1,
+    *, full_engine: Any = None,
 ) -> EconomicsV2ExecutionV1:
     if raw.get("schema_version") not in {INPUT_VERSION, INPUT_VERSION_V3, INPUT_VERSION_V4}:
         raise ValueError("unsupported partial economics input version")
@@ -351,7 +357,9 @@ def execute_partial_economics_v2(
     if complete:
         full = {key: value for key, value in values.items() if key in EconomicsExplicitInputsV1.model_fields}
         full["schema_version"] = "economics-explicit-inputs-v1"
-        return execute_economics_v2(full, snapshot, context)
+        if full_engine is None:
+            full_engine = execute_economics_v2
+        return full_engine(full, snapshot, context)
     for field in sorted(set(purchase_missing + raas_missing + _missing(values, VISUAL_FIELDS))):
         if field not in {item["field"] for item in issues}:
             issues.append(_issue(field, "MISSING_INPUT", "Показатель пока неизвестен.", "Укажите подтверждённое значение или явное пользовательское допущение; ноль вводите только при известном нуле."))

@@ -1,0 +1,12 @@
+{
+  "run_id": "fc9197ca-66d0-4862-8248-78dd72dcbbf4",
+  "result_digest": "sha256:44d9b9b9f30f5239ce3c8f53952aec14d45b9bdd507bb075c599a5021cb60752",
+  "manifest_digest": "sha256:8aea632073925ec1c2bedd9ffdb14181b21265240ab1dbc4d0fece7a06f583b6",
+  "simulation_request_id": "simulation.fc9197ca-66d0-4862-8248-78dd72dcbbf4.v2",
+  "historical_runs_unchanged": 141,
+  "historical_artifacts_unchanged": 44,
+  "screenshots": [
+    "docs\\planning\\assets\\f5\\evidence\\comparison-1366.png",
+    "docs\\planning\\assets\\f5\\evidence\\comparison-390.png"
+  ]
+}

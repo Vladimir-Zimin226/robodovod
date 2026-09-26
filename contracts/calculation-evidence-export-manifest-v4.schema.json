@@ -1,0 +1,347 @@
+{
+  "$defs": {
+    "EvidenceArtifactV1": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_size": {
+          "exclusiveMinimum": 0,
+          "title": "Byte Size",
+          "type": "integer"
+        },
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "media_type": {
+          "title": "Media Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "media_type",
+        "byte_size",
+        "sha256"
+      ],
+      "title": "EvidenceArtifactV1",
+      "type": "object"
+    },
+    "EvidenceSectionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "name": {
+          "enum": [
+            "Inputs",
+            "Selection",
+            "Scenarios",
+            "CashFlow",
+            "Sensitivity",
+            "Sources",
+            "Trace",
+            "Simulation",
+            "Versions"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Reason Code"
+        },
+        "record_count": {
+          "minimum": 0,
+          "title": "Record Count",
+          "type": "integer"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "AVAILABLE",
+            "NOT_AVAILABLE"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "status",
+        "filename",
+        "record_count",
+        "reason_code",
+        "source_refs"
+      ],
+      "title": "EvidenceSectionV1",
+      "type": "object"
+    }
+  },
+  "$id": "https://robomera.local/contracts/calculation-evidence-export-manifest-v4.schema.json",
+  "additionalProperties": false,
+  "description": "F5 human package over unchanged run and optional saved C23 artifact.",
+  "properties": {
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/EvidenceArtifactV1"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "bundle_content_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Bundle Content Digest",
+      "type": "string"
+    },
+    "comparison_filename": {
+      "const": "Сравнение.csv",
+      "title": "Comparison Filename",
+      "type": "string"
+    },
+    "entrypoint_filename": {
+      "const": "НАЧНИТЕ_ЗДЕСЬ.md",
+      "title": "Entrypoint Filename",
+      "type": "string"
+    },
+    "export_policy_version": {
+      "const": "calculation-evidence-export-policy-v4",
+      "title": "Export Policy Version",
+      "type": "string"
+    },
+    "generator_version": {
+      "const": "snapshot-evidence-export-v4",
+      "title": "Generator Version",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "linked_capacity_run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Linked Capacity Run Id"
+    },
+    "linked_capacity_snapshot_digests": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Linked Capacity Snapshot Digests"
+    },
+    "manifest_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Manifest Digest",
+      "type": "string"
+    },
+    "presentation_version": {
+      "const": "readable-presentation-v2",
+      "title": "Presentation Version",
+      "type": "string"
+    },
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "report_filename": {
+      "const": "Отчёт_Рободовод.pdf",
+      "title": "Report Filename",
+      "type": "string"
+    },
+    "revision_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Revision Id"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "run_kind": {
+      "enum": [
+        "FULL_ANALYSIS",
+        "CAPACITY_ANALYSIS"
+      ],
+      "title": "Run Kind",
+      "type": "string"
+    },
+    "scenario_spec_digest": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Scenario Spec Digest"
+    },
+    "schema_version": {
+      "const": "calculation-evidence-export-manifest-v4",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sections": {
+      "items": {
+        "$ref": "#/$defs/EvidenceSectionV1"
+      },
+      "title": "Sections",
+      "type": "array"
+    },
+    "simulation_report_digest": {
+      "anyOf": [
+        {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Simulation Report Digest"
+    },
+    "simulation_request_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Simulation Request Id"
+    },
+    "snapshot_captured_at": {
+      "format": "date-time",
+      "title": "Snapshot Captured At",
+      "type": "string"
+    },
+    "source_snapshot_digests": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "title": "Source Snapshot Digests",
+      "type": "object"
+    },
+    "versions": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "title": "Versions",
+      "type": "object"
+    },
+    "visualization_filename": {
+      "anyOf": [
+        {
+          "const": "Схема_2D.svg",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Visualization Filename"
+    },
+    "workbook_filename": {
+      "const": "Результат.xlsx",
+      "title": "Workbook Filename",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "project_id",
+    "run_kind",
+    "revision_id",
+    "snapshot_captured_at",
+    "export_policy_version",
+    "generator_version",
+    "versions",
+    "source_snapshot_digests",
+    "sections",
+    "artifacts",
+    "bundle_content_digest",
+    "limitations",
+    "manifest_digest",
+    "entrypoint_filename",
+    "report_filename",
+    "linked_capacity_run_id",
+    "linked_capacity_snapshot_digests",
+    "presentation_version",
+    "comparison_filename",
+    "workbook_filename",
+    "visualization_filename",
+    "simulation_request_id",
+    "simulation_report_digest",
+    "scenario_spec_digest"
+  ],
+  "title": "EvidenceExportManifestV4",
+  "type": "object"
+}

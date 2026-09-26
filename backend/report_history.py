@@ -64,7 +64,7 @@ def _branches(run: Any, result: dict, *, fleet: Any, simulation_count: int) -> d
             status = _dict(_dict(result.get("branches")).get(key)).get("status")
             if status in {"AVAILABLE", "CALCULATED"}:
                 branches[key] = "CALCULATED"
-    elif result.get("schema_version") == "commercial-scenarios-bundle-v2":
+    elif result.get("schema_version") in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3"}:
         roles = result.get("roles")
         if isinstance(roles, list) and roles and all(_dict(role.get("monthly_gross_salary")).get("status") == "KNOWN" for role in roles if isinstance(role, dict)):
             branches["labour"] = "CALCULATED"

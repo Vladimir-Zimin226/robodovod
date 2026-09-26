@@ -7,6 +7,7 @@ import {
 } from '../commercialScenariosModel';
 import { buildEconomicsSimulationRequest } from '../economicsSimulationRequest';
 import Simulation2DReport from './Simulation2DReport';
+import FinalEconomicsComparison from './FinalEconomicsComparison';
 import { fieldPresentation, humanizePresentation, statusLabel } from '../presentation';
 
 const STATUS_LABELS = {
@@ -25,13 +26,14 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
 
   const edit = (field, value) => setSession((current) => applyCommercialInputEdit(current, field, value));
   const scenario = session.result?.scenarios.find((item) => item.key === scenarioKey) || null;
+  const finalComparison = bundle.comparison || null;
 
   return (
     <main className="commercial-screen" aria-label="Коммерческие сценарии">
       <header className="commercial-header">
         <div>
           <span>ЭКОНОМИКА РОБОТИЗАЦИИ</span>
-          <h1>Покупка и аренда</h1>
+          <h1>Baseline, покупка и услуга</h1>
           <p>Сохранённые варианты покупки и аренды. Источник — расчёт потребного парка.</p>
           <details><summary>Технические подробности</summary><p>Расчёт экономики: {bundle.run_id}. Исходный расчёт парка: {capacityRunId || 'не указан'}. Версия ввода: {bundle.input_revision}.</p></details>
           <p>Шесть серверных сценариев. Интерфейс не пересчитывает финансовые показатели.</p>
@@ -45,20 +47,22 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
       <section className="commercial-inputs" aria-label="Коммерческие исходные данные">
         <div className="commercial-section-title"><div><span>01</span><h2>Исходные данные</h2></div><p>После изменения полей сохранённый результат нужно пересчитать.</p></div>
         <div className="commercial-input-grid">
-          <Input label="Цена одного робота, ₽" value={session.inputs.purchasePrice} onChange={(value) => edit('purchasePrice', value)} />
+            <Input label="Цена одного робота, ₽" value={session.inputs.purchasePrice} readOnly={Boolean(finalComparison)} onChange={(value) => edit('purchasePrice', value)} />
           <ReadOnly label="Налоговая база покупки" value={humanizePresentation(session.inputs.purchaseTaxBasis)} />
-          <Input label="Тариф аренды робота, ₽ в месяц" value={session.inputs.raasRate} onChange={(value) => edit('raasRate', value)} />
+          <Input label="Тариф аренды робота, ₽ в месяц" value={session.inputs.raasRate} readOnly={Boolean(finalComparison)} onChange={(value) => edit('raasRate', value)} />
           <ReadOnly label="Налоговая база аренды" value={humanizePresentation(session.inputs.raasTaxBasis)} />
           {bundle.roles.map((role) => (
             <Input
               key={role.role_id}
               label={`${role.role_code === 'forklift_driver' ? 'Водитель погрузчика' : 'Роль процесса'} · зарплата до удержаний, ₽/чел./мес.`}
               value={session.inputs.roleSalaries[role.role_id]}
+              readOnly={Boolean(finalComparison)}
               placeholder="Нужно для денежного расчёта"
               onChange={(value) => edit(`roleSalaries.${role.role_id}`, value)}
             />
           ))}
         </div>
+        {finalComparison && <p>Цена: {finalComparison.inputs.price.value} {finalComparison.inputs.price.currency}; база {finalComparison.inputs.price.tax_basis}, НДС {finalComparison.inputs.price.vat_rate ?? 'не указан'}, источник {finalComparison.inputs.price.source_note || finalComparison.inputs.price.source_ref}. Ручная выработка: {finalComparison.inputs.manual_productivity.value ?? 'не применяется'} {finalComparison.inputs.manual_productivity.unit}. Объём: {finalComparison.inputs.demand.value} {finalComparison.inputs.demand.unit}. <button type="button" className="secondary-action" onClick={onRecalculate}>Изменить подтверждённые входы и создать новую версию</button></p>}
         {bundle.roles.some((role) => role.monthly_gross_salary.status === 'MISSING') && (
           <p className="commercial-warning" role="status">У одной из ролей нет месячной зарплаты до удержаний: расчёт парка доступен, экономика остаётся частичной.</p>
         )}
@@ -86,7 +90,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
 
           {scenario && <ScenarioDetails scenario={scenario} />}
 
-          <SensitivityPanel variants={session.result.sensitivity} />
+          {finalComparison ? <FinalEconomicsComparison comparison={finalComparison} /> : <SensitivityPanel variants={session.result.sensitivity} />}
 
           <details className="commercial-trace" aria-label="Версии и ограничения"><summary>Технические подробности</summary>
             <p>Версии и источники сохранённого расчёта.</p>
@@ -181,8 +185,8 @@ function StatusCard({ title, status, children }) {
   return <article className="commercial-status-card"><header><h3>{title}</h3><span>{STATUS_LABELS[status] || statusLabel(status)}</span></header>{children}</article>;
 }
 
-function Input({ label, value, onChange, placeholder = '' }) {
-  return <label><span>{label}</span><input type="number" min="0" step="any" value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} /></label>;
+function Input({ label, value, onChange, placeholder = '', readOnly = false }) {
+  return <label><span>{label}</span><input type="number" min="0" step="any" value={value} placeholder={placeholder} readOnly={readOnly} aria-readonly={readOnly} onChange={(event) => onChange(event.target.value)} /></label>;
 }
 
 function ReadOnly({ label, value }) {

@@ -101,6 +101,7 @@ class EconomicsV2ExecutionV1(StrictContractModel):
         )
         if versions not in {
             ("commercial-scenarios-bundle-v2", "scenario-spec-v2"),
+            ("commercial-scenarios-bundle-v3", "scenario-spec-v2"),
             ("economics-partial-result-v1", "scenario-spec-partial-v1"),
             ("economics-partial-result-v1", "scenario-spec-v2"),
         }:

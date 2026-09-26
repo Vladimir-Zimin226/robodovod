@@ -116,3 +116,37 @@ test('presentation schema is strict at the versioned envelope', async () => {
   assert.equal(schema.additionalProperties, false);
   assert.equal(schema.properties.schema_version.const, 'commercial-scenarios-bundle-v2');
 });
+
+test('F5 comparison keeps seven saved identities and six sensitivity variants per identity', () => {
+  const raw = clone();
+  raw.schema_version = 'commercial-scenarios-bundle-v3';
+  const metricKeys = ['capex', 'opex_year_1', 'opex_change_year_1', 'fot_year_1',
+    'effect_year_1', 'effect_total', 'net_benefit', 'simple_payback',
+    'roi', 'tco', 'npv', 'discounted_payback'];
+  const ids = ['scenario.baseline.base', ...['PURCHASE', 'RAAS'].flatMap((acquisition) =>
+    ['PESSIMISTIC', 'BASE', 'OPTIMISTIC'].map((uncertainty) =>
+      `scenario.${acquisition.toLowerCase()}.${uncertainty.toLowerCase()}`))];
+  const row = (id) => ({
+    scenario_id: id,
+    metrics: Object.fromEntries(metricKeys.map((key) => [key, {
+      status: 'COMPLETE', value: '1.00', unit: 'RUB', basis: 'saved', source_ref: 'run.f5',
+    }])),
+  });
+  raw.comparison = {
+    schema_version: 'financial-comparison-v1', horizon_years: 5, currency: 'RUB',
+    baseline: row(ids[0]), scenarios: ids.slice(1).map(row),
+    sensitivity: {
+      schema_version: 'scenario-sensitivity-v1',
+      by_scenario: Object.fromEntries(ids.map((id) => [id,
+        ['PRICE', 'VOLUME', 'SALARY'].flatMap((parameter) =>
+          ['LOWER', 'UPPER'].map((direction) => ({ parameter, direction })))])),
+    },
+  };
+  assert.equal(getCommercialScenariosModel(raw).comparison.scenarios.length, 6);
+  const mixed = structuredClone(raw);
+  delete mixed.comparison.sensitivity.by_scenario['scenario.raas.base'];
+  assert.throws(() => getCommercialScenariosModel(mixed), /COMMERCIAL_FINAL_SENSITIVITY/);
+  const missing = structuredClone(raw);
+  delete missing.comparison.scenarios[0].metrics.roi;
+  assert.throws(() => getCommercialScenariosModel(missing), /COMMERCIAL_FINAL_METRIC/);
+});

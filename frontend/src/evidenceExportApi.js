@@ -8,6 +8,7 @@ const ROOT_KEYS = [
 ];
 const ROOT_KEYS_V2 = [...ROOT_KEYS, 'entrypoint_filename', 'report_filename', 'linked_capacity_run_id', 'linked_capacity_snapshot_digests'];
 const ROOT_KEYS_V3 = [...ROOT_KEYS_V2, 'presentation_version'];
+const ROOT_KEYS_V4 = [...ROOT_KEYS_V3, 'comparison_filename', 'workbook_filename', 'visualization_filename', 'simulation_request_id', 'simulation_report_digest', 'scenario_spec_digest'];
 const SECTION_KEYS = ['name', 'status', 'filename', 'record_count', 'reason_code', 'source_refs'];
 const ARTIFACT_KEYS = ['filename', 'media_type', 'byte_size', 'sha256'];
 
@@ -21,13 +22,17 @@ function exactKeys(value, allowed, label) {
 }
 
 export function parseEvidenceManifest(value, expected = {}) {
-  if (!['calculation-evidence-export-manifest-v1', 'calculation-evidence-export-manifest-v2', 'calculation-evidence-export-manifest-v3'].includes(value?.schema_version)) throw new Error('unsupported evidence manifest version');
-  const isV3 = value.schema_version === 'calculation-evidence-export-manifest-v3';
+  if (!['calculation-evidence-export-manifest-v1', 'calculation-evidence-export-manifest-v2', 'calculation-evidence-export-manifest-v3', 'calculation-evidence-export-manifest-v4'].includes(value?.schema_version)) throw new Error('unsupported evidence manifest version');
+  const isV4 = value.schema_version === 'calculation-evidence-export-manifest-v4';
+  const isV3 = value.schema_version === 'calculation-evidence-export-manifest-v3' || isV4;
   const isV2 = value.schema_version === 'calculation-evidence-export-manifest-v2' || isV3;
-  exactKeys(value, isV3 ? ROOT_KEYS_V3 : isV2 ? ROOT_KEYS_V2 : ROOT_KEYS, 'evidence manifest');
+  exactKeys(value, isV4 ? ROOT_KEYS_V4 : isV3 ? ROOT_KEYS_V3 : isV2 ? ROOT_KEYS_V2 : ROOT_KEYS, 'evidence manifest');
   if (isV3 && (value.presentation_version !== 'readable-presentation-v2'
-    || value.export_policy_version !== 'calculation-evidence-export-policy-v3'
-    || value.generator_version !== 'snapshot-evidence-export-v3')) throw new Error('unsupported readable presentation version');
+    || value.export_policy_version !== `calculation-evidence-export-policy-${isV4 ? 'v4' : 'v3'}`
+    || value.generator_version !== `snapshot-evidence-export-${isV4 ? 'v4' : 'v3'}`)) throw new Error('unsupported readable presentation version');
+  if (isV4 && (value.comparison_filename !== 'Сравнение.csv' || value.workbook_filename !== 'Результат.xlsx'
+    || (value.visualization_filename != null && value.visualization_filename !== 'Схема_2D.svg')
+    || (value.visualization_filename != null && (!DIGEST.test(value.simulation_report_digest) || !DIGEST.test(value.scenario_spec_digest))))) throw new Error('invalid final package binding');
   if (expected.projectId && value.project_id !== expected.projectId) throw new Error('evidence project binding mismatch');
   if (expected.runId && value.run_id !== expected.runId) throw new Error('evidence run binding mismatch');
   if (!DIGEST.test(value.manifest_digest) || !DIGEST.test(value.bundle_content_digest)) throw new Error('invalid evidence digest');
@@ -80,6 +85,8 @@ function archiveFilename(runId, capturedAt, readable = false) {
   return readable ? `Рободовод, архив расчёта от ${day}.${month}.${year}.zip` : `Рободовод, доказательства № ${runId} от ${day}.${month}.${year}.zip`;
 }
 
+const simulationSuffix = (requestId) => requestId ? `?simulation_request_id=${encodeURIComponent(requestId)}` : '';
+
 export class EvidenceExportSession {
   constructor({ fetchImpl = globalThis.fetch, saveImpl = defaultSave } = {}) {
     // Window.fetch requires Window as its receiver in browsers.
@@ -92,10 +99,10 @@ export class EvidenceExportSession {
     this.sequence += 1;
   }
 
-  async loadManifest(projectId, runId) {
+  async loadManifest(projectId, runId, simulationRequestId = null) {
     const sequence = ++this.sequence;
     const response = await this.fetchImpl(
-      `${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports/manifest`,
+      `${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports/manifest${simulationSuffix(simulationRequestId)}`,
       { credentials: 'include' },
     );
     if (!response.ok) throw new Error(`export manifest unavailable (${response.status})`);
@@ -104,14 +111,15 @@ export class EvidenceExportSession {
     return manifest;
   }
 
-  async download(projectId, runId) {
+  async download(projectId, runId, simulationRequestId = null) {
     const sequence = ++this.sequence;
     const base = `${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports`;
-    const manifestResponse = await this.fetchImpl(`${base}/manifest`, { credentials: 'include' });
+    const suffix = simulationSuffix(simulationRequestId);
+    const manifestResponse = await this.fetchImpl(`${base}/manifest${suffix}`, { credentials: 'include' });
     if (!manifestResponse.ok) throw new Error(`export manifest unavailable (${manifestResponse.status})`);
     const manifest = parseEvidenceManifest(await manifestResponse.json(), { projectId, runId });
     if (sequence !== this.sequence) throw new Error('stale evidence response');
-    const bundleResponse = await this.fetchImpl(`${base}/evidence.zip`, { credentials: 'include' });
+    const bundleResponse = await this.fetchImpl(`${base}/evidence.zip${suffix}`, { credentials: 'include' });
     if (!bundleResponse.ok) throw new Error(`evidence bundle unavailable (${bundleResponse.status})`);
     if (bundleResponse.headers.get('X-Export-Manifest-Digest') !== manifest.manifest_digest) {
       throw new Error('evidence bundle digest binding mismatch');
@@ -119,28 +127,49 @@ export class EvidenceExportSession {
     if (sequence !== this.sequence) throw new Error('stale evidence response');
     const blob = await bundleResponse.blob();
     if (sequence !== this.sequence) throw new Error('stale evidence response');
-    const filename = ['calculation-evidence-export-manifest-v2', 'calculation-evidence-export-manifest-v3'].includes(manifest.schema_version)
-      ? archiveFilename(runId, manifest.snapshot_captured_at, manifest.schema_version.endsWith('-v3'))
+    const filename = ['calculation-evidence-export-manifest-v2', 'calculation-evidence-export-manifest-v3', 'calculation-evidence-export-manifest-v4'].includes(manifest.schema_version)
+      ? archiveFilename(runId, manifest.snapshot_captured_at, /-v[34]$/.test(manifest.schema_version))
       : `robomera-evidence-${runId}.zip`;
     this.saveImpl(blob, filename);
     return manifest;
   }
 
-  async downloadReport(projectId, runId) {
+  async downloadReport(projectId, runId, simulationRequestId = null) {
     const sequence = ++this.sequence;
     const base = `${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports`;
-    const manifestResponse = await this.fetchImpl(`${base}/manifest`, { credentials: 'include' });
+    const suffix = simulationSuffix(simulationRequestId);
+    const manifestResponse = await this.fetchImpl(`${base}/manifest${suffix}`, { credentials: 'include' });
     if (!manifestResponse.ok) throw new Error(`export manifest unavailable (${manifestResponse.status})`);
     const manifest = parseEvidenceManifest(await manifestResponse.json(), { projectId, runId });
     if (sequence !== this.sequence) throw new Error('stale evidence response');
-    const reportResponse = await this.fetchImpl(`${base}/report.pdf`, { credentials: 'include' });
+    const reportResponse = await this.fetchImpl(`${base}/report.pdf${suffix}`, { credentials: 'include' });
     if (!reportResponse.ok) throw new Error(`calculation report unavailable (${reportResponse.status})`);
     if (reportResponse.headers.get('X-Report-Source-Digest') !== manifest.source_snapshot_digests.result) {
       throw new Error('calculation report source digest binding mismatch');
     }
     const blob = await reportResponse.blob();
     if (sequence !== this.sequence) throw new Error('stale evidence response');
-    this.saveImpl(blob, reportFilename(runId, manifest.snapshot_captured_at, manifest.schema_version.endsWith('-v3')));
+    this.saveImpl(blob, reportFilename(runId, manifest.snapshot_captured_at, /-v[34]$/.test(manifest.schema_version)));
+    return manifest;
+  }
+
+  async downloadFormat(projectId, runId, format, simulationRequestId = null) {
+    const paths = { xlsx: 'result.xlsx', csv: 'comparison.csv', svg: 'visualization.svg' };
+    if (!Object.hasOwn(paths, format)) throw new Error('unsupported export format');
+    const sequence = ++this.sequence;
+    const base = `${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports`;
+    const suffix = simulationSuffix(simulationRequestId);
+    const manifestResponse = await this.fetchImpl(`${base}/manifest${suffix}`, { credentials: 'include' });
+    if (!manifestResponse.ok) throw new Error(`export manifest unavailable (${manifestResponse.status})`);
+    const manifest = parseEvidenceManifest(await manifestResponse.json(), { projectId, runId });
+    if (!manifest.schema_version.endsWith('-v4')) throw new Error('final export is unavailable for this manifest');
+    if (format === 'svg' && !manifest.visualization_filename) throw new Error('saved C23 visualization is unavailable');
+    const response = await this.fetchImpl(`${base}/${paths[format]}${suffix}`, { credentials: 'include' });
+    if (!response.ok) throw new Error(`${format} unavailable (${response.status})`);
+    if (response.headers.get('X-Export-Manifest-Digest') !== manifest.manifest_digest) throw new Error('export manifest binding mismatch');
+    const blob = await response.blob();
+    if (sequence !== this.sequence) throw new Error('stale evidence response');
+    this.saveImpl(blob, `Рободовод-${runId}.${format}`);
     return manifest;
   }
 }

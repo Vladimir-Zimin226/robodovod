@@ -58,7 +58,8 @@ export default function ReportsScreen({ user, onOpenAccount, onOpenRun }) {
     try {
       const session = new EvidenceExportSession();
       if (format === 'pdf') await session.downloadReport(project.id, run.id);
-      else await session.download(project.id, run.id);
+      else if (format === 'zip') await session.download(project.id, run.id);
+      else await session.downloadFormat(project.id, run.id, format);
     } catch (error) { setErrors((current) => ({ ...current, action: `Экспорт недоступен: ${error.message}` })); }
     finally { setBusy(''); }
   };
@@ -95,7 +96,7 @@ export default function ReportsScreen({ user, onOpenAccount, onOpenRun }) {
             selected={selected.includes(run.id)} busy={busy.startsWith(`${run.id}:`)}
             onCompare={() => selectComparison(project.id, group.id, run.id)}
             onOpen={() => open(project, run)} onEdit={() => open(project, run, true)}
-            onPdf={() => download(project, run, 'pdf')} onZip={() => download(project, run, 'zip')} />)}</div>
+            onPdf={() => download(project, run, 'pdf')} onXlsx={() => download(project, run, 'xlsx')} onCsv={() => download(project, run, 'csv')} onZip={() => download(project, run, 'zip')} />)}</div>
           {compared.length === 2 && <Comparison left={compared[0]} right={compared[1]} />}
         </section>;
       })}
@@ -103,7 +104,7 @@ export default function ReportsScreen({ user, onOpenAccount, onOpenRun }) {
   </main>;
 }
 
-function ReportCard({ run, selected, busy, onCompare, onOpen, onEdit, onPdf, onZip }) {
+function ReportCard({ run, selected, busy, onCompare, onOpen, onEdit, onPdf, onXlsx, onCsv, onZip }) {
   const summary = run.report_summary || {};
   const progress = summary.completeness || {};
   const inputs = progress.inputs;
@@ -121,6 +122,8 @@ function ReportCard({ run, selected, busy, onCompare, onOpen, onEdit, onPdf, onZ
       <button type="button" disabled={!success || busy} onClick={onOpen}>Открыть</button>
       <label><input type="checkbox" checked={selected} onChange={onCompare} /> Сравнить</label>
       <button type="button" disabled={!success || busy} onClick={onPdf}>PDF</button>
+      <button type="button" disabled={!success || busy} onClick={onXlsx}>XLSX</button>
+      <button type="button" disabled={!success || busy} onClick={onCsv}>CSV</button>
       <button type="button" disabled={!success || busy} onClick={onZip}>ZIP</button>
       {summary.can_create_version && <button type="button" disabled={busy} onClick={onEdit}>Новая версия</button>}
     </div>

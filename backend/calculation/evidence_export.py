@@ -124,9 +124,23 @@ class EvidenceExportManifestV3(EvidenceExportManifestV2):
     presentation_version: Literal["readable-presentation-v2"]
 
 
+class EvidenceExportManifestV4(EvidenceExportManifestV3):
+    """F5 human package over unchanged run and optional saved C23 artifact."""
+
+    schema_version: Literal["calculation-evidence-export-manifest-v4"]
+    export_policy_version: Literal["calculation-evidence-export-policy-v4"]
+    generator_version: Literal["snapshot-evidence-export-v4"]
+    comparison_filename: Literal["Сравнение.csv"]
+    workbook_filename: Literal["Результат.xlsx"]
+    visualization_filename: Literal["Схема_2D.svg"] | None
+    simulation_request_id: str | None
+    simulation_report_digest: Digest | None
+    scenario_spec_digest: Digest | None
+
+
 @dataclass(frozen=True)
 class EvidenceExportPackage:
-    manifest: EvidenceExportManifestV1 | EvidenceExportManifestV2 | EvidenceExportManifestV3
+    manifest: EvidenceExportManifestV1 | EvidenceExportManifestV2 | EvidenceExportManifestV3 | EvidenceExportManifestV4
     archive: bytes
     files: dict[str, bytes]
 
@@ -548,7 +562,7 @@ def _human_entrypoint(
     capacity_label = run.run_id if run.run_kind == "CAPACITY_ANALYSIS" else linked.run_id if linked is not None else run.input_snapshot.get("capacity_run_id") or "NOT_AVAILABLE"
     report_kind = ("Техническая мощность C11" if run.run_kind == "CAPACITY_ANALYSIS" else
                    "Частичная экономика" if run.result_snapshot.get("schema_version") == "economics-partial-result-v1" else
-                   "Полная экономика: baseline, покупка и RaaS" if run.result_snapshot.get("schema_version") == "commercial-scenarios-bundle-v2" else
+                   "Полная экономика: baseline, покупка и RaaS" if run.result_snapshot.get("schema_version") in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3"} else
                    "Исторический расчёт")
     lines = [
         "# НАЧНИТЕ ЗДЕСЬ", "",
@@ -658,7 +672,7 @@ def build_evidence_export_v2(
 
 
 __all__ = [
-    "EvidenceExportIntegrityError", "EvidenceExportManifestV1", "EvidenceExportManifestV2", "EvidenceExportManifestV3",
+    "EvidenceExportIntegrityError", "EvidenceExportManifestV1", "EvidenceExportManifestV2", "EvidenceExportManifestV3", "EvidenceExportManifestV4",
     "EvidenceExportPackage", "EvidenceRunSnapshotV1", "build_evidence_export",
     "build_evidence_export_v2", "build_evidence_export_v3",
 ]

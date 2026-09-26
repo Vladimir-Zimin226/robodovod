@@ -38,11 +38,13 @@ const CHECKS = [
   ['Покупка', 'batteryServiceConfirm', 'battery_replacements_in_service_confirmed', 'Для сценария замены батареи включены в сервис.'],
   ['RaaS', 'raasScopeConfirm', 'raas_vendor_scope_confirmed', 'Для сценария RaaS включает оборудование, батареи, зарядку, обслуживание, ПО и интеграцию. Это не факт поставщика.'],
 ];
-const defaults = { evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', sources: {}, assumptions: {}, userValues: {} };
+const defaults = { evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '', sources: {}, assumptions: {}, userValues: {} };
 function restored(capacityRunId, input, project) {
   const values = { ...defaults, capacityRunId, sources: { ...(input?.field_sources || {}) },
     assumptions: { ...(input?.assumption_evidence || {}) }, userValues: {} };
   FIELDS.forEach(([, key, server]) => { values[key] = String(input?.[server] ?? ''); });
+  values.purchasePriceOverride = String(input?.purchase_price_override_gross ?? '');
+  values.purchasePriceSource = input?.purchase_price_source || '';
   CHECKS.forEach(([, key, server]) => { values[key] = input?.[server] === true; });
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
@@ -153,6 +155,10 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
         </div>;
       })}</div>}
       {group === 'Покупка' && <label className="block mt-3 text-sm">Дата оценки · дата<input id="economics-evaluation_date" type="date" value={values.evaluationDate} onChange={set('evaluationDate')} className="w-full border rounded p-2" /><small>Для привязки цен; источник — дата оценки проекта.</small></label>}
+      {group === 'Покупка' && <div className="mt-3 rounded border p-3 text-sm"><strong>Уточнить цену одного робота</strong><p>Оставьте пустым для цены сохранённой позиции каталога. Изменение создаст новый экономический run; каталог и прежний расчёт останутся прежними.</p>
+        <label className="mt-2 block">Цена, ₽ gross<input id="economics-purchase_price_override_gross" type="text" inputMode="decimal" value={values.purchasePriceOverride} onChange={set('purchasePriceOverride')} className="block w-full border rounded p-2" placeholder="Цена каталога без изменения" /></label>
+        <label className="mt-2 block">Источник новой цены<input id="economics-purchase_price_source" type="text" value={values.purchasePriceSource} onChange={set('purchasePriceSource')} className="block w-full border rounded p-2" placeholder="Документ и дата либо пользовательское допущение" /></label>
+        <p>Источник сохраняется как условие пользователя, а не подтверждение поставщика.</p></div>}
       {group === 'RaaS' && <label className="block mt-3 text-sm">Кто оплачивает инфраструктуру<select id="economics-raas_infrastructure_owner" value={values.raasInfrastructureOwner} onChange={set('raasInfrastructureOwner')} className="w-full border rounded p-2"><option value="">Неизвестно</option><option value="VENDOR">Поставщик</option><option value="CUSTOMER">Заказчик</option></select><small>Для состава затрат; источник — договор или допущение.</small></label>}
     </section>)}
     <section className="rounded-xl border border-amber-300 p-4 text-sm" aria-label="Пять условий экономического сценария">

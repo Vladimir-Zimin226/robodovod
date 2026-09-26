@@ -239,6 +239,23 @@ def _pdf(lines: list[tuple[str, str]]) -> bytes:
             new_page()
             cover = False
             continue
+        if kind == "diagram":
+            if y < 310:
+                new_page()
+                cover = False
+            top = y - 28
+            pages[-1].extend([
+                f"0.87 0.94 0.89 rg 55 {top - 142:.1f} 146 142 re f",
+                f"0.87 0.94 0.89 rg 394 {top - 142:.1f} 146 142 re f",
+                f"0.09 0.41 0.31 rg 201 {top - 76:.1f} 193 9 re f",
+                f"0.09 0.41 0.31 rg 394 {top - 90:.1f} m 416 {top - 71:.1f} l 394 {top - 52:.1f} l f",
+            ])
+            write("Точка передачи A", 11, 68, top - 76, "0.035 0.082 0.100")
+            write("Маршрут робота", 10, 251, top - 55, "0.035 0.082 0.100")
+            write("Точка передачи B", 11, 407, top - 76, "0.035 0.082 0.100")
+            write(value, 8.6, 55, top - 174, "0.21 0.27 0.27")
+            y = top - 205
+            continue
         if kind == "section" and y < 150:
             new_page()
             cover = False
@@ -463,7 +480,7 @@ def build_readable_report(
         ])
         return render(lines), digests["result"] or ""
     partial = result.get("schema_version") == "economics-partial-result-v1"
-    full = result.get("schema_version") == "commercial-scenarios-bundle-v2"
+    full = result.get("schema_version") in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3"}
     lines: list[tuple[str, str]] = [
         ("РОБОДОВОД", "brand"),
         ("Частичная экономика" if partial else "Экономика: baseline, покупка и RaaS" if full else "Исторический расчёт", "title"),
