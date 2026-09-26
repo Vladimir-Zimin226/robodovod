@@ -1,0 +1,63 @@
+{
+  "mode": "SYNTHETIC_MOCKED_PROVIDER",
+  "actual_external_calls": 0,
+  "research_call_budget": 10,
+  "model": "deepseek-v4-flash",
+  "generation": {
+    "temperature": 0.1,
+    "max_tokens": 5000,
+    "response_format": "json_schema",
+    "stream": false
+  },
+  "rows": [
+    {
+      "dialogue": "На складе перевозим 220 паллет в сутки на 120 м.",
+      "status": "MODEL",
+      "finish_reason": "stop",
+      "request_bytes": 4088,
+      "legacy_context_request_bytes": 4521,
+      "context_reduction_bytes": 433,
+      "provider_stub_ms": 0.01,
+      "validation_ms": 0.25,
+      "application_total_ms": 4.44,
+      "input_tokens_mocked": 760,
+      "output_tokens_mocked": 45,
+      "valid_json": true
+    },
+    {
+      "dialogue": "В аэропорту убираем 10000 м² за сутки.",
+      "status": "MODEL",
+      "finish_reason": "stop",
+      "request_bytes": 4072,
+      "legacy_context_request_bytes": 4505,
+      "context_reduction_bytes": 433,
+      "provider_stub_ms": 0.0,
+      "validation_ms": 0.02,
+      "application_total_ms": 2.46,
+      "input_tokens_mocked": 760,
+      "output_tokens_mocked": 45,
+      "valid_json": true
+    },
+    {
+      "dialogue": "В клинике перевозим 35 тележек за смену.",
+      "status": "MODEL",
+      "finish_reason": "stop",
+      "request_bytes": 4079,
+      "legacy_context_request_bytes": 4512,
+      "context_reduction_bytes": 433,
+      "provider_stub_ms": 0.0,
+      "validation_ms": 0.01,
+      "application_total_ms": 1.94,
+      "input_tokens_mocked": 760,
+      "output_tokens_mocked": 45,
+      "valid_json": true
+    }
+  ],
+  "mocked_usage_total": {
+    "input": 2280,
+    "output": 135
+  },
+  "estimated_rub_at_documented_rates_if_usage_were_real": 0.7515,
+  "estimated_rub_for_ten_calls_at_mocked_average_usage": 2.505,
+  "external_sla_measured": false
+}

@@ -30,6 +30,8 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
   const [editValue, setEditValue] = useState('');
   const [assumption, setAssumption] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [turnStartedAt, setTurnStartedAt] = useState(null);
+  const [waitingSeconds, setWaitingSeconds] = useState(0);
   const [error, setError] = useState('');
   const [positions, setPositions] = useState([]);
   const [positionId, setPositionId] = useState('');
@@ -41,6 +43,7 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
   const [savedSource, setSavedSource] = useState(null);
   const [catalogDefaults, setCatalogDefaults] = useState(null);
   const profile = record?.profile;
+  const pendingSince = turnStartedAt ?? (profile?.model_status === 'PENDING' ? Date.parse(profile.model_started_at || '') : null);
   const readiness = record?.readiness;
   const versions = record?.versions || [];
   const previous = versions.length > 1 ? versions.at(-2) : null;
@@ -52,12 +55,31 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
     const controller = new AbortController();
     fetch(`${API}/api/brain/projects/${encodeURIComponent(project.id)}`, { credentials: 'include', signal: controller.signal })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then((value) => { setRecord(value); if (value.profile?.selected_process) setProcessCode(value.profile.selected_process); })
+      .then((value) => { setRecord(value); setMessage(sessionStorage.getItem(`brain-draft:${project.id}`) || ''); if (value.profile?.selected_process) setProcessCode(value.profile.selected_process); })
       .catch((e) => { if (e.name !== 'AbortError') setError(e.message); });
     fetch(`${API}/api/catalog/defaults`, { signal: controller.signal }).then((r) => r.ok ? r.json() : null)
       .then(setCatalogDefaults).catch(() => {});
     return () => controller.abort();
   }, [project?.id]);
+
+  useEffect(() => {
+    if (pendingSince === null || !Number.isFinite(pendingSince)) return undefined;
+    const timer = window.setInterval(() => setWaitingSeconds(Math.max(0, Math.floor((Date.now() - pendingSince) / 1000))), 250);
+    return () => window.clearInterval(timer);
+  }, [pendingSince]);
+
+  useEffect(() => {
+    if (!project?.id || profile?.model_status !== 'PENDING' || busy) return undefined;
+    const timer = window.setInterval(async () => {
+      try {
+        const response = await fetch(`${API}/api/brain/projects/${encodeURIComponent(project.id)}`, { credentials: 'include' });
+        if (!response.ok) return;
+        const value = await response.json();
+        setRecord(value);
+      } catch { /* Keep the saved pending state visible until the next poll. */ }
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [project?.id, profile?.model_status, busy]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -87,8 +109,18 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
     event.preventDefault();
     const text = message.trim();
     if (!text || !profile) return;
+    setWaitingSeconds(0); setTurnStartedAt(Date.now());
     const result = await runAction('turn', { expected_version: profile.profile_version, message: text });
-    if (result) setMessage('');
+    setTurnStartedAt(null);
+    if (result && ['MODEL', 'LOCAL'].includes(result.model_status)) {
+      setMessage(''); sessionStorage.removeItem(`brain-draft:${project.id}`);
+    }
+  };
+
+  const retrySaved = async () => {
+    setWaitingSeconds(0); setTurnStartedAt(Date.now());
+    await runAction('retry', { expected_version: profile.profile_version });
+    setTurnStartedAt(null);
   };
 
   const edit = async (field, value, provenance = 'user', confirmed = false) => {
@@ -182,9 +214,10 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
         {readiness?.next_question?.field === 'avg_distance_m' && <button className="secondary-action" disabled={busy} onClick={() => edit('avg_distance_m', '120', 'expert_assumption', false)}>Предложить 120 м как допущение</button>}
         {readiness?.next_question?.field === 'units_per_trip' && <button className="secondary-action" disabled={busy} onClick={() => edit('units_per_trip', '1', 'expert_assumption', false)}>Предложить 1 паллету за рейс как допущение</button>}
         {readiness?.next_question?.field === 'cleaning_frequency_per_day' && <button className="secondary-action" disabled={busy} onClick={() => edit('cleaning_frequency_per_day', '1', 'expert_assumption', false)}>Предложить одну уборку площади в сутки как допущение</button>}
-        <form onSubmit={send} className="space-y-2"><label className="block text-sm">Ваше описание или ответ<textarea value={message} onChange={(event) => setMessage(event.target.value)} rows="4" maxLength="2000" className="mt-1 w-full rounded border p-2" placeholder="Например: перевожу 220 паллет в день на 120 м" /></label>
+        <form onSubmit={send} className="space-y-2"><label className="block text-sm">Ваше описание или ответ<textarea value={message} onChange={(event) => { setMessage(event.target.value); sessionStorage.setItem(`brain-draft:${project.id}`, event.target.value); }} rows="4" maxLength="2000" className="mt-1 w-full rounded border p-2" placeholder="Например: перевожу 220 паллет в день на 120 м" /></label>
           <button className="primary-action" disabled={busy || !message.trim()}>{busy ? 'Обрабатываем…' : 'Отправить'}</button></form>
-        {profile.model_error && <p className="text-sm text-amber-800">Модель недоступна. Ваш текст сохранён. Повторите сообщение или измените поля справа.</p>}
+        {(turnStartedAt !== null || profile.model_status === 'PENDING') && <p role="status" aria-live="polite" className="text-sm text-blue-800">{waitingSeconds < 5 ? 'Сообщение сохраняется и передаётся модели…' : `Ожидаем AI Studio ${waitingSeconds} с. Описание уже сохранено; можно вернуться после перезагрузки.`}</p>}
+        {['FALLBACK', 'TIMEOUT'].includes(profile.model_status) && <div role="status" className="rounded border border-amber-500 p-3 text-sm text-amber-800"><p>{profile.model_status === 'TIMEOUT' ? 'Истекло время ожидания модели.' : 'Ответ модели не получен.'} {profile.model_error} Локально распознанные поля требуют подтверждения.</p><button className="secondary-action mt-2" disabled={busy} onClick={retrySaved}>Повторить сохранённое сообщение</button><p>Можно также изменить поля вручную справа. Черновик ответа не потерян.</p></div>}
         <p className="text-xs">Расход этого проекта: {record.usage?.turns || 0}/60 запросов, {record.usage?.tokens || 0}/120 000 токенов.</p>
       </section>
       <section className="panel space-y-3 p-4" aria-label="Профиль расчёта">

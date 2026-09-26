@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import threading
 import uuid
 from types import SimpleNamespace
 
 import brain_api as brain
 import pytest
+import requests
 from fastapi import HTTPException
 
 
@@ -147,7 +149,8 @@ def test_brain_request_uses_provider_compatible_strict_schema(monkeypatch):
     def post(_url, *, json, headers, timeout):
         assert json["model"] == "gpt://test/deepseek-v4-flash"
         assert json["max_tokens"] >= 3000
-        assert timeout >= 60
+        assert timeout[0] <= 5 and timeout[1] <= 50
+        assert json["messages"][1]["content"] == "220 паллет в сутки"
         check_schema(json["response_format"]["json_schema"]["schema"])
         return SimpleNamespace(raise_for_status=lambda: None, json=lambda: {
             "choices": [{"finish_reason": "stop", "message": {"content":
@@ -158,4 +161,74 @@ def test_brain_request_uses_provider_compatible_strict_schema(monkeypatch):
     monkeypatch.setattr(brain.requests, "post", post)
     answer, usage = brain._call_model("220 паллет в сутки", {"fields": {}, "active_processes": []})
     assert answer.next_action == "ask"
-    assert usage == {"input": 10, "output": 20}
+    assert usage["input"] == 10 and usage["output"] == 20
+    assert usage["finish_reason"] == "stop"
+
+
+@pytest.mark.parametrize("status", [400, 401, 403, 429, 500, 503])
+def test_brain_provider_http_failure_is_classified(monkeypatch, status):
+    monkeypatch.setenv("YC_API_KEY", "secret-test-key")
+    monkeypatch.setenv("YC_FOLDER_ID", "test")
+
+    def post(*_args, **_kwargs):
+        response = requests.Response()
+        response.status_code = status
+        response._content = b"private provider response"
+        return response
+
+    monkeypatch.setattr(brain.requests, "post", post)
+    with pytest.raises(brain.BrainModelFailure) as caught:
+        brain._call_model("private prompt", {})
+    assert caught.value.kind == f"HTTP_{status}"
+    assert caught.value.metrics["provider_http_status"] == status
+    assert "private" not in caught.value.detail
+
+
+@pytest.mark.parametrize("response", [
+    {"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]},
+    {"choices": [{"finish_reason": "stop", "message": {"content": "not json"}}]},
+])
+def test_brain_provider_incomplete_or_invalid_response(monkeypatch, response):
+    monkeypatch.setenv("YC_API_KEY", "test-key")
+    monkeypatch.setenv("YC_FOLDER_ID", "test")
+    monkeypatch.setattr(brain.requests, "post", lambda *_args, **_kwargs: SimpleNamespace(
+        status_code=200, raise_for_status=lambda: None, json=lambda: response))
+    with pytest.raises(brain.BrainModelFailure) as caught:
+        brain._call_model("message", {})
+    assert caught.value.kind == ("LENGTH" if response["choices"][0]["finish_reason"] == "length" else "INVALID_RESPONSE")
+
+
+def test_brain_user_wait_is_bounded_even_when_provider_does_not_return(monkeypatch):
+    gate = threading.Event()
+    monkeypatch.setattr(brain, "MODEL_WAIT_SECONDS", 0.01)
+    monkeypatch.setattr(brain, "_call_model", lambda *_args: gate.wait(1))
+    try:
+        with pytest.raises(brain.BrainModelFailure) as caught:
+            brain._bounded_model_call("message", {})
+        assert caught.value.kind == "TIMEOUT"
+    finally:
+        gate.set()
+
+
+def test_brain_local_action_skips_provider_and_explicit_facts_remain_local():
+    assert brain._local_turn("Запустить расчёт!").next_action == "preflight"
+    assert brain._local_turn("220 паллет в сутки") is None
+    updates, _processes = brain._explicit_facts("На складе 220 паллет в сутки на 120 м")
+    assert {item.path for item in updates} >= {"operations_per_day", "avg_distance_m"}
+
+
+def test_brain_network_timeout_is_classified(monkeypatch):
+    monkeypatch.setenv("YC_API_KEY", "test-key")
+    monkeypatch.setenv("YC_FOLDER_ID", "test")
+    monkeypatch.setattr(brain.requests, "post", lambda *_args, **_kwargs: (_ for _ in ()).throw(requests.Timeout()))
+    with pytest.raises(brain.BrainModelFailure) as caught:
+        brain._call_model("message", {})
+    assert caught.value.kind == "TIMEOUT"
+
+
+def test_brain_operational_log_excludes_private_values(caplog):
+    with caplog.at_level("INFO", logger="robodovod.brain"):
+        brain._event(status="FALLBACK", failure_kind="HTTP_401", message="private prompt", api_key="secret")
+    assert "status=FALLBACK" in caplog.text
+    assert "private prompt" not in caplog.text
+    assert "secret" not in caplog.text

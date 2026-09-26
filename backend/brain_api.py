@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
+import queue
 import re
+import threading
+import time
 import uuid
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -31,6 +35,26 @@ MAX_TURNS = 60
 MAX_TOKENS = 120_000
 MAX_ESTIMATED_RUB = 100.0
 MAX_VERSIONS = 300
+MODEL_TIMEOUT_SECONDS = 50
+MODEL_WAIT_SECONDS = 59
+MODEL_OUTPUT_TOKENS = 5000
+logger = logging.getLogger("robodovod.brain")
+EVENT_KEYS = {"status", "failure_kind", "model", "profile_version", "preparation_ms", "external_ms",
+              "save_ms", "total_ms", "input", "output", "provider_ms", "validation_ms",
+              "provider_http_status", "finish_reason"}
+
+
+class BrainModelFailure(HTTPException):
+    def __init__(self, kind: str, detail: str, *, metrics: dict[str, Any] | None = None):
+        super().__init__(503, detail)
+        self.kind = kind
+        self.metrics = metrics or {}
+
+
+def _event(**values: Any) -> None:
+    """Log allowlisted operational fields; never messages, prompts or API keys."""
+    logger.info("brain_turn %s", " ".join(f"{key}={value}" for key, value in sorted(values.items())
+                                         if key in EVENT_KEYS))
 FIELD_UNITS = {
     "object_type": None, "process_type": None, "cargo_type": None,
     "operations_per_day": "pallet/day", "shifts_count": "shift/day",
@@ -99,6 +123,10 @@ def _model_response_schema() -> dict[str, Any]:
 
 class TurnRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
+    expected_version: int = Field(ge=0)
+
+
+class RetryRequest(BaseModel):
     expected_version: int = Field(ge=0)
 
 
@@ -415,35 +443,92 @@ def _apply_proposals(profile: dict[str, Any], message: str, updates: list[TurnUp
         profile.setdefault("process_fields", {})[profile["selected_process"]] = deepcopy(fields)
 
 
-def _call_model(message: str, profile: dict[str, Any]) -> tuple[BrainTurn, dict[str, int]]:
+def _call_model(message: str, profile: dict[str, Any]) -> tuple[BrainTurn, dict[str, Any]]:
     key, folder = os.getenv("YC_API_KEY"), os.getenv("YC_FOLDER_ID")
     if not key or not folder:
-        raise HTTPException(503, "Сервис диалога сейчас недоступен. Черновик сохранён; поля можно исправить вручную.")
+        raise BrainModelFailure("NOT_CONFIGURED", "Сервис диалога сейчас недоступен. Черновик сохранён; поля можно исправить вручную.")
     prompt = ("Ты Robovod Brain v1.1. Извлеки только явно сказанные пользователем поля из последнего сообщения. "
               "Не придумывай объёмы, зарплату, плечо, единицы за рейс. Для числа укажи точную единицу из списка. "
               "object_type: retail/airport/clinic/other; process_type: transport/cleaning/unsupported. "
               "Паллетная перевозка на складе: transport. Из нескольких операций активируй их коды. "
               "Неподтверждённые поля не становятся фактами. Не рассчитывай парк или NPV. "
               "Верни JSON по схеме. Поля: " + json.dumps(FIELD_UNITS, ensure_ascii=False))
-    bounded_fields = {name: {key: str(value.get(key, ""))[:160] for key in ("value", "unit", "provenance", "confirmed_by_user", "raw_text")}
-                      for name, value in list(profile["fields"].items())[:20]}
+    # The task is extraction from this message, so the saved profile is deliberately
+    # excluded from the provider prompt. Version binding remains server-owned.
     body = {"model": f"gpt://{folder}/{MODEL}", "messages": [
         {"role": "system", "content": prompt},
-        {"role": "user", "content": json.dumps({"profile": {"fields": bounded_fields, "active_processes": profile["active_processes"][:10]}, "message": message}, ensure_ascii=False)}],
+        {"role": "user", "content": message}],
         "response_format": {"type": "json_schema", "json_schema": {"name": "RobovodAgentTurn", "strict": True, "schema": _model_response_schema()}},
-        "max_tokens": 5000, "temperature": 0.1, "stream": False}
+        "max_tokens": MODEL_OUTPUT_TOKENS, "temperature": 0.1, "stream": False}
+    started = time.perf_counter()
+    http_status = None
+    finish_reason = None
+    token_use = {"input": 0, "output": 0}
     try:
         response = requests.post("https://ai.api.cloud.yandex.net/v1/chat/completions", json=body,
-                                 headers={"Authorization": f"Api-Key {key}"}, timeout=60)
+                                 headers={"Authorization": f"Api-Key {key}"}, timeout=(5, MODEL_TIMEOUT_SECONDS))
+        provider_ms = round((time.perf_counter() - started) * 1000, 2)
+        http_status = getattr(response, "status_code", None)
         response.raise_for_status()
         data = response.json()
-        if data["choices"][0].get("finish_reason") == "length":
-            raise ValueError("model response reached token limit")
-        turn = BrainTurn.model_validate_json(data["choices"][0]["message"]["content"])
+        finish_reason = data["choices"][0].get("finish_reason")
         usage = data.get("usage") or {}
-        return turn, {"input": int(usage.get("prompt_tokens", 0)), "output": int(usage.get("completion_tokens", 0))}
+        token_use = {"input": int(usage.get("prompt_tokens", 0)), "output": int(usage.get("completion_tokens", 0))}
+        if finish_reason == "length":
+            raise BrainModelFailure("LENGTH", "Ответ модели оборвался на лимите вывода. Черновик сохранён; повторите запрос.")
+        if finish_reason != "stop":
+            raise BrainModelFailure("FINISH_REASON", "Модель не завершила ответ. Черновик сохранён; повторите запрос.")
+        validation_started = time.perf_counter()
+        turn = BrainTurn.model_validate_json(data["choices"][0]["message"]["content"])
+        return turn, {**token_use, "provider_ms": provider_ms,
+                      "validation_ms": round((time.perf_counter() - validation_started) * 1000, 2),
+                      "finish_reason": finish_reason, "provider_http_status": http_status}
+    except BrainModelFailure as exc:
+        exc.metrics = {**token_use, "provider_ms": round((time.perf_counter() - started) * 1000, 2),
+                       "finish_reason": finish_reason, "provider_http_status": http_status}
+        raise
+    except requests.Timeout as exc:
+        raise BrainModelFailure("TIMEOUT", "Время ожидания модели истекло. Черновик сохранён; повторите запрос.",
+                                metrics={"provider_ms": round((time.perf_counter() - started) * 1000, 2)}) from exc
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else http_status
+        raise BrainModelFailure(f"HTTP_{status or 'UNKNOWN'}", "AI Studio отклонил запрос. Черновик сохранён; повторите позже или исправьте поля вручную.",
+                                metrics={"provider_ms": round((time.perf_counter() - started) * 1000, 2),
+                                         "provider_http_status": status}) from exc
     except (requests.RequestException, KeyError, TypeError, ValueError) as exc:
-        raise HTTPException(503, "Модель не ответила корректно. Черновик сохранён; повторите запрос или исправьте поля вручную.") from exc
+        raise BrainModelFailure("INVALID_RESPONSE", "Модель не ответила корректно. Черновик сохранён; повторите запрос или исправьте поля вручную.",
+                                metrics={**token_use, "provider_ms": round((time.perf_counter() - started) * 1000, 2),
+                                         "finish_reason": finish_reason, "provider_http_status": http_status}) from exc
+
+
+def _local_turn(message: str) -> BrainTurn | None:
+    """Handle only narrow server-known actions; extraction still uses the local parser."""
+    normalized = re.sub(r"[.!?\s]+", " ", message.strip().lower()).strip()
+    if normalized in {"рассчитать", "запустить расчёт", "покажи расчёт", "создать pdf", "покажи pdf", "что дальше"}:
+        return BrainTurn(message="Проверьте и подтвердите поля профиля; расчёт и PDF запускаются отдельными действиями.",
+                         field_updates=[], process_updates=[], next_action="preflight", question=None)
+    return None
+
+
+def _bounded_model_call(message: str, profile: dict[str, Any]) -> tuple[BrainTurn, dict[str, Any]]:
+    """Bound the HTTP request's user-visible wait even if a peer trickles data."""
+    result: queue.Queue[tuple[bool, Any]] = queue.Queue(maxsize=1)
+
+    def run() -> None:
+        try:
+            result.put((True, _call_model(message, profile)))
+        except Exception as exc:  # noqa: BLE001 - transfer worker failure to request thread
+            result.put((False, exc))
+
+    threading.Thread(target=run, daemon=True, name="brain-model-request").start()
+    try:
+        success, value = result.get(timeout=MODEL_WAIT_SECONDS)
+    except queue.Empty as exc:
+        raise BrainModelFailure("TIMEOUT", "Время ожидания модели истекло. Черновик сохранён; повторите запрос.",
+                                metrics={"provider_ms": MODEL_WAIT_SECONDS * 1000}) from exc
+    if not success:
+        raise value
+    return value
 
 
 class DefaultRequest(BaseModel):
@@ -485,12 +570,83 @@ def create_brain_router() -> APIRouter:
 
     @router.get("/projects/{project_id}")
     def read(project_id: uuid.UUID, context: AuthContext = AUTH_DEP, db: Session = DB_DEP):
-        state = _state(_owned(db, project_id, context.user.id))
+        project = _owned(db, project_id, context.user.id)
+        state = _state(project)
         profile = _current(state, project_id)
+        if profile.get("model_status") == "PENDING" and profile.get("model_started_at"):
+            try:
+                expired = (datetime.now(timezone.utc) - datetime.fromisoformat(profile["model_started_at"])).total_seconds() > 70
+            except ValueError:
+                expired = True
+            if expired:
+                profile["model_status"] = "TIMEOUT"
+                profile["model_failure_kind"] = "ORPHANED_REQUEST"
+                profile["model_error"] = "Ожидание прервалось. Сохранённое сообщение можно повторить."
+                _save(db, project, state)
         return {"profile": profile, "readiness": readiness(profile), "usage": state["usage"], "versions": state["versions"]}
+
+    def finish_saved_turn(project: Project, db: Session, version: int, attempt_id: str, message: str,
+                          previous: dict[str, Any], prepared_at: float,
+                          preparation_ms: float) -> dict[str, Any]:
+        model_started = time.perf_counter()
+        local = _local_turn(message)
+        try:
+            if local is None:
+                answer, token_use = _bounded_model_call(message, previous)
+                source = "MODEL"
+            else:
+                answer, token_use, source = local, {"input": 0, "output": 0}, "LOCAL"
+            failure = None
+        except HTTPException as exc:
+            answer, token_use, source = None, getattr(exc, "metrics", {}), "FALLBACK"
+            failure = exc
+        external_ms = round((time.perf_counter() - model_started) * 1000, 2) if local is None else 0.0
+        db.refresh(project, with_for_update=True)
+        state = _state(project)
+        if (state["version"] != version or state["versions"][-1].get("model_attempt_id") != attempt_id
+                or state["versions"][-1].get("model_status") != "PENDING"):
+            _event(status="STALE", failure_kind="VERSION_CONFLICT", model=MODEL,
+                   preparation_ms=preparation_ms, external_ms=external_ms)
+            raise HTTPException(409, "profile changed during model request")
+        current = state["versions"][-1]
+        usage = state["usage"]
+        if failure is not None:
+            current["model_error"] = failure.detail
+            local_updates, local_processes = _explicit_facts(message)
+            _apply_proposals(current, message, local_updates, local_processes)
+            current["model_message"] = "Локально распознаны только явно названные значения. Проверьте и подтвердите их."
+            current["model_status"] = "TIMEOUT" if getattr(failure, "kind", None) == "TIMEOUT" else "FALLBACK"
+            current["model_failure_kind"] = getattr(failure, "kind", "MODEL_ERROR")
+        elif usage["tokens"] + token_use["input"] + token_use["output"] > MAX_TOKENS:
+            current["model_error"] = "Лимит токенов проекта достигнут; используйте ручное редактирование."
+            current["model_status"] = "FALLBACK"
+            current["model_failure_kind"] = "TOKEN_LIMIT"
+        else:
+            local_updates, local_processes = _explicit_facts(message)
+            _apply_proposals(current, message, [*answer.field_updates, *local_updates],
+                             [*answer.process_updates, *local_processes])
+            current["model_message"] = answer.message[:1000]
+            current["model_error"] = None
+            current["model_status"] = source
+            current["model_failure_kind"] = None
+        usage["tokens"] += token_use.get("input", 0) + token_use.get("output", 0)
+        usage["input_tokens"] = usage.get("input_tokens", 0) + token_use.get("input", 0)
+        usage["output_tokens"] = usage.get("output_tokens", 0) + token_use.get("output", 0)
+        usage["estimated_rub"] = round(usage["input_tokens"] * 0.3 / 1000 + usage["output_tokens"] * 0.5 / 1000, 4)
+        save_started = time.perf_counter()
+        _save(db, project, state)
+        save_ms = round((time.perf_counter() - save_started) * 1000, 2)
+        metrics = {key: token_use.get(key) for key in ("input", "output", "provider_ms", "validation_ms",
+                                                     "provider_http_status", "finish_reason")}
+        _event(status=current["model_status"], failure_kind=current["model_failure_kind"], model=MODEL,
+               profile_version=version, preparation_ms=preparation_ms, external_ms=external_ms,
+               save_ms=save_ms, total_ms=round((time.perf_counter() - prepared_at) * 1000, 2), **metrics)
+        return {"profile": current, "readiness": readiness(current), "model_error": current.get("model_error"),
+                "model_status": current["model_status"], "usage": usage}
 
     @router.post("/projects/{project_id}/turn")
     def turn(project_id: uuid.UUID, payload: TurnRequest, context: AuthContext = CSRF_DEP, db: Session = DB_DEP):
+        started = time.perf_counter()
         project = _owned(db, project_id, context.user.id, lock=True)
         state = _state(project)
         _check_version(state, payload.expected_version)
@@ -505,42 +661,36 @@ def create_brain_router() -> APIRouter:
         if len(recent) >= 12:
             raise HTTPException(429, "Слишком много сообщений за минуту. Повторите позже; профиль сохранён.")
         # Save the user's words before calling the external model.
-        current = _next(state, profile, utterance=payload.message, model_message=None, model_error=None)
+        attempt_id = uuid.uuid4().hex
+        current = _next(state, profile, utterance=payload.message, model_message=None, model_error=None,
+                        model_status="PENDING", model_failure_kind=None,
+                        model_started_at=datetime.now(timezone.utc).isoformat(), model_attempt_id=attempt_id)
         usage["turns"] += 1
         usage["recent_turns"] = [*recent, now.isoformat()]
         _save(db, project, state)
-        try:
-            answer, token_use = _call_model(payload.message, profile)
-        except HTTPException as exc:
-            db.refresh(project, with_for_update=True)
-            state = _state(project)
-            if state["version"] != current["profile_version"]:
-                raise HTTPException(409, "profile changed during model request") from exc
-            current = state["versions"][-1]
-            current["model_error"] = exc.detail
-            local_updates, local_processes = _explicit_facts(payload.message)
-            _apply_proposals(current, payload.message, local_updates, local_processes)
-            current["model_message"] = "Я распознал только явно названные значения. Проверьте и подтвердите их."
-            _save(db, project, state)
-            return {"profile": current, "readiness": readiness(current), "model_error": exc.detail, "usage": state["usage"]}
-        db.refresh(project, with_for_update=True)
+        return finish_saved_turn(project, db, current["profile_version"], attempt_id, payload.message, profile,
+                                 started, round((time.perf_counter() - started) * 1000, 2))
+
+    @router.post("/projects/{project_id}/retry")
+    def retry(project_id: uuid.UUID, payload: RetryRequest,
+              context: AuthContext = CSRF_DEP, db: Session = DB_DEP):
+        started = time.perf_counter()
+        project = _owned(db, project_id, context.user.id, lock=True)
         state = _state(project)
-        if state["version"] != current["profile_version"]:
-            raise HTTPException(409, "profile changed during model request")
-        current = state["versions"][-1]
-        usage = state["usage"]
-        if usage["tokens"] + token_use["input"] + token_use["output"] > MAX_TOKENS:
-            current["model_error"] = "Лимит токенов проекта достигнут; используйте ручное редактирование."
-        else:
-            local_updates, local_processes = _explicit_facts(payload.message)
-            _apply_proposals(current, payload.message, [*answer.field_updates, *local_updates], [*answer.process_updates, *local_processes])
-            current["model_message"] = answer.message[:1000]
-            usage["tokens"] += token_use["input"] + token_use["output"]
-            usage["input_tokens"] = usage.get("input_tokens", 0) + token_use["input"]
-            usage["output_tokens"] = usage.get("output_tokens", 0) + token_use["output"]
-            usage["estimated_rub"] = round(usage.get("input_tokens", 0) * 0.3 / 1000 + usage["output_tokens"] * 0.5 / 1000, 4)
+        _check_version(state, payload.expected_version)
+        current = _current(state, project_id)
+        if current.get("model_status") not in {"FALLBACK", "TIMEOUT"} or not current.get("utterance"):
+            raise HTTPException(409, "no failed saved message to retry")
+        message = current["utterance"]
+        current["model_status"] = "PENDING"
+        current["model_started_at"] = datetime.now(timezone.utc).isoformat()
+        attempt_id = uuid.uuid4().hex
+        current["model_attempt_id"] = attempt_id
+        current["model_error"] = None
+        current["model_failure_kind"] = None
         _save(db, project, state)
-        return {"profile": current, "readiness": readiness(current), "model_error": current.get("model_error"), "usage": usage}
+        return finish_saved_turn(project, db, current["profile_version"], attempt_id, message, current,
+                                 started, round((time.perf_counter() - started) * 1000, 2))
 
     @router.post("/projects/{project_id}/edit")
     def edit(project_id: uuid.UUID, payload: EditRequest, context: AuthContext = CSRF_DEP, db: Session = DB_DEP):
