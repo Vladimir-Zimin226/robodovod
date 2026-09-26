@@ -62,6 +62,7 @@ export function createDraft(objectType, sequence = 1) {
     inputRevision: `draft.${sequence}`,
     objectId,
     objectKind,
+    facility: { name: '', totalArea: '', activeArea: '', fieldSources: {}, fieldConfirmations: {} },
     zones: [{ zoneId, label: 'Основная зона', constraints: '' }],
     processes: definitionsFor(objectType).map((definition) => ({
       ...definition,
@@ -185,6 +186,23 @@ export function updateProcess(draft, processKey, patch) {
   });
 }
 
+export function updateFacility(draft, patch) {
+  const facility = draft.facility || { name: '', totalArea: '', activeArea: '', fieldSources: {}, fieldConfirmations: {} };
+  const fieldSources = { ...facility.fieldSources };
+  const fieldConfirmations = { ...facility.fieldConfirmations };
+  for (const key of ['totalArea', 'activeArea']) {
+    if (Object.hasOwn(patch, key)) { fieldSources[key] = 'USER'; fieldConfirmations[key] = true; }
+  }
+  return revise(draft, { facility: { ...facility, ...patch, fieldSources: { ...fieldSources, ...(patch.fieldSources || {}) },
+    fieldConfirmations: { ...fieldConfirmations, ...(patch.fieldConfirmations || {}) } } });
+}
+
+export function confirmFacilityArea(draft, key) {
+  if (!['totalArea', 'activeArea'].includes(key)) throw new Error('UNKNOWN_FACILITY_AREA');
+  return revise(draft, { facility: { ...draft.facility,
+    fieldConfirmations: { ...draft.facility.fieldConfirmations, [key]: true } } });
+}
+
 export function confirmProcessAssumption(draft, processKey, key) {
   const process = findProcess(draft, processKey);
   if (!process || process.fieldSources?.[key] !== 'ASSUMPTION' || !process[key]) throw new Error('PROCESS_ASSUMPTION_NOT_FOUND');
@@ -247,6 +265,15 @@ const nonNegative = (value) => value !== '' && DECIMAL_PATTERN.test(String(value
 
 export function validateDraft(draft) {
   const issues = [];
+  for (const key of ['totalArea', 'activeArea']) {
+    const value = draft.facility?.[key];
+    if (value !== '' && value != null && !positive(value)) issues.push({ severity: 'BLOCKER', code: 'AREA_INVALID', ref: `facility.${key}` });
+    if (value && draft.facility?.fieldSources?.[key] === 'ASSUMPTION' && !draft.facility?.fieldConfirmations?.[key])
+      issues.push({ severity: 'BLOCKER', code: 'AREA_CONFIRMATION_REQUIRED', ref: `facility.${key}` });
+  }
+  if (positive(draft.facility?.totalArea) && positive(draft.facility?.activeArea)
+    && Number(draft.facility.activeArea) > Number(draft.facility.totalArea))
+    issues.push({ severity: 'BLOCKER', code: 'ACTIVE_AREA_EXCEEDS_TOTAL', ref: 'facility.activeArea' });
   if (draft.importPending) issues.push({ severity: 'BLOCKER', code: 'IMPORT_CONFIRMATION_REQUIRED', ref: draft.objectId });
   for (const zone of draft.zones) {
     if (!zone.label.trim() || zone.label.length > 128) issues.push({ severity: 'BLOCKER', code: 'ZONE_LABEL_REQUIRED', ref: `${zone.zoneId}.label` });
@@ -294,6 +321,10 @@ export function serializeDraft(draft) {
     input_revision: draft.inputRevision,
     object_id: draft.objectId,
     object_kind: draft.objectKind,
+    facility_areas: {
+      total_area: quantity(draft.facility?.totalArea, 'm2', draft.facility?.fieldSources?.totalArea || 'USER', draft.facility?.fieldConfirmations?.totalArea === true, draft.facility?.fileSource),
+      active_area: quantity(draft.facility?.activeArea, 'm2', draft.facility?.fieldSources?.activeArea || 'USER', draft.facility?.fieldConfirmations?.activeArea === true, draft.facility?.fileSource),
+    },
     processes: draft.processes.map((process) => ({
       block_id: process.blockId,
       process_id: process.processId,

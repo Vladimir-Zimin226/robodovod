@@ -8,6 +8,13 @@ export function workbookDraft(input) {
   const records = input.records;
   const source = input.file_source;
   const value = (row, key) => String(row[key]?.value ?? '');
+  const object = records['Объект']?.main || {};
+  draft.facility = { name: value(object, 'name'), totalArea: value(object, 'total_area_m2'),
+    activeArea: value(object, 'active_area_m2'), fileSource: source,
+    fieldSources: {
+      totalArea: object.total_area_m2?.status === 'ASSUMPTION' ? 'ASSUMPTION' : 'FILE',
+      activeArea: object.active_area_m2?.status === 'ASSUMPTION' ? 'ASSUMPTION' : 'FILE',
+    }, fieldConfirmations: { totalArea: false, activeArea: false } };
   draft.zones = Object.entries(records['Зоны']).map(([id, row]) => ({
     zoneId: `zone.${draft.objectId}.${id}`, label: value(row, 'label'), constraints: value(row, 'constraints'),
   }));
@@ -43,6 +50,7 @@ export function workbookDraft(input) {
 
 export function confirmWorkbookDraft(draft) {
   return { ...draft, importPending: false, revisionNumber: draft.revisionNumber + 1, inputRevision: `draft.${draft.revisionNumber + 1}`,
+    facility: { ...draft.facility, fieldConfirmations: { totalArea: true, activeArea: true } },
     processes: draft.processes.map((process) => ({ ...process, fieldConfirmations: Object.fromEntries(Object.keys(process.fieldSources).map((key) => [key, true])) })),
     roles: draft.roles.map((role) => ({ ...role, salaryConfirmed: true, headcountConfirmed: true })) };
 }

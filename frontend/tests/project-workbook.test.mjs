@@ -2,7 +2,23 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { workbookDraft, confirmWorkbookDraft, workbookEconomics } from '../src/projectWorkbook.js';
-import { createDraft, updateProcess, setRoleActive, updateRole, serializeDraft, validateDraft } from '../src/processRoleIntakeV2.js';
+import { createDraft, updateFacility, updateProcess, setRoleActive, updateRole, serializeDraft, validateDraft } from '../src/processRoleIntakeV2.js';
+
+test('facility areas keep their source and never replace process cleaning demand', () => {
+  const input = structuredClone(fixtures['interview-220-120']);
+  input.records['Объект'].main.total_area_m2 = { value: '20000', status: 'ASSUMPTION' };
+  input.records['Объект'].main.active_area_m2 = { value: '10000', status: 'DATA' };
+  const proposal = workbookDraft(input);
+  assert.ok(validateDraft(proposal).some((issue) => issue.code === 'AREA_CONFIRMATION_REQUIRED'));
+  const confirmed = serializeDraft(confirmWorkbookDraft(proposal));
+  assert.equal(confirmed.facility_areas.total_area.value, '20000');
+  assert.equal(confirmed.facility_areas.total_area.provenance.source, 'ASSUMPTION');
+  assert.equal(confirmed.facility_areas.total_area.provenance.user_confirmed, true);
+  assert.equal(confirmed.facility_areas.active_area.value, '10000');
+  assert.equal(confirmed.processes[0].demand.value, '220');
+  const invalid = updateFacility(confirmWorkbookDraft(proposal), { activeArea: '21000' });
+  assert.ok(validateDraft(invalid).some((issue) => issue.code === 'ACTIVE_AREA_EXCEEDS_TOTAL'));
+});
 
 const fixtures = JSON.parse(readFileSync(new URL('../../docs/planning/assets/f2/normalized-examples.json', import.meta.url), 'utf8'));
 for (const [name, input] of Object.entries(fixtures)) {

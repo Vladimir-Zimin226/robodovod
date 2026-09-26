@@ -74,6 +74,22 @@ test('preliminary request requires acknowledgement, project and explicit exchang
   assert.throws(() => buildDemoCapacityRequest({ ...args, position: { ...mule, selection: { status: 'EXCLUDED' } } }), /совместимую/);
 });
 
+test('confirmed facility areas travel into a new capacity input without changing the route', () => {
+  const input = structuredClone(normalized);
+  input.response.raw_extensions = { facility_areas: {
+    total_area: { value: '20000', provenance: { source: 'ASSUMPTION', user_confirmed: true } },
+    active_area: { value: '10000', provenance: { source: 'FILE', user_confirmed: true } },
+  } };
+  const request = buildDemoCapacityRequest({ normalized: input, projectId: 'project.1',
+    processId: 'zone.draft.warehouse.main.warehouse_receiving_shipping', position: mule,
+    exchangeSeconds: '90', acknowledged: true,
+    zone: { zoneId: 'zone.draft.warehouse.main', label: 'Основная зона', constraints: '' } });
+  assert.equal(request.facility_context.total_area.value, '20000');
+  assert.equal(request.facility_context.total_area.source, 'ASSUMPTION');
+  assert.equal(request.facility_context.active_area.value, '10000');
+  assert.equal(request.process.route_distance.normalized_value, '120');
+});
+
 test('C11 request binds a shared role only to the selected zone process', () => {
   const firstId = 'zone.draft.warehouse.main.warehouse_receiving_shipping';
   const secondId = 'zone.draft.warehouse.2.warehouse_receiving_shipping';

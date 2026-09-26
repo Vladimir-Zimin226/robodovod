@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ProjectFileIntake from './ProjectFileIntake';
 import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 
-export default function IntakeScreen({ objectType, initialPrompt = '', importedAssistant, activeProject, user, authChecked,
+export default function IntakeScreen({ objectType, initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, user, authChecked,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
   onFileApplied, onIntakeV2Normalized, onCapacityResult }) {
   const [v2FileInput, setV2FileInput] = useState(() => activeProject?.profile?.file_intake_v2?.object_type === objectType
@@ -21,34 +21,30 @@ export default function IntakeScreen({ objectType, initialPrompt = '', importedA
     onFileApplied?.(normalized, imported);
   };
 
-  return <main className="intake-screen flex min-h-full" aria-label="Новый расчёт">
-    <div className="flex-1 mx-auto max-w-3xl space-y-4 p-6">
+  return <main className="intake-screen min-h-full w-full max-w-[1440px] mx-auto p-4 md:p-6 space-y-4" aria-label="Новый расчёт">
+    <div className="space-y-3">
       <header>
         <h1 className="text-xl font-bold">Расчёт сценария роботизации</h1>
-        <p className="text-sm text-slate-400">Объект → зона → процесс и роли → расчёт парка → экономика и 2D.</p>
+        <p className="text-sm text-slate-400">Объект → зоны → процессы и роли → расчёт парка → экономика.</p>
       </header>
       {initialPrompt && <section className="rounded-xl border p-4 text-sm">
         <h2 className="font-semibold">Ваше описание процесса</h2>
         <p className="mt-1 whitespace-pre-wrap">{initialPrompt}</p>
-        <p className="mt-2 text-xs text-amber-300">Описание сохранено только на этом экране. Перенесите подтверждённые числа в форму справа.</p>
+        <p className="mt-2 text-xs text-amber-300">Описание сохранено только на этом экране. Перенесите подтверждённые числа в форму ниже.</p>
       </section>}
       {!supported ? <section className="rounded-xl border p-5">
         <h2 className="font-semibold">Для этого объекта расчёт пока не поддержан</h2>
         <p className="mt-2 text-sm">Выберите склад, аэропорт или клинику. Старые сохранённые результаты доступны в проектах для просмотра и экспорта.</p>
         <button type="button" className="primary-action mt-3" onClick={onOpenObjects}>Выбрать поддержанный объект</button>
       </section> : <>
+        <p className="text-sm">Скачайте шаблон XLSX/CSV и заполните его сами или передайте шаблон вместе с внешним промптом в LLM. Затем загрузите файл, проверьте предложения и подтвердите входы. Числа из LLM не считаются проверенными автоматически.</p>
         <ProjectFileIntake objectType={objectType} project={activeProject}
           scenario={activeProject?.scenarios?.find((item) => item.slot === 'BASE')} onApplied={applyFile} />
         {fileNotice && <p className="text-xs text-amber-300">{fileNotice}</p>}
-        <section className="rounded-xl border p-5 text-sm">
-          <h2 className="font-semibold">Один расчётный маршрут</h2>
-          <p className="mt-2">Выберите зону и процесс справа, укажите нагрузку, маршрут, график и роли. Сервер сохранит расчёт потребного парка для выбранного процесса. Затем можно отдельно рассчитать экономику и симуляцию.</p>
-          <p className="mt-2 text-amber-300">Если зон или процессов несколько, каждому нужен свой расчёт парка. Общие роботы, роли и затраты нельзя суммировать автоматически; закупочная готовность требует отдельной проверки.</p>
-        </section>
       </>}
     </div>
-    {supported && <ProcessRoleIntakeV2 key={`${objectType}:${v2FileInput?.imported?.id || importedAssistant?.id || 'manual'}`}
-      objectType={objectType} importedFile={v2FileInput} importedAssistant={importedAssistant?.profile} activeProject={activeProject} user={user}
+    {supported && <ProcessRoleIntakeV2 key={`${objectType}:${activeProject?.id || 'guest'}:${v2FileInput?.imported?.id || importedAssistant?.id || 'manual'}`}
+      objectType={objectType} importedFile={v2FileInput} importedAssistant={importedAssistant?.profile} activeProject={activeProject} initialFacilityContext={initialFacilityContext} user={user}
       authChecked={authChecked} projectChoices={projectChoices} projectStatus={projectStatus}
       onChooseProject={onChooseProject} onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount}
       onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />}

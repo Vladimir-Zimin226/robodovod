@@ -76,7 +76,9 @@ export default function ProjectFileIntake({ objectType, project, scenario, onApp
       <div className="project-file-actions">
         <button className="secondary-action" type="button" onClick={() => inputRef.current?.click()}>{file ? file.name : 'Выбрать файл'}</button>
         <button className="secondary-action" type="button" disabled={!file || state === 'preview'} onClick={() => request('preview')}>{state === 'preview' ? 'Проверяем…' : 'Проверить'}</button>
-        <a className="secondary-action" href={`${API}/api/project-file-templates/${profileCode}.csv`}>CSV-шаблон</a>
+        <a className="secondary-action" href={`${API}/api/project-workbooks/${profileCode}/blank.xlsx`}>XLSX-шаблон</a>
+        <a className="secondary-action" href={`${API}/api/project-workbooks/${profileCode}/blank.csv`}>CSV-шаблон</a>
+        <a className="secondary-action" href={`${API}/api/project-workbooks/${profileCode}/interview.txt`}>Промпт для внешней LLM</a>
         {preview?.valid && state !== 'applied' && <button className="primary-action" type="button" disabled={state === 'apply'} onClick={() => request('apply')}>{state === 'apply' ? 'Применяем…' : 'Применить к базовому сценарию'}</button>}
       </div>
       {preview && <div className={preview.valid ? 'file-report valid' : 'file-report invalid'}>

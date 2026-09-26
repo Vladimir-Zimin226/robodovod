@@ -100,6 +100,13 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
     execution_mode: 'PRELIMINARY_DEMO', demo_assumptions_confirmed: true,
     provenance,
   };
+  const rawAreas = normalized.response.raw_extensions?.facility_areas;
+  if (rawAreas?.total_area || rawAreas?.active_area) {
+    const area = (raw) => raw ? { value: raw.value, unit: 'm2',
+      source: raw.provenance.source, confirmed: raw.provenance.user_confirmed === true } : null;
+    request.facility_context = { schema_version: 'facility-context-v1',
+      total_area: area(rawAreas.total_area), active_area: area(rawAreas.active_area) };
+  }
   if (process.scope === 'CLEANING_AREA') {
     // One cleaning pass per day is an explicit demo assumption, never inferred by C11.
     if (!positive(cleaningFrequency)) throw new Error('Укажите число уборок площади в сутки.');

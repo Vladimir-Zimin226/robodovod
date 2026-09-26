@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   addZone,
+  confirmFacilityArea,
   createDraft,
   createWarehouseDemoDraft,
   createWarehouseFileDraft,
@@ -10,6 +11,7 @@ import {
   removeZone,
   setRoleActive,
   updateProcess,
+  updateFacility,
   updateRole,
   updateZone,
   validateDraft,
@@ -18,7 +20,6 @@ import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../demoCapacityFlow';
 import { readCsrfCookie } from '../persistenceApi';
 import { toV2Draft } from '../assistantInterview';
-import WarehouseChainPanel from './WarehouseChainPanel';
 import { workbookDraft, confirmWorkbookDraft } from '../projectWorkbook';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -46,10 +47,20 @@ const statusFor = (process, issues, response) => {
   return ['Готов к нормализации', 'text-green-600'];
 };
 
-export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
-  const [draft, setDraft] = useState(() => importedAssistant ? toV2Draft(importedAssistant)
-    : importedFile ? (importedFile.normalized?.schema_version === 'project-workbook-v1' ? workbookDraft(importedFile.normalized)
-      : createWarehouseFileDraft(importedFile.normalized, importedFile.imported)) : createDraft(objectType));
+export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, initialFacilityContext, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
+  const [draft, setDraft] = useState(() => {
+    if (importedAssistant) return toV2Draft(importedAssistant);
+    if (importedFile) return importedFile.normalized?.schema_version === 'project-workbook-v1' ? workbookDraft(importedFile.normalized)
+      : createWarehouseFileDraft(importedFile.normalized, importedFile.imported);
+    const fresh = createDraft(objectType);
+    if (!initialFacilityContext) return fresh;
+    return updateFacility(fresh, { totalArea: initialFacilityContext.total_area?.value || '',
+      activeArea: initialFacilityContext.active_area?.value || '',
+      fieldSources: { totalArea: initialFacilityContext.total_area?.source || 'USER',
+        activeArea: initialFacilityContext.active_area?.source || 'USER' },
+      fieldConfirmations: { totalArea: initialFacilityContext.total_area?.confirmed || false,
+        activeArea: initialFacilityContext.active_area?.confirmed || false } });
+  });
   const [selectedZoneId, setSelectedZoneId] = useState(() => draft.zones[0].zoneId);
   const [expanded, setExpanded] = useState(null);
   const [result, setResult] = useState(null);
@@ -173,13 +184,12 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   };
 
   return (
-    <aside className="w-[480px] border-l bg-white p-4 overflow-auto" aria-label="Процессы и роли">
+    <section className="w-full min-w-0 rounded-xl border bg-white p-4 md:p-6" aria-label="Процессы и роли">
       {draft.importPending && <section className="file-report"><p>Проверьте предложения книги, единицы, источники и допущения. Apply не подтверждает ввод для расчёта.</p>
         <button type="button" className="primary-action" onClick={() => setDraft(confirmWorkbookDraft(draft))}>Подтвердить входы книги для расчёта</button></section>}
       <header className="mb-3">
         <div className="flex justify-between gap-3 items-start">
-          <div><h2 className="font-semibold">Процессы и роли</h2><details className="text-xs text-slate-500"><summary>Технические подробности черновика</summary>Версия ввода: {draft.inputRevision}</details></div>
-          <span className="text-[10px] rounded bg-blue-50 text-blue-700 px-2 py-1">{draft.schemaVersion}</span>
+          <div><h2 className="font-semibold">Объект, процессы и роли</h2></div>
         </div>
         <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Один расчёт относится к одному процессу в одной зоне; для других процессов создайте отдельные результаты. Единицы и производные величины проверяет сервер.</p>
         {objectType === 'retail' && <button type="button" className="mt-2 text-xs underline text-blue-700" onClick={() => {
@@ -192,6 +202,22 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         }}>Загрузить типовой склад организаторов</button>}
         {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад предлагает 1 паллету за рейс, плечо 120 м и обмен 90 сек. как отдельные допущения. Подтвердите единицы за рейс в процессе и зарплату gross в роли.</p>}
       </header>
+
+      <section className="mb-4 rounded-xl border p-3" aria-label="Площадь объекта">
+        <h3 className="font-semibold text-sm">{draft.facility?.name || activeProject?.name || 'Объект'} · площадь</h3>
+        <p className="text-xs text-slate-600 mt-1">Общая и активная площадь описывают объект. Площадь уборки задаётся отдельно в нужном процессе и не заменяется этими полями.</p>
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[['totalArea', 'Общая площадь объекта'], ['activeArea', 'Активная площадь объекта']].map(([key, label]) =>
+            <div key={key} className="rounded border p-2">
+              <NumberField id={`intake-facility.${key}`} label={`${label}, м²`} value={draft.facility?.[key] || ''}
+                issue={fieldIssue(`facility.${key}`)} onChange={(value) => setDraft((current) => updateFacility(current, { [key]: value }))} />
+              <p className="text-xs text-slate-600 mt-1">Источник: {sourceLabel(draft.facility?.fieldSources?.[key])}. {draft.facility?.[key] ? 'Единица: м².' : 'Нет данных.'}</p>
+              {draft.facility?.[key] && draft.facility?.fieldSources?.[key] !== 'USER' &&
+                <label className="mt-1 flex items-start gap-2 text-xs"><input type="checkbox" checked={draft.facility?.fieldConfirmations?.[key] === true}
+                  onChange={(event) => event.target.checked && setDraft((current) => confirmFacilityArea(current, key))} />Подтверждаю значение и источник</label>}
+            </div>)}
+        </div>
+      </section>
 
       <section className="mb-4 rounded-xl border border-slate-600 p-3 text-xs" aria-label="Зоны">
         <div className="flex items-center justify-between gap-2"><h3 className="font-semibold">Зоны объекта</h3>
@@ -234,7 +260,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         </label>}
       </section>}
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
         {visibleProcesses.map((process) => {
           const open = expanded === process.processId;
           const [status, statusClass] = statusFor(process, issues, result?.response);
@@ -245,15 +271,15 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                 <label htmlFor={`active-${process.processId}`} className="flex-1 text-sm font-medium">{process.label}</label>
                 <button type="button" aria-expanded={open} aria-controls={`panel-${process.processId}`} onClick={() => setExpanded(open ? null : process.processId)} className="text-xs text-blue-700">{open ? 'Свернуть' : 'Открыть'}</button>
               </div>
-              <div className="px-3 pb-2 flex justify-between text-[10px]"><span>{process.scope}</span><span className={statusClass}>{status}</span></div>
+              <div className="px-3 pb-2 flex justify-end text-xs"><span className={statusClass}>{status}</span></div>
               {open && <div id={`panel-${process.processId}`} className="border-t bg-slate-50 p-3 space-y-3">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   <NumberField id={`intake-${process.processId}.demand`} label={`Объём, ${process.unit}`} value={process.demand} issue={fieldIssue(`${process.processId}.demand`)} hint="Для мощности робота; например 2000 в сутки. Пусто — неизвестно, 0 означает отсутствие процесса." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { demand: value }))} />
                   <NumberField label="Смен/сут" value={process.shifts} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для доступного времени; например 2. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { shifts: value }))} />
                   <NumberField label="Часов/смена" value={process.hours} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для доступного времени; например 8. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { hours: value }))} />
                   <NumberField label="Дней/год" value={process.days} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для годовой загрузки; например 250. Источник — календарь работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { days: value }))} />
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField id={`intake-${process.processId}.distance`} label="Одностороннее плечо, м" value={process.distance} issue={fieldIssue(`${process.processId}.distance`)} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { distance: value }))} />}
-                  {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <div className="col-span-3 rounded border border-amber-300 p-2"><NumberField id={`intake-${process.processId}.batch`} label={`Сколько ${process.quantityKind === 'PALLET' ? 'паллет' : 'единиц груза'} робот перевозит за один рейс?`} value={process.batch} issue={fieldIssue(`${process.processId}.batch`)} hint={`Для «${process.label}» в зоне «${selectedZone.label}». Объём ${process.demand || 'неизвестен'} ${process.unit}, плечо ${process.distance || 'неизвестно'} м. Укажите целое число; для своего процесса значение не подставляется.`} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />
+                  {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <div className="sm:col-span-2 lg:col-span-3 rounded border border-amber-300 p-2"><NumberField id={`intake-${process.processId}.batch`} label={`Сколько ${process.quantityKind === 'PALLET' ? 'паллет' : 'единиц груза'} робот перевозит за один рейс?`} value={process.batch} issue={fieldIssue(`${process.processId}.batch`)} hint={`Для «${process.label}» в зоне «${selectedZone.label}». Объём ${process.demand || 'неизвестен'} ${process.unit}, плечо ${process.distance || 'неизвестно'} м. Укажите целое число; для своего процесса значение не подставляется.`} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />
                     {process.fieldSources?.batch === 'ASSUMPTION' && <label className="mt-2 flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={process.fieldConfirmations?.batch === true} onChange={(event) => event.target.checked && setDraft((current) => confirmProcessAssumption(current, process.processId, 'batch'))} />Подтверждаю допущение: {process.batch} паллета за рейс для типового склада</label>}</div>}
                 </div>
                 <fieldset><legend className="text-xs font-semibold">Роли</legend>
@@ -312,15 +338,12 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}
       </section>}
-      {objectType === 'retail' && <div className="mt-5"><WarehouseChainPanel project={activeProject} suggestedTransport={(() => {
-        const transport = draft.processes.find((item) => item.code === 'warehouse_receiving_shipping' && item.active);
-        if (!transport) return null;
-        return { demand: transport.demand, shifts: transport.shifts, hours: transport.hours, days: transport.days,
-          zone: draft.zones.find((zone) => zone.zoneId === transport.zoneId)?.label || 'Основная зона',
-          source: transport.fieldSources?.demand === 'ASSUMPTION' ? 'EXPERT_ASSUMPTION' : 'USER' };
-      })()} /></div>}
-    </aside>
+    </section>
   );
+}
+
+function sourceLabel(source) {
+  return { USER: 'ввод', FILE: 'файл', ASSUMPTION: 'допущение', LLM: 'предложение помощника' }[source] || 'не указан';
 }
 
 function DemoProfile({ profile }) {

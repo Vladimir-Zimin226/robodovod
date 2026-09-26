@@ -13,7 +13,9 @@ test('file intake requires preview before apply and carries CSRF on mutation', (
 
 test('file intake accepts only XLSX and CSV and exposes a profile template', () => {
   assert.match(source, /accept="\.xlsx,\.csv"/);
-  assert.match(source, /project-file-templates/);
+  assert.match(source, /project-workbooks\/\$\{profileCode\}\/blank\.xlsx/);
+  assert.match(source, /project-workbooks\/\$\{profileCode\}\/blank\.csv/);
+  assert.match(source, /project-workbooks\/\$\{profileCode\}\/interview\.txt/);
   assert.match(source, /accepted_count/);
   assert.match(source, /error_count/);
 });

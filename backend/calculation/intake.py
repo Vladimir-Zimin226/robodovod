@@ -124,6 +124,7 @@ class CalculationIntakeRequestV2(StrictContractModel):
     input_revision: StableId
     object_id: StableId
     object_kind: ObjectKind
+    facility_areas: dict[Literal["total_area", "active_area"], RawQuantity | None] | None = None
     processes: list[ProcessIntake]
     roles: list[RoleIntake]
     additional_income_raw: RawQuantity | None = None
@@ -133,6 +134,14 @@ class CalculationIntakeRequestV2(StrictContractModel):
 
     @model_validator(mode="after")
     def validate_identities(self) -> CalculationIntakeRequestV2:
+        if self.facility_areas:
+            for area in self.facility_areas.values():
+                if area is not None and (area.unit != "m2" or not 0 < Decimal(area.value) <= 100000000):
+                    raise ValueError("facility area must be positive square metres")
+            total = self.facility_areas.get("total_area")
+            active = self.facility_areas.get("active_area")
+            if total and active and Decimal(active.value) > Decimal(total.value):
+                raise ValueError("active area exceeds total area")
         process_ids = [item.process_id for item in self.processes]
         block_ids = [item.block_id for item in self.processes]
         role_ids = [item.role_id for item in self.roles]
@@ -384,6 +393,9 @@ def normalize_intake(request: CalculationIntakeRequestV2) -> NormalizationRespon
         role.role_id: role.monthly_gross_salary for role in normalized_roles
     }
     raw_extensions: dict[str, Any] = {
+        **({"facility_areas": {key: value.model_dump(mode="json") if value else None
+                              for key, value in request.facility_areas.items()}}
+           if request.facility_areas else {}),
         "additional_income_raw": request.additional_income_raw.model_dump(mode="json") if request.additional_income_raw else None,
         "activation_sources": {item.process_id: item.activation_source for item in request.processes},
         "role_allocations_raw": {item.role_id: item.allocation_shares for item in request.roles if item.allocation_shares is not None},

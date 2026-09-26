@@ -1,8 +1,10 @@
-import { createDraft, updateProcess, updateRole, setRoleActive, updateZone, serializeDraft } from './processRoleIntakeV2.js';
+import { createDraft, updateFacility, updateProcess, updateRole, setRoleActive, updateZone, serializeDraft } from './processRoleIntakeV2.js';
 
 export const BRAIN_FIELDS = [
   ['object_type', 'Тип объекта', '', 'choice', [['retail', 'Склад'], ['airport', 'Аэропорт'], ['clinic', 'Клиника'], ['other', 'Другое']]],
   ['process_type', 'Операция', '', 'choice', [['transport', 'Перевозка паллет'], ['cleaning', 'Уборка'], ['unsupported', 'Другая операция']]],
+  ['total_area_m2', 'Общая площадь объекта', 'м²'],
+  ['active_area_m2', 'Активная площадь объекта', 'м²'],
   ['operations_per_day', 'Объём в сутки', 'паллет/сутки'],
   ['shifts_count', 'Смен в сутки', 'смен'],
   ['shift_hours', 'Часов в смене', 'ч'],
@@ -30,6 +32,11 @@ export function makeBrainDraft(profile, processCode = null) {
     throw new Error('Для второго процесса создайте дочернюю версию профиля: укажите его объём и режим отдельно.');
   }
   let draft = createDraft('retail');
+  draft = updateFacility(draft, { totalArea: confirmed(profile, 'total_area_m2'), activeArea: confirmed(profile, 'active_area_m2'),
+    fieldSources: { totalArea: profile.fields.total_area_m2?.provenance === 'expert_assumption' ? 'ASSUMPTION' : 'USER',
+      activeArea: profile.fields.active_area_m2?.provenance === 'expert_assumption' ? 'ASSUMPTION' : 'USER' },
+    fieldConfirmations: { totalArea: Boolean(confirmed(profile, 'total_area_m2')),
+      activeArea: Boolean(confirmed(profile, 'active_area_m2')) } });
   draft = updateZone(draft, draft.zones[0].zoneId, {
     label: confirmed(profile, 'zone_label') || 'Основная зона',
     constraints: confirmed(profile, 'zone_constraints'),

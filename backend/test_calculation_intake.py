@@ -67,6 +67,21 @@ def _request(source: str = "USER") -> dict:
     }
 
 
+def test_facility_areas_preserve_provenance_without_changing_process_demand():
+    raw = _request()
+    raw["facility_areas"] = {
+        "total_area": {"value": "20000", "unit": "m2", "provenance": _source()},
+        "active_area": {"value": "10000", "unit": "m2", "provenance": _source()},
+    }
+    request = CalculationIntakeRequestV2.model_validate(raw)
+    response = normalize_intake(request)
+    assert response.raw_extensions["facility_areas"]["total_area"]["value"] == "20000"
+    assert response.normalized_processes[0].demand.normalized_value == "2000"
+    raw["facility_areas"]["active_area"]["value"] = "21000"
+    with pytest.raises(ValidationError, match="active area exceeds total area"):
+        CalculationIntakeRequestV2.model_validate(raw)
+
+
 def test_zone_process_ids_survive_c03_c11_and_c23_without_aggregating_shared_role():
     from calculation.service import analyze_capacity
     from economics_orchestrator import EconomicsExecutionContextV1

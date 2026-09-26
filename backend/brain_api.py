@@ -60,6 +60,7 @@ FIELD_UNITS = {
     "operations_per_day": "pallet/day", "shifts_count": "shift/day",
     "shift_hours": "h/shift", "operating_days": "day/year",
     "avg_distance_m": "m", "units_per_trip": "pallet/trip",
+    "total_area_m2": "m2", "active_area_m2": "m2",
     "zone_label": None, "zone_constraints": None,
     "staff_headcount": "person", "monthly_gross_salary": "RUB/person/month",
     "exchange_seconds": "s", "manual_units_per_shift": "pallet/shift",
@@ -191,7 +192,9 @@ def readiness(profile: dict[str, Any]) -> dict[str, Any]:
         missing.append("operations_unit")
     if known("shifts_count") and known("shift_hours") and float(fields["shifts_count"]["value"]) * float(fields["shift_hours"]["value"]) > 24:
         missing.append("schedule_over_24h")
-    for key, minimum, maximum, integral in (("operations_per_day", 0, 10_000_000, False),
+    for key, minimum, maximum, integral in (("total_area_m2", 0, 100_000_000, False),
+                                             ("active_area_m2", 0, 100_000_000, False),
+                                             ("operations_per_day", 0, 10_000_000, False),
                                              ("shifts_count", 0, 3, True), ("shift_hours", 0, 24, False),
                                              ("operating_days", 1, 366, True), ("avg_distance_m", 0, 1_000_000, False),
                                              ("units_per_trip", 0, 100_000, True), ("exchange_seconds", 0, 86_400, False),
@@ -204,6 +207,8 @@ def readiness(profile: dict[str, Any]) -> dict[str, Any]:
                 missing.append(f"invalid_{key}")
         except (InvalidOperation, ValueError):
             missing.append(f"invalid_{key}")
+    if known("total_area_m2") and known("active_area_m2") and Decimal(str(fields["active_area_m2"]["value"])) > Decimal(str(fields["total_area_m2"]["value"])):
+        missing.append("active_area_exceeds_total")
     if known("shift_hours") and Decimal(str(fields["shift_hours"]["value"])) not in {Decimal(value) for value in (6, 8, 10, 11, 12)}:
         missing.append("invalid_shift_hours")
     labour_fields = ["staff_headcount", "monthly_gross_salary"]

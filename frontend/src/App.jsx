@@ -326,6 +326,7 @@ export default function App() {
             initialPrompt={intakePrompt}
             importedAssistant={assistantImport}
             activeProject={activeProject}
+            initialFacilityContext={userInput?.facility_context || activeRun?.input_snapshot?.facility_context}
             user={user}
             authChecked={authChecked}
             projectChoices={projectChoices}

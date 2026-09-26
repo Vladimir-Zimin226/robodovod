@@ -1,4 +1,4 @@
-import { createDraft, setRoleActive, updateProcess, updateRole, updateZone } from './processRoleIntakeV2.js';
+import { createDraft, setRoleActive, updateFacility, updateProcess, updateRole, updateZone } from './processRoleIntakeV2.js';
 
 export const PROFILE_VERSION = 'assistant-interview-profile-v1';
 export const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
@@ -10,6 +10,8 @@ export const STARTER_QUESTIONS = [
 export const INTERVIEW_FIELDS = [
   { key: 'object_type', label: 'Объект', step: 'Процесс', kind: 'choice', options: [['retail', 'Склад']] },
   { key: 'process_type', label: 'Операция', step: 'Процесс', kind: 'choice', options: [['transport', 'Перемещение паллет'], ['cleaning', 'Уборка склада']] },
+  { key: 'total_area_m2', label: 'Общая площадь объекта, м²', step: 'Процесс', kind: 'number' },
+  { key: 'active_area_m2', label: 'Активная площадь объекта, м²', step: 'Процесс', kind: 'number' },
   { key: 'cargo_type', label: 'Груз или объект операции', step: 'Груз и операция', kind: 'text' },
   { key: 'operations_per_day', label: 'Объём в сутки, паллет или м²', step: 'Объём и пики', kind: 'number' },
   { key: 'peak_multiplier', label: 'Пиковый множитель, если известен', step: 'Объём и пики', kind: 'number' },
@@ -77,6 +79,8 @@ export function profileReadiness(profile) {
       || (key !== 'monthly_gross_salary' && Number(value) <= 0)) invalid.push(key);
   }
   if (Number(fields.shifts_count?.value) * Number(fields.shift_hours?.value) > 24) invalid.push('shifts_count');
+  if (fields.total_area_m2?.value && fields.active_area_m2?.value
+    && Number(fields.active_area_m2.value) > Number(fields.total_area_m2.value)) invalid.push('active_area_m2');
   if (fields.units_per_trip?.value && !/^[1-9]\d*$/.test(fields.units_per_trip.value)) invalid.push('units_per_trip');
   if ((fields.zone_label?.value != null && !fields.zone_label.value.trim())
     || fields.zone_label?.value?.length > 128 || fields.zone_constraints?.value?.length > 1000) invalid.push('zone_label');
@@ -105,6 +109,9 @@ export function toV2Draft(profile) {
   if (!canImportProfile(profile)) throw new Error('Подтвердите обязательные поля и исправьте числовые значения.');
   const get = (key) => profile.fields[key]?.confirmed ? profile.fields[key].value : '';
   let draft = createDraft('retail');
+  draft = updateFacility(draft, { totalArea: get('total_area_m2'), activeArea: get('active_area_m2'),
+    fieldSources: { totalArea: 'USER', activeArea: 'USER' },
+    fieldConfirmations: { totalArea: true, activeArea: true } });
   const processType = get('process_type');
   const code = processType === 'cleaning' ? 'warehouse_cleaning' : 'warehouse_receiving_shipping';
   draft = updateZone(draft, draft.zones[0].zoneId, {

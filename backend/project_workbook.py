@@ -37,6 +37,8 @@ FIELDS = {
     "Объект": {
         "name": ("Название объекта", "text", "text", None, None),
         "timezone": ("Местный часовой пояс IANA", "IANA", "timezone", None, None),
+        "total_area_m2": ("Общая площадь объекта", "m2", "decimal", 0, 100000000),
+        "active_area_m2": ("Активная площадь объекта", "m2", "decimal", 0, 100000000),
     },
     "Зоны": {
         "label": ("Название зоны", "text", "text", None, None),
@@ -281,7 +283,8 @@ def template_rows(profile_code: str, demo: bool = False) -> list[dict[str, Any]]
         ]
     )
     demo_values = {
-        "Объект": {"name": "Типовой объект — пример", "timezone": "Asia/Sakhalin"},
+        "Объект": {"name": "Типовой объект — пример", "timezone": "Asia/Sakhalin",
+                   "total_area_m2": "20000", "active_area_m2": "10000"},
         "Зоны": {
             "label": "Основная зона",
             "constraints": "Проход, пол, безопасность и масса груза требуют обследования",
@@ -687,7 +690,7 @@ def inspect_workbook(
         if sheet not in records:
             issue("RECORD_MISSING", "Обязательная запись листа отсутствует", sheet)
         for rid, record in records.get(sheet, {}).items():
-            for field in definitions_.keys() - record.keys():
+            for field in definitions_.keys() - record.keys() - ({"total_area_m2", "active_area_m2"} if sheet == "Объект" else set()):
                 issue(
                     "FIELD_MISSING",
                     "Обязательная строка поля отсутствует; неизвестное храните как UNKNOWN",
@@ -862,6 +865,9 @@ def _brain_projection(normalized, process_id, process):
         "provenance": "user",
         "confirmed_by_user": False,
     }
+    object_row = normalized["records"]["Объект"]["main"]
+    propose("total_area_m2", object_row.get("total_area_m2"))
+    propose("active_area_m2", object_row.get("active_area_m2"))
     code = process["process_code"]["value"]
     fields["process_type"] = {
         "value": ("cleaning" if code == "warehouse_cleaning" else "transport")

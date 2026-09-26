@@ -772,9 +772,37 @@ class CapacityZoneContextV1(StrictContractModel):
     constraints_status: Literal["UNVERIFIED"] = "UNVERIFIED"
 
 
+class FacilityAreaValueV1(StrictContractModel):
+    value: DecimalString
+    unit: Literal["m2"] = "m2"
+    source: Literal["USER", "FILE", "ASSUMPTION", "LLM"]
+    confirmed: bool
+
+    @model_validator(mode="after")
+    def validate_value(self) -> "FacilityAreaValueV1":
+        if not 0 < Decimal(self.value) <= 100000000:
+            raise ValueError("facility area must be positive square metres")
+        if not self.confirmed:
+            raise ValueError("facility area must be confirmed")
+        return self
+
+
+class FacilityContextV1(StrictContractModel):
+    schema_version: Literal["facility-context-v1"] = "facility-context-v1"
+    total_area: FacilityAreaValueV1 | None = None
+    active_area: FacilityAreaValueV1 | None = None
+
+    @model_validator(mode="after")
+    def validate_areas(self) -> "FacilityContextV1":
+        if self.total_area and self.active_area and Decimal(self.active_area.value) > Decimal(self.total_area.value):
+            raise ValueError("active area exceeds total area")
+        return self
+
+
 class CapacityAnalysisRequestV3(CapacityAnalysisRequest):
     schema_version: Literal["capacity-analysis-request-v3"] = "capacity-analysis-request-v3"
     zone_context: CapacityZoneContextV1
+    facility_context: FacilityContextV1 | None = None
 
     @model_validator(mode="after")
     def validate_zone(self) -> "CapacityAnalysisRequestV3":
