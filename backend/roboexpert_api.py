@@ -233,12 +233,18 @@ def _llm_summary(comparison: dict[str, Any], *, post: Callable[..., Any] = reque
     body = {"model": f"gpt://{folder}/{MODEL}", "messages": [
         {"role": "system", "content": prompt},
         {"role": "user", "content": json.dumps(facts, ensure_ascii=False, default=str)[:14000]},
-    ], "response_format": {"type": "json_object"}, "max_tokens": 450, "temperature": 0.1, "stream": False}
+    ], "response_format": {"type": "json_schema", "json_schema": {
+        "name": "RoboexpertSummary", "strict": True, "schema": {
+            "type": "object", "properties": {"text": {"type": "string"}},
+            "required": ["text"], "additionalProperties": False,
+        }}}, "max_tokens": 3000, "temperature": 0.1, "stream": False}
     try:
         response = post("https://ai.api.cloud.yandex.net/v1/chat/completions", json=body,
-                        headers={"Authorization": f"Api-Key {key}"}, timeout=30)
+                        headers={"Authorization": f"Api-Key {key}"}, timeout=60)
         response.raise_for_status()
         data = response.json()
+        if data["choices"][0].get("finish_reason") == "length":
+            raise ValueError("model response reached token limit")
         text = json.loads(data["choices"][0]["message"]["content"])["text"]
         if (not isinstance(text, str) or len(text) > 1200
                 or re.search(r"дешевле|прочнее|подходит|рейтинг|балл\s*\d", text, re.IGNORECASE)):

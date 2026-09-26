@@ -81,6 +81,22 @@ class BrainTurn(BaseModel):
     question: TurnQuestion | None = None
 
 
+def _model_response_schema() -> dict[str, Any]:
+    """Make Pydantic's defaults compatible with AI Studio strict JSON Schema."""
+    def require_all(node: Any) -> Any:
+        if isinstance(node, list):
+            return [require_all(item) for item in node]
+        if not isinstance(node, dict):
+            return node
+        result = {key: require_all(value) for key, value in node.items() if key != "default"}
+        if result.get("type") == "object":
+            result["required"] = list(result.get("properties", {}))
+            result["additionalProperties"] = False
+        return result
+
+    return require_all(BrainTurn.model_json_schema())
+
+
 class TurnRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
     expected_version: int = Field(ge=0)
@@ -414,13 +430,15 @@ def _call_model(message: str, profile: dict[str, Any]) -> tuple[BrainTurn, dict[
     body = {"model": f"gpt://{folder}/{MODEL}", "messages": [
         {"role": "system", "content": prompt},
         {"role": "user", "content": json.dumps({"profile": {"fields": bounded_fields, "active_processes": profile["active_processes"][:10]}, "message": message}, ensure_ascii=False)}],
-        "response_format": {"type": "json_schema", "json_schema": {"name": "RobovodAgentTurn", "strict": True, "schema": BrainTurn.model_json_schema()}},
-        "max_tokens": 900, "temperature": 0.1, "stream": False}
+        "response_format": {"type": "json_schema", "json_schema": {"name": "RobovodAgentTurn", "strict": True, "schema": _model_response_schema()}},
+        "max_tokens": 5000, "temperature": 0.1, "stream": False}
     try:
         response = requests.post("https://ai.api.cloud.yandex.net/v1/chat/completions", json=body,
-                                 headers={"Authorization": f"Api-Key {key}"}, timeout=35)
+                                 headers={"Authorization": f"Api-Key {key}"}, timeout=60)
         response.raise_for_status()
         data = response.json()
+        if data["choices"][0].get("finish_reason") == "length":
+            raise ValueError("model response reached token limit")
         turn = BrainTurn.model_validate_json(data["choices"][0]["message"]["content"])
         usage = data.get("usage") or {}
         return turn, {"input": int(usage.get("prompt_tokens", 0)), "output": int(usage.get("completion_tokens", 0))}

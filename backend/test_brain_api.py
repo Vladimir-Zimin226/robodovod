@@ -126,3 +126,36 @@ def test_brain_model_failure_contract(monkeypatch):
     with pytest.raises(HTTPException) as error:
         brain._call_model("hello", {"fields": {}, "active_processes": []})
     assert error.value.status_code == 503
+
+
+def test_brain_request_uses_provider_compatible_strict_schema(monkeypatch):
+    monkeypatch.setenv("YC_API_KEY", "test")
+    monkeypatch.setenv("YC_FOLDER_ID", "test")
+
+    def check_schema(node):
+        if isinstance(node, list):
+            for item in node:
+                check_schema(item)
+        elif isinstance(node, dict):
+            assert "default" not in node
+            if node.get("type") == "object":
+                assert set(node["required"]) == set(node["properties"])
+                assert node["additionalProperties"] is False
+            for item in node.values():
+                check_schema(item)
+
+    def post(_url, *, json, headers, timeout):
+        assert json["model"] == "gpt://test/deepseek-v4-flash"
+        assert json["max_tokens"] >= 3000
+        assert timeout >= 60
+        check_schema(json["response_format"]["json_schema"]["schema"])
+        return SimpleNamespace(raise_for_status=lambda: None, json=lambda: {
+            "choices": [{"finish_reason": "stop", "message": {"content":
+                         '{"message":"Сколько смен?","field_updates":[],"process_updates":[],"next_action":"ask","question":null}'}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 20},
+        })
+
+    monkeypatch.setattr(brain.requests, "post", post)
+    answer, usage = brain._call_model("220 паллет в сутки", {"fields": {}, "active_processes": []})
+    assert answer.next_action == "ask"
+    assert usage == {"input": 10, "output": 20}

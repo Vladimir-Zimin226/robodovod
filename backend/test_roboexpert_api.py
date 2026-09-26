@@ -114,7 +114,12 @@ def test_ai_output_is_limited_and_falls_back_when_it_makes_unsupported_claim(mon
         })
 
     assert _llm_summary(comparison, post=post)["status"] == "UNAVAILABLE"
-    def safe_post(_url, **_kwargs):
+    def safe_post(_url, **kwargs):
+        body = kwargs["json"]
+        schema = body["response_format"]["json_schema"]["schema"]
+        assert schema["required"] == ["text"]
+        assert schema["additionalProperties"] is False
+        assert body["max_tokens"] >= 3000
         return SimpleNamespace(raise_for_status=lambda: None, json=lambda: {
             "choices": [{"message": {"content": json.dumps({"text": "Цена неизвестна; нужны паспорт и проверка объекта."})}}],
             "usage": {"prompt_tokens": 100, "completion_tokens": 20},
