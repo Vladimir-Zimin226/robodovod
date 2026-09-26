@@ -113,7 +113,7 @@ test('create adapter preserves revision and CSRF while the component has no arit
   assert.equal(call.options.headers['X-CSRF-Token'], 'csrf-c12');
   const source = await readFile(new URL('../src/components/CapacityResultsTrace.jsx', import.meta.url), 'utf8');
   assert.match(source, /Участвует в расчёте|participationLabel/);
-  assert.match(source, /не пересчитывает формулы/);
-  assert.match(source, /Технические подробности/);
+  assert.match(source, /Полная трассировка и версии сохранены в архиве расчёта/);
+  assert.doesNotMatch(source, /Технические подробности|model\.runId|model\.revision/);
   assert.doesNotMatch(source, /Math\.|parseFloat|parseInt|Number\(/);
 });

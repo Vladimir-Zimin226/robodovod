@@ -45,7 +45,7 @@ from economics_runtime_migration import (
     verify_snapshot,
 )
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
-from economics_final import execute_economics_v3
+from economics_final import execute_economics_v3, execute_economics_v4
 from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, INPUT_VERSION_V3 as ASSUMPTION_INPUT_VERSION, INPUT_VERSION_V4 as TECHNICAL_INPUT_VERSION, execute_partial_economics_v2
 from persistence_models import (
     AnalysisRun,
@@ -1538,7 +1538,7 @@ def create_persistence_router(
         try:
             execution = (
                 execute_partial_economics_v2(payload.input, catalog_snapshot, capacity_context,
-                                             full_engine=execute_economics_v3)
+                                             full_engine=execute_economics_v4)
                 if partial_input and capacity_context is not None
                 else calculate_economics_v2(payload.input, catalog_snapshot, capacity_context)
                 if capacity_context is not None
@@ -1659,10 +1659,12 @@ def create_persistence_router(
                 execute_partial_economics_v2(
                     envelope["economics"], catalog_snapshot, capacity_context,
                     full_engine=(execute_economics_v2 if run.application_version == "production-economics-orchestrator-v2"
-                                 else execute_economics_v3),
+                                 else execute_economics_v3 if run.application_version == "production-economics-orchestrator-v3"
+                                 else execute_economics_v4),
                 )
                 if envelope["schema_version"] in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5"}
                 else (execute_economics_v2 if run.application_version == "production-economics-orchestrator-v2"
+                      else execute_economics_v3 if run.application_version == "production-economics-orchestrator-v3"
                       else calculate_economics_v2)(envelope["economics"], catalog_snapshot, capacity_context)
             )
         except ValueError:

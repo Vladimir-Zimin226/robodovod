@@ -101,7 +101,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
       </div>
       {simulations.length > 0 && <label className="block text-sm">Сохранённая симуляция для PDF и пакета
         <select value={simulationRequestId} onChange={(event) => setSimulationRequestId(event.target.value)}>
-          {simulations.map((item, index) => <option key={item.id} value={item.id}>Версия {index + 1} · {item.id} · {item.digest?.slice(0, 20)}</option>)}
+          {simulations.map((item, index) => <option key={item.id} value={item.id}>Сохранённая симуляция {index + 1}</option>)}
         </select>
       </label>}
       {manifest && (
@@ -114,10 +114,8 @@ export default function EvidenceExportPanel({ projectId, runId }) {
               </span>
             ))}
           </div>
-          {manifest.schema_version.endsWith('-v4') && <p>Выгрузки PDF/XLSX/CSV относятся к одному сохранённому run. {manifest.simulation_request_id ? `Симуляция: ${manifest.simulation_request_id}.` : 'Сохранённая симуляция пока не выбрана.'}</p>}
-          <details className="mt-2"><summary>Технические подробности</summary>
-            <p>Идентификатор: {manifest.run_id} · ревизия: {manifest.revision_id || 'нет'} · контрольная сумма: {manifest.manifest_digest} · версия представления: {manifest.presentation_version || 'историческая'}</p>
-          </details>
+          {manifest.schema_version.endsWith('-v4') && <p>PDF, XLSX и CSV построены из одного сохранённого результата. {manifest.simulation_request_id ? 'Сохранённая симуляция включена.' : 'Сохранённая симуляция пока не выбрана.'}</p>}
+          <p>Контрольные суммы и версии доступны в архиве ZIP.</p>
         </div>
       )}
       {status === 'downloaded' && <p className="text-xs text-emerald-700">Архив скачан и связан с сохранённым расчётом.</p>}

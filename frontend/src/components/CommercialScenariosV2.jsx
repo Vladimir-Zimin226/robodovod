@@ -16,7 +16,7 @@ const STATUS_LABELS = {
   ALTERNATIVE: 'Альтернатива', NO_POSITIVE_CASE: 'Нет положительного кейса',
 };
 
-export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRunId, onRecalculate, onRestart }) {
+export default function CommercialScenariosV2({ bundle, scenarioSpec, projectName, onRecalculate, onRestart }) {
   const initial = useMemo(() => createCommercialSession(bundle), [bundle]);
   const [session, setSession] = useState(initial);
   const [scenarioKey, setScenarioKey] = useState('PURCHASE:BASE');
@@ -34,8 +34,8 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
         <div>
           <span>ЭКОНОМИКА РОБОТИЗАЦИИ</span>
           <h1>Baseline, покупка и услуга</h1>
+          {projectName && <p>Проект: {projectName}</p>}
           <p>Сохранённые варианты покупки и аренды. Источник — расчёт потребного парка.</p>
-          <details><summary>Технические подробности</summary><p>Расчёт экономики: {bundle.run_id}. Исходный расчёт парка: {capacityRunId || 'не указан'}. Версия ввода: {bundle.input_revision}.</p></details>
           <p>Шесть серверных сценариев. Интерфейс не пересчитывает финансовые показатели.</p>
         </div>
         <div className="commercial-header-actions">
@@ -92,14 +92,12 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
 
           {finalComparison ? <FinalEconomicsComparison comparison={finalComparison} /> : <SensitivityPanel variants={session.result.sensitivity} />}
 
-          <details className="commercial-trace" aria-label="Версии и ограничения"><summary>Технические подробности</summary>
-            <p>Версии и источники сохранённого расчёта.</p>
-            <dl>{Object.entries(session.result.versions).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}</dl>
+          <section className="commercial-trace" aria-label="Ограничения расчёта"><h2>Что нужно проверить</h2>
             <ul>{session.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
-          </details>
+          </section>
 
           {simulationRequest && <div className="commercial-visualization">
-            <p>Покупка и аренда опираются на общий физический профиль PURCHASE/BASE: тот же парк и график. Финансовые варианты неопределённости и ramp не являются отдельными симуляциями. Выбор физической версии ниже меняет только 2D/3D и её отчёт; денежная таблица выше остаётся результатом расчёта {bundle.run_id}.</p>
+            <p>Покупка и аренда опираются на один парк и график. Варианты финансовых условий не создают отдельные симуляции. Выбор симуляции ниже меняет только схему работы и её отчёт; денежная таблица остаётся прежней.</p>
             <p>2D и 3D используют сохранённый технический сценарий. Для симуляции не заданы норматив времени и мощности погрузочных ресурсов; геометрия условная и не является проектом площадки. Отчёт симуляции сохраняется отдельно и связан с этим расчётом.</p>
             <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} analysisRunId={bundle.run_id} />
           </div>}
@@ -122,7 +120,7 @@ function ScenarioDetails({ scenario }) {
           <p>Ставка НДС: {scenario.procurement.vatRate == null ? 'не задана' : scenario.procurement.vatRate}</p>
           <p>Риск поставки: {statusLabel(scenario.procurement.supplyRisk)}</p>
           {scenario.procurement.blockers.length > 0 && <p>Условия поставки требуют уточнения.</p>}
-          <details><summary>Технические подробности</summary>{scenario.procurement.blockers.map((item) => <code key={item}>{item}</code>)}</details>
+          {scenario.procurement.blockers.length > 0 && <p>Требуется уточнить условия поставки.</p>}
         </StatusCard>
         <StatusCard title="Денежный результат" status={scenario.financial.status}>
           <strong>{scenario.financial.npvProject}</strong><span>Чистая приведённая стоимость проекта</span>
@@ -131,7 +129,6 @@ function ScenarioDetails({ scenario }) {
         </StatusCard>
         <StatusCard title="Вывод по сценарию" status={scenario.recommendation.status}>
           <p>{scenario.recommendation.candidate_id ? 'Расчётный вариант выбран' : 'Вариант не выбран'}</p>
-          <details><summary>Технические подробности</summary><p>{scenario.recommendation.candidate_id}</p>{(scenario.recommendation.reason_codes || []).map((item) => <code key={item}>{item}</code>)}</details>
         </StatusCard>
       </div>
 
@@ -152,14 +149,13 @@ function ScenarioDetails({ scenario }) {
         <article>
           <h3>Роли и численность на объекте</h3>
           <div className="commercial-table-wrap"><table><thead><tr><th>Роль</th><th>Сейчас</th><th>Высвобождено</th><th>Остаётся</th></tr></thead><tbody>
-            {allocation.role_conservation.map((role, index) => <tr key={role.role_id}><td>Роль {index + 1}<details><summary>Идентификатор</summary>{role.role_id}</details></td><td>{role.headcount}</td><td>{role.released}</td><td>{role.remaining}</td></tr>)}
+            {allocation.role_conservation.map((role, index) => <tr key={role.role_id}><td>Роль {index + 1}</td><td>{role.headcount}</td><td>{role.released}</td><td>{role.remaining}</td></tr>)}
           </tbody></table></div>
           <p className="commercial-note">Диспетчеры: {allocation.control_required_once} · технические специалисты: {allocation.technicians_required_once}. Учтены в расчёте один раз.</p>
         </article>
         <article>
           <h3>Допущения и источники</h3>
           {scenario.assumptions.map((item) => <details key={item.assumption_id}><summary>{humanizePresentation(item.label)}</summary><p>{item.value} {item.unit}</p><code>{item.provenance_ref}</code></details>)}
-          <details className="commercial-note"><summary>Технические источники</summary>{scenario.sourceRefs.join(', ')}</details>
         </article>
       </div>
     </section>
@@ -174,7 +170,7 @@ function SensitivityPanel({ variants }) {
         <div key={variant.id} className={`direction-${variant.direction.toLowerCase()}`}>
           <span>{fieldPresentation(variant.parameter).label} · {variant.direction === 'UP' ? 'увеличение' : 'уменьшение'}</span>
           <strong>{variant.status === 'BLOCKED' ? 'не рассчитано' : formatServerMoney(variant.deltaNpv, variant.unit)}</strong>
-          <details><summary>Технические причины</summary>{variant.reasons.join(', ')}</details>
+          {variant.status === 'BLOCKED' && <small>Для оценки не хватает подтверждённых данных.</small>}
         </div>
       ))}</div>
     </section>

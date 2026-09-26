@@ -20,7 +20,7 @@ from catalog_runtime import CatalogRuntime, CatalogRuntimeConfigurationError
 from calculation.intake import CalculationIntakeRequestV2, NormalizationResponseV2, normalize_intake
 from calculation.service import analyze_capacity
 from diagnostic_export import record_http_event
-from economics_final import execute_economics_v3
+from economics_final import execute_economics_v4
 from economics_route_activation import resolve_active_economics_version
 from database import get_database
 from economics import (
@@ -914,7 +914,7 @@ app.include_router(
         analyze_capacity_for_catalog=analyze_capacity,
         resolve_economics_catalog=_capacity_snapshot,
         resolve_economics_version=lambda: resolve_active_economics_version(get_database()),
-        calculate_economics_v2=execute_economics_v3,
+        calculate_economics_v2=execute_economics_v4,
         require_economics_capacity_source=True,
     )
 )

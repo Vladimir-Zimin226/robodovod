@@ -31,10 +31,9 @@ export default function SavedEconomicsEditor({ project, run, onComplete, autoOpe
   return <details id="edit-economics-run" open={autoOpen || undefined} className="mx-auto my-6 max-w-6xl rounded-xl border p-4">
     <summary className="cursor-pointer font-semibold">Изменить допущение и создать новый расчёт</summary>
     <p className="text-sm mt-2">Исходный расчёт останется доступен для повторного открытия.</p>
-    <details><summary>Технические подробности</summary><p>Идентификатор исходного расчёта: {run.id}</p></details>
     {confirmedAssumptions.length > 0 && <section className="mt-3 rounded-lg bg-amber-50 p-3 text-sm" aria-label="Подтверждённые допущения сохранённого расчёта">
       <h3 className="font-semibold">Подтверждённые допущения этого расчёта</h3>
-      <ul>{confirmedAssumptions.map(([field, item]) => <li key={field}>{economicsFieldLabel(field)}: {item.confirmed_value} · {item.published_on}. {item.rationale}<details><summary>Технические подробности</summary>{item.template_id || 'изменено пользователем'}</details></li>)}</ul>
+      <ul>{confirmedAssumptions.map(([field, item]) => <li key={field}><strong>{economicsFieldLabel(field)}:</strong> {item.confirmed_value}. {item.rationale} <small>Источник: {item.source || 'подтверждение пользователя'}{item.published_on ? ` · ${item.published_on}` : ''}.</small></li>)}</ul>
     </section>}
     {error && <p role="alert" className="text-red-700">{error}</p>}
     {!capacityRequest && !error && <p>Загружаем проверенный расчёт парка…</p>}

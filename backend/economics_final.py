@@ -269,4 +269,20 @@ def execute_economics_v3(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
     )
 
 
-__all__ = ["PRESENTATION_VERSION", "SENSITIVITY_VERSION", "execute_economics_v3"]
+def execute_economics_v4(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
+                         snapshot: Any, context: EconomicsExecutionContextV1) -> EconomicsV2ExecutionV1:
+    """New runs bind the revised human report without changing financial arithmetic."""
+    previous = execute_economics_v3(raw_inputs, snapshot, context)
+    result = dict(previous.result_snapshot)
+    result["versions"] = {**result["versions"], "orchestrator": "production-economics-orchestrator-v4",
+                          "report_presentation": "result-presentation-v1"}
+    return EconomicsV2ExecutionV1(
+        result_snapshot=result, scenario_spec_snapshot=previous.scenario_spec_snapshot,
+        revision_id=previous.revision_id, rules_version=previous.rules_version,
+        object_profile_version=previous.object_profile_version,
+        application_version="production-economics-orchestrator-v4",
+        diagnostics=previous.diagnostics,
+    )
+
+
+__all__ = ["PRESENTATION_VERSION", "SENSITIVITY_VERSION", "execute_economics_v3", "execute_economics_v4"]

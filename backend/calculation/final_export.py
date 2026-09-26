@@ -42,11 +42,73 @@ SCENARIO_LABELS = {"BASELINE": "Без роботов", "PURCHASE": "Покуп�
 UNCERTAINTY_LABELS = {"BASE": "Базовый", "PESSIMISTIC": "Пессимистичный", "OPTIMISTIC": "Оптимистичный"}
 _FORMULA = re.compile(r"^[\s\x00-\x1f]*[=+\-@]")
 _NUMBER = re.compile(r"^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$")
+REPORT_PRESENTATION_VERSION = "result-presentation-v1"
+INPUT_LABELS = {"demand": "Объём работ", "manual_productivity": "Ручная выработка",
+                "price": "Цена робота", "raas_tariff": "Тариф услуги"}
+SENSITIVITY_LABELS = {"EQUIPMENT_PRICE": "Цена робота", "RAAS_TARIFF": "Тариф услуги",
+                      "OPERATION_VOLUME": "Объём работ", "ROLE_SALARY": "Зарплата роли",
+                      "MANUAL_PRODUCTIVITY": "Ручная выработка"}
+
+
+def _new_presentation(run: EvidenceRunSnapshotV1) -> bool:
+    return (run.versions.get("application") == "production-economics-orchestrator-v4"
+            and run.result_snapshot.get("versions", {}).get("report_presentation") == REPORT_PRESENTATION_VERSION)
+
+
+def _presentation_rows(comparison: dict[str, Any] | None,
+                       result: dict[str, Any] | None = None) -> list[list[str]]:
+    """One read-only table for the new PDF, workbook and CSV views."""
+    if comparison is None:
+        return []
+    rows: list[list[str]] = []
+    for key, item in comparison.get("inputs", {}).items():
+        rows.append(["Исходные данные", "Все сценарии", "", INPUT_LABELS.get(key, "Условие сценария"),
+                     str(item.get("value") if item.get("value") is not None else "нет данных"),
+                     str(item.get("unit") or item.get("currency") or ""),
+                     str(item.get("source_note") or "подтверждённый ввод и сохранённый расчёт")])
+    for scenario in _scenarios(comparison):
+        name = _label(scenario)
+        for key, label in METRICS:
+            metric = _metric(scenario, key)
+            rows.append(["Показатели", name, "", label,
+                         str(metric.get("value") if metric.get("value") is not None else "нет данных"),
+                         str(metric.get("unit") or ""), str(metric.get("basis") or "нет данных")])
+        for flow in scenario.get("annual_cashflows", []):
+            for field, label in (("baseline", "Без роботов"), ("scenario", "Сценарий"), ("effect", "Изменение")):
+                rows.append(["Денежные потоки", name, str(flow.get("year") or ""), label,
+                             str(flow.get(field) if flow.get(field) is not None else "нет данных"),
+                             "RUB", "сохранённый денежный расчёт"])
+        for line in scenario.get("capital_lines", []):
+            rows.append(["Статьи CAPEX", name, "", str(line.get("label") or "Статья вложений").replace("_", " "),
+                         str(line.get("amount") if line.get("amount") is not None else "нет данных"),
+                         str(line.get("unit") or "RUB"), str(line.get("basis") or "нет данных")])
+        detail = next((item for item in (result or {}).get("scenarios", [])
+                       if item.get("acquisition") == scenario["acquisition"]
+                       and item.get("uncertainty") == scenario["uncertainty"]), None)
+        for line in (detail or {}).get("expenses", []):
+            rows.append(["Расходы по статьям", name, "", str(line.get("label") or "Статья расходов"),
+                         str(line.get("amount") if line.get("amount") is not None else "нет данных"),
+                         "RUB", "сохранённая ведомость расходов"])
+        for variant in comparison.get("sensitivity", {}).get("by_scenario", {}).get(scenario["scenario_id"], []):
+            rows.append(["Чувствительность", name, "", f"{SENSITIVITY_LABELS.get(variant.get('parameter'), 'Условие')} {'−10%' if variant.get('direction') == 'LOWER' else '+10%'}",
+                         str(variant.get("delta_npv") if variant.get("delta_npv") is not None else "нет данных"),
+                         "RUB", str(variant.get("reason") or "повторный сохранённый расчёт")])
+    for item in comparison.get("limitations", []):
+        rows.append(["Ограничения", "Все сценарии", "", str(item), "", "", "сохранённый результат"])
+    return rows
 
 
 def _safe(value: Any) -> str:
     value = "" if value is None else str(value)
     return "'" + value if _FORMULA.match(value) and not _NUMBER.fullmatch(value) else value
+
+
+def _display(value: str, unit: str) -> str:
+    if _NUMBER.fullmatch(value):
+        number = Decimal(value)
+        grouped = f"{number:,.2f}" if "." in value else f"{number:,}"
+        value = grouped.replace(",", " ")
+    return f"{value} {unit.replace('RUB', '₽')}".strip()
 
 
 def _comparison(run: EvidenceRunSnapshotV1) -> dict[str, Any] | None:
@@ -115,6 +177,10 @@ def comparison_csv(run: EvidenceRunSnapshotV1, comparison: dict[str, Any] | None
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer, delimiter=";", lineterminator="\r\n")
     writer.writerows([[_safe(value) for value in row] for row in _csv_rows(run, comparison)])
+    if _new_presentation(run):
+        writer.writerow([])
+        writer.writerow(["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"])
+        writer.writerows([[_safe(value) for value in row] for row in _presentation_rows(comparison, run.result_snapshot)])
     return buffer.getvalue().encode("utf-8-sig")
 
 
@@ -143,6 +209,8 @@ def comparison_xlsx(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapshotV1 | 
     book.properties.modified = datetime(1980, 1, 1)
     csv_rows = _csv_rows(run, comparison)
     _sheet(book, "Итог", csv_rows[0], csv_rows[1:])
+    if _new_presentation(run):
+        _sheet(book, "Обзор", ["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"], _presentation_rows(comparison, run.result_snapshot))
     inputs = (comparison or {}).get("inputs", {})
     input_rows = [[name, item.get("value"), item.get("unit") or item.get("currency"),
                    item.get("tax_basis"), item.get("vat_rate"), item.get("source_ref"), item.get("source_note")]
@@ -245,6 +313,25 @@ def visualization_svg(simulation: StoredSimulationEvidence) -> bytes:
 def final_pdf(run: EvidenceRunSnapshotV1, previous_pdf: bytes,
               comparison: dict[str, Any] | None,
               simulation: StoredSimulationEvidence | None) -> bytes:
+    if _new_presentation(run):
+        lines: list[tuple[str, str]] = [
+            ("РОБОДОВОД", "brand"), ("Экономика роботизации", "title"),
+            (f"Сохранённый расчёт от {run.finished_at:%d.%m.%Y}", "subtitle"),
+            ("Предварительная оценка. Цену, комплектацию и условия объекта следует подтвердить.", "cover"),
+            ("", "page"),
+        ]
+        current = None
+        for section, scenario, year, label, value, unit, source in _presentation_rows(comparison, run.result_snapshot):
+            heading = f"{section} · {scenario}"
+            if heading != current:
+                lines.append((heading, "section"))
+                current = heading
+            lines.append((f"{f'Год {year}: ' if year else ''}{label}: {_display(value, unit)}. Основание: {source}.", "body"))
+        if simulation:
+            lines.append(("Сохранённая симуляция", "section"))
+            lines.append(("Симуляция связана с этим расчётом; схема условная и не является планом объекта.", "body"))
+        lines.append(("Контрольные суммы и полная трассировка находятся в архиве ZIP.", "note"))
+        return _pdf(lines)
     lines: list[tuple[str, str]] = [("Полное сравнение экономики F5", "section")]
     if comparison is None:
         lines.append(("Полная таблица baseline, покупки и услуги не сохранена в этой версии. Для неё нужен новый run.", "body"))
@@ -329,6 +416,8 @@ def build_final_export(run: EvidenceRunSnapshotV1,
     files["НАЧНИТЕ_ЗДЕСЬ.md"] += ("\n## Полная таблица F5\n\nОткройте Результат.xlsx или Сравнение.csv. "
         "Денежные значения взяты из сохранённого run; строка NOT_SAVED не является нулём. "
         "Схема_2D.svg и Связь_сценария.json связаны с выбранным сохранённым C23.\n").encode()
+    if _new_presentation(run):
+        files["НАЧНИТЕ_ЗДЕСЬ.md"] += ("Новый отчёт содержит единый обзор: PDF «Таблицы сохранённого результата», лист «Обзор» XLSX и подробная часть CSV.\n").encode()
     def media(name: str) -> str:
         return ("application/pdf" if name.endswith(".pdf") else
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if name.endswith(".xlsx") else

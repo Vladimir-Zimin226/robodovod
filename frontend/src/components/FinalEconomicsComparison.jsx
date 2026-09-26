@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { humanizePresentation } from '../presentation';
 
 const METRICS = [
   ['capex', 'CAPEX'], ['opex_year_1', 'Затраты за год 1'],
@@ -15,7 +16,13 @@ const PARAMETERS = {
   OPERATION_VOLUME: 'Объём работ', ROLE_SALARY: 'Зарплата роли',
   MANUAL_PRODUCTIVITY: 'Ручная выработка',
 };
-const value = (metric) => metric?.status === 'COMPLETE' ? `${metric.value} ${metric.unit}`
+const amount = (raw, unit) => {
+  if (raw == null || raw === '') return 'нет данных';
+  const numeric = Number(raw);
+  const display = Number.isFinite(numeric) ? new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(numeric) : raw;
+  return `${display} ${{ RUB: '₽', 'RUB/year': '₽/год', PERCENT: '%', YEAR: 'лет' }[unit] || unit || ''}`.trim();
+};
+const value = (metric) => metric?.status === 'COMPLETE' ? amount(metric.value, metric.unit)
   : metric?.status === 'N_A' ? `Н/П: ${metric.reason || 'не применяется'}`
     : metric?.status === 'NOT_REACHED' ? 'Не достигнут за горизонт'
       : `Не сохранено${metric?.reason ? `: ${metric.reason}` : ''}`;
@@ -29,13 +36,20 @@ export default function FinalEconomicsComparison({ comparison }) {
   const active = [comparison.baseline, ...comparison.scenarios].find((item) => item.scenario_id === selected) || baseRows[1];
   const variants = comparison.sensitivity?.by_scenario?.[active.scenario_id] || [];
   return <section className="commercial-details" aria-label="Полное сравнение экономики">
-    <div className="commercial-section-title"><div><span>05</span><h2>Baseline, покупка и услуга</h2></div><p>Один сохранённый run · горизонт {comparison.horizon_years} лет · валюта {comparison.currency}</p></div>
+    <div className="commercial-section-title"><div><span>05</span><h2>Без роботов, покупка и услуга</h2></div><p>Горизонт {comparison.horizon_years} лет · суммы в рублях</p></div>
     <div className="commercial-table-wrap"><table><thead><tr><th>Показатель</th>{baseRows.map((item) => <th key={item.scenario_id}>{NAMES[item.acquisition]}</th>)}</tr></thead>
       <tbody>{METRICS.map(([key, label]) => <tr key={key}><th>{label}</th>{baseRows.map((item) => {
         const metric = item.metrics[key];
-        return <td key={item.scenario_id}>{value(metric)}<details><summary>База и источник</summary><p>{metric?.basis}</p><code>{metric?.source_ref}</code></details></td>;
+        return <td key={item.scenario_id}>{value(metric)}<small className="block">{humanizePresentation(metric?.basis || 'Источник не сохранён')}</small></td>;
       })}</tr>)}</tbody></table></div>
     <p>ROI имеет базу вложений CAPEX; при нулевом CAPEX он не определён. TCO показывает затраты за горизонт, NPV — дисконтированный эффект; эти показатели имеют разные базы.</p>
+    <div className="commercial-table-wrap"><table><thead><tr><th>Год</th>{baseRows.map((item) => <th key={item.scenario_id}>{NAMES[item.acquisition]}</th>)}</tr></thead><tbody>
+      {baseRows[0].annual_cashflows.map((flow) => <tr key={flow.year}><th>{flow.year}</th>{baseRows.map((item) => <td key={item.scenario_id}>{amount(item.annual_cashflows.find((row) => row.year === flow.year)?.scenario, 'RUB')}</td>)}</tr>)}
+    </tbody></table></div>
+    <h3>Разовые вложения по статьям</h3>
+    <div className="commercial-table-wrap"><table><thead><tr><th>Вариант</th><th>Статья</th><th>Сумма</th><th>Основание</th></tr></thead><tbody>
+      {baseRows.flatMap((item) => item.capital_lines.map((line, index) => <tr key={`${item.scenario_id}:${index}`}><td>{NAMES[item.acquisition]}</td><td>{humanizePresentation(line.label)}</td><td>{amount(line.amount, line.unit)}</td><td>{humanizePresentation(line.basis)}</td></tr>))}
+    </tbody></table></div>
     <details className="commercial-trace"><summary>Варианты неопределённости</summary>
       <div className="commercial-table-wrap"><table><thead><tr><th>Сценарий</th><th>Профиль</th><th>ROI на CAPEX</th><th>TCO</th><th>NPV</th></tr></thead>
         <tbody>{comparison.scenarios.map((item) => <tr key={item.scenario_id}><td>{NAMES[item.acquisition]}</td><td>{UNCERTAINTY[item.uncertainty]}</td><td>{value(item.metrics.roi)}</td><td>{value(item.metrics.tco)}</td><td>{value(item.metrics.npv)}</td></tr>)}</tbody></table></div>
@@ -45,7 +59,7 @@ export default function FinalEconomicsComparison({ comparison }) {
       {[comparison.baseline, ...comparison.scenarios].map((item) => <option key={item.scenario_id} value={item.scenario_id}>{NAMES[item.acquisition]} · {UNCERTAINTY[item.uncertainty]}</option>)}
     </select></label>
     <div className="commercial-table-wrap"><table><thead><tr><th>Параметр</th><th>Вариант</th><th>Исходное значение</th><th>±10%</th><th>Изменение NPV</th><th>Источник</th></tr></thead>
-      <tbody>{variants.map((item) => <tr key={`${item.parameter}:${item.direction}`}><td>{PARAMETERS[item.parameter] || item.parameter}</td><td>{item.direction === 'LOWER' ? '−10%' : '+10%'}</td><td>{item.base_value ?? 'Н/П'} {item.unit}</td><td>{item.variant_value ?? 'Н/П'} {item.unit}</td><td>{item.status === 'COMPLETE' ? `${item.delta_npv} RUB` : `Не рассчитано: ${item.reason || ''}`}</td><td><code>{item.source_ref}</code></td></tr>)}</tbody></table></div>
+      <tbody>{variants.map((item) => <tr key={`${item.parameter}:${item.direction}`}><td>{PARAMETERS[item.parameter] || 'Условие сценария'}</td><td>{item.direction === 'LOWER' ? '−10%' : '+10%'}</td><td>{amount(item.base_value, item.unit)}</td><td>{amount(item.variant_value, item.unit)}</td><td>{item.status === 'COMPLETE' ? amount(item.delta_npv, 'RUB') : `Не рассчитано: ${item.reason || ''}`}</td><td>Сохранённый расчёт</td></tr>)}</tbody></table></div>
     <p>Неподтверждённая цена и характеристики модели остаются предварительными условиями; таблица не является рекомендацией к закупке.</p>
   </section>;
 }

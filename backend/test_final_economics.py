@@ -19,7 +19,7 @@ from calculation.scheduling import (
 )
 from calculation.service import analyze_capacity
 from calculation_contracts import parse_capacity_analysis_request, semantic_digest
-from economics_final import execute_economics_v3
+from economics_final import execute_economics_v3, execute_economics_v4
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
 from openpyxl import load_workbook
 from pypdf import PdfReader
@@ -31,7 +31,7 @@ from scripts.build_f5_contracts import ROOT, expected_outputs
 
 
 def _run(price: str | None = None, source: str | None = None,
-         demand: str = "1000"):
+         demand: str = "1000", *, presentation_v4: bool = False):
     run, linked = _full_runs()
     linked = linked.model_copy(update={"run_id": "00000000-0000-4000-8000-000000000025"})
     snapshot = _snapshot()
@@ -51,7 +51,7 @@ def _run(price: str | None = None, source: str | None = None,
     if price is not None:
         inputs["purchase_price_override_gross"] = price
         inputs["purchase_price_source"] = source
-    execution = execute_economics_v3(inputs, snapshot, context)
+    execution = (execute_economics_v4 if presentation_v4 else execute_economics_v3)(inputs, snapshot, context)
     raw = run.model_dump(mode="json")
     raw["input_snapshot"] = {"capacity_run_id": linked.run_id, "economics": inputs}
     raw["result_snapshot"] = execution.result_snapshot
@@ -66,6 +66,32 @@ def _run(price: str | None = None, source: str | None = None,
     linked_raw["checksums"]["input"] = semantic_digest(linked_raw["input_snapshot"]).removeprefix("sha256:")
     linked_raw["checksums"]["result"] = semantic_digest(linked_raw["result_snapshot"]).removeprefix("sha256:")
     return EvidenceRunSnapshotV1.model_validate(raw), EvidenceRunSnapshotV1.model_validate(linked_raw), execution
+
+
+def test_u4_new_presentation_matches_saved_values_across_pdf_csv_xlsx_zip():
+    for demand in ("220", "1000"):
+        old, linked, _ = _run(demand=demand)
+        new, _, execution = _run(demand=demand, presentation_v4=True)
+        assert execution.application_version == "production-economics-orchestrator-v4"
+        assert new.result_snapshot["comparison"] == old.result_snapshot["comparison"]
+        old_archive = build_final_export(old, linked).archive
+        package = build_final_export(new, linked)
+        assert build_final_export(old, linked).archive == old_archive
+        assert "Обзор" not in load_workbook(io.BytesIO(build_final_export(old, linked).files["Результат.xlsx"]), read_only=True).sheetnames
+        workbook = load_workbook(io.BytesIO(package.files["Результат.xlsx"]), read_only=True, data_only=True)
+        rows = list(workbook["Обзор"].values)
+        csv_text = package.files["Сравнение.csv"].decode("utf-8-sig")
+        pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(package.files["Отчёт_Рободовод.pdf"])).pages)
+        assert rows[0] == ("Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база")
+        saved = new.result_snapshot["comparison"]
+        purchase = next(item for item in saved["scenarios"] if item["scenario_id"] == "scenario.purchase.base")
+        for value in (purchase["metrics"]["npv"]["value"], purchase["annual_cashflows"][0]["scenario"], purchase["capital_lines"][0]["amount"]):
+            grouped = (f"{float(value):,.2f}" if "." in value else f"{int(value):,}").replace(",", " ")
+            assert value in csv_text and grouped in pdf_text and any(value in row for row in rows[1:])
+        assert "Денежные потоки" in csv_text and "Статьи CAPEX" in pdf_text
+        with zipfile.ZipFile(io.BytesIO(package.archive)) as archive:
+            assert archive.read("Результат.xlsx") == package.files["Результат.xlsx"]
+            assert archive.read("Сравнение.csv") == package.files["Сравнение.csv"]
 
 
 def test_f5_run_has_three_base_scenarios_and_per_scenario_sensitivity():

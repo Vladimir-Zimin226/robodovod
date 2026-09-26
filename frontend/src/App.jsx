@@ -418,7 +418,7 @@ export default function App() {
               }} />
             ) : isCommercialScenariosBundle(result) ? (
               <>
-                <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={() => {
+                <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} projectName={activeProject?.name} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={() => {
                   if (activeRun?.id) { setEditorRequestedRunId(activeRun.id); requestAnimationFrame(() => document.getElementById('edit-economics-run')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }
                   else openCalculation();
                 }} />

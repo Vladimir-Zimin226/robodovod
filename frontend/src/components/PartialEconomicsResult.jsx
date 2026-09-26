@@ -17,7 +17,6 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
       <h2 className="text-xl font-semibold">Сохранён частичный расчёт</h2>
       <p>Неизвестные суммы и денежный эффект отмечены «не рассчитано». Расчёт потребного парка сохранён отдельно.</p>
       <p className="text-sm">{savedCalculationLabel(run?.finished_at || run?.created_at)}</p>
-      <details><summary>Технические подробности</summary><p>Расчёт экономики: {run?.id || result.run_id}. Исходный расчёт парка: {result.capacity_run_id || 'не указан'}.</p></details>
       <div className="mt-3 grid gap-3 md:grid-cols-2">{BRANCHES.map(([key, label]) => {
         const branch = branches[key] || {};
         return <article key={key} className="rounded border p-3">
