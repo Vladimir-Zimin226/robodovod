@@ -1,0 +1,33 @@
+{
+  "mode": "local disposable PostgreSQL; 50 registered users, one project each",
+  "configuration": "Windows local PostgreSQL 17 / FastAPI uvicorn one worker / no YC",
+  "user_count": 50,
+  "rounds": 2,
+  "http_request_count": 300,
+  "concurrency": 50,
+  "registration_and_project_creation_excluded_from_timed_window": true,
+  "reused_prepared_users": true,
+  "elapsed_s": 7.83,
+  "paths": {
+    "/api/catalog/defaults": {
+      "count": 100,
+      "median_ms": 396.75,
+      "p95_ms": 2693.06,
+      "max_ms": 3090.06
+    },
+    "/api/catalog/models": {
+      "count": 100,
+      "median_ms": 1476.14,
+      "p95_ms": 3678.65,
+      "max_ms": 3695.29
+    },
+    "/api/projects": {
+      "count": 100,
+      "median_ms": 796.66,
+      "p95_ms": 2347.51,
+      "max_ms": 2885.12
+    }
+  },
+  "target_p95_ms": 1000,
+  "target_met": false
+}

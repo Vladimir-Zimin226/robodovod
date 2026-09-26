@@ -467,7 +467,7 @@
   "examples": {
     "financial_trace_digest": "sha256:c20901215088445d80d7c1ee1cc0457249b538116bcdbfa972b8e30596058568",
     "raas_trace_digest": "sha256:b1acb521c49881b5af3ecc5dd7d5c5e448f01d6b345ebeeb1e1d578a090acbf8",
-    "warehouse_economics_result_digest": "sha256:0bfa1c53c0c343acc557950fc4177a91753b82879605f1800ffc28faf4676f7f"
+    "warehouse_economics_result_digest": "sha256:1817b792b1e1ed19d1294dece563440b3bd88cbbcc06d9798cb8953698447b33"
   },
   "schema_version": "economics-glossary-v1",
   "source_bindings": {

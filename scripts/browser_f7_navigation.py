@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import subprocess
 import tempfile
 import time
@@ -13,9 +14,9 @@ import requests
 import websocket
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs" / "planning" / "assets" / "f7"
+OUT = Path(os.environ.get("F7_BROWSER_OUT", str(ROOT / "docs" / "planning" / "assets" / "f7")))
 OUT.mkdir(parents=True, exist_ok=True)
-WEB = "http://127.0.0.1:5177"
+WEB = os.environ.get("F7_BROWSER_WEB", "http://127.0.0.1:5177")
 BROWSERS = {
     "chrome": Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
     "edge": Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),

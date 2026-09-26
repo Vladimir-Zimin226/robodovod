@@ -1,5 +1,11 @@
 # RobCo — API & Data Contracts v0.2
 
+**Актуализация 27.09.2026:** ниже исторический проект API, не действующий
+контракт `/api/v1`. Текущий FastAPI контракт доступен через `/openapi.json`
+и `/docs`; основные группы `/api/auth`, `/api/projects`, `/api/catalog`,
+`/api/admin/catalog`, `/api/brain`, `/api/v2` описаны в
+[комплекте финального выпуска](FINAL_DELIVERY_2026-09-27.md).
+
 Base: `/api/v1`  
 JSON: `snake_case`  
 Units: SI + explicit unit fields  

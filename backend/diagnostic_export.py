@@ -22,6 +22,7 @@ from typing import Any
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+import admin_catalog_models  # noqa: F401 -- register mappings on shared metadata
 import catalog_models  # noqa: F401 -- register mappings on shared metadata
 import persistence_models  # noqa: F401 -- register mappings on shared metadata
 from storage_models import Base
@@ -42,6 +43,7 @@ TABLE_NAMES = (
     "audit_entries",
     "project_deletion_jobs",
     "catalog_versions",
+    "admin_catalog_documents",
     "source_artifacts",
     "catalog_version_sources",
     "import_runs",

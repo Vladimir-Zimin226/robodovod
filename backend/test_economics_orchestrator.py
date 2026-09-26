@@ -321,12 +321,18 @@ def test_production_orchestrator_uses_capacity_and_catalog_without_fixture_bundl
             for item in bundle["scenarios"]
         ],
     }
-    assert projection == json.loads(
+    historical = json.loads(
         (
             Path(__file__).resolve().parents[1]
             / "contracts/fixtures/production-economics-orchestrator-v2.golden.json"
         ).read_text(encoding="utf-8")
     )
+    digest_keys = {"execution_digest", "result_digest", "scenario_spec_digest"}
+    assert {key: value for key, value in projection.items() if key not in digest_keys} == {
+        key: value for key, value in historical.items() if key not in digest_keys
+    }
+    assert projection == json.loads((Path(__file__).resolve().parents[1]
+        / "contracts/fixtures/production-economics-orchestrator-current-2026-09-27.golden.json").read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("daily_demand,shift_hours,start_seconds,expected_windows", [

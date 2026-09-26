@@ -73,10 +73,13 @@ Edge на desktop/mobile прошли прямые ссылки, Back/reload, в
 в production build. Frontend 135 тестов, lint/build прошли. История runs и
 simulation artifacts не менялась, production не обновлялся.
 [Отчёт F7 и свидетельства](planning/final-product-remediation-f7-2026-09-27.md).
-Следующий этап — **F8** [плана финальных доработок](planning/final-product-remediation-2026-09-26.md),
-только после следующего сообщения пользователя.
+**F8 начат:** подготовлены DOCX/PPTX/OpenAPI/sample package, локальные
+PostgreSQL и нагрузочные проверки; [отчёт и открытые gates](planning/final-product-remediation-f8-2026-09-27.md).
+[План](planning/final-product-remediation-2026-09-26.md) остаётся критерием
+финальной приёмки.
 [Полная матрица соответствия и доказательства](planning/final-tz-compliance-audit-2026-09-26.md).
-F8 не начат. Исторические runs/снимки/артефакты сохраняются; серверные бекапы
+F8 не принят: frontend/browser/production gates, demo-доступы и pinned release
+ещё открыты. Исторические runs/снимки/артефакты сохраняются; серверные бекапы
 не требовать, серверные команды — Windows CMD. Ниже сохранена история
 предыдущих выпусков; её старые release статусы не заменяют этот абзац.
 

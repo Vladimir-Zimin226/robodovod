@@ -1,0 +1,52 @@
+[
+  {
+    "name": "fastapi",
+    "installed_version": "0.115.12",
+    "license": "see distribution license files"
+  },
+  {
+    "name": "pydantic",
+    "installed_version": "2.11.4",
+    "license": "MIT"
+  },
+  {
+    "name": "SQLAlchemy",
+    "installed_version": "2.0.40",
+    "license": "MIT"
+  },
+  {
+    "name": "alembic",
+    "installed_version": "1.19.1",
+    "license": "MIT"
+  },
+  {
+    "name": "requests",
+    "installed_version": "2.32.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "psycopg",
+    "installed_version": "3.3.4",
+    "license": "LGPL-3.0-only"
+  },
+  {
+    "name": "argon2-cffi",
+    "installed_version": "23.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "pypdf",
+    "installed_version": "5.5.0",
+    "license": "see distribution license files"
+  },
+  {
+    "name": "Pillow",
+    "installed_version": "11.2.1",
+    "license": "MIT-CMU"
+  },
+  {
+    "name": "openpyxl",
+    "installed_version": "3.1.5",
+    "license": "MIT"
+  }
+]

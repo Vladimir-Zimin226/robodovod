@@ -1,0 +1,18 @@
+{
+  "source": "retained local disposable DB and tracked sample files",
+  "rows": {
+    "analysis_runs": {
+      "count": 141,
+      "sha256": "8ed7c0164a945d3aad4f84fe80a49810b5974273632b71915b3df514cc29e709"
+    },
+    "simulation_artifacts": {
+      "count": 44,
+      "sha256": "2bc4bb768fb223e51bbcfbdaf1b41c6573d789e3725022d165344ba1b115e787"
+    }
+  },
+  "files": {
+    "docs/planning/assets/f5/sample-220-pallets-120m.zip": "4e7c1ef6852d08522c1c0a88c3557d68e7b69c4181187205368ee8e977a1e169",
+    "frontend/public/demo/warehouse-pallet-v1/evidence.zip": "f528c02127e4ded0cff350680e232850aa846bd693eb3272489a05215bc12f2b",
+    "contracts/fixtures/production-economics-orchestrator-v2.golden.json": "062b76084acbf7e02ddbd997ecafdea6a755538a1e1527132959ff790ccbb8fb"
+  }
+}

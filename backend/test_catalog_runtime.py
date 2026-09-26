@@ -62,6 +62,40 @@ def test_runtime_uses_activated_slot_without_feature_flag(monkeypatch):
     assert snapshot.version.code == "catalog-ready-v1"
 
 
+def test_discovery_cache_refreshes_on_activation_and_database_change(monkeypatch):
+    database = object()
+    identity = ["catalog-ready-v1", "activation-1", "digest-1"]
+    loads = []
+
+    class Active:
+        def __init__(self, _database, slot):
+            assert slot == "discovery"
+
+        def active_identity(self):
+            return tuple(identity)
+
+    class Published:
+        def __init__(self, _database, code):
+            self.code = code
+
+        def load(self):
+            loads.append(self.code)
+            return _snapshot(populated=True)
+
+    monkeypatch.setattr(catalog_runtime, "ActivatedCatalogRepository", Active)
+    monkeypatch.setattr(catalog_runtime, "PostgresCatalogRepository", Published)
+    current_database = [database]
+    runtime = CatalogRuntime(lambda: current_database[0])
+    assert runtime.load_discovery() is runtime.load_discovery()
+    assert loads == ["catalog-ready-v1"]
+    identity[:] = ["catalog-ready-v2", "activation-2", "digest-2"]
+    runtime.load_discovery()
+    assert loads == ["catalog-ready-v1", "catalog-ready-v2"]
+    current_database[0] = object()
+    runtime.load_discovery()
+    assert loads == ["catalog-ready-v1", "catalog-ready-v2", "catalog-ready-v2"]
+
+
 def test_activated_runtime_fails_closed_without_models(monkeypatch):
     empty = CatalogSnapshotDTO(
         version=CatalogVersionDTO(

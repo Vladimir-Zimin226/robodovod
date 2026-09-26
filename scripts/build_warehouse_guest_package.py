@@ -23,9 +23,9 @@ from calculation_contracts import semantic_digest  # noqa: E402
 from build_warehouse_guest_demo import build_capture  # noqa: E402
 from presentation import field as presentation_field, status as presentation_status  # noqa: E402
 
-VERSION = "warehouse-pallet-demo-v1"
-FRONTEND = ROOT / "frontend/src/warehouseGuestPackage.json"
-PUBLIC = ROOT / "frontend/public/demo/warehouse-pallet-v1"
+VERSION = "warehouse-pallet-demo-v2"
+FRONTEND = ROOT / "frontend/src/warehouseGuestPackageV2.json"
+PUBLIC = ROOT / "frontend/public/demo/warehouse-pallet-v2"
 ARCHIVE_DATE = (2026, 9, 25, 0, 0, 0)
 CHAIN = [
     {"operation": "Перевозка подготовленных паллет", "role": "Водитель погрузчика", "status": "MODELED"},

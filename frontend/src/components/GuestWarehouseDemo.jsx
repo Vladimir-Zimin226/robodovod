@@ -1,4 +1,4 @@
-import packageData from '../warehouseGuestPackage.json' with { type: 'json' };
+import packageData from '../warehouseGuestPackageV2.json' with { type: 'json' };
 import { formatServerMoney } from '../commercialScenariosModel';
 import { formatServerQuantity } from '../capacityResultsModel';
 import { formatFleet } from '../displayNumber';
@@ -7,7 +7,7 @@ import Simulation2DReport from './Simulation2DReport';
 
 const acquisitionLabel = { PURCHASE: 'Покупка', RAAS: 'Аренда роботов' };
 const uncertaintyLabel = { PESSIMISTIC: 'Пессимистичный', BASE: 'Базовый', OPTIMISTIC: 'Оптимистичный' };
-const assetRoot = '/demo/warehouse-pallet-v1';
+const assetRoot = '/demo/warehouse-pallet-v2';
 
 export default function GuestWarehouseDemo({ onContinue, onBack }) {
   const { demo, assumptions, simulation, chain, limitations, bindings, provenance } = packageData;

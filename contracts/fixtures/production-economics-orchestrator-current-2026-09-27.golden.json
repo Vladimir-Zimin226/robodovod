@@ -1,0 +1,102 @@
+{
+  "schema_version": "production-economics-orchestrator-acceptance-v2",
+  "execution_digest": "sha256:5697116056b83b7e0546167fae322c6d75a7fe9c485658d42006a33e32c63d59",
+  "result_digest": "sha256:0578a7ccc5a7122821751a096b0428390133771a98d2972ce8d1a7794388f728",
+  "scenario_spec_digest": "sha256:2f0bffc3fde409adc001f3183b4014d49f6b07691b7e72b53dae9f0dc5bb8e71",
+  "application_version": "production-economics-orchestrator-v2",
+  "rules_version": "calculation-rules-c13-c21-v1",
+  "scenario_keys": [
+    "PURCHASE:PESSIMISTIC",
+    "PURCHASE:BASE",
+    "PURCHASE:OPTIMISTIC",
+    "RAAS:PESSIMISTIC",
+    "RAAS:BASE",
+    "RAAS:OPTIMISTIC"
+  ],
+  "procurement_statuses": [
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED",
+    "UNVERIFIED"
+  ],
+  "recommendation_statuses": [
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE",
+    "ALTERNATIVE"
+  ],
+  "sensitivity": [
+    {
+      "variant_id": "variant.equipment_price.lower",
+      "status": "COMPLETE",
+      "delta_value": "3672089.97"
+    },
+    {
+      "variant_id": "variant.equipment_price.upper",
+      "status": "COMPLETE",
+      "delta_value": "-3672089.97"
+    },
+    {
+      "variant_id": "variant.operation_volume.lower",
+      "status": "COMPLETE",
+      "delta_value": "4165829.74"
+    },
+    {
+      "variant_id": "variant.operation_volume.upper",
+      "status": "COMPLETE",
+      "delta_value": "-4165829.73"
+    },
+    {
+      "variant_id": "variant.role_salary.lower",
+      "status": "COMPLETE",
+      "delta_value": "-7816124.90"
+    },
+    {
+      "variant_id": "variant.role_salary.upper",
+      "status": "COMPLETE",
+      "delta_value": "7816124.91"
+    }
+  ],
+  "limitations": [
+    "Это предварительный расчёт, не коммерческое предложение и не рекомендация к закупке.",
+    "Цена организаторов и пользовательские условия не подтверждают availability или procurement readiness.",
+    "Авторский demo-профиль не является техпаспортом; C05 NEEDS_VALIDATION сохраняется.",
+    "Нулевые и включённые статьи приняты только по явным подтверждениям этого run."
+  ],
+  "scenario_financials": [
+    {
+      "scenario_id": "scenario.purchase.pessimistic",
+      "npv": "27575123.02",
+      "payback": "2.79"
+    },
+    {
+      "scenario_id": "scenario.purchase.base",
+      "npv": "51307863.76",
+      "payback": "2.01"
+    },
+    {
+      "scenario_id": "scenario.purchase.optimistic",
+      "npv": "70456659.19",
+      "payback": "1.51"
+    },
+    {
+      "scenario_id": "scenario.raas.pessimistic",
+      "npv": "3367105.54",
+      "payback": "0.00"
+    },
+    {
+      "scenario_id": "scenario.raas.base",
+      "npv": "21069820.68",
+      "payback": "0.00"
+    },
+    {
+      "scenario_id": "scenario.raas.optimistic",
+      "npv": "37690077.93",
+      "payback": "0.00"
+    }
+  ]
+}

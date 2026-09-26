@@ -23,6 +23,7 @@ from database import dispose_database, get_database
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.engine import make_url
 from test_persistence_integration import _create_project, _register
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,9 +33,10 @@ pytestmark = pytest.mark.skipif(not URL, reason="requires disposable TEST_DATABA
 
 @pytest.fixture(scope="module", autouse=True)
 def storage():
-    assert "127.0.0.1:5541/f1_tests" in URL, (
-        "only the local disposable f1_tests DB is permitted"
-    )
+    target = make_url(URL)
+    assert target.host in {"127.0.0.1", "localhost"} and target.database in {
+        "f1_tests", "f6_acceptance", "f8_acceptance",
+    }, "only explicitly named local disposable test databases are permitted"
     patch = pytest.MonkeyPatch()
     patch.setenv("DATABASE_URL", URL)
     patch.setenv("SESSION_COOKIE_SECURE", "false")

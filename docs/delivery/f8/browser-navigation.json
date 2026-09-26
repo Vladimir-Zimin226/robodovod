@@ -1,0 +1,27 @@
+{
+  "mode": "synthetic API; production Vite build",
+  "assets_http_200": [
+    "favicon.svg",
+    "favicon-32.png",
+    "favicon.ico"
+  ],
+  "theme_color": "#0a1217",
+  "results": [
+    {
+      "browser": "chrome",
+      "direct_link": true,
+      "back": true,
+      "reload": true,
+      "project_restored": true,
+      "admin_denied_explained": true
+    },
+    {
+      "browser": "edge",
+      "direct_link": true,
+      "back": true,
+      "reload": true,
+      "project_restored": true,
+      "admin_denied_explained": true
+    }
+  ]
+}

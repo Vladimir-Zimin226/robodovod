@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import demo from '../src/warehouseGuestDemo.json' with { type: 'json' };
-import guestPackage from '../src/warehouseGuestPackage.json' with { type: 'json' };
+import guestPackage from '../src/warehouseGuestPackageV2.json' with { type: 'json' };
 
 test('guest warehouse capture includes baseline, six branches and sensitivity with honest gates', () => {
   assert.equal(demo.schema_version, 'warehouse-guest-demo-v1');
@@ -26,8 +26,12 @@ test('guest screen does not submit or persist user data', async () => {
 });
 
 test('guest package presents one authored warehouse scenario across economics and simulation', () => {
-  assert.equal(guestPackage.schema_version, 'warehouse-pallet-demo-v1');
-  assert.deepEqual(guestPackage.demo, demo);
+  assert.equal(guestPackage.schema_version, 'warehouse-pallet-demo-v2');
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(guestPackage.demo).filter(([key]) => key !== 'result_digest')),
+    Object.fromEntries(Object.entries(demo).filter(([key]) => key !== 'result_digest')),
+  );
+  assert.match(guestPackage.demo.result_digest, /^sha256:[a-f0-9]{64}$/);
   assert.equal(guestPackage.simulation.report.schema_version, 'simulation-report-v3');
   assert.equal(guestPackage.simulation.report.workload.daily_units, '2000');
   assert.equal(guestPackage.simulation.report.workload.fleet_units, demo.capacity.value.selected_fleet);

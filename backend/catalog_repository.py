@@ -803,7 +803,7 @@ class ActivatedCatalogRepository:
         self._database = database
         self._slot = normalized
 
-    def load(self) -> CatalogSnapshotDTO:
+    def active_identity(self) -> tuple[str, str, str]:
         with self._database.session() as session:
             row = session.execute(
                 select(CatalogActivation, CatalogVersion)
@@ -821,7 +821,11 @@ class ActivatedCatalogRepository:
             _, version = row
             if version.status != "PUBLISHED":
                 raise CatalogRepositoryError("active catalog is not published")
-            version_code = version.code
+            identity = (version.code, str(version.id), version.content_sha256)
+        return identity
+
+    def load(self) -> CatalogSnapshotDTO:
+        version_code, _, _ = self.active_identity()
         # Published domain rows are immutable.  Loading outside the short slot
         # lookup transaction cannot produce a mixed-version snapshot.
         return PostgresCatalogRepository(self._database, version_code).load()

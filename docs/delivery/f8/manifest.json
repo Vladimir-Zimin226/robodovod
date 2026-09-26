@@ -1,0 +1,49 @@
+{
+  "status": "LOCAL_CANDIDATE_NOT_PRODUCTION_ACCEPTED",
+  "files": {
+    "browser-navigation.json": {
+      "bytes": 568,
+      "sha256": "8a1183a51d8cc681114f67fb47fa42a40739a727b0a798946250db8a1d8d7af6"
+    },
+    "integrity-probe.json": {
+      "bytes": 794,
+      "sha256": "fd03a69e6821e6eaf1e909fd5ecb01b553c4a9c937213bd9122d5a0b39620194"
+    },
+    "javascript-license-inventory.json": {
+      "bytes": 21447,
+      "sha256": "854b921b24987284aed78194ebf1f19cb86fc85ee820c818c250e64a92e48fd5"
+    },
+    "load-probe-10.json": {
+      "bytes": 872,
+      "sha256": "44f8a942f0aba47b0b4b2788acfff03bc0c757ce86775944b4122974fe01d6ba"
+    },
+    "load-probe.json": {
+      "bytes": 860,
+      "sha256": "e91c30ded3c7441b1b99921c19e4e9b98c9748e64170274313205583a874879e"
+    },
+    "openapi.json": {
+      "bytes": 473215,
+      "sha256": "d4eddeccf068f4b9a9327fc4b37d0deec131d3ca5f7029a36786e985547d174b"
+    },
+    "python-license-inventory.json": {
+      "bytes": 1016,
+      "sha256": "4d38d2b8a984a1f0ffaa33c80fcdeab33a48b940ba64fc17eba225fbb32f1a48"
+    },
+    "Robodovod-final-presentation.pptx": {
+      "bytes": 38457,
+      "sha256": "c4561c20547bff7b73d9c8db446ae9eb28f807224e2caf40b87e9ca8e89935f9"
+    },
+    "Robodovod-user-admin-technical-guide.docx": {
+      "bytes": 42033,
+      "sha256": "a2ec37b1e2ce75db40ba89f092c5a42c8c42a64d4e7e76aacfac0b4bca288bb1"
+    },
+    "sample-220-pallets-120m.zip": {
+      "bytes": 884477,
+      "sha256": "4e7c1ef6852d08522c1c0a88c3557d68e7b69c4181187205368ee8e977a1e169"
+    },
+    "timing-probe.json": {
+      "bytes": 796,
+      "sha256": "5733f702b8bcf4007c6b0a9af78cd81f6414668d26731152bda633ddfe8f86af"
+    }
+  }
+}

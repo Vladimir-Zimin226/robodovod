@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from threading import Lock
 
 from catalog_repository import (
     ActivatedCatalogRepository,
     CatalogRepositoryError,
     CatalogSnapshotDTO,
+    PostgresCatalogRepository,
 )
 from database import Database, DatabaseConfigurationError, get_database
 from catalog_capacity_rollout import (
@@ -31,12 +33,26 @@ class CatalogRuntime:
         database_factory: Callable[[], Database] = get_database,
     ) -> None:
         self._database_factory = database_factory
+        self._cache: dict[str, tuple[Database, tuple[str, str, str], CatalogSnapshotDTO]] = {}
+        self._cache_lock = Lock()
+
+    def _load_slot(self, slot: str) -> CatalogSnapshotDTO:
+        database = self._database_factory()
+        repository = ActivatedCatalogRepository(database, slot)
+        if not hasattr(repository, "active_identity"):
+            return repository.load()
+        identity = repository.active_identity()
+        with self._cache_lock:
+            cached = self._cache.get(slot)
+            if cached is not None and cached[0] is database and cached[1] == identity:
+                return cached[2]
+            snapshot = PostgresCatalogRepository(database, identity[0]).load()
+            self._cache[slot] = (database, identity, snapshot)
+            return snapshot
 
     def load_runtime(self) -> CatalogSnapshotDTO:
         try:
-            snapshot = ActivatedCatalogRepository(
-                self._database_factory(), "runtime"
-            ).load()
+            snapshot = self._load_slot("runtime")
         except (CatalogRepositoryError, DatabaseConfigurationError) as exc:
             raise CatalogRuntimeConfigurationError(
                 "activated runtime catalog is unavailable"
@@ -49,9 +65,7 @@ class CatalogRuntime:
 
     def load_discovery(self) -> CatalogSnapshotDTO:
         try:
-            return ActivatedCatalogRepository(
-                self._database_factory(), "discovery"
-            ).load()
+            return self._load_slot("discovery")
         except (CatalogRepositoryError, DatabaseConfigurationError) as exc:
             raise CatalogRuntimeConfigurationError(
                 "activated discovery catalog is unavailable"
@@ -61,9 +75,7 @@ class CatalogRuntime:
         """Load only the separately approved capacity source; never fall back."""
 
         try:
-            snapshot = ActivatedCatalogRepository(
-                self._database_factory(), "capacity"
-            ).load()
+            snapshot = self._load_slot("capacity")
         except (CatalogRepositoryError, DatabaseConfigurationError) as exc:
             raise CatalogRuntimeConfigurationError(
                 "activated capacity catalog is unavailable",

@@ -12,10 +12,7 @@ import zipfile
 
 from pypdf import PdfReader
 
-from scripts.build_warehouse_guest_package import ROOT, build_package, expected_files
-
-
-PUBLIC = ROOT / "frontend/public/demo/warehouse-pallet-v1"
+from scripts.build_warehouse_guest_package import FRONTEND, PUBLIC, ROOT, build_package, expected_files
 
 
 def test_generated_guest_package_is_current_and_public_files_match_manifest():
@@ -25,13 +22,13 @@ def test_generated_guest_package_is_current_and_public_files_match_manifest():
     assert subprocess.run([sys.executable, str(ROOT / "scripts/build_warehouse_guest_package.py"), "--check"],
                           cwd=ROOT, check=False, capture_output=True).returncode == 0
     manifest = json.loads((PUBLIC / "manifest.json").read_text(encoding="utf-8"))
-    package = json.loads((ROOT / "frontend/src/warehouseGuestPackage.json").read_text(encoding="utf-8"))
+    package = json.loads(FRONTEND.read_text(encoding="utf-8"))
     assert manifest["package_version"] == package["schema_version"]
     assert manifest["bindings"] == package["bindings"]
     with zipfile.ZipFile(io.BytesIO((PUBLIC / "evidence.zip").read_bytes())) as archive:
         assert archive.read("manifest.json") == (PUBLIC / "manifest.json").read_bytes()
         assert archive.read("report.pdf") == (PUBLIC / "report.pdf").read_bytes()
-        assert archive.read("package.json") == expected[ROOT / "frontend/src/warehouseGuestPackage.json"]
+        assert archive.read("package.json") == expected[FRONTEND]
         for name, meta in manifest["files"].items():
             data = archive.read(name)
             assert meta == {"sha256": "sha256:" + hashlib.sha256(data).hexdigest(), "bytes": len(data)}

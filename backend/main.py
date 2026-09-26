@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import time
+import threading
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -74,6 +75,9 @@ logger = logging.getLogger("robomera.api")
 # Парк роботов разрешается только из явно активированного runtime-каталога.
 # ═══════════════════════════════════════════════════════════════
 _CATALOG_RUNTIME = CatalogRuntime()
+_CATALOG_SEARCH_LOCK = threading.Lock()
+_CATALOG_SEARCH_CACHE: dict[tuple, dict[str, Any]] = {}
+_CATALOG_SEARCH_SNAPSHOT: CatalogSnapshotDTO | None = None
 
 
 def _runtime_snapshot() -> CatalogSnapshotDTO:
@@ -466,6 +470,8 @@ def catalog_status():
 @app.get("/api/catalog/models")
 def discover_catalog_models(
     q: str | None = Query(None, max_length=200),
+    limit: int | None = Query(None, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     system_family: str | None = Query(None, max_length=100),
     type_code: str | None = Query(None, max_length=200),
     manufacturer: str | None = Query(None, max_length=200),
@@ -496,7 +502,16 @@ def discover_catalog_models(
 ):
     """Search/filter the activated discovery catalog without making it selectable."""
 
+    global _CATALOG_SEARCH_SNAPSHOT
+    filters = tuple(sorted(locals().items()))
     snapshot = _discovery_snapshot()
+    cacheable = not (q or required_integrations or required_access_protocols or max_payload_kg
+                     or min_aisle_width_m or price_min is not None or price_max is not None
+                     or payload_min is not None or payload_max is not None or aisle_max is not None)
+    if cacheable:
+        with _CATALOG_SEARCH_LOCK:
+            if _CATALOG_SEARCH_SNAPSHOT is snapshot and filters in _CATALOG_SEARCH_CACHE:
+                return _CATALOG_SEARCH_CACHE[filters]
     from catalog_selection import filter_items
     from calculation.process_profiles.catalog import load_process_profile_catalog
     profile = next((p for p in load_process_profile_catalog().profiles if p.process_code == process_code), None)
@@ -522,7 +537,7 @@ def discover_catalog_models(
         include_unknown=include_unknown, price_min=price_min, price_max=price_max,
         payload_min=payload_min, payload_max=payload_max, aisle_max=aisle_max, context=context)
     all_positions = snapshot.positions
-    return {
+    result = {
         "catalog": {
             "id": snapshot.version.id,
             "code": snapshot.version.code,
@@ -600,8 +615,18 @@ def discover_catalog_models(
         "availabilities": sorted({str(p.model.attributes.get("admin_metadata", {}).get("availability"))
                                   for p in all_positions if p.model.attributes.get("admin_metadata", {}).get("availability")
                                   not in {None, "", "UNKNOWN"}}),
-        "items": items,
+        "items": items[offset:offset + limit] if limit is not None else items[offset:],
+        "offset": offset,
+        "limit": limit,
     }
+    if cacheable:
+        with _CATALOG_SEARCH_LOCK:
+            if _CATALOG_SEARCH_SNAPSHOT is not snapshot:
+                _CATALOG_SEARCH_SNAPSHOT = snapshot
+                _CATALOG_SEARCH_CACHE.clear()
+            if len(_CATALOG_SEARCH_CACHE) < 64:
+                _CATALOG_SEARCH_CACHE[filters] = result
+    return result
 
 
 @app.get("/api/catalog/positions/{position_id}")

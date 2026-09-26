@@ -27,6 +27,7 @@ from catalog_capacity_rollout import (
     validate_capacity_source,
 )
 from catalog_repository import CatalogVersionDTO, PostgresCatalogRepository
+from catalog_runtime import CatalogRuntime
 from database import database_session, get_database
 from fastapi import APIRouter, Depends, HTTPException, Request
 from persistence_models import AuditEntry
@@ -37,6 +38,7 @@ from storage_models import CatalogActivation, CatalogVersion
 
 router = APIRouter(prefix="/api/admin/catalog", tags=["admin-catalog"])
 public_router = APIRouter(prefix="/api/catalog")
+_PUBLIC_CATALOG_RUNTIME = CatalogRuntime()
 ADMIN = Depends(require_admin)
 DB = Depends(database_session)
 
@@ -55,9 +57,7 @@ WRITE = Depends(admin_csrf)
 
 @public_router.get("/defaults")
 def defaults():
-    from catalog_runtime import CatalogRuntime
-
-    snapshot = CatalogRuntime().load_discovery()
+    snapshot = _PUBLIC_CATALOG_RUNTIME.load_discovery()
     return {
         "catalog_code": snapshot.version.code,
         "sha256": snapshot.version.content_sha256,

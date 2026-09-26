@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { cp, mkdir, readFile, stat } from 'node:fs/promises'
 import { extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import process from 'node:process'
 
 const frontendRoot = fileURLToPath(new URL('.', import.meta.url))
 const robcraftRoot = resolve(frontendRoot, '../robcraft')
@@ -49,7 +50,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), robcraftAssets()],
   server: {
     proxy: {
-      '/api': 'http://localhost:8000',
+      '/api': process.env.VITE_API_PROXY || 'http://localhost:8000',
     },
   },
 })
