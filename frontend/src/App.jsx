@@ -231,6 +231,10 @@ export default function App() {
       showPhase(user?.role === 'ADMIN' ? 'admin' : 'account');
       return;
     }
+    if (id === 'adminCatalog') {
+      showPhase(user?.role === 'ADMIN' ? 'adminCatalog' : 'account');
+      return;
+    }
     if (id === 'account') {
       showPhase('account');
       return;

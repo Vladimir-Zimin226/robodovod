@@ -66,10 +66,17 @@ Backend 125, frontend 134, lint/build, Chrome desktop/mobile для склада
 диалога измерены без YC; реальный latency и SLA ≤15 с не заявляются.
 Production не обновлялся.
 [Отчёт F6 и измерения](planning/final-product-remediation-f6-2026-09-26.md).
-Следующий этап — **F7** [плана финальных доработок](planning/final-product-remediation-2026-09-26.md),
+**F7 выполнен локально:** заменён favicon на контрастный RD с SVG/PNG/ICO,
+шаблоны и ADMIN каталог выведены в соответствующие группы меню. Chrome и
+Edge на desktop/mobile прошли прямые ссылки, Back/reload, восстановление
+выбранного проекта и отказ без роли ADMIN; favicon assets вернули HTTP 200
+в production build. Frontend 135 тестов, lint/build прошли. История runs и
+simulation artifacts не менялась, production не обновлялся.
+[Отчёт F7 и свидетельства](planning/final-product-remediation-f7-2026-09-27.md).
+Следующий этап — **F8** [плана финальных доработок](planning/final-product-remediation-2026-09-26.md),
 только после следующего сообщения пользователя.
 [Полная матрица соответствия и доказательства](planning/final-tz-compliance-audit-2026-09-26.md).
-F7–F8 не начаты. Исторические runs/снимки/артефакты сохраняются; серверные бекапы
+F8 не начат. Исторические runs/снимки/артефакты сохраняются; серверные бекапы
 не требовать, серверные команды — Windows CMD. Ниже сохранена история
 предыдущих выпусков; её старые release статусы не заменяют этот абзац.
 

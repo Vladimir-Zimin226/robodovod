@@ -11,6 +11,8 @@ test('service assistant, calculation and catalog have distinct browser routes', 
   assert.equal(phaseHash('expert'), '#roboexpert');
   assert.equal(phaseHash('economics'), '#economics');
   assert.equal(phaseHash('reports'), '#reports');
+  assert.equal(phaseHash('templates'), '#templates');
+  assert.equal(phaseHash('adminCatalog'), '#admin-catalog');
   assert.equal(phaseFromHash('#assistant'), 'process');
   assert.equal(phaseFromHash('#process'), 'process');
   assert.equal(phaseFromHash('#calculation'), 'intake');
@@ -19,6 +21,8 @@ test('service assistant, calculation and catalog have distinct browser routes', 
   assert.equal(phaseFromHash('#roboexpert'), 'expert');
   assert.equal(phaseFromHash('#economics'), 'economics');
   assert.equal(phaseFromHash('#reports'), 'reports');
+  assert.equal(phaseFromHash('#templates'), 'templates');
+  assert.equal(phaseFromHash('#admin-catalog'), 'adminCatalog');
   assert.equal(phaseFromHash('#report'), 'reports');
   assert.equal(phaseFromHash('#variants'), 'expert');
   assert.equal(phaseFromHash('#scenarios'), 'expert');

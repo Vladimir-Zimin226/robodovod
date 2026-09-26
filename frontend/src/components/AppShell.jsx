@@ -46,12 +46,15 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
             </button>
           ))}
         </nav>
-        <div className="nav-secondary">
-          <button className={activeNav === 'templates' ? 'active' : ''} onClick={() => navigate({ id: 'templates' })}><AppIcon name="report" /><span>Шаблоны и загрузка данных</span></button>
+        <nav className="nav-secondary" aria-label="Проект и данные">
+          <button className={activeNav === 'templates' ? 'active' : ''} aria-current={activeNav === 'templates' ? 'page' : undefined} onClick={() => navigate({ id: 'templates' })}><AppIcon name="report" /><span>Шаблоны и загрузка данных</span></button>
           <button className={activeNav === 'library' ? 'active' : ''} aria-current={activeNav === 'library' ? 'page' : undefined} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>
-          {user && <button className={activeNav === 'projects' ? 'active' : ''} onClick={() => navigate({ id: 'projects' })}><AppIcon name="report" /><span>Мои проекты</span></button>}
-          {user?.role === 'ADMIN' && <button className={activeNav === 'admin' ? 'active' : ''} onClick={() => navigate({ id: 'admin' })}><AppIcon name="process" /><span>Пользователи</span></button>}
-        </div>
+          {user && <button className={activeNav === 'projects' ? 'active' : ''} aria-current={activeNav === 'projects' ? 'page' : undefined} onClick={() => navigate({ id: 'projects' })}><AppIcon name="report" /><span>Мои проекты</span></button>}
+        </nav>
+        {user?.role === 'ADMIN' && <nav className="nav-secondary nav-admin" aria-label="Администрирование">
+          <button className={activeNav === 'adminCatalog' ? 'active' : ''} aria-current={activeNav === 'adminCatalog' ? 'page' : undefined} onClick={() => navigate({ id: 'adminCatalog' })}><AppIcon name="library" /><span>Каталог и источники</span></button>
+          <button className={activeNav === 'admin' ? 'active' : ''} aria-current={activeNav === 'admin' ? 'page' : undefined} onClick={() => navigate({ id: 'admin' })}><AppIcon name="process" /><span>Пользователи</span></button>
+        </nav>}
         <div className="sidebar-footer">
           <div>СЕГОДНЯ<br /><strong>АНАЛИЗ.</strong><br />ЗАВТРА<br /><strong>ЭФФЕКТ.</strong></div>
           <p>v1.0<br />Сделано для реального производства</p>
