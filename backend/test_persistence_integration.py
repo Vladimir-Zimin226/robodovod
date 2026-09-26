@@ -289,6 +289,7 @@ def test_run_snapshot_is_immutable_and_survives_new_catalog_version(migrated_dat
         assert created.headers["deprecation"] == "true"
         assert "successor-version" in created.headers["link"]
         snapshot = created.json()
+        original_digests = dict(snapshot["checksums"])
         readiness = snapshot["result_snapshot"]["readiness_report"]
         assert readiness["schema_version"] == "readiness-report-v1"
         assert readiness["rules_version"] == "readiness-rules-v1"
@@ -333,6 +334,11 @@ def test_run_snapshot_is_immutable_and_survives_new_catalog_version(migrated_dat
         finally:
             transaction.rollback()
     with get_database().session() as db:
+        persisted = db.get(AnalysisRun, uuid.UUID(snapshot["id"]))
+        assert {"input": persisted.input_sha256, "result": persisted.result_sha256,
+                "scenario_spec": persisted.scenario_spec_sha256,
+                "trace": persisted.trace_sha256,
+                "version_bindings": persisted.version_bindings_sha256} == original_digests
         mapping = db.get(AnalysisRunEconomicsVersion, uuid.UUID(snapshot["id"]))
         assert mapping is not None
         assert mapping.fte_basis_status == "UNKNOWN_LEGACY_BASIS"

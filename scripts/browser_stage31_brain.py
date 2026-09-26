@@ -15,8 +15,8 @@ import websocket
 
 ROOT = Path(__file__).resolve().parents[1]
 MOBILE = os.getenv("STAGE31_MOBILE") == "1"
-API = "http://127.0.0.1:8000"
-WEB = "http://127.0.0.1:5173"
+API = os.getenv("STAGE31_API", "http://127.0.0.1:8000")
+WEB = os.getenv("STAGE31_WEB", "http://127.0.0.1:5173")
 browser_profile = Path(tempfile.mkdtemp(prefix="stage31-chrome-", dir=ROOT / ".tmp"))
 chrome = subprocess.Popen([r"C:\Program Files\Google\Chrome\Application\chrome.exe", "--headless=new", "--disable-gpu",
     "--no-first-run", "--no-default-browser-check", "--remote-allow-origins=*", "--remote-debugging-port=0",
@@ -111,7 +111,7 @@ try:
     until("document.body.innerText.includes('Профиль расчёта')")
     assert fill('[aria-label="Диалог Brain"] textarea', 'На складе перевозим 220 паллет в сутки на 120 м')
     assert click('Отправить', '[aria-label="Диалог Brain"] button')
-    until("document.body.innerText.includes('Модель недоступна')")
+    until("document.body.innerText.includes('Локально распознаны только явно названные значения')")
     stored = session.get(f"{API}/api/brain/projects/{project_id}", timeout=10).json()
     assert stored["versions"][-1]["utterance"] == 'На складе перевозим 220 паллет в сутки на 120 м'
     version = stored["profile"]["profile_version"]

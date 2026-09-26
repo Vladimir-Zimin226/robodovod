@@ -4,6 +4,7 @@ import csv
 import hashlib
 import io
 import json
+import re
 import uuid
 import xml.etree.ElementTree as ET
 import zipfile
@@ -82,7 +83,14 @@ def test_u4_new_presentation_matches_saved_values_across_pdf_csv_xlsx_zip():
         rows = list(workbook["Обзор"].values)
         csv_text = package.files["Сравнение.csv"].decode("utf-8-sig")
         pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(package.files["Отчёт_Рободовод.pdf"])).pages)
+        pdf_pages = PdfReader(io.BytesIO(package.files["Отчёт_Рободовод.pdf"])).pages
+        assert all((int(page.mediabox.width), int(page.mediabox.height)) == (595, 842) for page in pdf_pages)
+        assert not re.search(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", pdf_text)
         assert rows[0] == ("Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база")
+        assert ("Процесс и парк", "Все сценарии", None, "Плечо маршрута", "120", "m", "подтверждённый ввод расчёта парка") in rows
+        fleet = str(linked.result_snapshot["capacity"]["value"]["selected_fleet"])
+        assert any(row[0] == "Процесс и парк" and row[3] == "Выбранный парк" and row[4] == fleet for row in rows)
+        assert "Эффективная производительность" in pdf_text and "Процесс и парк" in csv_text
         saved = new.result_snapshot["comparison"]
         purchase = next(item for item in saved["scenarios"] if item["scenario_id"] == "scenario.purchase.base")
         for value in (purchase["metrics"]["npv"]["value"], purchase["annual_cashflows"][0]["scenario"], purchase["capital_lines"][0]["amount"]):

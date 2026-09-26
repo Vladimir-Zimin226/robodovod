@@ -56,11 +56,32 @@ def _new_presentation(run: EvidenceRunSnapshotV1) -> bool:
 
 
 def _presentation_rows(comparison: dict[str, Any] | None,
-                       result: dict[str, Any] | None = None) -> list[list[str]]:
+                       result: dict[str, Any] | None = None,
+                       linked: EvidenceRunSnapshotV1 | None = None) -> list[list[str]]:
     """One read-only table for the new PDF, workbook and CSV views."""
     if comparison is None:
         return []
     rows: list[list[str]] = []
+    if linked is not None:
+        process = linked.input_snapshot.get("process") or {}
+        capacity = (linked.result_snapshot.get("capacity") or {}).get("value") or {}
+        for key, label in (("demand", "Объём работ"), ("route_distance", "Плечо маршрута")):
+            field = process.get(key) or {}
+            rows.append(["Процесс и парк", "Все сценарии", "", label,
+                         str(field.get("normalized_value") if field.get("normalized_value") is not None else "нет данных"),
+                         str(field.get("unit") or ""), "подтверждённый ввод расчёта парка"])
+        for key, label, unit in (("recommended_fleet", "Рекомендованный парк", "роботов"),
+                                 ("selected_fleet", "Выбранный парк", "роботов"),
+                                 ("nominal_capacity", "Номинальная производительность", ""),
+                                 ("effective_capacity", "Эффективная производительность", ""),
+                                 ("coverage", "Покрытие объёма", "доля"),
+                                 ("raw_load_ratio", "Фактическая загрузка", "доля")):
+            raw = capacity.get(key)
+            value = raw.get("value") if isinstance(raw, dict) else raw
+            rows.append(["Процесс и парк", "Все сценарии", "", label,
+                         str(value if value is not None else "нет данных"),
+                         str(raw.get("unit") or unit) if isinstance(raw, dict) else unit,
+                         "сохранённый расчёт парка"])
     for key, item in comparison.get("inputs", {}).items():
         rows.append(["Исходные данные", "Все сценарии", "", INPUT_LABELS.get(key, "Условие сценария"),
                      str(item.get("value") if item.get("value") is not None else "нет данных"),
@@ -173,14 +194,15 @@ def _csv_rows(run: EvidenceRunSnapshotV1, comparison: dict[str, Any] | None) -> 
     return rows
 
 
-def comparison_csv(run: EvidenceRunSnapshotV1, comparison: dict[str, Any] | None) -> bytes:
+def comparison_csv(run: EvidenceRunSnapshotV1, comparison: dict[str, Any] | None,
+                   linked: EvidenceRunSnapshotV1 | None = None) -> bytes:
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer, delimiter=";", lineterminator="\r\n")
     writer.writerows([[_safe(value) for value in row] for row in _csv_rows(run, comparison)])
     if _new_presentation(run):
         writer.writerow([])
         writer.writerow(["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"])
-        writer.writerows([[_safe(value) for value in row] for row in _presentation_rows(comparison, run.result_snapshot)])
+        writer.writerows([[_safe(value) for value in row] for row in _presentation_rows(comparison, run.result_snapshot, linked)])
     return buffer.getvalue().encode("utf-8-sig")
 
 
@@ -210,7 +232,7 @@ def comparison_xlsx(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapshotV1 | 
     csv_rows = _csv_rows(run, comparison)
     _sheet(book, "Итог", csv_rows[0], csv_rows[1:])
     if _new_presentation(run):
-        _sheet(book, "Обзор", ["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"], _presentation_rows(comparison, run.result_snapshot))
+        _sheet(book, "Обзор", ["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"], _presentation_rows(comparison, run.result_snapshot, linked))
     inputs = (comparison or {}).get("inputs", {})
     input_rows = [[name, item.get("value"), item.get("unit") or item.get("currency"),
                    item.get("tax_basis"), item.get("vat_rate"), item.get("source_ref"), item.get("source_note")]
@@ -312,7 +334,8 @@ def visualization_svg(simulation: StoredSimulationEvidence) -> bytes:
 
 def final_pdf(run: EvidenceRunSnapshotV1, previous_pdf: bytes,
               comparison: dict[str, Any] | None,
-              simulation: StoredSimulationEvidence | None) -> bytes:
+              simulation: StoredSimulationEvidence | None,
+              linked: EvidenceRunSnapshotV1 | None = None) -> bytes:
     if _new_presentation(run):
         lines: list[tuple[str, str]] = [
             ("РОБОДОВОД", "brand"), ("Экономика роботизации", "title"),
@@ -321,12 +344,14 @@ def final_pdf(run: EvidenceRunSnapshotV1, previous_pdf: bytes,
             ("", "page"),
         ]
         current = None
-        for section, scenario, year, label, value, unit, source in _presentation_rows(comparison, run.result_snapshot):
+        for section, scenario, year, label, value, unit, source in _presentation_rows(comparison, run.result_snapshot, linked):
             heading = f"{section} · {scenario}"
             if heading != current:
                 lines.append((heading, "section"))
                 current = heading
             lines.append((f"{f'Год {year}: ' if year else ''}{label}: {_display(value, unit)}. Основание: {source}.", "body"))
+        lines.append(("Проверка технических ограничений", "section"))
+        lines.append(("Параметры поставщика, паспорт модели, рабочие условия площадки и состав поставки требуют отдельного подтверждения.", "body"))
         if simulation:
             lines.append(("Сохранённая симуляция", "section"))
             lines.append(("Симуляция связана с этим расчётом; схема условная и не является планом объекта.", "body"))
@@ -399,9 +424,9 @@ def build_final_export(run: EvidenceRunSnapshotV1,
     previous = build_evidence_export_v3(run, linked)
     comparison = _comparison(run)
     files = dict(previous.files)
-    files["Сравнение.csv"] = comparison_csv(run, comparison)
+    files["Сравнение.csv"] = comparison_csv(run, comparison, linked)
     files["Результат.xlsx"] = comparison_xlsx(run, linked, comparison, simulation)
-    files[READABLE_REPORT_FILENAME] = final_pdf(run, files[READABLE_REPORT_FILENAME], comparison, simulation)
+    files[READABLE_REPORT_FILENAME] = final_pdf(run, files[READABLE_REPORT_FILENAME], comparison, simulation, linked)
     files["Связь_сценария.json"] = (json.dumps({
         "run_id": run.run_id, "result_digest": previous.manifest.source_snapshot_digests["result"],
         "scenario_spec_digest": simulation.scenario_spec_digest if simulation else (

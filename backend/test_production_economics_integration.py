@@ -245,9 +245,9 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
         report_text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(report.content)).pages)
         assert "Проверка технических ограничений" in report_text
         assert "Параметры поставщика" in report_text
-        assert "После покупки роботов" in report_text
-        assert "При аренде роботов" in report_text
-        assert "Полное сравнение экономики F5" in report_text
+        assert "Показатели · Покупка · Базовый" in report_text
+        assert "Показатели · Услуга RaaS · Базовый" in report_text
+        assert "Денежные потоки" in report_text
         assert run["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v3"
         assert len(run["result_snapshot"]["comparison"]["sensitivity"]["by_scenario"]) == 7
         xlsx = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/result.xlsx")
@@ -255,7 +255,7 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
         assert xlsx.status_code == csv_file.status_code == 200
         assert xlsx.headers["x-export-manifest-digest"] == manifest.json()["manifest_digest"]
         assert csv_file.headers["x-export-manifest-digest"] == manifest.json()["manifest_digest"]
-        assert load_workbook(io.BytesIO(xlsx.content), read_only=True).sheetnames[0] == "Итог"
+        assert load_workbook(io.BytesIO(xlsx.content), read_only=True).sheetnames[:2] == ["Итог", "Обзор"]
         assert csv_file.content.startswith(b"\xef\xbb\xbf")
         with zipfile.ZipFile(io.BytesIO(archive.content)) as evidence:
             assert evidence.read("Отчёт_Рободовод.pdf") == report.content

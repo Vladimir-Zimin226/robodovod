@@ -84,7 +84,7 @@ export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
         )}
         <label>Email<input type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
         <label>Пароль<input type="password" required minLength="12" maxLength="128" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></label>
-        <small>Минимум 12 символов. Пароль хранится только как Argon2id-хеш.</small>
+        <small>Минимум 12 символов.</small>
         {error && <p className="form-error">{error}</p>}
         <button className="primary-action" disabled={busy} type="submit">{busy ? 'Подождите…' : mode === 'login' ? 'Войти' : 'Создать аккаунт'}</button>
       </form>

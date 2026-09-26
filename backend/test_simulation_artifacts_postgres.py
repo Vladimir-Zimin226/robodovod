@@ -110,6 +110,7 @@ def test_saved_c23_evidence_survives_router_restart_and_denies_other_tenant(seed
     with get_database().session() as db:
         stored = load_artifact(db, owner_id, project_id, run_id, request.request_id)
         assert stored is not None and stored.report_digest == semantic_digest(report)
+        digests_before = (stored.request_digest, stored.report_digest, stored.scenario_spec_digest)
         assert load_artifact(db, other_id, project_id, run_id, request.request_id) is None
         assert db.scalar(select(SimulationArtifact).where(SimulationArtifact.analysis_run_id == run_id)) is not None
 
@@ -122,7 +123,9 @@ def test_saved_c23_evidence_survives_router_restart_and_denies_other_tenant(seed
         with pytest.raises(DBAPIError, match="immutable"):
             db.execute(text("UPDATE simulation_artifacts SET request_id = request_id WHERE analysis_run_id = :run_id"), {"run_id": run_id})
         db.rollback()
-        assert load_artifact(db, owner_id, project_id, run_id, request.request_id) is not None
+        unchanged = load_artifact(db, owner_id, project_id, run_id, request.request_id)
+        assert unchanged is not None
+        assert (unchanged.request_digest, unchanged.report_digest, unchanged.scenario_spec_digest) == digests_before
     app.dependency_overrides[require_auth_context] = lambda: SimpleNamespace(user=SimpleNamespace(id=other_id))
     assert client.get(f"{base}/{request.request_id}").status_code == 404
     assert client.get(f"{base}/{request.request_id}/evidence.json").status_code == 404

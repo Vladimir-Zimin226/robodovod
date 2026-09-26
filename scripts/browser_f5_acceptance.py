@@ -20,20 +20,24 @@ import requests
 import websocket
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs/planning/assets/f5/evidence"
+OUT = Path(os.getenv("F5_BROWSER_OUT", str(ROOT / "docs/planning/assets/f5/evidence"))).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 database_url = os.environ["F5_DATABASE_URL"].replace("postgresql+psycopg:", "postgresql:")
 parsed = urlparse(database_url)
-assert (parsed.hostname, parsed.port, parsed.path) == (
-    "127.0.0.1", 5541, "/stage11_f1_browser"
-)
-api, web = "http://127.0.0.1:8000", "http://127.0.0.1:5173"
+assert parsed.hostname in {"127.0.0.1", "localhost"} and parsed.path == "/stage11_f1_browser"
+api = os.getenv("F5_API", "http://127.0.0.1:8000")
+web = os.getenv("F5_WEB", "http://127.0.0.1:5173")
 with psycopg.connect(database_url) as db:
     email = db.execute("SELECT email_normalized FROM users WHERE email_normalized LIKE 'stage31-%' ORDER BY created_at DESC LIMIT 1").fetchone()[0]
     before = {
         name: {str(row[0]): row[1] for row in db.execute(f"SELECT id,row_to_json(r) FROM {name} r")}
         for name in ("analysis_runs", "simulation_artifacts", "catalog_versions")
     }
+def row_digests(rows):
+    return {table: {key: hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+                    for key, value in items.items()} for table, items in rows.items()}
+
+digests_before = row_digests(before)
 owner = requests.Session()
 login = owner.post(f"{api}/api/auth/login", json={"email": email, "password": "Stage31-local-only-2026"}, timeout=10)
 assert login.ok, login.text
@@ -171,7 +175,7 @@ try:
         js(f"[...document.querySelectorAll('.reports-card')].find(x=>x.textContent.includes({json.dumps(run_id)})).querySelector('.reports-actions button').click()")
         until("document.querySelector('[aria-label=\"Полное сравнение экономики\"] table tbody tr') !== null")
         assert js("document.querySelector('[aria-label=\"Полное сравнение экономики\"] table tbody').rows.length") == 12
-        assert js("document.querySelector('[aria-label=\"Полное сравнение экономики\"]').textContent.includes('Baseline, покупка и услуга')")
+        assert js("document.querySelector('[aria-label=\"Полное сравнение экономики\"]').textContent.includes('Без роботов, покупка и услуга')")
         until("document.querySelector('.evidence-export-v2 button') !== null")
         until("document.querySelector('.evidence-export-v2').textContent.includes('Скачать XLSX')")
         assert js("document.documentElement.scrollWidth <= innerWidth + 1"), width
@@ -194,12 +198,16 @@ with psycopg.connect(database_url) as db:
 assert all({key: after[name].get(key) for key in rows} == rows for name, rows in before.items()), (
     "F5 calculation or read-only exports altered historical rows"
 )
+digests_after = row_digests(after)
+assert all({key: digests_after[name].get(key) for key in rows} == rows
+           for name, rows in digests_before.items()), "historical row digests changed"
 (OUT / "report.json").write_text(json.dumps({
     "run_id": run_id, "result_digest": manifest["source_snapshot_digests"]["result"],
     "manifest_digest": manifest["manifest_digest"],
     "simulation_request_id": manifest["simulation_request_id"],
     "historical_runs_unchanged": len(before["analysis_runs"]),
     "historical_artifacts_unchanged": len(before["simulation_artifacts"]),
+    "historical_row_digests_match": True,
     "screenshots": screens,
 }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(f"PASS F5 browser: {run_id}, desktop/mobile, direct files and {len(before['analysis_runs'])} unchanged runs")
