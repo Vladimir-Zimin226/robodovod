@@ -140,6 +140,8 @@ export default function App() {
   const selectActiveProject = (project) => {
     setActiveProject(project);
     setActiveRun(null);
+    setResult(null);
+    setUserInput(null);
     rememberProjectId(sessionStore(), user?.id, project.id);
   };
 

@@ -212,7 +212,7 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
         <EvidenceExportPanel key={`capacity-export:${capacity.run_id}`} projectId={project.id} runId={capacity.run_id} />
         <button className="secondary-action" onClick={() => onViewRun({ id: capacity.run_id, run_kind: 'CAPACITY_ANALYSIS', input_snapshot: capacityRequest, result_snapshot: capacity }, capacityRequest)}>Открыть 2D/3D и полный технический результат</button></>}
       {economics && <>{isCommercialScenariosBundle(economics.result_snapshot)
-        ? <><CommercialScenariosV2 bundle={economics.result_snapshot} scenarioSpec={economics.scenario_spec_snapshot} capacityRunId={capacity.run_id}
+        ? <><CommercialScenariosV2 key={economics.id} bundle={economics.result_snapshot} scenarioSpec={economics.scenario_spec_snapshot} capacityRunId={capacity.run_id}
             onRestart={() => { setCapacity(null); setEconomics(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             onRecalculate={() => { const summary = [...document.querySelectorAll('summary')].find((item) => item.textContent.includes('Изменить допущение и создать новый расчёт'));
               summary?.parentElement?.setAttribute('open', ''); summary?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} />

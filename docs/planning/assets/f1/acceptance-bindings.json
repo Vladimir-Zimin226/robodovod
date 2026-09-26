@@ -1,0 +1,621 @@
+[
+  {
+    "analysis_run_id": "811b800d-f773-4885-8bb5-7b60621769e0",
+    "capacity_run_id": "fc382cd5-40df-4076-9e36-43c178e78ba1",
+    "scenario_revision_id": "calc_08031a119d6ae5fe",
+    "scenario_spec_digest": "sha256:4323d66f167ea1ebaa1b4eea568643296821ff432b00255ee3010fa190c99a3a",
+    "request_digest": "sha256:c1d644b64cacd0dbe34abdba04999f5273b54146a3ce51bf6e3e069d7582ab02",
+    "report_digest": "sha256:fbc5c5d3dd273278025506fc099695efd7c697d4f5496de369c1c60ed92eec90",
+    "report_content_digest": "sha256:352694aacb50cc52cab061f8ffc4aed0d070b11ff4bdf5fd846f7a9112fd2790",
+    "model_id": "3411de45-3d16-5288-9915-f8b7dfedb645",
+    "position_id": "f5cf8995-193a-5c86-9418-c09dc75428ef",
+    "demand": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "FLOW",
+      "unit": "pallet/day",
+      "value": "220"
+    },
+    "distance": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "DISTANCE",
+      "unit": "m",
+      "value": "120"
+    },
+    "batch": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/cycle",
+      "value": "1"
+    },
+    "exchange": {
+      "load_time": null,
+      "mode": "TOTAL",
+      "total_time": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "TIME",
+        "unit": "s",
+        "value": "90"
+      },
+      "unload_time": null
+    },
+    "selected_fleet": 2,
+    "nominal_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "39.4936708860759493670886076"
+    },
+    "effective_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "27.64556962025316455696202532"
+    },
+    "operating_windows": [
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "7"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "0"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.next-day"
+      },
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "15"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "32400"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.primary"
+      }
+    ],
+    "model_start": {
+      "seconds_from_midnight": 32400,
+      "timezone": "Asia/Sakhalin",
+      "weekday": "MONDAY"
+    },
+    "kpi": {
+      "capacity_headroom_per_hour": "17.64556962025316455696202532",
+      "ceiling_verdict": "WITHIN_CEILING",
+      "demand_shortfall_per_hour": "0",
+      "denominator": "REQUIRED_DEMAND",
+      "deviation_percent": "0",
+      "expected_effective_per_hour": "27.64556962025316455696202532",
+      "observed_per_hour": "10",
+      "required_per_hour": "10",
+      "unit": "unit/h",
+      "verdict": "CONSISTENT",
+      "warning_threshold_percent": "10"
+    },
+    "queue": {
+      "censored_jobs": 0,
+      "completed_by_measurement_end": 220,
+      "completed_unit": "unit/cycle",
+      "completed_units_by_measurement_end": "220",
+      "completed_units_with_grace": "220",
+      "completed_with_grace": 220,
+      "maximum_jobs": 1,
+      "mean_turnaround_seconds": "260.43956",
+      "mean_wait_seconds": "0",
+      "measurement_jobs": 220,
+      "p95_turnaround_seconds": "260.43956",
+      "p95_wait_seconds": "0"
+    },
+    "visual_file": "220-120.svg",
+    "visual_sha256": "9404ab17b11c97d0e3990d8a201e584948e359a0319037b3116ae3013e77b216"
+  },
+  {
+    "analysis_run_id": "590cd6b0-616f-4517-b982-436510127bed",
+    "capacity_run_id": "8939ede5-8da7-4584-8a12-1692e8b5eeea",
+    "scenario_revision_id": "calc_fc108558a5366934",
+    "scenario_spec_digest": "sha256:f42ca651b3972bdb3116cc40288f9d9e18112fa03144e1b7d9a0aa61716201f6",
+    "request_digest": "sha256:e62b17d9a11a7a46ff27ea9148cc33dc567525eb3fa8cd8ccf20efafc1db9485",
+    "report_digest": "sha256:7a9e1c891556fd9b695c91a5571d7684548ca138d8d6f719d37cdf2e9b1d884f",
+    "report_content_digest": "sha256:1bfbd6151ae8ae8c786a7798aaa803a9dded1f992269653fe38551c13c3e7f03",
+    "model_id": "3411de45-3d16-5288-9915-f8b7dfedb645",
+    "position_id": "f5cf8995-193a-5c86-9418-c09dc75428ef",
+    "demand": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "FLOW",
+      "unit": "pallet/day",
+      "value": "2000"
+    },
+    "distance": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "DISTANCE",
+      "unit": "m",
+      "value": "120"
+    },
+    "batch": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/cycle",
+      "value": "1"
+    },
+    "exchange": {
+      "load_time": null,
+      "mode": "TOTAL",
+      "total_time": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "TIME",
+        "unit": "s",
+        "value": "90"
+      },
+      "unload_time": null
+    },
+    "selected_fleet": 10,
+    "nominal_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "197.468354430379746835443038"
+    },
+    "effective_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "138.2278481012658227848101266"
+    },
+    "operating_windows": [
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "6"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "0"
+        },
+        "timezone": "Europe/Moscow",
+        "window_id": "window.next-day"
+      },
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "16"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "28800"
+        },
+        "timezone": "Europe/Moscow",
+        "window_id": "window.primary"
+      }
+    ],
+    "model_start": {
+      "seconds_from_midnight": 28800,
+      "timezone": "Europe/Moscow",
+      "weekday": "MONDAY"
+    },
+    "kpi": {
+      "capacity_headroom_per_hour": "47.59148446490218642117376296",
+      "ceiling_verdict": "WITHIN_CEILING",
+      "demand_shortfall_per_hour": "0.27272727272727272727272727",
+      "denominator": "REQUIRED_DEMAND",
+      "deviation_percent": "0.299999999999999999999999997",
+      "expected_effective_per_hour": "138.2278481012658227848101266",
+      "observed_per_hour": "90.63636363636363636363636364",
+      "required_per_hour": "90.90909090909090909090909091",
+      "unit": "unit/h",
+      "verdict": "CONSISTENT",
+      "warning_threshold_percent": "10"
+    },
+    "queue": {
+      "censored_jobs": 0,
+      "completed_by_measurement_end": 1994,
+      "completed_unit": "unit/cycle",
+      "completed_units_by_measurement_end": "1994",
+      "completed_units_with_grace": "2000",
+      "completed_with_grace": 2000,
+      "maximum_jobs": 1,
+      "mean_turnaround_seconds": "282.03956",
+      "mean_wait_seconds": "0",
+      "measurement_jobs": 2000,
+      "p95_turnaround_seconds": "260.43956",
+      "p95_wait_seconds": "0"
+    },
+    "visual_file": "typical-warehouse.svg",
+    "visual_sha256": "0836567759dace27ff9b5ab6daf0453fd83bf07af591e2d0223df39de46d9e1e"
+  },
+  {
+    "analysis_run_id": "e3e639da-ad25-48e5-9f19-879c2c42c7e2",
+    "capacity_run_id": "5f66ce58-a8ca-44af-b3a7-86d89fa338a6",
+    "scenario_revision_id": "calc_ba792e7d0faccad9",
+    "scenario_spec_digest": "sha256:1e388cc4f090fbc1b439c325e76682af0a82a7491787d7b1a28699b3c6fad1e8",
+    "request_digest": "sha256:3a519cd06ff3157133627396f1c15d271f4f8e31435aa8ee52b87f7356ad2e9c",
+    "report_digest": "sha256:721fb90ab90da51af207fc85ac0a3e4c073b6b431e98e339d6c5556bd8f7561e",
+    "report_content_digest": "sha256:14bce48ec6c0d515d40efc28df577f787922eabe663c65c6fbe857158094fdb9",
+    "model_id": "3411de45-3d16-5288-9915-f8b7dfedb645",
+    "position_id": "f5cf8995-193a-5c86-9418-c09dc75428ef",
+    "demand": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "FLOW",
+      "unit": "pallet/day",
+      "value": "260"
+    },
+    "distance": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "DISTANCE",
+      "unit": "m",
+      "value": "120"
+    },
+    "batch": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/cycle",
+      "value": "1"
+    },
+    "exchange": {
+      "load_time": null,
+      "mode": "TOTAL",
+      "total_time": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "TIME",
+        "unit": "s",
+        "value": "90"
+      },
+      "unload_time": null
+    },
+    "selected_fleet": 2,
+    "nominal_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "39.4936708860759493670886076"
+    },
+    "effective_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "27.64556962025316455696202532"
+    },
+    "operating_windows": [
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "7"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "0"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.next-day"
+      },
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "15"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "32400"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.primary"
+      }
+    ],
+    "model_start": {
+      "seconds_from_midnight": 32400,
+      "timezone": "Asia/Sakhalin",
+      "weekday": "MONDAY"
+    },
+    "kpi": {
+      "capacity_headroom_per_hour": "15.8273878020713463751438435",
+      "ceiling_verdict": "WITHIN_CEILING",
+      "demand_shortfall_per_hour": "0",
+      "denominator": "REQUIRED_DEMAND",
+      "deviation_percent": "0",
+      "expected_effective_per_hour": "27.64556962025316455696202532",
+      "observed_per_hour": "11.81818181818181818181818182",
+      "required_per_hour": "11.81818181818181818181818182",
+      "unit": "unit/h",
+      "verdict": "CONSISTENT",
+      "warning_threshold_percent": "10"
+    },
+    "queue": {
+      "censored_jobs": 0,
+      "completed_by_measurement_end": 260,
+      "completed_unit": "unit/cycle",
+      "completed_units_by_measurement_end": "260",
+      "completed_units_with_grace": "260",
+      "completed_with_grace": 260,
+      "maximum_jobs": 1,
+      "mean_turnaround_seconds": "260.43956",
+      "mean_wait_seconds": "0",
+      "measurement_jobs": 260,
+      "p95_turnaround_seconds": "260.43956",
+      "p95_wait_seconds": "0"
+    }
+  },
+  {
+    "analysis_run_id": "c0f7c105-d403-401e-8239-bbfc03e0cfe5",
+    "capacity_run_id": "8afcde56-d4d9-4937-bee4-a8f0b21a330e",
+    "scenario_revision_id": "calc_a96c4e1a8270a627",
+    "scenario_spec_digest": "sha256:9e1b82289262d6e082756519caaf0a8eb5fcfcbb9e7a8e0d095c2e3d51085bb7",
+    "request_digest": "sha256:634af167776f79d2e57a42c8d4e70245f2f6c5bbfdd318c77f6cf58f4c8a4d08",
+    "report_digest": "sha256:d16ce86613f55339ae6da6cd7e146f25e22027daa51ee157d918da93d689d459",
+    "report_content_digest": "sha256:3002464cf08175c759957b018d12de44f789b24dc2fd7ba13c5750172be46aeb",
+    "model_id": "3411de45-3d16-5288-9915-f8b7dfedb645",
+    "position_id": "f5cf8995-193a-5c86-9418-c09dc75428ef",
+    "demand": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "FLOW",
+      "unit": "pallet/day",
+      "value": "220"
+    },
+    "distance": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "DISTANCE",
+      "unit": "m",
+      "value": "180"
+    },
+    "batch": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/cycle",
+      "value": "1"
+    },
+    "exchange": {
+      "load_time": null,
+      "mode": "TOTAL",
+      "total_time": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "TIME",
+        "unit": "s",
+        "value": "90"
+      },
+      "unload_time": null
+    },
+    "selected_fleet": 2,
+    "nominal_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "31.5151515151515151515151515"
+    },
+    "effective_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "22.06060606060606060606060604"
+    },
+    "operating_windows": [
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "7"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "0"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.next-day"
+      },
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "15"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "32400"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.primary"
+      }
+    ],
+    "model_start": {
+      "seconds_from_midnight": 32400,
+      "timezone": "Asia/Sakhalin",
+      "weekday": "MONDAY"
+    },
+    "kpi": {
+      "capacity_headroom_per_hour": "12.06060606060606060606060604",
+      "ceiling_verdict": "WITHIN_CEILING",
+      "demand_shortfall_per_hour": "0",
+      "denominator": "REQUIRED_DEMAND",
+      "deviation_percent": "0",
+      "expected_effective_per_hour": "22.06060606060606060606060604",
+      "observed_per_hour": "10",
+      "required_per_hour": "10",
+      "unit": "unit/h",
+      "verdict": "CONSISTENT",
+      "warning_threshold_percent": "10"
+    },
+    "queue": {
+      "censored_jobs": 0,
+      "completed_by_measurement_end": 220,
+      "completed_unit": "unit/cycle",
+      "completed_units_by_measurement_end": "220",
+      "completed_units_with_grace": "220",
+      "completed_with_grace": 220,
+      "maximum_jobs": 1,
+      "mean_turnaround_seconds": "326.373626",
+      "mean_wait_seconds": "0",
+      "measurement_jobs": 220,
+      "p95_turnaround_seconds": "326.373626",
+      "p95_wait_seconds": "0"
+    }
+  },
+  {
+    "analysis_run_id": "abd6fb45-d47a-4a28-a618-32312c3065a8",
+    "capacity_run_id": "aeb34bca-f43e-4f79-9aaf-835f225f3cc9",
+    "scenario_revision_id": "calc_4957fa56f4766804",
+    "scenario_spec_digest": "sha256:7e60a8cd4b00dc2554337799e0094dd956d597f6474efa53887e9b3f81f44827",
+    "request_digest": "sha256:2d323dcc77cb4a3b4cf1d0b046dc38f5027766aed4f70a3bfb19a990615cf4d8",
+    "report_digest": "sha256:60850b52a2a7e86ab2fd5fb5d9e45974831bb14652ad1df4ea87096eee656b2c",
+    "report_content_digest": "sha256:f0182a1468f17b2a051ac72cf91463488c90ec9240bcb61f67a98eb84d8b7f7a",
+    "model_id": "3411de45-3d16-5288-9915-f8b7dfedb645",
+    "position_id": "f5cf8995-193a-5c86-9418-c09dc75428ef",
+    "demand": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "FLOW",
+      "unit": "pallet/day",
+      "value": "2000"
+    },
+    "distance": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "DISTANCE",
+      "unit": "m",
+      "value": "120"
+    },
+    "batch": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/cycle",
+      "value": "1"
+    },
+    "exchange": {
+      "load_time": null,
+      "mode": "TOTAL",
+      "total_time": {
+        "numeric_encoding": "DECIMAL_STRING",
+        "quantity_kind": "TIME",
+        "unit": "s",
+        "value": "90"
+      },
+      "unload_time": null
+    },
+    "selected_fleet": 1,
+    "nominal_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "19.7468354430379746835443038"
+    },
+    "effective_capacity": {
+      "numeric_encoding": "DECIMAL_STRING",
+      "quantity_kind": "RATE",
+      "unit": "unit/h",
+      "value": "13.82278481012658227848101266"
+    },
+    "operating_windows": [
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "7"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "0"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.next-day"
+      },
+      {
+        "duration": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "h",
+          "value": "15"
+        },
+        "provenance_ref": "input.economics.operating-window",
+        "source": "USER",
+        "start_time": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "TIME",
+          "unit": "s",
+          "value": "32400"
+        },
+        "timezone": "Asia/Sakhalin",
+        "window_id": "window.primary"
+      }
+    ],
+    "model_start": {
+      "seconds_from_midnight": 32400,
+      "timezone": "Asia/Sakhalin",
+      "weekday": "MONDAY"
+    },
+    "kpi": {
+      "capacity_headroom_per_hour": "13.82278481012658227848101266",
+      "ceiling_verdict": "WITHIN_CEILING",
+      "demand_shortfall_per_hour": "90.90909090909090909090909091",
+      "denominator": "REQUIRED_DEMAND",
+      "deviation_percent": "100",
+      "expected_effective_per_hour": "13.82278481012658227848101266",
+      "observed_per_hour": "0",
+      "required_per_hour": "90.90909090909090909090909091",
+      "unit": "unit/h",
+      "verdict": "OVERLOADED",
+      "warning_threshold_percent": "10"
+    },
+    "queue": {
+      "censored_jobs": 2000,
+      "completed_by_measurement_end": 0,
+      "completed_unit": "unit/cycle",
+      "completed_units_by_measurement_end": "0",
+      "completed_units_with_grace": "0",
+      "completed_with_grace": 0,
+      "maximum_jobs": 2000,
+      "mean_turnaround_seconds": null,
+      "mean_wait_seconds": "722560.66022",
+      "measurement_jobs": 2000,
+      "p95_turnaround_seconds": null,
+      "p95_wait_seconds": "940253.44444"
+    }
+  }
+]

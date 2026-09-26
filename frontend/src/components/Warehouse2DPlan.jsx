@@ -35,6 +35,8 @@ export default function Warehouse2DPlan({ scene, frame, selectedZoneId, stages =
           x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="14" />
         <text className="zone-name" x={zone.x + 18} y={zone.y + 28}>{zone.label}</text>
         <text className="warehouse-geometry-label" x={zone.x + 18} y={zone.y + 47}>Расположение условное</text>
+        <defs><marker id="warehouse-flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#67e8f9" /></marker></defs>
+        <path d={`M ${zone.receiving.x} ${zone.y + 134} L ${zone.shipping.x} ${zone.y + 134}`} stroke="#67e8f9" markerEnd="url(#warehouse-flow-arrow)" />
         {zone.racks.map((rack) => <g key={rack.id}>
           <rect className="warehouse-rack" x={rack.x} y={rack.y} width={rack.width} height={rack.height} rx="3" />
           <path className="warehouse-rack-shelf" d={`M ${rack.x} ${rack.y + 16} h ${rack.width} M ${rack.x} ${rack.y + 32} h ${rack.width}`} />
@@ -60,11 +62,16 @@ export default function Warehouse2DPlan({ scene, frame, selectedZoneId, stages =
           <rect className="warehouse-station" x={point.x - 9} y={point.y - 14} width="18" height="14" rx="2" />
           <text className="warehouse-station-label" x={point.x} y={point.y + 15} textAnchor="middle">{point.label}</text>
         </g>)}
+        <g aria-label="Условная зарядная точка">
+          <circle cx={zone.waiting.x} cy={zone.waiting.y - 32} r="10" fill="#142027" stroke="#67e8f9" />
+          <text x={zone.waiting.x} y={zone.waiting.y - 28} textAnchor="middle" fill="#67e8f9">↯</text>
+        </g>
       </svg>
       </div>
       <div className="simulation-legend">
         <span><i className="legend-robot" /> робот</span>
         <span>● передача подготовленной паллеты</span><span>● точка выгрузки</span>
+        <span>→ направление потока · ↯ условная зарядная точка; простой учтён агрегированно</span>
         <span>▰ готовая паллета: в точке передачи → на роботе → у отгрузки</span>
       </div>
       <p className="simulation-schematic-note">Учтена перевозка подготовленных паллет; отбор коробок и упаковка не рассчитаны. Это условный план сверху. План можно прокрутить по горизонтали. Точки и 20-секундный цикл показывают порядок действий, а не реальные координаты, время операций или выполненные задания. Показатели берутся только из отчёта симуляции.</p>

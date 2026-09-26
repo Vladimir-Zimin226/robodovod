@@ -13,6 +13,9 @@ import Warehouse2DPlan from './Warehouse2DPlan';
 import SimulationChainSetup from './SimulationChainSetup';
 import { humanizePresentation, statusLabel } from '../presentation';
 import { formatModelClock } from '../simulationDefaults';
+import SavedPhysicalScenarios from './SavedPhysicalScenarios';
+import { physicalInputs } from '../physicalScenario';
+import { downloadSimulationSvg, visualExportMetadata } from '../simulationSvgExport';
 
 const STATUS_LABELS = {
   STOPPED: 'Остановлено', RUNNING: 'Воспроизведение', PAUSED: 'Пауза',
@@ -39,6 +42,13 @@ function path(points) {
 }
 
 export default function Simulation2DReport({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
+  if (analysisRunId && request) return <SavedPhysicalScenarios key={`${request.tenant_id}:${request.project_id}:${analysisRunId}`} request={request} analysisRunId={analysisRunId}>
+    {(activeRequest, activeRunId) => <SimulationPlayer key={`${activeRunId}:${activeRequest.request_id}`} request={activeRequest} analysisRunId={activeRunId} />}
+  </SavedPhysicalScenarios>;
+  return <SimulationPlayer key={request?.request_id} request={request} initialReport={initialReport} scenarios={scenarios} />;
+}
+
+function SimulationPlayer({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
   const [savedOptions, setSavedOptions] = useState([]);
   const [savedReady, setSavedReady] = useState(!analysisRunId);
   const options = useMemo(
@@ -64,6 +74,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
   }, [bindingKey]);
   const selectedZoneId = zoneChoice.bindingKey === bindingKey ? zoneChoice.id : persistedZoneId;
   const previousFrame = useRef(null);
+  const canvas = useRef(null);
   const startedRequest = useRef(null);
 
   const startRun = useCallback(async () => {
@@ -71,11 +82,17 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     startedRequest.current = active.request.request_id;
     setError('');
     setRunState({ state: 'PENDING', progress: { processed_events: 0, total_events: 0 } });
+    const session = api.current;
+    let generation;
     try {
-      const terminal = await api.current.start(active.request, (state) => setRunState(state), analysisRunId);
+      const pending = session.start(active.request, (state) => setRunState(state), analysisRunId);
+      generation = session.generation;
+      const terminal = await pending;
+      if (generation !== session.generation) return;
       if (terminal?.state === 'SUCCEEDED') setReport(terminal.report);
       else if (terminal?.error) { setError(terminal.error.message); startedRequest.current = null; }
     } catch (failure) {
+      if (generation !== session.generation) return;
       setError(failure.message);
       startedRequest.current = null;
     }
@@ -192,6 +209,12 @@ export default function Simulation2DReport({ request, initialReport = null, scen
     setZoneChoice({ bindingKey, id });
     try { window.sessionStorage.setItem(`simulation-zone:${bindingKey}`, id); } catch { /* private mode */ }
   };
+  const saveSvg = () => {
+    try {
+      const metadata = visualExportMetadata(active.request, report, analysisRunId, presentation.frame.simulationTimeUs, activeZoneId, new Date().toISOString());
+      downloadSimulationSvg(canvas.current?.querySelector('svg'), metadata, active.label);
+    } catch (failure) { setError(failure.message); }
+  };
 
   return (
     <section className="simulation-2d panel" id="visualization" aria-label="2D/3D-симуляция и отчёт">
@@ -227,7 +250,12 @@ export default function Simulation2DReport({ request, initialReport = null, scen
       {presentation && !presentation.failure && (
         <>
           <div className="simulation-bindings">
+            <strong>Исходный расчёт парка C11: {presentation.bundle.spec.analysis.capacity_run_id}</strong>
+            <span>Физический сценарий: {active.label} · расчёт {analysisRunId || 'демо'}</span>
+            {physicalInputs(presentation.bundle.spec).map((line, index) => <span key={index}>{line}</span>)}
+            <p>Покупка и аренда используют общие сохранённые парк и график. Финансовые варианты и их ramp не переключают физический сценарий. CONSISTENT подтверждает согласованность модели; пригодность к внедрению требует обследования.</p>
             <span>Модельное время: {formatModelClock(report.model_start, presentation.frame.simulationTimeUs) || `${(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} с`}</span>
+            <button type="button" onClick={saveSvg}>Сохранить открытый 2D-кадр · SVG</button>
             {analysisRunId && <a href={`/api/v2/simulations/projects/${encodeURIComponent(active.request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}/${encodeURIComponent(active.request.request_id)}/evidence.json`} download>Скачать технические данные симуляции</a>}
             <details><summary>Технические подробности</summary>
               <span>Представление: {viewMode}</span>
@@ -254,7 +282,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             <strong>{STATUS_LABELS[timeline.status]}</strong>
           </div>
 
-          <div role="tabpanel" hidden={viewMode !== '2D'}>{warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} stages={report.stages} /> : <div className="simulation-canvas-wrap">
+          <div ref={canvas} role="tabpanel" hidden={viewMode !== '2D'}>{warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} stages={report.stages} /> : <div className="simulation-canvas-wrap">
             <svg viewBox={`0 0 ${presentation.scene.width} ${presentation.scene.height}`} role="img" aria-label="Зоны, маршруты, парк и операции">
               <defs><marker id="simulation-flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#67e8f9" /></marker></defs>
               {presentation.scene.zones.map((zone) => <g key={zone.id}><rect className={`simulation-zone source-${zone.geometrySource.toLowerCase()}`} x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="16" /><text className="zone-name" x={zone.x + 16} y={zone.y + 26}>{zone.label}</text><text className="geometry-source" x={zone.x + 16} y={zone.y + 46}>{zone.geometryLabel}</text></g>)}
@@ -265,7 +293,7 @@ export default function Simulation2DReport({ request, initialReport = null, scen
             <div className="simulation-legend"><span>→ направление потока · обратный ход по нижней линии</span><span><i className="legend-robot" /> условное положение робота</span><span>↯ зарядка учтена агрегированно; точка не задана</span></div>
             <p className="simulation-schematic-note">Зоны и точки показаны схематично; предоставленная схема означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, показатели берутся из отчёта симуляции.</p>
           </div>}</div>
-          <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}<RobCraftFrame scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline}
+          <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}<RobCraftFrame key={bindingKey} scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline}
             selectedZoneId={warehouseScene ? activeZoneId : null} onZoneChange={warehouseScene ? selectZone : null} compact /></div>
 
           <div className="simulation-kpis">

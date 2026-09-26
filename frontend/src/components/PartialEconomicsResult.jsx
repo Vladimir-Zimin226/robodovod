@@ -40,7 +40,7 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
         <p>Закупка: {statusLabel(scenario.procurement?.procurement_status)}</p>
       </article>)}</div>
     </section>}
-    <TechnicalVisualization run={run} />
+    <TechnicalVisualization key={`visualization:${run?.id}`} run={run} />
     <SavedEconomicsEditor key={run?.id} project={project} run={run} autoOpen={autoOpenEditor} onComplete={onComplete} />
   </div>;
 }

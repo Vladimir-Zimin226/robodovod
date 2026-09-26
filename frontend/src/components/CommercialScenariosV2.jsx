@@ -95,6 +95,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, capacityRu
           </details>
 
           {simulationRequest && <div className="commercial-visualization">
+            <p>Покупка и аренда опираются на общий физический профиль PURCHASE/BASE: тот же парк и график. Финансовые варианты неопределённости и ramp не являются отдельными симуляциями. Выбор физической версии ниже меняет только 2D/3D и её отчёт; денежная таблица выше остаётся результатом расчёта {bundle.run_id}.</p>
             <p>2D и 3D используют сохранённый технический сценарий. Для симуляции не заданы норматив времени и мощности погрузочных ресурсов; геометрия условная и не является проектом площадки. Отчёт симуляции сохраняется отдельно и связан с этим расчётом.</p>
             <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} analysisRunId={bundle.run_id} />
           </div>}

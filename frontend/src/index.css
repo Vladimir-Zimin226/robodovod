@@ -129,6 +129,10 @@
 .simulation-2d select, .simulation-controls button, .simulation-run-box button { margin-left: 8px; border: 1px solid #314763; border-radius: 8px; background: #101f32; color: #e7f0fa; padding: 7px 10px; }
 .simulation-bindings { justify-content: flex-start; margin: 18px 0 10px; font-size: 11px; color: #9db0c5; }
 .simulation-bindings code { color: #67e8f9; }
+.simulation-bindings > span, .simulation-bindings > strong { width: 100%; overflow-wrap: anywhere; }
+.simulation-physical-selector { margin-bottom: 12px; overflow-wrap: anywhere; }
+.simulation-physical-selector label { display: block; min-width: 0; }
+.simulation-physical-selector select { display: block; width: 100%; max-width: 100%; margin-top: 8px; }
 .simulation-controls { justify-content: flex-start; padding: 10px; background: #0d1a2b; border-radius: 12px; }
 .simulation-canvas-wrap { margin-top: 12px; overflow: hidden; border: 1px solid #263b53; border-radius: 14px; background: radial-gradient(circle at 50% 0, #132840, #08111e 65%); }
 .simulation-canvas-wrap svg { display: block; width: 100%; min-height: 330px; }
