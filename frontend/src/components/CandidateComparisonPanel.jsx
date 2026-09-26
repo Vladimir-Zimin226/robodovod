@@ -35,9 +35,9 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
       })
       .then((body) => {
         setOptions(body);
-        setSelected([body.source_position_id, ...body.items.filter((item) => item.position_id !== body.source_position_id && item.calculation_ready && item.maturity_status !== 'RND').slice(0, 1).map((item) => item.position_id)]);
+        setSelected([body.source_position_id].filter(Boolean));
       })
-      .catch((reason) => { if (reason.name !== 'AbortError') setError(reason.message); });
+      .catch((reason) => { if (reason.name !== 'AbortError') setError(`Не удалось загрузить варианты сравнения: ${reason.message}. Повторите после обновления страницы.`); });
     return () => controller.abort();
   }, [project?.id, capacityRunId]);
 
@@ -57,7 +57,7 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : `HTTP ${response.status}`);
       setResult(body);
-    } catch (reason) { setError(reason.message || 'Не удалось сравнить позиции.'); }
+    } catch (reason) { setError(`Сравнение недоступно: ${reason.message || 'ошибка сервера'}. Выбор моделей сохранён на этой странице; повторите запрос.`); }
     finally { setBusy(false); }
   };
 
@@ -67,13 +67,23 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
     setResult(null);
   };
   const constraint = (key, value) => { setConstraints((current) => ({ ...current, [key]: value, confirmed: key === 'confirmed' ? value : false })); setResult(null); };
-  if (!project?.id || !capacityRunId) return null;
+  if (!project?.id || !capacityRunId) return <section className="panel p-4 text-sm" aria-label="Сравнение кандидатов для операции">
+    <h2 className="text-lg font-semibold">Сравнить модели для этой операции</h2>
+    <p>Сначала сохраните расчёт парка в проекте. Затем выберите 2–3 совместимые модели и нажмите «Сравнить».</p>
+  </section>;
+  const selectedNames = selected.map((id) => options?.items.find((item) => item.position_id === id)?.name).filter(Boolean);
+  const eligibleSelected = selected.filter((id) => { const item = options?.items.find((row) => row.position_id === id);
+    return item?.calculation_ready && item?.maturity_status !== 'RND'; });
+  const missingFinance = eligibleSelected.filter((id) => !financeRuns[id]);
   return <section className="panel space-y-3 p-4" aria-label="Сравнение кандидатов для операции">
     <h2 className="text-lg font-semibold">Сравнить модели для этой операции</h2>
-    <p className="text-sm">Все позиции пересчитываются сервером на входах сохранённого C11. Технический балл и денежный вывод показаны отдельно. Сравнение не изменяет сохранённые runs.</p>
+    <p className="text-sm">Сохранённый расчёт парка задаёт общие входы. Выберите ещё 1–2 модели с тем же физическим профилем и нажмите «Сравнить». Технический и денежный выводы проверяются отдельно; сохранённые расчёты не меняются.</p>
+    {!options && !error && <p role="status" className="text-sm">Загружаем совместимые модели для сохранённого расчёта…</p>}
     {error && <p role="alert" className="text-red-700">{error}</p>}
     {options && <>
-      <p className="text-xs">Активный каталог: {options.catalog_version}. Когорта: {options.items.length} позиции с тем же расчётным профилем.</p>
+      <p className="text-sm">Сравниваются: {selectedNames.length ? selectedNames.join(' и ') : 'модели ещё не выбраны'}.</p>
+      {options.items.length < 2 && <p role="status" className="text-sm text-amber-800">В активном каталоге нет второй модели с тем же расчётным профилем. Техническое сравнение пока недоступно.</p>}
+      <p className="text-xs">В активном каталоге {options.items.length} позиции с тем же физическим профилем.</p>
       <div className="grid gap-2 sm:grid-cols-2">{options.items.map((item) => <label key={item.position_id} className="rounded border p-2 text-sm">
         <input type="checkbox" checked={selected.includes(item.position_id)} disabled={!selected.includes(item.position_id) && selected.length >= 3} onChange={() => change(item.position_id)} />{' '}
         {item.name} <span className="text-slate-500">· {item.maturity_status === 'RND' ? 'исследовательская' : item.calculation_ready ? 'есть расчётный профиль' : 'только сведения'} · цена {item.price_status}</span>
@@ -92,10 +102,11 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
             <option value="">Не выбран</option>{(options.finance_options || []).filter((item) => item.position_id === id).map((item) => <option key={item.run_id} value={item.run_id}>{item.created_at ? new Date(item.created_at).toLocaleString('ru-RU') : item.run_id} · NPV {item.npv_project} ₽ · условия {item.basis_digest.slice(0, 18)}</option>)}
           </select></label>)}
       </details>
+      <p role="status" className="text-sm">{selected.length < 2 ? 'Выберите вторую модель.' : selected.length > eligibleSelected.length ? 'Непроверенная или исследовательская модель останется информационной; технический балл возможен только для расчётных моделей.' : 'Можно сравнить технические показатели.'} {missingFinance.length ? `Денежное сравнение недоступно: для ${missingFinance.map((id) => options.items.find((item) => item.position_id === id)?.name).join(', ')} нет выбранного сопоставимого полного финансового расчёта.` : 'Для денежного вывода сервер ещё проверит общие условия финансовых расчётов.'}</p>
       <button type="button" className="primary-action" disabled={busy || selected.length < 2} onClick={compare}>{busy ? 'Сравниваем…' : 'Сравнить выбранные позиции'}</button>
     </>}
     {result && <>
-      <p className="text-sm">Общие входы: версия {result.input_revision}; digest {result.shared_input_digest}. Правила: {result.ranking_rules_version}.</p>
+      <p className="text-sm">Все модели пересчитаны на входах выбранного сохранённого расчёта.</p>
       {result.role_scope.affected_role_code === 'forklift_driver' && <p className="text-sm text-amber-800">Для паллетной перевозки учитывается только труд водителя погрузчика в подтверждённом C14. Экономия комплектовщиков, сортировщиков и упаковщиков сюда не входит.</p>}
       <p className="text-sm"><strong>Технический вывод:</strong> {result.technical_recommendation.reason}. <strong>Денежный вывод:</strong> {result.financial_recommendation.reason}.</p>
       <div className="overflow-x-auto"><table className="w-full min-w-[780px] border-collapse text-sm"><thead><tr><th className="border p-2">Модель</th><th className="border p-2">Допуск</th><th className="border p-2">Парк</th><th className="border p-2">Технический балл</th><th className="border p-2">NPV</th><th className="border p-2">Денежный балл</th></tr></thead>

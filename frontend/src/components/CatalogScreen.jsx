@@ -146,9 +146,8 @@ export default function CatalogScreen({ objectType, onContinue, onBack, focusPos
           </section>;
         })}
 
-        <footer className="catalog-footer"><p>Выберите 2–3 позиции для сравнения. Только позиции с тегом «Участвует в расчёте» входят в capacity-пул; остальные доступны для discovery и сравнения.</p><div className="catalog-footer-actions">{onBack && <button type="button" className="secondary-action" onClick={onBack}>Назад</button>}<button type="button" className="catalog-primary" onClick={onContinue}>Перейти к расчёту <span aria-hidden="true">→</span></button></div></footer>
+        <footer className="catalog-footer"><p>Выберите 2–3 позиции для сравнения. Только позиции с тегом «Участвует в расчёте» входят в capacity-пул; остальные доступны для discovery и сравнения.</p><div className="catalog-footer-actions">{selected.length >= 2 && <button type="button" className="secondary-action" onClick={() => setShowCompare(true)}>Сравнить позиции ({selected.length})</button>}{onBack && <button type="button" className="secondary-action" onClick={onBack}>Назад</button>}<button type="button" className="catalog-primary" onClick={onContinue}>Перейти к расчёту <span aria-hidden="true">→</span></button></div></footer>
       </div>
-      {selected.length >= 2 && <button className="catalog-compare-fab" onClick={() => setShowCompare(true)}>Сравнить позиции <span>{selected.length}</span></button>}
       {showCompare && selectedRobots.length >= 2 && <CompareDialog robots={selectedRobots} onClose={() => setShowCompare(false)} />}
       {detailPosition && <CatalogPositionDialog position={detailPosition} official={Boolean(catalog)} onClose={() => setDetailPosition(null)} />}
     </main>
@@ -180,9 +179,30 @@ function CatalogEmpty({ title, text, action }) {
 }
 
 function CompareDialog({ robots, onClose }) {
+  const dialog = useRef(null);
   const closeButton = useRef(null);
   const facts = new Map();
   robots.forEach((robot) => (robot.fact_list || []).forEach((fact) => { if (!facts.has(fact.code)) facts.set(fact.code, fact); }));
-  useEffect(() => { closeButton.current?.focus(); }, []);
-  return <div className="catalog-dialog-backdrop" role="presentation" onKeyDown={(event) => { if (event.key === 'Escape') onClose(); }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section className="catalog-dialog" role="dialog" aria-modal="true" aria-labelledby="compare-title"><header><div><span className="catalog-eyebrow">СРАВНЕНИЕ</span><h2 id="compare-title">Выбранные позиции</h2><p>Информационное сравнение. Исключения сохраняются. Это не рекомендация к закупке; разные классы не имеют общего числового рейтинга.</p></div><button ref={closeButton} onClick={onClose} aria-label="Закрыть сравнение">×</button></header><div className="catalog-compare-scroll"><table><thead><tr><th>Параметр</th>{robots.map((robot) => <th key={catalogItemKey(robot)}>{robot.name}<small>{robot.manufacturer}</small></th>)}</tr></thead><tbody><tr><td>Пригодность</td>{robots.map((robot) => <td key={catalogItemKey(robot)}>{robot.selection?.status} · {robot.selection?.reasons?.join("; ")}</td>)}</tr><tr><td>Цена, ₽</td>{robots.map((robot) => <td key={catalogItemKey(robot)}><strong>{formatCatalogPrice(robot)}</strong><small>Источник: {robot.purchase?.evidence_id || 'не указан'}</small></td>)}</tr><tr><td>Тип</td>{robots.map((robot) => <td key={catalogItemKey(robot)}>{robot.type_label || '—'}</td>)}</tr>{Array.from(facts.values()).map((fact) => <tr key={fact.code}><td>{fact.code.replaceAll('_', ' ')}</td>{robots.map((robot) => { const current = robot.fact_list?.find((item) => item.code === fact.code); return <td key={catalogItemKey(robot)}>{current ? `${typeof current.value === 'object' ? JSON.stringify(current.value) : current.value}${current.unit ? ` ${current.unit}` : ''} · источник ${current.evidence_id || 'не указан'} (${current.status || 'unknown'})` : '—'}</td>; })}</tr>)}</tbody></table></div></section></div>;
+  useEffect(() => {
+    const trigger = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButton.current?.focus();
+    const closeOnNavigation = () => onClose();
+    window.addEventListener('popstate', closeOnNavigation);
+    return () => {
+      window.removeEventListener('popstate', closeOnNavigation);
+      document.body.style.overflow = previousOverflow;
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus();
+    };
+  }, [onClose]);
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') { event.preventDefault(); onClose(); return; }
+    if (event.key !== 'Tab') return;
+    const focusable = [...dialog.current.querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')];
+    if (!focusable.length) return;
+    if (event.shiftKey && document.activeElement === focusable[0]) { event.preventDefault(); focusable.at(-1).focus(); }
+    else if (!event.shiftKey && document.activeElement === focusable.at(-1)) { event.preventDefault(); focusable[0].focus(); }
+  };
+  return <div className="catalog-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialog} className="catalog-dialog" role="dialog" aria-modal="true" aria-labelledby="compare-title" onKeyDown={handleKeyDown}><header><div><span className="catalog-eyebrow">СРАВНЕНИЕ</span><h2 id="compare-title">Выбранные позиции</h2><p>Информационное сравнение. Исключения сохраняются. Это не рекомендация к закупке; разные классы не имеют общего числового рейтинга.</p></div><button ref={closeButton} type="button" onClick={onClose} aria-label="Закрыть сравнение">×</button></header><div className="catalog-compare-scroll"><table><thead><tr><th>Параметр</th>{robots.map((robot) => <th key={catalogItemKey(robot)}>{robot.name}<small>{robot.manufacturer}</small></th>)}</tr></thead><tbody><tr><td>Пригодность</td>{robots.map((robot) => <td key={catalogItemKey(robot)}>{robot.selection?.status} · {robot.selection?.reasons?.join("; ")}</td>)}</tr><tr><td>Цена, ₽</td>{robots.map((robot) => <td key={catalogItemKey(robot)}><strong>{formatCatalogPrice(robot)}</strong><small>Источник: {robot.purchase?.evidence_id || 'не указан'}</small></td>)}</tr><tr><td>Тип</td>{robots.map((robot) => <td key={catalogItemKey(robot)}>{robot.type_label || '—'}</td>)}</tr>{Array.from(facts.values()).map((fact) => <tr key={fact.code}><td>{fact.code.replaceAll('_', ' ')}</td>{robots.map((robot) => { const current = robot.fact_list?.find((item) => item.code === fact.code); return <td key={catalogItemKey(robot)}>{current ? `${typeof current.value === 'object' ? JSON.stringify(current.value) : current.value}${current.unit ? ` ${current.unit}` : ''} · источник ${current.evidence_id || 'не указан'} (${current.status || 'unknown'})` : '—'}</td>; })}</tr>)}</tbody></table></div></section></div>;
 }
