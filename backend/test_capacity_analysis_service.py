@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-import json
 import inspect
+import json
 import uuid
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
-
 from calculation.constraints import ConstraintReportV2
 from calculation.service import analyze_capacity, capacity_version_bindings
-from calculation_contracts import CapacityAnalysisRequest, KnownQuantity, canonical_json_bytes
+from calculation_contracts import (
+    CapacityAnalysisRequest,
+    KnownQuantity,
+    canonical_json_bytes,
+)
 from catalog_repository import (
     CapacityRuntimeDTO,
     CatalogApplicabilityDTO,
@@ -128,6 +132,33 @@ def test_default_constraints_fail_closed_but_preserve_same_revision():
     assert result.executability.status == "NEEDS_VALIDATION"
     assert result.response.capacity.status == "BLOCKED"
     assert result.constraints.input_revision == result.response.input_revision == "revision.c11.v1"
+
+
+def test_confirmed_mass_hard_fail_blocks_new_capacity_run():
+    raw = request().model_dump(mode="json")
+    raw["process"]["item_mass"] = q("item_mass", "1300", "kg/unit", "RATE").model_dump()
+    result = analyze_capacity(CapacityAnalysisRequest.model_validate(raw), snapshot(), "run.c11.overload")
+    assert result.constraints.eligibility == "BLOCKED"
+    assert "payload" in result.constraints.blocker_codes
+    assert next(c for c in result.constraints.checks if c.check_id == "payload").status == "FAIL"
+    assert result.response.capacity.status == "BLOCKED"
+
+
+def test_confirmed_mass_within_safe_payload_is_not_hard_fail():
+    raw = request().model_dump(mode="json")
+    raw["process"]["item_mass"] = q("item_mass", "800", "kg/unit", "RATE").model_dump()
+    result = analyze_capacity(CapacityAnalysisRequest.model_validate(raw), snapshot(), "run.c11.safe-payload")
+    assert next(c for c in result.constraints.checks if c.check_id == "payload").status == "PASS"
+    assert "payload" not in result.constraints.blocker_codes
+
+
+def test_research_maturity_cannot_enter_new_capacity_run_even_if_flagged_ready():
+    original = snapshot()
+    research_model = replace(original.models[0], maturity_status="RND")
+    research = replace(original, models=(research_model,),
+                       positions=(replace(original.positions[0], model=research_model),))
+    with pytest.raises(ValueError, match="research position"):
+        analyze_capacity(request(), research, "run.c11.research")
 
 
 def test_acknowledged_demo_calculates_without_claiming_c05_eligibility():

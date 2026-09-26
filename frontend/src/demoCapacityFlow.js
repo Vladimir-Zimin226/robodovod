@@ -43,7 +43,7 @@ export function demoCandidates(items, scope) {
     ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(scope) ? 'TRANSPORT_CYCLE_V1' : null;
   if (!profile) return [];
   return items.filter((item) => item.calculation_ready &&
-    item.calculation_profile === profile && DEMO_MODELS[item.organizer_id]);
+    item.calculation_profile === profile && item.maturity_status !== 'RND');
 }
 
 export function brainCandidates(items, scope) {
@@ -52,7 +52,7 @@ export function brainCandidates(items, scope) {
   if (!profile) return [];
   const seen = new Set();
   return items.filter((item) => {
-    if (!item.calculation_ready || item.calculation_profile !== profile || seen.has(item.position_id)) return false;
+    if (!item.calculation_ready || item.maturity_status === 'RND' || item.calculation_profile !== profile || seen.has(item.position_id)) return false;
     seen.add(item.position_id);
     return true;
   });
@@ -65,8 +65,8 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
   if (!process?.active || process.input_revision !== normalized.response.input_revision) {
     throw new Error('Нормализуйте активный процесс заново.');
   }
-  if (!position || !(brainProfileVersion ? position.position_id : DEMO_MODELS[position.organizer_id]) || !position.calculation_ready) {
-    throw new Error('Выберите расчётную модель из демо-профилей.');
+  if (!position || !position.position_id || !position.calculation_ready || position.maturity_status === 'RND' || position.selection?.status === 'EXCLUDED') {
+    throw new Error('Выберите совместимую расчётную модель из активного каталога.');
   }
   const expectedProfile = process.scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
     ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) ? 'TRANSPORT_CYCLE_V1' : null;

@@ -474,88 +474,53 @@ def discover_catalog_models(
         "all", pattern="^(all|participating|requires_data)$"
     ),
     sort: str = Query("name", pattern="^(name|manufacturer|type)$"),
+    object_kind: str | None = Query(None, pattern="^(warehouse|airport|clinic)$"),
+    process_code: str | None = Query(None, max_length=100),
+    maturity: str | None = Query(None, max_length=100),
+    availability: str | None = Query(None, max_length=100),
+    quality: str | None = Query(None, pattern="^(verified|unknown)$"),
+    include_unknown: bool = False,
+    price_min: float | None = Query(None, ge=0),
+    price_max: float | None = Query(None, ge=0),
+    payload_min: float | None = Query(None, ge=0),
+    payload_max: float | None = Query(None, ge=0),
+    aisle_max: float | None = Query(None, ge=0),
+    max_payload_kg: str | None = Query(None, pattern=r"^(?:0|[1-9]\d*)(?:\.\d+)?$", max_length=16),
+    min_aisle_width_m: str | None = Query(None, pattern=r"^(?:0|[1-9]\d*)(?:\.\d+)?$", max_length=16),
+    required_integrations: str = Query("", max_length=500),
+    required_access_protocols: str = Query("", max_length=500),
+    outdoor_required: bool = False,
+    airside_required: bool = False,
+    restricted_zone_required: bool = False,
+    sanitization_required: bool = False,
 ):
     """Search/filter the activated discovery catalog without making it selectable."""
 
     snapshot = _discovery_snapshot()
-    positions = list(snapshot.positions)
-    if q and q.strip():
-        needle = q.casefold().strip()
-
-        def matches(position: CatalogPositionDTO) -> bool:
-            model = position.model
-            applicability = position.applicability
-            enrichment = position.enrichment
-            values = (
-                model.name,
-                model.manufacturer or "",
-                model.type_code,
-                model.subtype_code or "",
-                (
-                    enrichment.description_normalized
-                    if enrichment is not None
-                    and enrichment.description_status == "ENRICHED"
-                    else model.description or ""
-                ),
-                applicability.industry or "",
-                applicability.scenario or "",
-                applicability.region or "",
-                applicability.case_text or "",
-            )
-            return any(needle in value.casefold() for value in values)
-
-        positions = [position for position in positions if matches(position)]
-    if system_family:
-        positions = [
-            position
-            for position in positions
-            if position.model.system_family == system_family
-        ]
-    if type_code:
-        positions = [
-            position for position in positions if position.model.type_code == type_code
-        ]
-    if manufacturer:
-        positions = [
-            position
-            for position in positions
-            if position.model.manufacturer == manufacturer
-        ]
-    if selectable is not None:
-        positions = [
-            position
-            for position in positions
-            if (position.runtime_robot is not None) == selectable
-        ]
-    if calculation_participation == "participating":
-        positions = [
-            position
-            for position in positions
-            if position.model.capacity_runtime.calculation_ready
-        ]
-    elif calculation_participation == "requires_data":
-        positions = [
-            position
-            for position in positions
-            if not position.model.capacity_runtime.calculation_ready
-        ]
-    sort_keys = {
-        "name": lambda position: (
-            position.model.name.casefold(),
-            position.source_row_number,
-        ),
-        "manufacturer": lambda position: (
-            (position.model.manufacturer or "").casefold(),
-            position.model.name.casefold(),
-            position.source_row_number,
-        ),
-        "type": lambda position: (
-            position.model.type_code.casefold(),
-            position.model.name.casefold(),
-            position.source_row_number,
-        ),
-    }
-    positions.sort(key=sort_keys[sort])
+    from catalog_selection import filter_items
+    from calculation.process_profiles.catalog import load_process_profile_catalog
+    profile = next((p for p in load_process_profile_catalog().profiles if p.process_code == process_code), None)
+    if process_code and (profile is None or object_kind != profile.object_kind.lower()):
+        raise HTTPException(422, "Процесс должен принадлежать выбранному объекту")
+    if any(low is not None and high is not None and low > high for low, high in
+           ((price_min, price_max), (payload_min, payload_max))):
+        raise HTTPException(422, "Нижняя граница превышает верхнюю")
+    import math
+    if any(value is not None and not math.isfinite(value) for value in
+           (price_min, price_max, payload_min, payload_max, aisle_max)):
+        raise HTTPException(422, "Диапазон должен содержать конечные числа")
+    context = {"max_payload_kg": max_payload_kg, "min_aisle_width_m": min_aisle_width_m,
+               "required_integrations": [value.strip() for value in required_integrations.split(",") if value.strip()],
+               "required_access_protocols": [value.strip() for value in required_access_protocols.split(",") if value.strip()],
+               "outdoor_required": outdoor_required, "airside_required": airside_required,
+               "restricted_zone_required": restricted_zone_required,
+               "sanitization_required": sanitization_required}
+    items = filter_items([_discovery_position(p, snapshot.version.code) for p in snapshot.positions],
+        q=q, system_family=system_family, type_code=type_code, manufacturer=manufacturer,
+        selectable=selectable, calculation_participation=calculation_participation, sort=sort,
+        object_kind=object_kind, process_code=process_code, maturity=maturity, availability=availability, quality=quality,
+        include_unknown=include_unknown, price_min=price_min, price_max=price_max,
+        payload_min=payload_min, payload_max=payload_max, aisle_max=aisle_max, context=context)
     all_positions = snapshot.positions
     return {
         "catalog": {
@@ -564,7 +529,7 @@ def discover_catalog_models(
             "status": snapshot.version.status,
             "source": "activated",
         },
-        "total": len(positions),
+        "total": len(items),
         "model_count": len(snapshot.models),
         "position_count": len(all_positions),
         "selectable_count": sum(
@@ -627,10 +592,15 @@ def discover_catalog_models(
                 if position.model.manufacturer
             }
         ),
-        "items": [
-            _discovery_position(position, snapshot.version.code)
-            for position in positions
-        ],
+        "selection_version": "catalog-selection-v1",
+        "processes": [{"code": str(p.process_code), "object_kind": str(p.object_kind).lower(),
+                       "scope": str(p.scope), "calculation_supported": p.capacity_handler != "NONE"}
+                      for p in load_process_profile_catalog().profiles],
+        "maturities": sorted({p.model.maturity_status for p in all_positions if p.model.maturity_status}),
+        "availabilities": sorted({str(p.model.attributes.get("admin_metadata", {}).get("availability"))
+                                  for p in all_positions if p.model.attributes.get("admin_metadata", {}).get("availability")
+                                  not in {None, "", "UNKNOWN"}}),
+        "items": items,
     }
 
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../src/demoCapacityFlow.js';
+import { buildDemoCapacityRequest, brainCandidates, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../src/demoCapacityFlow.js';
 import { createWarehouseDemoDraft, confirmRoleAssumption, confirmProcessAssumption, serializeDraft } from '../src/processRoleIntakeV2.js';
 
 const mule = {
@@ -29,11 +29,20 @@ const normalized = {
   },
 };
 
-test('demo candidates stay within authored model identities and physical profile', () => {
+test('manual candidates include compatible catalog positions and preserve authored demo identities', () => {
   assert.deepEqual(demoCandidates([mule, cleaner], 'TRANSPORT_CYCLE'), [mule]);
   assert.deepEqual(demoCandidates([mule, cleaner], 'CLEANING_AREA'), [cleaner]);
   assert.deepEqual(demoCandidates([mule, cleaner], 'REFERENCE_ONLY'), []);
-  assert.deepEqual(demoCandidates([{ ...mule, organizer_id: undefined }], 'TRANSPORT_CYCLE'), []);
+  assert.deepEqual(demoCandidates([{ ...mule, organizer_id: undefined }], 'TRANSPORT_CYCLE'), [{ ...mule, organizer_id: undefined }]);
+});
+
+test('manual and Brain exclude RND, unsupported and unready positions from the same physical pool', () => {
+  const extra = { ...mule, organizer_id: undefined, position_id: 'position.extra' };
+  const items = [mule, extra, { ...extra, position_id: 'position.rnd', maturity_status: 'RND' },
+    { ...extra, position_id: 'position.unready', calculation_ready: false },
+    { ...extra, position_id: 'position.unsupported', calculation_profile: null }];
+  assert.deepEqual(demoCandidates(items, 'TRANSPORT_CYCLE'), [mule, extra]);
+  assert.deepEqual(brainCandidates(items, 'TRANSPORT_CYCLE'), [mule, extra]);
 });
 
 test('every selectable demo identity has visible source, assumptions and unknowns', () => {
@@ -61,6 +70,8 @@ test('preliminary request requires acknowledgement, project and explicit exchang
   assert.throws(() => buildDemoCapacityRequest({ ...args, projectId: null }), /проект/);
   assert.throws(() => buildDemoCapacityRequest({ ...args, exchangeSeconds: '' }), /время/);
   assert.throws(() => buildDemoCapacityRequest({ ...args, position: cleaner }), /профилю/);
+  assert.throws(() => buildDemoCapacityRequest({ ...args, position: { ...mule, maturity_status: 'RND' } }), /совместимую/);
+  assert.throws(() => buildDemoCapacityRequest({ ...args, position: { ...mule, selection: { status: 'EXCLUDED' } } }), /совместимую/);
 });
 
 test('C11 request binds a shared role only to the selected zone process', () => {

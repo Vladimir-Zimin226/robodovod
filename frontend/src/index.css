@@ -590,3 +590,18 @@ button:disabled { cursor: not-allowed; }
   .robodovod-app .economics-inputs-v2, .robodovod-app .guest-warehouse-demo { width: calc(100% - 16px); padding: 12px; }
   .robodovod-app .evidence-export-v2 { width: calc(100% - 16px); }
 }
+
+/* F4: keep context controls visible; advanced ranges expand on demand. */
+.catalog-filters { position: static; grid-template-columns: repeat(4,minmax(0,1fr)); align-items: end; }
+.catalog-filters label { display: grid; gap: 5px; color: var(--text-secondary); font-size: 11px; }
+.catalog-filters input:not([type="checkbox"]) { padding: 0 10px; }
+.catalog-filters .catalog-search { align-self: end; }
+.catalog-filters .catalog-search input { padding-left: 38px; }
+.catalog-filters > button { min-height: 43px; border: 1px solid var(--border-medium); border-radius: 6px; background: var(--bg-input); color: var(--text-primary); cursor: pointer; }
+.catalog-advanced { grid-column: 1/-1; padding: 9px 12px; border: 1px solid var(--border-subtle); border-radius: 7px; }
+.catalog-advanced summary { cursor: pointer; color: var(--lime); font-size: 12px; }
+.catalog-advanced-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; padding-top: 12px; }
+.catalog-advanced-grid label:has(input[type="checkbox"]) { display: flex; align-items: center; gap: 8px; }
+.catalog-advanced-grid input[type="checkbox"] { flex: none; width: 18px; height: 18px; padding: 0; accent-color: var(--lime); }
+@media (max-width: 900px) { .catalog-filters,.catalog-advanced-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 600px) { .catalog-filters,.catalog-advanced-grid { grid-template-columns: 1fr; } }

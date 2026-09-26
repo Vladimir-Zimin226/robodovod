@@ -54,12 +54,18 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
       .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
       .then((value) => { setRecord(value); if (value.profile?.selected_process) setProcessCode(value.profile.selected_process); })
       .catch((e) => { if (e.name !== 'AbortError') setError(e.message); });
-    fetch(`${API}/api/catalog/models?calculation_participation=participating`, { signal: controller.signal })
-      .then((r) => r.ok ? r.json() : { items: [] }).then((payload) => setPositions(payload.items || [])).catch(() => {});
     fetch(`${API}/api/catalog/defaults`, { signal: controller.signal }).then((r) => r.ok ? r.json() : null)
       .then(setCatalogDefaults).catch(() => {});
     return () => controller.abort();
   }, [project?.id]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({ calculation_participation: 'participating', object_kind: 'warehouse', process_code: processCode, include_unknown: 'true' });
+    fetch(`${API}/api/catalog/models?${params}`, { signal: controller.signal })
+      .then((r) => r.ok ? r.json() : { items: [] }).then((payload) => setPositions((payload.items || []).filter((p) => p.selection?.calculation_compatible))).catch(() => {});
+    return () => controller.abort();
+  }, [processCode]);
 
   const runAction = async (route, body, onSuccess) => {
     setBusy(true); setError('');

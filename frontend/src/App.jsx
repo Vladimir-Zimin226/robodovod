@@ -51,6 +51,7 @@ export default function App() {
   const [intakePrompt, setIntakePrompt] = useState('');
   const [intakeInitialSources, setIntakeInitialSources] = useState(null);
   const [catalogFocusId, setCatalogFocusId] = useState(null);
+  const [catalogContext, setCatalogContext] = useState(null);
   const [assistantSession, setAssistantSession] = useState(null);
   const [assistantImport, setAssistantImport] = useState(null);
   const [user, setUser] = useState(null);
@@ -140,6 +141,7 @@ export default function App() {
   }, [user?.id]);
 
   const selectActiveProject = (project) => {
+    setCatalogContext(null);
     setActiveProject(project);
     setActiveRun(null);
     setResult(null);
@@ -148,6 +150,7 @@ export default function App() {
   };
 
   const restart = () => {
+    setCatalogContext(null);
     showPhase('onboarding');
     setObjectType(null);
     setPreset(null);
@@ -338,7 +341,7 @@ export default function App() {
               }) : project);
             }}
             onOpenObjects={() => showPhase('onboarding')}
-            onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; }}
+            onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; const p = snapshot.response?.normalized_processes?.find((p) => p.active); setCatalogContext(p ? { process_code: p.process_code, constraints: p.item_mass?.status === 'KNOWN' ? { max_payload_kg: p.item_mass.normalized_value } : {} } : null); }}
             onCapacityResult={(response, request) => {
               setResult(response);
               setUserInput(request);
@@ -348,7 +351,7 @@ export default function App() {
             }}
           />
         ) : phase === 'catalog' ? (
-          <CatalogScreen objectType={objectType || 'other'} focusPositionId={catalogFocusId} onContinue={openCalculation}
+          <CatalogScreen key={`${activeProject?.id || 'guest'}-${objectType}`} projectContext={catalogContext} objectType={objectType || 'other'} focusPositionId={catalogFocusId} onContinue={openCalculation}
             onBack={() => showPhase(catalogReturnPhase.current)} />
         ) : phase === 'account' ? (
           <AuthScreen

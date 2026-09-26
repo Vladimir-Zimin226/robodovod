@@ -1,0 +1,18 @@
+{
+  "catalog": "f3-browser-d205a4e084ed",
+  "total": 225,
+  "objects": {
+    "warehouse": 28,
+    "airport": 5,
+    "clinic": 3
+  },
+  "transport": 199,
+  "cleaning": 160,
+  "history": {
+    "analysis_runs": 128,
+    "simulation_artifacts": 37,
+    "catalog_versions": 18
+  },
+  "browser_errors": [],
+  "history_unchanged": true
+}

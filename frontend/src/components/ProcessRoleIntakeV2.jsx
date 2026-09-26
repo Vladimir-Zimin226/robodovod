@@ -77,22 +77,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       () => latestRevision.current,
     );
   }, []);
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(`${API}/api/catalog/models?calculation_participation=participating`, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then((payload) => {
-        setPositions(payload.items || []);
-        setCatalogState('ready');
-      })
-      .catch((catalogError) => {
-        if (catalogError.name !== 'AbortError') setCatalogState('error');
-      });
-    return () => controller.abort();
-  }, []);
+
 
   const issues = useMemo(() => validateDraft(draft), [draft]);
   const fieldIssue = (ref) => issues.find((item) => item.ref === ref)
@@ -108,6 +93,17 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(item.scope))
     : [];
   const selectedProcess = activeProcesses.find((item) => item.process_id === processId) || activeProcesses[0];
+  useEffect(() => {
+    if (!selectedProcess) return undefined;
+    const controller = new AbortController();
+    const params = new URLSearchParams({ calculation_participation: 'participating', object_kind: selectedProcess.object_kind.toLowerCase(), process_code: selectedProcess.process_code, include_unknown: 'true' });
+    if (selectedProcess.item_mass?.status === 'KNOWN') params.set('max_payload_kg', selectedProcess.item_mass.normalized_value);
+    fetch(`${API}/api/catalog/models?${params}`, { signal: controller.signal })
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+      .then((payload) => { setPositions((payload.items || []).filter((p) => p.selection?.calculation_compatible)); setCatalogState('ready'); })
+      .catch((e) => { if (e.name !== 'AbortError') { setPositions([]); setCatalogState('error'); } });
+    return () => controller.abort();
+  }, [selectedProcess]);
   const candidatePositions = demoCandidates(positions, selectedProcess?.scope);
   const selectedPosition = candidatePositions.find((item) => item.position_id === positionId);
   const choosePhysicalInputs = (raw) => {
@@ -303,12 +299,12 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <label className="block text-xs">Модель из активного capacity-каталога
             <select className="w-full border rounded px-2 py-1" value={positionId} onChange={(event) => setPositionId(event.target.value)}>
               <option value="">Выберите модель</option>
-              {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.organizer_id]} · позиция {item.source_row_number}</option>)}
+              {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.organizer_id] || `${item.manufacturer || ''} · ${item.name}`} · позиция {item.source_row_number}</option>)}
             </select>
           </label>
           {catalogState === 'loading' && <p className="text-xs text-slate-600" role="status">Загружаем расчётные модели…</p>}
           {catalogState === 'error' && <p className="text-xs text-red-700" role="alert">Каталог расчётных моделей недоступен. Обновите страницу и повторите попытку.</p>}
-          {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">В активном каталоге нет подходящего авторского демо-профиля для этого процесса. Проверьте capacity-активацию.</p>}
+          {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">В активном каталоге нет совместимой расчётной позиции для этого процесса. Проверьте capacity-активацию.</p>}
           {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.organizer_id]} />}
           {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
           {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={setCleaningFrequency} />}

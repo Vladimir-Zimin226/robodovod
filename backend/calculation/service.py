@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Callable
 
 from catalog_repository import CatalogPositionDTO, CatalogSnapshotDTO
+from catalog_selection import numeric_fact
 from calculation.capacity.cleaning import DirectCleaningAreaV1, CleaningCapacityRequestV1, calculate_cleaning_capacity
 from calculation.capacity.palletizing import PalletizingCapacityRequestV1, calculate_palletizing_capacity
 from calculation.capacity.trace import finalize_trace
@@ -124,6 +125,8 @@ def _position(request: CapacityAnalysisRequest, snapshot: CatalogSnapshotDTO) ->
         raise ValueError("model/position is absent from the published capacity snapshot")
     if not position.model.capacity_runtime.calculation_ready:
         raise ValueError("selected capacity source is not calculation-ready")
+    if position.model.maturity_status == "RND":
+        raise ValueError("research position cannot enter a capacity calculation")
     return position
 
 
@@ -134,22 +137,36 @@ def conservative_constraints(request: CapacityAnalysisRequest, position: Catalog
     UNKNOWN, so production execution fails closed until the relevant gate.
     """
     source = f"catalog-capacity-profile:{position.id}"
+    payload, payload_ref = numeric_fact({"facts": [
+        {"code": fact.code, "value": fact.value, "unit": fact.canonical_unit,
+         "status": fact.resolution_status, "evidence_id": fact.evidence_id}
+        for fact in position.model.facts
+    ]}, "payload")
+    mass = request.process.item_mass
+    context = ObjectConstraintContext(
+        object_kind=request.process.object_kind,
+        max_payload_kg=mass.normalized_value if isinstance(mass, KnownQuantity) else None,
+    )
+    evidence = {
+        "supported_object_kinds": {"evidence_status": "MATCHING_SAFE", "source_ref": source},
+        "supported_process_scopes": {"evidence_status": "MATCHING_SAFE", "source_ref": source},
+    }
+    if payload_ref:
+        evidence["payload_kg"] = {"evidence_status": "MATCHING_SAFE", "source_ref": payload_ref}
     candidate = CandidateConstraintFacts(
         model_id=position.model.id,
         position_id=position.id,
         supported_object_kinds=[request.process.object_kind],
         supported_process_scopes=[request.process.scope],
-        evidence={
-            "supported_object_kinds": {"evidence_status": "MATCHING_SAFE", "source_ref": source},
-            "supported_process_scopes": {"evidence_status": "MATCHING_SAFE", "source_ref": source},
-        },
+        payload_kg=format(payload, "f") if payload is not None else None,
+        evidence=evidence,
     )
     return evaluate_constraints(ConstraintEvaluationRequest(
         input_revision=request.input_revision,
         process_id=request.process.process_id,
         process_code=request.process.process_code,
         process_scope=request.process.scope,
-        context=ObjectConstraintContext(object_kind=request.process.object_kind),
+        context=context,
         candidate=candidate,
     ))
 
