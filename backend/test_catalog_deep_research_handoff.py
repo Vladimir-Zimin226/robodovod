@@ -611,7 +611,7 @@ def test_packet_cross_audit_covers_all_six_batches(tmp_path: Path):
     build(handoff)
     report = audit_packets(
         handoff,
-        Path("data/review/catalog-runtime-eligibility-report-v1.json"),
+        Path(__file__).resolve().parents[1] / "data/review/catalog-runtime-eligibility-report-v1.json",
     )
     assert report["status"] == "PASS"
     assert report["source_eligibility_scope"] == {"models": 187, "positions": 223}

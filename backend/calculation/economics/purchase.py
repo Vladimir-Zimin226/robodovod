@@ -10,7 +10,7 @@ import json
 from decimal import ROUND_CEILING, Decimal
 from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_serializer, model_validator
 
 from calculation.registry import CalculationParameterRegistryV1, load_registry
 from calculation_contracts import Digest, StableId, StrictContractModel
@@ -148,11 +148,18 @@ class ResidualOverrideV1(StrictContractModel):
 
 class LabourOpexProjectionV1(StrictContractModel):
     technicians_required: Annotated[int, Field(ge=0)]
-    technicians_billable: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
+    technicians_billable: Annotated[int, Field(ge=0)] | None = None
     technician_annual_direct: DecimalString | None = None
     additional_control_required: Annotated[int, Field(ge=0)]
     control_annual_direct: DecimalString | None = None
     source_result_digest: Digest
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_billable(self, handler):
+        payload = handler(self)
+        if self.technicians_billable is None:
+            payload.pop("technicians_billable", None)
+        return payload
 
     @model_validator(mode="after")
     def costs_non_negative(self) -> "LabourOpexProjectionV1":

@@ -12,7 +12,7 @@ import json
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal, localcontext
 from typing import Annotated, Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_serializer, model_validator
 
 from calculation.registry import CalculationParameterRegistryV1, load_registry
 from calculation.process_profiles.catalog import load_process_profile_catalog
@@ -204,7 +204,14 @@ class LabourAnalysisRequestV1(StrictContractModel):
     replacement_limit: DecimalString = "1"
     allow_surplus_replacement: bool = False
     base_forklift_count: Annotated[int, Field(ge=0)] | None = None
-    staffing_decision: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
+    staffing_decision: StaffingDecisionV1 | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_decision(self, handler):
+        payload = handler(self)
+        if self.staffing_decision is None:
+            payload.pop("staffing_decision", None)
+        return payload
 
     @model_validator(mode="after")
     def validate_request(self) -> "LabourAnalysisRequestV1":
@@ -322,17 +329,28 @@ class SiteOperatingStaffV1(StrictContractModel):
     control_transferred: Annotated[int, Field(ge=0)]
     control_additional: Annotated[int, Field(ge=0)]
     technicians_required: Annotated[int, Field(ge=0)]
-    technicians_billable: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
-    technicians_transferred: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
-    existing_control_headcount: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
-    existing_technician_headcount: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
-    technician_contractor_annual_gross: DecimalString | None = Field(default=None, exclude_if=lambda value: value is None)
-    control_transfer_monthly_supplement_gross: DecimalString | None = Field(default=None, exclude_if=lambda value: value is None)
-    technician_transfer_monthly_supplement_gross: DecimalString | None = Field(default=None, exclude_if=lambda value: value is None)
+    technicians_billable: Annotated[int, Field(ge=0)] | None = None
+    technicians_transferred: Annotated[int, Field(ge=0)] | None = None
+    existing_control_headcount: Annotated[int, Field(ge=0)] | None = None
+    existing_technician_headcount: Annotated[int, Field(ge=0)] | None = None
+    technician_contractor_annual_gross: DecimalString | None = None
+    control_transfer_monthly_supplement_gross: DecimalString | None = None
+    technician_transfer_monthly_supplement_gross: DecimalString | None = None
     control_money: MoneyBreakdownV1 | None
     technician_money: MoneyBreakdownV1 | None
     status: Literal["COMPLETE", "INCOMPLETE", "NOT_APPLICABLE"]
     reason_codes: list[StableId] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_staffing(self, handler):
+        payload = handler(self)
+        for field in ("technicians_billable", "technicians_transferred", "existing_control_headcount",
+                      "existing_technician_headcount", "technician_contractor_annual_gross",
+                      "control_transfer_monthly_supplement_gross",
+                      "technician_transfer_monthly_supplement_gross"):
+            if getattr(self, field) is None:
+                payload.pop(field, None)
+        return payload
 
 
 class ForkliftLedgerV1(StrictContractModel):

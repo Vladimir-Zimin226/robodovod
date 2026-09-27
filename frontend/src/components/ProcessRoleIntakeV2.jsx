@@ -103,8 +103,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const normalizedIsCurrent = result?.response?.input_revision === draft.inputRevision;
   const activeProcesses = normalizedIsCurrent
     ? result.response.normalized_processes.filter((item) => item.active &&
-      item.process_id.startsWith(`${selectedZoneId}.`) &&
-      ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(item.scope))
+      item.process_id.startsWith(`${selectedZoneId}.`))
     : [];
   const selectedProcess = activeProcesses.find((item) => item.process_id === processId) || activeProcesses[0];
   useEffect(() => {
@@ -179,8 +178,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     try {
       const normalized = await normalizationClient.current(draft);
       setResult(normalized);
-      setProcessId(normalized.response.normalized_processes.find((item) => item.active &&
-        ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(item.scope))?.process_id || '');
+      setProcessId(normalized.response.normalized_processes.find((item) => item.active)?.process_id || '');
       choosePhysicalInputs(draft.processes.find((item) => item.active && item.zoneId === selectedZoneId));
       setPositionId('');
       invalidateComparison();
@@ -387,7 +385,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           {catalogState === 'error' && <p className="text-xs text-red-700" role="alert">Каталог расчётных моделей недоступен. Обновите страницу и повторите попытку.</p>}
           {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">Для этого процесса в активном каталоге нет расчётной рекомендации. Информационные позиции и причины показаны выше; парк не рассчитывается без утверждённой физической формулы.</p>}
           {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.organizer_id]} />}
-          {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); invalidateComparison(); }} />}
+          {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(selectedProcess?.scope) && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); invalidateComparison(); }} />}
           {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={(value) => { setCleaningFrequency(value); invalidateComparison(); }} />}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => { setAcknowledged(event.target.checked); invalidateComparison(); }} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>

@@ -140,8 +140,8 @@ def test_user_price_with_source_can_replace_missing_catalog_price(monkeypatch):
     assert run.result_snapshot["comparison"]["inputs"]["price"]["source_note"].startswith("Коммерческое")
 
 
-def test_220_pallets_at_120_m_and_typical_warehouse_export_saved_values():
-    for demand in ("220", "1000"):
+def test_220_and_2000_pallets_at_120_m_and_typical_warehouse_export_saved_values():
+    for demand in ("220", "1000", "2000"):
         run, linked, _ = _run(demand=demand)
         comparison = run.result_snapshot["comparison"]
         assert comparison["inputs"]["demand"]["value"] == demand
