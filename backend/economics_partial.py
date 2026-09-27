@@ -229,6 +229,9 @@ def execute_partial_economics_v2(
 ) -> EconomicsV2ExecutionV1:
     if raw.get("schema_version") not in {INPUT_VERSION, INPUT_VERSION_V3, INPUT_VERSION_V4, INPUT_VERSION_V5}:
         raise ValueError("unsupported partial economics input version")
+    depth = raw.get("calculation_depth")
+    if depth is not None and (not isinstance(depth, str) or depth not in {"BASIC", "ADVANCED", "FULL"}):
+        raise ValueError("unsupported economics calculation depth")
     values, issues = _parse(raw)
     request = context.capacity_request
     if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4, INPUT_VERSION_V5} and request.process.process_code != "warehouse_receiving_shipping":
@@ -311,7 +314,8 @@ def execute_partial_economics_v2(
                 issues.append(_issue("scenario_spec", "TECHNICAL_INPUT_INVALID", str(exc), "Проверьте график и маршрут исходного C11."))
     if raw.get("schema_version") == INPUT_VERSION_V5:
         labour_missing = _missing(values, ("role_salaries_confirmed_as_monthly_gross", "control_headcount", "technician_headcount")) + missing_salaries + context_missing
-        labour_missing += [field for field in ("staffing_purchase", "staffing_raas") if values.get(field) is None]
+        staffing_fields = ("staffing_purchase",) if depth in {"BASIC", "ADVANCED"} else ("staffing_purchase", "staffing_raas")
+        labour_missing += [field for field in staffing_fields if values.get(field) is None]
         labour_missing += [item["field"] for item in issues if item["code"] == "STAFFING_COVERAGE_INCOMPLETE"]
         if any(item.get("control_additional", 0) > 0 for item in staffing_preview.values()) and values["control_monthly_gross"] is None:
             labour_missing.append("control_monthly_gross")
@@ -333,6 +337,8 @@ def execute_partial_economics_v2(
         labour_missing.append("primary_role_id")
     purchase_missing = labour_missing + _missing(values, PURCHASE_FIELDS)
     raas_missing = purchase_missing + _missing(values, RAAS_FIELDS)
+    if raw.get("schema_version") == INPUT_VERSION_V5 and values.get("staffing_raas") is None:
+        raas_missing.append("staffing_raas")
     if any(item["field"] == "raas_contract_months" and item["code"] == "CONTRACT_TOO_SHORT" for item in issues):
         raas_missing.append("raas_contract_months")
     if any(item["field"] == "evaluation_date" and item["code"] == "INVALID_VALUE" for item in issues):

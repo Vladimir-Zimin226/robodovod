@@ -70,12 +70,26 @@ def _full_runs():
     return EvidenceRunSnapshotV1.model_validate(raw), EvidenceRunSnapshotV1.model_validate(linked)
 
 
+@pytest.mark.parametrize("depth,label", [("BASIC", "Базовый"), ("ADVANCED", "Углублённый"), ("FULL", "Полный")])
+def test_readable_report_preserves_explicit_depth_and_source_digest(depth, label):
+    run, linked = _full_runs()
+    raw = run.model_dump(mode="json")
+    raw["input_snapshot"]["economics"]["calculation_depth"] = depth
+    raw["checksums"]["input"] = _checksum(raw["input_snapshot"])
+    selected = EvidenceRunSnapshotV1.model_validate(raw)
+    pdf, digest = build_readable_report(selected, linked)
+    assert f"Глубина расчёта: {label}" in _text(pdf)
+    assert digest == f"sha256:{run.checksums['result']}"
+    assert "calculation_depth" not in run.input_snapshot["economics"]
+
+
 def test_full_report_has_readable_source_bound_financial_values():
     run, linked = _full_runs()
     first, digest = build_readable_report(run, linked)
     second, _ = build_readable_report(run, linked)
     assert first == second and first.startswith(b"%PDF-")
     text = _text(first)
+    assert "Глубина расчёта:" not in text
     for heading in ("Какой процесс оцениваем", "Сейчас", "После покупки роботов", "При аренде роботов (RaaS)",
                     "Сравнение денег по годам", "Что известно и что ещё подтвердить", "Источники и методика"):
         assert heading in text

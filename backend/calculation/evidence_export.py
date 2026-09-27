@@ -568,6 +568,8 @@ def _human_entrypoint(
         "# НАЧНИТЕ ЗДЕСЬ", "",
         f"**Отчёт № {run.run_id}** · дата сохранённого расчёта {run.finished_at:%d.%m.%Y}.",
         f"Вид результата: {report_kind}.",
+        *([f"Глубина расчёта: { {'BASIC': 'Базовый', 'ADVANCED': 'Углублённый', 'FULL': 'Полный'}.get(run.input_snapshot.get('economics', {}).get('calculation_depth'), 'Не указана') }."]
+          if run.input_snapshot.get("economics", {}).get("calculation_depth") else []),
         f"Проект: {run.project_id}. Тип run: {run.run_kind}. Ревизия: {run.revision_id or 'NOT_AVAILABLE'}.",
         f"Версии: правила {run.versions.get('rules') or 'NOT_AVAILABLE'}; экономика {run.versions.get('economics') or 'NOT_AVAILABLE'}; приложение {run.versions.get('application') or 'NOT_AVAILABLE'}.",
         f"SHA-256 сохранённого результата: {digests['result']}. Полный перечень SHA-256 файлов — в manifest.json.",

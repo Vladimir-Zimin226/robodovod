@@ -35,6 +35,28 @@ def _staffing_input():
                               "control_transfer_monthly_supplement_gross": "0"}}
 
 
+@pytest.mark.parametrize("depth", ["BASIC", "ADVANCED"])
+def test_lower_depth_does_not_require_hidden_raas_staffing(depth):
+    snapshot, context = _context()
+    raw = {**_staffing_input(), "calculation_depth": depth, "staffing_raas": None,
+           "raas_monthly_per_robot_gross": None, "raas_contract_months": None,
+           "raas_vendor_scope_confirmed": False}
+    if depth == "BASIC":
+        raw["implementation_cost_total_gross"] = None
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["branches"]["labour"]["status"] == "CALCULATED"
+    assert result["labour"]["total_released"] is not None
+    assert result["branches"]["purchase"]["status"] == ("NOT_CALCULATED" if depth == "BASIC" else "CALCULATED")
+    assert result["branches"]["raas"]["status"] == "NOT_CALCULATED"
+    assert all(item["acquisition"] == "PURCHASE" for item in result["scenarios"])
+
+
+def test_unknown_economics_depth_rejected():
+    snapshot, context = _context()
+    with pytest.raises(ValueError, match="calculation depth"):
+        execute_partial_economics_v2({**_staffing_input(), "calculation_depth": "unexpected"}, snapshot, context)
+
+
 def test_v5_staffing_transfer_hire_and_vendor_change_only_new_run():
     snapshot, context = _context()
     raw = _staffing_input()

@@ -3,16 +3,17 @@ import { readCsrfCookie } from '../persistenceApi';
 import { buildPartialEconomicsRunRequest } from '../economicsInputV2';
 import { ECONOMICS_CONDITIONS, economicsReadiness } from '../economicsReadiness';
 import {
-  WAREHOUSE_ECONOMICS_DEMO, applyWarehouseEconomicsDemo, chooseUserField,
+  WAREHOUSE_ECONOMICS_DEMO, applyTypicalObjectEconomics, chooseUserField,
   applyManualProductivityEstimate,
   changeManualProductivityRole,
-  confirmAllEconomicsAssumptions, confirmEconomicsAssumption, editEconomicsField,
+  confirmEconomicsAssumption, editEconomicsField,
   proposeDemoField,
 } from '../economicsDemoAssumptions';
 import { fieldPresentation } from '../presentation';
 import { MODEL_START_SECONDS, modelTimezone, timezoneChoices } from '../simulationDefaults';
 import { workbookEconomics } from '../projectWorkbook';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
+import { ECONOMICS_DEPTHS, depthIndex, valuesAtDepth } from '../economicsDepth';
 
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -51,11 +52,11 @@ const CALCULATION_RULES = [
   ['Денежный результат', 'NPV проекта = NPV сценария − NPV базы; ROI покупки делится на денежный CAPEX, рентабельность RaaS — на его TCO.', 'Годовые потоки строит сервер из сохранённых труда, парка и затрат. Ставку и горизонт вы подтверждаете в форме.'],
   ['Налог', 'Основной денежный маршрут рассчитывается до налога на прибыль. НДС не пересчитывается единой ставкой: денежная база использует gross цену по принятому условию сценария.', 'Налоговый режим организации в этой форме неизвестен; иллюстративная налоговая ветка не включается в основной NPV.'],
 ];
-const defaults = { evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '',
+const defaults = { calculationDepth: 'BASIC', evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '',
   controlMode: '', technicianPurchaseMode: '', technicianRaasMode: '', qualifiedTechTransfer: false,
   sources: {}, assumptions: {}, userValues: {} };
 function restored(capacityRunId, input, project) {
-  const values = { ...defaults, capacityRunId, sources: { ...(input?.field_sources || {}) },
+  const values = { ...defaults, calculationDepth: input?.calculation_depth || (input ? 'FULL' : 'BASIC'), capacityRunId, sources: { ...(input?.field_sources || {}) },
     assumptions: { ...(input?.assumption_evidence || {}) }, userValues: {} };
   FIELDS.forEach(([, key, server]) => { values[key] = String(input?.[server] ?? ''); });
   values.purchasePriceOverride = String(input?.purchase_price_override_gross ?? '');
@@ -109,7 +110,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     const fields = FIELDS.filter((item) => item[0] === group && visibleField(item));
     return [fields.filter(fieldReady).length, fields.length];
   };
-  const allProposed = demoEligible && FIELDS.filter(([, , server]) => WAREHOUSE_ECONOMICS_DEMO.fields[server]).every(([, key, server]) => values.sources[server] === 'ASSUMPTION' && values[key] !== '' && values.assumptions[server]);
+
   const staffingPreview = savedResult?.staffing_preview || {};
   const fleet = capacityResult?.capacity?.value?.selected_fleet ?? savedResult?.branches?.capacity?.selected_fleet;
   const readiness = economicsReadiness(values, capacityRequest, FIELDS, staffingPreview, fleet);
@@ -128,16 +129,19 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     const missing = condition ? `condition-${condition.key}` :
       readiness.branches.flatMap((branch) => branch.missing).find((field) => !['labour', 'discount_inputs'].includes(field)) || readiness.visualMissing[0];
     const field = document.getElementById(`economics-${missing}`);
+    for (let parent = field?.parentElement; parent; parent = parent.parentElement) {
+      if (parent.tagName === 'DETAILS') parent.open = true;
+    }
     field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     field?.focus({ preventScroll: true });
     setError(condition ? 'Для полного расчёта подтвердите пять условий ниже после проверки их смысла.'
       : 'Для полного расчёта заполните отмеченные входы. Пустое поле останется неизвестным при частичном сохранении.');
   };
-  const submit = async (event) => {
+  const submit = async (event, submitted = values) => {
     event?.preventDefault();
     setError(''); setBusy(true);
     try {
-      const body = buildPartialEconomicsRunRequest({ values: { ...values, capacityRunId }, capacityRequest, project, scenario, sourceRunId });
+      const body = buildPartialEconomicsRunRequest({ values: { ...valuesAtDepth(submitted, FIELDS), capacityRunId }, capacityRequest, project, scenario, sourceRunId });
       const response = await fetch(`${API}/api/v2/projects/${encodeURIComponent(project.id)}/economics-runs`, {
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() }, body: JSON.stringify(body),
       });
@@ -157,47 +161,49 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const estimateShown = manualEstimate?.status === 'ESTIMATE'
     ? new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(manualEstimate.value)) : null;
   return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={(event) => event.preventDefault()} noValidate aria-label="Расчёт экономики роботизации">
-    <header><h2 className="text-xl font-semibold">Экономика: заполните то, что известно</h2>
+    <header><h2 className="text-xl font-semibold">Рассчитать экономику</h2>
       <p className="mt-1 text-sm">Пустое поле — неизвестно, 0 — подтверждённый ноль. Диапазон вводите как 500000..800000: он сохранится, но NPV без точечного значения не считается. Для оценки выберите «Допущение»; она не станет фактом поставщика.</p></header>
-    <section className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm" aria-label="Источники и полнота входов">
-      <h3 className="font-semibold">Откуда взяты значения</h3>
+    <details className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm" aria-label="Источники и полнота входов"><summary>Источники и полнота входов</summary>
       <p>Параметры объекта и расчёт потребного парка показаны в техническом результате со своими источниками. Здесь «Данные пользователя» — ваш ввод; «Допущение для сценария» — предлагаемое или изменённое вами число. Цена каталога и условия аренды остаются неподтверждёнными коммерческими условиями.</p>
       <p className="mt-2">Расчёт парка: {capacityRunId ? 'сохранён' : 'нужен расчёт'} · Труд: {groupCount('Труд').join('/')} · Покупка: {groupCount('Покупка').join('/')} · Аренда: {groupCount('RaaS').join('/')} · Визуализация: {groupCount('Визуализация').join('/')}. Полноту расчёта окончательно проверяет сервер.</p>
       <p className="mt-2">Общие затраты площадки вводятся один раз для этого сценария. Если вы рассчитали несколько зон отдельно, их NPV и парки нельзя суммировать без модели общих ресурсов и межзональных потоков.</p>
-    </section>
-    <section className="rounded-xl border p-4 text-sm" aria-label="Формулы и происхождение показателей">
-      <h3 className="font-semibold">Как формируются показатели</h3>
+    </details>
+    <details className="rounded-xl border p-4 text-sm" aria-label="Формулы и происхождение показателей"><summary>Как формируются показатели</summary>
       <p className="mt-1">Числа появляются только в новом сохранённом результате после проверки сервером. Раскройте нужную строку, чтобы увидеть формулу и происхождение.</p>
       <div className="mt-2 grid gap-2 md:grid-cols-2">{CALCULATION_RULES.map(([title, formula, origin]) =>
         <details key={title} className="rounded border p-2"><summary className="cursor-pointer font-semibold">{title}</summary>
           <p className="mt-2">{formula}</p><p className="mt-1 text-slate-600">Источник: {origin}</p></details>)}</div>
-    </section>
-    <section className="rounded-xl border border-blue-200 p-4 text-sm" aria-label="Обзор веток перед сохранением">
-      <h3 className="font-semibold">Что будет в отчёте</h3>
+    </details>
+    <details className="rounded-xl border border-blue-200 p-4 text-sm" aria-label="Обзор веток перед сохранением"><summary>Что уже можно рассчитать</summary>
       <div className="mt-2 grid gap-2 md:grid-cols-2">{readiness.branches.map((branch) => <div key={branch.key} className="rounded border p-2">
         <strong>{branch.label}: {branch.missing.length === 0 ? 'готово к проверке сервером' : readiness.missingConditions.some((condition) => branch.key === 'labour' ? condition.group === 'Труд' : ['purchase', 'raas'].includes(branch.key)) ? 'нужно подтвердить' : 'можно сохранить частично'}</strong>
         {branch.missing.length > 0 && <p>{branch.key === 'capacity' ? '' : `Нужно подтвердить или заполнить: ${branch.missing.filter((field) => !['labour', 'discount_inputs'].includes(field)).map((field) => CHECKS.find((item) => item[1] === field)?.[3] || FIELDS.find((item) => item[2] === field)?.[3] || field).join('; ')}.`}</p>}
       </div>)}</div>
       <p className="mt-2">2D/3D: {readiness.visualMissing.length ? 'нужны начало работы и часовой пояс' : 'входы готовы к проверке сервером'}. Итоговый статус определяет сохранённый серверный результат.</p>
       {!readiness.fullReady && <p className="mt-2 text-amber-900">Если сохранить частично, в PDF/ZIP разделы труда, покупки, RaaS или визуализации с недостающими входами будут помечены «не рассчитано»; NPV для этих веток не появится. Технический результат останется доступен.</p>}
+    </details>
+    <div className="grid gap-3 md:grid-cols-3" role="group" aria-label="Глубина расчёта экономики">
+      {ECONOMICS_DEPTHS.map((level) => <button key={level.code} type="button" aria-pressed={values.calculationDepth === level.code}
+        className={`rounded-xl border p-4 text-left ${values.calculationDepth === level.code ? 'border-lime-400 bg-teal-950 text-white' : ''}`}
+        onClick={() => setValues((current) => ({ ...current, calculationDepth: level.code }))}>
+        <strong className="block">{level.label}</strong><span className="block text-sm mt-2">{level.description}</span></button>)}
+    </div>
+    <section className="rounded-xl border border-lime-400 bg-teal-950 p-4 text-white text-sm" aria-label="Полный расчёт типового объекта">
+      <button type="button" disabled={busy} className="rounded-xl bg-lime-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50" onClick={() => {
+        const proposed = applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
+          (process?.process_code?.startsWith('airport_') ? 'AIRPORT' : process?.process_code?.startsWith('clinic_') ? 'CLINIC' : 'WAREHOUSE'), manualEstimate, process?.process_code);
+        setValues(proposed); void submit(null, proposed);
+      }}>Сделать полный расчет для типового объекта со всеми допущениями</button>
+      <p className="mt-2">Кнопка заменит экономические входы авторскими допущениями и сразу сохранит новый расчёт. Это включает зарплаты новых специалистов, условную цену робота, сервис, батареи и состав аренды. Условия не являются ценами или нормативами организаторов. Числа и источники сохранятся в отчёте; их можно изменить.</p>
     </section>
-    {demoEligible && <section className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm" aria-label="Демо-допущения склада">
-      <h3 className="font-semibold">Демо склада</h3>
-      <p>{WAREHOUSE_ECONOMICS_DEMO.source}. Дата набора: {WAREHOUSE_ECONOMICS_DEMO.published_on}. Числа можно изменить или очистить.</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" className="secondary-action" onClick={() => setValues((current) => applyWarehouseEconomicsDemo(current, FIELDS))}>Предложить все числа</button>
-        <button type="button" className="secondary-action" disabled={!allProposed} onClick={() => setValues(confirmAllEconomicsAssumptions)}>Подтвердить допущения</button>
-      </div>
-      <p className="mt-2">После предложения проверьте каждое число и подтвердите их. Подтверждения условий gross, цены, батареи и RaaS ниже задаются отдельно.</p>
-    </section>}
-    {['Труд', 'Покупка', 'RaaS', 'Визуализация'].map((group) => <section key={group} aria-label={group}>
-      <h3 className="font-semibold">{group}</h3>
+    {['Труд', 'Покупка', 'RaaS', 'Визуализация'].filter((group) => ECONOMICS_DEPTHS.findIndex((level) => level.groups.includes(group)) <= depthIndex(values.calculationDepth)).map((group) => <details open key={group} aria-label={group} className="rounded-xl border p-4">
+      <summary className="font-semibold cursor-pointer">{group}</summary>
       {group === 'Труд' && <div className="mt-3 rounded border border-blue-300 p-3 text-sm space-y-3" aria-label="Покрытие новых функций после расчёта парка">
-        <p>Парк C11: {fleet ?? 'нет данных'} роботов. Потребность в техподдержке по C14: {fleet == null ? 'нет данных' : Math.ceil(Number(fleet) / 20)} чел. (ceil(парк/20)); потребность в пульте зависит от C14 и ручной нормы. {staffingPreview.PURCHASE ? `На текущем вводе C14: пульт ${staffingPreview.PURCHASE.control_required}, техподдержка ${staffingPreview.PURCHASE.technicians_required}, перевод ${staffingPreview.PURCHASE.control_transferred} на пульт.` : 'Сохраните частичный черновик после нормы, чтобы увидеть точное распределение C14.'}</p>
+        <details><summary>Как определена потребность в новых функциях</summary><p>Парк: {fleet ?? 'нет данных'} роботов. Техподдержка: {fleet == null ? 'нет данных' : Math.ceil(Number(fleet) / 20)} чел. — один техник на 20 роботов с округлением вверх. Потребность в диспетчерах зависит от ручной выработки. {staffingPreview.PURCHASE ? `На текущем вводе: диспетчеры ${staffingPreview.PURCHASE.control_required}, техники ${staffingPreview.PURCHASE.technicians_required}, перевод на пульт ${staffingPreview.PURCHASE.control_transferred}.` : 'Точное распределение будет показано после сохранения расчёта.'}</p></details>
         <p>Численность «сейчас» ниже описывает только исходный штат. Выберите, кто покроет новую функцию; перевод сохраняет человека в штате и уменьшает высвобождение.</p>
         <label className="block">Пульт<select id="economics-staffing-control" className="block w-full border rounded p-2" value={values.controlMode} onChange={set('controlMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод из заменяемой роли</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option></select></label>
         <label className="block">Техподдержка при покупке<select id="economics-staffing-purchase" className="block w-full border rounded p-2" value={values.technicianPurchaseMode} onChange={set('technicianPurchaseMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option></select></label>
-        <label className="block">Техподдержка при RaaS<select id="economics-staffing-raas" className="block w-full border rounded p-2" value={values.technicianRaasMode} onChange={set('technicianRaasMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option><option value="VENDOR">Поставщик, включено в RaaS</option></select></label>
+        {depthIndex(values.calculationDepth) >= 2 && <label className="block">Техподдержка при RaaS<select id="economics-staffing-raas" className="block w-full border rounded p-2" value={values.technicianRaasMode} onChange={set('technicianRaasMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option><option value="VENDOR">Поставщик, включено в RaaS</option></select></label>}
         {(values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER') && <label className="flex gap-2"><input type="checkbox" checked={values.qualifiedTechTransfer} onChange={set('qualifiedTechTransfer')} />Подтверждаю квалификацию переводимого сотрудника для техподдержки</label>}
         <p>Зарплата или стоимость услуги запрашивается ниже только для непокрытой функции. Неизвестная стоимость даёт частичный результат; выбор и источник сохраняются в новом run.</p>
       </div>}
@@ -225,9 +231,9 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         const displayLabel = key === 'manualUnitsPerShift' ? `Выработка одного сотрудника ${roleLabel} в процессе «${processLabel}»` : label;
         return <div key={key} className="block rounded border border-slate-500/40 p-3 text-sm">
           <strong className="block">{displayLabel} <span className="font-normal">· {unit}</span></strong>
-          <small className="block mt-1">{why}</small>
+
           <input id={`economics-${server}`} type="text" inputMode="decimal" aria-label={displayLabel} value={values[key]} onChange={(event) => setValues((current) => editEconomicsField(current, key, server, event.target.value, { enableTemplate: demoEligible }))} className="w-full border rounded p-2 mt-2" placeholder="Неизвестно — оставьте пустым" aria-invalid={fieldIssues.some((item) => !['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code))} />
-          <small className="block mt-1">Возможный источник: {source}. {['Покупка', 'RaaS'].includes(group) ? 'Коммерческое условие требует отдельной проверки.' : ''}</small>
+          <details className="mt-2"><summary className="text-xs cursor-pointer">Источник и допущения</summary><small className="block mt-1">{why} Возможный источник: {source}. {['Покупка', 'RaaS'].includes(group) ? 'Коммерческое условие требует отдельной проверки.' : ''}</small>
           {!staffingField && <select value={values.sources[server] || 'USER'} onChange={(event) => setValues((current) => event.target.value === 'USER'
             ? chooseUserField(current, key, server) : proposeDemoField(current, key, server, { enableTemplate: demoEligible }))} aria-label={`Тип источника: ${label}`} className="w-full border rounded p-2 mt-1">
             <option value="USER">Данные пользователя</option><option value="ASSUMPTION">Допущение для сценария</option>
@@ -238,24 +244,26 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
             {values[key] !== '' && values.assumptions[server] && <label className="mt-1 flex gap-2"><input type="checkbox" checked={values.assumptions[server].confirmed === true} onChange={(event) => setValues((current) => confirmEconomicsAssumption(current, server, event.target.checked))} />Подтверждаю число {values[key]} для этого сценария</label>}
             {values[key] !== '' && !values.assumptions[server] && <p>Нужно ввести и подтвердить число.</p>}
           </div>}
+          </details>
           {fieldIssues.map((item, index) => <small key={index} className={`block mt-1 ${['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code) ? 'text-amber-900' : 'text-red-700'}`} role="status">{item.message} {item.next_step}</small>)}
         </div>;
       })}</div>}
       {group === 'Покупка' && <label className="block mt-3 text-sm">Дата оценки · дата<input id="economics-evaluation_date" type="date" value={values.evaluationDate} onChange={set('evaluationDate')} className="w-full border rounded p-2" /><small>Для привязки цен; источник — дата оценки проекта.</small></label>}
-      {group === 'Покупка' && <div className="mt-3 rounded border p-3 text-sm"><strong>Уточнить цену одного робота</strong><p>Оставьте пустым для цены сохранённой позиции каталога. Изменение создаст новый экономический run; каталог и прежний расчёт останутся прежними.</p>
+      {group === 'Покупка' && depthIndex(values.calculationDepth) >= 2 && <div className="mt-3 rounded border p-3 text-sm"><strong>Уточнить цену одного робота</strong><p>Оставьте пустым для цены сохранённой позиции каталога. Изменение создаст новый экономический run; каталог и прежний расчёт останутся прежними.</p>
         <label className="mt-2 block">Цена, ₽ gross<input id="economics-purchase_price_override_gross" type="text" inputMode="decimal" value={values.purchasePriceOverride} onChange={set('purchasePriceOverride')} className="block w-full border rounded p-2" placeholder="Цена каталога без изменения" /></label>
         <label className="mt-2 block">Источник новой цены<input id="economics-purchase_price_source" type="text" value={values.purchasePriceSource} onChange={set('purchasePriceSource')} className="block w-full border rounded p-2" placeholder="Документ и дата либо пользовательское допущение" /></label>
         <p>Источник сохраняется как условие пользователя, а не подтверждение поставщика.</p></div>}
       {group === 'RaaS' && <label className="block mt-3 text-sm">Кто оплачивает инфраструктуру<select id="economics-raas_infrastructure_owner" value={values.raasInfrastructureOwner} onChange={set('raasInfrastructureOwner')} className="w-full border rounded p-2"><option value="">Неизвестно</option><option value="VENDOR">Поставщик</option><option value="CUSTOMER">Заказчик</option></select><small>Для состава затрат; источник — договор или допущение.</small></label>}
-    </section>)}
+    </details>)}
     <section className="rounded-xl border border-amber-300 p-4 text-sm" aria-label="Пять условий экономического сценария">
-      <h3 className="font-semibold">Пять условий для денежного расчёта</h3>
-      <p>Каждое подтверждение относится только к этому сценарию и не подтверждает условия поставщика. Проверьте смысл условий, затем отметьте каждое отдельно.</p>
-      {CHECKS.map(([, key, server, label]) => <label key={key} className="mt-3 flex gap-2 rounded border p-2"><input id={`economics-condition-${key}`} type="checkbox" checked={values[key]} onChange={set(key)} /><span>{label}<small className="block">{ECONOMICS_CONDITIONS.find((item) => item.key === key)?.consequence}</small>{issues.some((item) => item.field === server) && <small className="block text-red-700">Нужно для этой ветки.</small>}</span></label>)}
+      <h3 className="font-semibold">Условия выбранного уровня</h3>
+      <p>Каждое подтверждение относится только к этому сценарию и не подтверждает условия поставщика. Отметьте условия для собственного ввода. Кнопка типового объекта принимает их как сценарные допущения.</p>
+      {CHECKS.filter(([group]) => group === 'Труд' || group === 'Покупка' && depthIndex(values.calculationDepth) >= 1 || group === 'RaaS' && depthIndex(values.calculationDepth) >= 2).map(([, key, server, label]) => <label key={key} className="mt-3 flex gap-2 rounded border p-2"><input id={`economics-condition-${key}`} type="checkbox" checked={values[key]} onChange={set(key)} /><span>{label}<small className="block">{ECONOMICS_CONDITIONS.find((item) => item.key === key)?.consequence}</small>{issues.some((item) => item.field === server) && <small className="block text-red-700">Нужно для этой ветки.</small>}</span></label>)}
     </section>
     <p className="text-sm">Пригодность на объекте и закупочная готовность проверяются отдельно. Этот расчёт не подтверждает поставщика и не даёт рекомендации к закупке.</p>
     {error && <p className="text-red-700" role="alert">{error}</p>}
-    <div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={readiness.fullReady ? submit : goToMissing} className="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white disabled:bg-slate-300">Полный расчёт</button>
-      <button type="button" disabled={busy} onClick={submit} className="secondary-action">{busy ? 'Сохраняем…' : 'Сохранить частичный результат'}</button></div>
+    <div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={submit} className="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? 'Сохраняем…' : 'Рассчитать и сохранить выбранный уровень'}</button>
+      {values.calculationDepth === 'FULL' && !readiness.fullReady && <button type="button" className="secondary-action" onClick={goToMissing}>Показать недостающие входы</button>}</div>
+    <p className="text-sm">Каждый уровень сохраняется и скачивается. Глубина описывает состав выбранных входов; фактически рассчитанные ветки и неизвестные данные отдельно указаны в результате.</p>
   </form>;
 }

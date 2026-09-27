@@ -486,6 +486,8 @@ def build_readable_report(
         ("Частичная экономика" if partial else "Экономика: baseline, покупка и RaaS" if full else "Исторический расчёт", "title"),
         (f"№ {run.run_id}", "subtitle"),
         (f"Дата расчёта: {date}", "cover"),
+        *([(f"Глубина расчёта: { {'BASIC': 'Базовый', 'ADVANCED': 'Углублённый', 'FULL': 'Полный'}.get(inputs.get('calculation_depth'), 'Не указана') }", "cover")]
+          if inputs.get("calculation_depth") else []),
         ("Предварительная оценка для выбора способа роботизации.", "cover"),
         ("Данные о цене, комплектации и работе на объекте требуют подтверждения.", "cover"),
         ("", "page"),
@@ -525,6 +527,14 @@ def build_readable_report(
             ("Рассчитанные ветки", "section"),
         ])
         visualization = _obj(result.get("visualization"))
+        labour = _obj(result.get("labour"))
+        if labour and inputs.get("calculation_depth"):
+            lines.extend([
+                ("Результат расчёта труда", "section"),
+                (f"Высвобождение в выбранном процессе: {_plain(labour.get('total_released'))} чел.", "metric"),
+                (f"Новые диспетчеры: {_plain(labour.get('total_additional_control'))} чел.", "body"),
+                ("Высвобождение описывает занятость выбранной роли; NPV требует затрат покупки или аренды.", "note"),
+            ])
         if visualization:
             if visualization.get("status") == "AVAILABLE" and _obj(run.scenario_spec_snapshot).get("schema_version") == "scenario-spec-v2":
                 lines.append(("Техническая схема работы C23 доступна для этого run; денежный эффект проверяется отдельно. Геометрия без плана объекта условная.", "body"))

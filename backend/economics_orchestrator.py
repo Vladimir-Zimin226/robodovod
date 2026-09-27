@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, ROUND_CEILING
 from typing import Annotated, Any, Literal
 
 from calculation.economics.allocation import (
@@ -1072,6 +1072,9 @@ def _sensitivity(
                 raw_request = request.model_dump(mode="json")
                 raw_request["process"]["demand"]["raw_value"] = variant_value
                 raw_request["process"]["demand"]["normalized_value"] = variant_value
+                if request.process.scope == "CLEANING_AREA" and raw_request.get("cleaning_area"):
+                    raw_request["cleaning_area"]["raw_value"] = variant_value
+                    raw_request["cleaning_area"]["normalized_value"] = variant_value
                 variant_request = parse_capacity_analysis_request(raw_request)
                 capacity_execution = analyze_capacity(
                     variant_request,
@@ -1487,16 +1490,17 @@ def _scenario_spec(
             ),
             provenance_ref=batch_source.provenance_ref,
         )
+    elif request.process.scope == "CLEANING_AREA":
+        # New scenarios use area chunks, not transport output units. Keep C23's
+        # documented event limit without changing area, fleet or hourly capacity.
+        area_chunk = max(Decimal(100), (Decimal(request.process.demand.normalized_value) / Decimal(10000)).to_integral_value(rounding=ROUND_CEILING))
+        batch = ScenarioBatchV2(semantics="AREA_MICROTASK",
+            units_per_cycle=ResultQuantity(value=format(area_chunk, "f"), unit="m2", quantity_kind="AREA"),
+            provenance_ref=assumption_ref)
     else:
-        batch = ScenarioBatchV2(
-            semantics="AREA_MICROTASK"
-            if request.process.scope == "CLEANING_AREA"
-            else "ONE_OUTPUT_UNIT",
-            units_per_cycle=ResultQuantity(
-                value="1", unit="unit/cycle", quantity_kind="RATE"
-            ),
-            provenance_ref=assumption_ref,
-        )
+        batch = ScenarioBatchV2(semantics="ONE_OUTPUT_UNIT",
+            units_per_cycle=ResultQuantity(value="1", unit="unit/cycle", quantity_kind="RATE"),
+            provenance_ref=assumption_ref)
     spec = build_scenario_spec_v2(
         request,
         context.capacity_response,
@@ -1518,6 +1522,8 @@ def _scenario_spec(
         warnings=[
             "Предварительный demo: неподтверждённые C05 checks не являются PASS.",
             "ScenarioSpec не является инженерным цифровым двойником.",
+            *([f"Микрозадание уборки — {batch.units_per_cycle.value} м². Очередь показывает участки площади, не физические рейсы; объём и мощность C11 сохранены."]
+              if request.process.scope == "CLEANING_AREA" else []),
             *([f"Ограничения зоны {process_zone_id}: {zone_context.constraints_note}. Статус UNVERIFIED; C05 не повышен."]
               if zone_context is not None and zone_context.constraints_note else []),
         ],

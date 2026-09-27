@@ -4,6 +4,7 @@ import { economicsFieldLabel } from '../economicsFieldLabels';
 import { formatServerMoney } from '../commercialScenariosModel';
 import { formatFleet } from '../displayNumber';
 import { fieldPresentation, statusLabel, savedCalculationLabel } from '../presentation';
+import { depthLabel } from '../economicsDepth';
 
 const BRANCHES = [
   ['capacity', 'Расчёт потребного парка'], ['labour', 'Расчёт труда'],
@@ -13,8 +14,10 @@ const BRANCHES = [
 export default function PartialEconomicsResult({ result, run, project, onComplete, autoOpenEditor = false }) {
   const branches = result.branches || {};
   return <div className="mx-auto max-w-6xl space-y-5" aria-label="Частичный результат экономики">
+    <TechnicalVisualization key={`visualization:${run?.id}`} run={run} />
     <section className="economics-inputs-v2 rounded-2xl border p-5">
       <h2 className="text-xl font-semibold">Сохранён частичный расчёт</h2>
+      <p>Глубина расчёта: <strong>{depthLabel(run?.input_snapshot?.economics?.calculation_depth)}</strong></p>
       <p>Неизвестные суммы и денежный эффект отмечены «не рассчитано». Расчёт потребного парка сохранён отдельно.</p>
       <p className="text-sm">{savedCalculationLabel(run?.finished_at || run?.created_at)}</p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">{BRANCHES.map(([key, label]) => {
@@ -29,6 +32,9 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
         </article>;
       })}</div>
       <p className="mt-3">Проверка пригодности на объекте: {statusLabel(result.c05?.eligibility)} · Закупка не подтверждена. Рекомендация к закупке не сформирована.</p>
+      {result.labour && <div className="rounded border p-3 mt-3"><h3 className="font-semibold">Результат расчёта труда</h3>
+        <p>Высвобождение в выбранном процессе: {result.labour.total_released} чел. Новые диспетчеры: {result.labour.total_additional_control} чел.</p>
+        <p>Это изменение занятости выбранной роли; NPV и окупаемость появятся после ввода затрат покупки или аренды.</p></div>}
       {Object.entries(result.input_ranges || {}).length > 0 && <p className="mt-2">Сохранённые диапазоны (без расчёта денежного эффекта): {Object.entries(result.input_ranges).map(([field, range]) => `${economicsFieldLabel(field)}: ${range.min}–${range.max}`).join('; ')}.</p>}
     </section>
     {result.scenarios?.length > 0 && <section className="economics-inputs-v2 rounded-2xl border p-5">
@@ -39,7 +45,6 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
         <p>Закупка: {statusLabel(scenario.procurement?.procurement_status)}</p>
       </article>)}</div>
     </section>}
-    <TechnicalVisualization key={`visualization:${run?.id}`} run={run} />
-    <SavedEconomicsEditor key={run?.id} project={project} run={run} autoOpen={autoOpenEditor} onComplete={onComplete} />
+    <SavedEconomicsEditor key={run?.id} project={project} run={run} autoOpen={autoOpenEditor || !result.scenarios?.length} onComplete={onComplete} />
   </div>;
 }
