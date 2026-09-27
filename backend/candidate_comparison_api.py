@@ -52,7 +52,7 @@ DB = Depends(database_session)
 class CompareRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     source_run_id: uuid.UUID
-    position_ids: list[str] = Field(min_length=2, max_length=MAX_CANDIDATES)
+    position_ids: list[str] = Field(min_length=1, max_length=MAX_CANDIDATES)
     max_payload_kg: str | None = None
     min_aisle_width_m: str | None = None
     required_integrations: list[str] = Field(default_factory=list, max_length=12)
@@ -99,11 +99,13 @@ def _fact(position: CatalogPositionDTO, codes: tuple[str, ...]) -> tuple[str | N
 def _constraints(request: Any, position: CatalogPositionDTO, selected: CompareRequest):
     known: dict[str, Any] = {}
     evidence: dict[str, EvidenceBinding] = {}
-    source = f"catalog-capacity-profile:{position.id}"
-    for field, value in (("supported_object_kinds", [request.process.object_kind]),
-                         ("supported_process_scopes", [request.process.scope])):
-        known[field] = value
-        evidence[field] = EvidenceBinding(evidence_status="MATCHING_SAFE", source_ref=source)
+    for field in ("supported_object_kinds", "supported_process_scopes"):
+        fact = next((item for item in position.model.facts if item.code == field and
+                     item.value is not None and item.evidence_id and
+                     item.resolution_status in SAFE_FACT_STATUSES), None)
+        if fact is not None:
+            known[field] = fact.value
+            evidence[field] = EvidenceBinding(evidence_status="MATCHING_SAFE", source_ref=fact.evidence_id)
     for field, codes in (("payload_kg", ("payload_kg", "payload")),
                          ("min_aisle_width_m", ("min_aisle_width_m", "min_aisle_width")),
                          ("availability", ("availability",))):
@@ -359,6 +361,38 @@ def compare_candidates(base: Any, snapshot: CatalogSnapshotDTO, selected: Compar
 def create_comparison_router(discovery_loader: Callable[[], CatalogSnapshotDTO]) -> APIRouter:
     router = APIRouter(prefix="/api/candidate-comparisons")
 
+    @router.post("/preview")
+    def preview(payload: dict[str, Any], context: AuthContext = CSRF):
+        """Rank every active position with the same physical profile, without writing a run."""
+        raw = payload.get("capacity_request")
+        if not isinstance(raw, dict):
+            raise HTTPException(422, "capacity_request is required")
+        try:
+            request = parse_capacity_analysis_request(raw)
+        except ValueError as exc:
+            raise HTTPException(422, "invalid capacity request") from exc
+        snapshot = discovery_loader()
+        source_position = next((item for item in snapshot.positions if item.id == request.position_id), None)
+        if source_position is None or source_position.model.id != request.model_id:
+            raise HTTPException(422, "source position is absent from the active catalog")
+        profile = source_position.model.capacity_runtime.calculation_profile
+        if not profile or not source_position.model.capacity_runtime.calculation_ready:
+            raise HTTPException(422, "source position has no supported calculation formula")
+        ids = [item.id for item in snapshot.positions
+               if item.model.capacity_runtime.calculation_profile == profile]
+        mass = request.process.item_mass
+        payload_kg = mass.normalized_value if mass is not None and mass.status == "KNOWN" else None
+        selected = CompareRequest.model_construct(
+            source_run_id=uuid.UUID(int=0), position_ids=ids,
+            max_payload_kg=payload_kg, min_aisle_width_m=None,
+            required_integrations=[], constraints_confirmed=bool(payload_kg),
+            finance_run_ids={})
+        result = compare_candidates(request, snapshot, selected)
+        result["catalog_position_count"] = len(snapshot.positions)
+        result["profile_position_count"] = len(ids)
+        result["result_digest"] = semantic_digest(result)
+        return result
+
     def source(db: Session, project_id: uuid.UUID, run_id: uuid.UUID, context: AuthContext):
         project = db.scalar(select(Project).where(Project.id == project_id, Project.owner_id == context.user.id,
                                                   Project.status == "ACTIVE"))
@@ -439,7 +473,11 @@ def create_comparison_router(discovery_loader: Callable[[], CatalogSnapshotDTO])
                 "items": [{"position_id": item.id, "name": item.model.name,
                            "maturity_status": item.model.maturity_status,
                            "calculation_ready": item.model.capacity_runtime.calculation_ready,
-                           "price_status": item.procurement_option.price_status}
+                           "price_status": item.procurement_option.price_status,
+                           "comparison_note": "Исследовательская позиция: только сведения" if item.model.maturity_status == "RND" else
+                           "Нет поддержанной расчётной формулы: только сведения" if not item.model.capacity_runtime.calculation_ready else
+                           "Цена не подтверждена; денежный вывод недоступен" if item.procurement_option.price_status != "NORMALIZED" else
+                           "Пригодность и ограничения будут проверены при сравнении"}
                           for item in sorted(items, key=lambda item: (item.model.name, item.id))],
                 "finance_options": finance_options}
 

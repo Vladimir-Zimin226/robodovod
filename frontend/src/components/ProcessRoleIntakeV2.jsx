@@ -18,6 +18,7 @@ import {
 } from '../processRoleIntakeV2';
 import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../demoCapacityFlow';
+import { candidateReason, catalogDiagnostics, recommendedCandidates } from '../candidateRecommendation';
 import { readCsrfCookie } from '../persistenceApi';
 import { toV2Draft } from '../assistantInterview';
 import { workbookDraft, confirmWorkbookDraft } from '../projectWorkbook';
@@ -68,6 +69,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [error, setError] = useState('');
   const [positions, setPositions] = useState([]);
   const [catalogState, setCatalogState] = useState('loading');
+  const [comparison, setComparison] = useState(null);
+  const [comparisonState, setComparisonState] = useState('');
   const [processId, setProcessId] = useState('');
   const [positionId, setPositionId] = useState('');
   const [exchangeSeconds, setExchangeSeconds] = useState(draft.processes.find((item) => item.active)?.exchangeSeconds || '');
@@ -107,16 +110,52 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   useEffect(() => {
     if (!selectedProcess) return undefined;
     const controller = new AbortController();
-    const params = new URLSearchParams({ calculation_participation: 'participating', object_kind: selectedProcess.object_kind.toLowerCase(), process_code: selectedProcess.process_code, include_unknown: 'true' });
+    const params = new URLSearchParams({ object_kind: selectedProcess.object_kind.toLowerCase(), process_code: selectedProcess.process_code, include_unknown: 'true' });
     if (selectedProcess.item_mass?.status === 'KNOWN') params.set('max_payload_kg', selectedProcess.item_mass.normalized_value);
     fetch(`${API}/api/catalog/models?${params}`, { signal: controller.signal })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then((payload) => { setPositions((payload.items || []).filter((p) => p.selection?.calculation_compatible)); setCatalogState('ready'); })
+      .then((payload) => { setPositions(payload.items || []); setComparison(null); setComparisonState(''); setCatalogState('ready'); })
       .catch((e) => { if (e.name !== 'AbortError') { setPositions([]); setCatalogState('error'); } });
     return () => controller.abort();
   }, [selectedProcess]);
   const candidatePositions = demoCandidates(positions, selectedProcess?.scope);
   const selectedPosition = candidatePositions.find((item) => item.position_id === positionId);
+  const rankedCandidates = recommendedCandidates(comparison, positions);
+  const diagnostics = catalogDiagnostics(positions, comparison);
+  const invalidateComparison = () => { setComparison(null); setComparisonState(''); };
+  useEffect(() => {
+    if (!selectedProcess || !activeProject?.id || !acknowledged) return undefined;
+    const candidates = demoCandidates(positions, selectedProcess.scope);
+    if (!candidates.length) return undefined;
+    let capacityRequest;
+    try {
+      capacityRequest = buildDemoCapacityRequest({
+        normalized: result, projectId: activeProject.id, processId: selectedProcess.process_id,
+        position: candidates[0], exchangeSeconds, acknowledged, cleaningFrequency,
+        zone: draft.zones.find((item) => selectedProcess.process_id.startsWith(`${item.zoneId}.`)),
+      });
+    } catch { return undefined; }
+    const controller = new AbortController();
+    fetch(`${API}/api/candidate-comparisons/preview`, {
+      method: 'POST', credentials: 'include', signal: controller.signal,
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
+      body: JSON.stringify({ capacity_request: capacityRequest }),
+    })
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : `HTTP ${response.status}`);
+        return body;
+      })
+      .then((body) => {
+        const ranked = recommendedCandidates(body, positions);
+        setComparison(body);
+        setPositionId((current) => candidates.some((item) => item.position_id === current)
+          ? current : ranked[0]?.position_id || '');
+        setComparisonState('ready');
+      })
+      .catch((reason) => { if (reason.name !== 'AbortError') setComparisonState('error'); });
+    return () => controller.abort();
+  }, [selectedProcess, activeProject?.id, acknowledged, exchangeSeconds, cleaningFrequency, result, positions, draft.zones]);
   const choosePhysicalInputs = (raw) => {
     if (raw?.exchangeSeconds != null) setExchangeSeconds(raw.exchangeSeconds);
     setCleaningFrequency(raw?.cleaningFrequency ?? '1');
@@ -144,6 +183,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(item.scope))?.process_id || '');
       choosePhysicalInputs(draft.processes.find((item) => item.active && item.zoneId === selectedZoneId));
       setPositionId('');
+      invalidateComparison();
       onNormalized?.(normalized);
       setState('ready');
     } catch (requestError) {
@@ -318,23 +358,38 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         {!activeProject && <p className="text-xs text-amber-800">Выберите проект в блоке выше, чтобы сохранить расчёт.</p>}
         {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">Для этого процесса пока нет расчётной модели производительности.</p> : <>
           <label className="block text-xs">Процесс
-            <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); choosePhysicalInputs(draft.processes.find((item) => item.processId === event.target.value)); }}>
+            <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); invalidateComparison(); choosePhysicalInputs(draft.processes.find((item) => item.processId === event.target.value)); }}>
               {activeProcesses.map((item) => <option key={item.process_id} value={item.process_id}>{draft.zones.find((zone) => item.process_id.startsWith(`${zone.zoneId}.`))?.label || 'Зона'} · {visibleProcesses.find((process) => item.process_id.endsWith(process.processId))?.label || 'Процесс'}</option>)}
             </select>
           </label>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs space-y-1" aria-label="Подбор моделей">
+            <p className="font-semibold">Предварительный подбор по технической пригодности</p>
+            {!comparison && comparisonState !== 'error' && <p role="status">Укажите физические входы, подтвердите допущения и выберите проект. Затем оценим все сопоставимые позиции на одинаковых входах.</p>}
+            {comparisonState === 'error' && <p role="alert">Автоматический подбор недоступен; позицию можно выбрать вручную. Проверки пригодности появятся в сохранённом расчёте.</p>}
+            {comparison && <>
+              <p>Активный каталог: {diagnostics.active}; объект и процесс: {diagnostics.process}; физический профиль: {diagnostics.profile}; исключено: {diagnostics.excluded}; требуют проверки: {diagnostics.check}; расчётно совместимы: {diagnostics.ready}.</p>
+              {rankedCandidates.length ? <>
+                <p><strong>Предварительный лидер:</strong> {rankedCandidates[0].name} · балл {rankedCandidates[0].technical_score}. {rankedCandidates[0].readiness === 'VERIFIED' ? 'Технические проверки пройдены.' : 'Пригодность требует проверки.'} Это не одобрение закупки: денежное сравнение доступно после подтверждения цен и одинаковых финансовых входов.</p>
+                {rankedCandidates.length > 1 && <p>Альтернативы: {rankedCandidates.slice(1, 4).map((item) => `${item.name} · ${item.technical_score}${item.reason_codes.length ? ` (${item.reason_codes.slice(0, 2).map((code) => candidateReason[code] || code).join(', ')})` : ''}`).join('; ')}.</p>}
+              </> : <p>Допустимого технического лидера нет. Проверьте ограничения объекта и данные каталога.</p>}
+            </>}
+          </div>
           <label className="block text-xs">Модель из активного capacity-каталога
             <select className="w-full border rounded px-2 py-1" value={positionId} onChange={(event) => setPositionId(event.target.value)}>
               <option value="">Выберите модель</option>
-              {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.organizer_id] || `${item.manufacturer || ''} · ${item.name}`} · позиция {item.source_row_number}</option>)}
+              {candidatePositions.map((item) => <option key={item.position_id} value={item.position_id}>{DEMO_MODELS[item.organizer_id] || `${item.manufacturer || ''} · ${item.name}`} · позиция {item.source_row_number}{comparison?.candidates?.find((row) => row.position_id === item.position_id)?.technical_score ? ` · балл ${comparison.candidates.find((row) => row.position_id === item.position_id).technical_score}` : ''}{item.selection?.status === 'REQUIRES_CHECK' ? ' · требует проверки' : ''}</option>)}
             </select>
           </label>
+          {positions.filter((item) => item.selection?.status === 'EXCLUDED' || item.maturity_status === 'RND' || !item.calculation_ready).length > 0 && <details className="text-xs rounded border p-2"><summary>Почему другие позиции не предложены</summary>
+            <ul className="mt-1 list-disc pl-5">{positions.filter((item) => item.selection?.status === 'EXCLUDED' || item.maturity_status === 'RND' || !item.calculation_ready).map((item) => <li key={item.position_id}>{item.name}: {item.selection?.status === 'EXCLUDED' ? item.selection.reasons?.join('; ') : item.maturity_status === 'RND' ? 'исследовательская разработка; только сведения' : 'нет утверждённой формулы; только сведения'}.</li>)}</ul>
+          </details>}
           {catalogState === 'loading' && <p className="text-xs text-slate-600" role="status">Загружаем расчётные модели…</p>}
           {catalogState === 'error' && <p className="text-xs text-red-700" role="alert">Каталог расчётных моделей недоступен. Обновите страницу и повторите попытку.</p>}
-          {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">В активном каталоге нет совместимой расчётной позиции для этого процесса. Проверьте capacity-активацию.</p>}
+          {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">Для этого процесса в активном каталоге нет расчётной рекомендации. Информационные позиции и причины показаны выше; парк не рассчитывается без утверждённой физической формулы.</p>}
           {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.organizer_id]} />}
-          {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={setExchangeSeconds} />}
-          {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={setCleaningFrequency} />}
-          <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
+          {selectedProcess?.scope !== 'CLEANING_AREA' && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); invalidateComparison(); }} />}
+          {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={(value) => { setCleaningFrequency(value); invalidateComparison(); }} />}
+          <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => { setAcknowledged(event.target.checked); invalidateComparison(); }} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}
       </section>}

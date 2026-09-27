@@ -43,7 +43,8 @@ export function demoCandidates(items, scope) {
     ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(scope) ? 'TRANSPORT_CYCLE_V1' : null;
   if (!profile) return [];
   return items.filter((item) => item.calculation_ready &&
-    item.calculation_profile === profile && item.maturity_status !== 'RND');
+    item.calculation_profile === profile && item.maturity_status !== 'RND' &&
+    item.selection?.status !== 'EXCLUDED');
 }
 
 export function brainCandidates(items, scope) {

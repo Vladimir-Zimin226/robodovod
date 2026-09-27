@@ -60,6 +60,51 @@ def test_two_positions_get_same_220_pallets_and_120_metres_with_stable_scores():
     assert with_finance["financial_recommendation"]["status"] == "PRELIMINARY"
 
 
+def test_preview_ranks_one_active_candidate_without_writing_or_claiming_finance():
+    catalog = snapshot()
+    app = FastAPI()
+    app.include_router(create_comparison_router(lambda: catalog))
+    app.dependency_overrides[require_csrf] = lambda: SimpleNamespace(user=SimpleNamespace(id=uuid.uuid4()))
+    raw = request().model_dump(mode="json")
+    raw.update(execution_mode="PRELIMINARY_DEMO", demo_assumptions_confirmed=True)
+    with TestClient(app) as client:
+        response = client.post("/api/candidate-comparisons/preview", json={"capacity_request": raw})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["profile_position_count"] == 1
+    assert body["catalog_position_count"] == 1
+    assert len(body["candidates"]) == 1
+    assert body["financial_recommendation"]["status"] == "INCOMPLETE"
+    assert body["technical_recommendation"]["status"] in {"PRELIMINARY", "RECOMMENDED"}
+
+
+def test_preview_rejects_unknown_source_position():
+    app = FastAPI()
+    app.include_router(create_comparison_router(snapshot))
+    app.dependency_overrides[require_csrf] = lambda: SimpleNamespace(user=SimpleNamespace(id=uuid.uuid4()))
+    raw = request().model_dump(mode="json")
+    raw["position_id"] = "position.unknown"
+    with TestClient(app) as client:
+        response = client.post("/api/candidate-comparisons/preview", json={"capacity_request": raw})
+    assert response.status_code == 422
+
+
+def test_220_pallets_120_metres_800_kg_keeps_price_unknown():
+    raw = request().model_dump(mode="json")
+    raw["process"]["demand"].update(raw_value="220", normalized_value="220")
+    raw["process"]["route_distance"].update(raw_value="120", normalized_value="120")
+    raw.update(execution_mode="PRELIMINARY_DEMO", demo_assumptions_confirmed=True)
+    base = type(request()).model_validate(raw)
+    result = compare_candidates(base, snapshot(), CompareRequest(
+        source_run_id=uuid.uuid4(), position_ids=[base.position_id],
+        max_payload_kg="800", constraints_confirmed=True))
+    row = result["candidates"][0]
+    assert row["status"] != "EXCLUDED"
+    assert row["capacity"]["status"] in {"COMPLETE", "WITH_ASSUMPTIONS"}
+    assert "PRICE_NOT_CONFIRMED" in row["reason_codes"]
+    assert result["financial_recommendation"]["status"] == "INCOMPLETE"
+
+
 def test_research_candidate_never_gets_fleet_or_npv():
     ids = ["position.synthetic.transport", "position.synthetic.rnd"]
     result = compare_candidates(request(), cohort(), selection(ids))

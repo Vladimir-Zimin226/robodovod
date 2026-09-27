@@ -69,7 +69,7 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
   const constraint = (key, value) => { setConstraints((current) => ({ ...current, [key]: value, confirmed: key === 'confirmed' ? value : false })); setResult(null); };
   if (!project?.id || !capacityRunId) return <section className="panel p-4 text-sm" aria-label="Сравнение кандидатов для операции">
     <h2 className="text-lg font-semibold">Сравнить модели для этой операции</h2>
-    <p>Сначала сохраните расчёт парка в проекте. Затем выберите 2–3 совместимые модели и нажмите «Сравнить».</p>
+    <p>Сначала сохраните расчёт парка в проекте. Затем проверьте выбранную модель и доступные альтернативы.</p>
   </section>;
   const selectedNames = selected.map((id) => options?.items.find((item) => item.position_id === id)?.name).filter(Boolean);
   const eligibleSelected = selected.filter((id) => { const item = options?.items.find((row) => row.position_id === id);
@@ -77,16 +77,16 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
   const missingFinance = eligibleSelected.filter((id) => !financeRuns[id]);
   return <section className="panel space-y-3 p-4" aria-label="Сравнение кандидатов для операции">
     <h2 className="text-lg font-semibold">Сравнить модели для этой операции</h2>
-    <p className="text-sm">Сохранённый расчёт парка задаёт общие входы. Выберите ещё 1–2 модели с тем же физическим профилем и нажмите «Сравнить». Технический и денежный выводы проверяются отдельно; сохранённые расчёты не меняются.</p>
+    <p className="text-sm">Сохранённый расчёт парка задаёт общие входы. Можно оценить одну модель или добавить ещё 1–2 с тем же физическим профилем. Технический и денежный выводы проверяются отдельно; сохранённые расчёты не меняются.</p>
     {!options && !error && <p role="status" className="text-sm">Загружаем совместимые модели для сохранённого расчёта…</p>}
     {error && <p role="alert" className="text-red-700">{error}</p>}
     {options && <>
       <p className="text-sm">Сравниваются: {selectedNames.length ? selectedNames.join(' и ') : 'модели ещё не выбраны'}.</p>
-      {options.items.length < 2 && <p role="status" className="text-sm text-amber-800">В активном каталоге нет второй модели с тем же расчётным профилем. Техническое сравнение пока недоступно.</p>}
+      {options.items.length < 2 && <p role="status" className="text-sm text-amber-800">В активном каталоге нет второй модели с тем же расчётным профилем. Оценка единственной позиции остаётся предварительной.</p>}
       <p className="text-xs">В активном каталоге {options.items.length} позиции с тем же физическим профилем.</p>
       <div className="grid gap-2 sm:grid-cols-2">{options.items.map((item) => <label key={item.position_id} className="rounded border p-2 text-sm">
         <input type="checkbox" checked={selected.includes(item.position_id)} disabled={!selected.includes(item.position_id) && selected.length >= 3} onChange={() => change(item.position_id)} />{' '}
-        {item.name} <span className="text-slate-500">· {item.maturity_status === 'RND' ? 'исследовательская' : item.calculation_ready ? 'есть расчётный профиль' : 'только сведения'} · цена {item.price_status}</span>
+        {item.name} <span className="text-slate-500">· {item.comparison_note} · цена {item.price_status}</span>
       </label>)}</div>
       <details><summary>Ограничения объекта и финансовые runs</summary>
         <p className="text-sm">Ограничения применяются ко всем позициям одинаково. Неизвестный паспорт остаётся неподтверждённым.</p>
@@ -102,8 +102,8 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
             <option value="">Не выбран</option>{(options.finance_options || []).filter((item) => item.position_id === id).map((item) => <option key={item.run_id} value={item.run_id}>{item.created_at ? new Date(item.created_at).toLocaleString('ru-RU') : item.run_id} · NPV {item.npv_project} ₽ · условия {item.basis_digest.slice(0, 18)}</option>)}
           </select></label>)}
       </details>
-      <p role="status" className="text-sm">{selected.length < 2 ? 'Выберите вторую модель.' : selected.length > eligibleSelected.length ? 'Непроверенная или исследовательская модель останется информационной; технический балл возможен только для расчётных моделей.' : 'Можно сравнить технические показатели.'} {missingFinance.length ? `Денежное сравнение недоступно: для ${missingFinance.map((id) => options.items.find((item) => item.position_id === id)?.name).join(', ')} нет выбранного сопоставимого полного финансового расчёта.` : 'Для денежного вывода сервер ещё проверит общие условия финансовых расчётов.'}</p>
-      <button type="button" className="primary-action" disabled={busy || selected.length < 2} onClick={compare}>{busy ? 'Сравниваем…' : 'Сравнить выбранные позиции'}</button>
+      <p role="status" className="text-sm">{selected.length === 0 ? 'Выберите хотя бы одну модель.' : selected.length > eligibleSelected.length ? 'Непроверенная или исследовательская модель останется информационной; технический балл возможен только для расчётных моделей.' : selected.length === 1 ? 'Можно оценить единственную расчётную позицию; сравнительного вывода пока нет.' : 'Можно сравнить технические показатели.'} {missingFinance.length ? `Денежное сравнение недоступно: для ${missingFinance.map((id) => options.items.find((item) => item.position_id === id)?.name).join(', ')} нет выбранного сопоставимого полного финансового расчёта.` : 'Для денежного вывода сервер ещё проверит общие условия финансовых расчётов.'}</p>
+      <button type="button" className="primary-action" disabled={busy || selected.length === 0} onClick={compare}>{busy ? 'Оцениваем…' : 'Оценить выбранные позиции'}</button>
     </>}
     {result && <>
       <p className="text-sm">Все модели пересчитаны на входах выбранного сохранённого расчёта.</p>
