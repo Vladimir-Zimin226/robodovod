@@ -503,6 +503,49 @@ def _manual_shift_capacity(item: ProcessLabourInputV1, registry: CalculationPara
         raise ValueError("manual_units_per_shift is required for this quantity kind") from exc
 
 
+def manual_productivity_estimate(process: NormalizedProcess, *, registry: CalculationParameterRegistryV1 | None = None) -> dict[str, object]:
+    """Expose the existing F08 registry calculation without a user norm."""
+    registry = registry or load_registry()
+    projection = CapacityLabourProjectionV1(
+        process_id=process.process_id, input_revision=process.input_revision,
+        capacity_run_id="preview.manual-productivity", capacity_status="NOT_APPLICABLE",
+        selected_fleet=None, coverage=None, capacity_result_digest="sha256:" + "0" * 64,
+    )
+    try:
+        value, unit, refs = _manual_shift_capacity(
+            ProcessLabourInputV1(process=process, capacity=projection), registry)
+    except (ValueError, KeyError):
+        return {"status": "UNSUPPORTED", "value": None, "unit": None,
+                "formula": None, "source_refs": []}
+    kind = str(process.quantity_kind).lower()
+    if process.scope == "CLEANING_AREA":
+        formula = "F08: mechanized baseline rate × shift hours × useful-time share"
+    elif process.route_distance is not None and kind in {"pallet", "box", "case", "cart", "delivery"}:
+        formula = "F08: 3600 / (2 × one-way distance / manual speed + manual exchange) × shift hours × useful-time share × units per trip"
+    else:
+        formula = "F08: approved registry manual shift rate"
+    inputs: dict[str, object] = {
+        "distance_m": process.route_distance.normalized_value if isinstance(process.route_distance, KnownQuantity) else None,
+        "shift_hours": process.schedule.shift_hours.normalized_value if process.schedule else None,
+        "shifts_per_day": process.schedule.shifts_per_day.normalized_value if process.schedule else None,
+        "demand_per_day": process.demand.normalized_value if isinstance(process.demand, KnownQuantity) else None,
+        "role_refs": process.role_refs,
+    }
+    if process.scope == "CLEANING_AREA":
+        inputs.update(mechanized_rate_m2_h=_canonical(_registry_value(registry, "labor.cleaning.mechanized-baseline-rate")),
+                      useful_time_share=_canonical(_registry_value(registry, "labor.cleaning.useful-time-share")))
+    elif process.route_distance is not None and kind in {"pallet", "box", "case", "cart", "delivery"}:
+        hours = _d(process.schedule.shift_hours.normalized_value)
+        inputs.update(manual_speed_m_s=_canonical(_registry_value(registry, f"labor.manual-speed.{kind}")),
+                      manual_exchange_s=_canonical(_registry_value(registry, f"labor.manual-exchange.{kind}")),
+                      useful_time_share=_canonical(_registry_value(registry, f"labor.useful-time.shift-{_canonical(hours)}h")),
+                      units_per_trip=process.explicit_batch.normalized_value if isinstance(process.explicit_batch, KnownQuantity) else "1")
+        if isinstance(process.explicit_batch, KnownQuantity):
+            refs = [*refs, process.explicit_batch.provenance_ref]
+    return {"status": "ESTIMATE", "value": _canonical(value), "unit": unit,
+            "formula": formula, "source_refs": refs, "inputs": inputs}
+
+
 def calculate_role_labour(
     request: LabourAnalysisRequestV1,
     *,

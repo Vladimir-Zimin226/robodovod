@@ -400,6 +400,7 @@ export default function App() {
                 <CandidateComparisonPanel key={activeRun?.id || result.run_id} project={activeProject} capacityRunId={activeRun?.id || result.run_id} />
                 <TechnicalVisualization key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <EconomicsInputsV2
+                  key={activeRun?.id || result.run_id}
                   capacityRequest={userInput}
                   capacityResult={result}
                   capacityRunId={activeRun?.id || result.run_id}

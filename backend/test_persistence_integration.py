@@ -625,6 +625,14 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         original_capacity_checksums = owner.get(
             f"/api/projects/{project['id']}/analysis-runs/{capacity['run_id']}"
         ).json()["checksums"]
+        estimate = owner.get(
+            f"/api/projects/{project['id']}/analysis-runs/{capacity['run_id']}/manual-productivity-estimate"
+        )
+        assert estimate.status_code == 200, estimate.text
+        assert estimate.json()["source_run_id"] == capacity["run_id"]
+        assert estimate.json()["status"] == "ESTIMATE"
+        assert estimate.json()["inputs"]["distance_m"] == "120"
+        assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{capacity['run_id']}").json()["checksums"] == original_capacity_checksums
 
         zone_payload = json.loads(json.dumps(capacity_payload))
         zone_id = "zone.project.warehouse.2"

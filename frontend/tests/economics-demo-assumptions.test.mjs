@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   WAREHOUSE_ECONOMICS_DEMO, applyWarehouseEconomicsDemo, chooseUserField,
-  confirmAllEconomicsAssumptions, editEconomicsField, proposeDemoField,
+  confirmAllEconomicsAssumptions, confirmEconomicsAssumption, editEconomicsField, proposeDemoField,
+  applyManualProductivityEstimate, changeManualProductivityRole,
 } from '../src/economicsDemoAssumptions.js';
 import { buildPartialEconomicsRunRequest } from '../src/economicsInputV2.js';
 
@@ -22,6 +23,21 @@ test('offered value has stable source and choosing user data restores the entere
   const restored = chooseUserField(offered, 'implementationCost', 'implementation_cost_total_gross');
   assert.equal(restored.implementationCost, '700000');
   assert.equal(restored.sources.implementation_cost_total_gross, 'USER');
+});
+
+test('F08 estimate needs explicit confirmation and role change clears the old norm', () => {
+  const proposed = applyManualProductivityEstimate({ manualUnitsPerShift: '100', sources: {}, assumptions: {}, userValues: {} }, {
+    status: 'ESTIMATE', value: '86.4', formula: 'F08 registry route cycle', source_refs: ['registry.labor.manual-speed.pallet'],
+  });
+  assert.equal(proposed.manualUnitsPerShift, '86.4');
+  assert.equal(proposed.sources.manual_units_per_shift, 'ASSUMPTION');
+  assert.equal(proposed.assumptions.manual_units_per_shift.confirmed, false);
+  const confirmed = confirmEconomicsAssumption(proposed, 'manual_units_per_shift', true);
+  assert.equal(confirmed.assumptions.manual_units_per_shift.confirmed, true);
+  const changed = changeManualProductivityRole(confirmed, 'role.loader');
+  assert.equal(changed.manualUnitsPerShift, '');
+  assert.equal(changed.assumptions.manual_units_per_shift, null);
+  assert.equal(changed.sources.manual_units_per_shift, 'USER');
 });
 
 test('other processes never receive warehouse demo numbers', () => {

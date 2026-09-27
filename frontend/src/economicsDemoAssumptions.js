@@ -60,3 +60,27 @@ export function confirmAllEconomicsAssumptions(values) {
     key, evidence && evidence.confirmed_value ? { ...evidence, confirmed: true } : evidence,
   ])) };
 }
+
+export function applyManualProductivityEstimate(values, estimate) {
+  if (estimate?.status !== 'ESTIMATE' || !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(String(estimate.value))
+    || Number(estimate.value) <= 0) return values;
+  const server = 'manual_units_per_shift';
+  return { ...values, manualUnitsPerShift: String(estimate.value),
+    userValues: { ...values.userValues, [server]: values.manualUnitsPerShift || '' },
+    sources: { ...values.sources, [server]: 'ASSUMPTION' },
+    assumptions: { ...values.assumptions, [server]: {
+      schema_version: 'scenario-assumption-evidence-v1', template_id: null,
+      version: 'custom-v1', source: 'USER',
+      rationale: `${estimate.formula}; ${estimate.source_refs.join(', ')}`,
+      published_on: new Date().toISOString().slice(0, 10),
+      confirmed_value: String(estimate.value), confirmed: false,
+    } },
+  };
+}
+
+export function changeManualProductivityRole(values, primaryRoleId) {
+  return { ...values, primaryRoleId, manualUnitsPerShift: '',
+    sources: { ...values.sources, manual_units_per_shift: 'USER' },
+    assumptions: { ...values.assumptions, manual_units_per_shift: null },
+  };
+}

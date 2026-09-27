@@ -34,6 +34,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, Upl
 from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
 from calculation.service import CapacityExecutionSnapshotV2, capacity_version_bindings
+from calculation.labour import manual_productivity_estimate
 from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisRequestV3, CapacityAnalysisResponse, ContractIssue, KnownQuantity, parse_capacity_analysis_request
 from catalog_models import EquipmentModel
 from economics_runtime_migration import (
@@ -1899,6 +1900,28 @@ def create_persistence_router(
         if run is None:
             raise HTTPException(status_code=404, detail="analysis run not found")
         return _run_dict(run, include_snapshots=True, db=db)
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/manual-productivity-estimate")
+    def get_manual_productivity_estimate(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        _owned_project(db, project_id, context.user.id)
+        run = db.scalar(select(AnalysisRun).where(
+            AnalysisRun.id == run_id, AnalysisRun.project_id == project_id,
+            AnalysisRun.run_kind == "CAPACITY_ANALYSIS", AnalysisRun.status == "SUCCEEDED",
+        ))
+        if run is None:
+            raise HTTPException(status_code=404, detail="capacity run not found")
+        if (run.result_snapshot is None or _canonical_sha256(run.input_snapshot) != run.input_sha256
+                or _canonical_sha256(run.result_snapshot) != run.result_sha256):
+            raise HTTPException(status_code=409, detail="capacity source integrity check failed")
+        request = parse_capacity_analysis_request(run.input_snapshot)
+        return {"source_run_id": str(run.id), "input_revision": request.input_revision,
+                "process_id": request.process.process_id,
+                **manual_productivity_estimate(request.process)}
 
     @router.get("/projects/{project_id}/analysis-runs/{run_id}/legacy-replay")
     def replay_legacy_analysis(
