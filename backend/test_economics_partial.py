@@ -2,7 +2,7 @@ import pytest
 
 from calculation.service import analyze_capacity
 from economics_orchestrator import EconomicsExecutionContextV1
-from economics_partial import DEMO_SCENARIO, INPUT_VERSION_V3, INPUT_VERSION_V4, execute_partial_economics_v2
+from economics_partial import DEMO_SCENARIO, INPUT_VERSION_V3, INPUT_VERSION_V4, INPUT_VERSION_V5, execute_partial_economics_v2
 from economics_runtime_migration import historical_mapping
 from test_economics_orchestrator import _capacity_request, _inputs, _snapshot
 
@@ -24,6 +24,68 @@ def _context():
 
 def _input():
     return {**_inputs(), "schema_version": "economics-explicit-inputs-v2"}
+
+
+def _staffing_input():
+    return {**_input(), "schema_version": INPUT_VERSION_V5,
+            "start_seconds_from_midnight": "28800", "timezone": "Europe/Moscow",
+            "staffing_purchase": {"control_mode": "TRANSFER", "technician_mode": "HIRE",
+                                  "control_transfer_monthly_supplement_gross": "0"},
+            "staffing_raas": {"control_mode": "TRANSFER", "technician_mode": "VENDOR",
+                              "control_transfer_monthly_supplement_gross": "0"}}
+
+
+def test_v5_staffing_transfer_hire_and_vendor_change_only_new_run():
+    snapshot, context = _context()
+    raw = _staffing_input()
+    transfer = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert transfer["schema_version"] == "commercial-scenarios-bundle-v2"
+    purchase = next(item for item in transfer["scenarios"] if item["acquisition"] == "PURCHASE" and item["uncertainty"] == "BASE")
+    raas = next(item for item in transfer["scenarios"] if item["acquisition"] == "RAAS" and item["uncertainty"] == "BASE")
+    assert purchase["allocation"]["technicians_required_once"] == 1
+    assert purchase["allocation"]["control_required_once"] > 0
+    assert purchase["report_facts"]["project_npv"]["value"] == "29779914.38"
+    assert purchase["report_facts"]["annual_cashflows"][0]["effect"] == "10691289.41"
+    assert raas["report_facts"]["project_npv"]["value"] == "4016461.91"
+    assert purchase["report_facts"]["project_npv"]["value"] != raas["report_facts"]["project_npv"]["value"]
+    hired = {**raw, "staffing_purchase": {"control_mode": "HIRE", "technician_mode": "HIRE"},
+             "staffing_raas": {"control_mode": "HIRE", "technician_mode": "VENDOR"}}
+    hired_result = execute_partial_economics_v2(hired, snapshot, context).result_snapshot
+    assert hired_result["schema_version"] == "commercial-scenarios-bundle-v2"
+    assert hired_result != transfer
+    assert raw["staffing_purchase"]["control_mode"] == "TRANSFER"
+
+
+def test_v5_qualified_transfer_contract_and_unknown_price():
+    snapshot, context = _context()
+    raw = _staffing_input()
+    raw["staffing_purchase"] = {"control_mode": "TRANSFER", "technician_mode": "TRANSFER",
+                                 "technician_qualification_confirmed": True,
+                                 "control_transfer_monthly_supplement_gross": "0",
+                                 "technician_transfer_monthly_supplement_gross": "5000"}
+    raw["technician_monthly_gross"] = None
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result["schema_version"] == "commercial-scenarios-bundle-v2"
+    transferred = next(item for item in result["scenarios"] if item["acquisition"] == "PURCHASE" and item["uncertainty"] == "BASE")
+    assert transferred["allocation"]["role_conservation"][0]["remaining"] >= 2
+    raw["staffing_purchase"] = {"control_mode": "TRANSFER", "technician_mode": "CONTRACTOR",
+                                 "control_transfer_monthly_supplement_gross": "0",
+                                 "technician_contractor_annual_gross": "240000"}
+    assert execute_partial_economics_v2(raw, snapshot, context).result_snapshot["schema_version"] == "commercial-scenarios-bundle-v2"
+    raw["staffing_purchase"].pop("technician_contractor_annual_gross")
+    partial = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert partial["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert any(item["field"] == "staffing_purchase" for item in partial["issues"])
+
+
+def test_v5_existing_staff_requires_enough_people():
+    snapshot, context = _context()
+    raw = _staffing_input()
+    raw["staffing_purchase"] = {"control_mode": "EXISTING", "technician_mode": "EXISTING"}
+    raw["staffing_raas"] = {"control_mode": "EXISTING", "technician_mode": "VENDOR"}
+    partial = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert partial["branches"]["purchase"]["status"] == "NOT_CALCULATED"
+    assert any(item["code"] == "STAFFING_COVERAGE_INCOMPLETE" for item in partial["issues"])
 
 
 def test_empty_inputs_save_capacity_and_no_false_finance():

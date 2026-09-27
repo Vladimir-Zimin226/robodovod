@@ -7,7 +7,7 @@ export const ECONOMICS_CONDITIONS = Object.freeze([
   { key: 'raasScopeConfirm', group: 'RaaS', consequence: 'Без этого не рассчитывается RaaS.' },
 ]);
 
-export function economicsReadiness(values, capacityRequest, fields) {
+export function economicsReadiness(values, capacityRequest, fields, staffingPreview = {}, selectedFleet = null) {
   const known = (server) => {
     const entry = fields.find((field) => field[2] === server);
     if (!entry) return false;
@@ -26,9 +26,25 @@ export function economicsReadiness(values, capacityRequest, fields) {
   const missingConditions = ECONOMICS_CONDITIONS.filter((item) => values[item.key] !== true);
   const roleRefs = capacityRequest?.process?.role_refs || [];
   const cleaning = capacityRequest?.process?.scope === 'CLEANING_AREA';
+  const techniciansNeeded = selectedFleet == null ? null : Math.max(0, Math.ceil(Number(selectedFleet) / 20) - Number(values.technicianHeadcount || 0));
+  const controlCostNeeded = Object.values(staffingPreview).some((item) => item?.control_additional > 0)
+    || (values.controlMode === 'HIRE' && Number(values.controlHeadcount || 0) === 0 && Number(selectedFleet) > 0);
   const labourMissing = [
     ...(!cleaning && !known('manual_units_per_shift') ? ['manual_units_per_shift'] : []),
-    ...['control_headcount', 'control_monthly_gross', 'technician_headcount', 'technician_monthly_gross'].filter((field) => !known(field)),
+    ...['control_headcount', 'technician_headcount'].filter((field) => !known(field)),
+    ...(!values.controlMode ? ['staffing_purchase'] : []),
+    ...(!values.technicianPurchaseMode ? ['staffing_purchase'] : []),
+    ...(!values.technicianRaasMode ? ['staffing_raas'] : []),
+    ...(values.controlMode === 'TRANSFER' && !known('control_transfer_monthly_supplement_gross') ? ['control_transfer_monthly_supplement_gross'] : []),
+    ...((values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER') &&
+      (!values.qualifiedTechTransfer || !known('technician_transfer_monthly_supplement_gross')) ? ['technician_transfer'] : []),
+    ...((values.technicianPurchaseMode === 'CONTRACTOR' || values.technicianRaasMode === 'CONTRACTOR') &&
+      !known('technician_contractor_annual_gross') ? ['technician_contractor_annual_gross'] : []),
+    ...((Number(values.controlHeadcount) > 0 || controlCostNeeded)
+      && !known('control_monthly_gross') ? ['control_monthly_gross'] : []),
+    ...((Number(values.technicianHeadcount) > 0 || (techniciansNeeded === null || techniciansNeeded > 0)
+      && (values.technicianPurchaseMode === 'HIRE' || values.technicianRaasMode === 'HIRE'))
+      && !known('technician_monthly_gross') ? ['technician_monthly_gross'] : []),
     ...(values.grossConfirm ? [] : ['role_salaries_confirmed_as_monthly_gross']),
     ...((roleRefs.length > 1 && !values.primaryRoleId) || (values.primaryRoleId && !roleRefs.includes(values.primaryRoleId)) ? ['primary_role_id'] : []),
   ];

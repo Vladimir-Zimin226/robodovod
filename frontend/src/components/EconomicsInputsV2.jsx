@@ -19,6 +19,9 @@ const FIELDS = [
   ['Труд', 'controlMonthlyGross', 'control_monthly_gross', 'Зарплата диспетчера gross', '₽/чел./мес.', 'Для расходов на пульт; например 100000.', 'ФОТ'],
   ['Труд', 'technicianHeadcount', 'technician_headcount', 'Техники сейчас', 'чел.', 'Для дополнительной техподдержки; например 0.', 'Штатное расписание'],
   ['Труд', 'technicianMonthlyGross', 'technician_monthly_gross', 'Зарплата техника gross', '₽/чел./мес.', 'Для расходов на поддержку; например 120000.', 'ФОТ'],
+  ['Труд', 'controlTransferSupplement', 'control_transfer_monthly_supplement_gross', 'Доплата переведённому диспетчеру', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
+  ['Труд', 'techTransferSupplement', 'technician_transfer_monthly_supplement_gross', 'Доплата переведённому технику', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
+  ['Труд', 'technicianContractorAnnual', 'technician_contractor_annual_gross', 'Техподдержка подрядчика', '₽/техник/год, gross', 'Стоимость только непокрытой функции.', 'Договор или допущение'],
   ['Покупка', 'implementationCost', 'implementation_cost_total_gross', 'Внедрение и интеграция', '₽ всего, gross', 'Разовый расход; например 500000.', 'Смета или допущение'],
   ['Покупка', 'annualService', 'annual_service_per_robot_gross', 'Сервис одного робота', '₽/год, gross', 'Ежегодный расход; например 120000.', 'Договор или допущение'],
   ['Покупка', 'warrantyYears', 'warranty_years', 'Гарантия', 'лет', 'Влияет на жизненный цикл; например 1.', 'Условия поставки'],
@@ -45,7 +48,9 @@ const CALCULATION_RULES = [
   ['Денежный результат', 'NPV проекта = NPV сценария − NPV базы; ROI покупки делится на денежный CAPEX, рентабельность RaaS — на его TCO.', 'Годовые потоки строит сервер из сохранённых труда, парка и затрат. Ставку и горизонт вы подтверждаете в форме.'],
   ['Налог', 'Основной денежный маршрут рассчитывается до налога на прибыль. НДС не пересчитывается единой ставкой: денежная база использует gross цену по принятому условию сценария.', 'Налоговый режим организации в этой форме неизвестен; иллюстративная налоговая ветка не включается в основной NPV.'],
 ];
-const defaults = { evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '', sources: {}, assumptions: {}, userValues: {} };
+const defaults = { evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '',
+  controlMode: '', technicianPurchaseMode: '', technicianRaasMode: '', qualifiedTechTransfer: false,
+  sources: {}, assumptions: {}, userValues: {} };
 function restored(capacityRunId, input, project) {
   const values = { ...defaults, capacityRunId, sources: { ...(input?.field_sources || {}) },
     assumptions: { ...(input?.assumption_evidence || {}) }, userValues: {} };
@@ -56,10 +61,22 @@ function restored(capacityRunId, input, project) {
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
     startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
+  if (input?.schema_version === 'economics-explicit-inputs-v5') Object.assign(values, {
+    controlMode: input.staffing_purchase?.control_mode || '',
+    technicianPurchaseMode: input.staffing_purchase?.technician_mode || '',
+    technicianRaasMode: input.staffing_raas?.technician_mode || '',
+    qualifiedTechTransfer: input.staffing_purchase?.technician_qualification_confirmed === true
+      || input.staffing_raas?.technician_qualification_confirmed === true,
+    controlTransferSupplement: input.staffing_purchase?.control_transfer_monthly_supplement_gross || '',
+    techTransferSupplement: input.staffing_purchase?.technician_transfer_monthly_supplement_gross
+      || input.staffing_raas?.technician_transfer_monthly_supplement_gross || '',
+    technicianContractorAnnual: input.staffing_purchase?.technician_contractor_annual_gross
+      || input.staffing_raas?.technician_contractor_annual_gross || '',
+  });
   else Object.assign(values, { startSeconds: String(MODEL_START_SECONDS), timezone: modelTimezone(project) });
   return values;
 }
-export default function EconomicsInputsV2({ capacityRequest, capacityRunId, project, onComplete, initialInput, savedResult, sourceRunId }) {
+export default function EconomicsInputsV2({ capacityRequest, capacityResult, capacityRunId, project, onComplete, initialInput, savedResult, sourceRunId }) {
   const [values, setValues] = useState(() => restored(capacityRunId, initialInput || workbookEconomics(project?.profile?.file_intake_v2), project));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -73,11 +90,23 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
       ((values.sources[server] || 'USER') !== 'ASSUMPTION' || values.assumptions[server]?.confirmed === true);
   };
   const groupCount = (group) => {
-    const fields = FIELDS.filter((item) => item[0] === group && !(item[1] === 'manualUnitsPerShift' && capacityRequest?.process?.scope === 'CLEANING_AREA'));
+    const fields = FIELDS.filter((item) => item[0] === group && visibleField(item));
     return [fields.filter(fieldReady).length, fields.length];
   };
-  const allProposed = demoEligible && FIELDS.every(([, key, server]) => values.sources[server] === 'ASSUMPTION' && values[key] !== '' && values.assumptions[server]);
-  const readiness = economicsReadiness(values, capacityRequest, FIELDS);
+  const allProposed = demoEligible && FIELDS.filter(([, , server]) => WAREHOUSE_ECONOMICS_DEMO.fields[server]).every(([, key, server]) => values.sources[server] === 'ASSUMPTION' && values[key] !== '' && values.assumptions[server]);
+  const staffingPreview = savedResult?.staffing_preview || {};
+  const fleet = capacityResult?.capacity?.value?.selected_fleet ?? savedResult?.branches?.capacity?.selected_fleet;
+  const readiness = economicsReadiness(values, capacityRequest, FIELDS, staffingPreview, fleet);
+  const visibleField = (field) => {
+    const key = field[1];
+    if (key === 'manualUnitsPerShift') return capacityRequest?.process?.scope !== 'CLEANING_AREA';
+    if (key === 'controlMonthlyGross') return Number(values.controlHeadcount) > 0 || Object.values(staffingPreview).some((item) => item?.control_additional > 0) || values.controlMode === 'HIRE' && Number(values.controlHeadcount || 0) === 0 && Number(fleet) > 0;
+    if (key === 'technicianMonthlyGross') return Number(values.technicianHeadcount) > 0 || Math.ceil(Number(fleet || 0) / 20) > Number(values.technicianHeadcount || 0) && (values.technicianPurchaseMode === 'HIRE' || values.technicianRaasMode === 'HIRE');
+    if (key === 'controlTransferSupplement') return values.controlMode === 'TRANSFER';
+    if (key === 'techTransferSupplement') return values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER';
+    if (key === 'technicianContractorAnnual') return values.technicianPurchaseMode === 'CONTRACTOR' || values.technicianRaasMode === 'CONTRACTOR';
+    return true;
+  };
   const goToMissing = () => {
     const condition = readiness.missingConditions[0];
     const missing = condition ? `condition-${condition.key}` :
@@ -140,6 +169,15 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
     </section>}
     {['Труд', 'Покупка', 'RaaS', 'Визуализация'].map((group) => <section key={group} aria-label={group}>
       <h3 className="font-semibold">{group}</h3>
+      {group === 'Труд' && <div className="mt-3 rounded border border-blue-300 p-3 text-sm space-y-3" aria-label="Покрытие новых функций после расчёта парка">
+        <p>Парк C11: {fleet ?? 'нет данных'} роботов. Потребность в техподдержке по C14: {fleet == null ? 'нет данных' : Math.ceil(Number(fleet) / 20)} чел. (ceil(парк/20)); потребность в пульте зависит от C14 и ручной нормы. {staffingPreview.PURCHASE ? `На текущем вводе C14: пульт ${staffingPreview.PURCHASE.control_required}, техподдержка ${staffingPreview.PURCHASE.technicians_required}, перевод ${staffingPreview.PURCHASE.control_transferred} на пульт.` : 'Сохраните частичный черновик после нормы, чтобы увидеть точное распределение C14.'}</p>
+        <p>Численность «сейчас» ниже описывает только исходный штат. Выберите, кто покроет новую функцию; перевод сохраняет человека в штате и уменьшает высвобождение.</p>
+        <label className="block">Пульт<select id="economics-staffing-control" className="block w-full border rounded p-2" value={values.controlMode} onChange={set('controlMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод из заменяемой роли</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option></select></label>
+        <label className="block">Техподдержка при покупке<select id="economics-staffing-purchase" className="block w-full border rounded p-2" value={values.technicianPurchaseMode} onChange={set('technicianPurchaseMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option></select></label>
+        <label className="block">Техподдержка при RaaS<select id="economics-staffing-raas" className="block w-full border rounded p-2" value={values.technicianRaasMode} onChange={set('technicianRaasMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option><option value="VENDOR">Поставщик, включено в RaaS</option></select></label>
+        {(values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER') && <label className="flex gap-2"><input type="checkbox" checked={values.qualifiedTechTransfer} onChange={set('qualifiedTechTransfer')} />Подтверждаю квалификацию переводимого сотрудника для техподдержки</label>}
+        <p>Зарплата или стоимость услуги запрашивается ниже только для непокрытой функции. Неизвестная стоимость даёт частичный результат; выбор и источник сохраняются в новом run.</p>
+      </div>}
       {group === 'Труд' && roleRefs.length > 1 && <label className="block mt-3 text-sm">Основная роль процесса
         <select value={values.primaryRoleId} onChange={set('primaryRoleId')} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id, index) => <option key={id} value={id}>Роль {index + 1}</option>)}</select>
         <small>Для сравнения труда; источник — введённые роли процесса.</small></label>}
@@ -148,17 +186,18 @@ export default function EconomicsInputsV2({ capacityRequest, capacityRunId, proj
         <label className="mt-2 block">Часовой пояс<select id="economics-timezone" value={values.timezone} onChange={set('timezone')} className="block w-full border rounded p-2"><option value="">Выберите часовой пояс</option>{timezoneChoices(values.timezone).map((zone) => <option key={zone} value={zone}>{zone.replaceAll('_', ' ')}</option>)}</select></label>
         <details className="mt-2"><summary>Детальная настройка модельного времени</summary><label className="mt-2 block">Начало смены · местное время<input id="economics-start_seconds_from_midnight" type="time" value={`${String(Math.floor(Number(values.startSeconds) / 3600)).padStart(2, '0')}:${String(Math.floor(Number(values.startSeconds) % 3600 / 60)).padStart(2, '0')}`} onChange={(event) => { const [h, m] = event.target.value.split(':').map(Number); setValues((current) => ({ ...current, startSeconds: String(h * 3600 + m * 60) })); }} className="block border rounded p-2" /></label><p>График смен из процесса сохраняется. Здесь задаётся только местное начало.</p></details>
       </div>}
-      {group !== 'Визуализация' && <div className="mt-2 grid gap-3 md:grid-cols-3">{FIELDS.filter((field) => field[0] === group && !(field[1] === 'manualUnitsPerShift' && capacityRequest?.process?.scope === 'CLEANING_AREA')).map(([, key, server, label, unit, why, source]) => {
+      {group !== 'Визуализация' && <div className="mt-2 grid gap-3 md:grid-cols-3">{FIELDS.filter((field) => field[0] === group && visibleField(field)).map(([, key, server, label, unit, why, source]) => {
         const fieldIssues = issues.filter((item) => item.field === server);
+        const staffingField = ['control_transfer_monthly_supplement_gross', 'technician_transfer_monthly_supplement_gross', 'technician_contractor_annual_gross'].includes(server);
         return <div key={key} className="block rounded border border-slate-500/40 p-3 text-sm">
           <strong className="block">{label} <span className="font-normal">· {unit}</span></strong>
           <small className="block mt-1">{why}</small>
           <input id={`economics-${server}`} type="text" inputMode="decimal" aria-label={label} value={values[key]} onChange={(event) => setValues((current) => editEconomicsField(current, key, server, event.target.value, { enableTemplate: demoEligible }))} className="w-full border rounded p-2 mt-2" placeholder="Неизвестно — оставьте пустым" aria-invalid={fieldIssues.some((item) => !['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code))} />
           <small className="block mt-1">Возможный источник: {source}. {['Покупка', 'RaaS'].includes(group) ? 'Коммерческое условие требует отдельной проверки.' : ''}</small>
-          <select value={values.sources[server] || 'USER'} onChange={(event) => setValues((current) => event.target.value === 'USER'
+          {!staffingField && <select value={values.sources[server] || 'USER'} onChange={(event) => setValues((current) => event.target.value === 'USER'
             ? chooseUserField(current, key, server) : proposeDemoField(current, key, server, { enableTemplate: demoEligible }))} aria-label={`Тип источника: ${label}`} className="w-full border rounded p-2 mt-1">
             <option value="USER">Данные пользователя</option><option value="ASSUMPTION">Допущение для сценария</option>
-          </select>
+          </select>}
           {values.sources[server] === 'ASSUMPTION' && <div className="mt-2 rounded bg-amber-50 p-2 text-xs">
             {demoEligible && WAREHOUSE_ECONOMICS_DEMO.fields[server] ? <p>Предложение для «{fieldPresentation(server).label}» от {WAREHOUSE_ECONOMICS_DEMO.published_on}: {WAREHOUSE_ECONOMICS_DEMO.fields[server].value} {WAREHOUSE_ECONOMICS_DEMO.fields[server].unit}. {WAREHOUSE_ECONOMICS_DEMO.fields[server].rationale}. Источник: {WAREHOUSE_ECONOMICS_DEMO.source}.</p>
               : <p>Для этого поля нет шаблона. Введите число вручную и подтвердите его как ваше сценарное допущение.</p>}

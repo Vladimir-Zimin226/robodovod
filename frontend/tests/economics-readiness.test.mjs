@@ -15,6 +15,7 @@ test('five independent conditions and unknown amounts keep full run unavailable'
   values.manualUnitsPerShift = '100';
   values.average_power_w = '1000'; values.horizon_years = '5'; values.raas_contract_months = '60';
   values.evaluationDate = '2026-09-25'; values.raasInfrastructureOwner = 'CUSTOMER'; values.timezone = 'Asia/Sakhalin';
+  values.controlMode = 'HIRE'; values.technicianPurchaseMode = 'HIRE'; values.technicianRaasMode = 'HIRE';
   const capacityRequest = { process: { scope: 'TRANSPORT_CYCLE', role_refs: ['driver'] } };
   let preview = economicsReadiness(values, capacityRequest, fields);
   assert.equal(preview.fullReady, false);

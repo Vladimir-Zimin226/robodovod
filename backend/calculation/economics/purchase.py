@@ -148,6 +148,7 @@ class ResidualOverrideV1(StrictContractModel):
 
 class LabourOpexProjectionV1(StrictContractModel):
     technicians_required: Annotated[int, Field(ge=0)]
+    technicians_billable: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
     technician_annual_direct: DecimalString | None = None
     additional_control_required: Annotated[int, Field(ge=0)]
     control_annual_direct: DecimalString | None = None
@@ -443,7 +444,7 @@ def calculate_purchase_ledger(request: PurchaseLedgerRequestV1, *, registry: Cal
         comm = Decimal(fleet) * _registry(registry, "finance.communication.monthly-per-robot") * 12 * ramp * (Decimal("1") + other_inflation) ** (year - 1)
         lines.append(CostLineV1(line_id=f"year.{year}.communication", formula_id="F19", category="COMMUNICATION", timing="ANNUAL", year=year, status="COMPLETE", amount=_c(comm), basis="fleet × monthly communication × 12 × ramp × index", source_refs=["finance.communication.monthly-per-robot"], ownership="CUSTOMER"))
         for category, count, unit_cost in (
-            ("TECHNICIANS", request.labour_opex.technicians_required, request.labour_opex.technician_annual_direct),
+            ("TECHNICIANS", request.labour_opex.technicians_billable if request.labour_opex.technicians_billable is not None else request.labour_opex.technicians_required, request.labour_opex.technician_annual_direct),
             ("CONTROL_OPERATORS", request.labour_opex.additional_control_required, request.labour_opex.control_annual_direct),
         ):
             category_id = category.lower().replace("_", "-")

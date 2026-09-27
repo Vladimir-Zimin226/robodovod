@@ -161,6 +161,32 @@ class SalarySourceBindingV1(StrictContractModel):
     source: Literal["USER", "FILE"]
 
 
+class StaffingDecisionV1(StrictContractModel):
+    """Explicit coverage of the C14 requirement for a newly saved run."""
+
+    control_mode: Literal["TRANSFER", "HIRE", "EXISTING"]
+    technician_mode: Literal["TRANSFER", "HIRE", "EXISTING", "CONTRACTOR", "VENDOR"]
+    technician_qualification_confirmed: bool = False
+    control_transfer_monthly_supplement_gross: DecimalString = "0"
+    technician_transfer_monthly_supplement_gross: DecimalString = "0"
+    technician_contractor_annual_gross: DecimalString | None = None
+    source: Literal["USER", "FILE"] = "USER"
+    provenance_ref: StableId = "input.economics.staffing-decision"
+
+    @model_validator(mode="after")
+    def validate_decision(self) -> "StaffingDecisionV1":
+        for value in (self.control_transfer_monthly_supplement_gross,
+                      self.technician_transfer_monthly_supplement_gross):
+            if _d(value) < 0:
+                raise ValueError("staffing supplement cannot be negative")
+        if self.technician_mode == "TRANSFER" and not self.technician_qualification_confirmed:
+            raise ValueError("technician transfer requires qualification confirmation")
+        if self.technician_mode == "CONTRACTOR" and (self.technician_contractor_annual_gross is None
+                or _d(self.technician_contractor_annual_gross) < 0):
+            raise ValueError("technician contractor needs an annual gross price")
+        return self
+
+
 class LabourAnalysisRequestV1(StrictContractModel):
     schema_version: Literal["role-labour-analysis-v1"] = LABOUR_SCHEMA_VERSION
     run_id: StableId
@@ -178,6 +204,7 @@ class LabourAnalysisRequestV1(StrictContractModel):
     replacement_limit: DecimalString = "1"
     allow_surplus_replacement: bool = False
     base_forklift_count: Annotated[int, Field(ge=0)] | None = None
+    staffing_decision: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
 
     @model_validator(mode="after")
     def validate_request(self) -> "LabourAnalysisRequestV1":
@@ -295,6 +322,13 @@ class SiteOperatingStaffV1(StrictContractModel):
     control_transferred: Annotated[int, Field(ge=0)]
     control_additional: Annotated[int, Field(ge=0)]
     technicians_required: Annotated[int, Field(ge=0)]
+    technicians_billable: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
+    technicians_transferred: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
+    existing_control_headcount: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
+    existing_technician_headcount: Annotated[int, Field(ge=0)] | None = Field(default=None, exclude_if=lambda value: value is None)
+    technician_contractor_annual_gross: DecimalString | None = Field(default=None, exclude_if=lambda value: value is None)
+    control_transfer_monthly_supplement_gross: DecimalString | None = Field(default=None, exclude_if=lambda value: value is None)
+    technician_transfer_monthly_supplement_gross: DecimalString | None = Field(default=None, exclude_if=lambda value: value is None)
     control_money: MoneyBreakdownV1 | None
     technician_money: MoneyBreakdownV1 | None
     status: Literal["COMPLETE", "INCOMPLETE", "NOT_APPLICABLE"]
@@ -597,10 +631,35 @@ def calculate_role_labour(
     supervision = _registry_value(registry, f"scenario.{request.uncertainty.lower()}.supervision-share")
     minimum_control = int(_registry_value(registry, "labor.control.minimum-per-shift"))
     control_required = 0 if total_fleet == 0 else max(_floor(Decimal(applied_total) * supervision), simultaneous_shifts * minimum_control)
-    control_transferred = min(applied_total, control_required)
-    control_additional = control_required - control_transferred
-    released_total = applied_total - control_transferred
-    transfer_distribution = _largest_remainder(control_transferred, {item.process_id: Decimal(item.applied or 0) for item in process_results if item.applied is not None})
+    decision = request.staffing_decision
+    existing_control = next((int(_d(role.headcount.normalized_value)) for role in request.role_pool.roles
+                             if role.role_code == RoleCode.CONTROL_OPERATOR and isinstance(role.headcount, KnownQuantity)), 0)
+    if decision is None:
+        control_transferred = min(applied_total, control_required)
+        control_additional = control_required - control_transferred
+    else:
+        uncovered_control = max(0, control_required - existing_control)
+        if decision.control_mode == "EXISTING" and uncovered_control:
+            raise ValueError("existing control staff does not cover C14 requirement")
+        control_transferred = min(applied_total, uncovered_control) if decision.control_mode == "TRANSFER" else 0
+        control_additional = uncovered_control - control_transferred
+    tech_rate = int(_registry_value(registry, "labor.technical.robots-per-fte"))
+    technicians = 0 if total_fleet == 0 else _ceil(Decimal(total_fleet) / Decimal(tech_rate))
+    existing_tech = next((int(_d(role.headcount.normalized_value)) for role in request.role_pool.roles
+                          if role.role_code == RoleCode.TECH_SUPPORT and isinstance(role.headcount, KnownQuantity)), 0)
+    technicians_transferred = 0
+    technicians_billable = technicians
+    if decision is not None:
+        uncovered_tech = max(0, technicians - existing_tech)
+        if decision.technician_mode == "EXISTING" and uncovered_tech:
+            raise ValueError("existing technicians do not cover C14 requirement")
+        if decision.technician_mode == "TRANSFER":
+            technicians_transferred = min(max(0, applied_total - control_transferred), uncovered_tech)
+            if technicians_transferred < uncovered_tech:
+                raise ValueError("released qualified staff do not cover C14 technician requirement")
+        technicians_billable = uncovered_tech if decision.technician_mode in {"HIRE", "CONTRACTOR"} else 0
+    released_total = applied_total - control_transferred - technicians_transferred
+    transfer_distribution = _largest_remainder(control_transferred + technicians_transferred, {item.process_id: Decimal(item.applied or 0) for item in process_results if item.applied is not None})
     for item in process_results:
         if item.applied is not None:
             item.transferred = transfer_distribution.get(item.process_id, 0)
@@ -666,15 +725,13 @@ def calculate_role_labour(
 
     control_role = next((role for role in request.role_pool.roles if role.role_code == RoleCode.CONTROL_OPERATOR), None)
     tech_role = next((role for role in request.role_pool.roles if role.role_code == RoleCode.TECH_SUPPORT), None)
-    tech_rate = int(_registry_value(registry, "labor.technical.robots-per-fte"))
-    technicians = 0 if total_fleet == 0 else _ceil(Decimal(total_fleet) / Decimal(tech_rate))
     staff_reasons: list[str] = []
     control_money = _money(control_role, registry) if control_role else None
     tech_money = _money(tech_role, registry) if tech_role else None
     if control_additional > 0 and control_money is None:
         staff_reasons.append("control-salary-missing")
         issues.add("control-salary-missing")
-    if technicians > 0 and tech_money is None:
+    if technicians_billable > 0 and tech_money is None and (decision is None or decision.technician_mode != "CONTRACTOR"):
         staff_reasons.append("technician-salary-missing")
         issues.add("technician-salary-missing")
     operating_status = "NOT_APPLICABLE" if total_fleet == 0 else ("INCOMPLETE" if staff_reasons else "COMPLETE")
@@ -682,6 +739,13 @@ def calculate_role_labour(
         total_selected_fleet=total_fleet, simultaneous_shifts=simultaneous_shifts,
         control_required=control_required, control_transferred=control_transferred,
         control_additional=control_additional, technicians_required=technicians,
+        technicians_billable=technicians_billable if decision is not None else None,
+        technicians_transferred=technicians_transferred if decision is not None else None,
+        existing_control_headcount=existing_control if decision is not None else None,
+        existing_technician_headcount=existing_tech if decision is not None else None,
+        technician_contractor_annual_gross=decision.technician_contractor_annual_gross if decision is not None and decision.technician_mode == "CONTRACTOR" else None,
+        control_transfer_monthly_supplement_gross=decision.control_transfer_monthly_supplement_gross if decision is not None else None,
+        technician_transfer_monthly_supplement_gross=decision.technician_transfer_monthly_supplement_gross if decision is not None else None,
         control_money=control_money, technician_money=tech_money, status=operating_status,
         reason_codes=staff_reasons,
     )
@@ -735,7 +799,7 @@ def calculate_role_labour(
         processes=process_results, roles=role_results, allocations=allocations,
         operating_staff=operating, forklifts=forklifts,
         total_deficit=sum(item.deficit for item in role_results), total_surplus=sum(item.surplus for item in role_results),
-        total_released=released_total, total_transferred=control_transferred,
+        total_released=released_total, total_transferred=control_transferred + technicians_transferred,
         total_additional_control=control_additional, trace=trace, issues=sorted(issues),
         versions=versions, replay=replay,
     )

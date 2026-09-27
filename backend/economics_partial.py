@@ -16,6 +16,7 @@ from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from calculation_contracts import KnownQuantity
+from calculation.labour import StaffingDecisionV1
 from economics_orchestrator import (
     ACQUISITIONS,
     UNCERTAINTIES,
@@ -35,6 +36,7 @@ from economics_runtime_migration import EconomicsV2ExecutionV1
 INPUT_VERSION = "economics-explicit-inputs-v2"
 INPUT_VERSION_V3 = "economics-explicit-inputs-v3"
 INPUT_VERSION_V4 = "economics-explicit-inputs-v4"
+INPUT_VERSION_V5 = "economics-explicit-inputs-v5"
 RESULT_VERSION = "economics-partial-result-v1"
 PARTIAL_RULES_VERSION = "calculation-rules-c13-c21-partial-v1"
 
@@ -181,7 +183,7 @@ def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
                                and (values.get(key) is not None or key in values["input_ranges"])} if isinstance(sources, dict) else {}
     evidence = raw.get("assumption_evidence", {})
     values["assumption_evidence"] = {}
-    if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4}:
+    if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4, INPUT_VERSION_V5}:
         if not isinstance(evidence, dict):
             evidence = {}
         for field, source in values["field_sources"].copy().items():
@@ -194,6 +196,22 @@ def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
                 values[field] = None
                 values["field_sources"].pop(field, None)
                 issues.append(_issue(field, "ASSUMPTION_UNCONFIRMED", "Сценарное число не подтверждено или его источник не совпадает с версией набора.", "Проверьте значение и явно подтвердите допущение."))
+    if raw.get("schema_version") == INPUT_VERSION_V5:
+        for field in ("staffing_purchase", "staffing_raas"):
+            value = raw.get(field)
+            try:
+                if not isinstance(value, dict):
+                    raise ValueError("choose a staffing coverage scenario")
+                if value.get("control_mode") == "TRANSFER" and "control_transfer_monthly_supplement_gross" not in value:
+                    raise ValueError("confirm control transfer supplement, including an explicit zero")
+                if value.get("technician_mode") == "TRANSFER" and "technician_transfer_monthly_supplement_gross" not in value:
+                    raise ValueError("confirm technician transfer supplement, including an explicit zero")
+                if field == "staffing_purchase" and value.get("technician_mode") == "VENDOR":
+                    raise ValueError("vendor coverage applies only to RaaS")
+                values[field] = StaffingDecisionV1.model_validate(value)
+            except (ValueError, TypeError) as exc:
+                values[field] = None
+                issues.append(_issue(field, "STAFFING_DECISION_INVALID", str(exc), "Выберите покрытие рассчитанной потребности и подтвердите стоимость."))
     return values, issues
 
 
@@ -209,11 +227,11 @@ def execute_partial_economics_v2(
     raw: dict[str, Any], snapshot: Any, context: EconomicsExecutionContextV1,
     *, full_engine: Any = None,
 ) -> EconomicsV2ExecutionV1:
-    if raw.get("schema_version") not in {INPUT_VERSION, INPUT_VERSION_V3, INPUT_VERSION_V4}:
+    if raw.get("schema_version") not in {INPUT_VERSION, INPUT_VERSION_V3, INPUT_VERSION_V4, INPUT_VERSION_V5}:
         raise ValueError("unsupported partial economics input version")
     values, issues = _parse(raw)
     request = context.capacity_request
-    if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4} and request.process.process_code != "warehouse_receiving_shipping":
+    if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4, INPUT_VERSION_V5} and request.process.process_code != "warehouse_receiving_shipping":
         for field, evidence in list(values["assumption_evidence"].items()):
             if evidence.get("template_id") == DEMO_SCENARIO["schema_version"]:
                 values[field] = None
@@ -242,9 +260,32 @@ def execute_partial_economics_v2(
     context_missing = [] if capacity_available else ["capacity_technical_result"]
     if values["input_revision"] != request.input_revision:
         context_missing.append("input_revision")
+    staffing_preview: dict[str, Any] = {}
+    if raw.get("schema_version") == INPUT_VERSION_V5:
+        for acquisition, field in (("PURCHASE", "staffing_purchase"), ("RAAS", "staffing_raas")):
+            if values.get(field) is None:
+                continue
+            preview_inputs = SimpleNamespace(**values)
+            preview_inputs.control_monthly_gross = values["control_monthly_gross"] or "0"
+            preview_inputs.technician_monthly_gross = values["technician_monthly_gross"] or "0"
+            try:
+                preview = _labour(context, preview_inputs, "BASE", acquisition=acquisition)
+                staff = preview.operating_staff
+                staffing_preview[acquisition] = {
+                    "control_required": staff.control_required,
+                    "control_transferred": staff.control_transferred,
+                    "control_additional": staff.control_additional,
+                    "technicians_required": staff.technicians_required,
+                    "technicians_billable": staff.technicians_billable,
+                    "technicians_transferred": staff.technicians_transferred,
+                    "released": preview.total_released,
+                    "source": "C14 on saved C11; money omitted in preview",
+                }
+            except ValueError as exc:
+                issues.append(_issue(field, "STAFFING_COVERAGE_INCOMPLETE", str(exc), "Проверьте численность, ручную норму и покрытие функций."))
     visual_missing: list[str] = []
     visual_spec = None
-    if raw.get("schema_version") == INPUT_VERSION_V4:
+    if raw.get("schema_version") in {INPUT_VERSION_V4, INPUT_VERSION_V5}:
         visual_missing = _missing(values, VISUAL_FIELDS) + context_missing
         if request.process.schedule is None:
             visual_missing.append("process.schedule")
@@ -268,7 +309,22 @@ def execute_partial_economics_v2(
             except ValueError as exc:
                 visual_missing.append("scenario_spec")
                 issues.append(_issue("scenario_spec", "TECHNICAL_INPUT_INVALID", str(exc), "Проверьте график и маршрут исходного C11."))
-    labour_missing = _missing(values, LABOUR_FIELDS) + missing_salaries + context_missing
+    if raw.get("schema_version") == INPUT_VERSION_V5:
+        labour_missing = _missing(values, ("role_salaries_confirmed_as_monthly_gross", "control_headcount", "technician_headcount")) + missing_salaries + context_missing
+        labour_missing += [field for field in ("staffing_purchase", "staffing_raas") if values.get(field) is None]
+        labour_missing += [item["field"] for item in issues if item["code"] == "STAFFING_COVERAGE_INCOMPLETE"]
+        if any(item.get("control_additional", 0) > 0 for item in staffing_preview.values()) and values["control_monthly_gross"] is None:
+            labour_missing.append("control_monthly_gross")
+        if (values["control_headcount"] or 0) > 0 and values["control_monthly_gross"] is None:
+            labour_missing.append("control_monthly_gross")
+        if (values["technician_headcount"] or 0) > 0 and values["technician_monthly_gross"] is None:
+            labour_missing.append("technician_monthly_gross")
+        for acquisition, field in (("PURCHASE", "staffing_purchase"), ("RAAS", "staffing_raas")):
+            decision = values.get(field)
+            if decision is not None and decision.technician_mode == "HIRE" and staffing_preview.get(acquisition, {}).get("technicians_billable", 0) > 0 and values["technician_monthly_gross"] is None:
+                labour_missing.append("technician_monthly_gross")
+    else:
+        labour_missing = _missing(values, LABOUR_FIELDS) + missing_salaries + context_missing
     if request.process.scope != "CLEANING_AREA" and values["manual_units_per_shift"] is None:
         labour_missing.append("manual_units_per_shift")
     if len(role_refs) > 1 and values["primary_role_id"] not in role_refs:
@@ -307,6 +363,9 @@ def execute_partial_economics_v2(
     branch_inputs = BranchInputs()
     for key, value in values.items():
         setattr(branch_inputs, key, value)
+    if raw.get("schema_version") == INPUT_VERSION_V5:
+        branch_inputs.control_monthly_gross = values["control_monthly_gross"] or "0"
+        branch_inputs.technician_monthly_gross = values["technician_monthly_gross"] or "0"
     labour_projection = None
     if not labour_missing:
         try:
@@ -352,10 +411,13 @@ def execute_partial_economics_v2(
     # A complete input uses the established full engine and its six-scenario
     # bundle. This preserves all existing calculations and golden snapshots.
     complete = not issues and not raas_missing and not _missing(values, VISUAL_FIELDS)
-    if raw.get("schema_version") == INPUT_VERSION_V4:
+    if raw.get("schema_version") in {INPUT_VERSION_V4, INPUT_VERSION_V5}:
         complete = complete and visual_spec is not None
     if complete:
         full = {key: value for key, value in values.items() if key in EconomicsExplicitInputsV1.model_fields}
+        if raw.get("schema_version") == INPUT_VERSION_V5:
+            full["control_monthly_gross"] = branch_inputs.control_monthly_gross
+            full["technician_monthly_gross"] = branch_inputs.technician_monthly_gross
         full["schema_version"] = "economics-explicit-inputs-v1"
         if full_engine is None:
             full_engine = execute_economics_v2
@@ -383,7 +445,11 @@ def execute_partial_economics_v2(
         "input_provenance": values["field_sources"], "input_ranges": values["input_ranges"],
         "limitations": ["Частичный расчёт: отсутствующие показатели не заменены нулём.", "Сценарные допущения пользователя не являются подтверждением поставщика.", "C05 и закупочная готовность требуют отдельной проверки."],
     }
-    if raw.get("schema_version") == INPUT_VERSION_V4:
+    if raw.get("schema_version") == INPUT_VERSION_V5:
+        result["staffing_preview"] = staffing_preview
+        result["staffing_decisions"] = {field: values[field].model_dump(mode="json") if values.get(field) is not None else None
+                                        for field in ("staffing_purchase", "staffing_raas")}
+    if raw.get("schema_version") in {INPUT_VERSION_V4, INPUT_VERSION_V5}:
         result["visualization"] = {
             "status": "AVAILABLE" if visual_spec is not None else "NOT_CALCULATED",
             "required_fields": sorted(set(visual_missing)),

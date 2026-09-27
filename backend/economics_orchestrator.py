@@ -52,6 +52,7 @@ from calculation.labour import (
     ManualProductivityInputV1,
     ProcessLabourInputV1,
     SalarySourceBindingV1,
+    StaffingDecisionV1,
 )
 from calculation.ranking import (
     DATA_FIELDS,
@@ -137,6 +138,8 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     control_monthly_gross: DecimalString
     technician_headcount: Annotated[int, Field(ge=0)]
     technician_monthly_gross: DecimalString
+    staffing_purchase: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
+    staffing_raas: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
     organizer_price_currency_rub_confirmed: bool
     purchase_price_override_gross: DecimalString | None = None
     purchase_price_source: Annotated[str, Field(min_length=3, max_length=240)] | None = None
@@ -403,6 +406,7 @@ def _labour(
     capacity_response: CapacityAnalysisResponse | None = None,
     role_pool: RolePool | None = None,
     run_suffix: str = "",
+    acquisition: str = "PURCHASE",
 ) -> LabourResultV1:
     request = context.capacity_request
     response = capacity_response or context.capacity_response
@@ -445,6 +449,7 @@ def _labour(
             for item in pool.roles
             if isinstance(item.monthly_gross_salary, KnownQuantity)
         ],
+        staffing_decision=getattr(inputs, "staffing_raas" if acquisition == "RAAS" else "staffing_purchase", None),
     )
     result = analyze_role_labour(labour_request)
     if result.finance_status != "COMPLETE":
@@ -655,9 +660,9 @@ def _purchase_ledger(
         labour_trace_digest=labour.replay.trace_content_digest,
         labour_opex=LabourOpexProjectionV1(
             technicians_required=staff.technicians_required,
-            technician_annual_direct=None
-            if staff.technician_money is None
-            else staff.technician_money.annual_direct,
+            technicians_billable=staff.technicians_billable,
+            technician_annual_direct=staff.technician_contractor_annual_gross if staff.technician_contractor_annual_gross is not None else None
+            if staff.technician_money is None else staff.technician_money.annual_direct,
             additional_control_required=staff.control_additional,
             control_annual_direct=None
             if staff.control_money is None
@@ -749,6 +754,9 @@ def _allocation(
                 scenario_cf=_money(
                     str(
                         -Decimal(purchase.annual_ledgers[item.year - 1].operating_total)
+                        + (sum((Decimal(line.amount or "0") for line in purchase.annual_ledgers[item.year - 1].operating_lines
+                                if line.category in {"TECHNICIANS", "CONTROL_OPERATORS"}), Decimal(0))
+                           if getattr(inputs, "staffing_purchase", None) is not None else Decimal(0))
                     )
                 ),
             )
@@ -841,7 +849,9 @@ def _scenario_artifacts(
 ) -> ScenarioArtifacts:
     request = context.capacity_request
     position = _position(snapshot, request)
-    labour = _labour(context, inputs, uncertainty, role_pool=role_pool)
+    branch_suffix = f".{acquisition.lower()}" if getattr(inputs, "staffing_purchase", None) is not None else ""
+    labour = _labour(context, inputs, uncertainty, role_pool=role_pool,
+                     acquisition=acquisition, run_suffix=branch_suffix)
     purchase_procurement = _purchase_report(
         request,
         inputs,
@@ -849,10 +859,11 @@ def _scenario_artifacts(
         primary_price_override=primary_price_override,
     )
     purchase = _purchase_ledger(
-        context, inputs, position, purchase_procurement, labour, uncertainty
+        context, inputs, position, purchase_procurement, labour, uncertainty,
+        run_suffix=branch_suffix,
     )
     comparator_request, purchase_financial = _purchase_financial(
-        context, inputs, purchase, labour, uncertainty
+        context, inputs, purchase, labour, uncertainty, run_suffix=branch_suffix,
     )
     if acquisition == "PURCHASE":
         procurement = purchase_procurement

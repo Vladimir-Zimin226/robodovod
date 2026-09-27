@@ -328,7 +328,7 @@ def _validate_labour_conservation(labour: LabourResultV1) -> None:
             raise ValueError(f"C14 released/remaining role pool is not conserved for {role.role_id}")
     if sum(role.released for role in labour.roles) != labour.total_released:
         raise ValueError("C14 total released people mismatch")
-    if labour.total_transferred != labour.operating_staff.control_transferred:
+    if labour.total_transferred != labour.operating_staff.control_transferred + (labour.operating_staff.technicians_transferred or 0):
         raise ValueError("C14 control transfer must be object-scoped exactly once")
 
 
@@ -364,12 +364,32 @@ def _annual_object_fot(labour: LabourResultV1, year: int, uncertainty: str,
         scenario += (Decimal(remaining) * direct + Decimal(role.headcount) * overhead) * factor
     ramp = _registry(registry, f"scenario.{uncertainty.lower()}.ramp.year-{year}") if year <= 5 else Decimal(1)
     staff = labour.operating_staff
-    if staff.technicians_required:
+    if staff.existing_control_headcount:
+        assert staff.control_money is not None
+        existing = Decimal(staff.existing_control_headcount) * (
+            _d(staff.control_money.annual_direct) + _d(staff.control_money.annual_fixed_overhead)) * factor
+        base += existing
+        scenario += existing
+    if staff.existing_technician_headcount:
         assert staff.technician_money is not None
-        scenario += Decimal(staff.technicians_required) * _d(staff.technician_money.annual_direct) * ramp * factor
+        existing = Decimal(staff.existing_technician_headcount) * (
+            _d(staff.technician_money.annual_direct) + _d(staff.technician_money.annual_fixed_overhead)) * factor
+        base += existing
+        scenario += existing
+    technician_count = staff.technicians_billable if staff.technicians_billable is not None else staff.technicians_required
+    if technician_count:
+        if staff.technician_contractor_annual_gross is not None:
+            scenario += Decimal(technician_count) * _d(staff.technician_contractor_annual_gross) * ramp * factor
+        else:
+            assert staff.technician_money is not None
+            scenario += Decimal(technician_count) * _d(staff.technician_money.annual_direct) * ramp * factor
     if staff.control_additional:
         assert staff.control_money is not None
         scenario += Decimal(staff.control_additional) * _d(staff.control_money.annual_direct) * ramp * factor
+    if staff.control_transfer_monthly_supplement_gross is not None:
+        scenario += Decimal(staff.control_transferred) * _d(staff.control_transfer_monthly_supplement_gross) * 12 * ramp * factor
+    if staff.technician_transfer_monthly_supplement_gross is not None:
+        scenario += Decimal(staff.technicians_transferred or 0) * _d(staff.technician_transfer_monthly_supplement_gross) * 12 * ramp * factor
     return base, scenario
 
 

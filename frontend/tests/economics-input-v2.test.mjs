@@ -47,7 +47,7 @@ test('partial request distinguishes unknown, confirmed zero and assumptions', ()
       sources: { shared_site_capital_gross: 'ASSUMPTION' } },
     capacityRequest, project: { id: 'project.1' }, scenario: { id: 'scenario.1' },
   });
-  assert.equal(result.input.schema_version, 'economics-explicit-inputs-v4');
+  assert.equal(result.input.schema_version, 'economics-explicit-inputs-v5');
   assert.equal(result.input.annual_service_per_robot_gross, null);
   assert.equal(result.input.raas_monthly_per_robot_gross, null);
   assert.equal(result.input.shared_site_capital_gross, '0');
@@ -56,6 +56,19 @@ test('partial request distinguishes unknown, confirmed zero and assumptions', ()
   assert.equal(result.input.field_sources.raas_monthly_per_robot_gross, undefined);
   assert.deepEqual(result.input.assumption_evidence, {});
   assert.equal('fte_cost_rub' in result.input, false);
+});
+
+test('staffing choices and qualification are preserved without an invented price', () => {
+  const result = buildPartialEconomicsRunRequest({
+    values: { ...values, controlMode: 'TRANSFER', controlTransferSupplement: '0',
+      technicianPurchaseMode: 'TRANSFER', technicianRaasMode: 'VENDOR',
+      qualifiedTechTransfer: true, techTransferSupplement: '0', technicianMonthlyGross: '' },
+    capacityRequest, project: { id: 'project.1' }, scenario: { id: 'scenario.1' },
+  });
+  assert.equal(result.input.staffing_purchase.technician_mode, 'TRANSFER');
+  assert.equal(result.input.staffing_purchase.technician_qualification_confirmed, true);
+  assert.equal(result.input.staffing_raas.technician_mode, 'VENDOR');
+  assert.equal(result.input.technician_monthly_gross, null);
 });
 
 test('partial request preserves a user range for server-side no-midpoint handling', () => {

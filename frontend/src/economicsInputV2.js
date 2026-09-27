@@ -79,6 +79,17 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
     throw new Error('Откройте сохранённый расчёт мощности C11 и сценарий проекта.');
   }
   const optional = (value) => String(value ?? '').trim() || null;
+  const staffing = (technicianMode) => values.controlMode && technicianMode ? {
+    control_mode: values.controlMode,
+    technician_mode: technicianMode,
+    technician_qualification_confirmed: values.qualifiedTechTransfer === true,
+    ...(values.controlMode === 'TRANSFER' && optional(values.controlTransferSupplement) !== null
+      ? { control_transfer_monthly_supplement_gross: optional(values.controlTransferSupplement) } : {}),
+    ...(technicianMode === 'TRANSFER' && optional(values.techTransferSupplement) !== null
+      ? { technician_transfer_monthly_supplement_gross: optional(values.techTransferSupplement) } : {}),
+    ...(technicianMode === 'CONTRACTOR' ? { technician_contractor_annual_gross: optional(values.technicianContractorAnnual) } : {}),
+    source: 'USER', provenance_ref: 'input.economics.staffing-decision',
+  } : null;
   const fields = {
     evaluation_date: optional(values.evaluationDate), horizon_years: optional(values.horizonYears),
     discount_rate: optional(values.discountRate),
@@ -116,7 +127,8 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
   return {
     scenario_id: scenario.id, capacity_run_id: values.capacityRunId,
     ...(sourceRunId ? { source_run_id: sourceRunId } : {}),
-    input: { schema_version: 'economics-explicit-inputs-v4', input_revision: capacityRequest.input_revision,
-      ...fields, field_sources, assumption_evidence },
+    input: { schema_version: 'economics-explicit-inputs-v5', input_revision: capacityRequest.input_revision,
+      ...fields, staffing_purchase: staffing(values.technicianPurchaseMode),
+      staffing_raas: staffing(values.technicianRaasMode), field_sources, assumption_evidence },
   };
 }
