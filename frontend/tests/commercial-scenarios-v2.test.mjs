@@ -62,6 +62,23 @@ test('financial display consumes server metrics without deriving them from cashf
   assert.equal(view.financial.annualLedgers[0].delta, '0.00');
 });
 
+test('project C18 NPV and cashflows take precedence over direct C16 projection', () => {
+  const raw = clone();
+  const purchase = raw.scenarios.find((item) => item.acquisition === 'PURCHASE' && item.uncertainty === 'BASE');
+  purchase.financial.npv_project.value = '476900685.67';
+  purchase.report_facts = {
+    project_npv: { status: 'COMPLETE', value: '150788396.45', unit: 'RUB' },
+    annual_cashflows: purchase.financial.annual_ledgers.map((ledger) => ({
+      year: ledger.year, baseline: '-55800000.00', scenario: '-39954404.71', effect: '15845595.29',
+    })),
+  };
+  const view = getCommercialScenariosModel(raw).scenarios.find((item) => item.key === 'PURCHASE:BASE');
+  assert.equal(view.financial.npvProject, '150 788 396,45 ₽');
+  assert.equal(view.financial.directProcessNpv, '476 900 685,67 ₽');
+  assert.equal(view.financial.npvScope, 'PROJECT_C18');
+  assert.equal(view.financial.annualLedgers[0].delta, '15845595.29');
+});
+
 test('golden displayed money preserves exact server decimals', () => {
   assert.equal(formatServerMoney('3000000.00'), '3 000 000,00 ₽');
   assert.equal(formatServerMoney('-1500000.00'), '-1 500 000,00 ₽');

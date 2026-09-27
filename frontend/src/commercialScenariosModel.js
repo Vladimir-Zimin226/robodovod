@@ -201,17 +201,24 @@ function procurementView(report) {
   };
 }
 
-function financialView(result) {
+function financialView(result, reportFacts) {
+  const projectNpv = reportFacts?.project_npv?.status === 'COMPLETE'
+    ? reportFacts.project_npv : null;
+  const projectFlows = Array.isArray(reportFacts?.annual_cashflows)
+    && reportFacts.annual_cashflows.length === result.annual_ledgers.length
+    ? reportFacts.annual_cashflows : null;
   return {
     status: result.status,
-    npvProject: formatServerMetric(result.npv_project),
+    npvProject: formatServerMetric(projectNpv || result.npv_project),
+    npvScope: projectNpv ? 'PROJECT_C18' : 'DIRECT_PROCESS_C16',
+    directProcessNpv: formatServerMetric(result.npv_project),
     simplePayback: formatServerMetric(result.simple_payback),
     discountedPayback: formatServerMetric(result.discounted_payback),
-    annualLedgers: result.annual_ledgers.map((ledger) => ({
+    annualLedgers: result.annual_ledgers.map((ledger, index) => ({
       year: ledger.year,
-      baseline: ledger.primary_cf_base,
-      scenario: ledger.primary_cf_scenario,
-      delta: ledger.differential_cf,
+      baseline: projectFlows ? projectFlows[index].baseline : ledger.primary_cf_base,
+      scenario: projectFlows ? projectFlows[index].scenario : ledger.primary_cf_scenario,
+      delta: projectFlows ? projectFlows[index].effect : ledger.differential_cf,
       status: ledger.status,
       sourceRefs: ledger.source_refs || [],
     })),
@@ -234,7 +241,7 @@ export function getCommercialScenariosModel(bundle, expectedRevision = null) {
       acquisition: scenario.acquisition,
       uncertainty: scenario.uncertainty,
       procurement: procurementView(scenario.procurement),
-      financial: financialView(scenario.financial),
+      financial: financialView(scenario.financial, scenario.report_facts),
       recommendation: { ...scenario.recommendation },
       allocation: scenario.allocation,
       expenses: scenario.expenses.map((line) => ({ ...line })),

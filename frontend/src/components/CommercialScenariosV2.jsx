@@ -123,9 +123,10 @@ function ScenarioDetails({ scenario }) {
           {scenario.procurement.blockers.length > 0 && <p>Требуется уточнить условия поставки.</p>}
         </StatusCard>
         <StatusCard title="Денежный результат" status={scenario.financial.status}>
-          <strong>{scenario.financial.npvProject}</strong><span>Чистая приведённая стоимость проекта</span>
-          <strong>{scenario.financial.simplePayback}</strong><span>Простой срок окупаемости</span>
-          <strong>{scenario.financial.discountedPayback}</strong><span>Срок окупаемости с дисконтированием</span>
+          <strong>{scenario.financial.npvProject}</strong><span>{scenario.financial.npvScope === 'PROJECT_C18' ? 'NPV проекта с общими затратами (C18)' : 'NPV прямого процесса (C16); NPV проекта в этой версии не сохранён'}</span>
+          {scenario.financial.npvScope === 'PROJECT_C18' && <><strong>{scenario.financial.directProcessNpv}</strong><span>Промежуточный NPV прямого процесса (C16)</span></>}
+          <strong>{scenario.financial.simplePayback}</strong><span>Простой срок окупаемости прямого процесса (C16)</span>
+          <strong>{scenario.financial.discountedPayback}</strong><span>Срок окупаемости прямого процесса с дисконтированием (C16)</span>
         </StatusCard>
         <StatusCard title="Вывод по сценарию" status={scenario.recommendation.status}>
           <p>{scenario.recommendation.candidate_id ? 'Расчётный вариант выбран' : 'Вариант не выбран'}</p>
@@ -134,7 +135,7 @@ function ScenarioDetails({ scenario }) {
 
       <div className="commercial-ledger-grid">
         <article>
-          <h3>Денежные потоки по годам</h3>
+          <h3>Денежные потоки по годам ({scenario.financial.npvScope === 'PROJECT_C18' ? 'проект C18' : 'прямой процесс C16'})</h3>
           <div className="commercial-table-wrap"><table><thead><tr><th>Год</th><th>Без роботов</th><th>С роботом</th><th>Разница</th><th>Источник</th></tr></thead><tbody>
             {scenario.financial.annualLedgers.map((row) => <tr key={row.year}><td>{row.year}</td><td>{formatServerMoney(row.baseline)}</td><td>{formatServerMoney(row.scenario)}</td><td>{formatServerMoney(row.delta)}</td><td><details><summary>Проверить</summary>{row.sourceRefs.join(', ') || 'ход денежного расчёта'}</details></td></tr>)}
           </tbody></table></div>
