@@ -23,7 +23,7 @@ export default function SimulationChainSetup({ baseRequest, onStart }) {
     return () => controller.abort();
   }, [baseRequest?.project_id]);
 
-  if (!envelope || envelope.chain?.version < 1 || baseRequest?.scenario_spec?.profile?.calculation_profile !== 'TRANSPORT_CYCLE_V1') return null;
+  if (!envelope?.chain || envelope.chain.version < 1 || baseRequest?.scenario_spec?.profile?.calculation_profile !== 'TRANSPORT_CYCLE_V1') return null;
   const start = async () => {
     setError(''); setBusy(true);
     try {

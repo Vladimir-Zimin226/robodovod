@@ -60,6 +60,7 @@ export default function App() {
   const [projectChoices, setProjectChoices] = useState([]);
   const [projectStatus, setProjectStatus] = useState('loading');
   const [activeRun, setActiveRun] = useState(null);
+  const [technicalExportRun, setTechnicalExportRun] = useState(null);
   const [editorRequestedRunId, setEditorRequestedRunId] = useState(null);
   const [, setSaveState] = useState('');
   const intakeV2Snapshot = useRef(null);
@@ -396,9 +397,8 @@ export default function App() {
               <Simulation2DReport key={result.request?.request_id || result.run_id} request={result.request} initialReport={result.report} scenarios={result.scenarios} />
             ) : isCapacityAnalysisResponse(result) ? (
               <>
+                <TechnicalVisualization autoStart onReady={setTechnicalExportRun} key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
-                <CandidateComparisonPanel key={activeRun?.id || result.run_id} project={activeProject} capacityRunId={activeRun?.id || result.run_id} />
-                <TechnicalVisualization key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <EconomicsInputsV2
                   key={activeRun?.id || result.run_id}
                   capacityRequest={userInput}
@@ -420,6 +420,7 @@ export default function App() {
               }} />
             ) : isCommercialScenariosBundle(result) ? (
               <>
+                <p className="mx-auto max-w-6xl">Глубина расчёта: {({ BASIC: 'Базовый', ADVANCED: 'Углублённый', FULL: 'Полный' })[activeRun?.input_snapshot?.economics?.calculation_depth] || 'Не указана в историческом расчёте'}</p>
                 <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} projectName={activeProject?.name} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={() => {
                   if (activeRun?.id) { setEditorRequestedRunId(activeRun.id); requestAnimationFrame(() => document.getElementById('edit-economics-run')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }
                   else openCalculation();
@@ -436,7 +437,12 @@ export default function App() {
                 {activeRun.economics_runtime?.migration_notice && (
                   <div className="save-run-bar" role="status">{humanizePresentation(activeRun.economics_runtime.migration_notice)}</div>
                 )}
-                <EvidenceExportPanel projectId={activeProject.id} runId={activeRun.id} />
+                <details className="comparison-disclosure mx-auto my-6 max-w-6xl rounded-xl border p-4">
+                  <summary className="cursor-pointer font-semibold">Сравнить модели роботов</summary>
+                  <p className="text-sm my-2">Сравнение технических характеристик на одинаковых входах. Денежное сравнение требует отдельных сохранённых расчётов моделей.</p>
+                  <CandidateComparisonPanel key={activeRun.id} project={activeProject} capacityRunId={activeRun.input_snapshot?.capacity_run_id || activeRun.id} />
+                </details>
+                <EvidenceExportPanel key={isCapacityAnalysisResponse(result) && technicalExportRun?.input_snapshot?.capacity_run_id === activeRun.id ? technicalExportRun.id : activeRun.id} projectId={activeProject.id} runId={isCapacityAnalysisResponse(result) && technicalExportRun?.input_snapshot?.capacity_run_id === activeRun.id ? technicalExportRun.id : activeRun.id} />
               </>
             )}
           </>

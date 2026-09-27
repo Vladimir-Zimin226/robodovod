@@ -30,6 +30,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, projectNam
 
   return (
     <main className="commercial-screen" aria-label="Коммерческие сценарии">
+      {simulationRequest && <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} analysisRunId={bundle.run_id} />}
       <header className="commercial-header">
         <div>
           <span>ЭКОНОМИКА РОБОТИЗАЦИИ</span>
@@ -96,11 +97,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, projectNam
             <ul>{session.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
           </section>
 
-          {simulationRequest && <div className="commercial-visualization">
-            <p>Покупка и аренда опираются на один парк и график. Варианты финансовых условий не создают отдельные симуляции. Выбор симуляции ниже меняет только схему работы и её отчёт; денежная таблица остаётся прежней.</p>
-            <p>2D и 3D используют сохранённый технический сценарий. Для симуляции не заданы норматив времени и мощности погрузочных ресурсов; геометрия условная и не является проектом площадки. Отчёт симуляции сохраняется отдельно и связан с этим расчётом.</p>
-            <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} analysisRunId={bundle.run_id} />
-          </div>}
+
         </>
       )}
     </main>

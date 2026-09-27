@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_URL || '';
+const API = import.meta.env?.VITE_API_URL || '';
 
 function errorMessage(payload, fallback) {
   if (typeof payload?.detail === 'string') return payload.detail;

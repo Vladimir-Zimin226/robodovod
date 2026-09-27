@@ -209,7 +209,7 @@ button:disabled { cursor: not-allowed; }
 .brand-block { padding: 0 8px 26px; }
 .brand-identity { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .brand-mark { width: 34px; height: 34px; flex: none; }
-.brand-word { font-size: 18px; line-height: 1; font-weight: 800; letter-spacing: -.04em; white-space: nowrap; }
+.brand-word { font-size: 24px; line-height: 1; font-weight: 800; letter-spacing: -.04em; white-space: nowrap; }
 .brand-word span { color: var(--lime); }
 .brand-block p { margin: 12px 0 0; color: var(--text-secondary); font-size: 10px; line-height: 1.5; text-transform: uppercase; letter-spacing: .045em; }
 .app-nav { display: grid; gap: 5px; }
@@ -484,7 +484,7 @@ button:disabled { cursor: not-allowed; }
 }
 @media (max-width: 1199px) {
   .robodovod-app { display: block; }.app-sidebar { position: fixed; left: 0; transform: translateX(-102%); width: 216px; overflow-y: auto; transition: transform .22s ease; }.app-sidebar.is-open { transform: translateX(0); }.app-sidebar .brand-block, .app-sidebar .app-nav, .app-sidebar .nav-secondary { flex-shrink: 0; }.mobile-menu-button { position: fixed; z-index: 50; left: 12px; top: 16px; width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--border-medium); border-radius: 8px; background: var(--bg-panel); color: var(--text-primary); }.sidebar-scrim { position: fixed; z-index: 20; inset: 0; display: block; border: 0; background: rgba(0,0,0,.62); }
-  .app-sidebar.is-open .brand-block { padding-left: 52px; }.app-sidebar.is-open .brand-mark { width: 24px; height: 24px; }.app-sidebar.is-open .brand-word { font-size: 13px; }
+  .app-sidebar.is-open .brand-block { padding-left: 52px; }.app-sidebar.is-open .brand-mark { width: 24px; height: 24px; }.app-sidebar.is-open .brand-word { font-size: 17px; }
   .command-header { grid-template-columns: minmax(0,1fr) auto 40px; padding-left: 66px; }.command-examples { left: 66px; }
   .dashboard-main-grid { grid-template-columns: 1fr; }.insights-column { grid-template-columns: .8fr 1.2fr; grid-template-rows: none; }.analytics-grid { grid-template-columns: 1fr 1fr; }.impact-card { grid-column: auto; }
   .catalog-grid,.catalog-skeleton { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -611,3 +611,11 @@ button:disabled { cursor: not-allowed; }
 .catalog-advanced-grid input[type="checkbox"] { flex: none; width: 18px; height: 18px; padding: 0; accent-color: var(--lime); }
 @media (max-width: 900px) { .catalog-filters,.catalog-advanced-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 600px) { .catalog-filters,.catalog-advanced-grid { grid-template-columns: 1fr; } }
+
+.comparison-disclosure { width: min(1152px, calc(100% - 48px)); }
+.comparison-disclosure > .panel { max-width: 100%; margin: 1rem 0; }
+.economics-inputs-v2 [aria-label="Полный расчёт типового объекта"] { border-color: var(--lime); background: #16352a; }
+.economics-inputs-v2 [aria-label="Полный расчёт типового объекта"] button { background: var(--lime); color: #10200b; }
+.economics-inputs-v2 [aria-label="Глубина расчёта экономики"] button[aria-pressed="true"] { border-color: var(--lime); background: #16352a; color: var(--text-primary); }
+.economics-inputs-v2 > details { border-color: var(--border-subtle); background: var(--bg-panel-2); }
+.simulation-bindings:not([open]) > :not(summary) { display: none; }

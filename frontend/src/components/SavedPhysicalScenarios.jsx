@@ -23,14 +23,14 @@ export default function SavedPhysicalScenarios({ request, analysisRunId, childre
   }, [request.project_id, request.tenant_id]);
   const active = options.find((item) => item.id === selected);
   return <>
-    <div className="simulation-physical-selector panel">
+    <details className="simulation-physical-selector panel"><summary>Открыть другую сохранённую симуляцию</summary>
       <label>Физический сценарий проекта<select aria-label="Физический сценарий проекта" value={selected} onChange={(event) => setSelected(event.target.value)}>
         {!options.some((item) => item.id === analysisRunId) && <option value={analysisRunId}>Текущий сохранённый расчёт</option>}
         {options.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
       </select></label>
       <p>Выбор открывает техническую основу сохранённой версии. Изменение спроса, маршрута, парка или графика требует нового расчёта.</p>
       {error && <p role="alert">{error}</p>}
-    </div>
+    </details>
     {children(active?.request || request, active?.id || analysisRunId)}
   </>;
 }

@@ -15,6 +15,7 @@ import { humanizePresentation, statusLabel } from '../presentation';
 import { formatModelClock } from '../simulationDefaults';
 import SavedPhysicalScenarios from './SavedPhysicalScenarios';
 import { physicalInputs } from '../physicalScenario';
+import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
 import { downloadSimulationSvg, visualExportMetadata } from '../simulationSvgExport';
 
 const STATUS_LABELS = {
@@ -132,7 +133,8 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
       .then((payload) => {
         const items = (payload.items || []).filter((item) => item.request?.scenario_spec?.revision_id === request.scenario_spec.revision_id)
           .map((item) => ({ id: item.request.request_id, label: item.request.process_chain?.stages?.length
-            ? `Цепочка · ${item.request.process_chain.stages.map((stage) => stage.stage).join(', ')}` : 'Паллетная перевозка',
+            ? `Цепочка · ${item.request.process_chain.stages.map((stage) => stage.stage).join(', ')}`
+            : PROCESS_DEFINITIONS.find((definition) => definition.code === item.request.scenario_spec.profile.process_code)?.label || 'Симуляция процесса',
           request: item.request, report: item.report }));
         setSavedOptions(items);
         if (items.length) { const latest = items.at(-1); setSelected(latest.id); setReport(latest.report); }
@@ -249,7 +251,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
 
       {presentation && !presentation.failure && (
         <>
-          <div className="simulation-bindings">
+          <details className="simulation-bindings"><summary>Технические данные и скачивание кадров</summary>
             <strong>Исходный расчёт парка C11: {presentation.bundle.spec.analysis.capacity_run_id}</strong>
             <span>Физический сценарий: {active.label} · расчёт {analysisRunId || 'демо'}</span>
             {physicalInputs(presentation.bundle.spec).map((line, index) => <span key={index}>{line}</span>)}
@@ -267,7 +269,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
               <span>digest <code>{presentation.frame.reportDigest.slice(0, 18)}…</code></span>
               <span>seed <code>{presentation.frame.seed}</code></span>
             </details>
-          </div>
+          </details>
 
           <div className="simulation-view-tabs" role="tablist" aria-label="Представление симуляции">
             {['2D', '3D'].map((mode) => <button key={mode} type="button" role="tab" aria-selected={viewMode === mode} onClick={() => setViewMode(mode)}>{mode}</button>)}
@@ -300,7 +302,8 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
             {metric('Парк', number(report.workload.fleet_units, ' роботов'))}
             {metric('Спрос', number(report.capacity.required_per_hour, ` ${report.capacity.unit}`))}
             {metric('Предел расчётного парка', number(report.capacity.expected_effective_per_hour, ` ${report.capacity.unit}`))}
-            {metric('Выполнено до конца окна', number(report.capacity.observed_per_hour, ` ${report.capacity.unit}`), report.capacity.verdict)}
+            {metric('Выполнено до конца окна', number(report.capacity.observed_per_hour, ` ${report.capacity.unit}`),
+              ({ CONSISTENT: 'Поток согласуется с моделью', DEVIATION: 'Есть отклонение', OVERLOADED: 'Парк перегружен', INPUT_MISMATCH: 'Нужно проверить входы' })[report.capacity.verdict] || statusLabel(report.capacity.verdict))}
             {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Не выполнено к концу окна', number(report.capacity.demand_shortfall_per_hour, ` ${report.capacity.unit}`), `завершено после окна ${report.queue.completed_with_grace}/${report.queue.measurement_jobs} заданий`)}
             {report.capacity.denominator === 'REQUIRED_DEMAND' && metric('Запас до предела парка', number(report.capacity.capacity_headroom_per_hour, ` ${report.capacity.unit}`), statusLabel(report.capacity.ceiling_verdict))}
             {metric('Максимальная очередь', number(report.queue.maximum_jobs, ' заданий'), `среднее ожидание ${number(report.queue.mean_wait_seconds, ' с')}`)}
@@ -308,7 +311,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
             {metric('Занятость парка', number(report.utilization.busy_fraction === null ? null : Number(report.utilization.busy_fraction) * 100, '%'), `полезная работа ${number(report.utilization.productive_fraction === null ? null : Number(report.utilization.productive_fraction) * 100, '%')}`)}
           </div>
 
-          {report.stages && <div className="simulation-kpis" aria-label="Стадии складской цепочки">{report.stages.map((stage) =>
+          {report.stages && presentation.bundle.spec.profile.process_code.startsWith('warehouse_') && <div className="simulation-kpis" aria-label="Стадии складской цепочки">{report.stages.map((stage) =>
             metric(({ PICKING: 'Отбор', BUFFER: 'Буфер', FEED_TO_PACK: 'Подача к упаковке', PACKAGING: 'Упаковка' })[stage.stage],
               stage.status === 'MODELED' ? number(stage.maximum_queue_jobs, ' в очереди') : 'Внешняя граница',
               stage.status === 'MODELED' ? `Занятость ${number(Number(stage.utilization_fraction) * 100, '%')} · ${stage.resource_kind} · ${stage.resource_id}` : 'Нет отдельной скорости, ресурса или подтверждённой связи', stage.stage)
