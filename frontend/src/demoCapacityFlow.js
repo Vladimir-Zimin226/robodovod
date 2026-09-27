@@ -40,7 +40,7 @@ const positive = (value) => /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(String(value)) && 
 
 export function demoCandidates(items, scope) {
   const profile = scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
-    ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(scope) ? 'TRANSPORT_CYCLE_V1' : null;
+    scope === 'DELIVERY_CYCLE' ? 'DELIVERY_CYCLE_V1' : scope === 'TRANSPORT_CYCLE' ? 'TRANSPORT_CYCLE_V1' : null;
   if (!profile) return [];
   return items.filter((item) => item.calculation_ready &&
     item.calculation_profile === profile && item.maturity_status !== 'RND' &&
@@ -49,7 +49,7 @@ export function demoCandidates(items, scope) {
 
 export function brainCandidates(items, scope) {
   const profile = scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
-    ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(scope) ? 'TRANSPORT_CYCLE_V1' : null;
+    scope === 'DELIVERY_CYCLE' ? 'DELIVERY_CYCLE_V1' : scope === 'TRANSPORT_CYCLE' ? 'TRANSPORT_CYCLE_V1' : null;
   if (!profile) return [];
   const seen = new Set();
   return items.filter((item) => {
@@ -70,7 +70,7 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
     throw new Error('Выберите совместимую расчётную модель из активного каталога.');
   }
   const expectedProfile = process.scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
-    ['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) ? 'TRANSPORT_CYCLE_V1' : null;
+    process.scope === 'DELIVERY_CYCLE' ? 'DELIVERY_CYCLE_V1' : process.scope === 'TRANSPORT_CYCLE' ? 'TRANSPORT_CYCLE_V1' : null;
   if (!expectedProfile || position.calculation_profile !== expectedProfile) {
     throw new Error('Модель не соответствует физическому профилю процесса.');
   }

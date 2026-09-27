@@ -3,7 +3,7 @@ import {
   addZone,
   confirmFacilityArea,
   createDraft,
-  createWarehouseDemoDraft,
+  createTypicalObjectDraft,
   createWarehouseFileDraft,
   createNormalizationClient,
   confirmRoleAssumption,
@@ -93,7 +93,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   }, []);
 
 
-  const issues = useMemo(() => validateDraft(draft), [draft]);
+  const issues = useMemo(() => validateDraft(draft, { requireFacilityAreas: true }), [draft]);
   const fieldIssue = (ref) => issues.find((item) => item.ref === ref)
     || (result?.response?.input_revision === draft.inputRevision && result.response.errors?.find((item) => (item.field_refs || [item.field]).some((field) => field?.includes(ref))));
   const blockers = issues.filter((item) => item.severity === 'BLOCKER');
@@ -230,14 +230,21 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <div><h2 className="font-semibold">Объект, процессы и роли</h2></div>
         </div>
         <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Один расчёт относится к одному процессу в одной зоне; для других процессов создайте отдельные результаты. Единицы и производные величины проверяет сервер.</p>
-        {objectType === 'retail' && <button type="button" className="mt-2 text-xs underline text-blue-700" onClick={() => {
-          setDraft(createWarehouseDemoDraft());
-          setSelectedZoneId(`zone.${draft.objectId}.main`);
-          setExchangeSeconds('90');
+        <button type="button" className="mt-2 secondary-action" onClick={() => {
+          const typical = createTypicalObjectDraft(objectType);
+          setDraft(typical);
+          setSelectedZoneId(typical.zones[0].zoneId);
+          setExpanded(typical.processes.find((item) => item.active)?.processId);
+          setExchangeSeconds(objectType === 'retail' ? '90' : objectType === 'clinic' ? '180' : '');
+          setCleaningFrequency('1');
+          setProcessId(''); setPositionId(''); invalidateComparison();
           setAcknowledged(false);
           setResult(null);
           setError('');
-        }}>Загрузить типовой склад организаторов</button>}
+        }}>Загрузить типовой {objectType === 'retail' ? 'склад' : objectType === 'airport' ? 'аэропорт' : 'объект клиники'} организаторов</button>
+        {objectType !== 'retail' && <p className="text-xs text-amber-800 mt-2">{objectType === 'airport'
+          ? 'Из датасета: терминал 85 000 м², уборка 51 000 м², зарплата 65 000 ₽ gross. 30 уборщиков, 3×8 ч и одна уборка в сутки — допущения.'
+          : 'Из датасета: 45 000 м², 1 950 порций/сутки, плечо 180 м, зарплата 52 000 ₽ gross. Активная зона 18 000 м², 6 сотрудников только доставки, 3×8 ч, 65 порций за рейс и обмен 180 с — допущения. Приготовление пищи, лифты и санитарные режимы отдельно не моделируются.'} Подтвердите отмеченные значения перед расчётом.</p>}
         {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад предлагает 1 паллету за рейс, плечо 120 м и обмен 90 сек. как отдельные допущения. Подтвердите единицы за рейс в процессе и зарплату gross в роли.</p>}
       </header>
 
@@ -247,7 +254,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[['totalArea', 'Общая площадь объекта'], ['activeArea', 'Активная площадь объекта']].map(([key, label]) =>
             <div key={key} className="rounded border p-2">
-              <NumberField id={`intake-facility.${key}`} label={`${label}, м²`} value={draft.facility?.[key] || ''}
+              <NumberField required id={`intake-facility.${key}`} label={`${label}, м² · обязательно`} value={draft.facility?.[key] || ''}
                 issue={fieldIssue(`facility.${key}`)} onChange={(value) => setDraft((current) => updateFacility(current, { [key]: value }))} />
               <p className="text-xs text-slate-600 mt-1">Источник: {sourceLabel(draft.facility?.fieldSources?.[key])}. {draft.facility?.[key] ? 'Единица: м².' : 'Нет данных.'}</p>
               {draft.facility?.[key] && draft.facility?.fieldSources?.[key] !== 'USER' &&
@@ -396,7 +403,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
 }
 
 function sourceLabel(source) {
-  return { USER: 'ввод', FILE: 'файл', ASSUMPTION: 'допущение', LLM: 'предложение помощника' }[source] || 'не указан';
+  return { USER: 'ввод', FILE: 'файл', ORGANIZER: 'типовой датасет организаторов', ASSUMPTION: 'допущение', LLM: 'предложение помощника' }[source] || 'не указан';
 }
 
 function DemoProfile({ profile }) {
@@ -411,8 +418,8 @@ function DemoProfile({ profile }) {
   </details>;
 }
 
-function NumberField({ id, label, value, onChange, issue, hint }) {
-  return <label className="text-[11px] text-slate-600">{label}<input id={id} type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={Boolean(issue)} className="w-full border rounded px-2 py-1 text-sm" />
+function NumberField({ id, label, value, onChange, issue, hint, required = false }) {
+  return <label className="text-[11px] text-slate-600">{label}<input id={id} required={required} aria-required={required} type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={Boolean(issue)} className={`w-full border rounded px-2 py-1 text-sm ${issue ? 'border-red-500 bg-red-50' : ''}`} />
     {hint && <small className="block">{hint}</small>}{issue && <small className="block text-red-700" role="alert">{issue.message || issue.code}: укажите допустимое значение или проверьте единицу.</small>}</label>;
 }
 

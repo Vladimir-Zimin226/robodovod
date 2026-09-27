@@ -116,6 +116,9 @@ export function removeZone(draft, zoneId) {
 
 export function createWarehouseDemoDraft() {
   let draft = createDraft('retail');
+  draft = updateFacility(draft, { totalArea: '20000', activeArea: '10000',
+    fieldSources: { totalArea: 'ORGANIZER', activeArea: 'ORGANIZER' },
+    fieldConfirmations: { totalArea: true, activeArea: true } });
   draft = updateProcess(draft, 'warehouse_receiving_shipping', {
     active: true, demand: '2000', shifts: '2', hours: '11', days: '365',
     distance: '120', batch: '1',
@@ -184,6 +187,31 @@ export function updateProcess(draft, processKey, patch) {
         fieldConfirmations: { ...fieldConfirmations, ...(patch.fieldConfirmations || {}) } };
     }),
   });
+}
+
+// Organizer values: organizer-catalog-v4/object_profiles.json (XLSX sheets).
+// Process staffing allocation, batch and schedules below are scenario assumptions.
+export function createTypicalObjectDraft(objectType) {
+  if (objectType === 'retail') return createWarehouseDemoDraft();
+  let draft = createDraft(objectType);
+  const airport = objectType === 'airport';
+  const code = airport ? 'airport_terminal_cleaning' : 'clinic_food';
+  draft = updateFacility(draft, { name: airport ? 'Типовой аэропорт' : 'Типовая клиника',
+    totalArea: airport ? '85000' : '45000', activeArea: airport ? '51000' : '18000',
+    fieldSources: { totalArea: 'ORGANIZER', activeArea: airport ? 'ORGANIZER' : 'ASSUMPTION' },
+    fieldConfirmations: { totalArea: true, activeArea: airport } });
+  draft = updateProcess(draft, code, { active: true,
+    demand: airport ? '51000' : '1950', shifts: '3', hours: '8', days: '365',
+    distance: airport ? '' : '180', batch: airport ? '' : '65',
+    exchangeSeconds: airport ? '' : '180', cleaningFrequency: '1',
+    fieldSources: { demand: 'ORGANIZER', distance: 'ORGANIZER', shifts: 'ASSUMPTION',
+      hours: 'ASSUMPTION', days: 'ASSUMPTION', batch: 'ASSUMPTION' },
+    fieldConfirmations: { batch: false } });
+  const role = airport ? 'terminal_cleaner' : 'catering_worker';
+  draft = setRoleActive(draft, code, role, true);
+  return updateRole(draft, `${draft.objectId}.${role}`, {
+    headcount: airport ? '30' : '6', headcountSource: 'ASSUMPTION',
+    salary: airport ? '65000' : '52000', salarySource: 'ORGANIZER', salaryConfirmed: false });
 }
 
 export function updateFacility(draft, patch) {
@@ -263,10 +291,12 @@ const DECIMAL_PATTERN = /^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
 const positive = (value) => value !== '' && DECIMAL_PATTERN.test(String(value)) && Number(value) > 0;
 const nonNegative = (value) => value !== '' && DECIMAL_PATTERN.test(String(value));
 
-export function validateDraft(draft) {
+export function validateDraft(draft, { requireFacilityAreas = false } = {}) {
   const issues = [];
   for (const key of ['totalArea', 'activeArea']) {
     const value = draft.facility?.[key];
+    if (requireFacilityAreas && (value === '' || value == null)) issues.push({ severity: 'BLOCKER',
+      code: 'AREA_REQUIRED', message: 'Обязательное поле для запуска расчёта', ref: `facility.${key}` });
     if (value !== '' && value != null && !positive(value)) issues.push({ severity: 'BLOCKER', code: 'AREA_INVALID', ref: `facility.${key}` });
     if (value && draft.facility?.fieldSources?.[key] === 'ASSUMPTION' && !draft.facility?.fieldConfirmations?.[key])
       issues.push({ severity: 'BLOCKER', code: 'AREA_CONFIRMATION_REQUIRED', ref: `facility.${key}` });
@@ -304,6 +334,10 @@ export function validateDraft(draft) {
 }
 
 function provenance(value, source = 'USER', confirmed = false, fileSource = null) {
+  // The existing wire contract has no ORGANIZER literal. Keep the dataset origin
+  // in raw_text, as an accepted scenario value, without expanding old schemas.
+  if (source === 'ORGANIZER') return { source: 'ASSUMPTION', user_confirmed: true,
+    raw_text: `${value} · Типовое значение организаторов: Датасеты_хакатон.xlsx; data/import/organizer-catalog-v4/object_profiles.json` };
   return { source, raw_text: String(value), user_confirmed: source === 'USER' || confirmed,
     ...(fileSource && ['FILE', 'ASSUMPTION'].includes(source) ? { file_sha256: fileSource.sha256, file_name: fileSource.name } : {}) };
 }
