@@ -29,11 +29,20 @@ test('missing facility areas block the actual intake before normalization', () =
   }
 });
 
-test('clinic delivery selects its own typed profile, without treating portions as pallets', () => {
+test('clinic preliminary delivery accepts generic transport and delivery profiles, with typed units handled by C11', () => {
   const transport = { position_id: 'transport', calculation_ready: true, calculation_profile: 'TRANSPORT_CYCLE_V1' };
   const delivery = { position_id: 'delivery', calculation_ready: true, calculation_profile: 'DELIVERY_CYCLE_V1' };
-  assert.deepEqual(demoCandidates([transport, delivery], 'DELIVERY_CYCLE'), [delivery]);
+  assert.deepEqual(demoCandidates([transport, delivery], 'DELIVERY_CYCLE'), [transport, delivery]);
   assert.deepEqual(demoCandidates([transport, delivery], 'TRANSPORT_CYCLE'), [transport]);
+});
+
+test('preliminary delivery never includes excluded, research or unsupported models', () => {
+  const eligible = { position_id: 'delivery', calculation_ready: true, calculation_profile: 'TRANSPORT_CYCLE_V1' };
+  const rows = [eligible, { ...eligible, position_id: 'excluded', selection: { status: 'EXCLUDED' } },
+    { ...eligible, position_id: 'research', maturity_status: 'RND' },
+    { ...eligible, position_id: 'missing', calculation_ready: false },
+    { ...eligible, position_id: 'cleaner', calculation_profile: 'CLEANING_AREA_V1' }];
+  assert.deepEqual(demoCandidates(rows, 'DELIVERY_CYCLE'), [eligible]);
 });
 
 test('airport and clinic preserve organizer scope and distinguish assumed staff allocations', () => {

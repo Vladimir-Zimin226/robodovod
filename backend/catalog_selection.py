@@ -89,6 +89,7 @@ def annotate(item, object_kind=None, process_code=None, context=None):
     ]
     scope = {
         "TRANSPORT_CYCLE_V1": "TRANSPORT_CYCLE",
+        "DELIVERY_CYCLE_V1": "DELIVERY_CYCLE",
         "CLEANING_AREA_V1": "CLEANING_AREA",
         "PALLETIZING_THROUGHPUT_V1": "FIXED_CELL",
     }.get(item.get("calculation_profile"))
@@ -247,8 +248,8 @@ def annotate(item, object_kind=None, process_code=None, context=None):
     item["selection"]["calculation_compatible"] = bool(
         profile
         and item.get("calculation_ready")
-        and scope
-        == ("TRANSPORT_CYCLE" if profile.scope == "DELIVERY_CYCLE" else profile.scope)
+        and (scope == profile.scope or
+             profile.scope == "DELIVERY_CYCLE" and scope == "TRANSPORT_CYCLE")
         and not excluded
         and item.get("maturity_status") != "RND"
     )

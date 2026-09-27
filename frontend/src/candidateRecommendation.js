@@ -9,7 +9,7 @@ export const candidateReason = {
 export function recommendedCandidates(comparison, catalogItems) {
   const byId = new Map(catalogItems.map((item) => [item.position_id, item]));
   return (comparison?.candidates || [])
-    .filter((row) => row.technical_score != null && row.status !== 'EXCLUDED' &&
+    .filter((row) => byId.has(row.position_id) && row.technical_score != null && row.status !== 'EXCLUDED' &&
       byId.get(row.position_id)?.selection?.status !== 'EXCLUDED')
     .sort((a, b) => Number(b.technical_score) - Number(a.technical_score) ||
       a.position_id.localeCompare(b.position_id));

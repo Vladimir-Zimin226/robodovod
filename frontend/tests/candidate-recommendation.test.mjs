@@ -10,6 +10,7 @@ test('preview leader skips blocked catalog positions and keeps unverified altern
   ];
   const comparison = { catalog_position_count: 223, profile_position_count: 3, candidates: [
     { position_id: 'blocked', technical_score: '99', status: 'TECHNICAL_ONLY' },
+    { position_id: 'outside-object', technical_score: '100', status: 'TECHNICAL_ONLY' },
     { position_id: 'first', technical_score: '71', status: 'TECHNICAL_ONLY' },
     { position_id: 'second', technical_score: '65', status: 'TECHNICAL_ONLY' },
   ] };

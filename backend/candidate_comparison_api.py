@@ -315,7 +315,7 @@ def compare_candidates(base: Any, snapshot: CatalogSnapshotDTO, selected: Compar
                     unknown_ids=selected.required_integrations, provenance_refs=[]),
                 data_fields=fields, penalty_context=PenaltyContextV1(
                     equipment_class="FIXED_CELL" if profile == "PALLETIZING_THROUGHPUT_V1" else "AMR",
-                    quantity_kind="PALLET" if str(base.process.quantity_kind) == "PALLET" else str(base.process.quantity_kind),
+                    quantity_kind="M2" if str(base.process.quantity_kind) == "SQUARE_METER" else str(base.process.quantity_kind),
                     demand_per_day=base.process.demand.normalized_value,
                     demand_provenance_ref=base.process.demand.provenance_ref),
             ))

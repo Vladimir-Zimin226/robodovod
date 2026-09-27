@@ -146,7 +146,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         return body;
       })
       .then((body) => {
-        const ranked = recommendedCandidates(body, positions);
+        const ranked = recommendedCandidates(body, candidates);
         setComparison(body);
         setPositionId((current) => candidates.some((item) => item.position_id === current)
           ? current : ranked[0]?.position_id || '');
@@ -325,7 +325,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                   <NumberField label="Дней/год" value={process.days} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для годовой загрузки; например 250. Источник — календарь работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { days: value }))} />
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField id={`intake-${process.processId}.distance`} label="Одностороннее плечо, м" value={process.distance} issue={fieldIssue(`${process.processId}.distance`)} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { distance: value }))} />}
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <div className="sm:col-span-2 lg:col-span-3 rounded border border-amber-300 p-2"><NumberField id={`intake-${process.processId}.batch`} label={`Сколько ${process.quantityKind === 'PALLET' ? 'паллет' : 'единиц груза'} робот перевозит за один рейс?`} value={process.batch} issue={fieldIssue(`${process.processId}.batch`)} hint={`Для «${process.label}» в зоне «${selectedZone.label}». Объём ${process.demand || 'неизвестен'} ${process.unit}, плечо ${process.distance || 'неизвестно'} м. Укажите целое число; для своего процесса значение не подставляется.`} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />
-                    {process.fieldSources?.batch === 'ASSUMPTION' && <label className="mt-2 flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={process.fieldConfirmations?.batch === true} onChange={(event) => event.target.checked && setDraft((current) => confirmProcessAssumption(current, process.processId, 'batch'))} />Подтверждаю допущение: {process.batch} паллета за рейс для типового склада</label>}</div>}
+                    {process.fieldSources?.batch === 'ASSUMPTION' && <label className="mt-2 flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={process.fieldConfirmations?.batch === true} onChange={(event) => event.target.checked && setDraft((current) => confirmProcessAssumption(current, process.processId, 'batch'))} />Подтверждаю допущение: {process.batch} {process.quantityKind === 'PALLET' ? 'паллет' : process.quantityKind === 'PORTION' ? 'порций' : 'единиц груза'} за рейс для этого процесса</label>}</div>}
                 </div>
                 <fieldset><legend className="text-xs font-semibold">Роли</legend>
                   {process.roles.length === 0 ? <p className="text-xs text-slate-500 mt-1">Роль не требуется: ФОТ-эффект не рассчитывается.</p> : process.roles.map((roleCode) => {
@@ -392,9 +392,12 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           {catalogState === 'error' && <p className="text-xs text-red-700" role="alert">Каталог расчётных моделей недоступен. Обновите страницу и повторите попытку.</p>}
           {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">Для этого процесса в активном каталоге нет расчётной рекомендации. Информационные позиции и причины показаны выше; парк не рассчитывается без утверждённой физической формулы.</p>}
           {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.organizer_id]} />}
+          {selectedProcess?.scope === 'DELIVERY_CYCLE' && selectedPosition?.calculation_profile === 'TRANSPORT_CYCLE_V1' && <p className="text-xs text-amber-800">Предварительная доставка рассчитана по транспортному циклу. Оснастка для питания, масса партии, лифты и санитарные условия требуют отдельной проверки; применимость модели в клинике не подтверждена.</p>}
           {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(selectedProcess?.scope) && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); invalidateComparison(); }} />}
           {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={(value) => { setCleaningFrequency(value); invalidateComparison(); }} />}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => { setAcknowledged(event.target.checked); invalidateComparison(); }} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
+          {!acknowledged && <p className="text-xs text-amber-800" role="status">Чтобы запустить расчёт, подтвердите предварительные допущения выше.</p>}
+          {acknowledged && candidatePositions.length > 0 && !selectedPosition && <p className="text-xs text-amber-800" role="status">Выберите модель в списке выше. Расчёт можно запустить вручную, даже если автоматический подбор недоступен.</p>}
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}
       </section>}

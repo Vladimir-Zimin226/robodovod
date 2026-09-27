@@ -47,8 +47,6 @@ def _object_context(kind):
         runtime = replace(model.capacity_runtime, calculation_profile='CLEANING_AREA_V1',
             calculation_model_fields=('capacity.cleaning_rate_m2_h',), vendor_facts=(fact,))
         model = replace(model, capacity_runtime=runtime, facts=(fact,))
-    else:
-        model = replace(model, capacity_runtime=replace(model.capacity_runtime, calculation_profile='DELIVERY_CYCLE_V1'))
     position = replace(snapshot.positions[0], model=model,
         applicability=CatalogApplicabilityDTO('airport' if airport else 'medical_facility', 'cleaning' if airport else 'delivery', 'RU', None))
     snapshot = replace(snapshot, models=(model,), positions=(position,))
@@ -86,3 +84,42 @@ def test_typical_object_full_economics_and_automatic_physical_simulation(kind):
     assert isinstance(report, SimulationReportV1), report
     assert report.queue.measurement_jobs <= 10000
     assert Decimal(report.capacity.required_per_hour) > 0
+
+
+@pytest.mark.parametrize('kind', ['AIRPORT', 'CLINIC'])
+def test_typical_object_preview_with_current_catalog_profiles(kind):
+    import uuid
+    from candidate_comparison_api import CompareRequest, compare_candidates
+    snapshot, context = _object_context(kind)
+    original = snapshot.models[0].capacity_runtime
+    result = compare_candidates(context.capacity_request, snapshot,
+        CompareRequest(source_run_id=uuid.uuid4(), position_ids=[snapshot.positions[0].id]))
+    assert result['candidates'][0]['capacity']['status'] == 'WITH_ASSUMPTIONS'
+    assert result['candidates'][0]['technical_score'] is not None
+    assert result['technical_recommendation']['status'] == 'PRELIMINARY'
+    assert snapshot.models[0].capacity_runtime is original
+    if kind == 'CLINIC':
+        assert original.calculation_profile == 'TRANSPORT_CYCLE_V1'
+        assert context.executability['profile_id'] == 'DELIVERY_CYCLE_V1'
+        assert any(p.provenance_id == 'prov.delivery-profile.confirmation' for p in context.capacity_response.trace.provenance)
+
+
+def test_generic_transport_delivery_binding_requires_preliminary_confirmation():
+    snapshot, context = _object_context('CLINIC')
+    raw = context.capacity_request.model_dump(mode='json')
+    raw.update(execution_mode='VERIFIED', demo_assumptions_confirmed=False)
+    execution = analyze_capacity(CapacityAnalysisRequest.model_validate(raw), snapshot, 'run.delivery.verified')
+    assert execution.executability.profile_id == 'TRANSPORT_CYCLE_V1'
+    assert execution.response.capacity.value is None
+    assert not any(p.provenance_id == 'prov.delivery-profile.confirmation' for p in execution.response.trace.provenance)
+
+
+def test_preliminary_delivery_preserves_explicit_object_exclusion():
+    snapshot, context = _object_context('CLINIC')
+    model = snapshot.models[0]
+    fact = CatalogFactDTO('supported_object_kinds', 'GLOBAL', ['WAREHOUSE'], '1', 'VERIFIED_OFFICIAL', 'fixture.objects')
+    model = replace(model, facts=(*model.facts, fact))
+    snapshot = replace(snapshot, models=(model,), positions=(replace(snapshot.positions[0], model=model),))
+    execution = analyze_capacity(context.capacity_request, snapshot, 'run.delivery.excluded')
+    assert execution.constraints.eligibility == 'BLOCKED'
+    assert execution.response.capacity.value is None

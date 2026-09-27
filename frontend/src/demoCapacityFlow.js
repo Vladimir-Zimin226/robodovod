@@ -38,22 +38,24 @@ const quantity = (name, value, unit, kind, provenanceRef) => ({
 
 const positive = (value) => /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(String(value)) && Number(value) > 0;
 
+const profilesForScope = (scope) => ({
+  CLEANING_AREA: ['CLEANING_AREA_V1'],
+  DELIVERY_CYCLE: ['DELIVERY_CYCLE_V1', 'TRANSPORT_CYCLE_V1'],
+  TRANSPORT_CYCLE: ['TRANSPORT_CYCLE_V1'],
+}[scope] || []);
+
 export function demoCandidates(items, scope) {
-  const profile = scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
-    scope === 'DELIVERY_CYCLE' ? 'DELIVERY_CYCLE_V1' : scope === 'TRANSPORT_CYCLE' ? 'TRANSPORT_CYCLE_V1' : null;
-  if (!profile) return [];
+  const profiles = profilesForScope(scope);
   return items.filter((item) => item.calculation_ready &&
-    item.calculation_profile === profile && item.maturity_status !== 'RND' &&
+    profiles.includes(item.calculation_profile) && item.maturity_status !== 'RND' &&
     item.selection?.status !== 'EXCLUDED');
 }
 
 export function brainCandidates(items, scope) {
-  const profile = scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
-    scope === 'DELIVERY_CYCLE' ? 'DELIVERY_CYCLE_V1' : scope === 'TRANSPORT_CYCLE' ? 'TRANSPORT_CYCLE_V1' : null;
-  if (!profile) return [];
+  const profiles = profilesForScope(scope);
   const seen = new Set();
   return items.filter((item) => {
-    if (!item.calculation_ready || item.maturity_status === 'RND' || item.calculation_profile !== profile || seen.has(item.position_id)) return false;
+    if (!item.calculation_ready || item.maturity_status === 'RND' || !profiles.includes(item.calculation_profile) || seen.has(item.position_id)) return false;
     seen.add(item.position_id);
     return true;
   });
@@ -69,9 +71,7 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
   if (!position || !position.position_id || !position.calculation_ready || position.maturity_status === 'RND' || position.selection?.status === 'EXCLUDED') {
     throw new Error('Выберите совместимую расчётную модель из активного каталога.');
   }
-  const expectedProfile = process.scope === 'CLEANING_AREA' ? 'CLEANING_AREA_V1' :
-    process.scope === 'DELIVERY_CYCLE' ? 'DELIVERY_CYCLE_V1' : process.scope === 'TRANSPORT_CYCLE' ? 'TRANSPORT_CYCLE_V1' : null;
-  if (!expectedProfile || position.calculation_profile !== expectedProfile) {
+  if (!profilesForScope(process.scope).includes(position.calculation_profile)) {
     throw new Error('Модель не соответствует физическому профилю процесса.');
   }
   const provenance = [{

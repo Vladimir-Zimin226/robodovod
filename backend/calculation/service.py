@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Callable
 
 from catalog_repository import CatalogPositionDTO, CatalogSnapshotDTO
-from catalog_selection import numeric_fact
+from catalog_selection import numeric_fact, SAFE_FACT_STATUSES
 from calculation.capacity.cleaning import DirectCleaningAreaV1, CleaningCapacityRequestV1, calculate_cleaning_capacity
 from calculation.capacity.palletizing import PalletizingCapacityRequestV1, calculate_palletizing_capacity
 from calculation.capacity.trace import finalize_trace
@@ -41,6 +41,7 @@ from calculation.economics.sensitivity import SensitivityRequestV1, SensitivityR
 from calculation.process_profiles.router import ProcessRouteDecisionV1, route_process
 from calculation.ranking import RankingRequestV2, RankingResultV2, calculate_ranking
 from calculation_contracts import (
+    AssumptionProvenance,
     CalculationTrace,
     CapacityAnalysisRequest,
     CapacityAnalysisResponse,
@@ -153,11 +154,29 @@ def conservative_constraints(request: CapacityAnalysisRequest, position: Catalog
     }
     if payload_ref:
         evidence["payload_kg"] = {"evidence_status": "MATCHING_SAFE", "source_ref": payload_ref}
+    capabilities = {
+        "supported_object_kinds": [request.process.object_kind],
+        "supported_process_scopes": [request.process.scope],
+    }
+    if (request.process.scope == "DELIVERY_CYCLE" and
+            position.model.capacity_runtime.calculation_profile == "TRANSPORT_CYCLE_V1"):
+        # A generic physical cycle does not establish clinical suitability.
+        for field in capabilities:
+            capabilities[field] = None
+            evidence.pop(field, None)
+            fact = next((f for f in position.model.facts if f.code == field and
+                         f.evidence_id and f.resolution_status in SAFE_FACT_STATUSES), None)
+            if fact is not None:
+                try:
+                    CandidateConstraintFacts(model_id=position.model.id, position_id=position.id, **{field: fact.value})
+                except ValueError:
+                    continue
+                capabilities[field] = fact.value
+                evidence[field] = {"evidence_status": "MATCHING_SAFE", "source_ref": fact.evidence_id}
     candidate = CandidateConstraintFacts(
         model_id=position.model.id,
         position_id=position.id,
-        supported_object_kinds=[request.process.object_kind],
-        supported_process_scopes=[request.process.scope],
+        **capabilities,
         payload_kg=format(payload, "f") if payload is not None else None,
         evidence=evidence,
     )
@@ -274,6 +293,18 @@ def analyze_capacity(
     route = route_process(request.process)
     constraints = constraint_provider(request, position)
     candidate = candidate_from_repository(position.formula_executability_dto())
+    # The approved catalog stores generic transport profiles. Delivery uses the
+    # same cycle equations and vendor facts, with its own units of demand.
+    # Bind that typed profile only to this explicitly acknowledged preliminary
+    # request; the catalog, membership and evidence-backed suitability stay intact.
+    preliminary_delivery = (
+        request.process.scope == "DELIVERY_CYCLE"
+        and candidate.profile_id == "TRANSPORT_CYCLE_V1"
+        and request.execution_mode == "PRELIMINARY_DEMO"
+        and request.demo_assumptions_confirmed
+    )
+    if preliminary_delivery:
+        candidate = candidate.model_copy(update={"profile_id": "DELIVERY_CYCLE_V1"})
     executability = evaluate_run_executability(
         candidate, _scenario_values(request), constraints.eligibility, registry_payload(),
         allow_preliminary=request.execution_mode == "PRELIMINARY_DEMO",
@@ -288,6 +319,13 @@ def analyze_capacity(
 
     vendor_provenance, fact_refs = _vendor_provenance(position)
     provenance = [*request.provenance, *vendor_provenance]
+    if preliminary_delivery:
+        provenance.append(AssumptionProvenance.model_validate({
+            "provenance_id": "prov.delivery-profile.confirmation", "kind": "ASSUMPTION",
+            "assumption_id": "generic-transport-for-preliminary-delivery", "assumption_version": "v1",
+            "rationale": "Общий транспортный профиль применён к явно заданной доставке; оснастка, масса партии и пригодность в клинике требуют отдельной проверки",
+            "permitted_scope": "DELIVERY_CYCLE", "confirmation_state": "USER_CONFIRMED",
+        }))
     if route.disposition == "TRANSPORT":
         engine_request = TransportCapacityRequestV1(
             run_id=run_id, acquisition=request.acquisition, uncertainty=request.uncertainty,
