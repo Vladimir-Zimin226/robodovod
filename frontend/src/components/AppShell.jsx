@@ -35,7 +35,10 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
       {menuOpen && <button className="sidebar-scrim" onClick={() => setMenuOpen(false)} aria-label="Закрыть меню" />}
       <aside className={`app-sidebar ${menuOpen ? 'is-open' : ''}`} aria-label="Основная навигация">
         <div className="brand-block">
-          <div className="brand-word">РОБО<span>ДОВОД</span></div>
+          <div className="brand-identity">
+            <img className="brand-mark" src="/favicon.svg" alt="" width="34" height="34" />
+            <strong className="brand-word" aria-label="РОБОДОВОД">РОБО<span>ДОВОД</span></strong>
+          </div>
           <p>Больше, чем роботы.<br />Доводы до инвестиций.</p>
         </div>
         <nav className="app-nav">
@@ -56,6 +59,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
           <button className={activeNav === 'admin' ? 'active' : ''} aria-current={activeNav === 'admin' ? 'page' : undefined} onClick={() => navigate({ id: 'admin' })}><AppIcon name="process" /><span>Пользователи</span></button>
         </nav>}
         <div className="sidebar-footer">
+          <div className="footer-brand"><img src="/favicon.svg" alt="" width="22" height="22" /><span>РОБОДОВОД</span></div>
           <div>СЕГОДНЯ<br /><strong>АНАЛИЗ.</strong><br />ЗАВТРА<br /><strong>ЭФФЕКТ.</strong></div>
           <p>v1.0<br />Сделано для реального производства</p>
         </div>
