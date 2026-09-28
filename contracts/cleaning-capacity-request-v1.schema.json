@@ -761,6 +761,116 @@
       "title": "ObjectKind",
       "type": "string"
     },
+    "OperatingAvailabilityV1": {
+      "additionalProperties": false,
+      "properties": {
+        "autonomy_hours": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Autonomy Hours"
+        },
+        "availability": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Availability"
+        },
+        "basis": {
+          "maxLength": 500,
+          "minLength": 3,
+          "title": "Basis",
+          "type": "string"
+        },
+        "charge_hours": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Charge Hours"
+        },
+        "confirmed": {
+          "title": "Confirmed",
+          "type": "boolean"
+        },
+        "mode": {
+          "enum": [
+            "ALL_IN",
+            "EXPLICIT_DOWNTIME"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "refill_hours_per_day": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refill Hours Per Day"
+        },
+        "schema_version": {
+          "const": "operating-availability-v1",
+          "default": "operating-availability-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "service_hours_per_day": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Service Hours Per Day"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "ASSUMPTION"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode",
+        "basis",
+        "source",
+        "confirmed"
+      ],
+      "title": "OperatingAvailabilityV1",
+      "type": "object"
+    },
     "PolicyProvenance": {
       "additionalProperties": false,
       "properties": {
@@ -1432,6 +1542,17 @@
       "minLength": 1,
       "title": "Model Id",
       "type": "string"
+    },
+    "operations": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OperatingAvailabilityV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "position_id": {
       "minLength": 1,

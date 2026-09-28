@@ -74,7 +74,7 @@ export function buildEconomicsRunRequest({ values, capacityRequest, project, sce
 
 // Partial inputs preserve an empty field as unknown. Validation and branch
 // readiness are owned by the server and saved with the resulting run.
-export function buildPartialEconomicsRunRequest({ values, capacityRequest, project, scenario, sourceRunId = null }) {
+export function buildPartialEconomicsRunRequest({ values, capacityRequest, project, scenario, sourceRunId = null, projectPolicyMode = false }) {
   if (!project?.id || !scenario?.id || !capacityRequest?.input_revision || !values.capacityRunId) {
     throw new Error('Откройте сохранённый расчёт мощности C11 и сценарий проекта.');
   }
@@ -127,7 +127,7 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
   return {
     scenario_id: scenario.id, capacity_run_id: values.capacityRunId,
     ...(sourceRunId ? { source_run_id: sourceRunId } : {}),
-    input: { schema_version: values.staffingPolicy || values.workShare ? 'economics-explicit-inputs-v6' : 'economics-explicit-inputs-v5', input_revision: capacityRequest.input_revision,
+    input: { schema_version: projectPolicyMode || values.staffingPolicy || values.workShare ? 'economics-explicit-inputs-v6' : 'economics-explicit-inputs-v5', input_revision: capacityRequest.input_revision,
       ...(values.calculationDepth ? { calculation_depth: values.calculationDepth } : {}),
       ...fields, staffing_purchase: staffing(values.technicianPurchaseMode),
       staffing_raas: staffing(values.technicianRaasMode), field_sources, assumption_evidence,

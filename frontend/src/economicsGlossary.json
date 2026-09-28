@@ -472,13 +472,13 @@
   "schema_version": "economics-glossary-v1",
   "source_bindings": {
     "backend/calculation/capacity/quantities.py": "937eb60e06054849a2f4d0aecbdfa9fb9ecd8ace77e10051b4b420e5f3bc15e2",
-    "backend/calculation/capacity/transport.py": "628d6f9d3c4cb0aba2b5a3bc89f11a6b1f43e0333cd934318dae20fd022ae280",
+    "backend/calculation/capacity/transport.py": "5a234e2e9c6e09839fcc098f43dbded29abc029bae3596208d8cf6d39793d7c3",
     "backend/calculation/economics/cashflow.py": "56fdec89e4a46b076be8169a100af72a8f93e7ba3d9678837971d895359ca3dd",
     "backend/calculation/economics/metrics.py": "74c288b0c3a873a515b6e10f390ab1fcc85d42cd50dc6da903ff35d2db8c1501",
     "backend/calculation/economics/purchase.py": "42ce99a77e31d07feb93ff045633195a4718639491ec035d16ba3c119c71dd0d",
     "backend/calculation/economics/raas.py": "5a574759008a12940535e725b7bbac39775ff111e9d7c5cda28d335bd742ee1e",
     "backend/calculation/economics/sensitivity.py": "f4979700bcc3d9bd87848501bf3ea043366b5be0d056d6c9a67acccd1ad534e0",
-    "backend/calculation/labour.py": "eb2467a3a27511a8c5d55192abe9f1a23ea5d3f527e7b12453a593a9cdce4f1c",
+    "backend/calculation/labour.py": "4c19eff097ebe6aa678019dcda0bbc7c22f6ed092fe4c30aa0f24f87bab09405",
     "data/calculation/registry-v1.json": "6a54e7934abc36d90c19582d8ef038deacc49d4e04ff7e4bf360bb5da3c43e22"
   },
   "versions": {

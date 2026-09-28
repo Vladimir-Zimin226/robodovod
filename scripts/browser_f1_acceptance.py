@@ -198,10 +198,12 @@ def button(text, selector=".simulation-2d button"):
     assert js(f"(() => {{const e=[...document.querySelectorAll({json.dumps(selector)})].find(x=>x.textContent.trim()==={json.dumps(text)});if(!e)return false;e.click();return true}})()")
 
 
-def select_run(run):
+def open_run(run):
+    """Open the run from Reports; the result no longer has a project-wide selector."""
     rid = run["id"]
-    until(f"[...document.querySelector('[aria-label=\"Физический сценарий проекта\"]')?.options || []].some(x=>x.value === {json.dumps(rid)})")
-    assert js(f"(() => {{const e=document.querySelector('[aria-label=\"Физический сценарий проекта\"]');e.value={json.dumps(rid)};e.dispatchEvent(new Event('change',{{bubbles:true}}));return e.value}})()") == rid
+    call("Page.navigate", {"url": f"{WEB}/#reports"})
+    until("document.querySelectorAll('.reports-card').length > 0")
+    assert js(f"(() => {{const card=[...document.querySelectorAll('.reports-card')].find(x=>x.textContent.includes({json.dumps(rid)}));if(!card)return false;card.querySelector('.reports-actions button').click();return true}})()")
     until(f"document.querySelector('.simulation-bindings')?.textContent.includes({json.dumps(rid)})")
     until(f"document.querySelector('iframe')?.contentWindow.__f1Loads?.at(-1)?.payload.simulation_report.report_id === {json.dumps(saved[rid]['report']['report_id'])}")
     loaded = js("document.querySelector('iframe').contentWindow.__f1Loads.at(-1).payload")
@@ -225,10 +227,8 @@ try:
         call("Emulation.setDeviceMetricsOverride", {"width": width, "height": height, "deviceScaleFactor": 1, "mobile": width == 390})
         call("Page.navigate", {"url": f"{WEB}/#reports"})
         until("document.querySelectorAll('.reports-card').length > 0")
-        assert js(f"(() => {{const card=[...document.querySelectorAll('.reports-card')].find(x=>x.textContent.includes({json.dumps(typical['id'])}));card.querySelector('.reports-actions button').click();return true}})()")
-        until("document.querySelector('[aria-label=\"Физический сценарий проекта\"]')?.options.length >= 5")
         for run in [typical, small, new_runs[-1], small]:
-            select_run(run)
+            open_run(run)
             button("Пауза"); until("document.querySelector('.simulation-controls strong').textContent === 'Пауза'")
             assert js("document.querySelector('[aria-label=\"Условная зарядная точка\"]') !== null")
             if run == new_runs[-1]:
@@ -252,16 +252,16 @@ try:
         (OUT / f"{width}.png").write_bytes(base64.b64decode(call("Page.captureScreenshot", {"format": "png"})["data"]))
         call("Page.navigate", {"url": f"{WEB}/#reports"}); until("document.querySelectorAll('.reports-card').length > 0")
         js("history.back()"); until("document.querySelector('.simulation-bindings') !== null")
-        select_run(small)
+        open_run(small)
         call("Page.reload"); until("document.querySelector('.simulation-bindings') === null")
         call("Page.navigate", {"url": f"{WEB}/#reports"}); until("document.querySelectorAll('.reports-card').length > 0")
         js(f"[...document.querySelectorAll('.reports-card')].find(x=>x.textContent.includes({json.dumps(small['id'])})).querySelector('.reports-actions button').click()")
-        until("document.querySelector('.simulation-bindings') !== null"); select_run(small)
+        until("document.querySelector('.simulation-bindings') !== null"); open_run(small)
         call("Page.navigate", {"url": (OUT / f"{width}-{small['id']}.svg").as_uri()})
         until("document.querySelector('svg metadata') !== null")
         assert js("document.querySelector('svg').textContent.includes('Зарядка учтена агрегированно')")
         (OUT / f"{width}-standalone.png").write_bytes(base64.b64decode(call("Page.captureScreenshot", {"format": "png"})["data"]))
-        print(f"PASS: {width}x{height} physical selector, C23 -> 3D equality, controls, Back/reload, SVG standalone", flush=True)
+        print(f"PASS: {width}x{height} run-scoped player, C23 -> 3D equality, controls, Back/reload, SVG standalone", flush=True)
     # Changing the project clears the old result before Back can display it.
     response = owner.post(f"{API}/api/projects", headers=headers, json={"name": f"F1 empty {uuid.uuid4().hex[:8]}"}, timeout=10)
     assert response.status_code == 201

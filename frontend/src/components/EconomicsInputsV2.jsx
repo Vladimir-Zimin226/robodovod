@@ -168,7 +168,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
           schema_version: 'robotizable-work-share-v1', fraction: prepared.robotizableShare,
           residual_operations: prepared.residualOperations, source: 'ASSUMPTION',
           basis: 'Принято пользователем для проектного расчёта; проверить остаточные операции на объекте', date: policyDate, confirmed: true,
-        } : null }, capacityRequest, project, scenario, sourceRunId });
+        } : null }, capacityRequest, project, scenario, sourceRunId, projectPolicyMode: true });
       const response = await fetch(`${API}/api/v2/projects/${encodeURIComponent(project.id)}/economics-runs`, {
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() }, body: JSON.stringify(body),
       });

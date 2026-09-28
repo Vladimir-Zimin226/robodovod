@@ -58,6 +58,15 @@ test('partial request distinguishes unknown, confirmed zero and assumptions', ()
   assert.equal('fte_cost_rub' in result.input, false);
 });
 
+test('current UI keeps unknown project policy fields in v6 partial input', () => {
+  const result = buildPartialEconomicsRunRequest({
+    values, capacityRequest, project: { id: 'project.1' }, scenario: { id: 'scenario.1' }, projectPolicyMode: true,
+  });
+  assert.equal(result.input.schema_version, 'economics-explicit-inputs-v6');
+  assert.equal(result.input.staffing_policy, null);
+  assert.equal(result.input.work_share, null);
+});
+
 test('staffing choices and qualification are preserved without an invented price', () => {
   const result = buildPartialEconomicsRunRequest({
     values: { ...values, controlMode: 'TRANSFER', controlTransferSupplement: '0',
