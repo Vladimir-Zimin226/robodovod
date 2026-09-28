@@ -20,8 +20,8 @@ export default function GuestWarehouseDemo({ onContinue, onBack }) {
       <p className="guest-demo-caution">{demo.model_notice}. Результат предварительный: проверка на объекте и коммерческие условия не подтверждены.</p>
       <p>Это заранее вычисленный пример; ваши данные сюда не вводятся и на сервер не отправляются.</p>
       <div className="guest-demo-actions">
-        <a className="primary-action" href={`${assetRoot}/report.pdf`} download="warehouse-pallet-demo-v1.pdf">Скачать отчёт PDF</a>
-        <a className="secondary-action" href={`${assetRoot}/evidence.zip`} download="warehouse-pallet-demo-v1.zip">Скачать полный ZIP</a>
+        <a className="primary-action" href="/demo/warehouse-pallet-investor-v1/report.pdf" download="warehouse-pallet-investor-full-v1.pdf">Скачать инвестиционный отчёт PDF · полный</a>
+        <a className="secondary-action" href={`${assetRoot}/evidence.zip`} download="warehouse-pallet-demo-v1.zip">Скачать технический архив ZIP</a>
       </div>
     </header>
 

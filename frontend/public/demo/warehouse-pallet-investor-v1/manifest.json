@@ -1,0 +1,20 @@
+{
+  "bindings": {
+    "assumptions_version": "warehouse-economics-demo-v1",
+    "capacity_economics_input_digest": "sha256:7e851c4a5498522206304a053959307636281864d73f7e03005fadfb18ad7c3d",
+    "economics_result_digest": "sha256:1817b792b1e1ed19d1294dece563440b3bd88cbbcc06d9798cb8953698447b33",
+    "scenario_revision_id": "calc_ee3d29a8849180f1",
+    "simulation_report_digest": "sha256:04b8a729c53c407101671ae8b229f9f01b4469f45fbfee950db99a63bbc10d62",
+    "simulation_request_digest": "sha256:36e7c8cc903fe972f195be6a11f982b8c438729f6d42023c8cd4de3a95bcc3c3"
+  },
+  "depth": "FULL_AUTHORED_EXAMPLE",
+  "files": {
+    "report.pdf": {
+      "bytes": 444157,
+      "sha256": "sha256:6345da89032317af67c1970d212acbd64ff4eafc5a0906ac9fa73a15a7f3f469"
+    }
+  },
+  "presentation_version": "investor-presentation-v1",
+  "schema_version": "guest-investor-presentation-v1",
+  "source_package_digest": "sha256:c5bac586b231deba0e0e16af27f2e7cfea50ade114dc6f34b9e88e2672842fd1"
+}
