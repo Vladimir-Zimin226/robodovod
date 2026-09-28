@@ -153,6 +153,31 @@ export class EvidenceExportSession {
     return manifest;
   }
 
+  async downloadInvestorReport(projectId, runId, simulationRequestId = null) {
+    const sequence = ++this.sequence;
+    const base = `${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports`;
+    const suffix = simulationSuffix(simulationRequestId);
+    const manifestResponse = await this.fetchImpl(`${base}/manifest${suffix}`, { credentials: 'include' });
+    if (!manifestResponse.ok) throw new Error(`export manifest unavailable (${manifestResponse.status})`);
+    const manifest = parseEvidenceManifest(await manifestResponse.json(), { projectId, runId });
+    if (sequence !== this.sequence) throw new Error('stale evidence response');
+    const response = await this.fetchImpl(`${base}/investor-report.pdf${suffix}`, { credentials: 'include' });
+    if (!response.ok) throw new Error(`investor report unavailable (${response.status})`);
+    if (response.headers.get('X-Report-Source-Digest') !== manifest.source_snapshot_digests.result
+      || response.headers.get('X-Report-Presentation') !== 'investor-presentation-v1'
+      || response.headers.get('X-Simulation-Report-Digest') !== (manifest.simulation_report_digest || 'none')) {
+      throw new Error('investor report source binding mismatch');
+    }
+    const blob = await response.blob();
+    const bytes = await blob.arrayBuffer();
+    const digest = `sha256:${Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes)),
+      (value) => value.toString(16).padStart(2, '0')).join('')}`;
+    if (response.headers.get('ETag') !== `"${digest}"`) throw new Error('investor report content digest mismatch');
+    if (sequence !== this.sequence) throw new Error('stale evidence response');
+    this.saveImpl(blob, reportFilename(runId, manifest.snapshot_captured_at, true).replace('отчёт', 'инвестиционная оценка'));
+    return manifest;
+  }
+
   async downloadFormat(projectId, runId, format, simulationRequestId = null) {
     const paths = { xlsx: 'result.xlsx', csv: 'comparison.csv', svg: 'visualization.svg' };
     if (!Object.hasOwn(paths, format)) throw new Error('unsupported export format');

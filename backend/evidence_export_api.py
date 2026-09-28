@@ -7,7 +7,7 @@ import hashlib
 from collections.abc import Callable
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -18,6 +18,7 @@ from calculation.evidence_export import (
     EvidenceRunSnapshotV1,
 )
 from calculation.final_export import build_final_export
+from calculation.investor_report import VERSION as INVESTOR_PRESENTATION, build_investor_report
 from database import database_session
 from persistence_models import AnalysisRun, Project, SimulationArtifact
 from simulation_artifacts import SimulationArtifactIntegrityError, load_artifact
@@ -99,7 +100,7 @@ def create_evidence_export_router(
             raise EvidenceExportIntegrityError("invalid linked capacity run id") from exc
         return capacity_loader(db, project_id, capacity_id, context.user.id)
 
-    def package_for(
+    def sources_for(
         project_id: uuid.UUID,
         run_id: uuid.UUID,
         context: AuthContext,
@@ -120,9 +121,44 @@ def create_evidence_export_router(
             simulation = load_artifact(db, context.user.id, project_id, run_id, chosen) if chosen and hasattr(db, "scalar") else None
             if simulation_request_id is not None and simulation is None:
                 raise HTTPException(status_code=404, detail="simulation artifact not found")
-            return build_final_export(run, linked_capacity_for(run, project_id, context, db), simulation)
+            return run, linked_capacity_for(run, project_id, context, db), simulation
         except (EvidenceExportIntegrityError, SimulationArtifactIntegrityError) as exc:
             raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
+
+    def package_for(project_id, run_id, context, db, simulation_request_id=None):
+        try:
+            return build_final_export(*sources_for(project_id, run_id, context, db, simulation_request_id))
+        except (EvidenceExportIntegrityError, SimulationArtifactIntegrityError) as exc:
+            raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
+
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/investor-report.pdf")
+    @router.get("/projects/{project_id}/analysis-runs/{run_id}/exports/investor-report-preview.pdf")
+    def investor_report(
+        project_id: uuid.UUID,
+        run_id: uuid.UUID,
+        request: Request,
+        simulation_request_id: str | None = None,
+        context: AuthContext = Depends(require_auth_context),
+        db: Session = Depends(database_session),
+    ):
+        """A separate versioned view. Historical report/ZIP endpoints keep their bytes."""
+        run, linked, simulation = sources_for(project_id, run_id, context, db, simulation_request_id)
+        try:
+            pdf, source_digest = build_investor_report(run, linked, simulation)
+        except (EvidenceExportIntegrityError, SimulationArtifactIntegrityError) as exc:
+            raise HTTPException(status_code=409, detail="analysis snapshot integrity check failed") from exc
+        depth = run.input_snapshot.get("economics", {}).get("calculation_depth") or "UNSPECIFIED"
+        filename = f"Рободовод, инвестиционная оценка от {run.finished_at:%d.%m.%Y}.pdf"
+        disposition = "inline" if request.url.path.endswith("-preview.pdf") else "attachment"
+        return Response(content=pdf, media_type="application/pdf", headers={
+            "Content-Disposition": f'{disposition}; filename="Robodovod-investor-report.pdf"; filename*=UTF-8\'\'{quote(filename, safe="")}',
+            "X-Report-Source-Digest": source_digest,
+            "X-Report-Presentation": INVESTOR_PRESENTATION,
+            "X-Report-Depth": depth,
+            "X-Simulation-Report-Digest": simulation.report_digest if simulation else "none",
+            "ETag": f'"sha256:{hashlib.sha256(pdf).hexdigest()}"',
+            "Cache-Control": "private, no-store",
+        })
 
     @router.get(
         "/projects/{project_id}/analysis-runs/{run_id}/exports/manifest",

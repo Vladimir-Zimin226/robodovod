@@ -11,6 +11,25 @@ const ROOT = path.resolve(HERE, '..', '..');
 const manifest = JSON.parse(await readFile(path.join(ROOT, 'contracts/fixtures/calculation-evidence-export-v1.golden.json'), 'utf8'));
 const manifestV2 = JSON.parse(await readFile(path.join(ROOT, 'contracts/fixtures/calculation-evidence-export-v2.golden.json'), 'utf8'));
 
+test('investor PDF download binds saved data, presentation, simulation and actual bytes', async () => {
+  const blob = new Blob(['%PDF-investor']);
+  const digest = `sha256:${Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer())),(v) => v.toString(16).padStart(2,'0')).join('')}`;
+  const headers = { 'X-Report-Source-Digest':manifestV2.source_snapshot_digests.result,
+    'X-Report-Presentation':'investor-presentation-v1', 'X-Simulation-Report-Digest':'none',ETag:`"${digest}"` };
+  const saved = [];
+  const fetchImpl = async (url) => url.endsWith('/manifest') ? jsonResponse(manifestV2)
+    : { ok:true,headers:new Headers(headers),blob:async () => blob };
+  const session = new EvidenceExportSession({ fetchImpl,saveImpl:(_,filename) => saved.push(filename) });
+  await session.downloadInvestorReport(manifestV2.project_id,manifestV2.run_id);
+  assert.match(saved[0],/инвестиционная оценка от 01\.01\.2026\.pdf$/);
+  for (const [key,value] of [['X-Report-Source-Digest','sha256:'+'0'.repeat(64)],['X-Report-Presentation','unknown'],['X-Simulation-Report-Digest','sha256:'+'0'.repeat(64)],['ETag','"sha256:'+'0'.repeat(64)+'"']]) {
+    const previous = headers[key]; headers[key] = value;
+    await assert.rejects(session.downloadInvestorReport(manifestV2.project_id,manifestV2.run_id),/binding mismatch|content digest mismatch/);
+    headers[key] = previous;
+  }
+  assert.equal(saved.length,1);
+});
+
 function jsonResponse(body, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => structuredClone(body) };
 }

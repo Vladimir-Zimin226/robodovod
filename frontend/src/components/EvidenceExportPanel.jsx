@@ -58,7 +58,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
     setStatus('downloading-pdf');
     setError('');
     try {
-      const next = await session.downloadReport(projectId, runId, simulationRequestId || null);
+      const next = await session.downloadInvestorReport(projectId, runId, simulationRequestId || null);
       setManifest(next);
       setStatus('downloaded-pdf');
     } catch (reason) {
@@ -84,12 +84,12 @@ export default function EvidenceExportPanel({ projectId, runId }) {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="font-semibold">Отчёт и архив расчёта</h2>
-          <p className="text-xs text-slate-500">В ZIP откройте «НАЧНИТЕ_ЗДЕСЬ.md»: там путь к читаемому PDF, объяснение CSV и контрольные суммы. Экспорт не пересчитывает результат.</p>
+          <p className="text-xs text-slate-500">PDF для обсуждения инвестиций: показатели, сравнение сценариев и графики с пометкой глубины расчёта. Точные значения и технические источники — в XLSX и архиве ZIP. Экспорт не пересчитывает результат.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {manifest && <a className="secondary-action" href={`/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports/report-preview.pdf${simulationRequestId ? `?simulation_request_id=${encodeURIComponent(simulationRequestId)}` : ''}#zoom=125&navpanes=0`} target="_blank" rel="noreferrer">Открыть PDF</a>}
+          {manifest && <a className="secondary-action" href={`${API}/api/projects/${encodeURIComponent(projectId)}/analysis-runs/${encodeURIComponent(runId)}/exports/investor-report-preview.pdf${simulationRequestId ? `?simulation_request_id=${encodeURIComponent(simulationRequestId)}` : ''}#zoom=page-width&navpanes=0`} target="_blank" rel="noreferrer">Открыть PDF</a>}
           <button className="primary-action" disabled={!manifest || status.startsWith('downloading')} onClick={downloadReport}>
-            {status === 'downloading-pdf' ? 'Формируем отчёт…' : 'Скачать читаемый отчёт PDF'}
+            {status === 'downloading-pdf' ? 'Формируем отчёт…' : 'Скачать инвестиционный отчёт PDF'}
           </button>
           <button className="secondary-action" disabled={!manifest || status.startsWith('downloading')} onClick={() => downloadFormat('xlsx')}>Скачать XLSX</button>
           <button className="secondary-action" disabled={!manifest || status.startsWith('downloading')} onClick={() => downloadFormat('csv')}>Скачать CSV</button>
