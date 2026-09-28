@@ -233,6 +233,11 @@ button:disabled { cursor: not-allowed; }
 .footer-brand img { flex: none; }
 .sidebar-footer strong { font-weight: 500; color: #7b97a2; }
 .sidebar-footer p { margin-top: 26px; color: var(--text-muted); font-size: 10px; line-height: 1.5; letter-spacing: 0; }
+.sidebar-footer p a { display: inline-block; margin-top: 6px; color: #83dab6; font-weight: 700; letter-spacing: .12em; }
+.sidebar-footer p a:hover { text-decoration: underline; }
+.typical-object-action { padding: 12px 18px; border: 1px solid #087b51; border-radius: 10px; background: #087b51; color: #fff; font-size: 14px; font-weight: 700; box-shadow: 0 3px 12px #087b5126; }
+.typical-object-action:hover { background: #066440; }
+.typical-object-action:focus-visible { outline: 3px solid #7dddac; outline-offset: 3px; }
 .mobile-menu-button, .sidebar-scrim { display: none; }
 .app-workspace { min-width: 0; }
 .command-header { position: relative; min-height: 118px; display: grid; grid-template-columns: minmax(360px, 798px) auto 48px; align-items: start; gap: 20px; padding: 22px 24px 14px; border-bottom: 1px solid rgba(38,52,58,.6); background: rgba(10,18,23,.9); }

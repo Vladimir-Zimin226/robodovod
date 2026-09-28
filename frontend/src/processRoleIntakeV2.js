@@ -214,6 +214,23 @@ export function createTypicalObjectDraft(objectType) {
     salary: airport ? '65000' : '52000', salarySource: 'ORGANIZER', salaryConfirmed: false });
 }
 
+// The dedicated loader click accepts the displayed typical-object assumptions.
+// Keep their sources; accepting a proposal does not turn it into a measured fact.
+export function loadConfirmedTypicalObjectDraft(objectType) {
+  let draft = createTypicalObjectDraft(objectType);
+  for (const key of ['totalArea', 'activeArea']) draft = confirmFacilityArea(draft, key);
+  for (const process of draft.processes.filter((item) => item.active)) {
+    for (const [key, source] of Object.entries(process.fieldSources)) {
+      if (source === 'ASSUMPTION' && process[key]) draft = confirmProcessAssumption(draft, process.processId, key);
+    }
+  }
+  for (const role of draft.roles) {
+    draft = role.salarySource === 'ASSUMPTION' ? confirmRoleAssumption(draft, role.roleId)
+      : updateRole(draft, role.roleId, { salaryConfirmed: true });
+  }
+  return draft;
+}
+
 export function updateFacility(draft, patch) {
   const facility = draft.facility || { name: '', totalArea: '', activeArea: '', fieldSources: {}, fieldConfirmations: {} };
   const fieldSources = { ...facility.fieldSources };

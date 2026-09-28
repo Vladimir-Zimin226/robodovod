@@ -3,7 +3,7 @@ import {
   addZone,
   confirmFacilityArea,
   createDraft,
-  createTypicalObjectDraft,
+  loadConfirmedTypicalObjectDraft,
   createWarehouseFileDraft,
   createNormalizationClient,
   confirmRoleAssumption,
@@ -230,22 +230,22 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <div><h2 className="font-semibold">Объект, процессы и роли</h2></div>
         </div>
         <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Один расчёт относится к одному процессу в одной зоне; для других процессов создайте отдельные результаты. Единицы и производные величины проверяет сервер.</p>
-        <button type="button" className="mt-2 secondary-action" onClick={() => {
-          const typical = createTypicalObjectDraft(objectType);
+        <button type="button" className="mt-2 typical-object-action" onClick={() => {
+          const typical = loadConfirmedTypicalObjectDraft(objectType);
           setDraft(typical);
           setSelectedZoneId(typical.zones[0].zoneId);
           setExpanded(typical.processes.find((item) => item.active)?.processId);
           setExchangeSeconds(objectType === 'retail' ? '90' : objectType === 'clinic' ? '180' : '');
           setCleaningFrequency('1');
           setProcessId(''); setPositionId(''); invalidateComparison();
-          setAcknowledged(false);
+          setAcknowledged(true);
           setResult(null);
           setError('');
         }}>Загрузить типовой {objectType === 'retail' ? 'склад' : objectType === 'airport' ? 'аэропорт' : 'объект клиники'} организаторов</button>
         {objectType !== 'retail' && <p className="text-xs text-amber-800 mt-2">{objectType === 'airport'
           ? 'Из датасета: терминал 85 000 м², уборка 51 000 м², зарплата 65 000 ₽ gross. 30 уборщиков, 3×8 ч и одна уборка в сутки — допущения.'
-          : 'Из датасета: 45 000 м², 1 950 порций/сутки, плечо 180 м, зарплата 52 000 ₽ gross. Активная зона 18 000 м², 6 сотрудников только доставки, 3×8 ч, 65 порций за рейс и обмен 180 с — допущения. Приготовление пищи, лифты и санитарные режимы отдельно не моделируются.'} Подтвердите отмеченные значения перед расчётом.</p>}
-        {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад предлагает 1 паллету за рейс, плечо 120 м и обмен 90 сек. как отдельные допущения. Подтвердите единицы за рейс в процессе и зарплату gross в роли.</p>}
+          : 'Из датасета: 45 000 м², 1 950 порций/сутки, плечо 180 м, зарплата 52 000 ₽ gross. Активная зона 18 000 м², 6 сотрудников только доставки, 3×8 ч, 65 порций за рейс и обмен 180 с — допущения. Приготовление пищи, лифты и санитарные режимы отдельно не моделируются.'} Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
+        {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад использует 1 паллету за рейс, плечо 120 м и обмен 90 сек. как допущения. Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
       </header>
 
       <section className="mb-4 rounded-xl border p-3" aria-label="Площадь объекта">

@@ -60,7 +60,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
         <div className="sidebar-footer">
           <div className="footer-brand"><span>РОБОДОВОД</span></div>
           <div>СЕГОДНЯ<br /><strong>АНАЛИЗ.</strong><br />ЗАВТРА<br /><strong>ЭФФЕКТ.</strong></div>
-          <p>v1.0<br />Сделано для реального производства</p>
+          <p>Сделано для реального производства<br /><a href="https://www.zmncraft.ru/" target="_blank" rel="noreferrer">ZMNCRAFT</a></p>
         </div>
       </aside>
       <div className="app-workspace">

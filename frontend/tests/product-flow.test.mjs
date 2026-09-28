@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createTypicalObjectDraft, createDraft, validateDraft, serializeDraft, confirmProcessAssumption, confirmFacilityArea, confirmRoleAssumption } from '../src/processRoleIntakeV2.js';
+import { createTypicalObjectDraft, loadConfirmedTypicalObjectDraft, createDraft, validateDraft, serializeDraft, confirmProcessAssumption, confirmFacilityArea, confirmRoleAssumption, updateProcess } from '../src/processRoleIntakeV2.js';
 import { applyTypicalObjectEconomics } from '../src/economicsDemoAssumptions.js';
 import { valuesAtDepth } from '../src/economicsDepth.js';
 import { buildPartialEconomicsRunRequest } from '../src/economicsInputV2.js';
@@ -18,6 +18,25 @@ const fields = [
 ];
 const values = { capacityRunId: 'capacity.test', sources: {}, assumptions: {}, userValues: {},
   timezone: 'Asia/Sakhalin', startSeconds: '32400' };
+
+test('one typical-loader action confirms all three objects and preserves assumption provenance', () => {
+  for (const type of ['retail', 'airport', 'clinic']) {
+    const draft = loadConfirmedTypicalObjectDraft(type);
+    assert.deepEqual(validateDraft(draft, { requireFacilityAreas: true }).filter((item) => item.severity === 'BLOCKER'), []);
+    assert.ok(draft.roles.every((role) => role.salaryConfirmed));
+    const process = draft.processes.find((item) => item.active);
+    for (const [key, source] of Object.entries(process.fieldSources)) {
+      if (source === 'ASSUMPTION' && process[key]) assert.equal(process.fieldConfirmations[key], true);
+    }
+    const serialized = serializeDraft(draft);
+    assert.equal(serialized.facility_areas.total_area.provenance.source, 'ASSUMPTION');
+    assert.equal(serialized.facility_areas.total_area.provenance.user_confirmed, true);
+    if (process.batch) {
+      const edited = updateProcess(draft, process.processId, { batch: '2' });
+      assert.equal(edited.processes.find((p) => p.active).fieldConfirmations.batch, false);
+    }
+  }
+});
 
 test('missing facility areas block the actual intake before normalization', () => {
   assert.deepEqual(validateDraft(createDraft('clinic'), { requireFacilityAreas: true })
