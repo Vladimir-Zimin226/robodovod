@@ -20,6 +20,7 @@ import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../demoCapacityFlow';
 import { candidateReason, catalogDiagnostics, recommendedCandidates } from '../candidateRecommendation';
 import { readCsrfCookie } from '../persistenceApi';
+import PickingStudy from './PickingStudy';
 import { toV2Draft } from '../assistantInterview';
 import { workbookDraft, confirmWorkbookDraft } from '../projectWorkbook';
 
@@ -401,6 +402,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}
       </section>}
+      {selectedProcess?.process_code === 'warehouse_picking' && <PickingStudy project={activeProject} />}
     </section>
   );
 }

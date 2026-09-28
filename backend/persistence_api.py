@@ -48,6 +48,7 @@ from economics_runtime_migration import (
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
 from economics_final import execute_economics_v3, execute_economics_v4
 from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, INPUT_VERSION_V3 as ASSUMPTION_INPUT_VERSION, INPUT_VERSION_V4 as TECHNICAL_INPUT_VERSION, INPUT_VERSION_V5 as STAFFING_INPUT_VERSION, INPUT_VERSION_V6 as PROJECT_INPUT_VERSION, execute_partial_economics_v2
+from calculation.picking_study import PickingStudyV1, calculate_picking_study
 from persistence_models import (
     AnalysisRun,
     AnalysisRunEconomicsVersion,
@@ -1443,6 +1444,13 @@ def create_persistence_router(
             f'</api/v2/projects/{project_id}/economics-runs>; rel="successor-version"'
         )
         return _run_dict(run, include_snapshots=True, db=db)
+
+    @router.post('/v2/projects/{project_id}/picking-study/preview')
+    def preview_picking_study(project_id: uuid.UUID, payload: PickingStudyV1,
+                              context: AuthContext = Depends(require_csrf),
+                              db: Session = Depends(database_session)):
+        _owned_project(db, project_id, context.user.id)
+        return calculate_picking_study(payload)
 
     @router.post('/v2/projects/{project_id}/economics-runs/preview')
     def preview_economics_v2_run(
