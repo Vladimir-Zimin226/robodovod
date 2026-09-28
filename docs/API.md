@@ -1,18 +1,18 @@
-# API
+# Карта API
 
-Backend — FastAPI. Точная версия контрактов доступна в интерактивной документации `/docs` и машинной спецификации `/openapi.json` работающего экземпляра: локально <http://localhost:8000/docs> и <http://localhost:8000/openapi.json>. Этот файл служит картой API, а не заменой схем запросов и ответов.
+Backend — FastAPI. Точные типы запросов и ответов берите из `/openapi.json` работающего экземпляра ([локальный Swagger UI](http://localhost:8000/docs)). Код маршрутов: [main.py](../backend/main.py), [persistence_api.py](../backend/persistence_api.py), [admin_catalog_api.py](../backend/admin_catalog_api.py), [evidence_export_api.py](../backend/evidence_export_api.py).
 
-| Область | Примеры маршрутов | Назначение |
-| --- | --- | --- |
-| Состояние сервиса | `GET /`, `GET /ready` | Liveness и готовность БД |
-| Сессия | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout` | Регистрация, вход и текущий пользователь |
-| Проекты | `GET/POST /api/projects`, `GET/PATCH/DELETE /api/projects/{project_id}` | Владеемые проекты и их параметры |
-| Каталог | `GET /api/catalog/models`, `GET /api/catalog/positions/{position_id}` | Модели, позиции и источники |
-| Расчёт парка | `POST /api/v2/capacity-analyses`, `GET /api/v2/capacity-analyses/{run_id}` | Физический анализ по подтверждённому процессу |
-| Экономика | `POST /api/v2/projects/{project_id}/economics-runs`, `POST /api/v2/projects/{project_id}/economics-runs/preview` | Сохранённый расчёт и предварительное денежное сравнение |
-| Комплектация | `POST /api/v2/projects/{project_id}/picking-study/preview` | Отдельное предварительное исследование отбора |
-| История | `GET /api/projects/{project_id}/analysis-runs`, `GET /api/projects/{project_id}/analysis-runs/{run_id}` | Сохранённые версии результата |
+| Область | Основные маршруты |
+| --- | --- |
+| Состояние | `GET /health` — liveness; `GET /ready` — соединение с БД; `GET /api/catalog/status` — активные источники после `discovery`. |
+| Сессия | `POST /api/auth/register`, `/login`, `/logout`; `GET /api/auth/me`. |
+| Проекты | `GET/POST /api/projects`; `GET/PATCH/DELETE /api/projects/{project_id}`; файлы через `/files/preview` и `/files`. |
+| Ввод и каталог | `POST /api/v2/calculation-intake/normalize`; `GET /api/catalog/models` и `/positions/{position_id}`. |
+| Физический расчёт | `POST /api/v2/capacity-analyses`; `GET /api/v2/capacity-analyses/{run_id}`. |
+| Денежный расчёт | `POST /api/v2/projects/{project_id}/economics-runs`; `POST .../economics-runs/preview`; `POST .../economics-runs/{run_id}/replay`. |
+| История и экспорт | `GET /api/projects/{project_id}/analysis-runs` и `/{run_id}`; `GET .../{run_id}/exports/investor-report.pdf`, `/investor-report-preview.pdf`, `/evidence.zip`. |
+| Администратор каталога | `/api/admin/catalog`: версии, разделы, импорт JSON, validate, publish, activate и audit. |
 
-Изменяющие запросы к проектам и расчётам требуют действующей сессии и CSRF; доступ к сохранённым данным проверяется по владельцу. Авторизация администратора нужна для управления пользователями и каталогом. Снимки входов и результатов версионируются; старые расчёты не заменяются новыми числами при чтении.
+`/ready` может вернуть 200 при ещё не импортированном каталоге. `discovery` нужен для просмотра каталога, `capacity` — для нового расчёта парка, отдельный economics route — для нового денежного расчёта. Legacy `runtime` маршруты на organizer bundle остаются недоступны. Статусы активации проверяются tools CLI из [инструкции запуска](GETTING_STARTED.md).
 
-Исходники маршрутов: [`backend/main.py`](../backend/main.py) и [`backend/persistence_api.py`](../backend/persistence_api.py). [Архитектура](ARCHITECTURE.md) объясняет связь маршрутов с расчётными и визуальными модулями; [расчётные границы](CALCULATIONS.md) описывают, какие входы нужны для денежного вывода.
+Изменяющие запросы к проектам и расчётам требуют действующую сессию и CSRF; данные проекта читаются только владельцем. Административные методы требуют роль ADMIN. Снимки расчётов и экспорта сохраняют свою версию и контрольные суммы. Для точного списка полей используйте OpenAPI текущего запущенного commit, а не примеры исторических спецификаций.

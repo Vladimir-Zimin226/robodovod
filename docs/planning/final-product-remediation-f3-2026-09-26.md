@@ -59,7 +59,7 @@ legacy пула, отдельно от capacity; отсутствие таког
 | Unknown не становится нулём или ready checkbox | Null payload сохранён; extra checkbox отклонён; физическая правка блокирует capacity; восстановленный совместимый профиль проходит gate |
 | Import/edit/publish/rollback из UI, published/history неизменны | JSON download/import/repeat/edit, две публикации, activation и возврат указателей через UI; SQL trigger запрещает published document update |
 | Старые данные reopen/export прежние; новые используют новую версию | До/после сравнены все rows/checksums; старые PDF/evidence ZIP/XLSX равны; новые C11 и экономические runs связаны с новой версией |
-| Admin API sources/defaults и browser 3.3.5 документированы | [Руководство администратора](../ADMIN_CATALOG_2026-09-26.md), section API и два acceptance scripts |
+| Admin API sources/defaults и browser 3.3.5 документированы | [Руководство администратора](../ADMIN_CATALOG.md), section API и два acceptance scripts |
 
 ## Проверки
 

@@ -25,7 +25,7 @@ supersede policy v1 и не меняет provenance уже выпущенног�
 Исходники остаются в ignored staging, в Git не копируются.
 
 Сводная модель, gap matrix, conflict register, вопросы и итерации:
-[план 19](../19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
+[план 19](19_ZHENYA_CALCULATION_IMPLEMENTATION_PLAN.md).
 Ссылки `R00`–`R13` в нём означают документы этого inventory.
 
 ## Source coverage table
