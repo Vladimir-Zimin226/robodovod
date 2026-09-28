@@ -456,6 +456,19 @@ def execute_partial_economics_v2(
             for scenario in result['scenarios']:
                 if scenario.get('acquisition') in {'PURCHASE', 'RAAS'}:
                     scenario['staffing'] = staffing_preview.get(scenario['acquisition'])
+                    report = scenario.get('report_facts', {})
+                    matched = next((row for row in result.get('comparison', {}).get('scenarios', []) if row['scenario_id'] == scenario['scenario_id']), None)
+                    if matched:
+                        report['project_simple_payback'] = matched['metrics']['simple_payback']
+                        report['project_discounted_payback'] = matched['metrics']['discounted_payback']
+                    reasons = scenario['recommendation']['reason_codes']
+                    if not scenario['procurement']['procurement_ready'] and 'procurement-not-confirmed' not in reasons:
+                        reasons.append('procurement-not-confirmed')
+                    if result['ranking']['financial_recommendation'].get('candidate_id') is None:
+                        reasons.append('financial-ranking-not-confirmed')
+                    npv = report.get('project_npv', {}).get('value')
+                    if npv is not None and Decimal(npv) <= 0:
+                        reasons.append('project-effect-non-positive')
         return executed
     for field in sorted(set(purchase_missing + raas_missing + _missing(values, VISUAL_FIELDS))):
         if field not in {item["field"] for item in issues}:

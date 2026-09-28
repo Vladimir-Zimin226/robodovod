@@ -122,11 +122,14 @@ function ScenarioDetails({ scenario }) {
         <StatusCard title="Денежный результат" status={scenario.financial.status}>
           <strong>{scenario.financial.npvProject}</strong><span>{scenario.financial.npvScope === 'PROJECT_C18' ? 'NPV проекта с общими затратами (C18)' : 'NPV прямого процесса (C16); NPV проекта в этой версии не сохранён'}</span>
           {scenario.financial.npvScope === 'PROJECT_C18' && <><strong>{scenario.financial.directProcessNpv}</strong><span>Промежуточный NPV прямого процесса (C16)</span></>}
-          <strong>{scenario.financial.simplePayback}</strong><span>Простой срок окупаемости прямого процесса (C16)</span>
-          <strong>{scenario.financial.discountedPayback}</strong><span>Срок окупаемости прямого процесса с дисконтированием (C16)</span>
+          <strong>{scenario.financial.simplePayback}</strong><span>Простой срок окупаемости {scenario.financial.paybackScope === 'PROJECT_C18' ? 'проекта (C18)' : 'прямого процесса (C16)'}</span>
+          <strong>{scenario.financial.discountedPayback}</strong><span>Дисконтированный срок {scenario.financial.paybackScope === 'PROJECT_C18' ? 'проекта (C18)' : 'прямого процесса (C16)'}</span>
         </StatusCard>
-        <StatusCard title="Вывод по сценарию" status={scenario.recommendation.status}>
-          <p>{scenario.recommendation.candidate_id ? 'Расчётный вариант выбран' : 'Вариант не выбран'}</p>
+        <StatusCard title="Вывод по сценарию" status={scenario.financial.status}>
+          <p>{scenario.financial.projectNpvValue == null ? 'Проектный денежный вывод для этой версии не сохранён.' : Number(scenario.financial.projectNpvValue) > 0 ? 'Сохранённый проектный NPV положителен для выбранных условий.' : Number(scenario.financial.projectNpvValue) < 0 ? 'Сохранённый проектный NPV отрицателен для выбранных условий.' : 'Сохранённый проектный NPV равен нулю.'}</p>
+          <p>{scenario.financial.discountedPayback === 'Не достигнута' ? 'Дисконтированная окупаемость за горизонт не достигнута.' : `Дисконтированная окупаемость: ${scenario.financial.discountedPayback}.`}</p>
+          {!scenario.procurement.ready && <p>Доступность поставки и условия предложения нужно подтвердить у поставщика; принятие расчётной цены этого не подтверждает.</p>}
+          {scenario.recommendation.reason_codes?.includes('financial-ranking-not-confirmed') && <p>Сравнение моделей пока не даёт подтверждённой финансовой рекомендации.</p>}
         </StatusCard>
       </div>
 

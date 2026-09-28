@@ -207,13 +207,17 @@ function financialView(result, reportFacts) {
   const projectFlows = Array.isArray(reportFacts?.annual_cashflows)
     && reportFacts.annual_cashflows.length === result.annual_ledgers.length
     ? reportFacts.annual_cashflows : null;
+  const projectSimple = reportFacts?.project_simple_payback;
+  const projectDiscounted = reportFacts?.project_discounted_payback;
   return {
     status: result.status,
     npvProject: formatServerMetric(projectNpv || result.npv_project),
     npvScope: projectNpv ? 'PROJECT_C18' : 'DIRECT_PROCESS_C16',
     directProcessNpv: formatServerMetric(result.npv_project),
-    simplePayback: formatServerMetric(result.simple_payback),
-    discountedPayback: formatServerMetric(result.discounted_payback),
+    simplePayback: formatServerMetric(projectSimple || result.simple_payback),
+    discountedPayback: formatServerMetric(projectDiscounted || result.discounted_payback),
+    paybackScope: projectSimple && projectDiscounted ? 'PROJECT_C18' : 'DIRECT_PROCESS_C16',
+    projectNpvValue: projectNpv?.value ?? null,
     annualLedgers: result.annual_ledgers.map((ledger, index) => ({
       year: ledger.year,
       baseline: projectFlows ? projectFlows[index].baseline : ledger.primary_cf_base,
@@ -241,7 +245,13 @@ export function getCommercialScenariosModel(bundle, expectedRevision = null) {
       acquisition: scenario.acquisition,
       uncertainty: scenario.uncertainty,
       procurement: procurementView(scenario.procurement),
-      financial: financialView(scenario.financial, scenario.report_facts),
+      financial: financialView(scenario.financial, {
+        ...scenario.report_facts,
+        project_simple_payback: scenario.report_facts?.project_simple_payback
+          || bundle.comparison?.scenarios?.find((row) => row.scenario_id === scenario.scenario_id)?.metrics?.simple_payback,
+        project_discounted_payback: scenario.report_facts?.project_discounted_payback
+          || bundle.comparison?.scenarios?.find((row) => row.scenario_id === scenario.scenario_id)?.metrics?.discounted_payback,
+      }),
       recommendation: { ...scenario.recommendation },
       allocation: scenario.allocation,
       expenses: scenario.expenses.map((line) => ({ ...line })),

@@ -88,3 +88,19 @@ def test_cleaning_practical_capacity_respects_nameplate_and_downtime():
     result=calculate_cleaning_capacity(baseline.model_copy(update={'operations':explicit}))
     assert result.capacity.value.recommended_fleet==2
     assert Decimal(result.capacity.value.effective_capacity.value)<=Decimal(result.capacity.value.nominal_capacity.value)
+
+def test_v6_project_finance_and_conclusion_are_profile_specific():
+    from economics_final import execute_economics_v4
+    snapshot,context=_context()
+    result=execute_partial_economics_v2(project_input(),snapshot,context,full_engine=execute_economics_v4).result_snapshot
+    assert result['schema_version']=='commercial-scenarios-bundle-v3'
+    assert len(result['scenarios'])==6
+    for row in result['scenarios']:
+        facts=row['report_facts']
+        comparison=next(item for item in result['comparison']['scenarios'] if item['scenario_id']==row['scenario_id'])
+        assert facts['project_npv']['value']==comparison['metrics']['npv']['value']
+        assert facts['project_simple_payback']['value']==comparison['metrics']['simple_payback']['value']
+        assert facts['project_discounted_payback']['value']==comparison['metrics']['discounted_payback']['value']
+        assert row['recommendation']['candidate_id'] is None
+        assert 'procurement-not-confirmed' in row['recommendation']['reason_codes']
+        assert row['staffing']['control_required']==4
