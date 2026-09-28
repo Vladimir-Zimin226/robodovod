@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { buildEconomicsSimulationRequest, buildTechnicalSimulationRequest } from '../src/economicsSimulationRequest.js';
+import { commercialSimulationSource, resultCapacityRunId } from '../src/resultSimulationModel.js';
 
 const scenarioSpec = JSON.parse(await readFile(new URL('../../contracts/fixtures/scenario-spec-v2.capacity-only-cleaner.golden.json', import.meta.url), 'utf8'));
 const bundle = {
@@ -42,14 +43,30 @@ test('partial technical run builds a saved C23 request only for matching C11 ide
   assert.equal(buildTechnicalSimulationRequest({ ...run, scenario_spec_snapshot: { schema_version: 'scenario-spec-partial-v1' } }), null);
 });
 
+test('economics reuses the linked technical simulation and falls back to one economics scene', () => {
+  const economicsRun = { id: bundle.run_id, input_snapshot: { capacity_run_id: scenarioSpec.analysis.capacity_run_id }, scenario_spec_snapshot: scenarioSpec };
+  const technicalRun = { id: 'technical-run', project_id: bundle.project_id,
+    input_snapshot: { capacity_run_id: scenarioSpec.analysis.capacity_run_id } };
+  assert.equal(resultCapacityRunId(bundle, economicsRun), scenarioSpec.analysis.capacity_run_id);
+  const linked = commercialSimulationSource(bundle, economicsRun, technicalRun, bundle.project_id);
+  assert.equal(linked.kind, 'TECHNICAL');
+  assert.equal(linked.run, technicalRun);
+  const fallback = commercialSimulationSource(bundle, economicsRun, technicalRun, 'another-project');
+  assert.equal(fallback.kind, 'ECONOMICS');
+  assert.equal(fallback.request.request_id, `simulation.${bundle.run_id}.v2`);
+  assert.equal(commercialSimulationSource(bundle, { ...economicsRun, scenario_spec_snapshot: null }, null, bundle.project_id), null);
+});
+
 test('v2 result and economics form use the dark application palette', async () => {
   const css = await readFile(new URL('../src/index.css', import.meta.url), 'utf8');
   const result = await readFile(new URL('../src/components/CapacityResultsTrace.jsx', import.meta.url), 'utf8');
   const form = await readFile(new URL('../src/components/EconomicsInputsV2.jsx', import.meta.url), 'utf8');
   const scenarios = await readFile(new URL('../src/components/CommercialScenariosV2.jsx', import.meta.url), 'utf8');
+  const visualization = await readFile(new URL('../src/components/ResultSimulation.jsx', import.meta.url), 'utf8');
   assert.match(result, /capacity-results-v2/);
   assert.match(form, /economics-inputs-v2/);
   assert.match(css, /\.capacity-results-v2 \.bg-white[^\n]*background: var\(--bg-panel\)/);
   assert.match(css, /\.economics-inputs-v2 [^\n]*background: var\(--bg-panel\)/);
-  assert.match(scenarios, /<Simulation2DReport[^>]*request=\{simulationRequest\}/);
+  assert.doesNotMatch(scenarios, /<Simulation2DReport/);
+  assert.match(visualization, /<Simulation2DReport/);
 });

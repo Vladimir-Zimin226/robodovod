@@ -5,8 +5,6 @@ import {
   createCommercialSession,
   formatServerMoney,
 } from '../commercialScenariosModel';
-import { buildEconomicsSimulationRequest } from '../economicsSimulationRequest';
-import Simulation2DReport from './Simulation2DReport';
 import FinalEconomicsComparison from './FinalEconomicsComparison';
 import ProjectWhatIf from './ProjectWhatIf';
 import { roleLabel } from '../roleLabels';
@@ -18,21 +16,17 @@ const STATUS_LABELS = {
   ALTERNATIVE: 'Альтернатива', NO_POSITIVE_CASE: 'Нет положительного кейса',
 };
 
-export default function CommercialScenariosV2({ bundle, scenarioSpec, projectName, project, run, onComplete, onRecalculate, onRestart }) {
+export default function CommercialScenariosV2({ bundle, projectName, project, run, onComplete, onRecalculate, onRestart, hasVisualization = false }) {
   const initial = useMemo(() => createCommercialSession(bundle), [bundle]);
   const [session, setSession] = useState(initial);
   const [scenarioKey, setScenarioKey] = useState('PURCHASE:BASE');
-  const simulationRequest = useMemo(
-    () => buildEconomicsSimulationRequest(bundle, scenarioSpec), [bundle, scenarioSpec],
-  );
 
   const edit = (field, value) => setSession((current) => applyCommercialInputEdit(current, field, value));
   const scenario = session.result?.scenarios.find((item) => item.key === scenarioKey) || null;
   const finalComparison = bundle.comparison || null;
 
   return (
-    <main className="commercial-screen" aria-label="Коммерческие сценарии">
-      {simulationRequest && <Simulation2DReport key={simulationRequest.request_id} request={simulationRequest} analysisRunId={bundle.run_id} />}
+    <main className="commercial-screen" id="economics-result" aria-label="Коммерческие сценарии">
       <header className="commercial-header">
         <div>
           <span>ЭКОНОМИКА РОБОТИЗАЦИИ</span>
@@ -42,7 +36,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, projectNam
           <p>Шесть серверных сценариев. Интерфейс не пересчитывает финансовые показатели.</p>
         </div>
         <div className="commercial-header-actions">
-          {simulationRequest && <a href="#visualization">К 2D и 3D</a>}
+          {hasVisualization && <button type="button" onClick={() => document.getElementById('visualization')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>К 2D и 3D</button>}
           <button type="button" onClick={onRestart}>Новый расчёт</button>
         </div>
       </header>

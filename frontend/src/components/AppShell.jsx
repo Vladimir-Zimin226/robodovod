@@ -14,7 +14,7 @@ const NAVIGATION = [
 export function AppShell({ phase, user, activeProject, onNavigate, command, setCommand, onCommand, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isResult = phase === 'results';
-  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase === 'reports' ? 'report' : phase;
+  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase === 'reports' ? 'report' : phase === 'economicsMethodology' ? 'economics' : phase;
   const initials = (user?.name || user?.email || 'Г')
     .split(/[\s@]+/)
     .filter(Boolean)

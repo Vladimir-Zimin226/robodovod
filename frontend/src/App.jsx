@@ -16,11 +16,13 @@ import EconomicsInputsV2 from './components/EconomicsInputsV2';
 import PartialEconomicsResult from './components/PartialEconomicsResult';
 import SavedEconomicsEditor from './components/SavedEconomicsEditor';
 import GuestWarehouseDemo from './components/GuestWarehouseDemo';
-import TechnicalVisualization from './components/TechnicalVisualization';
+import ResultSimulation from './components/ResultSimulation';
+import { commercialSimulationSource, resultCapacityRunId } from './resultSimulationModel';
 import BrainModelScreen from './components/BrainModelScreen';
 import CandidateComparisonPanel from './components/CandidateComparisonPanel';
 import RoboExpertScreen from './components/RoboExpertScreen';
 import EconomicsGlossaryScreen from './components/EconomicsGlossaryScreen';
+import EconomicsMethodologyScreen from './components/EconomicsMethodologyScreen';
 import ReportsScreen from './components/ReportsScreen';
 import ProjectTemplatesScreen from './components/ProjectTemplatesScreen';
 import AdminCatalogScreen from './components/AdminCatalogScreen';
@@ -68,6 +70,7 @@ export default function App() {
   const intakeV2Snapshot = useRef(null);
   const catalogReturnPhase = useRef('onboarding');
   const pendingResultTarget = useRef(null);
+  const previousPhase = useRef(phase);
 
   const showPhase = (nextPhase) => {
     if (phase !== nextPhase) {
@@ -105,13 +108,23 @@ export default function App() {
   }, [result]);
 
   useEffect(() => {
-    if (phase !== 'results') return undefined;
+    const enteredResults = previousPhase.current !== 'results' && phase === 'results';
+    const changedPage = previousPhase.current !== phase;
+    previousPhase.current = phase;
+    if (phase !== 'results') {
+      if (changedPage) window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      return undefined;
+    }
+    if (enteredResults && !pendingResultTarget.current) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      return undefined;
+    }
+    if (!enteredResults && !pendingResultTarget.current) return undefined;
     const target = pendingResultTarget.current;
     const frame = window.requestAnimationFrame(() => {
       // Clear only after execution: StrictMode may cancel the first frame.
       pendingResultTarget.current = null;
       if (target) document.getElementById(target)?.scrollIntoView({ behavior: 'instant', block: 'start' });
-      else window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [phase, result]);
@@ -306,7 +319,10 @@ export default function App() {
             }}
           />
         ) : phase === 'economics' ? (
-          <EconomicsGlossaryScreen onOpenCalculation={openCalculation} onOpenDemo={() => showPhase('guestDemo')} />
+          <EconomicsGlossaryScreen onOpenCalculation={openCalculation} onOpenDemo={() => showPhase('guestDemo')}
+            onOpenMethodology={() => showPhase('economicsMethodology')} />
+        ) : phase === 'economicsMethodology' ? (
+          <EconomicsMethodologyScreen onBack={() => showPhase('economics')} onOpenCalculation={openCalculation} />
         ) : phase === 'reports' ? (
           <ReportsScreen user={user} onOpenAccount={() => showPhase('account')} onOpenRun={openSavedRun} />
         ) : phase === 'process' ? (
@@ -415,11 +431,13 @@ export default function App() {
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
         ) : (
           <>
+            <ResultSimulation key={resultCapacityRunId(result, activeRun) || activeRun?.id || 'none'} result={result}
+              run={activeRun} technicalRun={technicalExportRun} capacityRequest={userInput}
+              project={activeProject} onReady={setTechnicalExportRun} />
             {result?.schema_version === 'simulation-2d-bundle-v1' ? (
               <Simulation2DReport key={result.request?.request_id || result.run_id} request={result.request} initialReport={result.report} scenarios={result.scenarios} />
             ) : isCapacityAnalysisResponse(result) ? (
               <>
-                <TechnicalVisualization autoStart onReady={setTechnicalExportRun} key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
                 <div className="mx-auto max-w-6xl px-4 pb-4"><button type="button" className="secondary-action" onClick={openCalculation}>Вернуться к зонам и рассчитать другую операцию</button></div>
                 <EconomicsInputsV2
@@ -429,6 +447,7 @@ export default function App() {
                   capacityRunId={activeRun?.id || result.run_id}
                   project={activeProject}
                   onComplete={(run) => {
+                    pendingResultTarget.current = 'economics-result';
                     setActiveRun(run);
                     setResult(run.result_snapshot);
                     setSaveState('saved');
@@ -437,6 +456,7 @@ export default function App() {
               </>
             ) : result?.schema_version === 'economics-partial-result-v1' ? (
               <PartialEconomicsResult result={result} run={activeRun} project={activeProject} autoOpenEditor={editorRequestedRunId === activeRun?.id} onComplete={(run) => {
+                pendingResultTarget.current = 'economics-result';
                 setActiveRun(run);
                 setResult(run.result_snapshot);
                 setSaveState('saved');
@@ -444,11 +464,12 @@ export default function App() {
             ) : isCommercialScenariosBundle(result) ? (
               <>
                 <p className="mx-auto max-w-6xl">Глубина расчёта: {({ BASIC: 'Базовый', ADVANCED: 'Углублённый', FULL: 'Полный' })[activeRun?.input_snapshot?.economics?.calculation_depth] || 'Не указана в историческом расчёте'}</p>
-                <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} projectName={activeProject?.name} project={activeProject} run={activeRun} onComplete={(run) => { setActiveRun(run); setResult(run.result_snapshot); setSaveState('saved'); }} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={() => {
+                <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} projectName={activeProject?.name} project={activeProject} run={activeRun} hasVisualization={Boolean(commercialSimulationSource(result, activeRun, technicalExportRun, activeProject?.id))} onComplete={(run) => { pendingResultTarget.current = 'economics-result'; setActiveRun(run); setResult(run.result_snapshot); setSaveState('saved'); }} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={() => {
                   if (activeRun?.id) { setEditorRequestedRunId(activeRun.id); requestAnimationFrame(() => document.getElementById('edit-economics-run')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }
                   else openCalculation();
                 }} />
                 <SavedEconomicsEditor key={`editor:${activeRun?.id || result.run_id}`} project={activeProject} run={activeRun} autoOpen={editorRequestedRunId === activeRun?.id} onComplete={(run) => {
+                  pendingResultTarget.current = 'economics-result';
                   setActiveRun(run); setResult(run.result_snapshot); setSaveState('saved');
                 }} />
               </>

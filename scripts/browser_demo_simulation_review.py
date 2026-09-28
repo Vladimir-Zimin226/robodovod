@@ -59,7 +59,10 @@ def main():
     rows = {r['id']: r for r in map(json.loads, (backup / 'database/analysis_runs.jsonl').read_text('utf-8').splitlines())}
     artifacts = [json.loads(line) for line in (backup / 'database/simulation_artifacts.jsonl').read_text('utf-8').splitlines()]
     cases = {}
-    for template in ('warehouse', 'airport', 'hospital'):
+    available_templates = {item['request_snapshot']['scenario_spec']['template'] for item in artifacts}
+    if not {'warehouse', 'airport'}.issubset(available_templates):
+        raise RuntimeError('Required read-only warehouse and airport artifacts are missing')
+    for template in sorted(available_templates):
         saved = max((a for a in artifacts if a['request_snapshot']['scenario_spec']['template'] == template), key=lambda a: a['created_at'])
         cases[template] = {'run': rows[saved['analysis_run_id']], 'request': saved['request_snapshot'], 'report': saved['report_snapshot']}
     harness = ROOT / 'frontend/.tmp-demo-review'

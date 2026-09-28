@@ -60,7 +60,6 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   const active = useMemo(() => options.find((item) => item.id === selected) || options[0], [options, selected]);
   const [report, setReport] = useState(active?.report || null);
   const [viewMode, setViewMode] = useState('2D');
-  const [opened3D, setOpened3D] = useState(false);
   const [runState, setRunState] = useState(null);
   const [error, setError] = useState('');
   const api = useRef(new SimulationApiSession());
@@ -282,7 +281,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
           </details>
 
           <div className="simulation-view-tabs" role="tablist" aria-label="Представление симуляции">
-            {['2D', '3D'].map((mode) => <button key={mode} type="button" role="tab" aria-selected={viewMode === mode} onClick={() => { setViewMode(mode); if (mode === '3D') setOpened3D(true); }}>{mode}</button>)}
+            {['2D', '3D'].map((mode) => <button key={mode} type="button" role="tab" aria-selected={viewMode === mode} onClick={() => setViewMode(mode)}>{mode}</button>)}
           </div>
 
           <div className="simulation-controls" aria-label="Управление timeline">
@@ -311,7 +310,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
             <div className="simulation-legend"><span>→ направление потока · обратный ход по нижней линии</span><span><i className="legend-robot" /> условное положение робота</span><span>↯ зарядка учтена агрегированно; точка не задана</span></div>
             <p className="simulation-schematic-note">Зоны и точки показаны схематично; предоставленная схема означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, показатели берутся из отчёта симуляции.</p>
           </div>}</div>
-          <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}{opened3D && <RobCraftFrame key={bindingKey} scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline} visible={viewMode === '3D'}
+          <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}{viewMode === '3D' && <RobCraftFrame key={bindingKey} scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline} visible
             selectedZoneId={zonalScene ? activeZoneId : null} onZoneChange={zonalScene ? selectZone : null} compact />}
             {facilityScene && <div className="facility-operations mt-3" aria-label="Действия роботов в 3D">{presentation.frame.robots.filter(robot => robot.zoneId === activeZoneId).slice(0, 12).map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.areaLabel}{robot.carrying ? ` · ${robot.units} порций` : ''}</small></div>)}</div>}
           </div>

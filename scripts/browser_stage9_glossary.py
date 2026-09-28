@@ -92,12 +92,22 @@ def main() -> None:
             assert js(source)
             until("[...document.querySelectorAll('.economics-glossary-card')].some(x=>x.querySelector('summary strong')?.innerText===%s && x.open && x.innerText.includes(%s))" % (json.dumps(title, ensure_ascii=False), json.dumps(field)))
         assert js("document.querySelector('.economics-glossary-card[open] .economics-glossary-formula').textContent.includes('Формула')")
+        assert js("Boolean(document.querySelector('.economics-methodology-invite button'))")
+        assert js("(() => { document.querySelector('.economics-methodology-invite button').click(); return true })()")
+        until("Boolean(document.querySelector('[aria-label=\"Полная методология оценки роботизации\"]'))")
+        assert js("document.querySelectorAll('.methodology-chapter').length") == 16
+        assert js("document.querySelector('.app-nav [aria-current=page]').innerText") == "Экономика"
+        assert js("document.querySelector('.methodology-page').innerText.includes('Основной путь платформы сейчас не рассчитывает налог на прибыль')")
+        assert js("document.querySelector('.methodology-page').innerText.includes('Комплектация не выводится из производительности штабелёра')")
+        assert js("document.documentElement.scrollWidth <= innerWidth")
         call("Emulation.setDeviceMetricsOverride", {"width": 390, "height": 844, "deviceScaleFactor": 1, "mobile": True})
-        call("Page.reload", {"ignoreCache": True})
-        until("document.querySelectorAll('.economics-glossary-card').length===13")
-        bounds = js("(() => {const e=document.querySelector('.economics-glossary');return [innerWidth,e.getBoundingClientRect().left,e.getBoundingClientRect().right,document.documentElement.scrollWidth]})()")
+        call("Page.navigate", {"url": f"{web}/#economics-methodology"})
+        until("document.querySelectorAll('.methodology-chapter').length===16")
+        bounds = js("(() => {const e=document.querySelector('.methodology-page');return [innerWidth,e.getBoundingClientRect().left,e.getBoundingClientRect().right,document.documentElement.scrollWidth]})()")
         assert bounds[0] == 390 and bounds[1] >= 0 and bounds[2] <= 391 and bounds[3] <= 391, bounds
-        print("Desktop search, open formulas and 390 px mobile layout OK")
+        assert js("(() => {document.querySelector('.methodology-back').click(); return true})()")
+        until("document.querySelectorAll('.economics-glossary-card').length===13")
+        print("Desktop glossary and 16-chapter methodology; 390 px mobile layout and return OK")
     finally:
         if ws is not None:
             ws.close()
