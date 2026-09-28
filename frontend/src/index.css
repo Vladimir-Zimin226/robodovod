@@ -531,6 +531,10 @@ button:disabled { cursor: not-allowed; }
 .economics-glossary-search input { min-width: 0; min-height: 46px; padding: 10px 13px; border: 1px solid var(--border-medium); border-radius: 7px; background: var(--bg-input); color: var(--text-primary); }
 .economics-glossary-search span { padding-bottom: 13px; color: var(--text-muted); font-size: 11px; }
 .economics-glossary-list { display: grid; gap: 9px; }
+.economics-methodology { margin-top: 18px; }
+.economics-methodology .economics-glossary-body { font-size: 13px; }
+.economics-methodology ol { display: grid; gap: 9px; padding-left: 20px; }
+.economics-methodology li { padding-left: 3px; }
 .economics-glossary-card { border: 1px solid var(--border-subtle); border-radius: 9px; background: var(--bg-panel); }
 .economics-glossary-card[open] { border-color: rgba(147,237,67,.42); }
 .economics-glossary-card summary { display: flex; justify-content: space-between; gap: 15px; align-items: center; padding: 16px 19px; cursor: pointer; list-style-position: inside; }

@@ -37,6 +37,34 @@ def test_workbook_csv_xlsx_roundtrip(profile, demo):
     assert "2–3" in interview_prompt(profile) and "Не выдумывай" in interview_prompt(
         profile
     )
+    economy = xlsx.normalized_input["records"]["Экономика"]["main"]
+    assert {"robotizable_share", "residual_operations", "robots_per_control_post"} <= set(economy)
+    assert economy["robotizable_share"]["status"] == ("ASSUMPTION" if demo else "UNKNOWN")
+    assert economy["technician_qualification_confirmed"]["status"] == "UNKNOWN"
+
+
+def test_older_workbook_without_additive_policy_rows_still_imports():
+    additive = {"robotizable_share", "residual_operations",
+            "robots_per_control_post", "robots_per_day_technician", "rotation_factor",
+            "technician_presence", "control_mode", "technician_purchase_mode",
+            "technician_raas_mode", "technician_qualification_confirmed",
+            "implementation_mode", "implementation_percent", "raas_mode", "raas_percent_monthly"}
+    rows = [row for row in csv_rows() if not (row["sheet"] == "Экономика" and
+            row["parameter_code"] in additive)]
+    result = inspect_project_file("older.csv", encode(rows), "warehouse")
+    assert result.valid
+    assert "robotizable_share" not in result.normalized_input["records"]["Экономика"]["main"]
+    name, payload = build_workbook("warehouse", True)
+    book = load_workbook(io.BytesIO(payload))
+    sheet = book["Экономика"]
+    for row in range(sheet.max_row, 1, -1):
+        if sheet.cell(row, 2).value in additive:
+            sheet.delete_rows(row)
+    stream = io.BytesIO()
+    book.save(stream)
+    book.close()
+    old_xlsx = inspect_project_file(name, stream.getvalue(), "warehouse")
+    assert old_xlsx.valid
 
 
 def csv_rows():

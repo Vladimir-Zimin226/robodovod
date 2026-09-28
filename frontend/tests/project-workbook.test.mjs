@@ -68,6 +68,26 @@ test('unknown values stay empty and multiple zones/processes preserve shared rol
   assert.equal(economy.start_seconds_from_midnight, '');
 });
 
+test('workbook policy proposals reach the economics form without confirming commercial assumptions', () => {
+  const input = structuredClone(fixtures['interview-220-120']);
+  const rows = input.records['Экономика'].main;
+  for (const [key, value] of Object.entries({ robotizable_share: '0.65', residual_operations: 'Подготовка груза',
+    robots_per_control_post: '10', robots_per_day_technician: '20', rotation_factor: '2.2',
+    technician_presence: 'DAY_WORKLOAD', control_mode: 'HIRE', technician_purchase_mode: 'HIRE',
+    technician_raas_mode: 'VENDOR', implementation_mode: 'PERCENT', implementation_percent: '0.1',
+    raas_mode: 'PERCENT', raas_percent_monthly: '0.02' })) {
+    rows[key] = { value, unit: 'code', status: 'ASSUMPTION', source: 'Interview' };
+  }
+  const economics = workbookEconomics(input);
+  assert.equal(economics.schema_version, 'economics-explicit-inputs-v6');
+  assert.equal(economics.work_share.fraction, '0.65');
+  assert.equal(economics.staffing_policy.robots_per_day_technician, '20');
+  assert.equal(economics.staffing_raas.technician_mode, 'VENDOR');
+  assert.equal(economics.implementation_percent, '0.1');
+  assert.equal(economics.role_salaries_confirmed_as_monthly_gross, undefined);
+  assert.equal(economics.assumption_evidence.implementation_percent.confirmed, false);
+});
+
 test('airport and clinic alternative flow units keep their quantity kind', () => {
   for (const [type, code, unit, kind, role] of [
     ['airport', 'airport_baggage', 'cart/day', 'CART', 'baggage_handler'],

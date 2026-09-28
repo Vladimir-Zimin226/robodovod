@@ -20,6 +20,15 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
 VERSION = "project-workbook-v1"
+# Additive proposal fields: older v1 books remain importable; missing new rows
+# are treated as unknown, never as a silently confirmed policy.
+OPTIONAL_ECONOMICS_FIELDS = {
+    "robotizable_share", "residual_operations", "robots_per_control_post",
+    "robots_per_day_technician", "rotation_factor", "technician_presence",
+    "control_mode", "technician_purchase_mode", "technician_raas_mode",
+    "technician_qualification_confirmed", "implementation_mode",
+    "implementation_percent", "raas_mode", "raas_percent_monthly",
+}
 HEADERS = (
     "record_id",
     "parameter_code",
@@ -101,6 +110,20 @@ FIELDS = {
     },
     "Экономика": {
         "evaluation_date": ("Дата оценки", "YYYY-MM-DD", "date", None, None),
+        "robotizable_share": ("Доля работы роли, доступная роботизации (0.65 = 65%)", "1", "decimal", 0, 1),
+        "residual_operations": ("Ручные операции, которые остаются", "text", "text", None, None),
+        "robots_per_control_post": ("Роботов на пост диспетчера", "robot/post", "decimal", 0.01, 100000),
+        "robots_per_day_technician": ("Роботов на дневного техника", "robot/person", "decimal", 0.01, 100000),
+        "rotation_factor": ("Коэффициент ротации для круглосуточного покрытия", "1", "decimal", 1, 100),
+        "technician_presence": ("Присутствие техника DAY_WORKLOAD/EACH_SHIFT/VENDOR", "code", "tech_presence", None, None),
+        "control_mode": ("Диспетчер: перевод/найм/подрядчик", "code", "staff_mode", None, None),
+        "technician_purchase_mode": ("Техник при покупке: перевод/найм/подрядчик", "code", "staff_mode", None, None),
+        "technician_raas_mode": ("Техник при RaaS: перевод/найм/подрядчик", "code", "staff_mode", None, None),
+        "technician_qualification_confirmed": ("Квалификация переведённого техника подтверждена", "YES/NO", "bool", None, None),
+        "implementation_mode": ("Внедрение: FIXED/PERCENT", "code", "price_mode", None, None),
+        "implementation_percent": ("Внедрение, доля цены оборудования (0.1 = 10%)", "1", "decimal", 0, 1),
+        "raas_mode": ("Тариф RaaS: FIXED/PERCENT", "code", "price_mode", None, None),
+        "raas_percent_monthly": ("Месячный RaaS, доля цены робота (0.02 = 2%)", "1", "decimal", 0, 1),
         "horizon_years": ("Горизонт оценки", "year", "integer", 5, 15),
         "discount_rate": ("Ставка дисконтирования (0.15 = 15%)", "1", "decimal", 0, 1),
         "manual_units_per_shift": (
@@ -254,6 +277,15 @@ def interview_prompt(profile_code: str) -> str:
 Проведи интервью по 2–3 вопроса: объект и зоны/ограничения; процессы и потоки;
 нагрузка и единицы; плечо В ОДНУ сторону, единиц за рейс, обмен; график;
 роли без двойного учёта, месячная зарплата GROSS; экономические условия и источники.
+Отдельно спроси, какая доля работы действительно роботизируется и что останется людям;
+как покрываются диспетчер и техник (перевод/найм/подрядчик), сколько роботов
+на пост/техника, нужна ли техника во все смены, коэффициент ротации.
+Внедрение и RaaS задаются либо суммой FIXED, либо долей PERCENT от gross цены:
+0.1 означает 10%, 0.02 означает 2% в месяц. Не заполняй оба режима как действующие.
+Коды покрытия диспетчера: TRANSFER, HIRE, EXISTING; техника при покупке:
+TRANSFER, HIRE, EXISTING, CONTRACTOR; техника при RaaS также VENDOR.
+Присутствие техника: DAY_WORKLOAD, EACH_SHIFT, VENDOR. Квалификацию перевода
+не подтверждай за пользователя: оставь technician_qualification_confirmed UNKNOWN.
 Затем уточни неизвестные паспортные параметры. Не рассчитывай парк, финансы или пригодность.
 Не выдумывай число, цену, источник, подтверждение или обязательные данные.
 UNKNOWN: пустое значение (не 0); DATA: явный ответ с источником; ASSUMPTION:
@@ -301,6 +333,17 @@ def template_rows(profile_code: str, demo: bool = False) -> list[dict[str, Any]]
         "Роли": {"headcount": "25", "salary": "120000"},
         "Экономика": {
             "evaluation_date": "2026-09-26",
+            "robotizable_share": "0.65",
+            "residual_operations": "Контроль исключений, подготовка груза и нестандартные операции",
+            "robots_per_control_post": "10",
+            "robots_per_day_technician": "20",
+            "rotation_factor": "2.2",
+            "technician_presence": "DAY_WORKLOAD",
+            "control_mode": "HIRE",
+            "technician_purchase_mode": "HIRE",
+            "technician_raas_mode": "VENDOR",
+            "implementation_mode": "FIXED",
+            "raas_mode": "FIXED",
             "horizon_years": "5",
             "discount_rate": "0.15",
             "manual_units_per_shift": "100",
@@ -318,7 +361,8 @@ def template_rows(profile_code: str, demo: bool = False) -> list[dict[str, Any]]
             "raas_contract_months": "60",
             "raas_infrastructure_owner": "VENDOR",
             "start_seconds_from_midnight": "32400",
-            **{k: "YES" for k, v in FIELDS["Экономика"].items() if v[2] == "bool"},
+            **{k: "YES" for k, v in FIELDS["Экономика"].items()
+               if v[2] == "bool" and k != "technician_qualification_confirmed"},
         },
         "Паспорт": {
             p.parameter_code: str(p.default_value) for p in profile.parameters()
@@ -641,6 +685,16 @@ def inspect_workbook(
                     and not re.fullmatch(r"[a-z][a-z0-9_-]{0,47}", value)
                 ):
                     raise ValueError()
+                elif kind == "staff_mode" and value not in {"TRANSFER", "HIRE", "EXISTING", "CONTRACTOR", "VENDOR"}:
+                    raise ValueError()
+                elif kind == "staff_mode" and field == "control_mode" and value not in {"TRANSFER", "HIRE", "EXISTING"}:
+                    raise ValueError()
+                elif kind == "staff_mode" and field == "technician_purchase_mode" and value == "VENDOR":
+                    raise ValueError()
+                elif kind == "price_mode" and value not in {"FIXED", "PERCENT"}:
+                    raise ValueError()
+                elif kind == "tech_presence" and value not in {"DAY_WORKLOAD", "EACH_SHIFT", "VENDOR"}:
+                    raise ValueError()
                 elif kind == "timezone":
                     ZoneInfo(value)
                 elif kind == "date":
@@ -690,7 +744,7 @@ def inspect_workbook(
         if sheet not in records:
             issue("RECORD_MISSING", "Обязательная запись листа отсутствует", sheet)
         for rid, record in records.get(sheet, {}).items():
-            for field in definitions_.keys() - record.keys() - ({"total_area_m2", "active_area_m2"} if sheet == "Объект" else set()):
+            for field in definitions_.keys() - record.keys() - ({"total_area_m2", "active_area_m2"} if sheet == "Объект" else OPTIONAL_ECONOMICS_FIELDS if sheet == "Экономика" else set()):
                 issue(
                     "FIELD_MISSING",
                     "Обязательная строка поля отсутствует; неизвестное храните как UNKNOWN",

@@ -72,5 +72,31 @@ export function workbookEconomics(input) {
   }
   result.timezone = input.records['Объект'].main.timezone.value || '';
   result.start_seconds_from_midnight = rows.start_seconds_from_midnight.value ?? '';
+  const optional = (code) => rows[code]?.value || '';
+  const policy = ['robots_per_control_post', 'robots_per_day_technician', 'rotation_factor'];
+  if (policy.every(optional)) {
+    result.staffing_policy = { schema_version: 'staffing-policy-v2',
+      robots_per_control_post: optional('robots_per_control_post'),
+      robots_per_day_technician: optional('robots_per_day_technician'),
+      rotation_factor: optional('rotation_factor'),
+      technician_presence: optional('technician_presence') || 'DAY_WORKLOAD',
+      source: 'ASSUMPTION', provenance_ref: `workbook:${input.file_source.sha256}` };
+  }
+  if (optional('robotizable_share') && optional('residual_operations')) {
+    result.work_share = { schema_version: 'robotizable-work-share-v1',
+      fraction: optional('robotizable_share'), residual_operations: optional('residual_operations'),
+      source: 'ASSUMPTION', provenance_ref: `workbook:${input.file_source.sha256}` };
+  }
+  if (optional('control_mode') && optional('technician_purchase_mode')) {
+    result.staffing_purchase = { control_mode: optional('control_mode'),
+      technician_mode: optional('technician_purchase_mode') };
+  }
+  if (optional('control_mode') && optional('technician_raas_mode')) {
+    result.staffing_raas = { control_mode: optional('control_mode'),
+      technician_mode: optional('technician_raas_mode') };
+  }
+  // Workbook YES is a proposal. Qualification and contract confirmations still
+  // require an explicit click in the application before a saved calculation.
+  result.schema_version = 'economics-explicit-inputs-v6';
   return result;
 }
