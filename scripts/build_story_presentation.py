@@ -174,7 +174,7 @@ def main():
 
     s = slides[19]
     panel(s, "Попробуйте и задайте вопрос", "Прототип, материалы и прямые контакты команды", 20)
-    label(s, "Прототип  ·  robodovod.ru\nКод  ·  github.com/Vladimir-Zimin226/robodovod\nДокументация  ·  каталог docs/delivery в репозитории\nВладимир  ·  @vovzmncraft\nЕвгений  ·  @pawuk_ptr", .85, 2.67, 11.61, 3.20, 22, P)
+    label(s, "Прототип  ·  robodovod.ru\nКод  ·  github.com/Vladimir-Zimin226/robodovod\nДокументация  ·  docs/README.md в репозитории\nВладимир  ·  @vovzmncraft\nЕвгений  ·  @pawuk_ptr", .85, 2.67, 11.61, 3.20, 22, P)
     label(s, "Результат — предварительная оценка. Типовые числа и каталожные цены требуют проверки у заказчика и поставщика.", .85, 6.10, 11.53, .39, 14, INK)
 
     DEST.parent.mkdir(parents=True, exist_ok=True)

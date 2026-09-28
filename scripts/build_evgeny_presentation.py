@@ -1,4 +1,4 @@
-"""Build the editable E9 deck from the organizer's PowerPoint template.
+"""Build the archived intermediate E9 deck from the organizer's template.
 
 The template and organizer screenshots are read only. Browser captures are
 copied to the delivery folder before running this script.
@@ -17,9 +17,10 @@ from pptx.util import Inches, Pt
 
 ROOT = Path(__file__).resolve().parents[1]
 ORGANIZER = ROOT / "Разобрать/Материалы от организаторов/Презентация"
-OUT = ROOT / "docs/delivery/evgeny-feedback-2026-09-28"
-ASSETS = OUT / "presentation-assets"
+OUT = ROOT / "docs/presentation"
+ASSETS = OUT / "assets"
 DEST = OUT / "Robodovod-ZMNCRAFT-2026.pptx"
+LEGACY_DEST = ROOT / "docs/delivery/evgeny-feedback-2026-09-28/Robodovod-ZMNCRAFT-intermediate.pptx"
 P = RGBColor(49, 15, 83)
 PINK = RGBColor(255, 0, 83)
 LILAC = RGBColor(138, 131, 209)
@@ -178,11 +179,11 @@ def main():
 
     slide = slides[13]
     panel(slide, "Материалы и контакты", "Документация и код в репозитории; доступность внешнему проверяющему зависит от публикации", 14)
-    label(slide, "Прототип: robodovod.ru\nРепозиторий: github.com/Vladimir-Zimin226/robodovod\nДокументация: docs/delivery/evgeny-feedback-2026-09-28/\nКоманда: zmncraft.ru\nTelegram: @vovzmncraft · @pawuk_ptr", .80, 2.67, 11.7, 2.66, 19, P)
+    label(slide, "Прототип: robodovod.ru\nРепозиторий: github.com/Vladimir-Zimin226/robodovod\nДокументация: docs/README.md\nКоманда: zmncraft.ru\nTelegram: @vovzmncraft · @pawuk_ptr", .80, 2.67, 11.7, 2.66, 19, P)
     label(slide, "Предварительная оценка. Авторские допущения типовых объектов не являются коммерческим предложением или подтверждением внедрения.", .80, 5.75, 11.68, .63, 15, INK)
 
-    prs.save(DEST)
-    print(f"{DEST}: {len(prs.slides)} slides")
+    prs.save(LEGACY_DEST)
+    print(f"{LEGACY_DEST}: {len(prs.slides)} slides")
 
 
 if __name__ == "__main__":
