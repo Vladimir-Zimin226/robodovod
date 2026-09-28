@@ -89,13 +89,18 @@ export function addZone(draft, objectType) {
   // Revision numbers never repeat after deleting a zone in the same draft.
   const number = draft.revisionNumber + 1;
   const zoneId = `zone.${draft.objectId}.${number}`;
+  // The user-facing number describes the current zones, not the edit revision.
+  // Reusing a vacant label must never reuse an internal zone/process identity.
+  const usedLabels = new Set(draft.zones.map((zone) => zone.label));
+  let displayNumber = 2;
+  while (usedLabels.has(`Зона ${displayNumber}`)) displayNumber += 1;
   const processes = definitionsFor(objectType).map((definition) => ({
     ...definition, zoneId, blockId: `block.${zoneId}.${definition.code}`,
     processId: `${zoneId}.${definition.code}`, active: false,
     activationSource: 'USER', demand: '', shifts: '', hours: '', days: '',
     distance: '', batch: '', fieldSources: {}, fieldConfirmations: {},
   }));
-  return revise(draft, { zones: [...draft.zones, { zoneId, label: `Зона ${number}`, constraints: '' }],
+  return revise(draft, { zones: [...draft.zones, { zoneId, label: `Зона ${displayNumber}`, constraints: '' }],
     processes: [...draft.processes, ...processes] });
 }
 

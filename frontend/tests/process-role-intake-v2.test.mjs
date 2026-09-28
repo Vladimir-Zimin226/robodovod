@@ -87,6 +87,7 @@ test('every suggested role can be activated and remains process-scoped', () => {
 test('zones keep separate process inputs and stable C11/C23 identities', () => {
   let draft = validWarehouseDraft();
   draft = addZone(draft, 'retail');
+  assert.equal(draft.zones[1].label, 'Зона 2');
   const first = draft.processes.find((item) => item.zoneId === draft.zones[0].zoneId && item.code === 'warehouse_receiving_shipping');
   const second = draft.processes.find((item) => item.zoneId === draft.zones[1].zoneId && item.code === 'warehouse_receiving_shipping');
   draft = updateZone(draft, second.zoneId, { label: 'Отгрузка', constraints: 'Узкий проход' });
@@ -103,6 +104,22 @@ test('zones keep separate process inputs and stable C11/C23 identities', () => {
   assert.equal(removed.processes.length, definitionsFor('retail').length);
   const addedAgain = addZone(removed, 'retail');
   assert.notEqual(addedAgain.zones[1].zoneId, second.zoneId);
+  assert.equal(addedAgain.zones[1].label, 'Зона 2');
+});
+
+test('zone labels fill gaps after edits and deletion without duplicating stable IDs', () => {
+  let draft = createDraft('retail');
+  draft = updateZone(draft, draft.zones[0].zoneId, { constraints: 'Узкий проход' });
+  draft = addZone(draft, 'retail');
+  assert.equal(draft.zones[1].label, 'Зона 2');
+  const removedId = draft.zones[1].zoneId;
+  draft = addZone(draft, 'retail');
+  assert.equal(draft.zones[2].label, 'Зона 3');
+  draft = removeZone(draft, removedId);
+  draft = addZone(draft, 'retail');
+  assert.deepEqual(draft.zones.map((zone) => zone.label), ['Основная зона', 'Зона 3', 'Зона 2']);
+  assert.equal(new Set(draft.zones.map((zone) => zone.zoneId)).size, 3);
+  assert.notEqual(draft.zones[2].zoneId, removedId);
 });
 
 test('empty inactive blocks serialize without hidden normalized quantities', () => {
