@@ -103,10 +103,14 @@ export default function App() {
   }, [result]);
 
   useEffect(() => {
-    if (phase !== 'results' || !pendingResultTarget.current) return undefined;
+    if (phase !== 'results') return undefined;
     const target = pendingResultTarget.current;
-    pendingResultTarget.current = null;
-    const frame = window.requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    const frame = window.requestAnimationFrame(() => {
+      // Clear only after execution: StrictMode may cancel the first frame.
+      pendingResultTarget.current = null;
+      if (target) document.getElementById(target)?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      else window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [phase, result]);
 
@@ -183,7 +187,7 @@ export default function App() {
     setUserInput(run.input_snapshot);
     setResult(run.result_snapshot);
     setEditorRequestedRunId(options.edit ? run.id : null);
-    if (options.edit) pendingResultTarget.current = 'edit-economics-run';
+    pendingResultTarget.current = options.edit ? 'edit-economics-run' : null;
     showPhase('results');
     setSaveState('saved');
   };

@@ -78,7 +78,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
           <button className={`user-avatar ${activeNav === 'account' ? 'active' : ''}`} onClick={() => navigate({ id: 'account' })} aria-label={user ? `Аккаунт ${user.email}` : 'Войти или зарегистрироваться'} title={user ? user.email : 'Войти'}>{initials}</button>
           <p className="command-examples">Например: «Перемещение паллет на складе», «Упаковка готовой продукции», «Подача материалов на линию»</p>
         </header>
-        <div className="app-content">{children}</div>
+        <div className="app-content" style={isResult ? { overflowAnchor: 'none' } : undefined}>{children}</div>
       </div>
     </div>
   );
