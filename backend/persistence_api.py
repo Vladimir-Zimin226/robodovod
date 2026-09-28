@@ -47,7 +47,7 @@ from economics_runtime_migration import (
 )
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
 from economics_final import execute_economics_v3, execute_economics_v4
-from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, INPUT_VERSION_V3 as ASSUMPTION_INPUT_VERSION, INPUT_VERSION_V4 as TECHNICAL_INPUT_VERSION, INPUT_VERSION_V5 as STAFFING_INPUT_VERSION, execute_partial_economics_v2
+from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, INPUT_VERSION_V3 as ASSUMPTION_INPUT_VERSION, INPUT_VERSION_V4 as TECHNICAL_INPUT_VERSION, INPUT_VERSION_V5 as STAFFING_INPUT_VERSION, INPUT_VERSION_V6 as PROJECT_INPUT_VERSION, execute_partial_economics_v2
 from persistence_models import (
     AnalysisRun,
     AnalysisRunEconomicsVersion,
@@ -1460,7 +1460,7 @@ def create_persistence_router(
             raise HTTPException(status_code=404, detail="scenario not found")
         if resolve_economics_version is None or calculate_economics_v2 is None:
             raise HTTPException(status_code=503, detail="economics v2 route unavailable")
-        if (require_economics_capacity_source or payload.input.get("schema_version") in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION}) and payload.capacity_run_id is None:
+        if (require_economics_capacity_source or payload.input.get("schema_version") in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION, PROJECT_INPUT_VERSION}) and payload.capacity_run_id is None:
             return JSONResponse(status_code=422, content={
                 "schema_version": "economics-partial-error-v1",
                 "issues": [{"field": "capacity_run_id", "code": "MISSING_INPUT",
@@ -1523,9 +1523,9 @@ def create_persistence_router(
                 economics_run_id=run_id,
             )
         input_version = payload.input.get("schema_version")
-        partial_input = input_version in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION}
+        partial_input = input_version in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION, PROJECT_INPUT_VERSION}
         input_snapshot = {
-            "schema_version": "economics-run-input-v6" if input_version == STAFFING_INPUT_VERSION else "economics-run-input-v5" if input_version == TECHNICAL_INPUT_VERSION else "economics-run-input-v4" if input_version == ASSUMPTION_INPUT_VERSION else "economics-run-input-v3" if partial_input else "economics-run-input-v2",
+            "schema_version": "economics-run-input-v7" if input_version == PROJECT_INPUT_VERSION else "economics-run-input-v6" if input_version == STAFFING_INPUT_VERSION else "economics-run-input-v5" if input_version == TECHNICAL_INPUT_VERSION else "economics-run-input-v4" if input_version == ASSUMPTION_INPUT_VERSION else "economics-run-input-v3" if partial_input else "economics-run-input-v2",
             "capacity_run_id": None if payload.capacity_run_id is None else str(payload.capacity_run_id),
             "source_run_id": None if payload.source_run_id is None else str(payload.source_run_id),
             "economics": payload.input,

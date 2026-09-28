@@ -187,6 +187,9 @@ class StaffingDecisionV1(StrictContractModel):
         return self
 
 
+from calculation.operating_policy import StaffingPolicyV2, WorkShareV1
+
+
 class LabourAnalysisRequestV1(StrictContractModel):
     schema_version: Literal["role-labour-analysis-v1"] = LABOUR_SCHEMA_VERSION
     run_id: StableId
@@ -205,6 +208,8 @@ class LabourAnalysisRequestV1(StrictContractModel):
     allow_surplus_replacement: bool = False
     base_forklift_count: Annotated[int, Field(ge=0)] | None = None
     staffing_decision: StaffingDecisionV1 | None = None
+    staffing_policy: StaffingPolicyV2 | None = Field(default=None, exclude_if=lambda v: v is None)
+    work_share: WorkShareV1 | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_serializer(mode="wrap")
     def serialize_optional_decision(self, handler):
@@ -323,6 +328,7 @@ class RoleLabourResultV1(StrictContractModel):
 
 
 class SiteOperatingStaffV1(StrictContractModel):
+    requirement_details: dict | None = Field(default=None, exclude_if=lambda v: v is None)
     total_selected_fleet: Annotated[int, Field(ge=0)]
     simultaneous_shifts: Annotated[int, Field(ge=0)]
     control_required: Annotated[int, Field(ge=0)]
@@ -668,6 +674,8 @@ def calculate_role_labour(
         replacement = min(replaceable_capacity, target)
         growth = min(max(0, robot_people - replacement), max(0, required - allocated))
         applied = _floor(Decimal(replacement) * replacement_limit)
+        if request.work_share is not None:
+            applied = min(applied, _floor(Decimal(allocated) * coverage * _d(request.work_share.fraction)))
         result.status = "COMPLETE"
         result.operating_hours_per_day = _canonical(Decimal(int(work["shifts"])) * work["hours"])
         result.manual_units_per_shift = _canonical(work["manual"])
@@ -692,6 +700,10 @@ def calculate_role_labour(
     supervision = _registry_value(registry, f"scenario.{request.uncertainty.lower()}.supervision-share")
     minimum_control = int(_registry_value(registry, "labor.control.minimum-per-shift"))
     control_required = 0 if total_fleet == 0 else max(_floor(Decimal(applied_total) * supervision), simultaneous_shifts * minimum_control)
+    requirements = None
+    if request.staffing_policy is not None:
+        requirements = request.staffing_policy.requirement(total_fleet, simultaneous_shifts)
+        control_required = requirements['control_fte']
     decision = request.staffing_decision
     existing_control = next((int(_d(role.headcount.normalized_value)) for role in request.role_pool.roles
                              if role.role_code == RoleCode.CONTROL_OPERATOR and isinstance(role.headcount, KnownQuantity)), 0)
@@ -706,6 +718,8 @@ def calculate_role_labour(
         control_additional = uncovered_control - control_transferred
     tech_rate = int(_registry_value(registry, "labor.technical.robots-per-fte"))
     technicians = 0 if total_fleet == 0 else _ceil(Decimal(total_fleet) / Decimal(tech_rate))
+    if requirements is not None:
+        technicians = requirements['technician_fte']
     existing_tech = next((int(_d(role.headcount.normalized_value)) for role in request.role_pool.roles
                           if role.role_code == RoleCode.TECH_SUPPORT and isinstance(role.headcount, KnownQuantity)), 0)
     technicians_transferred = 0
@@ -797,6 +811,7 @@ def calculate_role_labour(
         issues.add("technician-salary-missing")
     operating_status = "NOT_APPLICABLE" if total_fleet == 0 else ("INCOMPLETE" if staff_reasons else "COMPLETE")
     operating = SiteOperatingStaffV1(
+        requirement_details=requirements,
         total_selected_fleet=total_fleet, simultaneous_shifts=simultaneous_shifts,
         control_required=control_required, control_transferred=control_transferred,
         control_additional=control_additional, technicians_required=technicians,

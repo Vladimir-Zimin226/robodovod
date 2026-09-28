@@ -21,6 +21,7 @@ from calculation_contracts import (
     DerivedProvenance,
     IntermediateValue,
     KnownQuantity,
+    OperatingAvailabilityV1,
     NormalizedProcess,
     PolicyProvenance,
     Provenance,
@@ -93,6 +94,7 @@ class CleaningCapacityRequestV1(StrictContractModel):
     versions: VersionBindings
     provenance: list[Provenance]
     fact_provenance: dict[str, str]
+    operations: OperatingAvailabilityV1 | None = Field(default=None, exclude_if=lambda v: v is None)
 
     @model_validator(mode="after")
     def validate_boundary(self) -> "CleaningCapacityRequestV1":
@@ -280,6 +282,9 @@ def calculate_cleaning_capacity(request: CleaningCapacityRequestV1) -> CapacityA
             area_mode = "share-of-total"
         rate, rate_provenance = _safe_rate(request)
         availability, availability_id = _availability(request)
+        if request.operations is not None:
+            availability = request.operations.practical_fraction(h)
+            availability_id = 'input.operations.practical-availability'
         required, nominal, effective, recommended = cleaning_capacity(
             area_m2=area,
             frequency_per_day=frequency,

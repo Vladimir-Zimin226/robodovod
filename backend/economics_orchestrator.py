@@ -121,6 +121,9 @@ UNCERTAINTIES = ("PESSIMISTIC", "BASE", "OPTIMISTIC")
 ACQUISITIONS = ("PURCHASE", "RAAS")
 
 
+from calculation.operating_policy import StaffingPolicyV2, WorkShareV1
+
+
 class EconomicsExplicitInputsV1(StrictContractModel):
     """Inputs that cannot be inferred safely from C11 or the catalog."""
 
@@ -140,6 +143,8 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     technician_monthly_gross: DecimalString
     staffing_purchase: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
     staffing_raas: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
+    staffing_policy: StaffingPolicyV2 | None = Field(default=None, exclude_if=lambda value: value is None)
+    work_share: WorkShareV1 | None = Field(default=None, exclude_if=lambda value: value is None)
     organizer_price_currency_rub_confirmed: bool
     purchase_price_override_gross: DecimalString | None = None
     purchase_price_source: Annotated[str, Field(min_length=3, max_length=240)] | None = None
@@ -385,7 +390,7 @@ def _primary_role(
 def _manual_productivity(
     request: CapacityAnalysisRequest, inputs: EconomicsExplicitInputsV1
 ) -> ManualProductivityInputV1 | None:
-    if request.process.scope == "CLEANING_AREA":
+    if request.process.scope == "CLEANING_AREA" and inputs.manual_units_per_shift is None:
         return None
     if inputs.manual_units_per_shift is None:
         raise ValueError("manual_units_per_shift is required for this process")
@@ -450,6 +455,8 @@ def _labour(
             if isinstance(item.monthly_gross_salary, KnownQuantity)
         ],
         staffing_decision=getattr(inputs, "staffing_raas" if acquisition == "RAAS" else "staffing_purchase", None),
+        staffing_policy=getattr(inputs, 'staffing_policy', None),
+        work_share=getattr(inputs, 'work_share', None),
     )
     result = analyze_role_labour(labour_request)
     if result.finance_status != "COMPLETE":

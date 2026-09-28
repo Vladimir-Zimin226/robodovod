@@ -28,6 +28,7 @@ from calculation_contracts import (
     ExchangeTime,
     IntermediateValue,
     KnownQuantity,
+    OperatingAvailabilityV1,
     NormalizedProcess,
     PolicyProvenance,
     ProcessQuantityKind,
@@ -92,6 +93,7 @@ class TransportCapacityRequestV1(StrictContractModel):
     item_mass: KnownQuantity | None = None
     batch_limits: BatchLimitsV1 = Field(default_factory=BatchLimitsV1)
     selected_fleet: KnownQuantity | None = None
+    operations: OperatingAvailabilityV1 | None = Field(default=None, exclude_if=lambda v: v is None)
     executability: RunExecutabilityResult
     constraints: ConstraintReportV2
     versions: VersionBindings
@@ -268,6 +270,9 @@ def calculate_transport_capacity(request: TransportCapacityRequestV1) -> Capacit
         _assert_scenario_binding(request, "input.shifts-per-day", shifts, "shift")
         _assert_scenario_binding(request, "input.units-per-trip", batch, "unit/trip")
         availability, availability_id = _policy(request, "policy.availability")
+        if request.operations is not None:
+            availability = request.operations.practical_fraction(h)
+            availability_id = 'input.operations.practical-availability'
         intraday_peak, peak_id = _policy(request, "policy.intraday-peak")
         reserve, reserve_id = _policy(request, "policy.peak-reserve")
         seconds_per_hour, seconds_id = _policy(request, "policy.seconds-per-hour")

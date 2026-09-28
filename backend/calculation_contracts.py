@@ -719,6 +719,46 @@ class PartialCalculationResult(StrictContractModel):
         return self
 
 
+class OperatingAvailabilityV1(StrictContractModel):
+    schema_version: Literal['operating-availability-v1'] = 'operating-availability-v1'
+    mode: Literal['ALL_IN', 'EXPLICIT_DOWNTIME']
+    availability: DecimalString | None = None
+    autonomy_hours: DecimalString | None = None
+    charge_hours: DecimalString | None = None
+    service_hours_per_day: DecimalString | None = None
+    refill_hours_per_day: DecimalString | None = None
+    basis: Annotated[str, Field(min_length=3, max_length=500)]
+    source: Literal['USER', 'ASSUMPTION']
+    confirmed: bool
+
+    @model_validator(mode='after')
+    def validate_operating_availability(self):
+        if not self.confirmed:
+            raise ValueError('operating availability must be explicitly confirmed')
+        if self.mode == 'ALL_IN':
+            if self.availability is None or not 0 < Decimal(self.availability) <= 1:
+                raise ValueError('all-in availability must be within (0,1]')
+            if any(v is not None for v in [self.autonomy_hours, self.charge_hours, self.service_hours_per_day, self.refill_hours_per_day]):
+                raise ValueError('all-in availability already includes downtime')
+        else:
+            if self.availability is not None:
+                raise ValueError('explicit downtime cannot also use all-in losses')
+            if any(v is None for v in [self.autonomy_hours, self.charge_hours, self.service_hours_per_day, self.refill_hours_per_day]):
+                raise ValueError('unknown downtime cannot be zero')
+            if Decimal(self.autonomy_hours) <= 0 or any(Decimal(v) < 0 for v in [self.charge_hours, self.service_hours_per_day, self.refill_hours_per_day]):
+                raise ValueError('invalid downtime')
+        return self
+
+    def practical_fraction(self, hours):
+        if self.mode == 'ALL_IN':
+            return Decimal(self.availability)
+        productive = hours * Decimal(self.autonomy_hours) / (Decimal(self.autonomy_hours) + Decimal(self.charge_hours))
+        productive -= Decimal(self.service_hours_per_day) + Decimal(self.refill_hours_per_day)
+        if productive <= 0:
+            raise ValueError('downtime consumes the available window')
+        return min(Decimal(1), productive / hours)
+
+
 class CapacityAnalysisRequest(StrictContractModel):
     schema_version: Literal["capacity-analysis-request-v2"] = (
         "capacity-analysis-request-v2"
@@ -737,6 +777,7 @@ class CapacityAnalysisRequest(StrictContractModel):
     operating_speed: KnownQuantity | None = None
     cleaning_area: KnownQuantity | None = None
     cleaning_frequency: KnownQuantity | None = None
+    operations: OperatingAvailabilityV1 | None = Field(default=None, exclude_if=lambda v: v is None)
     provenance: list[Provenance] = Field(default_factory=list)
 
     @model_validator(mode="after")

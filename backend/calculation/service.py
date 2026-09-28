@@ -331,7 +331,7 @@ def analyze_capacity(
             run_id=run_id, acquisition=request.acquisition, uncertainty=request.uncertainty,
             process=request.process, model_id=request.model_id, position_id=request.position_id,
             operating_speed=request.operating_speed, item_mass=None, batch_limits=BatchLimitsV1(),
-            selected_fleet=request.selected_fleet, executability=executability,
+            selected_fleet=request.selected_fleet, operations=request.operations, executability=executability,
             constraints=constraints, versions=versions, provenance=provenance,
             fact_provenance=fact_refs,
         )
@@ -345,7 +345,7 @@ def analyze_capacity(
                 run_id=run_id, acquisition=request.acquisition, uncertainty=request.uncertainty,
                 process=request.process, model_id=request.model_id, position_id=request.position_id,
                 area_source=DirectCleaningAreaV1(area=request.cleaning_area),
-                frequency=request.cleaning_frequency, selected_fleet=request.selected_fleet,
+                frequency=request.cleaning_frequency, selected_fleet=request.selected_fleet, operations=request.operations,
                 executability=executability, constraints=constraints, versions=versions,
                 provenance=provenance, fact_provenance=fact_refs,
             ))
