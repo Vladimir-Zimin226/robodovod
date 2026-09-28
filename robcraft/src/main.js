@@ -10,6 +10,7 @@ import { BUILD_CATALOG, pickEntity, rayGroundPoint, SceneEditorModel } from './e
 import { canPlaceSolid, circleIntersectsSolid } from './editor/collisions.js';
 import { assertScenePatchCompatible, compatibleRobotTypes, createScenePatch, exportSceneDocument, importSceneDocument, rebindScenePatch, scenarioVisualFingerprint, scenePatchHasChanges, scenePatchSummary } from './editor/scene-patch.js';
 import { childMessage, installParentBridge } from './integration/message-protocol.js';
+import { applyFacilityPlayback, updateFacilityCamera } from './integration/facility-renderer.js';
 
 const canvas = document.querySelector('#world');
 const launcher = document.querySelector('#launcher');
@@ -140,7 +141,7 @@ function requestManualPointerLock() {
 }
 
 function prepareEmbeddedScenario(spec, simulationReport = null) {
-  const generated = generateWorldsFromScenarioSpec(spec);
+  const generated = generateWorldsFromScenarioSpec(spec, { facilityPlans: Boolean(simulationReport) });
   if (!generated.zones.some(zone => zone.supported)) {
     throw new TypeError(`Нет поддерживаемых 3D-зон: ${generated.zones.map(zone => `${zone.zone.name} — ${zone.reason}`).join('; ')}`);
   }
@@ -179,7 +180,9 @@ function activateZone(index, reason = 'ZONE_SELECTED', resetCamera = true) {
   document.body.classList.remove('editor-active');
   document.querySelector('#zone-select').disabled = false;
   buildWorldLabels(); updateScenePatchUi(); updateCameraUi();
-  document.querySelector('#hud-seed').textContent = scene.config.seed;
+  document.querySelector('#hud-seed').textContent = scene.facilityPlan ? (scene.config.template === 'hospital' ? 'КЛИНИКА' : 'АЭРОПОРТ') : scene.config.seed;
+  document.querySelector('#hud-trips').previousElementSibling.textContent = scene.facilityPlan ? 'ЗАДАНИЙ' : 'РЕЙСЫ';
+  document.querySelector('#hud-cargo').parentElement.classList.toggle('hidden', Boolean(scene.facilityPlan));
   document.querySelector('#hud-robots').textContent = simulation.robots.length;
   document.querySelector('#hud-mode').textContent = `${scene.scenario.processType.toUpperCase()} // ${scene.scenario.zoneName}`;
   document.querySelector('#zone-select').value = session.zoneId;
@@ -680,7 +683,9 @@ function updateHud(delta) {
   document.querySelector('#analytics-last-task').textContent = latestTask ? `${latestTask.id} · ${latestTask.title}` : 'пока нет';
   document.querySelector('#analytics-last-event').textContent = latestEvent ? latestEvent.message : 'событий нет';
   if (reportEnabled) updateReport(getSimulationReport(simulation));
-  const minutes = (8 * 60 + Math.floor(simulation.elapsed * 2)) % (24 * 60);
+  const minutes = simulation.facilityFrame
+    ? Math.floor(((authoritativeSimulationReport.model_start?.seconds_from_midnight || 0) + simulation.elapsed) / 60) % (24 * 60)
+    : (8 * 60 + Math.floor(simulation.elapsed * 2)) % (24 * 60);
   document.querySelector('#hud-time').textContent = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
@@ -795,10 +800,19 @@ function frame(now) {
   lastFrame = now;
   if (scene && simulation) {
     if (active) {
-      if (cameraState === 'AUTOPILOT' && !editorMode) cameraDirector.update(delta, scene, simulation);
+      const facilityPlayback = scene.facilityPlan && authoritativeSimulationReport && embeddedPlayback && !simulation.sceneModified;
+      if (cameraState === 'AUTOPILOT' && !editorMode && !facilityPlayback) cameraDirector.update(delta, scene, simulation);
       else player.update(delta, scene.solids);
       if (!editorMode) {
-        if (!embeddedMode || !embeddedPlayback) updateSimulation(simulation, delta, scene.solids);
+        if (facilityPlayback) {
+          const visualFrame = applyFacilityPlayback(simulation, scene, authoritativeSimulationReport, embeddedPlayback.elapsed_seconds);
+          if (cameraState === 'AUTOPILOT') updateFacilityCamera(cameraDirector, visualFrame, now / 1000);
+        }
+        else if (!embeddedMode || !embeddedPlayback) updateSimulation(simulation, delta, scene.solids);
+        else if (scene.facilityPlan && simulation.sceneModified) {
+          simulation.speedMultiplier = embeddedPlayback.speed;
+          if (embeddedPlayback.status === 'RUNNING') updateSimulation(simulation, delta, scene.solids);
+        }
         else {
           const target = embeddedPlayback.elapsed_seconds;
           if (simulation.elapsed > target + 1 || embeddedPlayback.reset) {
@@ -862,6 +876,7 @@ try {
         const reset = (embeddedPlayback !== null && embeddedPlayback.restart !== playback.restart)
           || (playback.status === 'STOPPED' && embeddedPlayback?.status !== 'STOPPED');
         embeddedPlayback = { ...playback, reset };
+        document.body.classList.add('playback-synchronized');
       },
       getRendererReport: () => buildRendererReport(simulation, authoritativeSimulationReport)
     });

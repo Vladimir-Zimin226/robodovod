@@ -600,8 +600,8 @@ export function buildRendererReport(simulation, authoritativeReport = null) {
       scheduler_seed: authoritativeReport?.time_basis?.seed ?? null
     }),
     versions: Object.freeze({
-      renderer_engine_version: 'robcraft-time-step-v1',
-      event_profile_version: 'robcraft-visual-events-v1',
+      renderer_engine_version: simulation.facilityFrame ? 'facility-playback-v1' : 'robcraft-time-step-v1',
+      event_profile_version: simulation.facilityFrame ? 'uniform-arrivals-visual-reconstruction-v1' : 'robcraft-visual-events-v1',
       report_version: 'robcraft-renderer-report-v1'
     }),
     measurement_basis: Object.freeze({
@@ -646,6 +646,7 @@ export function buildRendererReport(simulation, authoritativeReport = null) {
       engineering_claim: 'CONCEPTUAL_VISUALIZATION_NOT_CERTIFICATION'
     }),
     limitations: Object.freeze([
+      ...(simulation.facilityFrame ? ['facility-plan-is-illustrative-not-surveyed', 'visual-jobs-reconstructed-not-c23-event-log', 'no-collision-battery-energy-or-failure-model-in-facility-playback'] : []),
       'live-window-not-c23-measurement-window',
       'moving-utilization-is-not-productive-utilization',
       'energy-is-arbitrary-renderer-unit',

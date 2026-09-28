@@ -6,6 +6,8 @@ import { addPerson } from './template-base.js';
 import { robotProfile, robotTypesForTemplate } from './robot-catalog.js';
 import { parseScenarioSpec } from '../integration/scenario-spec.js';
 import { generateProcessZoneWorld } from './process-zone.js';
+import { generateFacilityWorld } from './facility.js';
+import { supportsFacilityPlan } from '../integration/facility-playback.js';
 
 const COLORS = {
   ground: [0.18, 0.29, 0.22], asphalt: [0.18, 0.21, 0.21], concrete: [0.48, 0.52, 0.50],
@@ -279,7 +281,7 @@ function applyScenarioToScene(scene, parsed, zoneEntry) {
   return scene;
 }
 
-function generateZoneScene(parsed, zoneEntry) {
+function generateZoneScene(parsed, zoneEntry, options = {}) {
   const source = parsed.spec; const scenario = zoneEntry.scenario; const facility = source.facility || {};
   const seed = parsed.zones.length === 1 ? source.seed : `${source.seed}:${scenario.zoneId}`;
   const config = normalizeConfig({
@@ -292,21 +294,22 @@ function generateZoneScene(parsed, zoneEntry) {
     occupancy: facility.occupancy_percent || 72
   }, { extendedFleet: true });
   let scene;
-  if (scenario.processType === 'cleaning' || scenario.processType === 'palletizing') scene = generateProcessZoneWorld(config, scenario);
+  if (options.facilityPlans && supportsFacilityPlan(source)) scene = generateFacilityWorld(config, source, scenario.zoneId);
+  else if (scenario.processType === 'cleaning' || scenario.processType === 'palletizing') scene = generateProcessZoneWorld(config, scenario);
   else if (source.template === 'airport') scene = generateAirportWorld(config);
   else if (source.template === 'hospital') scene = generateHospitalWorld(config);
   else scene = generateWarehouseWorld(config, { ...scenario, spec: parsed.spec });
   return applyScenarioToScene(scene, parsed, zoneEntry);
 }
 
-export function generateWorldsFromScenarioSpec(source) {
+export function generateWorldsFromScenarioSpec(source, options = {}) {
   const parsed = parseScenarioSpec(source);
   return Object.freeze({
     spec: parsed.spec,
     revisionId: parsed.revisionId,
     zones: Object.freeze(parsed.zones.map(entry => Object.freeze({
       zone: entry.zone, supported: entry.supported, reason: entry.reason || null,
-      scene: entry.supported ? generateZoneScene(parsed, entry) : null
+      scene: entry.supported ? generateZoneScene(parsed, entry, options) : null
     })))
   });
 }

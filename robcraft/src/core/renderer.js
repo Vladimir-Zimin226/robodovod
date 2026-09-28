@@ -511,19 +511,27 @@ export class Renderer {
     } else if (type === 'medical-cart') {
       part([0, -.04, 0], [.72, .27, .82], [.06, .18, .17]);
       part([0, .58, 0], [.66, 1.08, .68], bodyColor);
-      const doorOpen = robot.operationType === 'drop' ? Math.sin(operationProgress * Math.PI) : 0;
+      const doorOpen = robot.operationType === 'drop' || (robot.facilityPose && robot.operationType === 'pickup') ? Math.sin(operationProgress * Math.PI) : 0;
       part([-.17 - doorOpen * .16, .58, .355], [.30, .82, .035], [.78, .90, .87]);
       part([.17 + doorOpen * .16, .58, .355], [.30, .82, .035], [.78, .90, .87]);
       part([0, .70, .35], [.42, .38, .035], [.15, .42, .40], 7, .18);
       part([0, 1.18, 0], [.48, .10, .48], [.82, .94, .90]);
       part([0, 1.32, 0], [.12, .14, .12], beaconColor, 7, pulse);
       for (const side of [-1, 1]) part([side * .30, -.14, .22], [.13, .22, .22], [.025, .035, .035]);
+      if (robot.facilityPose && robot.carrying) for (let shelf = 0; shelf < 3; shelf += 1)
+        part([0, .28 + shelf * .28, .38], [.48, .07, .22], [.96,.72,.38], 2);
+      if (robot.facilityPose && robot.operationType) part([0, .5, .45 + doorOpen * .45], [.5, .1, .35], [.96,.72,.38], 2);
     } else if (type === 'cleaning-robot') {
       part([0, -.03, 0], [1.02, .24, 1.18], bodyColor);
       part([0, .27, -.05], [.72, .42, .70], [.12,.30,.31]);
       part([0, .52, -.12], [.45, .25, .45], bodyColor);
       part([0, .72, -.12], [.11,.15,.11], beaconColor, 7, pulse);
       part([0, -.17, .26], [1.18,.05,.52], [.16,.72,.62], 7, .22);
+      if (robot.facilityPose?.cleaning) {
+        const phase = robot.facilityPose.progress * Math.PI * 40;
+        part([Math.sin(phase) * .3, -.2, .55], [.45,.045,.45], [.35,.95,.75], 7, .45);
+        part([0, -.32, -.9], [1.25,.025,1.2], [.12,.68,.62], 7, .25);
+      }
     } else if (type === 'palletizer-cell') {
       const arm = Math.sin((robot.operationProgress || 0) * Math.PI * 2);
       part([0, -.05, 0], [1.15,.18,1.15], [.20,.23,.22]);

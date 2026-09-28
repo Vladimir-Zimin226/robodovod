@@ -28,6 +28,7 @@ button, input { font: inherit; }
 .embedded.manual-active #world { cursor: none; }
 .embedded .controls-hint { bottom: 18px; }
 .embedded .speed-control { left: 16px; bottom: 14px; padding: 6px 8px; border: 1px solid rgba(76,224,163,.24); border-radius: 5px; background: rgba(3,20,15,.86); backdrop-filter: blur(7px); }
+.embedded.playback-synchronized .speed-control { display: none; }
 .launcher { position: fixed; inset: 0; display: grid; grid-template-columns: minmax(320px, 1.1fr) minmax(360px, .9fr); gap: clamp(32px, 7vw, 112px); align-items: center; padding: clamp(28px, 6vw, 96px); background: radial-gradient(circle at 20% 30%, rgba(43, 217, 154, .12), transparent 34%), linear-gradient(110deg, rgba(4, 12, 10, .96), rgba(7, 24, 20, .91)); backdrop-filter: blur(14px); z-index: 20; }
 .launcher-copy { max-width: 720px; }
 .eyebrow { color: #4ee0a1; font-size: 12px; font-weight: 800; letter-spacing: .18em; }

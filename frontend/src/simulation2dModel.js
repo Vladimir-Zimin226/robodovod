@@ -1,4 +1,5 @@
 import { buildWarehouseScene, warehouseFrameAt } from './warehouse2dScene.js';
+import { supportsFacilityPlan, createFacilityPlan, createFacilityPlayback, facilityFrameAt } from '../../robcraft/src/integration/facility-playback.js';
 
 const REQUEST_FIELDS = new Set([
   'schema_version', 'request_id', 'tenant_id', 'project_id', 'scenario_spec',
@@ -107,8 +108,16 @@ function routePoints(zone) {
   ];
 }
 
-export function buildSimulationScene(spec) {
+export function buildSimulationScene(spec, { facilityPlans = false, report = null } = {}) {
   object(spec, 'ScenarioSpec');
+  // Legacy capture v2 is kept reproducible; live presentation opts into v1
+  // facility plans without changing any saved scenario/report or golden.
+  if (facilityPlans && supportsFacilityPlan(spec)) {
+    const plans = spec.zones.map(zone => createFacilityPlan(spec, zone.zone_id)).filter(Boolean);
+    return { kind: 'FACILITY_PROCESS', width: 960, height: 640, plans,
+      zones: plans.map(plan => ({ id: plan.zoneId, label: plan.label })),
+      playback: plans.map(plan => createFacilityPlayback(plan, spec, report)) };
+  }
   if (spec.template === 'warehouse' && spec.profile?.calculation_profile === 'TRANSPORT_CYCLE_V1') {
     return buildWarehouseScene(spec);
   }
@@ -216,8 +225,13 @@ export function reduceTimeline(state, action) {
       if (state.status !== 'RUNNING') return state;
       const deltaMs = Number(action.deltaMs);
       if (!Number.isFinite(deltaMs) || deltaMs < 0) throw new TypeError('Некорректный шаг timeline');
-      return { ...state, simulationTimeUs: state.simulationTimeUs + Math.round(deltaMs * 1000 * state.speed) };
+      const scale = action.modelSecondsPerRealSecond ?? 1;
+      if (!Number.isFinite(scale) || scale <= 0) throw new TypeError('Некорректный масштаб времени');
+      return { ...state, simulationTimeUs: state.simulationTimeUs + Math.round(deltaMs * 1000 * state.speed * scale) };
     }
+    case 'SEEK':
+      if (!Number.isSafeInteger(action.simulationTimeUs) || action.simulationTimeUs < 0) throw new TypeError('Некорректное время перехода');
+      return { ...state, simulationTimeUs: action.simulationTimeUs };
     default:
       throw new TypeError(`Неизвестное действие timeline: ${action.type}`);
   }
@@ -235,6 +249,12 @@ function interpolate(points, progress) {
 }
 
 export function frameAt(scene, bundle, simulationTimeUs) {
+  if (scene.kind === 'FACILITY_PROCESS') {
+    const frames = scene.playback.map(playback => facilityFrameAt(playback, simulationTimeUs / 1_000_000));
+    return { simulationTimeUs, scenarioRevisionId: bundle.spec.revision_id,
+      reportId: bundle.report.report_id, reportDigest: bundle.report.replay.report_content_digest,
+      seed: bundle.spec.seed, zones: frames, robots: frames.flatMap(frame => frame.robots) };
+  }
   if (scene.kind === 'WAREHOUSE_TRANSPORT') return warehouseFrameAt(scene, bundle, simulationTimeUs);
   const { spec, report } = bundle;
   const routeById = new Map(scene.routes.map((route) => [route.id, route]));
