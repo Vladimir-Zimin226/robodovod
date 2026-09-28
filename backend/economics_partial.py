@@ -54,6 +54,8 @@ DECIMALS = {
     "shared_site_capital_gross": (Decimal("0"), None),
     "shared_annual_cost_gross": (Decimal("0"), None),
     "raas_monthly_per_robot_gross": (Decimal("0"), None),
+    "implementation_percent": (Decimal("0"), Decimal("100")),
+    "raas_percent_monthly": (Decimal("0"), Decimal("100")),
 }
 POSITIVE = {"manual_units_per_shift", "average_power_w"}
 INTEGERS = {
@@ -221,6 +223,10 @@ def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
             except (ValueError, TypeError):
                 values[field] = None
                 issues.append(_issue(field, 'POLICY_UNKNOWN', 'Доля труда или нагрузка персонала не подтверждена.', 'Укажите источник и примите проектное допущение.'))
+        for field in ('implementation_mode', 'raas_mode'):
+            values[field] = raw.get(field)
+            if values[field] not in {'FIXED', 'PERCENT'}:
+                issues.append(_issue(field, 'MODE_UNKNOWN', 'Режим денежного ввода не выбран.', 'Выберите сумму либо процент цены оборудования.'))
     return values, issues
 
 
@@ -370,6 +376,24 @@ def execute_partial_economics_v2(
         purchase_missing.append("organizer_price")
         raas_missing.append("organizer_price")
         issues.append(_issue("organizer_price", "MISSING_INPUT", "В каталоге нет исходной цены для сравнения.", "Выберите позицию с ценой; не подставляйте ноль."))
+    money_basis = None
+    if raw.get('schema_version') == INPUT_VERSION_V6:
+        fleet = context.capacity_response.capacity.value.selected_fleet if capacity_available else None
+        if values.get('purchase_price_override_gross') is not None:
+            money_basis = Decimal(values['purchase_price_override_gross'])
+        elif position is not None and position.procurement_option is not None and position.procurement_option.amount is not None:
+            money_basis = Decimal(position.procurement_option.amount)
+        for mode_field, rate_field, amount_field, multiplier in (
+            ('implementation_mode', 'implementation_percent', 'implementation_cost_total_gross', Decimal(fleet) if fleet is not None else None),
+            ('raas_mode', 'raas_percent_monthly', 'raas_monthly_per_robot_gross', Decimal(1))):
+            if values.get(mode_field) == 'PERCENT':
+                values[amount_field] = None
+                if money_basis is None or multiplier is None or values.get(rate_field) is None or not values['organizer_price_currency_rub_confirmed']:
+                    issues.append(_issue(amount_field, 'PERCENT_BASIS_UNKNOWN', 'Цена, парк или процент неизвестны.', 'Укажите денежную цену в рублях, парк и принятую ставку.'))
+                else:
+                    values[amount_field] = format((money_basis * Decimal(values[rate_field]) * multiplier / Decimal(100)).quantize(Decimal('0.01')), 'f')
+        purchase_missing = labour_missing + _missing(values, PURCHASE_FIELDS)
+        raas_missing = purchase_missing + _missing(values, RAAS_FIELDS)
     branches = {
         "capacity": {"status": "AVAILABLE" if capacity_available else "NOT_CALCULATED", "reason_code": None if capacity_available else "CAPACITY_BLOCKED", "required_fields": context_missing, "source_run_id": context.capacity_response.run_id, "capacity_status": context.capacity_response.capacity.status,
                      "selected_fleet": context.capacity_response.capacity.value.selected_fleet if capacity_available else None},
@@ -448,6 +472,14 @@ def execute_partial_economics_v2(
         executed = full_engine(full, snapshot, context)
         if raw.get('schema_version') == INPUT_VERSION_V6:
             result = executed.result_snapshot
+            result['monetary_input_basis'] = {
+                'unit_price_gross_rub': None if money_basis is None else format(money_basis, 'f'),
+                'fleet': fleet,
+                'implementation': {'mode': values['implementation_mode'], 'percent': values['implementation_percent'] if values['implementation_mode'] == 'PERCENT' else None,
+                                   'amount_gross_rub': values['implementation_cost_total_gross']},
+                'raas': {'mode': values['raas_mode'], 'percent_monthly': values['raas_percent_monthly'] if values['raas_mode'] == 'PERCENT' else None,
+                         'per_robot_month_gross_rub': values['raas_monthly_per_robot_gross']},
+            }
             result['versions']['operating_policy'] = 'staffing-policy-v2'
             result['versions']['work_share'] = 'robotizable-work-share-v1'
             result['staffing_preview'] = staffing_preview

@@ -14,6 +14,7 @@ def policy():
 
 def project_input():
     return {**_staffing_input(), 'schema_version':INPUT_VERSION_V6,
+            'implementation_mode':'FIXED','raas_mode':'FIXED',
             'staffing_policy':policy(), 'work_share':{
                 'schema_version':'robotizable-work-share-v1', 'fraction':'0.5',
                 'residual_operations':'Unloading and manual inspection',
@@ -104,3 +105,30 @@ def test_v6_project_finance_and_conclusion_are_profile_specific():
         assert row['recommendation']['candidate_id'] is None
         assert 'procurement-not-confirmed' in row['recommendation']['reason_codes']
         assert row['staffing']['control_required']==4
+
+def test_percent_modes_are_server_canonical_and_ignore_stale_fixed_amounts():
+    from economics_final import execute_economics_v4
+    snapshot,context=_context()
+    fixed=project_input()
+    fixed['implementation_cost_total_gross']='4500000'
+    fixed['raas_monthly_per_robot_gross']='60000'
+    absolute=execute_partial_economics_v2(fixed,snapshot,context,full_engine=execute_economics_v4).result_snapshot
+    percent={**fixed,'implementation_mode':'PERCENT','implementation_percent':'15',
+             'raas_mode':'PERCENT','raas_percent_monthly':'2',
+             'implementation_cost_total_gross':'999999','raas_monthly_per_robot_gross':'999999'}
+    result=execute_partial_economics_v2(percent,snapshot,context,full_engine=execute_economics_v4).result_snapshot
+    assert result['monetary_input_basis']['implementation']['amount_gross_rub']=='4500000.00'
+    assert result['monetary_input_basis']['raas']['per_robot_month_gross_rub']=='60000.00'
+    assert [r['report_facts']['project_npv'] for r in result['scenarios']]==[r['report_facts']['project_npv'] for r in absolute['scenarios']]
+
+@pytest.mark.parametrize('percent,expected',[('0','0.00'),('2','60000.00'),('4','120000.00')])
+def test_raas_percent_is_monthly_and_uses_known_money_basis(percent,expected):
+    from economics_final import execute_economics_v4
+    snapshot,context=_context()
+    raw=project_input();raw.update(raas_mode='PERCENT',raas_percent_monthly=percent)
+    result=execute_partial_economics_v2(raw,snapshot,context,full_engine=execute_economics_v4).result_snapshot
+    assert result['monetary_input_basis']['raas']['per_robot_month_gross_rub']==expected
+    raw['purchase_price_override_gross']=None
+    raw['purchase_price_source']=None
+    result=execute_partial_economics_v2(raw,snapshot,context,full_engine=execute_economics_v4).result_snapshot
+    assert result['monetary_input_basis']['raas']['mode']=='PERCENT'

@@ -53,6 +53,8 @@ const CALCULATION_RULES = [
   ['Налог', 'Основной денежный маршрут рассчитывается до налога на прибыль. НДС не пересчитывается единой ставкой: денежная база использует gross цену по принятому условию сценария.', 'Налоговый режим организации в этой форме неизвестен; иллюстративная налоговая ветка не включается в основной NPV.'],
 ];
 const defaults = { calculationDepth: 'BASIC', evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '',
+  implementationMode: 'FIXED', implementationPercent: '', raasMode: 'FIXED', raasPercentMonthly: '',
+  robotsPerControlPost: '', robotsPerDayTechnician: '', rotationFactor: '', technicianPresence: 'DAY_WORKLOAD', robotizableShare: '', residualOperations: '',
   controlMode: '', technicianPurchaseMode: '', technicianRaasMode: '', qualifiedTechTransfer: false,
   sources: {}, assumptions: {}, userValues: {} };
 function restored(capacityRunId, input, project) {
@@ -65,7 +67,7 @@ function restored(capacityRunId, input, project) {
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
     startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
-  if (input?.schema_version === 'economics-explicit-inputs-v5') Object.assign(values, {
+  if (['economics-explicit-inputs-v5', 'economics-explicit-inputs-v6'].includes(input?.schema_version)) Object.assign(values, {
     controlMode: input.staffing_purchase?.control_mode || '',
     technicianPurchaseMode: input.staffing_purchase?.technician_mode || '',
     technicianRaasMode: input.staffing_raas?.technician_mode || '',
@@ -76,6 +78,15 @@ function restored(capacityRunId, input, project) {
       || input.staffing_raas?.technician_transfer_monthly_supplement_gross || '',
     technicianContractorAnnual: input.staffing_purchase?.technician_contractor_annual_gross
       || input.staffing_raas?.technician_contractor_annual_gross || '',
+  });
+  if (input?.schema_version === 'economics-explicit-inputs-v6') Object.assign(values, {
+    implementationMode: input.implementation_mode || 'FIXED', implementationPercent: input.implementation_percent || '',
+    raasMode: input.raas_mode || 'FIXED', raasPercentMonthly: input.raas_percent_monthly || '',
+    robotsPerControlPost: input.staffing_policy?.robots_per_control_post || '',
+    robotsPerDayTechnician: input.staffing_policy?.robots_per_day_technician || '',
+    rotationFactor: input.staffing_policy?.rotation_factor || '',
+    technicianPresence: input.staffing_policy?.technician_presence || 'DAY_WORKLOAD',
+    robotizableShare: input.work_share?.fraction || '', residualOperations: input.work_share?.residual_operations || '',
   });
   if (!input) Object.assign(values, { startSeconds: String(MODEL_START_SECONDS), timezone: modelTimezone(project) });
   return values;
@@ -116,7 +127,9 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const readiness = economicsReadiness(values, capacityRequest, FIELDS, staffingPreview, fleet);
   const visibleField = (field) => {
     const key = field[1];
-    if (key === 'manualUnitsPerShift') return capacityRequest?.process?.scope !== 'CLEANING_AREA';
+    if (key === 'manualUnitsPerShift') return true;
+    if (key === 'implementationCost') return values.implementationMode !== 'PERCENT';
+    if (key === 'raasMonthly') return values.raasMode !== 'PERCENT';
     if (key === 'controlMonthlyGross') return Number(values.controlHeadcount) > 0 || Object.values(staffingPreview).some((item) => item?.control_additional > 0) || values.controlMode === 'HIRE' && Number(values.controlHeadcount || 0) === 0 && Number(fleet) > 0;
     if (key === 'technicianMonthlyGross') return Number(values.technicianHeadcount) > 0 || Math.ceil(Number(fleet || 0) / 20) > Number(values.technicianHeadcount || 0) && (values.technicianPurchaseMode === 'HIRE' || values.technicianRaasMode === 'HIRE');
     if (key === 'controlTransferSupplement') return values.controlMode === 'TRANSFER';
@@ -141,7 +154,20 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     event?.preventDefault();
     setError(''); setBusy(true);
     try {
-      const body = buildPartialEconomicsRunRequest({ values: { ...valuesAtDepth(submitted, FIELDS), capacityRunId }, capacityRequest, project, scenario, sourceRunId });
+      const prepared = valuesAtDepth(submitted, FIELDS);
+      const policyDate = today();
+      const body = buildPartialEconomicsRunRequest({ values: { ...prepared, capacityRunId,
+        staffingPolicy: prepared.robotsPerControlPost && prepared.robotsPerDayTechnician && prepared.rotationFactor ? {
+          schema_version: 'staffing-policy-v2', robots_per_control_post: prepared.robotsPerControlPost,
+          robots_per_day_technician: prepared.robotsPerDayTechnician, rotation_factor: prepared.rotationFactor,
+          technician_presence: prepared.technicianPresence, source: 'ASSUMPTION',
+          basis: 'Принято пользователем для проектного расчёта; проверить нагрузку на объекте', date: policyDate, confirmed: true,
+        } : null,
+        workShare: prepared.robotizableShare !== '' && prepared.residualOperations ? {
+          schema_version: 'robotizable-work-share-v1', fraction: prepared.robotizableShare,
+          residual_operations: prepared.residualOperations, source: 'ASSUMPTION',
+          basis: 'Принято пользователем для проектного расчёта; проверить остаточные операции на объекте', date: policyDate, confirmed: true,
+        } : null }, capacityRequest, project, scenario, sourceRunId });
       const response = await fetch(`${API}/api/v2/projects/${encodeURIComponent(project.id)}/economics-runs`, {
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() }, body: JSON.stringify(body),
       });
@@ -199,7 +225,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     {['Труд', 'Покупка', 'RaaS', 'Визуализация'].filter((group) => ECONOMICS_DEPTHS.findIndex((level) => level.groups.includes(group)) <= depthIndex(values.calculationDepth)).map((group) => <details open key={group} aria-label={group} className="rounded-xl border p-4">
       <summary className="font-semibold cursor-pointer">{group}</summary>
       {group === 'Труд' && <div className="mt-3 rounded border border-blue-300 p-3 text-sm space-y-3" aria-label="Покрытие новых функций после расчёта парка">
-        <details><summary>Как определена потребность в новых функциях</summary><p>Парк: {fleet ?? 'нет данных'} роботов. Техподдержка: {fleet == null ? 'нет данных' : Math.ceil(Number(fleet) / 20)} чел. — один техник на 20 роботов с округлением вверх. Потребность в диспетчерах зависит от ручной выработки. {staffingPreview.PURCHASE ? `На текущем вводе: диспетчеры ${staffingPreview.PURCHASE.control_required}, техники ${staffingPreview.PURCHASE.technicians_required}, перевод на пульт ${staffingPreview.PURCHASE.control_transferred}.` : 'Точное распределение будет показано после сохранения расчёта.'}</p></details>
+        <details><summary>Как определена потребность в новых функциях</summary><p>Парк: {fleet ?? 'нет данных'} роботов. Посты управления рассчитываются по числу роботов; штат — по постам, сменам и ротации. Техник может быть дневным, сменным или у поставщика. {staffingPreview.PURCHASE ? `На текущем вводе: диспетчеры ${staffingPreview.PURCHASE.control_required}, техники ${staffingPreview.PURCHASE.technicians_required}, перевод на пульт ${staffingPreview.PURCHASE.control_transferred}.` : 'Точное распределение будет показано после сохранения расчёта.'}</p></details>
+        <div className="grid gap-2 md:grid-cols-3"><label>Роботов на пост<input type="number" min="0.01" step="any" value={values.robotsPerControlPost} onChange={set('robotsPerControlPost')} /></label><label>Роботов на дневного техника<input type="number" min="0.01" step="any" value={values.robotsPerDayTechnician} onChange={set('robotsPerDayTechnician')} /></label><label>Коэффициент ротации<input type="number" min="1" step="any" value={values.rotationFactor} onChange={set('rotationFactor')} /></label></div>
+        <label>Присутствие техника<select value={values.technicianPresence} onChange={set('technicianPresence')}><option value="DAY_WORKLOAD">Дневная нагрузка</option><option value="EACH_SHIFT">В каждой смене</option><option value="VENDOR">У поставщика</option></select></label>
+        <label>Доля роботизируемой работы роли, 0–1<input type="number" min="0" max="1" step="any" value={values.robotizableShare} onChange={set('robotizableShare')} /></label>
+        <label>Какие ручные операции остаются<input type="text" value={values.residualOperations} onChange={set('residualOperations')} /></label>
         <p>Численность «сейчас» ниже описывает только исходный штат. Выберите, кто покроет новую функцию; перевод сохраняет человека в штате и уменьшает высвобождение.</p>
         <label className="block">Пульт<select id="economics-staffing-control" className="block w-full border rounded p-2" value={values.controlMode} onChange={set('controlMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод из заменяемой роли</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option></select></label>
         <label className="block">Техподдержка при покупке<select id="economics-staffing-purchase" className="block w-full border rounded p-2" value={values.technicianPurchaseMode} onChange={set('technicianPurchaseMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option></select></label>
@@ -216,9 +246,9 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         {manualEstimate?.status === 'ESTIMATE' && <p className="mt-2">Оценка по действующему реестру F08: <strong title={manualEstimate.value}>≈ {estimateShown} {manualEstimate.unit}</strong>. {manualEstimate.formula}. {process?.scope === 'CLEANING_AREA'
           ? `Механизированная база ${manualEstimate.inputs.mechanized_rate_m2_h} м²/ч, полезное время ${manualEstimate.inputs.useful_time_share}.`
           : `Скорость человека ${manualEstimate.inputs.manual_speed_m_s ?? 'н/п'} м/с, обмен ${manualEstimate.inputs.manual_exchange_s ?? 'н/п'} с, полезное время ${manualEstimate.inputs.useful_time_share ?? 'н/п'}, единиц за рейс ${manualEstimate.inputs.units_per_trip ?? 'н/п'}.`} Источники: {manualEstimate.source_refs.join(', ')}. Это допущение, не замер на объекте.</p>}
-        {manualEstimate?.status === 'ESTIMATE' && process?.scope !== 'CLEANING_AREA' && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => applyManualProductivityEstimate(current, manualEstimate))}>Взять оценку как допущение и подтвердить ниже</button>}
+        {manualEstimate?.status === 'ESTIMATE' && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => applyManualProductivityEstimate(current, manualEstimate))}>Взять оценку как допущение и подтвердить ниже</button>}
         {manualEstimate?.status === 'UNSUPPORTED' && <p className="mt-2 text-amber-800">Для этого процесса нет утверждённой оценки ручной выработки. Введите измеренную норму; расчёт без неё останется частичным.</p>}
-        {process?.scope === 'CLEANING_AREA' && <p className="mt-2">Для уборки C14 использует отдельную механизированную базу реестра; ручную транспортную норму вводить не нужно.</p>}
+        {process?.scope === 'CLEANING_AREA' && <p className="mt-2">Для уборки укажите ручную выработку за смену; оценка реестра доступна как предварительное допущение.</p>}
       </div>}
       {group === 'Визуализация' && <div className="mt-2 rounded border p-3 text-sm">
         <p>Модельное начало: понедельник, {String(Math.floor(Number(values.startSeconds) / 3600)).padStart(2, '0')}:{String(Math.floor(Number(values.startSeconds) % 3600 / 60)).padStart(2, '0')} местного времени. Часовой пояс сохраняется в новом сценарии.</p>
@@ -249,11 +279,13 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         </div>;
       })}</div>}
       {group === 'Покупка' && <label className="block mt-3 text-sm">Дата оценки · дата<input id="economics-evaluation_date" type="date" value={values.evaluationDate} onChange={set('evaluationDate')} className="w-full border rounded p-2" /><small>Для привязки цен; источник — дата оценки проекта.</small></label>}
+      {group === 'Покупка' && <div className="mt-3 rounded border p-3 text-sm"><label>Внедрение<select value={values.implementationMode} onChange={set('implementationMode')}><option value="FIXED">Сумма на проект</option><option value="PERCENT">% стоимости оборудования</option></select></label>{values.implementationMode === 'PERCENT' && <label>Процент внедрения<input type="number" min="0" max="100" step="any" value={values.implementationPercent} onChange={set('implementationPercent')} /></label>}<p>Сервер применяет процент к цене робота × сохранённый парк. Общая инфраструктура вводится отдельно.</p></div>}
       {group === 'Покупка' && depthIndex(values.calculationDepth) >= 2 && <div className="mt-3 rounded border p-3 text-sm"><strong>Уточнить цену одного робота</strong><p>Оставьте пустым для цены сохранённой позиции каталога. Изменение создаст новый экономический run; каталог и прежний расчёт останутся прежними.</p>
         <label className="mt-2 block">Цена, ₽ gross<input id="economics-purchase_price_override_gross" type="text" inputMode="decimal" value={values.purchasePriceOverride} onChange={set('purchasePriceOverride')} className="block w-full border rounded p-2" placeholder="Цена каталога без изменения" /></label>
         <label className="mt-2 block">Источник новой цены<input id="economics-purchase_price_source" type="text" value={values.purchasePriceSource} onChange={set('purchasePriceSource')} className="block w-full border rounded p-2" placeholder="Документ и дата либо пользовательское допущение" /></label>
         <p>Источник сохраняется как условие пользователя, а не подтверждение поставщика.</p></div>}
       {group === 'RaaS' && <label className="block mt-3 text-sm">Кто оплачивает инфраструктуру<select id="economics-raas_infrastructure_owner" value={values.raasInfrastructureOwner} onChange={set('raasInfrastructureOwner')} className="w-full border rounded p-2"><option value="">Неизвестно</option><option value="VENDOR">Поставщик</option><option value="CUSTOMER">Заказчик</option></select><small>Для состава затрат; источник — договор или допущение.</small></label>}
+      {group === 'RaaS' && <div className="mt-3 rounded border p-3 text-sm"><label>Тариф RaaS<select value={values.raasMode} onChange={set('raasMode')}><option value="FIXED">₽/робот/месяц</option><option value="PERCENT">% цены робота в месяц</option></select></label>{values.raasMode === 'PERCENT' && <label>Месячный процент<input type="number" min="0" max="100" step="any" value={values.raasPercentMonthly} onChange={set('raasPercentMonthly')} /></label>}<p>Процент — месячный тариф услуги, не ставка кредита. Денежную сумму рассчитывает сервер.</p></div>}
     </details>)}
     <section className="rounded-xl border border-amber-300 p-4 text-sm" aria-label="Пять условий экономического сценария">
       <h3 className="font-semibold">Условия выбранного уровня</h3>

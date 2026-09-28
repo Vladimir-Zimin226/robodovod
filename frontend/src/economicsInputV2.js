@@ -94,7 +94,7 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
     evaluation_date: optional(values.evaluationDate), horizon_years: optional(values.horizonYears),
     discount_rate: optional(values.discountRate),
     primary_role_id: optional(values.primaryRoleId) || capacityRequest.process?.role_refs?.[0] || null,
-    manual_units_per_shift: capacityRequest.process?.scope === 'CLEANING_AREA' ? null : optional(values.manualUnitsPerShift),
+    manual_units_per_shift: optional(values.manualUnitsPerShift),
     role_salaries_confirmed_as_monthly_gross: values.grossConfirm === true,
     control_headcount: optional(values.controlHeadcount), control_monthly_gross: optional(values.controlMonthlyGross),
     technician_headcount: optional(values.technicianHeadcount), technician_monthly_gross: optional(values.technicianMonthlyGross),
@@ -127,9 +127,14 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
   return {
     scenario_id: scenario.id, capacity_run_id: values.capacityRunId,
     ...(sourceRunId ? { source_run_id: sourceRunId } : {}),
-    input: { schema_version: 'economics-explicit-inputs-v5', input_revision: capacityRequest.input_revision,
+    input: { schema_version: values.staffingPolicy || values.workShare ? 'economics-explicit-inputs-v6' : 'economics-explicit-inputs-v5', input_revision: capacityRequest.input_revision,
       ...(values.calculationDepth ? { calculation_depth: values.calculationDepth } : {}),
       ...fields, staffing_purchase: staffing(values.technicianPurchaseMode),
-      staffing_raas: staffing(values.technicianRaasMode), field_sources, assumption_evidence },
+      staffing_raas: staffing(values.technicianRaasMode), field_sources, assumption_evidence,
+      staffing_policy: values.staffingPolicy || null, work_share: values.workShare || null,
+      implementation_mode: values.implementationMode || 'FIXED',
+      implementation_percent: values.implementationMode === 'PERCENT' ? optional(values.implementationPercent) : null,
+      raas_mode: values.raasMode || 'FIXED',
+      raas_percent_monthly: values.raasMode === 'PERCENT' ? optional(values.raasPercentMonthly) : null },
   };
 }

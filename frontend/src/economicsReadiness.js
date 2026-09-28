@@ -25,12 +25,11 @@ export function economicsReadiness(values, capacityRequest, fields, staffingPrev
   };
   const missingConditions = ECONOMICS_CONDITIONS.filter((item) => values[item.key] !== true);
   const roleRefs = capacityRequest?.process?.role_refs || [];
-  const cleaning = capacityRequest?.process?.scope === 'CLEANING_AREA';
   const techniciansNeeded = selectedFleet == null ? null : Math.max(0, Math.ceil(Number(selectedFleet) / 20) - Number(values.technicianHeadcount || 0));
   const controlCostNeeded = Object.values(staffingPreview).some((item) => item?.control_additional > 0)
     || (values.controlMode === 'HIRE' && Number(values.controlHeadcount || 0) === 0 && Number(selectedFleet) > 0);
   const labourMissing = [
-    ...(!cleaning && !known('manual_units_per_shift') ? ['manual_units_per_shift'] : []),
+    ...(!known('manual_units_per_shift') ? ['manual_units_per_shift'] : []),
     ...['control_headcount', 'technician_headcount'].filter((field) => !known(field)),
     ...(!values.controlMode ? ['staffing_purchase'] : []),
     ...(!values.technicianPurchaseMode ? ['staffing_purchase'] : []),
@@ -49,15 +48,17 @@ export function economicsReadiness(values, capacityRequest, fields, staffingPrev
     ...((roleRefs.length > 1 && !values.primaryRoleId) || (values.primaryRoleId && !roleRefs.includes(values.primaryRoleId)) ? ['primary_role_id'] : []),
   ];
   const purchaseMissing = [
-    ...['horizon_years', 'discount_rate', 'implementation_cost_total_gross', 'annual_service_per_robot_gross',
+    ...['horizon_years', 'discount_rate', ...(values.implementationMode === 'PERCENT' ? [] : ['implementation_cost_total_gross']), 'annual_service_per_robot_gross',
       'warranty_years', 'average_power_w', 'shared_site_capital_gross', 'shared_annual_cost_gross'].filter((field) => !known(field)),
+    ...(values.implementationMode === 'PERCENT' && !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(values.implementationPercent || '') ? ['implementation_percent'] : []),
     ...(!values.evaluationDate ? ['evaluation_date'] : []),
     ...ECONOMICS_CONDITIONS.filter((item) => item.group === 'Покупка' && values[item.key] !== true).map((item) => item.key),
     ...(labourMissing.length ? ['labour'] : []),
   ];
   const raasMissing = [
     ...purchaseMissing,
-    ...['raas_monthly_per_robot_gross', 'raas_contract_months'].filter((field) => !known(field)),
+    ...[...(values.raasMode === 'PERCENT' ? [] : ['raas_monthly_per_robot_gross']), 'raas_contract_months'].filter((field) => !known(field)),
+    ...(values.raasMode === 'PERCENT' && !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(values.raasPercentMonthly || '') ? ['raas_percent_monthly'] : []),
     ...(!values.raasInfrastructureOwner ? ['raas_infrastructure_owner'] : []),
     ...(!values.raasScopeConfirm ? ['raasScopeConfirm'] : []),
     ...(known('raas_contract_months') && known('horizon_years') && Number(values.raasContractMonths) < Number(values.horizonYears) * 12 ? ['raas_contract_months'] : []),

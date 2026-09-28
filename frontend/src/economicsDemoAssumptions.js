@@ -112,6 +112,9 @@ export function applyTypicalObjectEconomics(values, fields, objectKind, estimate
     'purchasePriceOverride', 'purchase_price_override_gross', warehouse ? '2500000' : objectKind === 'AIRPORT' ? '1200000' : '1800000', { enableTemplate: false });
   next = confirmAllEconomicsAssumptions(next);
   return { ...next, calculationDepth: 'FULL', evaluationDate: new Date().toISOString().slice(0, 10),
+    robotsPerControlPost: '5', robotsPerDayTechnician: '20', rotationFactor: '1',
+    technicianPresence: 'DAY_WORKLOAD', robotizableShare: warehouse ? '0.8' : objectKind === 'AIRPORT' ? '0.6' : '0.7',
+    residualOperations: warehouse ? 'Подготовка паллет и ручная проверка' : objectKind === 'AIRPORT' ? 'Кромки, препятствия и ручная санитарная обработка' : 'Загрузка, передача и санитарная проверка',
     timezone: values.timezone,
     controlMode: 'HIRE', technicianPurchaseMode: 'HIRE', technicianRaasMode: 'VENDOR',
     grossConfirm: true, currencyConfirm: true, initialBatteryConfirm: true, batteryServiceConfirm: true,
