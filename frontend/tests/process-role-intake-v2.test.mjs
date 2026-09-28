@@ -80,6 +80,7 @@ test('every suggested role can be activated and remains process-scoped', () => {
       assert.equal(draft.roles.length, 1);
       assert.equal(draft.roles[0].roleCode, roleCode);
       assert.deepEqual(draft.roles[0].processIds, [`${draft.zones[0].zoneId}.${definition.code}`]);
+      assert.equal(draft.processes.find((item) => item.code === definition.code).active, true);
     }
   }
 });
@@ -105,6 +106,35 @@ test('zones keep separate process inputs and stable C11/C23 identities', () => {
   const addedAgain = addZone(removed, 'retail');
   assert.notEqual(addedAgain.zones[1].zoneId, second.zoneId);
   assert.equal(addedAgain.zones[1].label, 'Зона 2');
+});
+
+test('choosing forklift and picker roles activates both different processes', () => {
+  let draft = createDraft('retail');
+  draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);
+  draft = setRoleActive(draft, 'warehouse_picking', 'picker', true);
+  assert.deepEqual(draft.processes.filter((item) => item.active).map((item) => item.code),
+    ['warehouse_receiving_shipping', 'warehouse_picking']);
+  assert.ok(validateDraft(draft).some((item) => item.ref.includes('warehouse_picking.demand')));
+});
+
+test('forklift and picker in different zones remain separate active inputs', () => {
+  let draft = addZone(createDraft('retail'), 'retail');
+  const secondZone = draft.zones[1].zoneId;
+  const transport = draft.processes.find((item) => item.zoneId === draft.zones[0].zoneId && item.code === 'warehouse_receiving_shipping');
+  const picking = draft.processes.find((item) => item.zoneId === secondZone && item.code === 'warehouse_picking');
+  draft = setRoleActive(draft, transport.processId, 'forklift_driver', true);
+  draft = setRoleActive(draft, picking.processId, 'picker', true);
+  draft = updateRole(draft, 'draft.warehouse.forklift_driver', { headcount: '8' });
+  draft = updateRole(draft, 'draft.warehouse.picker', { headcount: '12' });
+  draft = updateProcess(draft, transport.processId, { demand: '2000', shifts: '2', hours: '10', days: '250', distance: '120', batch: '1' });
+  draft = updateProcess(draft, picking.processId, { demand: '10000', shifts: '2', hours: '8', days: '250' });
+  const request = serializeDraft(draft);
+  const active = request.processes.filter((item) => item.active);
+  assert.equal(active.length, 2);
+  assert.equal(active.find((item) => item.process_id === transport.processId).demand.value, '2000');
+  assert.equal(active.find((item) => item.process_id === picking.processId).demand.value, '10000');
+  assert.equal(active.find((item) => item.process_id === picking.processId).quantity_kind, 'PICK');
+  assert.equal(request.roles.find((item) => item.role_code === 'picker').process_ids[0], picking.processId);
 });
 
 test('zone labels fill gaps after edits and deletion without duplicating stable IDs', () => {

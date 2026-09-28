@@ -49,9 +49,10 @@ const statusFor = (process, issues, response) => {
   return ['Готов к нормализации', 'text-green-600'];
 };
 
-export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, initialFacilityContext, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
+export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, onDraftChange, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
   const [draft, setDraft] = useState(() => {
     if (importedAssistant) return toV2Draft(importedAssistant);
+    if (initialDraft?.objectKind === { retail: 'WAREHOUSE', airport: 'AIRPORT', clinic: 'CLINIC' }[objectType]) return initialDraft;
     if (importedFile) return importedFile.normalized?.schema_version === 'project-workbook-v1' ? workbookDraft(importedFile.normalized)
       : createWarehouseFileDraft(importedFile.normalized, importedFile.imported);
     const fresh = createDraft(objectType);
@@ -65,7 +66,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   });
   const [selectedZoneId, setSelectedZoneId] = useState(() => draft.zones[0].zoneId);
   const [expanded, setExpanded] = useState(null);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(initialNormalized || null);
   const [state, setState] = useState('');
   const [error, setError] = useState('');
   const [positions, setPositions] = useState([]);
@@ -79,12 +80,15 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [acknowledged, setAcknowledged] = useState(false);
   const [capacityBusy, setCapacityBusy] = useState(false);
   const [focusIssue, setFocusIssue] = useState('');
+  const [pickingCatalog, setPickingCatalog] = useState(null);
+  const [pickingCatalogError, setPickingCatalogError] = useState('');
   const latestRevision = useRef(draft.inputRevision);
   const normalizationClient = useRef(null);
   const capacityClient = useRef(createCapacityAnalysisClient());
   useEffect(() => {
     latestRevision.current = draft.inputRevision;
-  }, [draft.inputRevision]);
+    onDraftChange?.(draft);
+  }, [draft, onDraftChange]);
   useEffect(() => {
     normalizationClient.current = createNormalizationClient(
       (url, options) => fetch(`${API}${url}`, options),
@@ -107,6 +111,9 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       item.process_id.startsWith(`${selectedZoneId}.`))
     : [];
   const selectedProcess = activeProcesses.find((item) => item.process_id === processId) || activeProcesses[0];
+  const allActiveProcesses = normalizedIsCurrent ? result.response.normalized_processes.filter((item) => item.active) : [];
+  const pickingRows = pickingCatalog?.capabilities?.rows?.filter((item) => item.code === 'picking_lines' || item.code === 'picking_items') || [];
+  const pickingCandidates = [...new Map(pickingRows.flatMap((item) => item.candidates || []).map((item) => [item.position_id, item])).values()];
   useEffect(() => {
     if (!selectedProcess) return undefined;
     const controller = new AbortController();
@@ -118,6 +125,16 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       .catch((e) => { if (e.name !== 'AbortError') { setPositions([]); setCatalogState('error'); } });
     return () => controller.abort();
   }, [selectedProcess]);
+  useEffect(() => {
+    if (selectedProcess?.process_code !== 'warehouse_picking' || !activeProject?.id) return undefined;
+    const controller = new AbortController();
+    fetch(`${API}/api/warehouse-chain/projects/${encodeURIComponent(activeProject.id)}`,
+      { credentials: 'include', signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
+      .then((data) => { setPickingCatalog(data); setPickingCatalogError(''); })
+      .catch((reason) => { if (reason.name !== 'AbortError') { setPickingCatalog(null); setPickingCatalogError('Не удалось получить варианты для комплектации из активного каталога.'); } });
+    return () => controller.abort();
+  }, [activeProject?.id, selectedProcess?.process_code]);
   const candidatePositions = demoCandidates(positions, selectedProcess?.scope);
   const selectedPosition = candidatePositions.find((item) => item.position_id === positionId);
   const rankedCandidates = recommendedCandidates(comparison, positions);
@@ -357,12 +374,42 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       <button type="button" disabled={state === 'loading' || activeCount === 0} onClick={normalize} className="w-full rounded-xl py-3 mt-3 text-sm font-semibold bg-blue-600 text-white disabled:bg-slate-200 disabled:text-slate-400">
         {state === 'loading' ? 'Проверяем…' : 'Проверить ввод'}
       </button>
+      {normalizedIsCurrent && <section className="mt-4 rounded-xl border p-3 text-xs" aria-label="Операции по зонам">
+        <h3 className="font-semibold">Операции по зонам · {allActiveProcesses.length}</h3>
+        <p className="mt-1">Выберите каждую операцию отдельно. Сохранённый парк относится к одной зоне и операции; общий парк и экономию по зонам нельзя складывать без модели общих ресурсов.</p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">{allActiveProcesses.map((process) => {
+          const zone = draft.zones.find((item) => process.process_id.startsWith(`${item.zoneId}.`));
+          const source = draft.processes.find((item) => item.processId === process.process_id);
+          return <button key={process.process_id} type="button" className={`rounded border p-2 text-left ${selectedProcess?.process_id === process.process_id ? 'border-blue-500' : 'border-slate-500'}`}
+            onClick={() => { setSelectedZoneId(zone?.zoneId || draft.zones[0].zoneId); setProcessId(process.process_id); setPositionId(''); invalidateComparison(); choosePhysicalInputs(source); }}>
+            <strong>{zone?.label || 'Зона'} · {source?.label || process.process_code}</strong>
+            <span className="block mt-1">{['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(process.scope)
+              ? 'Отдельный предварительный расчёт парка' : process.process_code === 'warehouse_picking'
+                ? 'Варианты каталога и отдельная проверка комплектовки' : 'Операция описана; расчётной формулы пока нет'}</span>
+          </button>;
+        })}</div>
+      </section>}
       {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт">
         <h3 className="text-sm font-semibold">Предварительный расчёт</h3>
         <p className="text-xs text-amber-800">Каждый сохранённый расчёт парка относится только к одному выбранному процессу в одной зоне. Отдельные парки и денежные эффекты нельзя складывать при общих роботах, ролях, межзональных потоках или расходах площадки.</p>
         <p className="text-xs text-amber-800">Демо-профиль не является паспортом изготовителя. Неизвестные проверки пригодности останутся в результате; число роботов не означает готовность к закупке.</p>
         {!activeProject && <p className="text-xs text-amber-800">Выберите проект в блоке выше, чтобы сохранить расчёт.</p>}
-        {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">Для этого процесса пока нет расчётной модели производительности.</p> : <>
+        {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">В выбранной зоне нет активных операций. Выберите зону и операцию в списке выше.</p>
+          : selectedProcess?.scope === 'REFERENCE_ONLY' ? <div className="space-y-3 rounded-lg border border-amber-400 p-3 text-xs">
+            <strong>{selectedZone.label} · {draft.processes.find((item) => item.processId === selectedProcess.process_id)?.label || selectedProcess.process_code}</strong>
+            {selectedProcess.process_code === 'warehouse_picking' ? <>
+              <p>Комплектовка не равна перевозке паллет. Ни погрузчик, ни мойщик не получают экономию комплектовщика. Ниже — возможные технологии из активного каталога для изучения, без подтверждённого расчёта парка или закупочной рекомендации.</p>
+              {!activeProject && <p>Выберите проект, чтобы получить позиции активного каталога и проверить арифметику отбора.</p>}
+              {pickingCatalogError && <p role="alert">{pickingCatalogError}</p>}
+              {activeProject && !pickingCatalog && !pickingCatalogError && <p role="status">Ищем варианты комплектации в активном каталоге…</p>}
+              {pickingCatalog && (pickingCandidates.length ? <ul className="list-disc pl-5 space-y-1">{pickingCandidates.map((candidate) =>
+                <li key={candidate.position_id}>{candidate.name} · {({ ROBOT_ARM: 'роботизированный захват', ASRS_G2P: 'подача товара к человеку', PICK_ASSIST: 'помощь человеку', MOBILE_PICKER: 'мобильный робот-комплектовщик', OTHER_PICKING: 'другая технология комплектации' })[candidate.solution_family] || 'тип требует проверки'} · {candidate.maturity_status === 'RND' ? 'исследовательская разработка' : 'только сравнение'}; производительность отбора и пригодность на объекте требуют подтверждения.</li>)}</ul>
+                : <p>В активном каталоге нет позиции с подтверждённым профилем отбора. Нужны паспорт робота или измеренная производительность и проверка условий объекта.</p>)}
+              {pickingRows.some((item) => item.solution_families) && <p>Классы решений: роботизированный захват, подача товара к человеку (G2P/AS-RS), подсказки комплектовщику (Voice/Light). Последние два сами не выполняют захват товара.</p>}
+              <PickingStudy key={selectedProcess.process_id} project={activeProject} process={selectedProcess} zone={selectedZone}
+                pickerHeadcount={draft.roles.find((role) => role.roleCode === 'picker' && role.processIds.includes(selectedProcess.process_id))?.headcount || ''} />
+            </> : <p>Операция сохранена во вводе, но для неё нет проверенной формулы парка. Каталожное совпадение не означает расчёт пригодности.</p>}
+          </div> : <>
           <label className="block text-xs">Процесс
             <select className="w-full border rounded px-2 py-1" value={selectedProcess?.process_id || ''} onChange={(event) => { setProcessId(event.target.value); setPositionId(''); invalidateComparison(); choosePhysicalInputs(draft.processes.find((item) => item.processId === event.target.value)); }}>
               {activeProcesses.map((item) => <option key={item.process_id} value={item.process_id}>{draft.zones.find((zone) => item.process_id.startsWith(`${zone.zoneId}.`))?.label || 'Зона'} · {visibleProcesses.find((process) => item.process_id.endsWith(process.processId))?.label || 'Процесс'}</option>)}
@@ -402,7 +449,6 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
         </>}
       </section>}
-      {selectedProcess?.process_code === 'warehouse_picking' && <PickingStudy project={activeProject} />}
     </section>
   );
 }

@@ -12,6 +12,7 @@
 [источники слайдов](PRESENTATION_SOURCES.md),
 [проверка методологии](METHODOLOGY_REVIEW.md),
 [отчёт о доработках](FOLLOWUP_REPORT.md),
+[проверка зон и комплектовки](ZONE_PICKING_FIX.md),
 [поля финальной формы](SUBMISSION.md) (E10).
 
 Исторические материалы в `docs/delivery/f8/` описывают прежний выпуск.

@@ -110,6 +110,21 @@ test('C11 request binds a shared role only to the selected zone process', () => 
   }), /Выберите зону/);
 });
 
+test('a second zone builds its own capacity request with its own route', () => {
+  const input = structuredClone(normalized);
+  const second = structuredClone(input.response.normalized_processes[0]);
+  second.process_id = 'zone.draft.warehouse.2.warehouse_receiving_shipping';
+  second.route_distance = q('one_way_distance', '200', 'm');
+  input.response.normalized_processes.push(second);
+  const request = buildDemoCapacityRequest({ normalized: input, projectId: 'project.1',
+    processId: second.process_id, position: mule, exchangeSeconds: '110', acknowledged: true,
+    zone: { zoneId: 'zone.draft.warehouse.2', label: 'Зона 2', constraints: '' } });
+  assert.equal(request.process.process_id, second.process_id);
+  assert.equal(request.process.route_distance.normalized_value, '200');
+  assert.equal(request.process.exchange.total_time.normalized_value, '110');
+  assert.equal(request.zone_context.label, 'Зона 2');
+});
+
 test('cleaning demo exposes one pass per day rather than inventing vendor availability', () => {
   const cleaning = structuredClone(normalized);
   cleaning.response.normalized_processes[0] = {

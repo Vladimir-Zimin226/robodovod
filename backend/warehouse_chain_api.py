@@ -232,7 +232,8 @@ def _candidate(code: str, position: Any) -> bool:
     if code in {"receiving_putaway", "shipping"}:
         return model.capacity_runtime.calculation_profile == "TRANSPORT_CYCLE_V1"
     if code in {"picking_lines", "picking_items"}:
-        return bool(re.search(r"pick|отбор|комплект|as.?rs|g2p|voice|light|роборук|манипулятор", text))
+        # A generic industrial manipulator is not evidence of warehouse picking.
+        return bool(re.search(r"pick|отбор|комплект|as.?rs|g2p|voice|light|роборук|товар.к.человек", text))
     if code == "palletizing":
         return model.capacity_runtime.calculation_profile in {"PALLETIZING_THROUGHPUT_V1", "PALLETIZING_CELL_V1"} or bool(re.search(r"паллетиз|palletiz", text))
     if code == "tote_handoff":
@@ -246,10 +247,12 @@ def _picking_kind(position: Any) -> str:
     model = position.model
     text = " ".join((model.name, model.type_code, model.description or "",
                      *(item.scenario or "" for item in model.applicability))).casefold()
-    if re.search(r"as.?rs|g2p|goods.?to.?person|товар.к.человек|шаттл|shuttle", text):
+    if re.search(r"as.?rs|g2p|goods.?to.?person|товар.к.человек|стеллаж.*станци.*комплект|шаттл|shuttle", text):
         return "ASRS_G2P"
     if re.search(r"pick.by.voice|pick.by.light|voice|light|голосов|светов", text):
         return "PICK_ASSIST"
+    if re.search(r"робот.комплектовщик|robotic.picker|mobile.picking.robot", text):
+        return "MOBILE_PICKER"
     if re.search(r"роборук|манипулятор|robotic.arm|robot.arm|robotic.picking", text):
         return "ROBOT_ARM"
     return "OTHER_PICKING"
@@ -289,9 +292,10 @@ def capability_matrix(snapshot: CatalogSnapshotDTO | None, chain: dict[str, Any]
                      "status": status, "reason": reason, "candidate_count": len(matched),
                      "calculation_ready_count": len(ready) if supported_formula else 0,
                      "solution_families": ({kind: sum(_picking_kind(item) == kind for item in matched)
-                                            for kind in ("ROBOT_ARM", "ASRS_G2P", "PICK_ASSIST", "OTHER_PICKING")}
+                                            for kind in ("ROBOT_ARM", "ASRS_G2P", "PICK_ASSIST", "MOBILE_PICKER", "OTHER_PICKING")}
                                            if code in {"picking_lines", "picking_items"} else {}),
                      "candidates": [{"position_id": item.id, "name": item.model.name,
+                                     "solution_family": _picking_kind(item) if code in {"picking_lines", "picking_items"} else None,
                                      "maturity_status": item.model.maturity_status,
                                      "calculation_ready": item.model.capacity_runtime.calculation_ready,
                                      "calculation_profile": item.model.capacity_runtime.calculation_profile}

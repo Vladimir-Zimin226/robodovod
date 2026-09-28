@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ProjectFileIntake from './ProjectFileIntake';
 import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 
-export default function IntakeScreen({ objectType, initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, user, authChecked,
+export default function IntakeScreen({ objectType, initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, onDraftChange, user, authChecked,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
   onFileApplied, onIntakeV2Normalized, onCapacityResult }) {
   const [v2FileInput, setV2FileInput] = useState(() => activeProject?.profile?.file_intake_v2?.object_type === objectType
@@ -44,7 +44,7 @@ export default function IntakeScreen({ objectType, initialPrompt = '', importedA
       </>}
     </div>
     {supported && <ProcessRoleIntakeV2 key={`${objectType}:${activeProject?.id || 'guest'}:${v2FileInput?.imported?.id || importedAssistant?.id || 'manual'}`}
-      objectType={objectType} importedFile={v2FileInput} importedAssistant={importedAssistant?.profile} activeProject={activeProject} initialFacilityContext={initialFacilityContext} user={user}
+      objectType={objectType} importedFile={v2FileInput} importedAssistant={importedAssistant?.profile} activeProject={activeProject} initialFacilityContext={initialFacilityContext} initialDraft={initialDraft} initialNormalized={initialNormalized} onDraftChange={onDraftChange} user={user}
       authChecked={authChecked} projectChoices={projectChoices} projectStatus={projectStatus}
       onChooseProject={onChooseProject} onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount}
       onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />}

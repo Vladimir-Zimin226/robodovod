@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import OnboardingScreen from './OnboardingScreen';
 import IntakeScreen from './components/IntakeScreen';
 import ProcessScreen from './components/ProcessScreen';
@@ -45,6 +45,8 @@ export default function App() {
   const [phase, setPhase] = useState(() => phaseFromHash(window.location.hash));
   const [objectType, setObjectType] = useState(() => window.location.hash === '#calculation' ? 'retail' : null);
   const [preset, setPreset] = useState(null);
+  const [intakeDrafts, setIntakeDrafts] = useState({});
+  const [intakeSnapshots, setIntakeSnapshots] = useState({});
   const [userInput, setUserInput] = useState(null);
   const [result, setResult] = useState(null);
   const [command, setCommand] = useState('');
@@ -155,6 +157,8 @@ export default function App() {
   };
 
   const restart = () => {
+    setIntakeDrafts({});
+    setIntakeSnapshots({});
     setCatalogContext(null);
     showPhase('onboarding');
     setObjectType(null);
@@ -169,6 +173,9 @@ export default function App() {
 
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
   const assistantSessionKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}`;
+  const intakeDraftKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}:${objectType || 'none'}`;
+  const rememberIntakeDraft = useCallback((draft) => setIntakeDrafts((current) =>
+    current[intakeDraftKey] === draft ? current : { ...current, [intakeDraftKey]: draft }), [intakeDraftKey]);
 
   const openCalculation = () => {
     setEditorRequestedRunId(null);
@@ -332,6 +339,9 @@ export default function App() {
             importedAssistant={assistantImport}
             activeProject={activeProject}
             initialFacilityContext={userInput?.facility_context || activeRun?.input_snapshot?.facility_context}
+            initialDraft={intakeDrafts[intakeDraftKey]}
+            initialNormalized={intakeSnapshots[intakeDraftKey]}
+            onDraftChange={rememberIntakeDraft}
             user={user}
             authChecked={authChecked}
             projectChoices={projectChoices}
@@ -340,6 +350,12 @@ export default function App() {
             onOpenProjects={() => showPhase('projects')}
             onOpenAccount={() => showPhase('account')}
             onFileApplied={(normalized, imported) => {
+              setIntakeDrafts((current) => {
+                const next = { ...current }; delete next[intakeDraftKey]; return next;
+              });
+              setIntakeSnapshots((current) => {
+                const next = { ...current }; delete next[intakeDraftKey]; return next;
+              });
               setPreset(normalized);
               setActiveProject((project) => project ? ({
                 ...project,
@@ -351,7 +367,7 @@ export default function App() {
               }) : project);
             }}
             onOpenObjects={() => showPhase('onboarding')}
-            onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; const p = snapshot.response?.normalized_processes?.find((p) => p.active); setCatalogContext(p ? { process_code: p.process_code, constraints: p.item_mass?.status === 'KNOWN' ? { max_payload_kg: p.item_mass.normalized_value } : {} } : null); }}
+            onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; setIntakeSnapshots((current) => ({ ...current, [intakeDraftKey]: snapshot })); const p = snapshot.response?.normalized_processes?.find((p) => p.active); setCatalogContext(p ? { process_code: p.process_code, constraints: p.item_mass?.status === 'KNOWN' ? { max_payload_kg: p.item_mass.normalized_value } : {} } : null); }}
             onCapacityResult={(response, request) => {
               setResult(response);
               setUserInput(request);
@@ -375,6 +391,8 @@ export default function App() {
               showPhase('account');
             }}
             onLoggedOut={() => {
+              setIntakeDrafts({});
+              setIntakeSnapshots({});
               forgetProjectId(sessionStore(), user?.id);
               setUser(null);
               setActiveProject(null);
@@ -403,6 +421,7 @@ export default function App() {
               <>
                 <TechnicalVisualization autoStart onReady={setTechnicalExportRun} key={activeRun?.id || result.run_id} run={activeRun} capacityRequest={userInput} capacityRunId={activeRun?.id || result.run_id} project={activeProject} />
                 <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
+                <div className="mx-auto max-w-6xl px-4 pb-4"><button type="button" className="secondary-action" onClick={openCalculation}>Вернуться к зонам и рассчитать другую операцию</button></div>
                 <EconomicsInputsV2
                   key={activeRun?.id || result.run_id}
                   capacityRequest={userInput}

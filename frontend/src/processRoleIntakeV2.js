@@ -281,7 +281,9 @@ export function setRoleActive(draft, processKey, roleCode, active) {
   } else {
     roles = draft.roles;
   }
-  return revise(draft, { roles });
+  return revise(draft, { roles,
+    processes: active ? draft.processes.map((item) => item.processId === process.processId
+      ? { ...item, active: true, activationSource: 'USER' } : item) : draft.processes });
 }
 
 export function updateRole(draft, roleId, patch) {

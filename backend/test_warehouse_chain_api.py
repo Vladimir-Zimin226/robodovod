@@ -124,6 +124,11 @@ def test_active_catalog_matrix_never_calls_picking_calculable():
     snapshot = SimpleNamespace(version=SimpleNamespace(code="active-v1"), positions=(
         position("transport", "Паллетный транспорт", "TRANSPORT_CYCLE_V1", True),
         position("g2p", "G2P picking", "PICKING_V1", True),
+        position("mobile", "Робот-комплектовщик", "PICKING_V1", False, maturity="RND"),
+        position("shelf", "Ronavi M: транспортировка стеллажей к станции комплектации", "TRANSPORT_CYCLE_V1", True),
+        position("voice", "Pick by Voice", "PICKING_V1", False),
+        position("arm", "Роборука", "PICKING_V1", False),
+        position("industrial", "Промышленный манипулятор", "PICKING_V1", False),
         position("palletizer", "Паллетизатор", "PALLETIZING_CELL_V1", False, family="fixed_cell"),
         position("rnd-cell", "Паллетизатор RND", "PALLETIZING_THROUGHPUT_V1", True,
                  maturity="RND", family="fixed_cell"),
@@ -132,6 +137,12 @@ def test_active_catalog_matrix_never_calls_picking_calculable():
     assert rows["receiving_putaway"]["status"] == "CALCULABLE"
     assert rows["shipping"]["status"] == "CALCULABLE"
     assert rows["picking_lines"]["status"] == "COMPARE_ONLY"
+    assert next(item for item in rows["picking_lines"]["candidates"] if item["position_id"] == "g2p")["solution_family"] == "ASRS_G2P"
+    assert next(item for item in rows["picking_lines"]["candidates"] if item["position_id"] == "mobile")["solution_family"] == "MOBILE_PICKER"
+    assert next(item for item in rows["picking_lines"]["candidates"] if item["position_id"] == "shelf")["solution_family"] == "ASRS_G2P"
+    assert next(item for item in rows["picking_lines"]["candidates"] if item["position_id"] == "voice")["solution_family"] == "PICK_ASSIST"
+    assert next(item for item in rows["picking_lines"]["candidates"] if item["position_id"] == "arm")["solution_family"] == "ROBOT_ARM"
+    assert all(item["position_id"] != "industrial" for item in rows["picking_lines"]["candidates"])
     assert rows["picking_lines"]["calculation_ready_count"] == 0
     assert rows["palletizing"]["status"] == "COMPARE_ONLY"
     assert rows["palletizing"]["calculation_ready_count"] == 0
