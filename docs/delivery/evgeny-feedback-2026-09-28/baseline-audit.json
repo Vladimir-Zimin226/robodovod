@@ -1,0 +1,1206 @@
+{
+  "backup_date": "2026-09-28T03:27:35.643629+00:00",
+  "members_verified": 31,
+  "successful_runs_verified": 64,
+  "runs": 65,
+  "simulation_artifacts_verified": 31,
+  "protected_files": 70,
+  "capacity_cases": [
+    {
+      "process": "clinic_food",
+      "demand": "1950",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "8",
+        "shifts_per_day": "3"
+      },
+      "distance": "180",
+      "batch": "65",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "303.3333333333333333333333334"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "433.3333333333333333333333334"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.4017857142857142857142857142"
+        },
+        "recommended_fleet": 1,
+        "selected_fleet": 1,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.4017857142857142857142857142"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "141.12"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "201.6"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        },
+        "recommended_fleet": 14,
+        "selected_fleet": 14,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "141.12"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "201.6"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        },
+        "recommended_fleet": 14,
+        "selected_fleet": 14,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "149.0322580645161290322580646"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "212.9032258064516129032258065"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        },
+        "recommended_fleet": 11,
+        "selected_fleet": 11,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "141.12"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "201.6"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        },
+        "recommended_fleet": 14,
+        "selected_fleet": 14,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "137.6470588235294117647058823"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "196.6386554621848739495798319"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9906759906759906759906759913"
+        },
+        "recommended_fleet": 15,
+        "selected_fleet": 15,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9906759906759906759906759913"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "137.6470588235294117647058823"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "196.6386554621848739495798319"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9906759906759906759906759913"
+        },
+        "recommended_fleet": 15,
+        "selected_fleet": 15,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9906759906759906759906759913"
+        }
+      }
+    },
+    {
+      "process": "airport_terminal_cleaning",
+      "demand": "51000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "8",
+        "shifts_per_day": "3"
+      },
+      "distance": null,
+      "batch": null,
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "100800"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "144000"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.505952380952380952380952381"
+        },
+        "recommended_fleet": 2,
+        "selected_fleet": 2,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.505952380952380952380952381"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "141.12"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "201.6"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        },
+        "recommended_fleet": 14,
+        "selected_fleet": 14,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        }
+      }
+    },
+    {
+      "process": "airport_terminal_cleaning",
+      "demand": "51000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "8",
+        "shifts_per_day": "3"
+      },
+      "distance": null,
+      "batch": null,
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "60480"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "86400"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.8432539682539682539682539683"
+        },
+        "recommended_fleet": 6,
+        "selected_fleet": 6,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.8432539682539682539682539683"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "149.0322580645161290322580646"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "212.9032258064516129032258065"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        },
+        "recommended_fleet": 11,
+        "selected_fleet": 11,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "141.12"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "201.6"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        },
+        "recommended_fleet": 14,
+        "selected_fleet": 14,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "137.6470588235294117647058823"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "196.6386554621848739495798319"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9906759906759906759906759913"
+        },
+        "recommended_fleet": 15,
+        "selected_fleet": 15,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9906759906759906759906759913"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "149.0322580645161290322580646"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "212.9032258064516129032258065"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        },
+        "recommended_fleet": 11,
+        "selected_fleet": 11,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "149.0322580645161290322580646"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "212.9032258064516129032258065"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        },
+        "recommended_fleet": 11,
+        "selected_fleet": 11,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "149.0322580645161290322580646"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "212.9032258064516129032258065"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        },
+        "recommended_fleet": 11,
+        "selected_fleet": 11,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.914994096812278630460448642"
+        }
+      }
+    },
+    {
+      "process": "airport_terminal_cleaning",
+      "demand": "51000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "8",
+        "shifts_per_day": "3"
+      },
+      "distance": null,
+      "batch": null,
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "60480"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FLOW",
+          "unit": "m2/day",
+          "value": "86400"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.8432539682539682539682539683"
+        },
+        "recommended_fleet": 6,
+        "selected_fleet": 6,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.8432539682539682539682539683"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "144"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "205.7142857142857142857142857"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9469696969696969696969696972"
+        },
+        "recommended_fleet": 12,
+        "selected_fleet": 12,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9469696969696969696969696972"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "144"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "205.7142857142857142857142857"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9469696969696969696969696972"
+        },
+        "recommended_fleet": 12,
+        "selected_fleet": 12,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9469696969696969696969696972"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "220",
+      "schedule": {
+        "days_per_year": "250",
+        "shift_hours": "8",
+        "shifts_per_day": "1"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "50.4"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "72"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.818452380952380952380952381"
+        },
+        "recommended_fleet": 5,
+        "selected_fleet": 5,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.818452380952380952380952381"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "149.8378378378378378378378378"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "214.0540540540540540540540541"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9100747737111373475009838651"
+        },
+        "recommended_fleet": 11,
+        "selected_fleet": 11,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9100747737111373475009838651"
+        }
+      }
+    },
+    {
+      "process": "clinic_food",
+      "demand": "1950",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "8",
+        "shifts_per_day": "3"
+      },
+      "distance": "180",
+      "batch": "65",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "303.3333333333333333333333334"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "433.3333333333333333333333334"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.4017857142857142857142857142"
+        },
+        "recommended_fleet": 1,
+        "selected_fleet": 1,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.4017857142857142857142857142"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "141.12"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "201.6"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        },
+        "recommended_fleet": 14,
+        "selected_fleet": 14,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "141.12"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "201.6"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        },
+        "recommended_fleet": 14,
+        "selected_fleet": 14,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.966295609152752009894867038"
+        }
+      }
+    },
+    {
+      "process": "warehouse_receiving_shipping",
+      "demand": "2000",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "11",
+        "shifts_per_day": "2"
+      },
+      "distance": "120",
+      "batch": "1",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "148.2352941176470588235294117"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "211.7647058823529411764705882"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9199134199134199134199134206"
+        },
+        "recommended_fleet": 10,
+        "selected_fleet": 10,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9199134199134199134199134206"
+        }
+      }
+    },
+    {
+      "process": "clinic_food",
+      "demand": "1950",
+      "schedule": {
+        "days_per_year": "365",
+        "shift_hours": "8",
+        "shifts_per_day": "3"
+      },
+      "distance": "180",
+      "batch": "65",
+      "capacity": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "303.3333333333333333333333334"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "433.3333333333333333333333334"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.4017857142857142857142857142"
+        },
+        "recommended_fleet": 1,
+        "selected_fleet": 1,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.4017857142857142857142857142"
+        }
+      }
+    }
+  ]
+}
