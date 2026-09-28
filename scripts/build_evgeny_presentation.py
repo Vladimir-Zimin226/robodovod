@@ -49,7 +49,7 @@ def label(slide, value, x, y, w, h, size=21, color=INK, bold=False, align=None):
     frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     for index, line in enumerate(value.split("\n")):
         paragraph = frame.paragraphs[0] if index == 0 else frame.add_paragraph()
-        paragraph.text = line
+        paragraph.text = line[:-1] if line.endswith(".") else line
         paragraph.space_after = Pt(7)
         if align:
             paragraph.alignment = align
