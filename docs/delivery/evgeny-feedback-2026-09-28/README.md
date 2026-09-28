@@ -10,6 +10,8 @@
 [редактируемая презентация](Robodovod-ZMNCRAFT-2026.pptx),
 [PDF презентации](Robodovod-ZMNCRAFT-2026.pdf),
 [источники слайдов](PRESENTATION_SOURCES.md),
+[проверка методологии](METHODOLOGY_REVIEW.md),
+[отчёт о доработках](FOLLOWUP_REPORT.md),
 [поля финальной формы](SUBMISSION.md) (E10).
 
 Исторические материалы в `docs/delivery/f8/` описывают прежний выпуск.
