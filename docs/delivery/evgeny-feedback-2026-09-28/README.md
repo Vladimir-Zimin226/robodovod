@@ -7,10 +7,10 @@
 
 Материалы: [пример инвестиционного PDF](sample-warehouse-investor.pdf) из
 исторического сохранённого run `11b8a1e7-322b-4b2f-b670-f5d57561480e` (до E2),
-`Robodovod-ZMNCRAFT-2026.pptx`, `Robodovod-ZMNCRAFT-2026.pdf` (E9),
+[редактируемая презентация](Robodovod-ZMNCRAFT-2026.pptx),
+[PDF презентации](Robodovod-ZMNCRAFT-2026.pdf),
+[источники слайдов](PRESENTATION_SOURCES.md),
 [поля финальной формы](SUBMISSION.md) (E10).
-Файлы PPTX/PDF E9 и SUBMISSION.md появятся в этом каталоге после
-соответствующих этапов; индекс проверяется повторно в E10.
 
 Исторические материалы в `docs/delivery/f8/` описывают прежний выпуск.
 Старый гостевой PDF — прямой C16 контур авторского примера, а не новая
