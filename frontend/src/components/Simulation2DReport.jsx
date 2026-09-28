@@ -15,7 +15,6 @@ import { supportsFacilityPlan, FACILITY_TIME_SCALE } from '../../../robcraft/src
 import SimulationChainSetup from './SimulationChainSetup';
 import { humanizePresentation, statusLabel } from '../presentation';
 import { formatModelClock } from '../simulationDefaults';
-import SavedPhysicalScenarios from './SavedPhysicalScenarios';
 import { physicalInputs } from '../physicalScenario';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
 import { downloadSimulationSvg, visualExportMetadata } from '../simulationSvgExport';
@@ -45,10 +44,8 @@ function path(points) {
 }
 
 export default function Simulation2DReport({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
-  if (analysisRunId && request) return <SavedPhysicalScenarios key={`${request.tenant_id}:${request.project_id}:${analysisRunId}`} request={request} analysisRunId={analysisRunId}>
-    {(activeRequest, activeRunId) => <SimulationPlayer key={`${activeRunId}:${activeRequest.request_id}`} request={activeRequest} analysisRunId={activeRunId} />}
-  </SavedPhysicalScenarios>;
-  return <SimulationPlayer key={request?.request_id} request={request} initialReport={initialReport} scenarios={scenarios} />;
+  return <SimulationPlayer key={`${analysisRunId || 'guest'}:${request?.request_id}`} request={request}
+    analysisRunId={analysisRunId} initialReport={initialReport} scenarios={scenarios} />;
 }
 
 function SimulationPlayer({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
