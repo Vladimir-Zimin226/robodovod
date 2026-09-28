@@ -121,9 +121,9 @@ FIELDS = {
         "technician_raas_mode": ("Техник при RaaS: перевод/найм/подрядчик", "code", "staff_mode", None, None),
         "technician_qualification_confirmed": ("Квалификация переведённого техника подтверждена", "YES/NO", "bool", None, None),
         "implementation_mode": ("Внедрение: FIXED/PERCENT", "code", "price_mode", None, None),
-        "implementation_percent": ("Внедрение, доля цены оборудования (0.1 = 10%)", "1", "decimal", 0, 1),
+        "implementation_percent": ("Внедрение, процент цены оборудования (10 = 10%)", "%", "decimal", 0, 100),
         "raas_mode": ("Тариф RaaS: FIXED/PERCENT", "code", "price_mode", None, None),
-        "raas_percent_monthly": ("Месячный RaaS, доля цены робота (0.02 = 2%)", "1", "decimal", 0, 1),
+        "raas_percent_monthly": ("Месячный RaaS, процент цены робота (2 = 2%)", "%/month", "decimal", 0, 100),
         "horizon_years": ("Горизонт оценки", "year", "integer", 5, 15),
         "discount_rate": ("Ставка дисконтирования (0.15 = 15%)", "1", "decimal", 0, 1),
         "manual_units_per_shift": (
@@ -281,7 +281,8 @@ def interview_prompt(profile_code: str) -> str:
 как покрываются диспетчер и техник (перевод/найм/подрядчик), сколько роботов
 на пост/техника, нужна ли техника во все смены, коэффициент ротации.
 Внедрение и RaaS задаются либо суммой FIXED, либо долей PERCENT от gross цены:
-0.1 означает 10%, 0.02 означает 2% в месяц. Не заполняй оба режима как действующие.
+10 означает 10% внедрения, 2 означает 2% в месяц для RaaS; это не доли 0.1/0.02.
+Не заполняй оба режима как действующие.
 Коды покрытия диспетчера: TRANSFER, HIRE, EXISTING; техника при покупке:
 TRANSFER, HIRE, EXISTING, CONTRACTOR; техника при RaaS также VENDOR.
 Присутствие техника: DAY_WORKLOAD, EACH_SHIFT, VENDOR. Квалификацию перевода

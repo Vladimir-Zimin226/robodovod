@@ -67,6 +67,22 @@ def test_older_workbook_without_additive_policy_rows_still_imports():
     assert old_xlsx.valid
 
 
+def test_percent_fields_use_percentage_points_not_fractions():
+    rows = csv_rows()
+    for row in rows:
+        if row["sheet"] == "Экономика" and row["parameter_code"] in {
+            "implementation_percent", "raas_percent_monthly"
+        }:
+            row["value"] = "15" if row["parameter_code"] == "implementation_percent" else "2"
+            row["status"] = "ASSUMPTION"
+            row["source"] = "Сценарное предположение"
+    result = inspect_project_file("percent.csv", encode(rows), "warehouse")
+    assert result.valid
+    economy = result.normalized_input["records"]["Экономика"]["main"]
+    assert economy["implementation_percent"]["value"] == "15"
+    assert economy["raas_percent_monthly"]["value"] == "2"
+
+
 def csv_rows():
     return list(
         csv.DictReader(

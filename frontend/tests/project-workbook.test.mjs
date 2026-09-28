@@ -74,8 +74,8 @@ test('workbook policy proposals reach the economics form without confirming comm
   for (const [key, value] of Object.entries({ robotizable_share: '0.65', residual_operations: 'Подготовка груза',
     robots_per_control_post: '10', robots_per_day_technician: '20', rotation_factor: '2.2',
     technician_presence: 'DAY_WORKLOAD', control_mode: 'HIRE', technician_purchase_mode: 'HIRE',
-    technician_raas_mode: 'VENDOR', implementation_mode: 'PERCENT', implementation_percent: '0.1',
-    raas_mode: 'PERCENT', raas_percent_monthly: '0.02' })) {
+    technician_raas_mode: 'VENDOR', implementation_mode: 'PERCENT', implementation_percent: '10',
+    raas_mode: 'PERCENT', raas_percent_monthly: '2' })) {
     rows[key] = { value, unit: 'code', status: 'ASSUMPTION', source: 'Interview' };
   }
   const economics = workbookEconomics(input);
@@ -83,7 +83,8 @@ test('workbook policy proposals reach the economics form without confirming comm
   assert.equal(economics.work_share.fraction, '0.65');
   assert.equal(economics.staffing_policy.robots_per_day_technician, '20');
   assert.equal(economics.staffing_raas.technician_mode, 'VENDOR');
-  assert.equal(economics.implementation_percent, '0.1');
+  assert.equal(economics.implementation_percent, '10');
+  assert.equal(economics.raas_percent_monthly, '2');
   assert.equal(economics.role_salaries_confirmed_as_monthly_gross, undefined);
   assert.equal(economics.assumption_evidence.implementation_percent.confirmed, false);
 });
