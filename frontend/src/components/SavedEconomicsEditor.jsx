@@ -29,7 +29,7 @@ export default function SavedEconomicsEditor({ project, run, onComplete, autoOpe
     return () => controller.abort();
   }, [project?.id, capacityRunId]);
 
-  if (!capacityRunId || !['economics-explicit-inputs-v1', 'economics-explicit-inputs-v2', 'economics-explicit-inputs-v3', 'economics-explicit-inputs-v4', 'economics-explicit-inputs-v5'].includes(initialInput?.schema_version)) return null;
+  if (!capacityRunId || !['economics-explicit-inputs-v1', 'economics-explicit-inputs-v2', 'economics-explicit-inputs-v3', 'economics-explicit-inputs-v4', 'economics-explicit-inputs-v5', 'economics-explicit-inputs-v6'].includes(initialInput?.schema_version)) return null;
   return <details id="edit-economics-run" open={autoOpen || undefined} className="mx-auto my-6 max-w-6xl rounded-xl border p-4">
     <summary className="cursor-pointer font-semibold">Изменить допущение и создать новый расчёт</summary>
     <p className="text-sm mt-2">Исходный расчёт останется доступен для повторного открытия.</p>

@@ -132,3 +132,19 @@ def test_raas_percent_is_monthly_and_uses_known_money_basis(percent,expected):
     raw['purchase_price_source']=None
     result=execute_partial_economics_v2(raw,snapshot,context,full_engine=execute_economics_v4).result_snapshot
     assert result['monetary_input_basis']['raas']['mode']=='PERCENT'
+
+def test_what_if_engine_changes_money_without_mutating_saved_physical_source():
+    from economics_final import execute_economics_v4
+    snapshot,context=_context()
+    raw=project_input()
+    original_request=deepcopy(context.capacity_request.model_dump(mode='json'))
+    original_capacity=deepcopy(context.capacity_response.model_dump(mode='json'))
+    before=execute_partial_economics_v2(raw,snapshot,context,full_engine=execute_economics_v4).result_snapshot
+    edited=deepcopy(raw);edited['raas_monthly_per_robot_gross']='120000'
+    after=execute_partial_economics_v2(edited,snapshot,context,full_engine=execute_economics_v4).result_snapshot
+    assert before['input_revision']==after['input_revision']==context.capacity_request.input_revision
+    assert context.capacity_request.model_dump(mode='json')==original_request
+    assert context.capacity_response.model_dump(mode='json')==original_capacity
+    original_raas=next(r for r in before['scenarios'] if r['scenario_id']=='scenario.raas.base')
+    changed_raas=next(r for r in after['scenarios'] if r['scenario_id']=='scenario.raas.base')
+    assert original_raas['report_facts']['project_npv']!=changed_raas['report_facts']['project_npv']

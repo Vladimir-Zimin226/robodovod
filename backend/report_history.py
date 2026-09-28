@@ -142,7 +142,7 @@ def summarize_run(run: Any, by_id: dict[str, Any], *, model_names: dict[Any, str
                          "branches_total": branch_total},
         "simulation_count": simulation_count,
         "can_create_version": run.status == "SUCCEEDED" and bool(economics)
-            and economics.get("schema_version") in {"economics-explicit-inputs-v1", "economics-explicit-inputs-v2", "economics-explicit-inputs-v3", "economics-explicit-inputs-v4", "economics-explicit-inputs-v5"},
+            and economics.get("schema_version") in {"economics-explicit-inputs-v1", "economics-explicit-inputs-v2", "economics-explicit-inputs-v3", "economics-explicit-inputs-v4", "economics-explicit-inputs-v5", "economics-explicit-inputs-v6"},
     }
 
 

@@ -425,7 +425,7 @@ export default function App() {
             ) : isCommercialScenariosBundle(result) ? (
               <>
                 <p className="mx-auto max-w-6xl">Глубина расчёта: {({ BASIC: 'Базовый', ADVANCED: 'Углублённый', FULL: 'Полный' })[activeRun?.input_snapshot?.economics?.calculation_depth] || 'Не указана в историческом расчёте'}</p>
-                <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} projectName={activeProject?.name} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={() => {
+                <CommercialScenariosV2 key={`commercial:${result.run_id}`} bundle={result} scenarioSpec={activeRun?.scenario_spec_snapshot} projectName={activeProject?.name} project={activeProject} run={activeRun} onComplete={(run) => { setActiveRun(run); setResult(run.result_snapshot); setSaveState('saved'); }} capacityRunId={activeRun?.input_snapshot?.capacity_run_id} onRestart={restart} onRecalculate={() => {
                   if (activeRun?.id) { setEditorRequestedRunId(activeRun.id); requestAnimationFrame(() => document.getElementById('edit-economics-run')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }
                   else openCalculation();
                 }} />

@@ -8,6 +8,7 @@ import {
 import { buildEconomicsSimulationRequest } from '../economicsSimulationRequest';
 import Simulation2DReport from './Simulation2DReport';
 import FinalEconomicsComparison from './FinalEconomicsComparison';
+import ProjectWhatIf from './ProjectWhatIf';
 import { fieldPresentation, humanizePresentation, statusLabel } from '../presentation';
 
 const STATUS_LABELS = {
@@ -16,7 +17,7 @@ const STATUS_LABELS = {
   ALTERNATIVE: 'Альтернатива', NO_POSITIVE_CASE: 'Нет положительного кейса',
 };
 
-export default function CommercialScenariosV2({ bundle, scenarioSpec, projectName, onRecalculate, onRestart }) {
+export default function CommercialScenariosV2({ bundle, scenarioSpec, projectName, project, run, onComplete, onRecalculate, onRestart }) {
   const initial = useMemo(() => createCommercialSession(bundle), [bundle]);
   const [session, setSession] = useState(initial);
   const [scenarioKey, setScenarioKey] = useState('PURCHASE:BASE');
@@ -44,6 +45,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, projectNam
           <button type="button" onClick={onRestart}>Новый расчёт</button>
         </div>
       </header>
+      <ProjectWhatIf project={project} run={run} onComplete={onComplete} />
 
       <section className="commercial-inputs" aria-label="Коммерческие исходные данные">
         <div className="commercial-section-title"><div><span>01</span><h2>Исходные данные</h2></div><p>После изменения полей сохранённый результат нужно пересчитать.</p></div>

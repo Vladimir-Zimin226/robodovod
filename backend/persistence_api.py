@@ -210,6 +210,7 @@ class EconomicsV2CreateRequest(ApiModel):
     source_run_id: uuid.UUID | None = None
     input: dict[str, Any]
 
+
     @field_validator("input")
     @classmethod
     def reject_legacy_fte_cost(cls, value: dict[str, Any]) -> dict[str, Any]:
@@ -223,6 +224,11 @@ class EconomicsV2CreateRequest(ApiModel):
         if contains_legacy_fte(value):
             raise ValueError("fte_cost_rub cannot be migrated without an explicit gross basis")
         return value
+
+
+class EconomicsPreviewRequest(EconomicsV2CreateRequest):
+    source_run_id: uuid.UUID
+    expected_result_sha256: str
 
 
 def _user_dict(user: User) -> dict[str, Any]:
@@ -1438,6 +1444,53 @@ def create_persistence_router(
         )
         return _run_dict(run, include_snapshots=True, db=db)
 
+    @router.post('/v2/projects/{project_id}/economics-runs/preview')
+    def preview_economics_v2_run(
+        project_id: uuid.UUID,
+        payload: EconomicsPreviewRequest,
+        context: AuthContext = Depends(require_csrf),
+        db: Session = Depends(database_session),
+    ):
+        """Execute the same engine as save, without inserting a run or artifact."""
+        project = _owned_project(db, project_id, context.user.id)
+        source = db.scalar(select(AnalysisRun).where(
+            AnalysisRun.id == payload.source_run_id,
+            AnalysisRun.project_id == project.id,
+            AnalysisRun.run_kind == 'FULL_ANALYSIS',
+            AnalysisRun.status == 'SUCCEEDED'))
+        if source is None:
+            raise HTTPException(status_code=404, detail='source analysis run not found')
+        if (source.result_sha256 != payload.expected_result_sha256
+                or _canonical_sha256(source.input_snapshot) != source.input_sha256
+                or _canonical_sha256(source.result_snapshot) != source.result_sha256):
+            raise HTTPException(status_code=409, detail='source run changed or integrity check failed')
+        if source.scenario_id != payload.scenario_id:
+            raise HTTPException(status_code=409, detail='scenario source mismatch')
+        saved_capacity_id = source.input_snapshot.get('capacity_run_id')
+        if saved_capacity_id is None or payload.capacity_run_id is None or str(payload.capacity_run_id) != saved_capacity_id:
+            raise HTTPException(status_code=409, detail='capacity source mismatch')
+        if payload.input.get('schema_version') != PROJECT_INPUT_VERSION:
+            raise HTTPException(status_code=422, detail='preview requires project input v6')
+        catalog_resolver = resolve_economics_catalog or resolve_catalog
+        if catalog_resolver is None:
+            raise HTTPException(status_code=503, detail='economics catalog unavailable')
+        catalog_snapshot = catalog_resolver()
+        _, capacity_context = _economics_capacity_context(
+            db, project_id=project.id, tenant_id=context.user.id,
+            capacity_run_id=payload.capacity_run_id, catalog_snapshot=catalog_snapshot,
+            economics_run_id=source.id)
+        if payload.input.get('input_revision') != capacity_context.capacity_request.input_revision:
+            raise HTTPException(status_code=409, detail='capacity revision mismatch')
+        try:
+            execution = execute_partial_economics_v2(payload.input, catalog_snapshot, capacity_context,
+                                                     full_engine=execute_economics_v4)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from None
+        return {'schema_version': 'economics-what-if-preview-v1',
+                'source_run_id': str(source.id), 'source_result_sha256': source.result_sha256,
+                'capacity_run_id': str(payload.capacity_run_id),
+                'result': execution.result_snapshot, 'scenario_spec': execution.scenario_spec_snapshot}
+
     @router.post(
         "/v2/projects/{project_id}/economics-runs",
         status_code=status.HTTP_201_CREATED,
@@ -1635,7 +1688,7 @@ def create_persistence_router(
                 raise EconomicsMigrationError("saved economics snapshot checksum mismatch")
             envelope = run.input_snapshot
             if (
-                envelope.get("schema_version") not in {"economics-run-input-v2", "economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6"}
+                envelope.get("schema_version") not in {"economics-run-input-v2", "economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7"}
                 or not isinstance(envelope.get("economics"), dict)
                 or not isinstance(envelope.get("capacity_run_id"), str)
             ):
@@ -1663,7 +1716,7 @@ def create_persistence_router(
                                  else execute_economics_v3 if run.application_version == "production-economics-orchestrator-v3"
                                  else execute_economics_v4),
                 )
-                if envelope["schema_version"] in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6"}
+                if envelope["schema_version"] in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7"}
                 else (execute_economics_v2 if run.application_version == "production-economics-orchestrator-v2"
                       else execute_economics_v3 if run.application_version == "production-economics-orchestrator-v3"
                       else calculate_economics_v2)(envelope["economics"], catalog_snapshot, capacity_context)
