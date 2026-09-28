@@ -465,6 +465,30 @@ def build_investor_report(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapsho
             names = list(dict.fromkeys(field_label(str(key))[0] for key in branch['required_fields']))
             y = deck.paragraph(label+': уточните '+', '.join(names)+'.',40,y,size=10,color=MUTED)+14
 
+    if inputs.get('schema_version') == 'economics-explicit-inputs-v6':
+        staffing = _obj(result.get('staffing_preview'))
+        work_share = _obj(result.get('work_share'))
+        monetary = _obj(result.get('monetary_input_basis'))
+        deck.page('Персонал и денежные базы проекта','Новые функции отделены от исходного штата; числа относятся к сохранённому сценарию.')
+        rows = []
+        for acquisition,label in [('PURCHASE','Покупка'),('RAAS','RaaS')]:
+            item = _obj(staffing.get(acquisition))
+            rows.append([label,_number(item.get('control_required')) or MISSING,
+                _number(item.get('control_transferred')) or MISSING,
+                _number(item.get('control_additional')) or MISSING,
+                _number(item.get('technicians_required')) or MISSING,
+                _number(item.get('technicians_billable')) or MISSING])
+        y = deck.table(['Вариант','Пульт: нужно','Перевод','Найм','Техники','Оплачено'],rows,
+                       widths=[145,130,110,110,130,137],size=9)
+        share = work_share.get('fraction')
+        y = deck.paragraph('Доля роботизируемой работы: '+(str(share) if share is not None else MISSING)+
+            '. Остаточные операции: '+str(work_share.get('residual_operations') or 'неизвестно')+'.',40,y+20,size=10)
+        implementation = _obj(monetary.get('implementation'))
+        raas_basis = _obj(monetary.get('raas'))
+        deck.paragraph('Цена робота: '+str(monetary.get('unit_price_gross_rub') or MISSING)+' ₽ gross; парк: '+str(monetary.get('fleet') if monetary.get('fleet') is not None else MISSING)+
+            '. Внедрение: '+str(implementation.get('mode') or MISSING)+' / '+str(implementation.get('amount_gross_rub') or MISSING)+' ₽. RaaS: '+
+            str(raas_basis.get('mode') or MISSING)+' / '+str(raas_basis.get('per_robot_month_gross_rub') or MISSING)+' ₽/робот/мес.',40,y+25,size=10)
+
     deck.page('Перед инвестиционным решением','Предварительная оценка помогает выбрать условия пилота. Она не подтверждает готовность объекта к внедрению.')
     risk_rows = [
         ['Объект и производительность','Замеры нагрузки, маршруты, сменность, рабочие покрытия, зарядку и связь.'],

@@ -49,6 +49,27 @@ def full():
     return updated(run,inputs=inputs), linked
 
 
+def test_new_v6_report_discloses_staffing_work_share_and_money_basis(full):
+    run, linked = full
+    inputs = deepcopy(run.input_snapshot)
+    inputs['economics']['schema_version'] = 'economics-explicit-inputs-v6'
+    result = deepcopy(run.result_snapshot)
+    result['staffing_preview'] = {'PURCHASE': {'control_required':4,'control_transferred':0,
+        'control_additional':4,'technicians_required':1,'technicians_billable':1},
+        'RAAS': {'control_required':4,'control_transferred':0,'control_additional':4,
+        'technicians_required':1,'technicians_billable':0}}
+    result['work_share'] = {'fraction':'0.6','residual_operations':'Ручная проверка'}
+    result['monetary_input_basis'] = {'unit_price_gross_rub':'3000000','fleet':10,
+        'implementation':{'mode':'PERCENT','amount_gross_rub':'4500000'},
+        'raas':{'mode':'PERCENT','per_robot_month_gross_rub':'60000'}}
+    new_run = updated(run, inputs=inputs, result=result)
+    pdf,_ = build_investor_report(new_run, linked)
+    content = text(pdf)
+    assert 'Персонал и денежные базы проекта' in content
+    assert 'Ручная проверка' in content
+    assert '4500000' in content and '60000' in content
+
+
 def test_visual_report_reads_saved_values_and_does_not_change_historical_exports(full):
     run,linked = full
     before = deepcopy(run.model_dump(mode='json'))
