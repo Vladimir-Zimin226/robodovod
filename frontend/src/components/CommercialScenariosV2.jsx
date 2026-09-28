@@ -9,6 +9,7 @@ import { buildEconomicsSimulationRequest } from '../economicsSimulationRequest';
 import Simulation2DReport from './Simulation2DReport';
 import FinalEconomicsComparison from './FinalEconomicsComparison';
 import ProjectWhatIf from './ProjectWhatIf';
+import { roleLabel } from '../roleLabels';
 import { fieldPresentation, humanizePresentation, statusLabel } from '../presentation';
 
 const STATUS_LABELS = {
@@ -54,10 +55,10 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, projectNam
           <ReadOnly label="Налоговая база покупки" value={humanizePresentation(session.inputs.purchaseTaxBasis)} />
           <Input label="Тариф аренды робота, ₽ в месяц" value={session.inputs.raasRate} readOnly={Boolean(finalComparison)} onChange={(value) => edit('raasRate', value)} />
           <ReadOnly label="Налоговая база аренды" value={humanizePresentation(session.inputs.raasTaxBasis)} />
-          {bundle.roles.map((role) => (
+          {bundle.roles.filter((role) => Number(role.headcount) > 0).map((role) => (
             <Input
               key={role.role_id}
-              label={`${role.role_code === 'forklift_driver' ? 'Водитель погрузчика' : 'Роль процесса'} · зарплата до удержаний, ₽/чел./мес.`}
+              label={`${roleLabel(role.role_code)} · начислено до НДФЛ, ₽/чел./мес.`}
               value={session.inputs.roleSalaries[role.role_id]}
               readOnly={Boolean(finalComparison)}
               placeholder="Нужно для денежного расчёта"
@@ -91,11 +92,13 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, projectNam
             </div>
           </section>
 
-          {scenario && <ScenarioDetails scenario={scenario} />}
+          {scenario && <ScenarioDetails scenario={scenario} roles={session.result.roles} />}
 
           {finalComparison ? <FinalEconomicsComparison comparison={finalComparison} /> : <SensitivityPanel variants={session.result.sensitivity} />}
 
           <section className="commercial-trace" aria-label="Ограничения расчёта"><h2>Что нужно проверить</h2>
+            <p>Технический подбор: {statusLabel(session.result.ranking.technical.status)}; причины: {session.result.ranking.technical.reason_codes?.join(', ') || 'нет сохранённых причин'}.</p>
+            <p>Финансовое ранжирование: {statusLabel(session.result.ranking.financial.status)}; оно отдельно от денежного вывода выбранной вкладки.</p>
             <ul>{session.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
           </section>
 
@@ -106,7 +109,7 @@ export default function CommercialScenariosV2({ bundle, scenarioSpec, projectNam
   );
 }
 
-function ScenarioDetails({ scenario }) {
+function ScenarioDetails({ scenario, roles }) {
   const allocation = scenario.allocation;
   return (
     <section className="commercial-details" aria-label={`Сценарий ${scenario.label}`}>
@@ -118,6 +121,7 @@ function ScenarioDetails({ scenario }) {
           <p>Налоговая база: {humanizePresentation(scenario.procurement.taxBasis)}</p>
           <p>Ставка НДС: {scenario.procurement.vatRate == null ? 'не задана' : scenario.procurement.vatRate}</p>
           <p>Риск поставки: {statusLabel(scenario.procurement.supplyRisk)}</p>
+          {!scenario.procurement.ready && <p>Предварительное условие; требуется предложение поставщика с ценой, сроком действия и доступностью заказа.</p>}
           {scenario.procurement.blockers.length > 0 && <p>Условия поставки требуют уточнения.</p>}
           {scenario.procurement.blockers.length > 0 && <p>Требуется уточнить условия поставки.</p>}
         </StatusCard>
@@ -132,6 +136,7 @@ function ScenarioDetails({ scenario }) {
           <p>{scenario.financial.discountedPayback === 'Не достигнута' ? 'Дисконтированная окупаемость за горизонт не достигнута.' : `Дисконтированная окупаемость: ${scenario.financial.discountedPayback}.`}</p>
           {!scenario.procurement.ready && <p>Доступность поставки и условия предложения нужно подтвердить у поставщика; принятие расчётной цены этого не подтверждает.</p>}
           {scenario.recommendation.reason_codes?.includes('financial-ranking-not-confirmed') && <p>Сравнение моделей пока не даёт подтверждённой финансовой рекомендации.</p>}
+          {scenario.recommendation.reason_codes?.includes('project-effect-non-positive') && <p>По сохранённому проектному потоку положительный эффект не подтверждён.</p>}
         </StatusCard>
       </div>
 
@@ -150,11 +155,13 @@ function ScenarioDetails({ scenario }) {
 
       <div className="commercial-ledger-grid">
         <article>
-          <h3>Роли и численность на объекте</h3>
+          <h3>Персонал до роботизации</h3>
           <div className="commercial-table-wrap"><table><thead><tr><th>Роль</th><th>Сейчас</th><th>Высвобождено</th><th>Остаётся</th></tr></thead><tbody>
-            {allocation.role_conservation.map((role, index) => <tr key={role.role_id}><td>Роль {index + 1}</td><td>{role.headcount}</td><td>{role.released}</td><td>{role.remaining}</td></tr>)}
+            {allocation.role_conservation.map((role) => <tr key={role.role_id}><td>{roleLabel(roles.find((item) => item.role_id === role.role_id)?.role_code)}</td><td>{role.headcount}</td><td>{role.released}</td><td>{role.remaining}</td></tr>)}
           </tbody></table></div>
-          <p className="commercial-note">Диспетчеры: {allocation.control_required_once} · технические специалисты: {allocation.technicians_required_once}. Учтены в расчёте один раз.</p>
+          <h3>Управление и обслуживание после роботизации</h3>
+          <p className="commercial-note">Диспетчеры: требуется {allocation.control_required_once} чел.; техники: {allocation.technicians_required_once} чел. Учтены один раз по общему парку.</p>
+          {scenario.staffing && <p>Перевод на пульт: {scenario.staffing.control_transferred} чел.; новый найм: {scenario.staffing.control_additional} чел.; техники: перевод {scenario.staffing.technicians_transferred ?? 0}, оплачиваемая функция {scenario.staffing.technicians_billable ?? 0}. Основание: сохранённый C14 и политика нагрузки.</p>}
         </article>
         <article>
           <h3>Допущения и источники</h3>

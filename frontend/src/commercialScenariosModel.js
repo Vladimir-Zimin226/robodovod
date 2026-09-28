@@ -254,6 +254,7 @@ export function getCommercialScenariosModel(bundle, expectedRevision = null) {
       }),
       recommendation: { ...scenario.recommendation },
       allocation: scenario.allocation,
+      staffing: scenario.staffing || bundle.staffing_preview?.[scenario.acquisition] || null,
       expenses: scenario.expenses.map((line) => ({ ...line })),
       assumptions: scenario.assumptions.map((item) => ({ ...item })),
       sourceRefs: [...scenario.source_refs],

@@ -41,7 +41,7 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
       <h3 className="font-semibold">Рассчитанные ветки</h3>
       <div className="mt-2 grid gap-2 md:grid-cols-3">{result.scenarios.map((scenario) => <article key={scenario.scenario_id} className="rounded border p-3">
         <strong>{scenario.acquisition === 'PURCHASE' ? 'Покупка' : 'Аренда'} · {scenario.uncertainty === 'BASE' ? 'базовый' : scenario.uncertainty === 'PESSIMISTIC' ? 'осторожный' : 'оптимистичный'}</strong>
-        <p>Чистая приведённая стоимость: {scenario.financial?.npv_project?.status === 'COMPLETE' ? formatServerMoney(scenario.financial.npv_project.value) : 'не рассчитано'}</p>
+        <p>{scenario.report_facts?.project_npv?.status === 'COMPLETE' ? 'NPV проекта C18' : 'NPV прямого процесса C16 (проектный не сохранён)'}: {scenario.report_facts?.project_npv?.status === 'COMPLETE' ? formatServerMoney(scenario.report_facts.project_npv.value) : scenario.financial?.npv_project?.status === 'COMPLETE' ? formatServerMoney(scenario.financial.npv_project.value) : 'не рассчитано'}</p>
         <p>Закупка: {statusLabel(scenario.procurement?.procurement_status)}</p>
       </article>)}</div>
     </section>}

@@ -14,15 +14,16 @@ import { MODEL_START_SECONDS, modelTimezone, timezoneChoices } from '../simulati
 import { workbookEconomics } from '../projectWorkbook';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
 import { ECONOMICS_DEPTHS, depthIndex, valuesAtDepth } from '../economicsDepth';
+import { roleLabel as roleName } from '../roleLabels';
 
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
 const FIELDS = [
   ['Труд', 'manualUnitsPerShift', 'manual_units_per_shift', 'Выработка одного сотрудника', 'ед./смену', 'Для F08/F09 и экономии ФОТ; например 100.', 'Замер или подтверждённая оценка F08'],
   ['Труд', 'controlHeadcount', 'control_headcount', 'Диспетчеры сейчас', 'чел.', 'Для добавочной численности; например 0.', 'Штатное расписание'],
-  ['Труд', 'controlMonthlyGross', 'control_monthly_gross', 'Зарплата диспетчера gross', '₽/чел./мес.', 'Для расходов на пульт; например 100000.', 'ФОТ'],
+  ['Труд', 'controlMonthlyGross', 'control_monthly_gross', 'Диспетчер · начислено до НДФЛ', '₽/чел./мес.', 'Для расходов на пульт; например 100000.', 'ФОТ'],
   ['Труд', 'technicianHeadcount', 'technician_headcount', 'Техники сейчас', 'чел.', 'Для дополнительной техподдержки; например 0.', 'Штатное расписание'],
-  ['Труд', 'technicianMonthlyGross', 'technician_monthly_gross', 'Зарплата техника gross', '₽/чел./мес.', 'Для расходов на поддержку; например 120000.', 'ФОТ'],
+  ['Труд', 'technicianMonthlyGross', 'technician_monthly_gross', 'Техник · начислено до НДФЛ', '₽/чел./мес.', 'Для расходов на поддержку; например 120000.', 'ФОТ'],
   ['Труд', 'controlTransferSupplement', 'control_transfer_monthly_supplement_gross', 'Доплата переведённому диспетчеру', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
   ['Труд', 'techTransferSupplement', 'technician_transfer_monthly_supplement_gross', 'Доплата переведённому технику', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
   ['Труд', 'technicianContractorAnnual', 'technician_contractor_annual_gross', 'Техподдержка подрядчика', '₽/техник/год, gross', 'Стоимость только непокрытой функции.', 'Договор или допущение'],
@@ -182,8 +183,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const process = capacityRequest?.process;
   const processLabel = PROCESS_DEFINITIONS.find((item) => item.code === process?.process_code)?.label || process?.process_code || 'выбранном процессе';
   const selectedRole = capacityRequest?.role_pool?.roles?.find((item) => item.role_id === (values.primaryRoleId || roleRefs[0]));
-  const roleLabel = { forklift_driver: 'водителя погрузчика', cleaner: 'уборщика', loader: 'грузчика' }[selectedRole?.role_code]
-    || selectedRole?.label || selectedRole?.role_code || 'выбранной роли';
+  const roleLabel = roleName(selectedRole?.role_code).toLowerCase();
   const estimateShown = manualEstimate?.status === 'ESTIMATE'
     ? new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(manualEstimate.value)) : null;
   return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={(event) => event.preventDefault()} noValidate aria-label="Расчёт экономики роботизации">
