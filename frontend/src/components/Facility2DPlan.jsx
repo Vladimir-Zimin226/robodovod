@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { facilityRoute } from '../../../robcraft/src/integration/facility-playback.js';
 import { safeRoute } from '../../../robcraft/src/integration/safe-playback-v2.js';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
@@ -6,6 +7,7 @@ const SCALE = 18;
 const path = points => points.map((p, i) => `${i ? 'L' : 'M'} ${p.x * SCALE} ${p.y * SCALE}`).join(' ');
 
 export default function Facility2DPlan({ scene, frame, selectedZoneId }) {
+  const [expanded, setExpanded] = useState(false);
   const index = Math.max(0, scene.plans.findIndex(plan => plan.zoneId === selectedZoneId));
   const plan = scene.plans[index], current = frame.zones[index];
   if (!plan) return <p>Для этой зоны нет схемы процесса.</p>;
@@ -14,9 +16,13 @@ export default function Facility2DPlan({ scene, frame, selectedZoneId }) {
   const label = safe ? (PROCESS_DEFINITIONS.find((item) => item.code === plan.processCode)?.label || 'Поддержанный процесс')
     : clinic ? 'Клиника · доставка питания' : 'Аэропорт · уборка терминала';
   const width = plan.width * SCALE, height = plan.height * SCALE;
-  return <div className="facility-plan">
+  const tall = height > width * 1.15;
+  return <div className={`facility-plan${tall ? ' facility-plan-tall' : ''}${expanded ? ' facility-plan-expanded' : ''}`}
+    style={{ '--plan-ratio': (width + 36) / (height + 64) }}>
     <div className="facility-plan-heading"><strong>{label}</strong>
-      <span>{plan.robots.length === 1 ? '1 робот' : `${plan.robots.length} роботов`} · {current.open ? 'Рабочее окно' : 'Перерыв по графику'}</span></div>
+      <span>{plan.robots.length === 1 ? '1 робот' : `${plan.robots.length} роботов`} · {current.open ? 'Рабочее окно' : 'Перерыв по графику'}</span>
+      {tall && <button type="button" aria-pressed={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? 'План и действия рядом' : 'Развернуть план'}</button>}</div>
+    <div className="facility-plan-content"><div className="facility-map">
     <svg viewBox={`-18 -25 ${width + 36} ${height + 64}`} role="img" aria-label={`Вид сверху: ${label}`}>
       <defs><pattern id="facility-floor-grid" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M 18 0 L 0 0 0 18" fill="none" stroke="#203c46" strokeWidth=".5" /></pattern></defs>
       <rect x="0" y="0" width={width} height={height} fill="#102831" stroke="#80a4ad" strokeWidth="4" />
@@ -44,12 +50,13 @@ export default function Facility2DPlan({ scene, frame, selectedZoneId }) {
         {robot.carrying && <rect x="-5" y="-7" width="10" height="7" fill="#f5bc67" />}
         <text x="0" y="-16" textAnchor="middle" fill="#fff" fontWeight="700" fontSize="12">{robot.ordinal + 1}</text>
       </g>)}
-    </svg>
-    <div className="facility-operations" aria-label="Текущие действия роботов">
+    </svg></div>
+    <div className="facility-plan-aside"><div className="facility-operations" aria-label="Текущие действия роботов">
       {current.robots.slice(0, 12).map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.waitReason || robot.areaLabel}{robot.carrying ? ` · ${robot.units} ед. груза` : ''}</small>{Number.isFinite(robot.nextStartSeconds) && <small>Следующее задание через {Math.ceil((robot.nextStartSeconds - current.elapsedSeconds) / 60)} мин модели</small>}</div>)}
       {current.robots.length > 12 && <p>Все {current.robots.length} роботов показаны на плане.</p>}
       {current.reason && <p>{current.reason}</p>}
     </div>
     <p className="simulation-schematic-note">{safe ? 'Раздельные стоянки и направления. Общие проходы и точки передачи бронируются с проверкой всего пути и неподвижных участников.' : clinic ? 'Питание поступает с раздачи, проходит по коридору в отделение; после передачи робот возвращается.' : 'Роботы убирают полосы открытого пола в разных частях терминала.'} План условный. Задания восстановлены по сохранённому спросу, графику и длительности обслуживания. Серверные показатели остаются исходными. Это не сертификация безопасности реального объекта.</p>
+    </div></div>
   </div>;
 }

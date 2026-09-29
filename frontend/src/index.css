@@ -29,8 +29,7 @@
 .candidate-option small { display: block; margin-top: .25rem; }
 .candidate-thumbnail { display: flex; align-items: center; justify-content: center; width: 5rem; height: 5rem; flex: 0 0 5rem; border-radius: .375rem; background: #fff; color: #475569; text-align: center; font-size: .625rem; }
 .candidate-thumbnail img { width: 100%; height: 100%; object-fit: contain; }
-.facility-plan > svg { display: block; width: 100%; height: min(60vh, 36rem); }
-.facility-operations { grid-auto-rows: 120px; max-height: 376px; overflow: auto; scrollbar-gutter: stable; }
+.facility-operations { max-height: min(900px, 110vh); overflow: auto; scrollbar-gutter: stable; }
 .facility-operations > div { min-width: 0; overflow: auto; overflow-wrap: anywhere; }
 /* Browser zoom can make a 390 px viewport narrower than 320 CSS px. */
 html body:has(.economics-inputs-v2, .commercial-screen, .candidate-options) { min-width: 0; }
@@ -154,6 +153,7 @@ html body:has(.economics-inputs-v2, .commercial-screen, .candidate-options) { mi
 }
 
 .simulation-2d { padding: 24px; color: #dce7f5; background: #07111f; border: 1px solid #23344a; border-radius: 18px; }
+.visualization-wide, .phase-content-visualization > .simulation-2d { width: min(100% - 24px, 1680px); max-width: 1680px; }
 .technical-visualization-intro { background: var(--bg-panel); border-color: var(--border-subtle); color: var(--text-primary); }
 .technical-visualization-intro .text-green-800 { color: var(--success); }
 .technical-visualization-intro .text-amber-800 { color: var(--amber); }
@@ -175,13 +175,35 @@ html body:has(.economics-inputs-v2, .commercial-screen, .candidate-options) { mi
 .simulation-controls { justify-content: flex-start; padding: 10px; background: #0d1a2b; border-radius: 12px; }
 .simulation-canvas-wrap { margin-top: 12px; overflow: hidden; border: 1px solid #263b53; border-radius: 14px; background: radial-gradient(circle at 50% 0, #132840, #08111e 65%); }
 .simulation-canvas-wrap svg { display: block; width: 100%; min-height: 330px; }
-.facility-plan { margin-top: 12px; padding: 16px; border: 1px solid #345366; border-radius: 14px; background: #0c202b; }
-.facility-plan svg { display: block; width: 100%; max-height: 620px; }
+.facility-plan { margin-top: 12px; min-width: 0; padding: 16px; border: 1px solid #345366; border-radius: 14px; background: #0c202b; }
+.facility-plan-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); align-items: start; gap: 16px; min-width: 0; }
+.facility-map { min-width: 0; }
+.facility-map svg { display: block; width: min(100%, calc(90vh * var(--plan-ratio))); height: auto; margin-inline: auto; }
+.facility-plan-tall .facility-plan-content { grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); align-items: start; }
+.facility-plan-tall .facility-map svg { width: min(100%, calc(105vh * var(--plan-ratio))); margin-inline: auto; }
+.facility-plan-expanded .facility-plan-content { grid-template-columns: minmax(0, 1fr); }
+.facility-plan-expanded .facility-map svg { width: min(100%, calc(150vh * var(--plan-ratio))); }
+.facility-plan-aside { min-width: 0; }
+.facility-plan .facility-operations { grid-template-columns: 1fr; }
+.facility-plan-tall .facility-operations { grid-template-columns: 1fr; }
 .facility-plan-heading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: #d8f3f2; }
 .facility-plan-heading span { color: #aacbd1; font-size: 13px; }
+.facility-plan-heading button { border: 1px solid #527480; border-radius: 7px; padding: 5px 9px; background: #173440; color: #d8f3f2; }
 .facility-operations { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .facility-operations > div { display: flex; flex-direction: column; gap: 4px; border-radius: 8px; padding: 9px 12px; background: #173440; font-size: 13px; color: #d9eff2; }
 .facility-operations small { color: #9fc1c8; }
+@media (max-width: 1000px) {
+  .facility-plan .facility-plan-content { grid-template-columns: minmax(0, 1fr); }
+  .facility-plan .facility-map svg { width: 100%; }
+  .facility-plan .facility-operations { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); max-height: 376px; }
+}
+@media (max-width: 600px) {
+  .simulation-2d { padding: 12px; }
+  .facility-plan { padding: 8px; }
+  .facility-plan-heading { font-size: 13px; }
+  .facility-plan-heading span { font-size: 11px; }
+  .facility-plan .facility-operations { grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); }
+}
 .simulation-zone { fill: #10243a; stroke: #3c5875; stroke-width: 2; }
 .simulation-zone.source-provided { stroke: #22d3ee; }
 .simulation-zone.source-synthetic { stroke-dasharray: 7 6; stroke: #fbbf24; }

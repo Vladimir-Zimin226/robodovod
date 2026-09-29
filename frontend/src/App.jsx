@@ -293,7 +293,7 @@ export default function App() {
   return (
     <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
       {['onboarding', 'intake'].includes(phase) && <Stepper current={currentStep} />}
-      <div className="phase-content">
+      <div className={`phase-content${phase === 'results' ? ' phase-content-visualization' : ''}`}>
         {phase === 'templates' ? (
           <ProjectTemplatesScreen user={user} project={activeProject} projects={projectChoices} onChooseProject={selectActiveProject}
             onNavigate={(next, type) => { if (type) setObjectType(type); if (next === 'intake') setAssistantImport(null); showPhase(next); }}

@@ -36,7 +36,7 @@ export default function TechnicalVisualization({ run, capacityRequest, project, 
     return () => { active = false; };
   }, [autoStart, request, capacityRequest, project, capacityRunId, startTime, timezone, onReady]);
 
-  return <section className="technical-visualization mx-auto my-6 max-w-6xl space-y-3" aria-label="Симуляция процесса">
+  return <section className="technical-visualization visualization-wide mx-auto my-6 space-y-3" aria-label="Симуляция процесса">
     <div className="technical-visualization-intro rounded-xl border p-4">
       <h2 className="font-semibold">Симуляция процесса · 2D и 3D</h2>
       <p className="text-sm">Показатели берутся из сохранённой симуляции процесса. Геометрия без плана объекта условная; это не телеметрия. Денежный эффект рассчитывается отдельно.</p>

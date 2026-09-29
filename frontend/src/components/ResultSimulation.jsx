@@ -13,7 +13,7 @@ export default function ResultSimulation({ result, run, technicalRun, capacityRe
   if (isCommercialScenariosBundle(result)) {
     const source = commercialSimulationSource(result, run, technicalRun, project?.id);
     if (source?.kind === 'TECHNICAL') return <TechnicalVisualization run={source.run} />;
-    return source?.kind === 'ECONOMICS' ? <div className="result-simulation mx-auto my-6 max-w-6xl"><Simulation2DReport
+    return source?.kind === 'ECONOMICS' ? <div className="result-simulation visualization-wide mx-auto my-6"><Simulation2DReport
       request={source.request} analysisRunId={result.run_id} /></div> : null;
   }
   return null;
