@@ -179,6 +179,9 @@ def test_transport_money_rejects_savings_from_picker_role():
 
 def test_owned_http_comparison_reads_immutable_c11_and_returns_two_positions():
     catalog = cohort()
+    from catalog_repository import CatalogMediaDTO
+    media = CatalogMediaDTO('media.synthetic', 'a'*64, 'image/png', 100, 120, 80, 'synthetic.png', 1, 1)
+    catalog = replace(catalog, positions=(replace(catalog.positions[0],media=media),*catalog.positions[1:]))
     project_id = uuid.UUID(request().project_id)
     run_id = uuid.uuid4()
     raw = request().model_dump(mode="json")
@@ -224,6 +227,9 @@ def test_owned_http_comparison_reads_immutable_c11_and_returns_two_positions():
         options = client.get(f"{path}/sources/{run_id}")
         assert options.status_code == 200
         assert len(options.json()["items"]) == 3
+        by_position = {item['position_id']: item for item in options.json()['items']}
+        assert by_position[catalog.positions[0].id]['media']=={'url':f'/api/catalog/media/{catalog.version.code}/{media.sha256}','width_px':120,'height_px':80}
+        assert by_position[catalog.positions[1].id]['media'] is None
         assert options.json()["finance_options"][0]["run_id"] == str(finance.id)
         compared = client.post(path, json={"source_run_id": str(run_id), "position_ids": [
             "position.synthetic.second", "position.synthetic.transport"]})
