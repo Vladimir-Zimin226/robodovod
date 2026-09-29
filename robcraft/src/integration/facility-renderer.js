@@ -1,6 +1,6 @@
 import { createFacilityPlayback, facilityFrameAt } from './facility-playback.js';
 import { facilityWorldPoint } from '../world/facility.js';
-import { createSafePlayback, safeFrameAt } from './safe-playback-v2.js';
+import { createSafePlayback, safeFrameAt, sweptHitsRectangle } from './safe-playback-v2.js';
 import { safeWorldPoint } from '../world/safe-facility-v2.js';
 
 export function applyFacilityPlayback(simulation, scene, report, elapsedSeconds) {
@@ -47,12 +47,29 @@ export function applyFacilityPlayback(simulation, scene, report, elapsedSeconds)
 }
 
 export function updateFacilityCamera(camera, frame, elapsedWallSeconds) {
+  camera.facilityStartedAt ??= elapsedWallSeconds;
   const active = frame.robots.filter(robot => !['WAITING', 'OFF_SHIFT', 'ALLOWANCE', 'WAIT_RESOURCE'].includes(robot.stage));
   const robot = (active.length ? active : frame.robots)[Math.floor(elapsedWallSeconds / 12) % Math.max(1, (active.length ? active : frame.robots).length)];
-  const overview = !robot || elapsedWallSeconds % 12 >= 9;
+  const overview = !robot || (frame.plan ? (elapsedWallSeconds - camera.facilityStartedAt) % 12 < 4 : elapsedWallSeconds % 12 >= 9);
   const [x,z] = robot ? frame.plan ? safeWorldPoint(frame.plan, robot) : facilityWorldPoint(robot) : [0,0];
-  camera.position = overview ? [0, Math.max(35, (frame.plan?.height || 32) * .8), Math.max(25, (frame.plan?.height || 32) * .55)] : [x + 6, 8, z + 7];
+  const plan = frame.plan;
+  const clamp = (value, limit) => Math.max(-limit / 2 + 1.3, Math.min(limit / 2 - 1.3, value));
+  const candidates = [[-7, 8], [7, 8], [-7, -8], [7, -8]];
+  const freeSide = !plan ? candidates[1] : candidates.map(([dx, dz]) => {
+    const point = { x: clamp(x + dx, plan.width) + plan.width / 2, y: clamp(z + dz, plan.height) + plan.height / 2 };
+    const target = { x: x + plan.width / 2, y: z + plan.height / 2 };
+    const crossings = [...plan.walls, ...plan.furniture, ...(plan.environment || [])]
+      .filter(rect => !rect.overhead && sweptHitsRectangle(point, target, rect, .15)).length;
+    return { offset: [dx, dz], score: crossings * 100 + Math.hypot(point.x - target.x, point.y - target.y) * -.01 };
+  }).sort((a, b) => a.score - b.score)[0].offset;
+  const desired = overview ? [0, Math.max(35, (plan?.height || 32) * .92), Math.max(25, (plan?.height || 32) * .68)]
+    : [plan ? clamp(x + freeSide[0], plan.width) : x + freeSide[0], 9,
+      plan ? clamp(z + freeSide[1], plan.height) : z + freeSide[1]];
   const target = overview ? [0, 0, 0] : [x, .8, z];
+  const delta = Math.max(0, Math.min(.1, elapsedWallSeconds - (camera.facilityLastTime ?? elapsedWallSeconds)));
+  const mix = camera.facilityLastTime === undefined ? 1 : 1 - Math.exp(-delta * 2.8);
+  camera.position = camera.position.map((value, index) => value + (desired[index] - value) * mix);
+  camera.facilityLastTime = elapsedWallSeconds;
   const dx = target[0] - camera.position[0], dy = target[1] - camera.position[1], dz = target[2] - camera.position[2];
   camera.yaw = Math.atan2(dx, -dz);
   camera.pitch = Math.atan2(dy, Math.hypot(dx,dz));

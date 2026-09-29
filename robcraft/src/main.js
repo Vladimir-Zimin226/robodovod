@@ -804,7 +804,7 @@ function frame(now) {
     if (active) {
       const facilityPlayback = scene.facilityPlan && authoritativeSimulationReport && embeddedPlayback && !simulation.sceneModified;
       if (cameraState === 'AUTOPILOT' && !editorMode && !facilityPlayback) cameraDirector.update(delta, scene, simulation);
-      else player.update(delta, scene.solids);
+      else player.update(delta, scene.solids, Boolean(scene.safePlaybackPlan));
       if (!editorMode) {
         if (facilityPlayback) {
           const visualFrame = applyFacilityPlayback(simulation, scene, authoritativeSimulationReport, embeddedPlayback.elapsed_seconds);

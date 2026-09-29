@@ -1,9 +1,11 @@
 // A separate, read-only presentation. Historical v1 captures and server KPIs stay versioned.
-import policy from './live-playback-v2.json' with { type: 'json' };
+import policy from './live-playback-v3.json' with { type: 'json' };
 import { pointAlong } from './facility-playback.js';
+import { environmentCandidates } from '../world/safe-environment-v3.js';
 
 export const LIVE_PLAYBACK_VERSION = policy.version;
 export const LIVE_TIME_SCALE = policy.model_seconds_per_view_second;
+export const LIVE_3D_TIME_SCALE = policy.model_seconds_per_3d_view_second;
 export const VISUAL_FOOTPRINT = Object.freeze({ width: policy.robot_body_width_m, length: policy.robot_body_length_m,
   radius: Math.hypot(policy.robot_body_width_m / 2, policy.robot_body_length_m / 2), clearance: policy.clearance_m });
 export const STAGE_LABELS = Object.freeze({ TO_LOAD: 'К точке приёма', LOAD: 'Приём груза', OUTBOUND: 'Доставка груза',
@@ -74,6 +76,27 @@ export function createSafePlan(spec, zoneId = spec.zones[0]?.zone_id) {
     geometrySource: zone.geometry_source, geometryRef: zone.geometry_ref, assumptionRef: zone.assumption_ref,
     route: spec.routes.find((route) => route.route_id === task.route_ref) || null };
   plan.homes = robots.map((robot) => safeRoute(plan, robot.ordinal).home);
+  // Admit scenery only after checking every possible swept route and every waiting bay.
+  // It then participates in the same visual path validator as walls and furniture.
+  const radius = plan.footprint.radius + plan.footprint.clearance;
+  plan.environment = environmentCandidates(plan).filter((rect) => {
+    if (rect.overhead) return true;
+    if (plan.homes.some(home => sweptHitsRectangle(home, home, rect, radius))) return false;
+    if (plan.people.some(person => {
+      const px = Math.max(rect.x, Math.min(person.x, rect.x + rect.width));
+      const py = Math.max(rect.y, Math.min(person.y, rect.y + rect.height));
+      return Math.hypot(person.x - px, person.y - py) < person.radius + (rect.type === 'person' ? policy.person_radius_m : .05);
+    })) return false;
+    for (let ordinal = 0; ordinal < robots.length; ordinal += 1) {
+      for (let sequence = 0; sequence < (clinic ? 6 : cleaning ? 3 : 1); sequence += 1) {
+        const route = safeRoute(plan, ordinal, sequence);
+        for (const points of [route.toLoad, route.outbound, route.work, route.returning])
+          for (let i = 1; i < points.length; i += 1)
+            if (sweptHitsRectangle(points[i - 1], points[i], rect, radius)) return false;
+      }
+    }
+    return true;
+  });
   return plan;
 }
 
@@ -175,7 +198,7 @@ function routeIsSafe(plan, route, robot) {
     for (let i = 1; i < points.length; i += 1) {
       const a = points[i - 1], b = points[i];
       if ([a, b].some((p) => p.x < radius || p.y < radius || p.x > plan.width - radius || p.y > plan.height - radius)) return false;
-      if ([...plan.walls, ...plan.furniture].some((rect) => sweptHitsRectangle(a, b, rect, radius))) return false;
+      if ([...plan.walls, ...plan.furniture, ...(plan.environment || []).filter(rect => !rect.overhead)].some((rect) => sweptHitsRectangle(a, b, rect, radius))) return false;
       if (plan.people.some((p) => segmentDistance(a, b, p) < radius + p.radius)) return false;
       if (plan.homes.some((home, other) => other !== robot && segmentDistance(a, b, home) < 2 * plan.footprint.radius + plan.footprint.clearance)) return false;
     }

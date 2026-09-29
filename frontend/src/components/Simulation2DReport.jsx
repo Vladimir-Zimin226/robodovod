@@ -11,7 +11,7 @@ import {
 import RobCraftFrame from './RobCraftFrame';
 import Warehouse2DPlan from './Warehouse2DPlan';
 import Facility2DPlan from './Facility2DPlan';
-import { LIVE_TIME_SCALE } from '../../../robcraft/src/integration/safe-playback-v2.js';
+import { LIVE_TIME_SCALE, LIVE_3D_TIME_SCALE, LIVE_PLAYBACK_VERSION } from '../../../robcraft/src/integration/safe-playback-v2.js';
 import SimulationChainSetup from './SimulationChainSetup';
 import { humanizePresentation, statusLabel } from '../presentation';
 import { formatModelClock } from '../simulationDefaults';
@@ -28,6 +28,7 @@ const SLA_LABELS = {
   CONDITIONAL: 'Условный результат · модель неполна',
   NOT_EVALUATED: 'Норматив времени не оценён',
 };
+const playbackClockNow = () => performance.now();
 
 function number(value, suffix = '') {
   if (value === null || value === undefined) return 'нет данных';
@@ -76,9 +77,9 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   const previousFrame = useRef(null);
   const canvas = useRef(null);
   const startedRequest = useRef(null);
-  const facilityTimeScale = LIVE_TIME_SCALE;
+  const facilityTimeScale = viewMode === '3D' ? LIVE_3D_TIME_SCALE : LIVE_TIME_SCALE;
   const playbackAction = (action) => {
-    const now = performance.now();
+    const now = playbackClockNow();
     if (timeline.status === 'RUNNING' && !document.hidden && previousFrame.current !== null) {
       dispatch({ type: 'TICK', deltaMs: Math.max(0, now - previousFrame.current), modelSecondsPerRealSecond: facilityTimeScale });
     }
@@ -236,7 +237,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   };
   const saveSvg = () => {
     try {
-      const metadata = visualExportMetadata(active.request, report, analysisRunId, presentation.frame.simulationTimeUs, activeZoneId, new Date().toISOString(), 'conditional-live-playback-v2');
+      const metadata = visualExportMetadata(active.request, report, analysisRunId, presentation.frame.simulationTimeUs, activeZoneId, new Date().toISOString(), LIVE_PLAYBACK_VERSION);
       downloadSimulationSvg(canvas.current?.querySelector('svg'), metadata, active.label);
     } catch (failure) { setError(failure.message); }
   };
@@ -286,17 +287,19 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
           </details>
 
           <div className="simulation-view-tabs" role="tablist" aria-label="Представление симуляции">
-            {['2D', '3D'].map((mode) => <button key={mode} type="button" role="tab" aria-selected={viewMode === mode} onClick={() => setViewMode(mode)}>{mode}</button>)}
+            {['2D', '3D'].map((mode) => <button key={mode} type="button" role="tab" aria-selected={viewMode === mode} onClick={() => {
+              if (mode !== viewMode) { playbackAction({ type: 'TICK', deltaMs: 0, modelSecondsPerRealSecond: facilityTimeScale }); setViewMode(mode); }
+            }}>{mode}</button>)}
           </div>
 
-          <div className="simulation-controls" aria-label="Управление воспроизведением" data-model-seconds={timeline.simulationTimeUs / 1_000_000} data-playback-status={timeline.status} data-playback-speed={timeline.speed} data-playback-version="conditional-live-playback-v2">
+          <div className="simulation-controls" aria-label="Управление воспроизведением" data-model-seconds={timeline.simulationTimeUs / 1_000_000} data-playback-status={timeline.status} data-playback-speed={timeline.speed} data-playback-version={LIVE_PLAYBACK_VERSION} data-model-seconds-per-view-second={facilityTimeScale}>
             <button type="button" onClick={() => playbackAction({ type: 'START' })}>Старт</button>
             <button type="button" onClick={() => playbackAction({ type: 'PAUSE' })}>Пауза</button>
             <button type="button" onClick={() => playbackAction({ type: 'STOP' })}>Стоп</button>
             <button type="button" onClick={() => playbackAction({ type: 'RESTART' })}>Перезапуск</button>
             <label>Скорость<select value={timeline.speed} onChange={(event) => playbackAction({ type: 'SET_SPEED', speed: Number(event.target.value) })}>{[0.5, 1, 2, 4].map((speed) => <option key={speed} value={speed}>×{speed}</option>)}</select></label>
             <strong>{STATUS_LABELS[timeline.status]}</strong>
-            {facilityScene && <><span>×1: 1 секунда просмотра = 1 минута модели</span>
+            {facilityScene && <><span>×1: {viewMode === '3D' ? '1 секунда просмотра = 48 секунд модели (80% темпа 2D)' : '1 секунда просмотра = 1 минута модели'}</span>
               <span>{formatModelClock(report.model_start, timeline.simulationTimeUs) || `${Math.floor(timeline.simulationTimeUs / 60_000_000)} мин`}</span>
               <button type="button" disabled={!presentation.frame.zones.some(zone => Number.isFinite(zone.nextStartSeconds))} onClick={() => {
                 const next = Math.min(...presentation.frame.zones.map(zone => zone.nextStartSeconds));

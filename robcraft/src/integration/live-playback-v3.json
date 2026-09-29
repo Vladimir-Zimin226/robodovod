@@ -1,0 +1,13 @@
+{
+  "version": "conditional-live-playback-v3",
+  "model_seconds_per_view_second": 60,
+  "model_seconds_per_3d_view_second": 48,
+  "robot_body_width_m": 0.9,
+  "robot_body_length_m": 1.2,
+  "clearance_m": 0.2,
+  "person_radius_m": 0.45,
+  "lane_pitch_m": 4.4,
+  "max_jobs_per_day": 10000,
+  "max_visual_fleet": 100,
+  "profiles": ["TRANSPORT_CYCLE_V1", "DELIVERY_CYCLE_V1", "CLEANING_AREA_V1", "PALLETIZING_THROUGHPUT_V1"]
+}

@@ -23,7 +23,7 @@ for (const [template, fleets] of [['warehouse',[1,2,6,11,25]],['airport',[1,3,6,
       for(let i=0;i<count;i++)for(let j=i+1;j<count;j++)assert.ok(Math.hypot(frame.robots[i].x-frame.robots[j].x,frame.robots[i].y-frame.robots[j].y)>=minimum-1e-6,`separation at ${t}`);
     }
     for(const job of playback.jobs)for(const segment of job.segments) {
-      for(const rect of [...plan.walls,...plan.furniture])assert.equal(sweptHitsRectangle(segment.a,segment.b,rect,plan.footprint.radius+plan.footprint.clearance),false);
+      for(const rect of [...plan.walls,...plan.furniture,...plan.environment.filter(item=>!item.overhead)])assert.equal(sweptHitsRectangle(segment.a,segment.b,rect,plan.footprint.radius+plan.footprint.clearance),false);
       for(const person of plan.people) {
         const standing={start:segment.start,end:segment.end,a:{x:person.x,y:person.y},b:{x:person.x,y:person.y}};
         assert.ok(sweptSeparation(segment,standing)>=plan.footprint.radius+plan.footprint.clearance+person.radius-1e-6,'person clearance');
@@ -43,6 +43,10 @@ for (const [template, fleets] of [['warehouse',[1,2,6,11,25]],['airport',[1,3,6,
     assert.ok(maxActive>0);
     if(template==='warehouse'&&count>=6)assert.ok(maxActive>2,'no global two-robot ceiling');
     assert.equal(JSON.stringify({spec,report}),before);
+    assert.deepEqual(createSafePlan(spec).environment,plan.environment,'environment is deterministic');
+    for(const object of plan.environment.filter(item=>!item.overhead)) {
+      for(const home of plan.homes)assert.equal(sweptHitsRectangle(home,home,object,plan.footprint.radius+plan.footprint.clearance),false);
+    }
   });
 }
 test('crossing between samples, rectangle sweep and speed contract',()=>{

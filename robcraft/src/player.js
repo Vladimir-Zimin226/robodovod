@@ -43,7 +43,7 @@ export class Player {
     return this.flying;
   }
 
-  update(delta, solids) {
+  update(delta, solids, collisionInFlight = false) {
     if (!this.enabled || document.pointerLockElement !== this.canvas) {
       this.moving = false;
       this.sprinting = false;
@@ -64,8 +64,8 @@ export class Player {
     const dz = ((-Math.cos(this.yaw) * forward) + (Math.sin(this.yaw) * side)) / magnitude * speed * delta;
     const nextX = this.position[0] + dx;
     const nextZ = this.position[2] + dz;
-    if (this.flying || !solids.some(solid => intersects(nextX, this.position[2], this.radius, solid))) this.position[0] = nextX;
-    if (this.flying || !solids.some(solid => intersects(this.position[0], nextZ, this.radius, solid))) this.position[2] = nextZ;
+    if ((this.flying && !collisionInFlight) || !solids.some(solid => intersects(nextX, this.position[2], this.radius, solid))) this.position[0] = nextX;
+    if ((this.flying && !collisionInFlight) || !solids.some(solid => intersects(this.position[0], nextZ, this.radius, solid))) this.position[2] = nextZ;
     if (this.flying) {
       const vertical = (this.keys.has('Space') ? 1 : 0) - ((this.keys.has('ControlLeft') || this.keys.has('ControlRight')) ? 1 : 0);
       this.position[1] = clamp(this.position[1] + vertical * speed * delta, .7, 32);

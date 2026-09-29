@@ -212,7 +212,8 @@ export class Renderer {
     const opaque = scene.staticObjects.filter(object => !['ground', 'asphalt', 'floor', 'roof', 'glass'].includes(object.type));
     const glass = scene.staticObjects.filter(object => object.type === 'glass');
     surfaces.forEach(object => this.staticObject(object));
-    if (!scene.safePlaybackPlan) this.contactShadows(opaque);
+    if (scene.safePlaybackPlan) this.contactShadows(opaque.filter(object => ['rack', 'bed', 'seat', 'checkin'].includes(object.type)));
+    else this.contactShadows(opaque);
     opaque.forEach(object => this.staticObject(object));
     this.gl.depthMask(false);
     glass.forEach(object => this.staticObject(object, .34));
@@ -231,11 +232,11 @@ export class Renderer {
     const material = materialFor(object.type);
     const emission = object.type === 'light' || object.type === 'sign' ? .72 : object.type === 'charger' ? .24 : 0;
     const userBuilt = object.editorId?.startsWith('user:');
-    if (!(userBuilt && ['rack', 'fence'].includes(object.type))) this.cube(object.position, object.scale, object.color, object.yaw, material, emission, alpha);
+    if (!((userBuilt || object.meta?.detailed) && ['rack', 'fence'].includes(object.type))) this.cube(object.position, object.scale, object.color, object.yaw, material, emission, alpha);
     if (object.type === 'cargo' && (userBuilt || object.editorKind !== 'rack')) this.cargoDetails(object);
     if (object.type === 'charger') this.chargerDetails(object);
     if (object.type === 'station' || object.type === 'checkin' || object.type === 'reception') this.stationDetails(object);
-    if (userBuilt && object.type === 'rack') this.rackDetails(object);
+    if ((userBuilt || object.meta?.detailed) && object.type === 'rack') this.rackDetails(object);
     if (userBuilt && object.type === 'fence') this.fenceDetails(object);
     if (userBuilt && object.type === 'wall') this.wallDetails(object);
     if (userBuilt && object.type === 'decor') this.crateDetails(object);
