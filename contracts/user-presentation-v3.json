@@ -1,0 +1,48 @@
+{
+  "version": "user-presentation-v3",
+  "fields": {
+    "purchase_price_override_gross": {"label": "Цена одного робота", "action": "Цена для нового сценария; условия поставщика требуют проверки.", "unit": "RUB", "group": "Покупка и эксплуатация"},
+    "purchase_price_source": {"label": "Источник цены", "action": "Документ или пользовательское допущение."},
+    "implementation_mode": {"label": "Режим внедрения", "action": "Сумма на проект или процент стоимости оборудования."},
+    "implementation_percent": {"label": "Внедрение от цены парка", "action": "Процент применяется к цене робота и сохранённому парку.", "unit": "PERCENT"},
+    "raas_mode": {"label": "Режим аренды", "action": "Сумма на робота в месяц или процент его цены."},
+    "raas_percent_monthly": {"label": "Аренда от цены робота в месяц", "action": "Месячный процент цены одного робота.", "unit": "PERCENT"},
+    "control_transfer_monthly_supplement_gross": {"label": "Доплата переведённому диспетчеру", "action": "Доплата за месяц до удержаний.", "unit": "RUB/month"},
+    "technician_transfer_monthly_supplement_gross": {"label": "Доплата переведённому технику", "action": "Доплата за месяц до удержаний.", "unit": "RUB/month"},
+    "technician_contractor_annual_gross": {"label": "Техподдержка подрядчика", "action": "Годовая стоимость непокрытой функции.", "unit": "RUB/year"},
+    "staffing_policy": {"label": "Нагрузка новых функций", "action": "Потребность по парку, сменам и ротации."},
+    "staffing_purchase": {"label": "Персонал при покупке", "action": "Кто покрывает управление и обслуживание."},
+    "staffing_raas": {"label": "Персонал при аренде", "action": "Кто покрывает управление и обслуживание."},
+    "work_share": {"label": "Роботизируемая доля работы", "action": "Относится только к выбранной роли и операции."},
+    "robots_per_control_post": {"label": "Роботов на пост управления", "unit": "роботов", "action": "Проверьте нагрузку на объекте."},
+    "robots_per_day_technician": {"label": "Роботов на дневного техника", "unit": "роботов", "action": "Проверьте нагрузку обслуживания."},
+    "rotation_factor": {"label": "Коэффициент ротации", "action": "Учитывает замены сотрудников в графике."},
+    "technician_presence": {"label": "Присутствие техника", "action": "Дневное, сменное или обслуживание поставщиком."},
+    "residual_operations": {"label": "Оставшиеся ручные операции", "action": "Эта работа остаётся у персонала."}
+  },
+  "statuses": {
+    "NORMALIZED": "Расчётная цена, предложение поставщика не подтверждено",
+    "UNKNOWN": "Не подтверждено", "N_A": "Не применяется", "NOT_APPLICABLE": "Не применяется",
+    "VALUE": "Учтено", "RND": "Исследовательская разработка", "SERIAL": "Серийная модель",
+    "PROTOTYPE": "Прототип", "PILOT": "Пилотная модель", "DEVELOPMENT": "Разработка",
+    "FIXED": "Фиксированная сумма", "PERCENT": "Процент цены оборудования",
+    "TRANSFER": "Перевод сотрудника", "HIRE": "Дополнительный найм", "EXISTING": "Существующая функция",
+    "CONTRACTOR": "Подрядчик", "VENDOR": "Поставщик", "CUSTOMER": "Заказчик",
+    "DAY_WORKLOAD": "Дневная нагрузка", "EACH_SHIFT": "В каждой смене", "UNVERIFIED": "Не подтверждено"
+  },
+  "units": {
+    "RUB": "₽", "RUB/year": "₽/год", "RUB/month": "₽/месяц", "YEAR": "лет", "PERCENT": "%",
+    "pallet/day": "паллет в сутки", "pallet/shift": "паллет на сотрудника за смену",
+    "unit/shift": "единиц на сотрудника за смену", "m2/shift": "м² на сотрудника за смену",
+    "m2/day": "м² в сутки", "kg": "кг", "m": "м", "headcount": "чел.", "fraction": "доля"
+  },
+  "reasons": {
+    "OTHER_OPERATION_OR_PHYSICAL_PROFILE": "Другая операция или физический профиль",
+    "RESEARCH_NOT_PURCHASE_READY": "Исследовательская модель; закупка не подтверждена",
+    "NO_SUPPORTED_CALCULATION_FORMULA": "Профиль пока не поддерживается расчётом",
+    "CAPACITY_NOT_COMPUTED": "Парк на этих входах не рассчитан", "PRICE_NOT_CONFIRMED": "Цена не подтверждена",
+    "constraint-report-needs-validation": "Требуется подтвердить ограничения и пригодность на объекте",
+    "financial-ranking-not-confirmed": "Для финансовой рекомендации нужны сопоставимые подтверждённые условия",
+    "project-effect-non-positive": "Положительный эффект проекта не подтверждён"
+  }
+}

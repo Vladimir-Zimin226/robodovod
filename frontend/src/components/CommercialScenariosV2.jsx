@@ -8,7 +8,8 @@ import {
 import FinalEconomicsComparison from './FinalEconomicsComparison';
 import ProjectWhatIf from './ProjectWhatIf';
 import { roleLabel } from '../roleLabels';
-import { fieldPresentation, humanizePresentation, statusLabel } from '../presentation';
+import { fieldPresentation, humanizePresentation, presentationValue, reasonLabel, sourceLabel, statusLabel } from '../presentation';
+import { formatDecimal, formatPercent } from '../displayNumber';
 
 const STATUS_LABELS = {
   COMPLETE: 'Рассчитано', INCOMPLETE: 'Недостаточно данных',
@@ -30,7 +31,7 @@ export default function CommercialScenariosV2({ bundle, projectName, project, ru
       <header className="commercial-header">
         <div>
           <span>ЭКОНОМИКА РОБОТИЗАЦИИ</span>
-          <h1>Baseline, покупка и услуга</h1>
+          <h1>Без роботов, покупка и аренда</h1>
           {projectName && <p>Проект: {projectName}</p>}
           <p>Сохранённые варианты покупки и аренды. Источник — расчёт потребного парка.</p>
           <p>Шесть серверных сценариев. Интерфейс не пересчитывает финансовые показатели.</p>
@@ -60,7 +61,7 @@ export default function CommercialScenariosV2({ bundle, projectName, project, ru
             />
           ))}
         </div>
-        {finalComparison && <p>Цена: {finalComparison.inputs.price.value} {finalComparison.inputs.price.currency}; база {finalComparison.inputs.price.tax_basis}, НДС {finalComparison.inputs.price.vat_rate ?? 'не указан'}, источник {finalComparison.inputs.price.source_note || finalComparison.inputs.price.source_ref}. Ручная выработка: {finalComparison.inputs.manual_productivity.value ?? 'не применяется'} {finalComparison.inputs.manual_productivity.unit}. Объём: {finalComparison.inputs.demand.value} {finalComparison.inputs.demand.unit}. <button type="button" className="secondary-action" onClick={onRecalculate}>Изменить подтверждённые входы и создать новую версию</button></p>}
+        {finalComparison && <p>Цена: {formatServerMoney(finalComparison.inputs.price.value)}; база {humanizePresentation(finalComparison.inputs.price.tax_basis)}, НДС {formatPercent(finalComparison.inputs.price.vat_rate)}, источник — сохранённые условия цены. Выработка сотрудника: {presentationValue('', finalComparison.inputs.manual_productivity.value, finalComparison.inputs.manual_productivity.unit)}. Объём: {presentationValue('', finalComparison.inputs.demand.value, finalComparison.inputs.demand.unit)}. <button type="button" className="secondary-action" onClick={onRecalculate}>Изменить подтверждённые входы и создать новую версию</button></p>}
         {bundle.roles.some((role) => role.monthly_gross_salary.status === 'MISSING') && (
           <p className="commercial-warning" role="status">У одной из ролей нет месячной зарплаты до удержаний: расчёт парка доступен, экономика остаётся частичной.</p>
         )}
@@ -91,9 +92,9 @@ export default function CommercialScenariosV2({ bundle, projectName, project, ru
           {finalComparison ? <FinalEconomicsComparison comparison={finalComparison} /> : <SensitivityPanel variants={session.result.sensitivity} />}
 
           <section className="commercial-trace" aria-label="Ограничения расчёта"><h2>Что нужно проверить</h2>
-            <p>Технический подбор: {statusLabel(session.result.ranking.technical.status)}; причины: {session.result.ranking.technical.reason_codes?.join(', ') || 'нет сохранённых причин'}.</p>
+            <p>Технический подбор: {statusLabel(session.result.ranking.technical.status)}; {session.result.ranking.technical.reason_codes?.map(reasonLabel).join('; ') || 'сохранённых замечаний нет'}.</p>
             <p>Финансовое ранжирование: {statusLabel(session.result.ranking.financial.status)}; оно отдельно от денежного вывода выбранной вкладки.</p>
-            <ul>{session.result.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
+            <ul>{session.result.limitations.map((item) => <li key={item}>{humanizePresentation(item)}</li>)}</ul>
           </section>
 
 
@@ -110,20 +111,20 @@ function ScenarioDetails({ scenario, roles }) {
       <div className="commercial-section-title"><div><span>03</span><h2>{scenario.label}</h2></div><p>Состояние расчёта: {statusLabel(scenario.financial.status)}</p></div>
       <div className="commercial-status-grid">
         <StatusCard title="Условия закупки" status={scenario.procurement.ready ? 'READY' : scenario.procurement.status}>
-          <p>Исходная цена: {scenario.procurement.rawAmount == null ? 'не предоставлена' : `${scenario.procurement.rawAmount} ${scenario.procurement.currency}`}</p>
+          <p>Исходная цена: {scenario.procurement.rawAmount == null ? 'не предоставлена' : presentationValue('', scenario.procurement.rawAmount, scenario.procurement.currency)}</p>
           <p>Цена с налогами: {formatServerMoney(scenario.procurement.cashGross)}</p>
           <p>Налоговая база: {humanizePresentation(scenario.procurement.taxBasis)}</p>
-          <p>Ставка НДС: {scenario.procurement.vatRate == null ? 'не задана' : scenario.procurement.vatRate}</p>
+          <p>Ставка НДС: {formatPercent(scenario.procurement.vatRate)}</p>
           <p>Риск поставки: {statusLabel(scenario.procurement.supplyRisk)}</p>
           {!scenario.procurement.ready && <p>Предварительное условие; требуется предложение поставщика с ценой, сроком действия и доступностью заказа.</p>}
           {scenario.procurement.blockers.length > 0 && <p>Условия поставки требуют уточнения.</p>}
           {scenario.procurement.blockers.length > 0 && <p>Требуется уточнить условия поставки.</p>}
         </StatusCard>
         <StatusCard title="Денежный результат" status={scenario.financial.status}>
-          <strong>{scenario.financial.npvProject}</strong><span>{scenario.financial.npvScope === 'PROJECT_C18' ? 'NPV проекта с общими затратами (C18)' : 'NPV прямого процесса (C16); NPV проекта в этой версии не сохранён'}</span>
-          {scenario.financial.npvScope === 'PROJECT_C18' && <><strong>{scenario.financial.directProcessNpv}</strong><span>Промежуточный NPV прямого процесса (C16)</span></>}
-          <strong>{scenario.financial.simplePayback}</strong><span>Простой срок окупаемости {scenario.financial.paybackScope === 'PROJECT_C18' ? 'проекта (C18)' : 'прямого процесса (C16)'}</span>
-          <strong>{scenario.financial.discountedPayback}</strong><span>Дисконтированный срок {scenario.financial.paybackScope === 'PROJECT_C18' ? 'проекта (C18)' : 'прямого процесса (C16)'}</span>
+          <strong>{scenario.financial.npvProject}</strong><span>{scenario.financial.npvScope === 'PROJECT_C18' ? 'Эффект проекта с учётом общих затрат · NPV' : 'Эффект операции до общих затрат · NPV; эффект проекта в этой версии не сохранён'}</span>
+          {scenario.financial.npvScope === 'PROJECT_C18' && <details><summary>Эффект операции до общих затрат · NPV</summary><strong>{scenario.financial.directProcessNpv}</strong><p>Промежуточная оценка выбранной операции. Общие расходы учитываются в эффекте проекта выше.</p></details>}
+          <strong>{scenario.financial.simplePayback}</strong><span>Простой срок окупаемости {scenario.financial.paybackScope === 'PROJECT_C18' ? 'проекта' : 'прямого процесса'}</span>
+          <strong>{scenario.financial.discountedPayback}</strong><span>Дисконтированный срок {scenario.financial.paybackScope === 'PROJECT_C18' ? 'проекта' : 'прямого процесса'}</span>
         </StatusCard>
         <StatusCard title="Вывод по сценарию" status={scenario.financial.status}>
           <p>{scenario.financial.projectNpvValue == null ? 'Проектный денежный вывод для этой версии не сохранён.' : Number(scenario.financial.projectNpvValue) > 0 ? 'Сохранённый проектный NPV положителен для выбранных условий.' : Number(scenario.financial.projectNpvValue) < 0 ? 'Сохранённый проектный NPV отрицателен для выбранных условий.' : 'Сохранённый проектный NPV равен нулю.'}</p>
@@ -136,14 +137,14 @@ function ScenarioDetails({ scenario, roles }) {
 
       <div className="commercial-ledger-grid">
         <article>
-          <h3>Денежные потоки по годам ({scenario.financial.npvScope === 'PROJECT_C18' ? 'проект C18' : 'прямой процесс C16'})</h3>
+          <h3>Денежные потоки по годам ({scenario.financial.npvScope === 'PROJECT_C18' ? 'проект с общими затратами' : 'прямой процесс'})</h3>
           <div className="commercial-table-wrap"><table><thead><tr><th>Год</th><th>Без роботов</th><th>С роботом</th><th>Разница</th><th>Источник</th></tr></thead><tbody>
-            {scenario.financial.annualLedgers.map((row) => <tr key={row.year}><td>{row.year}</td><td>{formatServerMoney(row.baseline)}</td><td>{formatServerMoney(row.scenario)}</td><td>{formatServerMoney(row.delta)}</td><td><details><summary>Проверить</summary>{row.sourceRefs.join(', ') || 'ход денежного расчёта'}</details></td></tr>)}
+            {scenario.financial.annualLedgers.map((row) => <tr key={row.year}><td>{row.year}</td><td>{formatServerMoney(row.baseline)}</td><td>{formatServerMoney(row.scenario)}</td><td>{formatServerMoney(row.delta)}</td><td>Сохранённые годовые потоки</td></tr>)}
           </tbody></table></div>
         </article>
         <article>
           <h3>Расходы</h3>
-          <ul className="commercial-expenses">{scenario.expenses.map((line) => <li key={line.line_id}><span><strong>{line.label}</strong><details><summary>Источник</summary><small>{line.source_ref}</small></details></span><b>{line.amount == null ? statusLabel(line.status) : formatServerMoney(line.amount)}</b></li>)}</ul>
+          <ul className="commercial-expenses">{scenario.expenses.map((line) => <li key={line.line_id}><span><strong>{humanizePresentation(line.label)}</strong><small>Сохранённая статья затрат</small></span><b>{line.amount == null ? statusLabel(line.status) : formatServerMoney(line.amount)}</b></li>)}</ul>
         </article>
       </div>
 
@@ -151,15 +152,15 @@ function ScenarioDetails({ scenario, roles }) {
         <article>
           <h3>Персонал до роботизации</h3>
           <div className="commercial-table-wrap"><table><thead><tr><th>Роль</th><th>Сейчас</th><th>Высвобождено</th><th>Остаётся</th></tr></thead><tbody>
-            {allocation.role_conservation.map((role) => <tr key={role.role_id}><td>{roleLabel(roles.find((item) => item.role_id === role.role_id)?.role_code)}</td><td>{role.headcount}</td><td>{role.released}</td><td>{role.remaining}</td></tr>)}
+            {allocation.role_conservation.map((role) => <tr key={role.role_id}><td>{roleLabel(roles.find((item) => item.role_id === role.role_id)?.role_code)}</td><td>{formatDecimal(role.headcount) ?? '—'}</td><td>{formatDecimal(role.released) ?? '—'}</td><td>{formatDecimal(role.remaining) ?? '—'}</td></tr>)}
           </tbody></table></div>
           <h3>Управление и обслуживание после роботизации</h3>
           <p className="commercial-note">Диспетчеры: требуется {allocation.control_required_once} чел.; техники: {allocation.technicians_required_once} чел. Учтены один раз по общему парку.</p>
-          {scenario.staffing && <p>Перевод на пульт: {scenario.staffing.control_transferred} чел.; новый найм: {scenario.staffing.control_additional} чел.; техники: перевод {scenario.staffing.technicians_transferred ?? 0}, оплачиваемая функция {scenario.staffing.technicians_billable ?? 0}. Основание: сохранённый C14 и политика нагрузки.</p>}
+          {scenario.staffing && <p>Перевод на пульт: {formatDecimal(scenario.staffing.control_transferred) ?? 'не указано'} чел.; новый найм: {formatDecimal(scenario.staffing.control_additional) ?? 'не указано'} чел.; техники: перевод {formatDecimal(scenario.staffing.technicians_transferred) ?? 'не указано'}, оплачиваемая функция {formatDecimal(scenario.staffing.technicians_billable) ?? 'не указано'}. Основание: сохранённый расчёт труда и политика нагрузки.</p>}
         </article>
         <article>
           <h3>Допущения и источники</h3>
-          {scenario.assumptions.map((item) => <details key={item.assumption_id}><summary>{humanizePresentation(item.label)}</summary><p>{item.value} {item.unit}</p><code>{item.provenance_ref}</code></details>)}
+          {scenario.assumptions.map((item) => <details key={item.assumption_id}><summary>{humanizePresentation(item.label)}</summary><p>{presentationValue('', item.value, item.unit)}</p><small>{sourceLabel({ source: item.provenance_ref })}. Полное основание — в архиве.</small></details>)}
         </article>
       </div>
     </section>

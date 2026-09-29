@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { readCsrfCookie } from '../persistenceApi';
 import { SCENARIO_CONTROLS, SCENARIO_METRICS, canonicalJson, editScenarioInput, inputDigest, metricText, scenarioInputError } from '../projectScenarioModel';
+import { decimalDifference } from '../displayNumber';
+import { presentationValue, sourceLabel, unitLabel } from '../presentation';
 
 const API = import.meta.env.VITE_API_URL || '';
 const names = { PURCHASE: 'Покупка', RAAS: 'RaaS', BASELINE: 'Без роботов' };
 const profiles = { BASE: 'Базовый', PESSIMISTIC: 'Пессимистичный', OPTIMISTIC: 'Оптимистичный' };
-const money = raw => raw == null ? 'Нет данных' : `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(raw))} ₽`;
+const money = raw => raw == null ? 'Нет данных' : presentationValue('', raw, 'RUB');
 
 async function request(url, body, signal) {
   const response = await fetch(url, { method: 'POST', credentials: 'include', signal,
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() }, body: JSON.stringify(body) });
   const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `HTTP ${response.status}`);
+  if (!response.ok) {
+    console.error('Economics request:', response.status, data);
+    throw new Error('Не удалось проверить или сохранить новый расчёт. Проверьте входы и соединение, затем повторите попытку.');
+  }
   return data;
 }
 
@@ -108,8 +113,8 @@ export default function ProjectScenarioDialog({ project, run, onComplete, onClos
           && (field !== 'raas_monthly_per_robot_gross' || draft.raas_mode !== 'PERCENT')).map(([, field, label, min, max, step, sliderMax]) => <label key={field}>{label}
             <input aria-label={`${label}: ползунок`} type="range" min={min} max={Math.max(sliderMax, Number(draft[field]) || 0)} step={step} disabled={draft[field] == null || draft[field] === ''} value={draft[field] ?? min} onChange={event => edit(field, event.target.value)} />
             <input aria-label={label} type="number" min={min} max={max ?? undefined} step={['horizon_years', 'raas_contract_months'].includes(field) ? 1 : 'any'} value={draft[field] ?? ''} onChange={event => edit(field, event.target.value)} />
-            <small>Источник: {draft.field_sources?.[field] || 'сохранённый ввод'} · исходное: {original[field] ?? 'неизвестно'}{String(draft[field] ?? '') !== String(original[field] ?? '') ? ' · изменено' : ''}</small>
-            {field === 'manual_units_per_shift' && <small>Роль: {original.primary_role_id || 'выбранная роль'} · единица: {run.result_snapshot?.comparison?.inputs?.manual_productivity?.unit || 'ед./человек/смену'}</small>}
+            <small>Источник: {sourceLabel({ source: draft.field_sources?.[field] })} · исходное: {presentationValue(field, original[field])}{String(draft[field] ?? '') !== String(original[field] ?? '') ? ' · изменено' : ''}</small>
+            {field === 'manual_units_per_shift' && <small>Выработка выбранной роли · {unitLabel(run.result_snapshot?.comparison?.inputs?.manual_productivity?.unit) || 'ед./человек/смену'}</small>}
           </label>)}
       </section>)}
     </fieldset><section className="project-scenario-results" aria-live="polite">
@@ -124,10 +129,10 @@ export default function ProjectScenarioDialog({ project, run, onComplete, onClos
         {['PURCHASE', 'RAAS'].flatMap(kind => SCENARIO_METRICS.map(([key, label]) => {
           const before = baseRows.find(row => row.acquisition === kind && row.uncertainty === 'BASE')?.metrics?.[key];
           const after = rows.find(row => row.acquisition === kind && row.uncertainty === 'BASE')?.metrics?.[key];
-          const delta = before?.status === 'COMPLETE' && after?.status === 'COMPLETE' ? metricText({ ...after, value: String(Number(after.value) - Number(before.value)) }) : 'Нет данных';
+          const delta = before?.status === 'COMPLETE' && after?.status === 'COMPLETE' ? metricText({ ...after, value: decimalDifference(after.value, before.value) }) : 'Нет данных';
           return <tr key={`${kind}:${key}`}><th>{names[kind]}</th><td>{label}</td><td>{metricText(before)}</td><td>{metricText(after)}</td><td>{delta}</td></tr>;
         }))}</tbody></table></div>
-      <p>Baseline: затраты без роботов за год 1 — {metricText((result?.comparison || run.result_snapshot?.comparison)?.baseline?.metrics?.opex_year_1)}.</p>
+      <p>Затраты без роботов за год 1 — {metricText((result?.comparison || run.result_snapshot?.comparison)?.baseline?.metrics?.opex_year_1)}.</p>
       <div className="commercial-table-wrap"><table aria-label="Шесть финансовых сценариев"><thead><tr><th>Вариант</th>{SCENARIO_METRICS.map(([key, label]) => <th key={key}>{label}</th>)}</tr></thead><tbody>
         {['PURCHASE', 'RAAS'].flatMap(kind => ['PESSIMISTIC', 'BASE', 'OPTIMISTIC'].map(profile => { const row = rows.find(item => item.acquisition === kind && item.uncertainty === profile);
           return <tr key={`${kind}:${profile}`}><th>{names[kind]} · {profiles[profile]}</th>{SCENARIO_METRICS.map(([key]) => <td key={key}>{metricText(row?.metrics?.[key])}</td>)}</tr>; }))}
@@ -154,6 +159,6 @@ function ScenarioChart({ charts, metric, label }) {
       {series.map((row, index) => <polyline key={row.scenario_id} fill="none" stroke={colors[index]} strokeWidth="2" points={row.points.filter(point => point[metric] != null).map(point => `${70 + point.year / years * 550},${25 + (max - Number(point[metric])) / span * 190}`).join(' ')} />)}
       {Array.from({ length: years + 1 }, (_, year) => <text key={year} x={70 + year / years * 550} y="244" textAnchor="middle">{year}</text>)}
     </svg><p>{series.map((row, index) => <span key={row.scenario_id} style={{ color: colors[index], marginRight: 16 }}>{row.scenario_id.includes('purchase') ? 'Покупка' : row.scenario_id.includes('raas') ? 'RaaS' : 'Без роботов'}</span>)}</p>
-    <details><summary>Значения ряда и основание</summary><p>{charts.basis}</p><table><tbody>{series.flatMap(row => row.points.map(point => <tr key={`${row.scenario_id}:${point.year}`}><th>{row.scenario_id} · год {point.year}</th><td>{money(point[metric])}</td></tr>))}</tbody></table></details>
+    <details><summary>Значения ряда и основание</summary><p>Сохранённые денежные потоки; год 0 содержит первоначальные вложения.</p><table><tbody>{series.flatMap(row => row.points.map(point => <tr key={`${row.scenario_id}:${point.year}`}><th>{row.scenario_id.includes('purchase') ? 'Покупка' : row.scenario_id.includes('raas') ? 'Аренда' : 'Без роботов'} · год {point.year}</th><td>{money(point[metric])}</td></tr>))}</tbody></table></details>
   </figure>;
 }

@@ -1,3 +1,5 @@
+import { presentationValue } from './presentation.js';
+
 export const SCENARIO_CONTROLS = [
   ['Коммерческие условия', 'purchase_price_override_gross', 'Цена одного робота, ₽', 0, null, 10000, 100000000],
   ['Коммерческие условия', 'implementation_cost_total_gross', 'Внедрение, ₽ всего', 0, null, 10000, 100000000],
@@ -51,5 +53,5 @@ export function metricText(metric) {
   if (metric?.status === 'NOT_REACHED') return 'Окупаемость не достигнута';
   if (metric?.status === 'N_A') return 'Не применяется';
   if (metric?.status !== 'COMPLETE' || metric.value == null) return 'Нет данных';
-  return `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(metric.value))} ${{ RUB: '₽', 'RUB/year': '₽/год', PERCENT: '%', YEAR: 'лет' }[metric.unit] || metric.unit || ''}`;
+  return presentationValue('', metric.value, metric.unit);
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { humanizePresentation } from '../presentation';
+import { humanizePresentation, presentationValue } from '../presentation';
 
 const METRICS = [
   ['capex', 'CAPEX'], ['opex_year_1', 'Затраты за год 1'],
@@ -18,19 +18,17 @@ const PARAMETERS = {
 };
 const amount = (raw, unit) => {
   if (raw == null || raw === '') return 'нет данных';
-  const numeric = Number(raw);
-  const display = Number.isFinite(numeric) ? new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(numeric) : raw;
-  return `${display} ${{ RUB: '₽', 'RUB/year': '₽/год', PERCENT: '%', YEAR: 'лет' }[unit] || unit || ''}`.trim();
+  return presentationValue('', raw, unit);
 };
 const value = (metric) => metric?.status === 'COMPLETE' ? amount(metric.value, metric.unit)
-  : metric?.status === 'N_A' ? `Н/П: ${metric.reason || 'не применяется'}`
+  : metric?.status === 'N_A' ? 'Не применяется'
     : metric?.status === 'NOT_REACHED' ? 'Не достигнут за горизонт'
-      : `Не сохранено${metric?.reason ? `: ${metric.reason}` : ''}`;
+      : 'Не сохранено в этой версии';
 
 export default function FinalEconomicsComparison({ comparison }) {
   const [selected, setSelected] = useState('scenario.purchase.base');
   if (!comparison) return <section className="commercial-details" aria-label="Полное сравнение экономики">
-    <h2>Baseline, покупка и услуга</h2><p>Полная таблица показателей не сохранена в этой версии. Для неё создайте новый расчёт; этот результат остаётся воспроизводимым.</p>
+    <h2>Без роботов, покупка и аренда</h2><p>Полная таблица показателей не сохранена в этой версии. Для неё создайте новый расчёт; этот результат остаётся воспроизводимым.</p>
   </section>;
   const baseRows = [comparison.baseline, ...comparison.scenarios.filter((item) => item.uncertainty === 'BASE')];
   const active = [comparison.baseline, ...comparison.scenarios].find((item) => item.scenario_id === selected) || baseRows[1];
@@ -59,7 +57,7 @@ export default function FinalEconomicsComparison({ comparison }) {
       {[comparison.baseline, ...comparison.scenarios].map((item) => <option key={item.scenario_id} value={item.scenario_id}>{NAMES[item.acquisition]} · {UNCERTAINTY[item.uncertainty]}</option>)}
     </select></label>
     <div className="commercial-table-wrap"><table><thead><tr><th>Параметр</th><th>Вариант</th><th>Исходное значение</th><th>±10%</th><th>Изменение NPV</th><th>Источник</th></tr></thead>
-      <tbody>{variants.map((item) => <tr key={`${item.parameter}:${item.direction}`}><td>{PARAMETERS[item.parameter] || 'Условие сценария'}</td><td>{item.direction === 'LOWER' ? '−10%' : '+10%'}</td><td>{amount(item.base_value, item.unit)}</td><td>{amount(item.variant_value, item.unit)}</td><td>{item.status === 'COMPLETE' ? amount(item.delta_npv, 'RUB') : `Не рассчитано: ${item.reason || ''}`}</td><td>Сохранённый расчёт</td></tr>)}</tbody></table></div>
+      <tbody>{variants.map((item) => <tr key={`${item.parameter}:${item.direction}`}><td>{PARAMETERS[item.parameter] || 'Условие сценария'}</td><td>{item.direction === 'LOWER' ? '−10%' : '+10%'}</td><td>{amount(item.base_value, item.unit)}</td><td>{amount(item.variant_value, item.unit)}</td><td>{item.status === 'COMPLETE' ? amount(item.delta_npv, 'RUB') : 'Недостаточно исходных данных'}</td><td>Сохранённый расчёт</td></tr>)}</tbody></table></div>
     <p>Неподтверждённая цена и характеристики модели остаются предварительными условиями; таблица не является рекомендацией к закупке.</p>
   </section>;
 }
