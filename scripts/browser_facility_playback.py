@@ -180,7 +180,9 @@ def main():
             assert abs(state['frame']['elapsedSeconds']-state['playback']['elapsed_seconds'])<.001
             assert state['hasPlan'] and state['hasReport'] and not state['modified']
             for pose,robot in zip(state['frame']['robots'],state['robots']):
-                assert robot['position']==[pose['x']-24,.42,pose['y']-16]
+                plan=state['frame'].get('plan')
+                expected=[pose['x']-(plan['width']/2 if plan else 24),.42,pose['y']-(plan['height']/2 if plan else 16)]
+                assert all(abs(actual-target)<.001 for actual,target in zip(robot['position'],expected)), (template,robot['position'],expected)
             frozen=js('window.__childClock.elapsed_seconds');time.sleep(.25)
             assert js('window.__childClock.elapsed_seconds')==frozen
             screenshot(template+'-3d.png','.robcraft-frame')
@@ -198,13 +200,15 @@ def main():
             screenshot(template+'-3d-active.png','.robcraft-frame')
             button('Стоп');until('window.__childClock?.elapsed_seconds===0')
             stopped=child_state();assert stopped['frame']['elapsedSeconds']==0
-            js("window.__savedIframe=document.querySelector('iframe');true")
-            button('2D');button('Старт');time.sleep(.2)
-            assert js("document.querySelector('iframe')===window.__savedIframe"), 'switching views discarded 3D/editor state'
-            assert js('window.__childClock.status')=='PAUSED'
+            button('2D');until("document.querySelector('iframe')===null")
+            button('Старт');time.sleep(.2)
+            assert js("document.querySelector('.simulation-controls').dataset.playbackStatus==='RUNNING'")
+            js('window.__messages=[];window.__childClock=null')
             button('3D');js("document.querySelector('iframe').scrollIntoView({block:'center'})")
-            until('window.__childClock.status==="RUNNING"')
-            until('window.__childClock.elapsed_seconds>0')
+            until("window.__messages.some(m=>m.type==='SCENARIO_LOADED'&&m.payload.status==='APPLIED')")
+            js("document.querySelector('iframe').contentWindow.addEventListener('message',e=>{if(e.data?.type==='SET_PLAYBACK')window.__childClock=e.data.payload})")
+            until('window.__childClock?.status==="RUNNING"')
+            until('window.__childClock?.elapsed_seconds>0')
             button('Пауза');time.sleep(.1)
             assert child_state()['frame']['elapsedSeconds']>0
             assert js('window.__errors')==[], js('window.__errors')

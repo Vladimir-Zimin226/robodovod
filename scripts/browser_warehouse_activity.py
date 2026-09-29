@@ -36,15 +36,20 @@ createRoot(document.getElementById('root')).render(React.createElement(Simulatio
 </script></body></html>''', encoding='utf-8')
     config = HARNESS / 'vite.config.mjs'
     dist = OUT / 'dist'
-    config.write_text("import base from '../vite.config.js';export default {...base,build:{outDir:" + json.dumps(str(dist))
+    config.write_text("import base from '../vite.config.js';export default {...base,plugins:base.plugins.filter(plugin=>plugin.name!=='robcraft-same-origin-assets'),build:{outDir:" + json.dumps(str(dist))
                       + ",emptyOutDir:true,rollupOptions:{input:" + json.dumps(str(HARNESS / 'index.html')) + "}}};", encoding='utf-8')
     built = subprocess.run(['node', '--preserve-symlinks', '--preserve-symlinks-main', 'node_modules/vite/bin/vite.js',
                             'build', '--configLoader', 'runner', '--config', str(config)], cwd=ROOT / 'frontend', capture_output=True, text=True)
     assert built.returncode == 0, built.stdout + built.stderr
+    robcraft = dist / 'robcraft'
+    robcraft.mkdir(exist_ok=True)
+    for filename in ('index.html', 'styles.css'):
+        shutil.copyfile(ROOT / 'robcraft' / filename, robcraft / filename)
+    shutil.copytree(ROOT / 'robcraft/src', robcraft / 'src', dirs_exist_ok=True)
     shutil.copyfile(HARNESS / 'fixture.json', dist / '.test-warehouse-activity/fixture.json')
     server = ThreadingHTTPServer(('127.0.0.1', 5192), partial(QuietHandler, directory=str(dist)))
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    browser = LocalBrowser('http://127.0.0.1:5192/.test-warehouse-activity/index.html', OUT, software_gpu=True)
+    browser = LocalBrowser('http://127.0.0.1:5192/.test-warehouse-activity/index.html', OUT)
     evidence = {'artifact_id': artifact['id'], 'saved_created_at': artifact['created_at'], 'screens': []}
 
     def viewport(width, height):
@@ -67,7 +72,18 @@ createRoot(document.getElementById('root')).render(React.createElement(Simulatio
             browser.js("document.querySelector('.facility-plan svg').scrollIntoView({block:'center'})")
             browser.screenshot(f'warehouse-15-2d-{width}.png')
             evidence['screens'].append({'view': '2D', 'width': width, 'height': height, **result})
+            samples = []
+            for minute in (0, 15, 60, 180, 300):
+                browser.js(f"(()=>{{const x=document.querySelector('.simulation-controls input');const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(x,'{minute}');x.dispatchEvent(new Event('input',{{bubbles:true}}))}})()")
+                browser.until(f"Number(document.querySelector('.simulation-controls').dataset.modelSeconds)==={minute * 60}")
+                samples.append(browser.js("(()=>{const box=document.querySelector('.facility-plan .facility-operations');return {height:box.getBoundingClientRect().height,card_heights:[...box.children].filter(x=>x.tagName==='DIV').map(x=>x.getBoundingClientRect().height),status:box.innerText.slice(0,120)}})()"))
+            assert len({sample['height'] for sample in samples}) == 1, (width, samples)
+            assert all(len(set(sample['card_heights'])) == 1 for sample in samples), (width, samples)
+            assert len({height for sample in samples for height in sample['card_heights']}) == 1, (width, samples)
+            evidence['screens'].append({'view': '2D-card-stability', 'width': width, 'sample_minutes': [0, 15, 60, 180, 300], 'height': samples[0]['height'], 'card_height': samples[0]['card_heights'][0]})
         viewport(1366, 900)
+        browser.js("(()=>{const x=document.querySelector('.simulation-controls input');const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(x,'180');x.dispatchEvent(new Event('input',{bubbles:true}))})()")
+        browser.until("Number(document.querySelector('.simulation-controls').dataset.modelSeconds)===10800")
         click('3D')
         browser.until("window.messages.some(x=>x.type==='ROBCRAFT_REPORT'&&x.payload.versions.renderer_engine_version==='conditional-live-playback-v3')", timeout=30)
         browser.until("document.querySelector('iframe')?.contentDocument?.querySelector('#hud-robots')?.textContent==='15'", timeout=30)
@@ -85,6 +101,15 @@ createRoot(document.getElementById('root')).render(React.createElement(Simulatio
             browser.js("document.querySelector('iframe').scrollIntoView({block:'center'})")
             browser.screenshot(f'warehouse-15-3d-{width}.png')
             evidence['screens'].append({'view': '3D', 'width': width, 'height': height, **result})
+            samples = []
+            for minute in (0, 15, 60, 180, 300):
+                browser.js(f"(()=>{{const x=document.querySelector('.simulation-controls input');const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;setter.call(x,'{minute}');x.dispatchEvent(new Event('input',{{bubbles:true}}))}})()")
+                browser.until(f"Number(document.querySelector('.simulation-controls').dataset.modelSeconds)==={minute * 60}")
+                samples.append(browser.js("(()=>{const box=document.querySelector('[aria-label=\"Действия роботов в 3D\"]');return {height:box.getBoundingClientRect().height,card_heights:[...box.children].map(x=>x.getBoundingClientRect().height),status:box.innerText.slice(0,120)}})()"))
+            assert len({sample['height'] for sample in samples}) == 1, (width, samples)
+            assert all(len(set(sample['card_heights'])) == 1 for sample in samples), (width, samples)
+            assert len({height for sample in samples for height in sample['card_heights']}) == 1, (width, samples)
+            evidence['screens'].append({'view': '3D-card-stability', 'width': width, 'sample_minutes': [0, 15, 60, 180, 300], 'height': samples[0]['height'], 'card_height': samples[0]['card_heights'][0]})
         viewport(1366, 900)
         click('Старт')
         start_model = browser.js("Number(document.querySelector('.simulation-controls').dataset.modelSeconds)")

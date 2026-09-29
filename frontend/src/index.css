@@ -30,7 +30,7 @@
 .candidate-thumbnail { display: flex; align-items: center; justify-content: center; width: 5rem; height: 5rem; flex: 0 0 5rem; border-radius: .375rem; background: #fff; color: #475569; text-align: center; font-size: .625rem; }
 .candidate-thumbnail img { width: 100%; height: 100%; object-fit: contain; }
 .facility-operations { max-height: min(900px, 110vh); overflow: auto; scrollbar-gutter: stable; }
-.facility-operations > div { min-width: 0; overflow: auto; overflow-wrap: anywhere; }
+.facility-operations > div { min-width: 0; overflow: auto; overflow-wrap: anywhere; scrollbar-gutter: stable; }
 /* Browser zoom can make a 390 px viewport narrower than 320 CSS px. */
 html body:has(.economics-inputs-v2, .commercial-screen, .candidate-options) { min-width: 0; }
 .commercial-screen, .candidate-options { min-width: 0; overflow-wrap: anywhere; }
@@ -189,8 +189,8 @@ html body:has(.economics-inputs-v2, .commercial-screen, .candidate-options) { mi
 .facility-plan-heading { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: #d8f3f2; }
 .facility-plan-heading span { color: #aacbd1; font-size: 13px; }
 .facility-plan-heading button { border: 1px solid #527480; border-radius: 7px; padding: 5px 9px; background: #173440; color: #d8f3f2; }
-.facility-operations { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-.facility-operations > div { display: flex; flex-direction: column; gap: 4px; border-radius: 8px; padding: 9px 12px; background: #173440; font-size: 13px; color: #d9eff2; }
+.facility-operations { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); grid-auto-rows: 136px; gap: 8px; }
+.facility-operations > div { box-sizing: border-box; height: 100%; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; padding: 9px 12px; background: #173440; font-size: 13px; color: #d9eff2; }
 .facility-operations small { color: #9fc1c8; }
 @media (max-width: 1000px) {
   .facility-plan .facility-plan-content { grid-template-columns: minmax(0, 1fr); }

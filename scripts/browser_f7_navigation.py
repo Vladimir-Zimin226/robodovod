@@ -113,6 +113,7 @@ def run_browser(name: str, binary: Path) -> dict:
         (OUT / f"{name}-templates.png").write_bytes(base64.b64decode(call("Page.captureScreenshot", {"format": "png"})["data"]))
         call("Emulation.setDeviceMetricsOverride", {"width": 390, "height": 844,
                                                     "deviceScaleFactor": 1, "mobile": True})
+        until("document.querySelector('.mobile-menu-button') !== null")
         js("document.querySelector('.mobile-menu-button').click()")
         until("document.querySelector('.app-sidebar.is-open') !== null")
         assert js("document.querySelector('nav[aria-label=\"Проект и данные\"]')?.textContent.includes('Шаблоны')")

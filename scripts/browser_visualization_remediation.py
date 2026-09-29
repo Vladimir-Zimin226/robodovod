@@ -26,9 +26,13 @@ window.show=i=>root.render(React.createElement(Simulation,{key:i,request:cases[i
     # Measure a compiled build, with no development hot reload interrupting the clocks.
     config=HARNESS/'vite.config.mjs'
     dist=OUT/'dist'
-    config.write_text("import base from '../vite.config.js';export default {...base,build:{outDir:"+json.dumps(str(dist))+",emptyOutDir:true,rollupOptions:{input:"+json.dumps(str(HARNESS/'index.html'))+"}}};",encoding='utf-8')
+    config.write_text("import base from '../vite.config.js';export default {...base,plugins:base.plugins.filter(plugin=>plugin.name!=='robcraft-same-origin-assets'),build:{outDir:"+json.dumps(str(dist))+",emptyOutDir:true,rollupOptions:{input:"+json.dumps(str(HARNESS/'index.html'))+"}}};",encoding='utf-8')
     built=subprocess.run(['node','--preserve-symlinks','--preserve-symlinks-main','node_modules/vite/bin/vite.js','build','--configLoader','runner','--config',str(config)],cwd=ROOT/'frontend',capture_output=True,text=True)
     assert built.returncode==0,built.stdout+built.stderr
+    robcraft=dist/'robcraft';robcraft.mkdir(exist_ok=True)
+    for filename in ('index.html','styles.css'):
+        shutil.copyfile(ROOT/'robcraft'/filename,robcraft/filename)
+    shutil.copytree(ROOT/'robcraft/src',robcraft/'src',dirs_exist_ok=True)
     shutil.copyfile(HARNESS/'fixture.json',dist/'.test-visualization-final/fixture.json')
     server=ThreadingHTTPServer(('127.0.0.1',5191),partial(SimpleHTTPRequestHandler,directory=str(dist)))
     threading.Thread(target=server.serve_forever,daemon=True).start()
