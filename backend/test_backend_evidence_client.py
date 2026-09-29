@@ -20,7 +20,8 @@ from scripts.build_evidence_export_contract import golden_run
 
 
 @pytest.mark.parametrize("kind", ["full", "partial", "capacity"])
-def test_real_backend_response_downloaded_and_adversarial_responses_rejected(kind, tmp_path):
+@pytest.mark.parametrize("selected", [False, True])
+def test_real_backend_response_downloaded_and_adversarial_responses_rejected(kind, selected, tmp_path, monkeypatch):
     if kind == "full":
         run, linked, _ = _run(presentation_v4=True)
     elif kind == "capacity":
@@ -48,6 +49,28 @@ def test_real_backend_response_downloaded_and_adversarial_responses_rejected(kin
             inputs=context.capacity_request.model_dump(mode="json"),
             result=context.capacity_response.model_dump(mode="json"))
     owner = uuid.uuid4()
+    artifact = None
+    query = ''
+    if selected:
+        from calculation.scheduling import SimulationRequestV1, run_simulation
+        from calculation_contracts import semantic_digest
+        from simulation_artifacts import StoredSimulationEvidence
+        spec = run.scenario_spec_snapshot
+        if 'profile' not in spec:
+            spec = json.loads((Path(__file__).resolve().parents[1]/'contracts/fixtures/simulation-request-v1.capacity-only.golden.json').read_text(encoding='utf-8'))['scenario_spec']
+            raw=run.model_dump(mode='json');raw['scenario_spec_snapshot']=spec
+            raw['checksums']['scenario_spec']=semantic_digest(spec).removeprefix('sha256:')
+            from calculation.evidence_export import EvidenceRunSnapshotV1
+            run=EvidenceRunSnapshotV1.model_validate(raw)
+        request = SimulationRequestV1.model_validate({'schema_version':'simulation-request-v1','request_id':'simulation.client.acceptance',
+            'tenant_id':spec['analysis']['tenant_id'],'project_id':spec['analysis']['project_id'],'scenario_spec':spec,
+            'mode':'DAILY','peak_factor':None,'sla':None,'resources':[],
+            'limits':{'max_jobs_per_day':10000,'max_fleet':100,'max_runtime_seconds':60,'progress_event_batch':1000}})
+        report = run_simulation(request)
+        artifact = StoredSimulationEvidence(artifact_id=uuid.uuid4(),analysis_run_id=uuid.UUID(run.run_id),project_id=uuid.UUID(run.project_id),
+            request=request,report=report,request_digest=semantic_digest(request),report_digest=semantic_digest(report),scenario_spec_digest=semantic_digest(request.scenario_spec))
+        monkeypatch.setattr('evidence_export_api.load_artifact',lambda *args: artifact)
+        query='?simulation_request_id='+request.request_id
     sources = {run.run_id: run}
     if linked:
         sources[linked.run_id] = linked
@@ -56,14 +79,14 @@ def test_real_backend_response_downloaded_and_adversarial_responses_rejected(kin
     app = FastAPI()
     app.include_router(create_evidence_export_router(loader, loader))
     app.dependency_overrides[require_auth_context] = lambda: SimpleNamespace(user=SimpleNamespace(id=owner))
-    app.dependency_overrides[database_session] = lambda: object()
+    app.dependency_overrides[database_session] = lambda: SimpleNamespace(scalar=lambda *args:None)
     client = TestClient(app)
     base = f"/api/projects/{run.project_id}/analysis-runs/{run.run_id}/exports/"
-    manifest = client.get(base + "manifest")
+    manifest = client.get(base + "manifest" + query)
     assert manifest.status_code == 200
     payload = {"manifest": manifest.json(), "projectId": run.project_id, "runId": run.run_id}
-    for filename in ["investor-report.pdf", "investor-report-preview.pdf", "evidence.zip", "result.xlsx", "comparison.csv"]:
-        response = client.get(base + filename)
+    for filename in ["investor-report.pdf", "investor-report-preview.pdf", "evidence.zip", "result.xlsx", "comparison.csv", *(["visualization.svg"] if selected else [])]:
+        response = client.get(base + filename + query)
         assert response.status_code == 200
         payload[filename] = {"headers": dict(response.headers), "bytes": base64.b64encode(response.content).decode("ascii")}
     target = tmp_path / "responses.json"
