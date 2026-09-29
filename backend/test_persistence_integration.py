@@ -164,6 +164,25 @@ def _create_project(client: TestClient, headers: dict[str, str]):
     return response.json()
 
 
+def test_research_picking_v2_preview_is_separate_and_non_persistent():
+    from test_picking_study import research
+    with TestClient(main.app) as client:
+        _, headers = _register(client, 'picking-research-v2@example.com')
+        project = _create_project(client, headers)
+        endpoint = f"/api/v2/projects/{project['id']}/picking-study/preview"
+        with get_database().session() as db:
+            before = db.scalar(select(func.count()).select_from(AnalysisRun))
+        assert client.post(endpoint, json=research().model_dump(mode='json')).status_code == 403
+        response = client.post(endpoint, headers=headers, json=research().model_dump(mode='json'))
+        assert response.status_code == 200, response.text
+        result = response.json()
+        assert result['profile_version'] == 'warehouse-picking-research-v2'
+        assert result['potential_avoided_worker_shifts_per_day'] == 4
+        assert result['released_people'] is None and result['project_npv'] is None
+        with get_database().session() as db:
+            assert db.scalar(select(func.count()).select_from(AnalysisRun)) == before
+
+
 def _analysis_input() -> dict:
     fixture = Path(__file__).with_name("fixtures") / "economics-warehouse-v1.json"
     return json.loads(fixture.read_text(encoding="utf-8"))["input"]

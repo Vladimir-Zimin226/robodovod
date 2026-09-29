@@ -77,3 +77,60 @@ def calculate_picking_study(value: PickingStudyV1) -> dict:
     result['project_npv']=format(npv.quantize(Decimal('0.01')),'f')
     result['annual_effect_gross']=format(annual,'f')
     return result
+
+
+class PickingStudyV2(PickingStudyV1):
+    """Research-only demand and manual-shift profile, independent of v1 results."""
+    schema_version: Literal['warehouse-picking-study-v2'] = 'warehouse-picking-study-v2'
+    residual_worker_shifts_per_day: DecimalString | None = None
+    residual_rate_source: Literal['MEASUREMENT', 'SYNTHETIC_TEST'] | None = None
+
+    @model_validator(mode='after')
+    def validate_residual(self):
+        if (self.residual_worker_shifts_per_day is None) != (self.residual_rate_source is None):
+            raise ValueError('residual manual work requires value and source')
+        if self.residual_worker_shifts_per_day is not None and Decimal(self.residual_worker_shifts_per_day) < 0:
+            raise ValueError('residual manual work must be non-negative')
+        return self
+
+
+def calculate_picking_study_v2(value: PickingStudyV2) -> dict:
+    """Research arithmetic in picks and worker-shifts, never staffing or money."""
+    required = ['robot_picks_per_hour', 'manual_picks_per_shift', 'robotizable_fraction',
+                'residual_operations', 'residual_worker_shifts_per_day']
+    missing = [field for field in required if getattr(value, field) is None or
+               isinstance(getattr(value, field), str) and not getattr(value, field).strip()]
+    if not value.confirmation:
+        missing.append('confirmation')
+    result = {'schema_version':'warehouse-picking-study-result-v2', 'profile_version':'warehouse-picking-research-v2',
+              'unit':value.unit, 'status':'PARTIAL' if missing else 'RESEARCH_ONLY', 'missing':missing,
+              'catalog_model_verified':False, 'recommended_fleet':None, 'selected_fleet':value.selected_fleet,
+              'coverage':None, 'robot_covered_per_day':None, 'baseline_manual_worker_shifts_per_day':None,
+              'remaining_manual_worker_shifts_per_day':None, 'potential_avoided_worker_shifts_per_day':None,
+              'released_people':None, 'project_npv':None,
+              'limitations':['Операции отбора не эквивалентны перевозке паллет.',
+                             'Человеко-смены не равны высвобожденным сотрудникам без графика и распределения ролей.',
+                             'Скорость робота и остаточная работа не доказывают пропускную способность системы или пригодность модели.']}
+    if missing:
+        return result
+    ceil = lambda number: int(number.to_integral_value(rounding=ROUND_CEILING))
+    demand = Decimal(value.demand_per_day)
+    manual_rate = Decimal(value.manual_picks_per_shift)
+    robot_daily = Decimal(value.robot_picks_per_hour) * Decimal(value.hours_per_shift) * value.shifts_per_day
+    robotizable = demand * Decimal(value.robotizable_fraction)
+    recommended = ceil(robotizable / robot_daily) if robotizable else 0
+    fleet = recommended if value.selected_fleet is None else value.selected_fleet
+    covered = min(robotizable, Decimal(fleet) * robot_daily)
+    coverage = Decimal(0) if demand == 0 else covered / demand
+    baseline = ceil(demand / manual_rate) if demand else 0
+    residual = Decimal(value.residual_worker_shifts_per_day)
+    remaining = ceil((demand - covered) / manual_rate + residual)
+    potential = max(0, baseline - remaining) if demand else 0
+    result.update(recommended_fleet=recommended, selected_fleet=fleet, coverage=format(coverage, 'f'),
+                  robot_covered_per_day=format(covered, 'f'),
+                  baseline_manual_worker_shifts_per_day=baseline,
+                  remaining_manual_worker_shifts_per_day=remaining,
+                  potential_avoided_worker_shifts_per_day=potential,
+                  manual_rate_source=value.manual_rate_source, robot_rate_source=value.robot_rate_source,
+                  residual_rate_source=value.residual_rate_source)
+    return result

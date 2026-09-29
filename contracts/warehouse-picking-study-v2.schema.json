@@ -1,0 +1,239 @@
+{
+  "additionalProperties": false,
+  "description": "Research-only demand and manual-shift profile, independent of v1 results.",
+  "properties": {
+    "schema_version": {
+      "const": "warehouse-picking-study-v2",
+      "default": "warehouse-picking-study-v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "unit": {
+      "enum": [
+        "PICK",
+        "ORDER_LINE"
+      ],
+      "title": "Unit",
+      "type": "string"
+    },
+    "demand_per_day": {
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "title": "Demand Per Day",
+      "type": "string"
+    },
+    "hours_per_shift": {
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "title": "Hours Per Shift",
+      "type": "string"
+    },
+    "shifts_per_day": {
+      "maximum": 3,
+      "minimum": 1,
+      "title": "Shifts Per Day",
+      "type": "integer"
+    },
+    "robot_picks_per_hour": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Robot Picks Per Hour"
+    },
+    "robot_rate_source": {
+      "anyOf": [
+        {
+          "enum": [
+            "MEASUREMENT",
+            "SYNTHETIC_TEST"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Robot Rate Source"
+    },
+    "manual_picks_per_shift": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Manual Picks Per Shift"
+    },
+    "manual_rate_source": {
+      "anyOf": [
+        {
+          "enum": [
+            "MEASUREMENT",
+            "SYNTHETIC_TEST"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Manual Rate Source"
+    },
+    "robotizable_fraction": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Robotizable Fraction"
+    },
+    "residual_operations": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Residual Operations"
+    },
+    "selected_fleet": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Selected Fleet"
+    },
+    "existing_pickers": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Existing Pickers"
+    },
+    "annual_gross_per_picker": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Annual Gross Per Picker"
+    },
+    "robot_price_gross": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Robot Price Gross"
+    },
+    "annual_robot_opex_gross": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Annual Robot Opex Gross"
+    },
+    "horizon_years": {
+      "default": 5,
+      "maximum": 15,
+      "minimum": 1,
+      "title": "Horizon Years",
+      "type": "integer"
+    },
+    "discount_rate": {
+      "default": "0.15",
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+      "title": "Discount Rate",
+      "type": "string"
+    },
+    "confirmation": {
+      "default": false,
+      "title": "Confirmation",
+      "type": "boolean"
+    },
+    "residual_worker_shifts_per_day": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Residual Worker Shifts Per Day"
+    },
+    "residual_rate_source": {
+      "anyOf": [
+        {
+          "enum": [
+            "MEASUREMENT",
+            "SYNTHETIC_TEST"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Residual Rate Source"
+    }
+  },
+  "required": [
+    "unit",
+    "demand_per_day",
+    "hours_per_shift",
+    "shifts_per_day"
+  ],
+  "title": "PickingStudyV2",
+  "type": "object"
+}

@@ -1,0 +1,43 @@
+{
+  "input": {
+    "schema_version": "warehouse-picking-study-v2",
+    "unit": "PICK",
+    "demand_per_day": "1000",
+    "hours_per_shift": "8",
+    "shifts_per_day": 2,
+    "robot_picks_per_hour": "100",
+    "robot_rate_source": "SYNTHETIC_TEST",
+    "manual_picks_per_shift": "100",
+    "manual_rate_source": "SYNTHETIC_TEST",
+    "robotizable_fraction": "0.5",
+    "residual_operations": "?????? ?????? ? ????????",
+    "residual_worker_shifts_per_day": "1",
+    "residual_rate_source": "SYNTHETIC_TEST",
+    "confirmation": true
+  },
+  "expected_result": {
+    "schema_version": "warehouse-picking-study-result-v2",
+    "profile_version": "warehouse-picking-research-v2",
+    "unit": "PICK",
+    "status": "RESEARCH_ONLY",
+    "missing": [],
+    "catalog_model_verified": false,
+    "recommended_fleet": 1,
+    "selected_fleet": 1,
+    "coverage": "0.5",
+    "robot_covered_per_day": "500.0",
+    "baseline_manual_worker_shifts_per_day": 10,
+    "remaining_manual_worker_shifts_per_day": 6,
+    "potential_avoided_worker_shifts_per_day": 4,
+    "released_people": null,
+    "project_npv": null,
+    "limitations": [
+      "Операции отбора не эквивалентны перевозке паллет.",
+      "Человеко-смены не равны высвобожденным сотрудникам без графика и распределения ролей.",
+      "Скорость робота и остаточная работа не доказывают пропускную способность системы или пригодность модели."
+    ],
+    "manual_rate_source": "SYNTHETIC_TEST",
+    "robot_rate_source": "SYNTHETIC_TEST",
+    "residual_rate_source": "SYNTHETIC_TEST"
+  }
+}
