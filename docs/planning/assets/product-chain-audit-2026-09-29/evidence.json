@@ -1,0 +1,174 @@
+{
+  "schema_version": "product-chain-audit-evidence-v1",
+  "date": "2026-09-29",
+  "baseline_commit": "5cb8ae6",
+  "scope": "local read-only audit; no application changes; no production requests",
+  "backup": {
+    "kind": "diagnostic-bundle-v1",
+    "generated_at": "2026-09-29T08:29:20.501113+00:00",
+    "alembic_revision": "0013_operation_batches",
+    "original_members_verified_unchanged": 31,
+    "manifest_sha256": "994592518f60bcff0dcc54f1f48ebaf8407542e2213dbec924eb72098357b18c",
+    "is_restore_backup": false
+  },
+  "unrelated_existing_files_verified_unchanged": 5,
+  "saved_runs": {
+    "total": 20,
+    "schema_counts": {
+      "commercial-scenarios-bundle-v3": 6,
+      "capacity-analysis-response-v2": 7,
+      "economics-partial-result-v1": 7
+    },
+    "investor_pdf_success": 20,
+    "archive_success": 20,
+    "unchanged_snapshots": 20,
+    "pdf_source_digest_matches": 20
+  },
+  "client_download": {
+    "error": "investor report source binding mismatch",
+    "saves": 0
+  },
+  "simulation_checks": [
+    {
+      "template": "warehouse",
+      "process": "warehouse_receiving_shipping",
+      "fleet": 11,
+      "engine": "local-physical",
+      "trafficCapacity": 2,
+      "maxWorking": 2,
+      "trips": 2,
+      "queue": 6,
+      "generated": 8,
+      "initial2dMoving": 8
+    },
+    {
+      "template": "warehouse",
+      "process": "warehouse_receiving_shipping",
+      "fleet": 11,
+      "engine": "local-physical",
+      "trafficCapacity": 2,
+      "maxWorking": 2,
+      "trips": 2,
+      "queue": 6,
+      "generated": 8,
+      "initial2dMoving": 10
+    },
+    {
+      "template": "warehouse",
+      "process": "warehouse_receiving_shipping",
+      "fleet": 11,
+      "engine": "local-physical",
+      "trafficCapacity": 2,
+      "maxWorking": 2,
+      "trips": 2,
+      "queue": 6,
+      "generated": 8,
+      "initial2dMoving": 6
+    },
+    {
+      "template": "warehouse",
+      "process": "warehouse_receiving_shipping",
+      "fleet": 11,
+      "engine": "local-physical",
+      "trafficCapacity": 2,
+      "maxWorking": 2,
+      "trips": 2,
+      "queue": 6,
+      "generated": 8,
+      "initial2dMoving": 8
+    },
+    {
+      "template": "airport",
+      "process": "airport_terminal_cleaning",
+      "fleet": 6,
+      "engine": "shared-facility-playback",
+      "maxWorking": 4,
+      "closest": 0.09705882352936612,
+      "overlapSamples": 37,
+      "firstOverlap": {
+        "t": 1040,
+        "d": 0.9019607843137436,
+        "i": 0,
+        "j": 1,
+        "stages": [
+          "WORK",
+          "WAITING"
+        ]
+      }
+    },
+    {
+      "template": "warehouse",
+      "process": "warehouse_receiving_shipping",
+      "fleet": 11,
+      "engine": "local-physical",
+      "trafficCapacity": 2,
+      "maxWorking": 2,
+      "trips": 2,
+      "queue": 6,
+      "generated": 8,
+      "initial2dMoving": 9
+    },
+    {
+      "template": "airport",
+      "process": "airport_baggage",
+      "fleet": 1
+    }
+  ],
+  "clinic_synthetic": [
+    {
+      "fleet": 1,
+      "overlappingPairsAtStart": 0
+    },
+    {
+      "fleet": 2,
+      "overlappingPairsAtStart": 1
+    },
+    {
+      "fleet": 4,
+      "overlappingPairsAtStart": 6
+    }
+  ],
+  "existing_tests": {
+    "backend_passed": 76,
+    "frontend_and_robcraft_passed": 44,
+    "backend_warning": "existing Starlette/AnyIO deprecation",
+    "does_not_cover_reproduced_failures": true
+  },
+  "not_verified": [
+    "full PostgreSQL preview/save/reopen/export browser chain",
+    "all investor PDF pages visually rendered",
+    "production state queried live",
+    "user GPU throughput",
+    "real clinic simulation absent from diagnostic snapshot"
+  ],
+  "local_private_artifacts": "backup/product-chain-audit-2026-09-29",
+  "source_sha256": {
+    "backend/calculation/investor_report.py": "1878413cab7e705e7dd870192e2cd4d04dc78f8293593ef63242351840dec683",
+    "backend/evidence_export_api.py": "539e347958212a68c4c099cee4abcaaf4b8424c5b3b915b3b38e8e5a11633a44",
+    "backend/calculation/final_export.py": "0bd2ea1bb7c05c7428af9ebb738ce7726da86357ce132743820351d0e052b250",
+    "backend/economics_final.py": "4a382671574c1b09bff4fededcc0071b1a630a929ef8f77c7c6c6e29b4890485",
+    "backend/economics_orchestrator.py": "a7d6a26bfd93cc4606324c786b5b0e31ee671fcdca04021e76b3e6418f0fc772",
+    "backend/economics_preview.py": "578e60f890f9c1846f32bdc9c2128cbb4306b7573048487d9fc6a6c5210152b1",
+    "backend/persistence_api.py": "3320c74ebe3eddc14560fd6d2c08e5cbdfe6d3d80161da8d1f03039038c1bcce",
+    "backend/candidate_comparison_api.py": "c8d6024d43827373537e84306b9ef0880ab7a6a1622e1eacdcd7665110561504",
+    "frontend/src/evidenceExportApi.js": "63a60e86de3da9f85e31effdccb80ab9b46e3b88782c02fe0c0e1cc2a84bbbd1",
+    "frontend/src/components/SavedEconomicsEditor.jsx": "2aed5a77d38bda3e6cc405e115a00a718b57491d2d2b414999d253d531b42067",
+    "frontend/src/components/EconomicsInputsV2.jsx": "e5e12192169a7072e8075308d4151f65c8928c8ee1afb186873c8db32e4e6173",
+    "frontend/src/components/CommercialScenariosV2.jsx": "4b1a44cb6c5d9ba4c50acb930de88f806da68c6f176965ad9d9340d803c9b97e",
+    "frontend/src/components/CandidateComparisonPanel.jsx": "d208d3cb81f4e6ce970f6ea49eb6850cf75571f1845cc5b15578e8468c52c0fc",
+    "frontend/src/components/EvidenceExportPanel.jsx": "dd9bbd989fbc704ff0f6efce932b4921174296689393d61720564cbe2a7bd790",
+    "frontend/src/components/ProjectScenarioDialog.jsx": "eaf1a5d220ea193fef6a47ba35752812e5d1f418e541a9c8d4a5d086dcf34f0e",
+    "frontend/src/components/Simulation2DReport.jsx": "1874144a227657126d05ecc437e50faaa6889c89ea69a6648db5c77baedbd97c",
+    "frontend/src/components/RobCraftFrame.jsx": "16d4cdf3f1910127719c96396dc3bd8c20de20f801e3c50ce4d63d12581251ce",
+    "frontend/src/warehouse2dScene.js": "b714d7a9c72877023348c36514516516f75278fc121e49790bfacd96fd4d6152",
+    "frontend/src/simulation2dModel.js": "185bc873568213cabf25ec8ab5c8e0f354f90c6fc9c21e32574dba5fc23bad0e",
+    "frontend/src/presentation.js": "9d823fbc50ee59918eef6838559566368fdcb532e47f15a5e2a580f1f8409eb8",
+    "frontend/src/index.css": "7c23e155984b3c690bc1807c11e8f2e41cf062517aeddc21fd03c49d08527431",
+    "contracts/presentation-v2.json": "c6c4f811a8ec640b08481f98353a7f78e22ae1ae7c4db489398d5cd0c7305bed",
+    "robcraft/src/simulation.js": "17dadbdc2cc5ccec6316f2d521bfed975b4736204383cd8a040b7137f9b4e3ad",
+    "robcraft/src/main.js": "04f3c6452f2fdfcc7e5915745ade460899599102242675073d16b1022f80dcba",
+    "robcraft/src/integration/facility-playback.js": "b13a558ca6fbf7fe140d3c77f6f579bc3a7d4bbed60b65f6d5a3d33a5138b466",
+    "robcraft/src/integration/facility-renderer.js": "c83f433cb6948ed274b53f8db041f22b14f240f4b929f5f6f81e2d81a9c1f080",
+    "docs/planning/product-chain-remediation-2026-09-29.md": "45c1a302611cbde709ac51acce4ab55f9636bec31987a7d51e9f3951c3c27358"
+  }
+}
