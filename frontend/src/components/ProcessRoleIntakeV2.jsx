@@ -18,9 +18,10 @@ import {
 } from '../processRoleIntakeV2';
 import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../demoCapacityFlow';
-import { candidateReason, catalogDiagnostics, recommendedCandidates } from '../candidateRecommendation';
+import { catalogDiagnostics, recommendedCandidates } from '../candidateRecommendation';
 import { readCsrfCookie } from '../persistenceApi';
 import PickingStudy from './PickingStudy';
+import PreliminaryCandidateSummary from './PreliminaryCandidateSummary';
 import ObjectConstraints from './ObjectConstraints';
 import { calculateOperationBatch } from '../operationBatch';
 import { toV2Draft } from '../assistantInterview';
@@ -457,10 +458,10 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <a className="underline" href={`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches/${encodeURIComponent(operationBatch.id)}/report.pdf`}>Скачать PDF этой сводки</a>
         </div>}
       </section>}
-      {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт">
-        <h3 className="text-sm font-semibold">Предварительный расчёт</h3>
-        <p className="text-xs text-amber-800">Каждый сохранённый расчёт парка относится только к одному выбранному процессу в одной зоне. Отдельные парки и денежные эффекты нельзя складывать при общих роботах, ролях, межзональных потоках или расходах площадки.</p>
-        <p className="text-xs text-amber-800">Демо-профиль не является паспортом изготовителя. Неизвестные проверки пригодности останутся в результате; число роботов не означает готовность к закупке.</p>
+      {normalizedIsCurrent && <section className="preliminary-section mt-4 space-y-3" aria-label="Предварительный расчёт">
+        <header className="preliminary-section-heading"><div><span className="preliminary-eyebrow">ШАГ 02 · МОДЕЛЬ И ПАРК</span><h3>Предварительный расчёт</h3></div><span className="preliminary-review-badge">Оценка, не допуск к закупке</span></header>
+        <p className="preliminary-section-lead">Выберите операцию и модель. Парк сохраняется отдельно для каждой зоны и операции.</p>
+        <details className="preliminary-scope"><summary>Границы расчёта и допущения</summary><p>Отдельные парки и денежные эффекты нельзя складывать при общих роботах, ролях, межзональных потоках или расходах площадки. Демо-профиль не является паспортом изготовителя; неизвестные проверки пригодности остаются в результате.</p></details>
         {!activeProject && <p className="text-xs text-amber-800">Выберите проект в блоке выше, чтобы сохранить расчёт.</p>}
         {activeProcesses.length === 0 ? <p className="text-xs text-slate-600">В выбранной зоне нет активных операций. Выберите зону и операцию в списке выше.</p>
           : selectedProcess?.scope === 'REFERENCE_ONLY' ? <div className="space-y-3 rounded-lg border border-amber-400 p-3 text-xs">
@@ -483,19 +484,9 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
               {activeProcesses.map((item) => <option key={item.process_id} value={item.process_id}>{draft.zones.find((zone) => item.process_id.startsWith(`${zone.zoneId}.`))?.label || 'Зона'} · {visibleProcesses.find((process) => item.process_id.endsWith(process.processId))?.label || 'Процесс'}</option>)}
             </select>
           </label>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs space-y-1" aria-label="Подбор моделей">
-            <p className="font-semibold">Предварительный подбор по технической пригодности</p>
-            {!comparison && comparisonState !== 'error' && <p role="status">Укажите физические входы, подтвердите допущения и выберите проект. Затем оценим все сопоставимые позиции на одинаковых входах.</p>}
-            {comparisonState === 'error' && <p role="alert">Автоматический подбор недоступен; позицию можно выбрать вручную. Проверки пригодности появятся в сохранённом расчёте.</p>}
-            {comparison && <>
-              <p>Активный каталог: {diagnostics.active}; объект и процесс: {diagnostics.process}; физический профиль: {diagnostics.profile}; исключено: {diagnostics.excluded}; требуют проверки: {diagnostics.check}; расчётно совместимы: {diagnostics.ready}.</p>
-              {rankedCandidates.length ? <>
-                <p><strong>Предварительный лидер:</strong> {rankedCandidates[0].name} · балл {rankedCandidates[0].technical_score}. {rankedCandidates[0].readiness === 'VERIFIED' ? 'Технические проверки пройдены.' : 'Пригодность требует проверки.'} Это не одобрение закупки: денежное сравнение доступно после подтверждения цен и одинаковых финансовых входов.</p>
-                {rankedCandidates.length > 1 && <p>Альтернативы: {rankedCandidates.slice(1, 4).map((item) => `${item.name} · ${item.technical_score}${item.reason_codes.length ? ` (${item.reason_codes.slice(0, 2).map((code) => candidateReason[code] || code).join(', ')})` : ''}`).join('; ')}.</p>}
-              </> : <p>Допустимого технического лидера нет. Проверьте ограничения объекта и данные каталога.</p>}
-              {comparison.candidates.map(row => <p key={row.position_id}>{row.name}: {row.status === 'EXCLUDED' ? 'Исключён' : row.constraints?.eligibility === 'ELIGIBLE' ? 'Проверки пройдены' : 'Требует проверки'} · {(row.constraints?.checks || []).filter(check => ['FAIL', 'UNKNOWN'].includes(check.status)).map(check => `${check.rule_id || check.check_id}: ${check.reason_code || check.reason}`).join('; ')}</p>)}
-            </>}
-          </div>
+          {comparisonState === 'error' && <p role="alert" className="preliminary-error">Автоматический подбор недоступен; позицию можно выбрать вручную. Проверки пригодности появятся в сохранённом расчёте.</p>}
+          <PreliminaryCandidateSummary comparison={comparison} diagnostics={diagnostics} rankedCandidates={rankedCandidates} candidatePositions={candidatePositions}
+            selectedPositionId={positionId} onSelect={setPositionId} />
           <label className="block text-xs">Модель из активного capacity-каталога
             <select className="w-full border rounded px-2 py-1" value={positionId} onChange={(event) => setPositionId(event.target.value)}>
               <option value="">Выберите модель</option>
