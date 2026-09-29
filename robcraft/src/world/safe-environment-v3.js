@@ -26,7 +26,7 @@ export function environmentCandidates(plan) {
     const rack = plan.furniture.find(rect => rect.type === 'rack');
     if (rack) {
       const pitch = Math.max(5, rack.height / 5);
-      for (let y = rack.y + 1; y + 3 < rack.y + rack.height && items.filter(row => row.type === 'rack').length < 5; y += pitch) {
+      for (let y = rack.y + 1; y + 3 < rack.y + rack.height && items.filter(row => row.type === 'rack').length < 4; y += pitch) {
         items.push(item('rack', rack.x, y, rack.width, 3, 3.1, [.40, .52, .54]));
         items.push(item('cargo', rack.x + .35, y + .4, 1, 1, .75, [.68, .47, .25], { onRack: true }));
       }
