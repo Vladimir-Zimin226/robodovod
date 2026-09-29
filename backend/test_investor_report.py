@@ -67,7 +67,8 @@ def test_new_v6_report_discloses_staffing_work_share_and_money_basis(full):
     content = text(pdf)
     assert 'Персонал и денежные базы проекта' in content
     assert 'Ручная проверка' in content
-    assert '4500000' in content and '60000' in content
+    assert '4 500 000,00 ₽' in content and '60 000,00 ₽' in content
+    assert '60 %' in content and 'PERCENT' not in content
 
 
 def test_visual_report_reads_saved_values_and_does_not_change_historical_exports(full):
@@ -280,7 +281,8 @@ def test_saved_simulation_is_bound_and_not_replaced_by_capacity_values(full):
         project_id=uuid.UUID(run.project_id),request=request,report=report,request_digest=semantic_digest(request),
         report_digest=semantic_digest(report),scenario_spec_digest=semantic_digest(request.scenario_spec))
     content = text(build_investor_report(run,linked,artifact)[0])
-    assert 'Завершено до конца окна' in content and artifact.report_digest in content
+    assert 'Завершено до конца окна' in content and artifact.report_digest not in content
+    assert 'Выбранный сохранённый прогон проверен по источнику' in ' '.join(content.split())
     with pytest.raises(EvidenceExportIntegrityError):
         build_investor_report(run,linked,replace(artifact,analysis_run_id=uuid.uuid4()))
     with pytest.raises(EvidenceExportIntegrityError):

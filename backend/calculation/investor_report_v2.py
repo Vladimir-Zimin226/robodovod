@@ -19,11 +19,11 @@ from calculation.readable_report import (
     CMAP, PROCESS_LABELS, ROLE_LABELS, _capacity_source, _cashflows, _facts,
     _number, _obj, _pdf, _quantity, _text_width, _wrap,
 )
-from user_presentation_v3 import field as field_label, source_label, humanize, input_value
+from presentation import field as field_label
 from simulation_artifacts import StoredSimulationEvidence
 
 LEGACY_VERSION = "investor-presentation-v1"
-VERSION = "investor-presentation-v3"
+VERSION = "investor-presentation-v2"
 DEPTHS = {"BASIC": "Базовый", "ADVANCED": "Углублённый", "FULL": "Полный"}
 INK, GREEN, BLUE, AMBER = "0.05 0.14 0.16", "0.04 0.52 0.36", "0.14 0.39 0.72", "0.72 0.32 0.09"
 MUTED, PALE, WHITE = "0.35 0.44 0.48", "0.94 0.97 0.96", "1 1 1"
@@ -249,11 +249,28 @@ def _scenario_view(scenario: dict) -> dict:
 
 
 def _input_value(key: str, value: Any) -> str:
-    return input_value(key, value)
+    numeric = decimal(value)
+    if numeric is None:
+        return str(value) if value is not None else 'Не указано'
+    if key == 'discount_rate':
+        return (_number(numeric*100) or MISSING)+' %'
+    if key == 'start_seconds_from_midnight':
+        seconds = int(numeric)
+        return f'{seconds//3600:02d}:{seconds%3600//60:02d}'
+    unit = {'horizon_years':'лет','warranty_years':'лет','raas_contract_months':'мес.',
+            'control_headcount':'чел.','technician_headcount':'чел.','average_power_w':'Вт',
+            'manual_units_per_shift':'ед./чел./смену'}.get(key)
+    if key.endswith('_gross'):
+        return amount(numeric)
+    return (_number(numeric) or MISSING)+(f' {unit}' if unit else '')
 
 
 def _assumption_source(item: dict) -> str:
-    return source_label(item.get('source'), item.get('rationale')) + (f" / {item['published_on']}" if item.get('published_on') else '')
+    source = str(item.get('source') or '')
+    if source in {'USER','ASSUMPTION','ORGANIZER','FILE'}:
+        source = 'Авторское допущение' if str(item.get('rationale') or '').startswith('Авторское') else {
+            'USER':'Условия пользователя','ASSUMPTION':'Допущение','ORGANIZER':'Материалы организаторов','FILE':'Введено из файла'}[source]
+    return (source or 'Допущение')+(f" · {item['published_on']}" if item.get('published_on') else '')
 
 
 def _base(scenarios: list[dict], acquisition: str) -> dict:
@@ -483,13 +500,13 @@ def build_investor_report(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapsho
         y = deck.table(['Вариант','Пульт: нужно','Перевод','Найм','Техники','Оплачено'],rows,
                        widths=[145,130,110,110,130,137],size=9)
         share = work_share.get('fraction')
-        y = deck.paragraph('Доля роботизируемой работы: '+input_value('fraction', share)+
-            '. Остаточные операции: '+humanize(work_share.get('residual_operations') or 'неизвестно').rstrip(' .')+'.',40,y+20,size=10)
+        y = deck.paragraph('Доля роботизируемой работы: '+(str(share) if share is not None else MISSING)+
+            '. Остаточные операции: '+str(work_share.get('residual_operations') or 'неизвестно')+'.',40,y+20,size=10)
         implementation = _obj(monetary.get('implementation'))
         raas_basis = _obj(monetary.get('raas'))
-        deck.paragraph('Цена робота: '+amount(monetary.get('unit_price_gross_rub'))+' с НДС; парк: '+(_number(monetary.get('fleet')) or MISSING)+
-            '. Внедрение: '+humanize(implementation.get('mode') or MISSING)+' / '+amount(implementation.get('amount_gross_rub'))+'. Аренда: '+
-            humanize(raas_basis.get('mode') or MISSING)+' / '+amount(raas_basis.get('per_robot_month_gross_rub'))+' на робот в месяц.',40,y+25,size=10)
+        deck.paragraph('Цена робота: '+str(monetary.get('unit_price_gross_rub') or MISSING)+' ₽ gross; парк: '+str(monetary.get('fleet') if monetary.get('fleet') is not None else MISSING)+
+            '. Внедрение: '+str(implementation.get('mode') or MISSING)+' / '+str(implementation.get('amount_gross_rub') or MISSING)+' ₽. RaaS: '+
+            str(raas_basis.get('mode') or MISSING)+' / '+str(raas_basis.get('per_robot_month_gross_rub') or MISSING)+' ₽/робот/мес.',40,y+25,size=10)
 
     deck.page('Перед инвестиционным решением','Предварительная оценка помогает выбрать условия пилота. Она не подтверждает готовность объекта к внедрению.')
     risk_rows = [
@@ -530,13 +547,15 @@ def build_investor_report(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapsho
     if comparison:
         rows.insert(-1,['NPV собственных потоков без роботов',metric_text(baseline,'npv')+'; это база затрат, а не эффект роботизации.'])
     end = deck.table(['Параметр','Значение / пояснение'],rows,widths=[280,482],size=9)
-    deck.paragraph('Источник цены: '+source_label(_obj(_obj(_obj(comparison).get('inputs')).get('price')).get('source_note') or inputs.get('purchase_price_source'))+
-        '. Сохранённые входы, версии методик и полная трассировка доступны в техническом архиве ZIP.',40,end+14,size=9,color=MUTED)
+    y = deck.paragraph('Источник цены: '+str(_obj(_obj(_obj(comparison).get('inputs')).get('price')).get('source_note') or inputs.get('purchase_price_source') or 'Источник цены не указан в сохранённом результате.'),40,end+14,size=9,color=MUTED)
+    y = deck.paragraph(f'Идентификатор расчёта: {run.run_id}',40,y+10,size=8,color=MUTED)
+    y = deck.paragraph(f"Контрольная сумма результата: {digests['result']}",40,y+6,size=8,color=MUTED)
+    deck.paragraph(f'Версия представления: {VERSION}. Полная точность, трассировка и прежний PDF доступны в техническом архиве ZIP.',40,y+9,size=9,color=MUTED)
     if simulation:
         deck.page('Сохранённая симуляция: выполнение объёма','Результат модельного прогона на заданных условиях; геометрия условная, пригодность объекта подтверждается отдельно.')
         queue = simulation.report.queue
         deck.card(40,145,'Задач в измеряемом окне',str(queue.measurement_jobs),'Из сохранённой симуляции',BLUE,width=372)
         deck.card(430,145,'Завершено до конца окна',str(queue.completed_by_measurement_end),'К завершению измеряемого окна',GREEN,width=372)
         deck.paragraph('Симуляция связана с этим сохранённым расчётом. Модель очереди и движения не заменяет обследование, санитарную или эксплуатационную проверку.',40,288,size=12)
-        deck.paragraph('Выбранный сохранённый прогон проверен по источнику. Подробности очередей доступны в техническом архиве.',40,389,size=9,color=MUTED)
+        deck.paragraph(f'Источник симуляции: {simulation.report_digest}',40,389,size=8,color=MUTED)
     return deck.finish(),digests['result'] or ''

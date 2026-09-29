@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from calculation.investor_report import Deck, GREEN, BLUE, MUTED, LEGACY_VERSION as VERSION, amount, decimal
+from calculation.investor_report_v2 import Deck, GREEN, BLUE, MUTED, LEGACY_VERSION as VERSION, amount, decimal
 from calculation.readable_report import _number
 from presentation import field as field_label
 
