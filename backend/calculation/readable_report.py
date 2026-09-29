@@ -480,7 +480,7 @@ def build_readable_report(
         ])
         return render(lines), digests["result"] or ""
     partial = result.get("schema_version") == "economics-partial-result-v1"
-    full = result.get("schema_version") in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3"}
+    full = result.get("schema_version") in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3", "commercial-scenarios-bundle-v4"}
     lines: list[tuple[str, str]] = [
         ("РОБОДОВОД", "brand"),
         ("Частичная экономика" if partial else "Экономика: baseline, покупка и RaaS" if full else "Исторический расчёт", "title"),

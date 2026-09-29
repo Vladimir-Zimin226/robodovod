@@ -177,7 +177,7 @@ def _display(value: str, unit: str) -> str:
 
 def _comparison(run: EvidenceRunSnapshotV1) -> dict[str, Any] | None:
     result = run.result_snapshot
-    if result.get("schema_version") != "commercial-scenarios-bundle-v3":
+    if result.get("schema_version") not in {"commercial-scenarios-bundle-v3", "commercial-scenarios-bundle-v4"}:
         return None
     projection = result.get("comparison")
     if not isinstance(projection, dict) or projection.get("schema_version") != "financial-comparison-v1":

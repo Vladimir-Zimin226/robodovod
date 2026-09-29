@@ -19,7 +19,7 @@ function simulationRequest(runId, tenantId, projectId, scenarioSpec) {
 }
 
 export function buildEconomicsSimulationRequest(bundle, scenarioSpec) {
-  if (!['commercial-scenarios-bundle-v2', 'commercial-scenarios-bundle-v3'].includes(bundle?.schema_version)
+  if (!['commercial-scenarios-bundle-v2', 'commercial-scenarios-bundle-v3', 'commercial-scenarios-bundle-v4'].includes(bundle?.schema_version)
       || scenarioSpec?.schema_version !== 'scenario-spec-v2'
       || !bundle.run_id
       || scenarioSpec.analysis?.project_id !== bundle.project_id

@@ -1542,6 +1542,8 @@ def execute_economics_v2(
     raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
     snapshot: CatalogSnapshotDTO,
     context: EconomicsExecutionContextV1,
+    *,
+    sensitivity_factory=None,
 ) -> EconomicsV2ExecutionV1:
     """Execute the accepted C13-C21 engines and return immutable snapshots."""
 
@@ -1575,7 +1577,7 @@ def execute_economics_v2(
         if item.acquisition == "PURCHASE" and item.uncertainty == "BASE"
     )
     ranking = _ranking(context, position, base)
-    sensitivity = _sensitivity(context, inputs, snapshot, base, ranking)
+    sensitivity = (sensitivity_factory or _sensitivity)(context, inputs, snapshot, base, ranking)
     bundle = _bundle(context, inputs, artifacts, ranking, sensitivity)
     scenario = _scenario_spec(context, inputs, base.allocation)
     return EconomicsV2ExecutionV1(

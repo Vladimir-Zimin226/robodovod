@@ -122,15 +122,17 @@ function assertFinalComparison(comparison) {
 
 export function assertCommercialScenariosBundle(bundle, expectedRevision = null) {
   requireObject(bundle, 'COMMERCIAL_BUNDLE_INVALID');
-  if (![COMMERCIAL_SCENARIOS_SCHEMA, FINAL_COMMERCIAL_SCHEMA].includes(bundle.schema_version)) throw contractError('COMMERCIAL_SCHEMA_VERSION');
-  if (bundle.schema_version === FINAL_COMMERCIAL_SCHEMA) assertFinalComparison(bundle.comparison);
+  if (![COMMERCIAL_SCENARIOS_SCHEMA, FINAL_COMMERCIAL_SCHEMA, 'commercial-scenarios-bundle-v4'].includes(bundle.schema_version)) throw contractError('COMMERCIAL_SCHEMA_VERSION');
+  if ([FINAL_COMMERCIAL_SCHEMA, 'commercial-scenarios-bundle-v4'].includes(bundle.schema_version)) assertFinalComparison(bundle.comparison);
   const identities = {
     projectId: requireString(bundle.project_id, 'COMMERCIAL_PROJECT_ID'),
     tenantId: requireString(bundle.tenant_id, 'COMMERCIAL_TENANT_ID'),
     revision: requireString(bundle.input_revision, 'COMMERCIAL_INPUT_REVISION'),
   };
   if (expectedRevision && expectedRevision !== identities.revision) throw contractError('COMMERCIAL_STALE_REVISION');
-  if (bundle.sensitivity?.source_schema_version !== 'sensitivity-result-v1') {
+  const zeroBase = bundle.schema_version === 'commercial-scenarios-bundle-v4'
+    && bundle.sensitivity?.source_schema_version === 'sensitivity-unavailable-zero-base-v1' && bundle.sensitivity.variants?.length === 0;
+  if (bundle.sensitivity?.source_schema_version !== 'sensitivity-result-v1' && !zeroBase) {
     throw contractError('COMMERCIAL_SENSITIVITY_VERSION');
   }
   if (bundle.ranking?.source_schema_version !== 'ranking-result-v2') throw contractError('COMMERCIAL_RANKING_VERSION');

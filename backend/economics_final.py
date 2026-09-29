@@ -10,6 +10,7 @@ from __future__ import annotations
 from decimal import ROUND_HALF_EVEN, Decimal
 from types import SimpleNamespace
 from typing import Any
+from pydantic import BaseModel, Field
 
 from calculation.service import analyze_capacity
 from calculation_contracts import parse_capacity_analysis_request, semantic_digest
@@ -219,9 +220,9 @@ def _sensitivity(context: EconomicsExecutionContextV1, inputs: EconomicsExplicit
 
 
 def execute_economics_v3(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
-                         snapshot: Any, context: EconomicsExecutionContextV1) -> EconomicsV2ExecutionV1:
+                         snapshot: Any, context: EconomicsExecutionContextV1, *, sensitivity_factory=None) -> EconomicsV2ExecutionV1:
     inputs = raw_inputs if isinstance(raw_inputs, EconomicsExplicitInputsV1) else EconomicsExplicitInputsV1.model_validate(raw_inputs)
-    accepted = execute_economics_v2(inputs, snapshot, context)
+    accepted = execute_economics_v2(inputs, snapshot, context, sensitivity_factory=sensitivity_factory)
     artifacts = [_scenario_artifacts(context, inputs, snapshot, acquisition, uncertainty)
                  for acquisition in ACQUISITIONS for uncertainty in UNCERTAINTIES]
     base = next(item for item in artifacts if item.acquisition == "PURCHASE" and item.uncertainty == "BASE")
@@ -275,8 +276,10 @@ def execute_economics_v3(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
 def execute_economics_v4(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
                          snapshot: Any, context: EconomicsExecutionContextV1) -> EconomicsV2ExecutionV1:
     """New runs bind the revised human report without changing financial arithmetic."""
-    previous = execute_economics_v3(raw_inputs, snapshot, context)
+    previous = execute_economics_v3(raw_inputs, snapshot, context, sensitivity_factory=_versioned_legacy_sensitivity)
     result = dict(previous.result_snapshot)
+    if result['sensitivity']['source_schema_version'] == 'sensitivity-unavailable-zero-base-v1':
+        result['schema_version'] = 'commercial-scenarios-bundle-v4'
     result["versions"] = {**result["versions"], "orchestrator": "production-economics-orchestrator-v4",
                           "report_presentation": "result-presentation-v1"}
     return EconomicsV2ExecutionV1(
@@ -286,6 +289,23 @@ def execute_economics_v4(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
         application_version="production-economics-orchestrator-v4",
         diagnostics=previous.diagnostics,
     )
+
+
+class ZeroBaseSensitivityUnavailable(BaseModel):
+    schema_version: str = 'sensitivity-unavailable-zero-base-v1'
+    project_id: str
+    tenant_id: str
+    variants: list = Field(default_factory=list)
+    reason: str = 'Процентная чувствительность прежней версии требует положительной базы; используйте сохранённую чувствительность сценариев.'
+
+
+def _versioned_legacy_sensitivity(context, inputs, snapshot, base, ranking):
+    from economics_orchestrator import _sensitivity as legacy_sensitivity
+    price = base.procurement.money.cash_gross_rub
+    role = next(item for item in base.labour.roles if item.role_id == _primary_role(context.capacity_request, inputs))
+    if Decimal(price) == 0 or (role.money is not None and Decimal(role.money.monthly_gross) == 0):
+        return ZeroBaseSensitivityUnavailable(project_id=context.project_id, tenant_id=context.tenant_id)
+    return legacy_sensitivity(context, inputs, snapshot, base, ranking)
 
 
 __all__ = ["PRESENTATION_VERSION", "SENSITIVITY_VERSION", "execute_economics_v3", "execute_economics_v4"]

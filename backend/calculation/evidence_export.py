@@ -562,7 +562,7 @@ def _human_entrypoint(
     capacity_label = run.run_id if run.run_kind == "CAPACITY_ANALYSIS" else linked.run_id if linked is not None else run.input_snapshot.get("capacity_run_id") or "NOT_AVAILABLE"
     report_kind = ("Техническая мощность C11" if run.run_kind == "CAPACITY_ANALYSIS" else
                    "Частичная экономика" if run.result_snapshot.get("schema_version") == "economics-partial-result-v1" else
-                   "Полная экономика: baseline, покупка и RaaS" if run.result_snapshot.get("schema_version") in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3"} else
+                   "Полная экономика: baseline, покупка и RaaS" if run.result_snapshot.get("schema_version") in {"commercial-scenarios-bundle-v2", "commercial-scenarios-bundle-v3", "commercial-scenarios-bundle-v4"} else
                    "Исторический расчёт")
     lines = [
         "# НАЧНИТЕ ЗДЕСЬ", "",
