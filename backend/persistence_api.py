@@ -52,6 +52,7 @@ from calculation.picking_study import PickingStudyV1, calculate_picking_study
 from persistence_models import (
     AnalysisRun,
     AnalysisRunEconomicsVersion,
+    OperationBatch,
     AuditEntry,
     Project,
     ProjectDeletionJob,
@@ -233,6 +234,20 @@ class EconomicsV2CreateRequest(ApiModel):
 class EconomicsPreviewRequest(EconomicsV2CreateRequest):
     source_run_id: uuid.UUID
     expected_result_sha256: str
+
+
+class OperationBatchRowRequest(ApiModel):
+    process: NormalizedProcess
+    zone_id: str = Field(min_length=1, max_length=120)
+    zone_label: str = Field(min_length=1, max_length=200)
+    run_id: uuid.UUID | None = None
+    blocker: str | None = Field(default=None, min_length=3, max_length=500)
+
+
+class OperationBatchCreateRequest(ApiModel):
+    batch_id: uuid.UUID
+    input_revision: str = Field(min_length=1, max_length=120)
+    operations: list[OperationBatchRowRequest] = Field(min_length=1, max_length=40)
 
 
 def _user_dict(user: User) -> dict[str, Any]:
@@ -1933,6 +1948,136 @@ def create_persistence_router(
         ):
             raise HTTPException(status_code=409, detail="capacity version snapshot mismatch")
         return CapacityAnalysisResponse.model_validate(run.result_snapshot)
+
+    def operation_batch_dict(batch: OperationBatch) -> dict[str, Any]:
+        if _canonical_sha256(batch.snapshot) != batch.snapshot_sha256:
+            raise HTTPException(status_code=409, detail='operation batch checksum mismatch')
+        return {'id': str(batch.id), 'project_id': str(batch.project_id),
+                'input_revision': batch.input_revision, 'created_at': batch.created_at.isoformat(),
+                'checksum': batch.snapshot_sha256, **batch.snapshot}
+
+    @router.post('/v2/projects/{project_id}/operation-batches', status_code=201)
+    def create_operation_batch(project_id: uuid.UUID, payload: OperationBatchCreateRequest,
+                               context: AuthContext = Depends(require_csrf), db: Session = Depends(database_session)):
+        _owned_project(db, project_id, context.user.id)
+        db.refresh(db.get(Project, project_id), with_for_update=True)
+        existing = db.get(OperationBatch, payload.batch_id)
+        if existing is not None and existing.project_id != project_id:
+            raise HTTPException(status_code=409, detail='batch id already used')
+        ids = [row.process.process_id for row in payload.operations]
+        if len(set(ids)) != len(ids):
+            raise HTTPException(status_code=422, detail='duplicate process in batch')
+        rows = []
+        for row in payload.operations:
+            process = row.process
+            if not process.active or process.input_revision != payload.input_revision or not process.process_id.startswith(f'{row.zone_id}.'):
+                raise HTTPException(status_code=422, detail='operation identity or revision mismatch')
+            item = {'process_id': process.process_id, 'process_code': process.process_code,
+                    'scope': process.scope, 'object_kind': process.object_kind,
+                    'zone_id': row.zone_id, 'zone_label': row.zone_label,
+                    'demand': process.demand.model_dump(mode='json')}
+            if (row.run_id is None) == (row.blocker is None):
+                raise HTTPException(status_code=422, detail='each operation needs one run or one blocker')
+            if row.blocker is not None:
+                item.update(status='BLOCKED', blocker=row.blocker, run_id=None)
+            else:
+                run = db.scalar(select(AnalysisRun).where(AnalysisRun.id == row.run_id,
+                    AnalysisRun.project_id == project_id, AnalysisRun.run_kind == 'CAPACITY_ANALYSIS',
+                    AnalysisRun.status == 'SUCCEEDED'))
+                if (run is None or run.result_snapshot is None or
+                    _canonical_sha256(run.input_snapshot) != run.input_sha256 or
+                    _canonical_sha256(run.result_snapshot) != run.result_sha256 or
+                    run.trace_snapshot is None or _canonical_sha256(run.trace_snapshot) != run.trace_sha256 or
+                    run.result_snapshot.get('trace') != run.trace_snapshot or
+                    run.version_bindings_snapshot is None or
+                    _canonical_sha256(run.version_bindings_snapshot) != run.version_bindings_sha256 or
+                    run.trace_snapshot.get('versions') != run.version_bindings_snapshot):
+                    raise HTTPException(status_code=409, detail='capacity run missing or damaged')
+                saved = run.input_snapshot
+                saved_process = saved.get('process') or {}
+                saved_zone = saved.get('zone_context') or {}
+                if (saved.get('input_revision') != payload.input_revision or
+                    saved_process.get('process_id') != process.process_id or
+                    saved_process.get('scope') != process.scope or
+                    saved_process.get('demand') != process.demand.model_dump(mode='json') or
+                    saved_zone.get('zone_id') != row.zone_id or
+                    (run.result_snapshot.get('capacity') or {}).get('process_id') != process.process_id or
+                    run.result_snapshot.get('input_revision') != payload.input_revision):
+                    raise HTTPException(status_code=409, detail='capacity run does not match operation')
+                capacity = run.result_snapshot.get('capacity') or {}
+                computed = capacity.get('status') in ('COMPLETE', 'WITH_ASSUMPTIONS') and capacity.get('value') is not None
+                item.update(status='CALCULATED' if computed else 'BLOCKED', run_id=str(run.id),
+                    result_sha256=run.result_sha256, model_id=saved.get('model_id'),
+                    position_id=saved.get('position_id'), capacity_status=capacity.get('status'),
+                    capacity=capacity.get('value'), catalog_version=run.catalog_version_code)
+                if not computed:
+                    item['blocker'] = '; '.join(str(reason.get('message') or reason.get('code')) for reason in capacity.get('blockers') or []) or 'Парк не рассчитан.'
+            rows.append(item)
+        blocked = [item['process_id'] for item in rows if item['status'] == 'BLOCKED']
+        snapshot = {'schema_version': 'operation-batch-result-v1', 'operations': rows,
+                    'status': 'PARTIAL' if blocked else 'OPERATIONS_ONLY',
+                    'blocked_process_ids': blocked,
+                    'project_economics': {'status': 'BLOCKED',
+                        'reason': 'Не подтверждены общие роли, парк, инфраструктура, договоры и сопоставимые денежные потоки. NPV/ROI отдельных операций не складываются.'}}
+        digest = _canonical_sha256(snapshot)
+        if existing is not None:
+            if existing.input_revision != payload.input_revision or existing.snapshot_sha256 != digest:
+                raise HTTPException(status_code=409, detail='batch id already bound to different content')
+            return operation_batch_dict(existing)
+        batch = OperationBatch(id=payload.batch_id, project_id=project_id,
+                               input_revision=payload.input_revision, snapshot=snapshot,
+                               snapshot_sha256=digest)
+        db.add(batch)
+        db.commit()
+        db.refresh(batch)
+        return operation_batch_dict(batch)
+
+    @router.get('/v2/projects/{project_id}/operation-batches')
+    def list_operation_batches(project_id: uuid.UUID, context: AuthContext = Depends(require_auth_context),
+                               db: Session = Depends(database_session)):
+        _owned_project(db, project_id, context.user.id)
+        batches = db.scalars(select(OperationBatch).where(OperationBatch.project_id == project_id)
+                             .order_by(OperationBatch.created_at.desc(), OperationBatch.id.desc())).all()
+        return {'items': [operation_batch_dict(item) for item in batches]}
+
+    @router.get('/v2/projects/{project_id}/operation-batches/{batch_id}')
+    def get_operation_batch(project_id: uuid.UUID, batch_id: uuid.UUID,
+                            context: AuthContext = Depends(require_auth_context), db: Session = Depends(database_session)):
+        _owned_project(db, project_id, context.user.id)
+        batch = db.scalar(select(OperationBatch).where(OperationBatch.id == batch_id,
+                                                       OperationBatch.project_id == project_id))
+        if batch is None:
+            raise HTTPException(status_code=404, detail='operation batch not found')
+        return operation_batch_dict(batch)
+
+    @router.get('/v2/projects/{project_id}/operation-batches/{batch_id}/report.pdf')
+    def operation_batch_pdf(project_id: uuid.UUID, batch_id: uuid.UUID,
+                            context: AuthContext = Depends(require_auth_context), db: Session = Depends(database_session)):
+        data = get_operation_batch(project_id, batch_id, context, db)
+        from calculation.readable_report import _pdf
+        lines = [('Расчёт нескольких операций', 'title'), (str(batch_id), 'subtitle'), ('', 'page'),
+                 (f"Ревизия: {data['input_revision']}", 'body'),
+                 (f"Контрольная сумма: {data['checksum']}", 'body'),
+                 (f"Статус: {data['status']}", 'body')]
+        for item in data['operations']:
+            lines.extend([(f"Операция: {item['process_id']}", 'section'),
+                          (f"Зона: {item['zone_label']}", 'body'),
+                          (f"Профиль: {item['scope']}", 'body'),
+                          (f"Объём: {item['demand'].get('normalized_value') or 'неизвестно'} {item['demand'].get('unit') or ''}", 'body'),
+                          (f"Состояние: {item['status']}", 'body'),
+                          (f"Расчёт: {item.get('run_id') or item.get('blocker') or ''}", 'body')])
+            if item.get('blocker'):
+                lines.append((f"Причина: {item['blocker']}", 'note'))
+            if item.get('run_id'):
+                fleet = (item.get('capacity') or {}).get('recommended_fleet')
+                lines.extend([(f"Модель: {item.get('model_id') or 'неизвестно'}", 'body'),
+                              (f"Парк: {fleet if fleet is not None else 'не рассчитан'}", 'body'),
+                              (f"Каталог: {item.get('catalog_version') or 'неизвестно'}", 'body'),
+                              (f"Digest результата: {item.get('result_sha256') or 'неизвестно'}", 'note')])
+        lines.append((f"Экономика проекта: {data['project_economics']['reason']}", 'note'))
+        return Response(content=_pdf(lines), media_type='application/pdf',
+                        headers={'Content-Disposition': f'attachment; filename="operation-batch-{batch_id}.pdf"',
+                                 'X-Report-Source-Digest': data['checksum']})
 
     @router.get("/projects/{project_id}/analysis-runs")
     def list_analysis_runs(

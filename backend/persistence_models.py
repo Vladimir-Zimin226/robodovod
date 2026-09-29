@@ -141,6 +141,24 @@ class Project(Base):
     )
 
 
+class OperationBatch(Base):
+    """Immutable inventory of one normalized set of project operations."""
+
+    __tablename__ = 'operation_batches'
+    __table_args__ = (
+        CheckConstraint("jsonb_typeof(snapshot) = 'object'", name='ck_operation_batches_snapshot'),
+        CheckConstraint(f"snapshot_sha256 ~ '{SHA256_CHECK}'", name='ck_operation_batches_sha256'),
+        CheckConstraint("length(btrim(input_revision)) > 0", name='ck_operation_batches_revision'),
+        Index('ix_operation_batches_project_created', 'project_id', 'created_at'),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('projects.id', ondelete='CASCADE'), nullable=False)
+    input_revision: Mapped[str] = mapped_column(Text, nullable=False)
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    snapshot_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
 class ProjectFile(Base):
     __tablename__ = "project_files"
     __table_args__ = (

@@ -21,6 +21,8 @@ import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } 
 import { candidateReason, catalogDiagnostics, recommendedCandidates } from '../candidateRecommendation';
 import { readCsrfCookie } from '../persistenceApi';
 import PickingStudy from './PickingStudy';
+import ObjectConstraints from './ObjectConstraints';
+import { calculateOperationBatch } from '../operationBatch';
 import { toV2Draft } from '../assistantInterview';
 import { workbookDraft, confirmWorkbookDraft } from '../projectWorkbook';
 
@@ -35,6 +37,8 @@ const ROLE_LABELS = {
   catering_worker: 'Работник пищеблока', laundry_worker: 'Работник прачечной', sanitary: 'Санитар', porter: 'Транспортировщик', lab_assistant: 'Лаборант',
   sterile_supply_worker: 'Сотрудник ЦСО', consumable_worker: 'Сотрудник снабжения', lab_result_courier: 'Курьер результатов',
 };
+const CAPACITY_STATUS_LABELS = { COMPLETE:'Парк рассчитан', WITH_ASSUMPTIONS:'Предварительный парк; условия требуют проверки',
+  BLOCKED:'Парк заблокирован', NOT_APPLICABLE:'Формула неприменима' };
 
 const statusFor = (process, issues, response) => {
   if (!process.active) return ['Неактивен', 'text-slate-400'];
@@ -82,6 +86,12 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [focusIssue, setFocusIssue] = useState('');
   const [pickingCatalog, setPickingCatalog] = useState(null);
   const [pickingCatalogError, setPickingCatalogError] = useState('');
+  const [operationBatch, setOperationBatch] = useState(null);
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [batchProgress, setBatchProgress] = useState('');
+  const [batchError, setBatchError] = useState('');
+  const batchGuard = useRef(false);
+  const batchAttempt = useRef(null);
   const latestRevision = useRef(draft.inputRevision);
   const normalizationClient = useRef(null);
   const capacityClient = useRef(createCapacityAnalysisClient());
@@ -112,14 +122,24 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     : [];
   const selectedProcess = activeProcesses.find((item) => item.process_id === processId) || activeProcesses[0];
   const allActiveProcesses = normalizedIsCurrent ? result.response.normalized_processes.filter((item) => item.active) : [];
+  useEffect(() => {
+    if (!activeProject?.id) return undefined;
+    const controller = new AbortController();
+    fetch(`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches`,
+      { credentials: 'include', signal: controller.signal })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
+      .then(body => { if (!controller.signal.aborted) setOperationBatch(body.items?.[0] || null); })
+      .catch(reason => { if (reason.name !== 'AbortError') setBatchError('Не удалось открыть сохранённую сводку операций.'); });
+    return () => controller.abort();
+  }, [activeProject?.id]);
   const pickingRows = pickingCatalog?.capabilities?.rows?.filter((item) => item.code === 'picking_lines' || item.code === 'picking_items') || [];
   const pickingCandidates = [...new Map(pickingRows.flatMap((item) => item.candidates || []).map((item) => [item.position_id, item])).values()];
   useEffect(() => {
     if (!selectedProcess) return undefined;
     const controller = new AbortController();
-    const params = new URLSearchParams({ object_kind: selectedProcess.object_kind.toLowerCase(), process_code: selectedProcess.process_code, include_unknown: 'true' });
+    const params = new URLSearchParams({ object_kind: selectedProcess.object_kind.toLowerCase(), process_code: selectedProcess.process_code });
     if (selectedProcess.item_mass?.status === 'KNOWN') params.set('max_payload_kg', selectedProcess.item_mass.normalized_value);
-    fetch(`${API}/api/catalog/models?${params}`, { signal: controller.signal })
+    fetch(`${API}/api/v2/capacity-catalog/positions?${params}`, { signal: controller.signal })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
       .then((payload) => { setPositions(payload.items || []); setComparison(null); setComparisonState(''); setCatalogState('ready'); })
       .catch((e) => { if (e.name !== 'AbortError') { setPositions([]); setCatalogState('error'); } });
@@ -135,7 +155,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       .catch((reason) => { if (reason.name !== 'AbortError') { setPickingCatalog(null); setPickingCatalogError('Не удалось получить варианты для комплектации из активного каталога.'); } });
     return () => controller.abort();
   }, [activeProject?.id, selectedProcess?.process_code]);
-  const candidatePositions = demoCandidates(positions, selectedProcess?.scope);
+  const allCandidatePositions = demoCandidates(positions, selectedProcess?.scope);
+  const candidatePositions = allCandidatePositions.filter(item => comparison?.candidates?.find(row => row.position_id === item.position_id)?.status !== 'EXCLUDED');
   const selectedPosition = candidatePositions.find((item) => item.position_id === positionId);
   const rankedCandidates = recommendedCandidates(comparison, positions);
   const diagnostics = catalogDiagnostics(positions, comparison);
@@ -164,9 +185,10 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         return body;
       })
       .then((body) => {
+        if (controller.signal.aborted || latestRevision.current !== capacityRequest.input_revision) return;
         const ranked = recommendedCandidates(body, candidates);
         setComparison(body);
-        setPositionId((current) => candidates.some((item) => item.position_id === current)
+        setPositionId((current) => candidates.some((item) => item.position_id === current && body.candidates.find(row => row.position_id === current)?.status !== 'EXCLUDED')
           ? current : ranked[0]?.position_id || '');
         setComparisonState('ready');
       })
@@ -174,7 +196,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     return () => controller.abort();
   }, [selectedProcess, activeProject?.id, acknowledged, exchangeSeconds, cleaningFrequency, result, positions, draft.zones]);
   const choosePhysicalInputs = (raw) => {
-    if (raw?.exchangeSeconds != null) setExchangeSeconds(raw.exchangeSeconds);
+    setExchangeSeconds(raw?.exchangeSeconds ?? '');
     setCleaningFrequency(raw?.cleaningFrequency ?? '1');
   };
 
@@ -239,6 +261,41 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     }
   };
 
+  const runBatch = async () => {
+    if (batchGuard.current) return;
+    batchGuard.current = true;
+    setBatchBusy(true); setBatchError(''); setBatchProgress('');
+    try {
+      if (batchAttempt.current?.projectId !== activeProject?.id || batchAttempt.current?.revision !== draft.inputRevision) {
+        batchAttempt.current = { projectId: activeProject?.id, revision: draft.inputRevision, batchId: crypto.randomUUID(), rows: [] };
+      }
+      const created = await calculateOperationBatch({
+        fetcher: fetch, api: API, normalized: result, draft, projectId: activeProject?.id,
+        acknowledged, csrf: readCsrfCookie(), batchId: batchAttempt.current.batchId,
+        resumeOperations: batchAttempt.current.rows,
+        onCheckpoint: rows => { batchAttempt.current.rows = rows; },
+        onProgress: (done, total) => setBatchProgress(`${done} из ${total}`),
+      });
+      setOperationBatch(created);
+    } catch (reason) { setBatchError(`Сводка не завершена: ${reason.message || 'ошибка запроса'}. Сохранённые одиночные расчёты остаются в истории проекта.`); }
+    finally { batchGuard.current = false; setBatchBusy(false); }
+  };
+  const openSavedOperation = async item => {
+    setBatchError('');
+    try {
+      const [capacityResponse, runResponse] = await Promise.all([
+        fetch(`${API}/api/v2/capacity-analyses/${encodeURIComponent(item.run_id)}`, { credentials:'include' }),
+        fetch(`${API}/api/projects/${encodeURIComponent(activeProject.id)}/analysis-runs/${encodeURIComponent(item.run_id)}`, { credentials:'include' }),
+      ]);
+      if (!capacityResponse.ok || !runResponse.ok) throw new Error('сохранённый расчёт недоступен');
+      const [capacity, run] = await Promise.all([capacityResponse.json(), runResponse.json()]);
+      if (run.checksums?.result !== item.result_sha256 || run.input_snapshot?.process?.process_id !== item.process_id) {
+        throw new Error('контрольная сумма или процесс расчёта не совпадают со сводкой');
+      }
+      onCapacityResult?.(capacity, run.input_snapshot);
+    } catch (reason) { setBatchError(`Не удалось открыть операцию: ${reason.message}`); }
+  };
+
   return (
     <section className="w-full min-w-0 rounded-xl border bg-white p-4 md:p-6" aria-label="Процессы и роли">
       {draft.importPending && <section className="file-report"><p>Проверьте предложения книги, единицы, источники и допущения. Apply не подтверждает ввод для расчёта.</p>
@@ -295,7 +352,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           onChange={(event) => setDraft((current) => updateZone(current, selectedZoneId, { label: event.target.value }))} /></label>
         <label className="mt-2 block">Ограничения зоны · проходы, пол, потоки<textarea className="mt-1 w-full rounded border p-2" rows="2"
           value={selectedZone.constraints} onChange={(event) => setDraft((current) => updateZone(current, selectedZoneId, { constraints: event.target.value }))} /></label>
-        <p className="mt-2 text-amber-800">Ограничения здесь служат заметкой черновика. Проверка пригодности не учитывает их автоматически; перенесите их в обследование объекта. Нагрузка и маршрут ниже относятся только к выбранной зоне. Одинаковая роль общая для зон: изменение её численности или зарплаты видно в каждой зоне.</p>
+        <ObjectConstraints zone={selectedZone} onChange={value => { invalidateComparison(); setDraft(current => updateZone(current, selectedZoneId, { objectConstraints: value })); }} />
+        <p className="mt-2 text-amber-800">Подтверждённые структурированные требования применяются при подборе и расчёте. Нагрузка и маршрут относятся к выбранной зоне. Одинаковая роль общая для зон: изменение численности или зарплаты видно в каждой зоне.</p>
         {selectedZoneId !== draft.zones[0].zoneId && <button type="button" className="mt-2 underline text-red-700" onClick={() => {
           setDraft((current) => removeZone(current, selectedZoneId)); setSelectedZoneId(draft.zones[0].zoneId); setExpanded(null);
         }}>Удалить эту зону из черновика</button>}
@@ -376,7 +434,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       </button>
       {normalizedIsCurrent && <section className="mt-4 rounded-xl border p-3 text-xs" aria-label="Операции по зонам">
         <h3 className="font-semibold">Операции по зонам · {allActiveProcesses.length}</h3>
-        <p className="mt-1">Выберите каждую операцию отдельно. Сохранённый парк относится к одной зоне и операции; общий парк и экономию по зонам нельзя складывать без модели общих ресурсов.</p>
+        <p className="mt-1">Можно рассчитать весь выбранный набор: для каждой операции система сохранит отдельный парк или причину отсутствия расчёта. Общую экономику проект получит после проверки совместного использования людей, парка и инфраструктуры.</p>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">{allActiveProcesses.map((process) => {
           const zone = draft.zones.find((item) => process.process_id.startsWith(`${item.zoneId}.`));
           const source = draft.processes.find((item) => item.processId === process.process_id);
@@ -388,6 +446,16 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                 ? 'Варианты каталога и отдельная проверка комплектовки' : 'Операция описана; расчётной формулы пока нет'}</span>
           </button>;
         })}</div>
+        <button type="button" className="primary-action mt-3" disabled={batchBusy || !activeProject?.id || !acknowledged} onClick={runBatch}>{batchBusy ? `Рассчитываем операции · ${batchProgress}` : 'Рассчитать все выбранные операции'}</button>
+        {batchError && <p role="alert" className="text-red-700 mt-2">{batchError}</p>}
+        {operationBatch?.project_id === activeProject?.id && <div className="mt-3 rounded border p-2" aria-label="Сохранённая сводка операций">
+          <p><strong>Сводка версии {operationBatch.input_revision}</strong> · {operationBatch.status === 'PARTIAL' ? 'частичная' : 'все отдельные операции обработаны'} · {operationBatch.operations.length} операций.</p>
+          <div className="overflow-x-auto"><table className="w-full min-w-[650px] text-left"><thead><tr><th>Зона и операция</th><th>Объём</th><th>Модель и парк</th><th>Состояние</th></tr></thead><tbody>{operationBatch.operations.map(item =>
+            <tr key={item.process_id}><td>{item.zone_label} · {draft.processes.find(process => process.processId === item.process_id)?.label || item.process_code}</td><td>{item.demand.normalized_value ?? 'нет данных'} {item.demand.unit}</td>
+              <td>{item.model_id || '—'} · {item.capacity?.recommended_fleet ?? '—'}</td><td>{item.blocker || CAPACITY_STATUS_LABELS[item.capacity_status] || item.status}{item.run_id && <button type="button" className="ml-2 underline" onClick={() => openSavedOperation(item)}>Открыть расчёт</button>}</td></tr>)}</tbody></table></div>
+          <p className="mt-2 text-amber-800">Экономика проекта: {operationBatch.project_economics.reason}</p>
+          <a className="underline" href={`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches/${encodeURIComponent(operationBatch.id)}/report.pdf`}>Скачать PDF этой сводки</a>
+        </div>}
       </section>}
       {normalizedIsCurrent && <section className="mt-4 border rounded-xl p-3 space-y-3" aria-label="Предварительный расчёт">
         <h3 className="text-sm font-semibold">Предварительный расчёт</h3>
@@ -425,6 +493,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                 <p><strong>Предварительный лидер:</strong> {rankedCandidates[0].name} · балл {rankedCandidates[0].technical_score}. {rankedCandidates[0].readiness === 'VERIFIED' ? 'Технические проверки пройдены.' : 'Пригодность требует проверки.'} Это не одобрение закупки: денежное сравнение доступно после подтверждения цен и одинаковых финансовых входов.</p>
                 {rankedCandidates.length > 1 && <p>Альтернативы: {rankedCandidates.slice(1, 4).map((item) => `${item.name} · ${item.technical_score}${item.reason_codes.length ? ` (${item.reason_codes.slice(0, 2).map((code) => candidateReason[code] || code).join(', ')})` : ''}`).join('; ')}.</p>}
               </> : <p>Допустимого технического лидера нет. Проверьте ограничения объекта и данные каталога.</p>}
+              {comparison.candidates.map(row => <p key={row.position_id}>{row.name}: {row.status === 'EXCLUDED' ? 'Исключён' : row.constraints?.eligibility === 'ELIGIBLE' ? 'Проверки пройдены' : 'Требует проверки'} · {(row.constraints?.checks || []).filter(check => ['FAIL', 'UNKNOWN'].includes(check.status)).map(check => `${check.rule_id || check.check_id}: ${check.reason_code || check.reason}`).join('; ')}</p>)}
             </>}
           </div>
           <label className="block text-xs">Модель из активного capacity-каталога
@@ -441,8 +510,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           {catalogState === 'ready' && candidatePositions.length === 0 && <p className="text-xs text-amber-800" role="status">Для этого процесса в активном каталоге нет расчётной рекомендации. Информационные позиции и причины показаны выше; парк не рассчитывается без утверждённой физической формулы.</p>}
           {selectedPosition && <DemoProfile profile={DEMO_PROFILES[selectedPosition.organizer_id]} />}
           {selectedProcess?.scope === 'DELIVERY_CYCLE' && selectedPosition?.calculation_profile === 'TRANSPORT_CYCLE_V1' && <p className="text-xs text-amber-800">Предварительная доставка рассчитана по транспортному циклу. Оснастка для питания, масса партии, лифты и санитарные условия требуют отдельной проверки; применимость модели в клинике не подтверждена.</p>}
-          {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(selectedProcess?.scope) && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); invalidateComparison(); }} />}
-          {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={(value) => { setCleaningFrequency(value); invalidateComparison(); }} />}
+          {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(selectedProcess?.scope) && <NumberField label="Погрузка + выгрузка за рейс, сек. (демо-допущение)" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); setDraft(current => updateProcess(current, selectedProcess.process_id, { exchangeSeconds: value })); invalidateComparison(); }} />}
+          {selectedProcess?.scope === 'CLEANING_AREA' && <NumberField label="Уборок указанной площади за сутки (сценарное допущение)" value={cleaningFrequency} onChange={(value) => { setCleaningFrequency(value); setDraft(current => updateProcess(current, selectedProcess.process_id, { cleaningFrequency: value })); invalidateComparison(); }} />}
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => { setAcknowledged(event.target.checked); invalidateComparison(); }} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
           {!acknowledged && <p className="text-xs text-amber-800" role="status">Чтобы запустить расчёт, подтвердите предварительные допущения выше.</p>}
           {acknowledged && candidatePositions.length > 0 && !selectedPosition && <p className="text-xs text-amber-800" role="status">Выберите модель в списке выше. Расчёт можно запустить вручную, даже если автоматический подбор недоступен.</p>}

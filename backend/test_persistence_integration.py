@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from pypdf import PdfReader
 from types import SimpleNamespace
 
 import pytest
@@ -616,6 +617,15 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         scenario = next(item for item in project["scenarios"] if item["slot"] == "BASE")
         capacity_payload = economics_capacity_request().model_dump(mode="json")
         capacity_payload["project_id"] = project["id"]
+        zone = 'zone.object.constraints'
+        old_id = capacity_payload['process']['process_id']
+        capacity_payload['process']['process_id'] = f'{zone}.warehouse_receiving_shipping'
+        for role in capacity_payload['role_pool']['roles']:
+            role['process_ids'] = [capacity_payload['process']['process_id'] if item == old_id else item for item in role['process_ids']]
+        capacity_payload.update(schema_version='capacity-analysis-request-v4',
+            zone_context={'zone_id':zone,'label':'Приёмка с условиями'},
+            object_constraint_context={'object_kind':'WAREHOUSE','min_aisle_width_m':'1.5',
+                'requirement_sources':{'min_aisle_width_m':{'kind':'USER','user_confirmed':True,'source_ref':'user.aisle.confirmed'}}})
         capacity_created = owner.post(
             "/api/v2/capacity-analyses", headers=headers, json=capacity_payload
         )
@@ -639,6 +649,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         zone_process_id = f"{zone_id}.warehouse_receiving_shipping"
         old_process_id = zone_payload["process"]["process_id"]
         zone_payload["schema_version"] = "capacity-analysis-request-v3"
+        zone_payload.pop('object_constraint_context')
         zone_payload["zone_context"] = {
             "schema_version": "capacity-zone-context-v1", "zone_id": zone_id,
             "label": "Отгрузка", "constraints_note": "Узкий проход",
@@ -656,6 +667,53 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
             f"/api/projects/{project['id']}/analysis-runs/{zone_capacity['run_id']}"
         ).json()
         assert saved_zone_capacity["input_snapshot"]["zone_context"]["constraints_note"] == "Узкий проход"
+
+        batch_id = str(uuid.uuid4())
+        batch_endpoint = f"/api/v2/projects/{project['id']}/operation-batches"
+        batch_input = {'batch_id':batch_id, 'input_revision':capacity_payload['input_revision'], 'operations':[
+            {'process':capacity_payload['process'], 'zone_id':zone,
+             'zone_label':'Приёмка с условиями', 'run_id':capacity['run_id']},
+            {'process':zone_payload['process'], 'zone_id':zone_id,
+             'zone_label':'Отгрузка', 'run_id':zone_capacity['run_id']},
+        ]}
+        assert owner.post(batch_endpoint, json=batch_input).status_code == 403
+        batch_response = owner.post(batch_endpoint, headers=headers, json=batch_input)
+        assert batch_response.status_code == 201, batch_response.text
+        batch = batch_response.json()
+        assert [row['run_id'] for row in batch['operations']] == [capacity['run_id'], zone_capacity['run_id']]
+        assert batch['status'] == 'OPERATIONS_ONLY' and batch['project_economics']['status'] == 'BLOCKED'
+        assert owner.post(batch_endpoint, headers=headers, json=batch_input).json()['id'] == batch_id
+        assert owner.post(batch_endpoint, headers=headers, json={**batch_input, 'operations':batch_input['operations'][:1]}).status_code == 409
+        assert owner.get(f'{batch_endpoint}/{batch_id}').json()['checksum'] == batch['checksum']
+        batch_pdf = owner.get(f'{batch_endpoint}/{batch_id}/report.pdf')
+        assert batch_pdf.status_code == 200 and batch_pdf.headers['x-report-source-digest'] == batch['checksum']
+        batch_text = ''.join(page.extract_text() for page in PdfReader(io.BytesIO(batch_pdf.content)).pages)
+        assert 'Приёмка с условиями' in batch_text and 'Отгрузка' in batch_text
+        assert batch_text.count('warehouse_receiving_shipping') >= 2
+        evidence_dir = Path(__file__).resolve().parents[1] / '.test-product-remediation'
+        evidence_dir.mkdir(exist_ok=True)
+        (evidence_dir / 'operation-batch-saved.json').write_text(json.dumps(batch, ensure_ascii=False, indent=2), encoding='utf-8')
+        (evidence_dir / 'operation-batch-saved.pdf').write_bytes(batch_pdf.content)
+        missing_process = json.loads(json.dumps(capacity_payload['process']))
+        missing_process['process_id'] = 'zone.uncovered.warehouse_receiving_shipping'
+        partial_input = {**batch_input, 'batch_id':str(uuid.uuid4()), 'operations':[
+            *batch_input['operations'], {'process':missing_process, 'zone_id':'zone.uncovered',
+                'zone_label':'Непокрытая зона', 'blocker':'Нет подтверждённого физического профиля'}]}
+        partial_batch_response = owner.post(batch_endpoint, headers=headers, json=partial_input)
+        assert partial_batch_response.status_code == 201, partial_batch_response.text
+        partial_batch = partial_batch_response.json()
+        assert partial_batch['status'] == 'PARTIAL'
+        assert partial_batch['blocked_process_ids'] == [missing_process['process_id']]
+        assert owner.get(batch_endpoint).json()['items'][0]['id'] == partial_input['batch_id']
+        partial_pdf = owner.get(f"{batch_endpoint}/{partial_input['batch_id']}/report.pdf")
+        assert partial_pdf.status_code == 200
+        partial_text = ''.join(page.extract_text() for page in PdfReader(io.BytesIO(partial_pdf.content)).pages)
+        assert 'Непокрытая зона' in partial_text and 'Нет подтверждённого физического профиля' in partial_text
+        wrong_run = json.loads(json.dumps(partial_input))
+        wrong_run['batch_id'] = str(uuid.uuid4())
+        wrong_run['operations'][-1].pop('blocker')
+        wrong_run['operations'][-1]['run_id'] = capacity['run_id']
+        assert owner.post(batch_endpoint, headers=headers, json=wrong_run).status_code == 409
 
         endpoint = f"/api/v2/projects/{project['id']}/economics-runs"
         economics_payload = {
@@ -841,6 +899,8 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         _, intruder_headers = _register(
             intruder, "production-flow-intruder@example.com", PASSWORD_B
         )
+        assert intruder.get(f'{batch_endpoint}/{batch_id}').status_code == 404
+        assert intruder.get(f'{batch_endpoint}/{batch_id}/report.pdf').status_code == 404
         intruder_project = _create_project(intruder, intruder_headers)
         intruder_scenario = next(
             item for item in intruder_project["scenarios"] if item["slot"] == "BASE"
@@ -914,6 +974,8 @@ def _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity
     assert run['id'] in ''.join(text.split())
     assert '120' in text and '000' in text
     assert 'NPV' in text
+    assert 'Доступная ширина прохода' in text
+    assert 'user.aisle.confirmed' in ''.join(text.split())
     compact_text = ''.join(text.split()).replace(',', '.')
     for row in run['result_snapshot']['comparison']['scenarios']:
         assert row['metrics']['npv']['value'] in compact_text

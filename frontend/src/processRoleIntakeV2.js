@@ -126,7 +126,7 @@ export function createWarehouseDemoDraft() {
     fieldConfirmations: { totalArea: true, activeArea: true } });
   draft = updateProcess(draft, 'warehouse_receiving_shipping', {
     active: true, demand: '2000', shifts: '2', hours: '11', days: '365',
-    distance: '120', batch: '1',
+    distance: '120', batch: '1', exchangeSeconds: '90',
     fieldSources: {
       demand: 'ASSUMPTION', shifts: 'ASSUMPTION', hours: 'ASSUMPTION',
       days: 'ASSUMPTION', distance: 'ASSUMPTION', batch: 'ASSUMPTION',
