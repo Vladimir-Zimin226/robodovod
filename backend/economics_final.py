@@ -79,6 +79,9 @@ def _project_metrics(artifact: Any) -> dict[str, Any]:
         "tco": _metric(_money(capex + sum(operating, Decimal(0))), "RUB",
                        "CAPEX проекта + OPEX и ФОТ за горизонт; без вычета остаточной стоимости", source),
         "npv": _saved_metric(allocation.npv_project, "C18: NPV проекта против baseline", source),
+        "npv_base": _saved_metric(allocation.npv_base, "C18: NPV собственных потоков baseline", source),
+        "npv_scenario": _saved_metric(allocation.npv_scenario, "C18: NPV собственных потоков сценария с вложениями", source),
+        "npv_project": _saved_metric(allocation.npv_project, "C18: NPV проекта против baseline", source),
         "simple_payback": _saved_metric(allocation.simple_payback, "C18: простой срок окупаемости", source),
         "discounted_payback": _saved_metric(allocation.discounted_payback, "C18: дисконтированный срок", source),
     }

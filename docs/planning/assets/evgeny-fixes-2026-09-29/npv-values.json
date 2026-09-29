@@ -1,0 +1,180 @@
+{
+  "result_digest": "sha256:e7496543e77deb3c73d62145cdd00ea8552c0928765095bb62e9d75faeb0bb82",
+  "source": "offline test_final_economics._run fixtures",
+  "scenarios": [
+    {
+      "scenario_id": "scenario.purchase.pessimistic",
+      "metrics": {
+        "npv_base": {
+          "status": "COMPLETE",
+          "value": "-143211637.28",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.pessimistic",
+          "reason": null
+        },
+        "npv_scenario": {
+          "status": "COMPLETE",
+          "value": "-140120317.13",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков сценария с вложениями",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.pessimistic",
+          "reason": null
+        },
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "3091320.15",
+          "unit": "RUB",
+          "basis": "C18: NPV проекта против baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.pessimistic",
+          "reason": null
+        }
+      }
+    },
+    {
+      "scenario_id": "scenario.purchase.base",
+      "metrics": {
+        "npv_base": {
+          "status": "COMPLETE",
+          "value": "-143211637.28",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.base",
+          "reason": null
+        },
+        "npv_scenario": {
+          "status": "COMPLETE",
+          "value": "-119604760.26",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков сценария с вложениями",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.base",
+          "reason": null
+        },
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "23606877.01",
+          "unit": "RUB",
+          "basis": "C18: NPV проекта против baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.base",
+          "reason": null
+        }
+      }
+    },
+    {
+      "scenario_id": "scenario.purchase.optimistic",
+      "metrics": {
+        "npv_base": {
+          "status": "COMPLETE",
+          "value": "-143211637.28",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.optimistic",
+          "reason": null
+        },
+        "npv_scenario": {
+          "status": "COMPLETE",
+          "value": "-100170603.58",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков сценария с вложениями",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.optimistic",
+          "reason": null
+        },
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "43041033.70",
+          "unit": "RUB",
+          "basis": "C18: NPV проекта против baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.purchase.optimistic",
+          "reason": null
+        }
+      }
+    },
+    {
+      "scenario_id": "scenario.raas.pessimistic",
+      "metrics": {
+        "npv_base": {
+          "status": "COMPLETE",
+          "value": "-143211637.28",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.pessimistic",
+          "reason": null
+        },
+        "npv_scenario": {
+          "status": "COMPLETE",
+          "value": "-159182555.39",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков сценария с вложениями",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.pessimistic",
+          "reason": null
+        },
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "-15970918.11",
+          "unit": "RUB",
+          "basis": "C18: NPV проекта против baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.pessimistic",
+          "reason": null
+        }
+      }
+    },
+    {
+      "scenario_id": "scenario.raas.base",
+      "metrics": {
+        "npv_base": {
+          "status": "COMPLETE",
+          "value": "-143211637.28",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.base",
+          "reason": null
+        },
+        "npv_scenario": {
+          "status": "COMPLETE",
+          "value": "-145368212.73",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков сценария с вложениями",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.base",
+          "reason": null
+        },
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "-2156575.45",
+          "unit": "RUB",
+          "basis": "C18: NPV проекта против baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.base",
+          "reason": null
+        }
+      }
+    },
+    {
+      "scenario_id": "scenario.raas.optimistic",
+      "metrics": {
+        "npv_base": {
+          "status": "COMPLETE",
+          "value": "-143211637.28",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.optimistic",
+          "reason": null
+        },
+        "npv_scenario": {
+          "status": "COMPLETE",
+          "value": "-128686323.75",
+          "unit": "RUB",
+          "basis": "C18: NPV собственных потоков сценария с вложениями",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.optimistic",
+          "reason": null
+        },
+        "npv_project": {
+          "status": "COMPLETE",
+          "value": "14525313.53",
+          "unit": "RUB",
+          "basis": "C18: NPV проекта против baseline",
+          "source_ref": "00000000-0000-4000-8000-000000000026.allocation.raas.optimistic",
+          "reason": null
+        }
+      }
+    }
+  ]
+}

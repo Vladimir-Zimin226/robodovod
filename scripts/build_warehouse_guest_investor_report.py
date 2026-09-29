@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from calculation.investor_report import Deck, GREEN, BLUE, MUTED, VERSION, amount, decimal
+from calculation.investor_report import Deck, GREEN, BLUE, MUTED, LEGACY_VERSION as VERSION, amount, decimal
 from calculation.readable_report import _number
 from presentation import field as field_label
 
@@ -55,7 +55,7 @@ def report_bytes(package: dict) -> bytes:
         raise ValueError("six saved commercial variants are required")
     purchase = next(s for s in scenarios if s["acquisition"] == "PURCHASE" and s["uncertainty"] == "BASE")
     raas = next(s for s in scenarios if s["acquisition"] == "RAAS" and s["uncertainty"] == "BASE")
-    deck = Deck("Полный · авторский пример", package["as_of"])
+    deck = Deck("Полный · авторский пример", package["as_of"], presentation_version=VERSION)
     deck.page("Роботизация: сценарии и экономика", package["title"] + " · публичный проверочный пример")
     deck.card(40, 137, "Расчётный парк", f"{demo['capacity']['value']['selected_fleet']} роботов", "Перевозка подготовленных паллет")
     deck.card(234, 137, "Требуемый объём", "2 000 паллет/сутки", "2 × 11 часов; плечо 120 м")

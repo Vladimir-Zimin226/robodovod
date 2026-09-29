@@ -22,7 +22,8 @@ from calculation.readable_report import (
 from presentation import field as field_label
 from simulation_artifacts import StoredSimulationEvidence
 
-VERSION = "investor-presentation-v1"
+LEGACY_VERSION = "investor-presentation-v1"
+VERSION = "investor-presentation-v2"
 DEPTHS = {"BASIC": "Базовый", "ADVANCED": "Углублённый", "FULL": "Полный"}
 INK, GREEN, BLUE, AMBER = "0.05 0.14 0.16", "0.04 0.52 0.36", "0.14 0.39 0.72", "0.72 0.32 0.09"
 MUTED, PALE, WHITE = "0.35 0.44 0.48", "0.94 0.97 0.96", "1 1 1"
@@ -75,8 +76,9 @@ def metric_text(scenario: dict, key: str, *, millions: bool = True) -> str:
 
 class Deck:
     """Small vector layout engine. Coordinates use a top-left page origin."""
-    def __init__(self, depth: str, date: str):
+    def __init__(self, depth: str, date: str, *, presentation_version: str = VERSION):
         self.depth, self.date = depth, date
+        self.presentation_version = presentation_version
         self.pages: list[list[str]] = []
         self.characters: set[str] = set()
 
@@ -221,7 +223,7 @@ class Deck:
             stream = DecodedStreamObject()
             stream.set_data('\n'.join(commands).encode('ascii'))
             page[NameObject('/Contents')] = writer._add_object(stream)
-        writer.add_metadata({'/Title':'Рободовод — инвестиционная оценка роботизации', '/Author':'Рободовод / ZMNCRAFT', '/Subject':f'Глубина расчёта: {self.depth}', '/Creator':VERSION})
+        writer.add_metadata({'/Title':'Рободовод — инвестиционная оценка роботизации', '/Author':'Рободовод / ZMNCRAFT', '/Subject':f'Глубина расчёта: {self.depth}', '/Creator':self.presentation_version})
         output = io.BytesIO()
         writer.write(output)
         return output.getvalue()
@@ -233,6 +235,9 @@ def _scenario_view(scenario: dict) -> dict:
     facts = _facts(scenario)
     metrics = {'npv':facts.get('project_npv') or {}}
     financial = _obj(scenario.get('financial'))
+    for key in ('npv_base', 'npv_scenario', 'npv_project'):
+        if financial.get(key) is not None:
+            metrics[key] = _obj(financial.get(key))
     role_scope = _obj(scenario.get('report_facts')).get('schema_version') != 'calculation-report-facts-v1'
     if role_scope and financial.get('status') == 'COMPLETE':
         for key in ('simple_payback','discounted_payback'):
@@ -395,12 +400,26 @@ def build_investor_report(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapsho
     if scenarios:
         deck.page('Покупка и аренда: базовые условия','Суммы в млн ₽. NPV — дисконтированный эффект против варианта без роботов.'+(' Оценена выбранная роль процесса.' if role_scope else ''))
         rows = []
-        for key,label in [('capex','Первоначальные вложения'),('opex_year_1','Годовые затраты · год 1'),('fot_year_1','Фонд оплаты труда · год 1'),('effect_year_1','Денежный эффект · год 1'),('effect_total','Эффект за горизонт до вложений'),('npv','NPV выбранной роли' if role_scope else 'NPV проекта'),('discounted_payback','Дисконтированная окупаемость')]:
-            # The baseline stores NPV of its own flows; robotic scenarios store
-            # incremental NPV. Do not compare these different bases in one row.
-            rows.append([label,'База сравнения' if key == 'npv' else metric_text(baseline,key),metric_text(purchase,key),metric_text(raas,key)])
+        for key,label in [('capex','Первоначальные вложения'),('opex_year_1','Годовые затраты · год 1'),('fot_year_1','Фонд оплаты труда · год 1'),('effect_year_1','Денежный эффект · год 1'),('effect_total','Эффект за горизонт до вложений'),('discounted_payback','Дисконтированная окупаемость')]:
+            rows.append([label,metric_text(baseline,key),metric_text(purchase,key),metric_text(raas,key)])
+        purchase_parts = [metric_number(purchase, key) for key in ('npv_base','npv_scenario','npv_project')]
+        raas_parts = [metric_number(raas, key) for key in ('npv_base','npv_scenario','npv_project')]
+        if (all(value is not None for value in purchase_parts + raas_parts)
+                and purchase_parts[0] == raas_parts[0]
+                and metric_number(baseline, 'npv') in {None, purchase_parts[0]}
+                and all(abs(parts[1] - parts[0] - parts[2]) <= Decimal('0.01') for parts in (purchase_parts, raas_parts))
+                and purchase_parts[2] == metric_number(purchase, 'npv')
+                and raas_parts[2] == metric_number(raas, 'npv')):
+            rows.extend([
+                ['NPV собственных потоков базы',metric_text(purchase,'npv_base'),'—','—'],
+                ['NPV собственных потоков сценария','—',metric_text(purchase,'npv_scenario'),metric_text(raas,'npv_scenario')],
+                ['NPV выбранной роли (инкремент)' if role_scope else 'NPV проекта (инкремент)','—',metric_text(purchase,'npv_project'),metric_text(raas,'npv_project')],
+            ])
+        else:
+            rows.append(['NPV выбранной роли (инкремент)' if role_scope else 'NPV проекта (инкремент)',
+                         'База сравнения',metric_text(purchase,'npv'),metric_text(raas,'npv')])
         end = deck.table(['Показатель','Без роботов','Покупка','Аренда'],rows,widths=[285,159,159,159],size=10)
-        deck.paragraph('Годовые затраты и денежный эффект — разные показатели. Денежный поток учитывает дополнительные сохранённые условия модели. Нулевой срок при нулевых вложениях не означает положительный поток первого года. Отсутствующие значения не заменены нулями.',40,end+17,size=10,color=MUTED)
+        deck.paragraph(('NPV выбранной роли' if role_scope else 'NPV проекта')+' — разность NPV сценария и базы. Абсолютные NPV показаны только при наличии согласованных сохранённых значений; округление может дать разницу до копейки. Годовые затраты и денежный эффект — разные показатели. Нулевой срок при нулевых вложениях не означает положительный поток первого года. Отсутствующие значения не заменены нулями.',40,end+17,size=10,color=MUTED)
 
         if comparison:
             deck.page('Вложения и стоимость на горизонте','Суммы в млн ₽. ROI относится к первоначальным вложениям; для нулевых вложений показатель не применяется.')

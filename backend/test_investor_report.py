@@ -88,7 +88,7 @@ def test_visual_report_reads_saved_values_and_does_not_change_historical_exports
     assert 'Шесть вариантов' in content and 'чувствительность результата' in content
     assert 'Денежные потоки по годам' in content and 'ROI на первоначальные вложения' in content
     assert 'NPV собственных потоков без роботов' in content
-    assert 'База сравнения' in content
+    assert 'NPV собственных потоков сценария' in content
     # The graphics contain paths, strokes and filled bars, beyond text rows.
     streams = b'\n'.join(p.get_contents().get_data() for p in reader.pages)
     assert streams.count(b' l S') > 10 and streams.count(b' re f') > 80
@@ -137,6 +137,47 @@ def test_negative_npv_and_not_reached_are_preserved(full):
     assert 'За горизонт не достигнута' in content
     assert metric_text({'metrics':{'roi':{'status':'NOT_APPLICABLE','value':None}}},'roi') == 'Не применяется'
     assert metric_text({'metrics':{'roi':{'status':'N_A','value':None}}},'roi') == 'Не применяется'
+
+
+def test_npv_table_labels_saved_increment_without_inventing_absolute_scenario(full):
+    run, linked = full
+    result = deepcopy(run.result_snapshot)
+    for scenario in result['comparison']['scenarios']:
+        for key in ('npv_base', 'npv_scenario', 'npv_project'):
+            scenario['metrics'].pop(key, None)
+    content = text(build_investor_report(updated(run, result=result), linked)[0])
+    assert 'NPV проекта (инкремент)' in content
+    assert 'NPV собственных потоков сценария' not in content
+
+
+def test_new_comparison_persists_all_three_npv_values(full):
+    from decimal import Decimal
+
+    run, linked = full
+    for scenario in run.result_snapshot['comparison']['scenarios']:
+        values = scenario['metrics']
+        assert all(values[key]['status'] == 'COMPLETE' for key in ('npv_base', 'npv_scenario', 'npv_project'))
+        assert abs(Decimal(values['npv_scenario']['value']) - Decimal(values['npv_base']['value']) - Decimal(values['npv_project']['value'])) <= Decimal('0.01')
+        assert values['npv_project'] == values['npv']
+    content = text(build_investor_report(run, linked)[0])
+    assert 'NPV собственных потоков сценария' in content
+
+
+def test_npv_table_uses_three_consistent_saved_metrics_when_present(full):
+    from decimal import Decimal
+
+    run, linked = full
+    result = deepcopy(run.result_snapshot)
+    result['comparison']['baseline']['metrics']['npv']['value'] = '-100000000'
+    for scenario in result['comparison']['scenarios']:
+        project = Decimal(scenario['metrics']['npv']['value'])
+        base = Decimal('-100000000')
+        for key, value in [('npv_base', base), ('npv_scenario', base + project), ('npv_project', project)]:
+            scenario['metrics'][key] = {'status': 'COMPLETE', 'value': str(value), 'unit': 'RUB'}
+    content = text(build_investor_report(updated(run, result=result), linked)[0])
+    assert 'NPV собственных потоков базы' in content
+    assert 'NPV собственных потоков сценария' in content
+    assert 'NPV проекта (инкремент)' in content
 
 
 def test_assumptions_use_human_sources_units_and_a_role_scope_for_partial_finance():
