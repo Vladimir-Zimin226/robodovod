@@ -55,6 +55,34 @@ def _new_presentation(run: EvidenceRunSnapshotV1) -> bool:
             and run.result_snapshot.get("versions", {}).get("report_presentation") == REPORT_PRESENTATION_VERSION)
 
 
+def _scenario_input_rows(run: EvidenceRunSnapshotV1) -> list[list[str]]:
+    inputs = run.input_snapshot.get('economics') or {}
+    if inputs.get('schema_version') != 'economics-explicit-inputs-v6':
+        return []
+    fields = [('implementation_mode', 'Режим внедрения', ''), ('implementation_percent', 'Внедрение, % цены парка', '%'),
+              ('implementation_cost_total_gross', 'Внедрение', 'RUB'), ('raas_mode', 'Режим RaaS', ''),
+              ('raas_percent_monthly', 'RaaS, % цены одного робота в месяц', '%'),
+              ('raas_monthly_per_robot_gross', 'RaaS на робота в месяц', 'RUB'), ('raas_contract_months', 'Срок RaaS', 'месяцев'),
+              ('purchase_price_override_gross', 'Введённая цена робота', 'RUB'), ('horizon_years', 'Горизонт', 'лет'),
+              ('discount_rate', 'Ставка дисконтирования', 'доля'), ('control_monthly_gross', 'Зарплата диспетчера gross за месяц', 'RUB'),
+              ('technician_monthly_gross', 'Зарплата техника gross за месяц', 'RUB'), ('annual_service_per_robot_gross', 'Сервис на робота в год', 'RUB'),
+              ('average_power_w', 'Средняя мощность робота', 'Вт'), ('shared_site_capital_gross', 'Общие вложения объекта', 'RUB'),
+              ('shared_annual_cost_gross', 'Общие расходы объекта за год', 'RUB'), ('manual_units_per_shift', 'Ручная выработка выбранной роли за смену', 'ед./смену')]
+    rows = []
+    for field, label, unit in fields:
+        if field in {'implementation_percent', 'implementation_cost_total_gross'} and (field.endswith('percent')) != (inputs.get('implementation_mode') == 'PERCENT'):
+            continue
+        if field in {'raas_percent_monthly', 'raas_monthly_per_robot_gross'} and (field == 'raas_percent_monthly') != (inputs.get('raas_mode') == 'PERCENT'):
+            continue
+        evidence = (inputs.get('assumption_evidence') or {}).get(field) or {}
+        source = (inputs.get('field_sources') or {}).get(field) or 'сохранённый ввод'
+        if evidence:
+            source += f"; допущение: {evidence.get('rationale') or 'основание не сохранено'}"
+        rows.append(['Финансовые входы версии', 'Все сценарии', '', label,
+                     str(inputs[field]) if inputs.get(field) is not None else 'нет данных', unit, source])
+    return rows
+
+
 def _presentation_rows(comparison: dict[str, Any] | None,
                        result: dict[str, Any] | None = None,
                        linked: EvidenceRunSnapshotV1 | None = None) -> list[list[str]]:
@@ -202,7 +230,7 @@ def comparison_csv(run: EvidenceRunSnapshotV1, comparison: dict[str, Any] | None
     if _new_presentation(run):
         writer.writerow([])
         writer.writerow(["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"])
-        writer.writerows([[_safe(value) for value in row] for row in _presentation_rows(comparison, run.result_snapshot, linked)])
+        writer.writerows([[_safe(value) for value in row] for row in [*_scenario_input_rows(run), *_presentation_rows(comparison, run.result_snapshot, linked)]])
     return buffer.getvalue().encode("utf-8-sig")
 
 
@@ -232,7 +260,7 @@ def comparison_xlsx(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapshotV1 | 
     csv_rows = _csv_rows(run, comparison)
     _sheet(book, "Итог", csv_rows[0], csv_rows[1:])
     if _new_presentation(run):
-        _sheet(book, "Обзор", ["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"], _presentation_rows(comparison, run.result_snapshot, linked))
+        _sheet(book, "Обзор", ["Раздел", "Сценарий", "Год", "Показатель/статья", "Значение", "Единица", "Источник/база"], [*_scenario_input_rows(run), *_presentation_rows(comparison, run.result_snapshot, linked)])
     inputs = (comparison or {}).get("inputs", {})
     input_rows = [[name, item.get("value"), item.get("unit") or item.get("currency"),
                    item.get("tax_basis"), item.get("vat_rate"), item.get("source_ref"), item.get("source_note")]
@@ -344,7 +372,7 @@ def final_pdf(run: EvidenceRunSnapshotV1, previous_pdf: bytes,
             ("", "page"),
         ]
         current = None
-        for section, scenario, year, label, value, unit, source in _presentation_rows(comparison, run.result_snapshot, linked):
+        for section, scenario, year, label, value, unit, source in [*_scenario_input_rows(run), *_presentation_rows(comparison, run.result_snapshot, linked)]:
             heading = f"{section} · {scenario}"
             if heading != current:
                 lines.append((heading, "section"))
@@ -356,6 +384,10 @@ def final_pdf(run: EvidenceRunSnapshotV1, previous_pdf: bytes,
             lines.append(("Сохранённая симуляция", "section"))
             lines.append(("Симуляция связана с этим расчётом; схема условная и не является планом объекта.", "body"))
         lines.append(("Контрольные суммы и полная трассировка находятся в архиве ZIP.", "note"))
+        if _scenario_input_rows(run):
+            lines.extend([('Сохранённая версия', 'section'), (f'Идентификатор расчёта: {run.run_id}', 'body'),
+                          (f"Исходная версия: {run.input_snapshot.get('source_run_id') or 'нет'}", 'body'),
+                          (f"Digest результата: {_verify_snapshots(run)['result']}", 'body')])
         return _pdf(lines)
     lines: list[tuple[str, str]] = [("Полное сравнение экономики F5", "section")]
     if comparison is None:

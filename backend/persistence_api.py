@@ -210,6 +210,9 @@ class EconomicsV2CreateRequest(ApiModel):
     capacity_run_id: uuid.UUID | None = None
     source_run_id: uuid.UUID | None = None
     input: dict[str, Any]
+    expected_result_sha256: str | None = None
+    preview_input_sha256: str | None = None
+    idempotency_key: uuid.UUID | None = None
 
 
     @field_validator("input")
@@ -1479,6 +1482,13 @@ def create_persistence_router(
             raise HTTPException(status_code=409, detail='capacity source mismatch')
         if payload.input.get('schema_version') != PROJECT_INPUT_VERSION:
             raise HTTPException(status_code=422, detail='preview requires project input v6')
+        if resolve_economics_version is None:
+            raise HTTPException(status_code=503, detail='economics route unavailable')
+        try:
+            route_operation('RERUN', source=historical_mapping(source.economics_version, source.input_snapshot),
+                            active_version=resolve_economics_version())
+        except EconomicsMigrationError:
+            raise HTTPException(status_code=503, detail='economics route unavailable') from None
         catalog_resolver = resolve_economics_catalog or resolve_catalog
         if catalog_resolver is None:
             raise HTTPException(status_code=503, detail='economics catalog unavailable')
@@ -1494,9 +1504,16 @@ def create_persistence_router(
                                                      full_engine=execute_economics_v4)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from None
+        from economics_preview import preview_charts
         return {'schema_version': 'economics-what-if-preview-v1',
                 'source_run_id': str(source.id), 'source_result_sha256': source.result_sha256,
                 'capacity_run_id': str(payload.capacity_run_id),
+                'input_sha256': _canonical_sha256(payload.input),
+                'physical': {'capacity_run_id': str(payload.capacity_run_id),
+                             'input_revision': capacity_context.capacity_request.input_revision,
+                             'process': capacity_context.capacity_request.process.model_dump(mode='json'),
+                             'capacity': capacity_context.capacity_response.capacity.model_dump(mode='json')},
+                'charts': preview_charts(execution.result_snapshot), 'source_charts': preview_charts(source.result_snapshot),
                 'result': execution.result_snapshot, 'scenario_spec': execution.scenario_spec_snapshot}
 
     @router.post(
@@ -1512,6 +1529,25 @@ def create_persistence_router(
         """Persist a server-computed v2 result only through an approved active route."""
 
         project = _owned_project(db, project_id, context.user.id)
+        bound_save = any(value is not None for value in (payload.expected_result_sha256, payload.preview_input_sha256, payload.idempotency_key))
+        binding = None
+        if bound_save:
+            if not all((payload.source_run_id, payload.expected_result_sha256, payload.preview_input_sha256, payload.idempotency_key)):
+                raise HTTPException(422, 'what-if save requires source, preview digest and idempotency key')
+            if _canonical_sha256(payload.input) != payload.preview_input_sha256:
+                raise HTTPException(409, 'preview input changed; calculate a new preview')
+            db.refresh(project, with_for_update=True)
+            binding = {'key': str(payload.idempotency_key), 'input_sha256': payload.preview_input_sha256,
+                       'source_run_id': str(payload.source_run_id), 'source_result_sha256': payload.expected_result_sha256,
+                       'scenario_id': str(payload.scenario_id), 'capacity_run_id': str(payload.capacity_run_id)}
+            prior = db.scalar(select(AnalysisRun).where(AnalysisRun.project_id == project.id,
+                AnalysisRun.diagnostics['what_if_save']['key'].as_string() == str(payload.idempotency_key)))
+            if prior is not None:
+                if prior.diagnostics.get('what_if_save') != binding:
+                    raise HTTPException(409, 'idempotency key already used for another input')
+                if prior.status != 'SUCCEEDED':
+                    raise HTTPException(409, 'this version is still being saved; retry with the same key')
+                return _run_dict(prior, include_snapshots=True, db=db)
         scenario = db.scalar(
             select(Scenario).where(
                 Scenario.id == payload.scenario_id, Scenario.project_id == project.id
@@ -1542,6 +1578,10 @@ def create_persistence_router(
                 )
                 if source is None:
                     raise HTTPException(status_code=404, detail="source analysis run not found")
+                if bound_save and (source.status != 'SUCCEEDED' or source.result_sha256 != payload.expected_result_sha256
+                    or source.scenario_id != payload.scenario_id
+                    or source.input_snapshot.get('capacity_run_id') != str(payload.capacity_run_id)):
+                    raise HTTPException(409, 'what-if source, scenario or capacity changed')
                 if (
                     _canonical_sha256(source.input_snapshot) != source.input_sha256
                     or source.result_snapshot is None
@@ -1621,7 +1661,7 @@ def create_persistence_router(
             catalog_version_code=catalog_snapshot.version.code,
             rules_version=execution.rules_version, economics_version=V2_VERSION,
             object_profile_version=execution.object_profile_version,
-            application_version=execution.application_version, diagnostics={},
+            application_version=execution.application_version, diagnostics={'what_if_save': binding} if binding else {},
         )
         mapping = historical_mapping(V2_VERSION, input_snapshot)
         db.add(run)
@@ -1641,7 +1681,7 @@ def create_persistence_router(
         run.scenario_spec_snapshot = execution.scenario_spec_snapshot
         run.scenario_spec_sha256 = _canonical_sha256(execution.scenario_spec_snapshot)
         run.revision_id = execution.revision_id
-        run.diagnostics = execution.diagnostics
+        run.diagnostics = {**execution.diagnostics, **({'what_if_save': binding} if binding else {})}
         run.status = "SUCCEEDED"
         run.finished_at = utcnow()
         _audit(db, "ECONOMICS_V2_RUN_SUCCEEDED", actor_id=context.user.id,
@@ -1747,7 +1787,7 @@ def create_persistence_router(
             and execution.object_profile_version == run.object_profile_version
             and execution.application_version == run.application_version
             and _canonical_sha256(execution.diagnostics)
-            == _canonical_sha256(run.diagnostics)
+            == _canonical_sha256({key: value for key, value in run.diagnostics.items() if key != 'what_if_save'})
         )
         if not matches:
             raise HTTPException(

@@ -616,7 +616,7 @@ def build_readable_report(
         (f"Эффект против варианта без роботов, первый год: {_with_reason(_money(purchase_flows[0].get('effect') if purchase_flows else None), finance_reason)}", "metric"),
         (f"Чистая приведённая стоимость проекта: {_with_reason(_metric(purchase_facts.get('project_npv')), finance_reason)}", "metric"),
         ("При аренде роботов (RaaS)", "section"),
-        (f"Тариф на робота в месяц: {_with_reason(_money(inputs.get('raas_monthly_per_robot_gross')), 'тариф не сохранён во входных условиях')}", "metric"),
+        (f"Тариф на робота в месяц: {_with_reason(_money(_obj(_obj(result.get('monetary_input_basis')).get('raas')).get('per_robot_month_gross_rub') if result.get('monetary_input_basis') else inputs.get('raas_monthly_per_robot_gross')), 'тариф не сохранён во входных условиях')}", "metric"),
     ])
     services = [SERVICE_LABELS.get(item.get("area"), item.get("area"))
                 for item in _list(raas_facts.get("responsibilities"))
@@ -641,6 +641,26 @@ def build_readable_report(
     else:
         lines.append((_unknown("годовые денежные потоки отсутствуют в сохранённом результате"), "body"))
     evidence = _obj(inputs.get("assumption_evidence"))
+    if inputs.get('schema_version') == 'economics-explicit-inputs-v6':
+        lines.append(('Финансовые входы сохранённой версии', 'section'))
+        labels = {'purchase_price_override_gross': 'Цена одного робота, ₽',
+                  'implementation_mode': 'Режим внедрения', 'implementation_percent': 'Внедрение, % цены парка',
+                  'implementation_cost_total_gross': 'Внедрение, ₽ всего', 'raas_mode': 'Режим RaaS',
+                  'raas_percent_monthly': 'RaaS, % цены одного робота в месяц',
+                  'raas_monthly_per_robot_gross': 'Введённая фиксированная аренда, ₽/робот/месяц',
+                  'raas_contract_months': 'Срок договора, месяцев', 'manual_units_per_shift': 'Выработка человека выбранной роли, ед./смену',
+                  'control_monthly_gross': 'Зарплата диспетчера gross, ₽/месяц', 'technician_monthly_gross': 'Зарплата техника gross, ₽/месяц',
+                  'annual_service_per_robot_gross': 'Сервис, ₽/робот/год', 'average_power_w': 'Средняя мощность, Вт',
+                  'shared_site_capital_gross': 'Общие вложения, ₽', 'shared_annual_cost_gross': 'Общие расходы, ₽/год',
+                  'horizon_years': 'Горизонт, лет', 'discount_rate': 'Ставка дисконтирования, доля'}
+        for key, label in labels.items():
+            if key == 'implementation_cost_total_gross' and inputs.get('implementation_mode') == 'PERCENT':
+                continue
+            if key == 'raas_monthly_per_robot_gross' and inputs.get('raas_mode') == 'PERCENT':
+                continue
+            lines.append((f"{label}: {_plain(inputs.get(key))}; источник: {_obj(inputs.get('field_sources')).get(key) or 'сохранённый ввод'}", 'body'))
+        basis = _obj(result.get('monetary_input_basis'))
+        lines.append((f"Денежная база: цена робота {_money(basis.get('unit_price_gross_rub'))}; парк {_plain(basis.get('fleet'))}; внедрение {_money(_obj(basis.get('implementation')).get('amount_gross_rub'))}", 'body'))
     if evidence:
         lines.append(("Подтверждённые допущения сценария", "section"))
         lines.append(("Эти значения сохранены как предварительные условия пользователя, а не паспорт или предложение поставщика.", "note"))

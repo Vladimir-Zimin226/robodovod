@@ -807,6 +807,8 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{versioned_run['id']}").json()["checksums"] == versioned_run["checksums"]
         assert owner.post(f"{endpoint}/{changed_run['id']}/replay", headers=headers).json()["status"] == "MATCH"
 
+        _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity, endpoint)
+
         history = owner.get(f"/api/projects/{project['id']}/analysis-runs")
         assert history.status_code == 200, history.text
         history_items = {item["id"]: item for item in history.json()["items"]}
@@ -859,6 +861,66 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert intruder.get(
             f"/api/projects/{project['id']}/analysis-runs/{created['id']}/exports/manifest"
         ).status_code == 404
+
+
+def _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity, endpoint):
+    from copy import deepcopy
+    from pypdf import PdfReader
+    from test_evgeny_project import project_input
+    from persistence_api import _canonical_sha256
+    raw = project_input()
+    created = owner.post(endpoint, headers=headers, json={
+        'scenario_id': scenario['id'], 'capacity_run_id': capacity['run_id'], 'input': raw})
+    assert created.status_code == 201, created.text
+    source = created.json()
+    before = deepcopy(source)
+    raw['raas_monthly_per_robot_gross'] = '120000'
+    payload = {'scenario_id': scenario['id'], 'capacity_run_id': capacity['run_id'],
+               'source_run_id': source['id'], 'expected_result_sha256': source['checksums']['result'], 'input': raw}
+    with get_database().session() as db:
+        count_before = db.scalar(select(func.count()).select_from(AnalysisRun))
+    preview = owner.post(f'{endpoint}/preview', headers=headers, json=payload)
+    assert preview.status_code == 200, preview.text
+    data = preview.json()
+    assert data['input_sha256'] == _canonical_sha256(raw)
+    assert data['charts']['series'] and data['source_charts']['series']
+    with get_database().session() as db:
+        assert db.scalar(select(func.count()).select_from(AnalysisRun)) == count_before
+    assert owner.post(f'{endpoint}/preview', headers=headers, json={**payload, 'expected_result_sha256': 'a' * 64}).status_code == 409
+    save_payload = {**payload, 'preview_input_sha256': data['input_sha256'], 'idempotency_key': str(uuid.uuid4())}
+    assert owner.post(endpoint, headers=headers, json={**save_payload, 'input': {**raw, 'raas_monthly_per_robot_gross': '90000'}}).status_code == 409
+    assert owner.post(endpoint, headers=headers, json={**save_payload, 'expected_result_sha256': 'a' * 64}).status_code == 409
+    saved = owner.post(endpoint, headers=headers, json=save_payload)
+    assert saved.status_code == 201, saved.text
+    run = saved.json()
+    repeated = owner.post(endpoint, headers=headers, json=save_payload)
+    assert repeated.status_code == 201 and repeated.json()['id'] == run['id'], repeated.text
+    assert run['input_snapshot']['economics'] == raw
+    assert run['id'] != source['id'] and run['parent_run_id'] == source['id']
+    replay = owner.post(f"{endpoint}/{run['id']}/replay", headers=headers)
+    assert replay.status_code == 200 and replay.json()['status'] == 'MATCH', replay.text
+    for row in run['result_snapshot']['comparison']['scenarios']:
+        preview_row = next(item for item in data['result']['comparison']['scenarios'] if item['scenario_id'] == row['scenario_id'])
+        assert {key: (value['status'], value['value']) for key, value in row['metrics'].items()} == {key: (value['status'], value['value']) for key, value in preview_row['metrics'].items()}
+    reopened = owner.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}").json()
+    assert reopened['checksums'] == run['checksums'] and reopened['input_snapshot'] == run['input_snapshot']
+    source_after = owner.get(f"/api/projects/{project['id']}/analysis-runs/{source['id']}").json()
+    for key in ('checksums', 'input_snapshot', 'result_snapshot', 'scenario_spec_snapshot'):
+        assert source_after[key] == before[key]
+    report = owner.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/report-preview.pdf")
+    assert report.status_code == 200, report.text[:300]
+    assert report.headers['x-report-source-digest'].removeprefix('sha256:') == run['checksums']['result']
+    text = '\n'.join(page.extract_text() for page in PdfReader(io.BytesIO(report.content)).pages)
+    assert run['id'] in ''.join(text.split())
+    assert '120' in text and '000' in text
+    assert 'NPV' in text
+    compact_text = ''.join(text.split()).replace(',', '.')
+    for row in run['result_snapshot']['comparison']['scenarios']:
+        assert row['metrics']['npv']['value'] in compact_text
+    output = Path(__file__).resolve().parents[1] / '.test-product-remediation'
+    output.mkdir(exist_ok=True)
+    (output / 'scenario-saved.pdf').write_bytes(report.content)
+    (output / 'scenario-save-evidence.json').write_text(json.dumps({'source': before, 'preview': data, 'saved': run}, ensure_ascii=False, indent=2), encoding='utf-8')
 
 
 def test_capacity_endpoint_returns_503_without_published_source(monkeypatch):

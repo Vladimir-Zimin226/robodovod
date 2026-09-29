@@ -40,7 +40,7 @@ export default function CommercialScenariosV2({ bundle, projectName, project, ru
           <button type="button" onClick={onRestart}>Новый расчёт</button>
         </div>
       </header>
-      <ProjectWhatIf project={project} run={run} onComplete={onComplete} />
+      <ProjectWhatIf project={project} run={run} onComplete={onComplete} onCreateVersion={onRecalculate} onPhysical={onRecalculate} />
 
       <section className="commercial-inputs" aria-label="Коммерческие исходные данные">
         <div className="commercial-section-title"><div><span>01</span><h2>Исходные данные</h2></div><p>После изменения полей сохранённый результат нужно пересчитать.</p></div>

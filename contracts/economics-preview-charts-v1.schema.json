@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Server financial preview charts",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "currency", "series", "basis"],
+  "properties": {
+    "schema_version": {"const": "economics-preview-charts-v1"},
+    "currency": {"const": "RUB"},
+    "basis": {"type": "string"},
+    "series": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false, "required": ["scenario_id", "points"],
+      "properties": {
+        "scenario_id": {"type": "string"},
+        "points": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false, "required": ["year", "cashflow", "cumulative_effect"],
+          "properties": {"year": {"type": "integer", "minimum": 0, "maximum": 15}, "cashflow": {"type": ["string", "null"]}, "cumulative_effect": {"type": ["string", "null"]}}
+        }}
+      }
+    }}
+  }
+}
