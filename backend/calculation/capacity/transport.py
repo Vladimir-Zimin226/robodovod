@@ -11,7 +11,7 @@ import re
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_serializer, model_validator
 
 from calculation.constraints import ConstraintReportV2
 from calculation.executability import DependencyResolution, RunExecutabilityResult
@@ -93,12 +93,19 @@ class TransportCapacityRequestV1(StrictContractModel):
     item_mass: KnownQuantity | None = None
     batch_limits: BatchLimitsV1 = Field(default_factory=BatchLimitsV1)
     selected_fleet: KnownQuantity | None = None
-    operations: OperatingAvailabilityV1 | None = Field(default=None, exclude_if=lambda v: v is None)
+    operations: OperatingAvailabilityV1 | None = None
     executability: RunExecutabilityResult
     constraints: ConstraintReportV2
     versions: VersionBindings
     provenance: list[Provenance]
     fact_provenance: dict[str, str]
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_operations(self, handler):
+        payload = handler(self)
+        if self.operations is None:
+            payload.pop("operations", None)
+        return payload
 
     @model_validator(mode="after")
     def identity_and_provenance(self) -> "TransportCapacityRequestV1":

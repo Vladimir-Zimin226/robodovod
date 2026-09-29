@@ -14,7 +14,7 @@ from decimal import Decimal, InvalidOperation
 from enum import StrEnum
 from typing import Annotated, Any, Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 
 CALCULATION_POLICY_VERSION = "hackathon-calculation-policy-v1"
@@ -777,8 +777,15 @@ class CapacityAnalysisRequest(StrictContractModel):
     operating_speed: KnownQuantity | None = None
     cleaning_area: KnownQuantity | None = None
     cleaning_frequency: KnownQuantity | None = None
-    operations: OperatingAvailabilityV1 | None = Field(default=None, exclude_if=lambda v: v is None)
+    operations: OperatingAvailabilityV1 | None = None
     provenance: list[Provenance] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_operations(self, handler):
+        payload = handler(self)
+        if self.operations is None:
+            payload.pop("operations", None)
+        return payload
 
     @model_validator(mode="after")
     def validate_execution_inputs(self) -> "CapacityAnalysisRequest":

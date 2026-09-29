@@ -208,14 +208,18 @@ class LabourAnalysisRequestV1(StrictContractModel):
     allow_surplus_replacement: bool = False
     base_forklift_count: Annotated[int, Field(ge=0)] | None = None
     staffing_decision: StaffingDecisionV1 | None = None
-    staffing_policy: StaffingPolicyV2 | None = Field(default=None, exclude_if=lambda v: v is None)
-    work_share: WorkShareV1 | None = Field(default=None, exclude_if=lambda v: v is None)
+    staffing_policy: StaffingPolicyV2 | None = None
+    work_share: WorkShareV1 | None = None
 
     @model_serializer(mode="wrap")
     def serialize_optional_decision(self, handler):
         payload = handler(self)
         if self.staffing_decision is None:
             payload.pop("staffing_decision", None)
+        if self.staffing_policy is None:
+            payload.pop("staffing_policy", None)
+        if self.work_share is None:
+            payload.pop("work_share", None)
         return payload
 
     @model_validator(mode="after")
@@ -328,7 +332,7 @@ class RoleLabourResultV1(StrictContractModel):
 
 
 class SiteOperatingStaffV1(StrictContractModel):
-    requirement_details: dict | None = Field(default=None, exclude_if=lambda v: v is None)
+    requirement_details: dict | None = None
     total_selected_fleet: Annotated[int, Field(ge=0)]
     simultaneous_shifts: Annotated[int, Field(ge=0)]
     control_required: Annotated[int, Field(ge=0)]
@@ -350,6 +354,8 @@ class SiteOperatingStaffV1(StrictContractModel):
     @model_serializer(mode="wrap")
     def serialize_optional_staffing(self, handler):
         payload = handler(self)
+        if self.requirement_details is None:
+            payload.pop("requirement_details", None)
         for field in ("technicians_billable", "technicians_transferred", "existing_control_headcount",
                       "existing_technician_headcount", "technician_contractor_annual_gross",
                       "control_transfer_monthly_supplement_gross",

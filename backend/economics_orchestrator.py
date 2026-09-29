@@ -105,7 +105,7 @@ from procurement.contracts import (
     ServiceResponsibilityV1,
 )
 from procurement.resolver import catalog_commercial_money, resolve_procurement_report
-from pydantic import Field, model_validator
+from pydantic import Field, model_serializer, model_validator
 from scenario_spec_v2 import (
     ScenarioAssumptionV2,
     ScenarioBatchV2,
@@ -141,10 +141,10 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     control_monthly_gross: DecimalString
     technician_headcount: Annotated[int, Field(ge=0)]
     technician_monthly_gross: DecimalString
-    staffing_purchase: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
-    staffing_raas: StaffingDecisionV1 | None = Field(default=None, exclude_if=lambda value: value is None)
-    staffing_policy: StaffingPolicyV2 | None = Field(default=None, exclude_if=lambda value: value is None)
-    work_share: WorkShareV1 | None = Field(default=None, exclude_if=lambda value: value is None)
+    staffing_purchase: StaffingDecisionV1 | None = None
+    staffing_raas: StaffingDecisionV1 | None = None
+    staffing_policy: StaffingPolicyV2 | None = None
+    work_share: WorkShareV1 | None = None
     organizer_price_currency_rub_confirmed: bool
     purchase_price_override_gross: DecimalString | None = None
     purchase_price_source: Annotated[str, Field(min_length=3, max_length=240)] | None = None
@@ -162,6 +162,14 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     raas_vendor_scope_confirmed: bool
     start_seconds_from_midnight: Annotated[int, Field(ge=0, lt=86400)] = 0
     timezone: Annotated[str, Field(min_length=1, max_length=64)] = "Europe/Moscow"
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_staffing(self, handler):
+        payload = handler(self)
+        for field in ("staffing_purchase", "staffing_raas", "staffing_policy", "work_share"):
+            if getattr(self, field) is None:
+                payload.pop(field, None)
+        return payload
 
     @model_validator(mode="after")
     def validate_explicit_inputs(self) -> EconomicsExplicitInputsV1:

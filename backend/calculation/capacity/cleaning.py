@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Annotated, Literal, TypeAlias
 
-from pydantic import Field, model_validator
+from pydantic import Field, model_serializer, model_validator
 
 from calculation.constraints import ConstraintReportV2
 from calculation.executability import DependencyResolution, RunExecutabilityResult
@@ -94,7 +94,14 @@ class CleaningCapacityRequestV1(StrictContractModel):
     versions: VersionBindings
     provenance: list[Provenance]
     fact_provenance: dict[str, str]
-    operations: OperatingAvailabilityV1 | None = Field(default=None, exclude_if=lambda v: v is None)
+    operations: OperatingAvailabilityV1 | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_operations(self, handler):
+        payload = handler(self)
+        if self.operations is None:
+            payload.pop("operations", None)
+        return payload
 
     @model_validator(mode="after")
     def validate_boundary(self) -> "CleaningCapacityRequestV1":
