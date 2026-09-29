@@ -18,6 +18,7 @@ import { formatModelClock } from '../simulationDefaults';
 import { physicalInputs } from '../physicalScenario';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
 import { downloadSimulationSvg, visualExportMetadata } from '../simulationSvgExport';
+import { cargoLabel } from '../cargoLabel';
 
 const STATUS_LABELS = {
   STOPPED: 'Остановлено', RUNNING: 'Воспроизведение', PAUSED: 'Пауза',
@@ -323,7 +324,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
           </div>}</div>
           <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}{viewMode === '3D' && <RobCraftFrame key={bindingKey} scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline} visible
             selectedZoneId={zonalScene ? activeZoneId : null} onZoneChange={zonalScene ? selectZone : null} compact />}
-            {facilityScene && <div className="facility-operations mt-3" aria-label="Действия роботов в 3D">{presentation.frame.robots.filter(robot => robot.zoneId === activeZoneId).slice(0, 12).map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.areaLabel}{robot.carrying ? ` · ${robot.units} порций` : ''}</small></div>)}</div>}
+            {facilityScene && <div className="facility-operations mt-3" aria-label="Действия роботов в 3D">{presentation.frame.robots.filter(robot => robot.zoneId === activeZoneId).map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.areaLabel}{robot.carrying ? ` · ${cargoLabel(robot.units, active.request.scenario_spec.template)}` : ''}</small></div>)}</div>}
           </div>
 
           <div className="simulation-kpis">

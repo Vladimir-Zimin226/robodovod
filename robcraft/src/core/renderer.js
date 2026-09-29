@@ -158,14 +158,15 @@ export class Renderer {
     this.heatmapCache = new WeakMap();
   }
 
-  resize(safePlayback = false) {
+  resize(safePlaybackPlan = null) {
     const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
     const requestedWidth = this.canvas.clientWidth * ratio;
     const requestedHeight = this.canvas.clientHeight * ratio;
     // The safe facility scene is often embedded beside the report. Keep its
     // framebuffer bounded so software WebGL remains usable on laptop screens.
-    const pixelBudget = this.softwareRasterizer ? 150000 : 1000000;
-    const scale = safePlayback ? Math.min(1, Math.sqrt(pixelBudget / Math.max(1, requestedWidth * requestedHeight))) : 1;
+    const denseWarehouse = safePlaybackPlan?.warehouseTransport && safePlaybackPlan.robots.length >= 15;
+    const pixelBudget = this.softwareRasterizer ? denseWarehouse ? 100000 : 150000 : 1000000;
+    const scale = safePlaybackPlan ? Math.min(1, Math.sqrt(pixelBudget / Math.max(1, requestedWidth * requestedHeight))) : 1;
     const width = Math.max(1, Math.floor(requestedWidth * scale));
     const height = Math.max(1, Math.floor(requestedHeight * scale));
     if (this.canvas.width !== width || this.canvas.height !== height) {
@@ -175,8 +176,8 @@ export class Renderer {
     this.gl.viewport(0, 0, width, height);
   }
 
-  begin(camera, safePlayback = false) {
-    this.resize(safePlayback);
+  begin(camera, safePlaybackPlan = null) {
+    this.resize(safePlaybackPlan);
     const gl = this.gl;
     gl.clearColor(.54, .69, .72, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -207,7 +208,7 @@ export class Renderer {
   }
 
   render(scene, simulation, camera, editorState = null) {
-    this.begin(camera, Boolean(scene.safePlaybackPlan));
+    this.begin(camera, scene.safePlaybackPlan);
     const surfaces = scene.staticObjects.filter(object => ['ground', 'asphalt', 'floor', 'roof'].includes(object.type));
     const opaque = scene.staticObjects.filter(object => !['ground', 'asphalt', 'floor', 'roof', 'glass'].includes(object.type));
     const glass = scene.staticObjects.filter(object => object.type === 'glass');
@@ -233,8 +234,8 @@ export class Renderer {
     const emission = object.type === 'light' || object.type === 'sign' ? .72 : object.type === 'charger' ? .24 : 0;
     const userBuilt = object.editorId?.startsWith('user:');
     if (!((userBuilt || object.meta?.detailed) && ['rack', 'fence'].includes(object.type))) this.cube(object.position, object.scale, object.color, object.yaw, material, emission, alpha);
-    if (object.type === 'cargo' && (userBuilt || object.editorKind !== 'rack')) this.cargoDetails(object);
-    if (object.type === 'charger') this.chargerDetails(object);
+    if (object.type === 'cargo' && !object.meta?.onRack && (userBuilt || object.editorKind !== 'rack')) this.cargoDetails(object);
+    if (object.type === 'charger' && !object.meta?.compact) this.chargerDetails(object);
     if (object.type === 'station' || object.type === 'checkin' || object.type === 'reception') this.stationDetails(object);
     if ((userBuilt || object.meta?.detailed) && object.type === 'rack') this.rackDetails(object);
     if (userBuilt && object.type === 'fence') this.fenceDetails(object);
@@ -256,6 +257,7 @@ export class Renderer {
     objects.forEach(object => {
       if (!shadowTypes.has(object.type)) return;
       if (object.editorKind === 'rack' && object.type !== 'rack') return;
+      if (object.meta?.onRack || (['charger', 'rack'].includes(object.type) && object.meta?.compact)) return;
       const width = Math.min(object.scale[0] * 1.08, 8); const depth = Math.min(object.scale[2] * 1.08, 8);
       this.cube([object.position[0] + .09, .078, object.position[2] + .12], [width, .008, depth], [.015, .025, .022], object.yaw || 0, 0, 0, .24);
     });
@@ -287,6 +289,12 @@ export class Renderer {
   rackDetails(object) {
     const sx = object.scale[0]; const sy = object.scale[1]; const sz = object.scale[2];
     const frame = [.10, .16, .17]; const beam = [.94, .49, .10];
+    if (object.meta?.compact) {
+      for (const x of [-sx / 2 + .06, sx / 2 - .06]) this.detailPart(object, [x, 0, -sz / 2 + .06], [.11, sy, .11], frame, 4);
+      this.detailPart(object, [0, -sy / 2 + 1.3, 0], [sx, .09, sz], frame, 4);
+      this.detailPart(object, [0, sy / 2 - .29, sz / 2], [sx + .12, .13, .10], beam, 8);
+      return;
+    }
     for (const x of [-sx / 2 + .06, sx / 2 - .06]) for (const z of [-sz / 2 + .06, sz / 2 - .06]) this.detailPart(object, [x, 0, z], [.11, sy, .11], frame, 4);
     for (let level = -sy / 2 + .55; level < sy / 2; level += Math.max(.75, sy / 4)) {
       this.detailPart(object, [0, level, 0], [sx, .09, sz], frame, 4);

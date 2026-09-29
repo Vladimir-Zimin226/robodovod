@@ -39,7 +39,7 @@ export function generateSafeFacilityWorld(config, spec, zoneId) {
       scene.staticObjects.push(makeBlock([x, rect.elevation, z], [rect.width, .28, rect.height], rect.color, { type: rect.type }));
     } else {
       const object = makeBlock([x, rect.onRack ? 1.65 : rect.elevation / 2, z], [rect.width, rect.elevation, rect.height], rect.color,
-        { type: rect.type, meta: { detailed: true, onRack: Boolean(rect.onRack) } });
+        { type: rect.type, meta: { detailed: true, compact: Boolean(rect.compact), onRack: Boolean(rect.onRack) } });
       scene.staticObjects.push(object);
       scene.solids.push({ position: object.position, scale: object.scale, yaw: 0 });
       if (rect.patient) addPerson(scene, x, z, [[.70, .86, .83]],

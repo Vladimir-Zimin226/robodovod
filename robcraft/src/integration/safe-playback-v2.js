@@ -38,7 +38,8 @@ export function createSafePlan(spec, zoneId = spec.zones[0]?.zone_id) {
   const cleaning = profile === 'CLEANING_AREA_V1';
   const clinic = spec.template === 'hospital' && !cleaning;
   const stationary = profile === 'PALLETIZING_THROUGHPUT_V1';
-  const width = clinic || cleaning ? Math.max(48, robots.length * 3.2 + 6) : 48;
+  const warehouseTransport = spec.template === 'warehouse' && !stationary && !cleaning;
+  const width = warehouseTransport ? 64 : clinic || cleaning ? Math.max(48, robots.length * 3.2 + 6) : 48;
   const height = clinic || cleaning ? 38 : Math.max(32, 10 + robots.length * policy.lane_pitch_m);
   let areas, furniture = [], walls = [], people = [];
   if (clinic) {
@@ -63,6 +64,13 @@ export function createSafePlan(spec, zoneId = spec.zones[0]?.zone_id) {
     areas.push({ id: 'service', label: 'Транзит и отдельные стоянки', x: 0, y: 28, width, height: 9 });
     furniture = areas.slice(0, 3).map((area) => ({ type: 'counter', x: area.x + 1, y: 2, width: 4, height: 1.5 }));
     people = areas.slice(0, 3).map((area) => ({ x: area.x + 7, y: 3, radius: policy.person_radius_m, label: 'Посетитель' }));
+  } else if (warehouseTransport) {
+    areas = [{ id: 'storage', label: 'Стеллажи · закреплённые ячейки', x: 0, y: 0, width: 16, height },
+      { id: 'lanes', label: 'Индивидуальные рейсы к отгрузке', x: 16, y: 0, width: 36, height },
+      { id: 'shipping', label: 'Зона отгрузки · отдельные места', x: 52, y: 0, width: 12, height }];
+    furniture = robots.map((robot) => ({ type: 'rack', robotOrdinal: robot.ordinal,
+      x: 10, y: 5 + robot.ordinal * policy.lane_pitch_m - .65, width: 2.2, height: 1.3 }));
+    people = [{ x: 61, y: 2, radius: policy.person_radius_m, label: 'Сотрудник отгрузки' }];
   } else {
     areas = [{ id: 'pickup', label: stationary ? 'Рабочие ячейки' : 'Приём груза', x: 0, y: 0, width: 9, height },
       { id: 'lanes', label: 'Раздельные направления · безопасные полосы', x: 9, y: 0, width: 30, height },
@@ -72,7 +80,7 @@ export function createSafePlan(spec, zoneId = spec.zones[0]?.zone_id) {
   }
   const plan = { kind: 'FACILITY_PROCESS', presentationVersion: LIVE_PLAYBACK_VERSION, template: spec.template, profile,
     processCode: spec.profile.process_code, zoneId, label: zone.label, width, height, robots, task, fleets, fleet: fleets[0],
-    areas, furniture, walls, people, cleaning, clinic, stationary, footprint: VISUAL_FOOTPRINT,
+    areas, furniture, walls, people, cleaning, clinic, stationary, warehouseTransport, footprint: VISUAL_FOOTPRINT,
     geometrySource: zone.geometry_source, geometryRef: zone.geometry_ref, assumptionRef: zone.assumption_ref,
     route: spec.routes.find((route) => route.route_id === task.route_ref) || null };
   plan.homes = robots.map((robot) => safeRoute(plan, robot.ordinal).home);
@@ -88,7 +96,7 @@ export function createSafePlan(spec, zoneId = spec.zones[0]?.zone_id) {
       return Math.hypot(person.x - px, person.y - py) < person.radius + (rect.type === 'person' ? policy.person_radius_m : .05);
     })) return false;
     for (let ordinal = 0; ordinal < robots.length; ordinal += 1) {
-      for (let sequence = 0; sequence < (clinic ? 6 : cleaning ? 3 : 1); sequence += 1) {
+      for (let sequence = 0; sequence < (clinic ? 6 : cleaning ? 3 : warehouseTransport ? 4 : 1); sequence += 1) {
         const route = safeRoute(plan, ordinal, sequence);
         for (const points of [route.toLoad, route.outbound, route.work, route.returning])
           for (let i = 1; i < points.length; i += 1)
@@ -117,6 +125,22 @@ export function safeRoute(plan, ordinal, sequence = 0) {
     return { home, pickup: home, handoff: work.at(-1), areaId: area.id, areaLabel: area.label, toLoad: [home, home],
       outbound: [home, point(home.x, 30), point(x, 30), work[0]], work,
       returning: [work.at(-1), point(x + .45, 30), point(home.x, 30), home] };
+  }
+  if (plan.warehouseTransport) {
+    const y = 5 + ordinal * policy.lane_pitch_m;
+    const home = point(3, y), handoff = point(57, y);
+    const side = sequence % 2 === 0 ? 'left' : 'right';
+    const corner = Math.floor(sequence % 4 / 2) === 0 ? 'far' : 'near';
+    const pickup = point(side === 'left' ? 8.4 : 13.8, y + (corner === 'far' ? -.45 : .45));
+    const bypassY = y + 1.8;
+    return { home, pickup, handoff, areaId: 'storage', areaLabel: `Стеллаж ${ordinal + 1} → отгрузка`,
+      rackOrdinal: ordinal, pickupSide: side, pickupCorner: corner,
+      toLoad: side === 'left' ? [home, point(pickup.x, y), pickup]
+        : [home, point(home.x, bypassY), point(pickup.x, bypassY), pickup],
+      outbound: side === 'left' ? [pickup, point(pickup.x, bypassY), point(14, bypassY), point(14, y), handoff]
+        : [pickup, point(14.8, pickup.y), point(15, y), handoff],
+      work: [handoff, handoff],
+      returning: [handoff, point(handoff.x, bypassY), point(home.x, bypassY), home] };
   }
   const y = 5 + ordinal * policy.lane_pitch_m;
   const home = point(3, y), pickup = point(6, y), handoff = point(36, y);
@@ -234,7 +258,7 @@ export function createSafePlayback(plan, spec, report) {
     const candidates = free.map((time, robot) => ({ time, robot })).sort((a, b) => a.time - b.time || (a.robot - sequence % free.length + free.length) % free.length - (b.robot - sequence % free.length + free.length) % free.length);
     let selected;
     for (const candidate of candidates) {
-      const route = safeRoute(plan, candidate.robot, sequence);
+      const route = safeRoute(plan, candidate.robot, plan.warehouseTransport ? byRobot[candidate.robot].length : sequence);
       if (routeIsSafe(plan, route, candidate.robot)) { selected = { ...candidate, route }; break; }
       playback.noPath.add(candidate.robot);
     }
@@ -289,7 +313,11 @@ export function safeFrameAt(playback, elapsedSeconds) {
     const progress = entry ? (work - entry.start) / (entry.end - entry.start) : 0;
     const pose = entry ? pointAlong([entry.a, entry.b], progress) : { ...route.home, yaw: 0 };
     const carrying = active && ['OUTBOUND', 'UNLOAD'].includes(entry?.stage);
-    return { ...robot, ...pose, stage, stageLabel: STAGE_LABELS[stage], progress, completedJobs: left,
+    const warehouseStage = plan.warehouseTransport && {
+      TO_LOAD: 'К своему стеллажу', LOAD: 'Загрузка у стеллажа', OUTBOUND: 'В зону отгрузки',
+      UNLOAD: 'Передача в отгрузке', RETURN: 'Возврат к своему стеллажу',
+    };
+    return { ...robot, ...pose, stage, stageLabel: warehouseStage?.[stage] || STAGE_LABELS[stage], progress, completedJobs: left,
       jobSequence: active ? job.sequence : null, units: active ? job.units : 0, areaLabel: route.areaLabel, route,
       carrying, cargoState: carrying ? 'ON_ROBOT' : 'AT_HANDOFF', cleaning: open && entry?.stage === 'WORK' && plan.cleaning,
       footprint: plan.footprint, nextStartSeconds: job && !active ? calendar.offsetAt(job.start) : null,

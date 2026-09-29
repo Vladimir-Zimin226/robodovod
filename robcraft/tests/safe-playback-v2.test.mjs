@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { facilityCase } from './support/facility-case.js';
-import { createSafePlan, createSafePlayback, safeFrameAt, sweptSeparation, sweptHitsRectangle, LIVE_TIME_SCALE } from '../src/integration/safe-playback-v2.js';
+import { createSafePlan, createSafePlayback, safeFrameAt, safeRoute, sweptSeparation, sweptHitsRectangle, LIVE_TIME_SCALE } from '../src/integration/safe-playback-v2.js';
 import { generateWorldsFromScenarioSpec } from '../src/world/generator.js';
 import { createSimulation } from '../src/simulation.js';
 import { applyFacilityPlayback } from '../src/integration/facility-renderer.js';
 
 import { playbackCase } from './support/safe-case.js';
 
-for (const [template, fleets] of [['warehouse',[1,2,6,11,25]],['airport',[1,3,6,12]],['hospital',[1,2,4,8]],['baggage',[1,6]]]) {
+for (const [template, fleets] of [['warehouse',[1,2,6,11,15,25]],['airport',[1,3,6,12]],['hospital',[1,2,4,8]],['baggage',[1,6]]]) {
   for (const count of fleets) test(`${template} ${count}: whole horizon, swept safety, shared 2D/3D and immutable source`,()=>{
     const {spec,report}=playbackCase(template,count), before=JSON.stringify({spec,report});
     const plan=createSafePlan(spec), playback=createSafePlayback(plan,spec,report);
@@ -49,6 +49,24 @@ for (const [template, fleets] of [['warehouse',[1,2,6,11,25]],['airport',[1,3,6,
     }
   });
 }
+test('15 warehouse robots each serve one rack with four approach points and separate docks',()=>{
+  const {spec,report}=playbackCase('warehouse',15);
+  const plan=createSafePlan(spec), playback=createSafePlayback(plan,spec,report);
+  assert.equal(plan.furniture.filter(item=>item.type==='rack').length,15);
+  assert.equal(plan.environment.filter(item=>item.type==='rack').length,15);
+  assert.ok(playback.byRobot.every(rows=>rows.length>0));
+  assert.ok(Math.max(...playback.byRobot.map(rows=>rows.length))-Math.min(...playback.byRobot.map(rows=>rows.length))<=1);
+  for(let ordinal=0;ordinal<15;ordinal++) {
+    const rack=plan.furniture[ordinal];
+    assert.equal(rack.robotOrdinal,ordinal);
+    const routes=playback.byRobot[ordinal].slice(0,4).map(job=>job.route);
+    assert.deepEqual(routes.map(route=>[route.pickupSide,route.pickupCorner]),
+      [['left','far'],['right','far'],['left','near'],['right','near']]);
+    assert.ok(routes.every(route=>route.pickup.x<rack.x||route.pickup.x>rack.x+rack.width));
+    assert.ok(routes.every(route=>route.handoff.x>rack.x+rack.width));
+    assert.deepEqual(routes[0].handoff,safeRoute(plan,ordinal).handoff);
+  }
+});
 test('crossing between samples, rectangle sweep and speed contract',()=>{
   assert.equal(LIVE_TIME_SCALE,60);
   assert.equal(sweptSeparation({start:0,end:1,a:{x:-2,y:0},b:{x:2,y:0}},{start:0,end:1,a:{x:0,y:-2},b:{x:0,y:2}}),0);

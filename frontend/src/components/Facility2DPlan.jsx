@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { facilityRoute } from '../../../robcraft/src/integration/facility-playback.js';
 import { safeRoute } from '../../../robcraft/src/integration/safe-playback-v2.js';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
+import { cargoLabel } from '../cargoLabel';
 
 const SCALE = 18;
 const path = points => points.map((p, i) => `${i ? 'L' : 'M'} ${p.x * SCALE} ${p.y * SCALE}`).join(' ');
@@ -31,8 +32,9 @@ export default function Facility2DPlan({ scene, frame, selectedZoneId }) {
         <text x={(area.x + area.width / 2) * SCALE} y={(area.y + .95) * SCALE} textAnchor="middle" fill="#d6edf0" fontSize="12">{area.label}</text>
       </g>)}
       <rect width={width} height={height} fill="url(#facility-floor-grid)" pointerEvents="none" />
-      {plan.furniture.map((item, i) => <g key={i}><rect x={item.x * SCALE} y={item.y * SCALE} width={item.width * SCALE} height={item.height * SCALE} rx="4" fill={item.type === 'bed' ? '#aac7d5' : '#547e8b'} stroke="#d1e3e6" />
-        {item.type === 'bed' && <rect x={(item.x + .2) * SCALE} y={(item.y + .2) * SCALE} width="10" height="21" rx="2" fill="#ecf5f7" />}</g>)}
+      {plan.furniture.map((item, i) => <g key={i}><title>{item.robotOrdinal === undefined ? item.type : `Стеллаж ${item.robotOrdinal + 1} · робот ${item.robotOrdinal + 1}`}</title><rect x={item.x * SCALE} y={item.y * SCALE} width={item.width * SCALE} height={item.height * SCALE} rx="4" fill={item.type === 'bed' ? '#aac7d5' : '#547e8b'} stroke="#d1e3e6" />
+        {item.type === 'bed' && <rect x={(item.x + .2) * SCALE} y={(item.y + .2) * SCALE} width="10" height="21" rx="2" fill="#ecf5f7" />}
+        {item.robotOrdinal !== undefined && <text x={(item.x + item.width / 2) * SCALE} y={(item.y + item.height / 2 + .16) * SCALE} textAnchor="middle" fill="#fff" fontSize="11" fontWeight="700">С{item.robotOrdinal + 1}</text>}</g>)}
       {plan.walls.map((wall, i) => <rect key={i} x={wall.x * SCALE} y={wall.y * SCALE} width={wall.width * SCALE} height={wall.height * SCALE} fill="#9ab5bb" />)}
       {plan.people?.map((person, i) => <circle key={`person-${i}`} cx={person.x * SCALE} cy={person.y * SCALE} r={person.radius * SCALE} fill="#efbb82"><title>{person.label} · выделенная зона ожидания</title></circle>)}
       {plan.homes?.map((home, i) => <rect key={`home-${i}`} x={(home.x - 1) * SCALE} y={(home.y - 1) * SCALE} width={2 * SCALE} height={2 * SCALE} fill="none" stroke="#64868f" strokeDasharray="4 4" />)}
@@ -52,11 +54,10 @@ export default function Facility2DPlan({ scene, frame, selectedZoneId }) {
       </g>)}
     </svg></div>
     <div className="facility-plan-aside"><div className="facility-operations" aria-label="Текущие действия роботов">
-      {current.robots.slice(0, 12).map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.waitReason || robot.areaLabel}{robot.carrying ? ` · ${robot.units} ед. груза` : ''}</small>{Number.isFinite(robot.nextStartSeconds) && <small>Следующее задание через {Math.ceil((robot.nextStartSeconds - current.elapsedSeconds) / 60)} мин модели</small>}</div>)}
-      {current.robots.length > 12 && <p>Все {current.robots.length} роботов показаны на плане.</p>}
+      {current.robots.map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.waitReason || robot.areaLabel}{robot.carrying ? ` · ${cargoLabel(robot.units, plan.template)}` : ''}</small>{Number.isFinite(robot.nextStartSeconds) && <small>Следующее задание через {Math.ceil((robot.nextStartSeconds - current.elapsedSeconds) / 60)} мин модели</small>}</div>)}
       {current.reason && <p>{current.reason}</p>}
     </div>
-    <p className="simulation-schematic-note">{safe ? 'Раздельные стоянки и направления. Общие проходы и точки передачи бронируются с проверкой всего пути и неподвижных участников.' : clinic ? 'Питание поступает с раздачи, проходит по коридору в отделение; после передачи робот возвращается.' : 'Роботы убирают полосы открытого пола в разных частях терминала.'} План условный. Задания восстановлены по сохранённому спросу, графику и длительности обслуживания. Серверные показатели остаются исходными. Это не сертификация безопасности реального объекта.</p>
+    <p className="simulation-schematic-note">{plan.warehouseTransport ? 'Каждому роботу выделен свой стеллаж и место отгрузки. Он забирает подготовленную паллету из одной из четырёх точек возле стеллажа, везёт её в отгрузку и возвращается к своему стеллажу. Встречные рейсы разделены по полосам. Зарядка учтена в сохранённой агрегированной паузе: данных о батареях для отдельного графика зарядки нет.' : safe ? 'Раздельные стоянки и направления. Общие проходы и точки передачи бронируются с проверкой всего пути и неподвижных участников.' : clinic ? 'Питание поступает с раздачи, проходит по коридору в отделение; после передачи робот возвращается.' : 'Роботы убирают полосы открытого пола в разных частях терминала.'} План условный. Задания восстановлены по сохранённому спросу, графику и длительности обслуживания. Серверные показатели остаются исходными. Это не сертификация безопасности реального объекта.</p>
     </div></div>
   </div>;
 }

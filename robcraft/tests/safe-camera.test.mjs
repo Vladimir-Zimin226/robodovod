@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Player } from '../src/player.js';
+import { createSafePlan, safeRoute } from '../src/integration/safe-playback-v2.js';
+import { updateFacilityCamera } from '../src/integration/facility-renderer.js';
+import { playbackCase } from './support/safe-case.js';
 
 test('safe scene keeps walls solid during manual flight', () => {
   const previous = globalThis.document;
@@ -20,4 +23,23 @@ test('safe scene keeps walls solid during manual flight', () => {
   } finally {
     globalThis.document = previous;
   }
+});
+
+test('warehouse camera follows a robot steadily after a brief opening view', () => {
+  const plan = createSafePlan(playbackCase('warehouse', 15).spec);
+  const robots = plan.robots.map(robot => ({ ...robot, ...safeRoute(plan, robot.ordinal).home,
+    stage: 'OUTBOUND', stageLabel: 'В зону отгрузки', areaLabel: `Стеллаж ${robot.ordinal + 1}` }));
+  const frame = { plan, robots }, camera = { position: [0, 20, 20] };
+  updateFacilityCamera(camera, frame, 0);
+  assert.equal(camera.currentShot.id, 'facility-overview');
+  updateFacilityCamera(camera, frame, 3);
+  const first = camera.currentShot.id;
+  assert.match(first, /^facility-robot-/);
+  for (const second of [8, 15, 22, 27]) {
+    updateFacilityCamera(camera, frame, second);
+    assert.equal(camera.currentShot.id, first);
+  }
+  updateFacilityCamera(camera, frame, 29);
+  assert.match(camera.currentShot.id, /^facility-robot-/);
+  assert.notEqual(camera.currentShot.id, first);
 });

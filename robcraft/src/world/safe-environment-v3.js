@@ -22,6 +22,17 @@ export function environmentCandidates(plan) {
       items.push(item('person', hall.x + 7, 4.3, .8, .8, 1.8, null, { role: 'Пассажир' }));
     }
     items.push(item('sign', 19, 1, 5, .18, 2.9, [.28, .68, .76], { overhead: true }));
+  } else if (plan.warehouseTransport) {
+    for (const rack of plan.furniture.filter(rect => rect.type === 'rack')) {
+      items.push(item('rack', rack.x, rack.y, rack.width, rack.height, 3.1, [.40, .52, .54],
+        { robotOrdinal: rack.robotOrdinal, compact: true }));
+      items.push(item('cargo', rack.x + .55, rack.y + .15, .9, 1, .75, [.68, .47, .25],
+        { onRack: true, robotOrdinal: rack.robotOrdinal }));
+    }
+    items.push(item('station', 59, .5, 2.2, 1.2, 1.15, [.35, .59, .63]));
+    items.push(item('person', 61, 3.6, .8, .8, 1.8, null, { role: 'Оператор отгрузки' }));
+    for (const home of plan.homes)
+      items.push(item('charger', home.x - 1.7, home.y - .5, .55, 1, 1.05, [.19, .52, .45], { compact: true }));
   } else {
     const rack = plan.furniture.find(rect => rect.type === 'rack');
     if (rack) {
