@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { cloneElement, useEffect, useState } from 'react';
 import { readCsrfCookie } from '../persistenceApi';
 import { buildPartialEconomicsRunRequest } from '../economicsInputV2';
 import { ECONOMICS_CONDITIONS, economicsReadiness } from '../economicsReadiness';
@@ -9,7 +9,8 @@ import {
   confirmEconomicsAssumption, editEconomicsField,
   proposeDemoField,
 } from '../economicsDemoAssumptions';
-import { fieldPresentation } from '../presentation';
+import { fieldPresentation, humanizePresentation, presentationValue } from '../presentation';
+import { formatDecimal, formatPercent } from '../displayNumber';
 import { MODEL_START_SECONDS, modelTimezone, timezoneChoices } from '../simulationDefaults';
 import { workbookEconomics } from '../projectWorkbook';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
@@ -19,7 +20,7 @@ import { roleLabel as roleName } from '../roleLabels';
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
 const FIELDS = [
-  ['Труд', 'manualUnitsPerShift', 'manual_units_per_shift', 'Выработка одного сотрудника', 'ед./смену', 'Для F08/F09 и экономии ФОТ; например 100.', 'Замер или подтверждённая оценка F08'],
+  ['Труд', 'manualUnitsPerShift', 'manual_units_per_shift', 'Выработка одного сотрудника', 'ед./смену', 'Для потребности в персонале и экономии оплаты труда; например 100.', 'Замер или подтверждённая оценка'],
   ['Труд', 'controlHeadcount', 'control_headcount', 'Диспетчеры сейчас', 'чел.', 'Для добавочной численности; например 0.', 'Штатное расписание'],
   ['Труд', 'controlMonthlyGross', 'control_monthly_gross', 'Диспетчер · начислено до НДФЛ', '₽/чел./мес.', 'Для расходов на пульт; например 100000.', 'ФОТ'],
   ['Труд', 'technicianHeadcount', 'technician_headcount', 'Техники сейчас', 'чел.', 'Для дополнительной техподдержки; например 0.', 'Штатное расписание'],
@@ -91,6 +92,14 @@ function restored(capacityRunId, input, project) {
   });
   if (!input) Object.assign(values, { startSeconds: String(MODEL_START_SECONDS), timezone: modelTimezone(project) });
   return values;
+}
+
+function LabourField({ id, label, hint, full = false, children }) {
+  return <div className={`labour-field${full ? ' labour-field-full' : ''}`}>
+    <label htmlFor={id}>{label}</label>
+    {cloneElement(children, { id, 'aria-describedby': `${id}-hint ${id}-message` })}
+    <small id={`${id}-hint`}>{hint}</small><small id={`${id}-message`} className="labour-field-message" aria-live="polite" />
+  </div>;
 }
 export default function EconomicsInputsV2({ capacityRequest, capacityResult, capacityRunId, project, onComplete, initialInput, savedResult, sourceRunId }) {
   const [values, setValues] = useState(() => restored(capacityRunId, initialInput || workbookEconomics(project?.profile?.file_intake_v2), project));
@@ -181,11 +190,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   if (!project || !scenario || !capacityRunId) return null;
   const roleRefs = capacityRequest?.process?.role_refs || [];
   const process = capacityRequest?.process;
-  const processLabel = PROCESS_DEFINITIONS.find((item) => item.code === process?.process_code)?.label || process?.process_code || 'выбранном процессе';
+  const processLabel = PROCESS_DEFINITIONS.find((item) => item.code === process?.process_code)?.label || 'выбранном процессе';
   const selectedRole = capacityRequest?.role_pool?.roles?.find((item) => item.role_id === (values.primaryRoleId || roleRefs[0]));
   const roleLabel = roleName(selectedRole?.role_code).toLowerCase();
   const estimateShown = manualEstimate?.status === 'ESTIMATE'
-    ? new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(manualEstimate.value)) : null;
+    ? formatDecimal(manualEstimate.value) : null;
   return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={(event) => event.preventDefault()} noValidate aria-label="Расчёт экономики роботизации">
     <header><h2 className="text-xl font-semibold">Рассчитать экономику</h2>
       <p className="mt-1 text-sm">Пустое поле — неизвестно, 0 — подтверждённый ноль. Диапазон вводите как 500000..800000: он сохранится, но NPV без точечного значения не считается. Для оценки выберите «Допущение»; она не станет фактом поставщика.</p></header>
@@ -198,12 +207,12 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
       <p className="mt-1">Числа появляются только в новом сохранённом результате после проверки сервером. Раскройте нужную строку, чтобы увидеть формулу и происхождение.</p>
       <div className="mt-2 grid gap-2 md:grid-cols-2">{CALCULATION_RULES.map(([title, formula, origin]) =>
         <details key={title} className="rounded border p-2"><summary className="cursor-pointer font-semibold">{title}</summary>
-          <p className="mt-2">{formula}</p><p className="mt-1 text-slate-600">Источник: {origin}</p></details>)}</div>
+          <p className="mt-2">{humanizePresentation(formula)}</p><p className="mt-1 text-slate-600">Источник: сохранённая методика расчёта. {humanizePresentation(origin)}</p></details>)}</div>
     </details>
     <details className="rounded-xl border border-blue-200 p-4 text-sm" aria-label="Обзор веток перед сохранением"><summary>Что уже можно рассчитать</summary>
       <div className="mt-2 grid gap-2 md:grid-cols-2">{readiness.branches.map((branch) => <div key={branch.key} className="rounded border p-2">
         <strong>{branch.label}: {branch.missing.length === 0 ? 'готово к проверке сервером' : readiness.missingConditions.some((condition) => branch.key === 'labour' ? condition.group === 'Труд' : ['purchase', 'raas'].includes(branch.key)) ? 'нужно подтвердить' : 'можно сохранить частично'}</strong>
-        {branch.missing.length > 0 && <p>{branch.key === 'capacity' ? '' : `Нужно подтвердить или заполнить: ${branch.missing.filter((field) => !['labour', 'discount_inputs'].includes(field)).map((field) => CHECKS.find((item) => item[1] === field)?.[3] || FIELDS.find((item) => item[2] === field)?.[3] || field).join('; ')}.`}</p>}
+        {branch.missing.length > 0 && <p>{branch.key === 'capacity' ? '' : `Нужно подтвердить или заполнить: ${branch.missing.filter((field) => !['labour', 'discount_inputs'].includes(field)).map((field) => CHECKS.find((item) => item[1] === field)?.[3] || FIELDS.find((item) => item[2] === field)?.[3] || fieldPresentation(field).label).join('; ')}.`}</p>}
       </div>)}</div>
       <p className="mt-2">2D/3D: {readiness.visualMissing.length ? 'нужны начало работы и часовой пояс' : 'входы готовы к проверке сервером'}. Итоговый статус определяет сохранённый серверный результат.</p>
       {!readiness.fullReady && <p className="mt-2 text-amber-900">Если сохранить частично, в PDF/ZIP разделы труда, покупки, RaaS или визуализации с недостающими входами будут помечены «не рассчитано»; NPV для этих веток не появится. Технический результат останется доступен.</p>}
@@ -226,26 +235,39 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
       <summary className="font-semibold cursor-pointer">{group}</summary>
       {group === 'Труд' && <div className="mt-3 rounded border border-blue-300 p-3 text-sm space-y-3" aria-label="Покрытие новых функций после расчёта парка">
         <details><summary>Как определена потребность в новых функциях</summary><p>Парк: {fleet ?? 'нет данных'} роботов. Посты управления рассчитываются по числу роботов; штат — по постам, сменам и ротации. Техник может быть дневным, сменным или у поставщика. {staffingPreview.PURCHASE ? `На текущем вводе: диспетчеры ${staffingPreview.PURCHASE.control_required}, техники ${staffingPreview.PURCHASE.technicians_required}, перевод на пульт ${staffingPreview.PURCHASE.control_transferred}.` : 'Точное распределение будет показано после сохранения расчёта.'}</p></details>
-        <div className="grid gap-2 md:grid-cols-3"><label>Роботов на пост<input type="number" min="0.01" step="any" value={values.robotsPerControlPost} onChange={set('robotsPerControlPost')} /></label><label>Роботов на дневного техника<input type="number" min="0.01" step="any" value={values.robotsPerDayTechnician} onChange={set('robotsPerDayTechnician')} /></label><label>Коэффициент ротации<input type="number" min="1" step="any" value={values.rotationFactor} onChange={set('rotationFactor')} /></label></div>
-        <label>Присутствие техника<select value={values.technicianPresence} onChange={set('technicianPresence')}><option value="DAY_WORKLOAD">Дневная нагрузка</option><option value="EACH_SHIFT">В каждой смене</option><option value="VENDOR">У поставщика</option></select></label>
-        <label>Доля роботизируемой работы роли, 0–1<input type="number" min="0" max="1" step="any" value={values.robotizableShare} onChange={set('robotizableShare')} /></label>
-        <label>Какие ручные операции остаются<input type="text" value={values.residualOperations} onChange={set('residualOperations')} /></label>
+        <div className="labour-fields">
+          <LabourField id="economics-robots-per-control" label="Роботов на пост" hint="Нагрузка одного поста управления, роботов."><input type="number" min="0.01" step="any" value={values.robotsPerControlPost} onChange={set('robotsPerControlPost')} /></LabourField>
+          <LabourField id="economics-robots-per-technician" label="Роботов на дневного техника" hint="Нагрузка обслуживания, роботов."><input type="number" min="0.01" step="any" value={values.robotsPerDayTechnician} onChange={set('robotsPerDayTechnician')} /></LabourField>
+          <LabourField id="economics-rotation" label="Коэффициент ротации" hint="Учитывает замены сотрудников в графике."><input type="number" min="1" step="any" value={values.rotationFactor} onChange={set('rotationFactor')} /></LabourField>
+          <LabourField id="economics-technician-presence" label="Присутствие техника" hint="Основание для потребности в персонале."><select value={values.technicianPresence} onChange={set('technicianPresence')}><option value="DAY_WORKLOAD">Дневная нагрузка</option><option value="EACH_SHIFT">В каждой смене</option><option value="VENDOR">У поставщика</option></select></LabourField>
+          <LabourField id="economics-work-share" label="Доля роботизируемой работы роли" hint={`Доля от 0 до 1. Текущий ввод: ${formatPercent(values.robotizableShare)}.`}><input type="number" min="0" max="1" step="any" value={values.robotizableShare} onChange={set('robotizableShare')} /></LabourField>
+          <LabourField id="economics-residual-operations" label="Какие ручные операции остаются" hint="Эта работа сохраняется у сотрудников выбранной роли." full><textarea rows="3" value={values.residualOperations} onChange={set('residualOperations')} /></LabourField>
+        </div>
         <p>Численность «сейчас» ниже описывает только исходный штат. Выберите, кто покроет новую функцию; перевод сохраняет человека в штате и уменьшает высвобождение.</p>
         <label className="block">Пульт<select id="economics-staffing-control" className="block w-full border rounded p-2" value={values.controlMode} onChange={set('controlMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод из заменяемой роли</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option></select></label>
         <label className="block">Техподдержка при покупке<select id="economics-staffing-purchase" className="block w-full border rounded p-2" value={values.technicianPurchaseMode} onChange={set('technicianPurchaseMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option></select></label>
         {depthIndex(values.calculationDepth) >= 2 && <label className="block">Техподдержка при RaaS<select id="economics-staffing-raas" className="block w-full border rounded p-2" value={values.technicianRaasMode} onChange={set('technicianRaasMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option><option value="VENDOR">Поставщик, включено в RaaS</option></select></label>}
         {(values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER') && <label className="flex gap-2"><input type="checkbox" checked={values.qualifiedTechTransfer} onChange={set('qualifiedTechTransfer')} />Подтверждаю квалификацию переводимого сотрудника для техподдержки</label>}
-        <p>Зарплата или стоимость услуги запрашивается ниже только для непокрытой функции. Неизвестная стоимость даёт частичный результат; выбор и источник сохраняются в новом run.</p>
+        <p>Зарплата или стоимость услуги запрашивается ниже только для непокрытой функции. Неизвестная стоимость даёт частичный результат; выбор и источник сохраняются в новом расчёте.</p>
       </div>}
       {group === 'Труд' && roleRefs.length > 1 && <label className="block mt-3 text-sm">Основная роль процесса
         <select value={values.primaryRoleId} onChange={(event) => setValues((current) => changeManualProductivityRole(current, event.target.value))} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id, index) => <option key={id} value={id}>Роль {index + 1}</option>)}</select>
         <small>Для сравнения труда; источник — введённые роли процесса.</small></label>}
       {group === 'Труд' && <div className="mt-3 rounded border border-teal-300 p-3 text-sm" aria-label="Оценка ручной выработки">
         <strong>Выработка одного сотрудника {roleLabel} в процессе «{processLabel}»</strong>
-        <p>Объём: {process?.demand?.normalized_value ?? 'неизвестно'} {process?.demand?.unit || 'ед./сутки'}; смен: {process?.schedule?.shifts_per_day?.normalized_value ?? 'неизвестно'}; длительность смены: {process?.schedule?.shift_hours?.normalized_value ?? 'неизвестно'} ч; плечо в одну сторону: {process?.route_distance?.normalized_value ?? 'не применяется'} м. Показатель определяет F08/F09, потребность людей и экономию ФОТ только выбранной роли.</p>
-        {manualEstimate?.status === 'ESTIMATE' && <p className="mt-2">Оценка по действующему реестру F08: <strong title={manualEstimate.value}>≈ {estimateShown} {manualEstimate.unit}</strong>. {manualEstimate.formula}. {process?.scope === 'CLEANING_AREA'
-          ? `Механизированная база ${manualEstimate.inputs.mechanized_rate_m2_h} м²/ч, полезное время ${manualEstimate.inputs.useful_time_share}.`
-          : `Скорость человека ${manualEstimate.inputs.manual_speed_m_s ?? 'н/п'} м/с, обмен ${manualEstimate.inputs.manual_exchange_s ?? 'н/п'} с, полезное время ${manualEstimate.inputs.useful_time_share ?? 'н/п'}, единиц за рейс ${manualEstimate.inputs.units_per_trip ?? 'н/п'}.`} Источники: {manualEstimate.source_refs.join(', ')}. Это допущение, не замер на объекте.</p>}
+        <p>Объём: {presentationValue('', process?.demand?.normalized_value, process?.demand?.unit)}; смен: {formatDecimal(process?.schedule?.shifts_per_day?.normalized_value) ?? 'неизвестно'}; показатель определяет потребность в персонале и экономию оплаты труда только выбранной роли.</p>
+        {manualEstimate?.status === 'ESTIMATE' && <div className="mt-2"><p><strong>≈ {estimateShown} {process?.scope === 'CLEANING_AREA' ? 'м² на сотрудника за смену' : process?.scope === 'PALLET_TRANSPORT' ? 'паллеты на сотрудника за смену' : 'единиц на сотрудника за смену'}</strong>. Предварительная оценка, не замер.</p>
+          <p>{process?.scope === 'CLEANING_AREA' ? 'Механизированная база уборки × полезное время смены.' : 'Полезное время смены делится на время рейса туда и обратно с приёмом и передачей груза.'}</p>
+          <dl className="productivity-inputs">
+            <div><dt>Длительность смены</dt><dd>{formatDecimal(process?.schedule?.shift_hours?.normalized_value) ?? 'неизвестно'} ч</dd></div>
+            <div><dt>Полезное время</dt><dd>{formatPercent(manualEstimate.inputs.useful_time_share)}</dd></div>
+            {process?.scope === 'CLEANING_AREA' ? <div><dt>Механизированная выработка</dt><dd>{formatDecimal(manualEstimate.inputs.mechanized_rate_m2_h) ?? 'неизвестно'} м²/ч</dd></div> : <>
+              <div><dt>Маршрут в одну сторону</dt><dd>{formatDecimal(process?.route_distance?.normalized_value) ?? 'неизвестно'} м; обратно — тот же маршрут</dd></div>
+              <div><dt>Скорость человека</dt><dd>{formatDecimal(manualEstimate.inputs.manual_speed_m_s) ?? 'неизвестно'} м/с</dd></div>
+              <div><dt>Приём и передача</dt><dd>{formatDecimal(manualEstimate.inputs.manual_exchange_s) ?? 'неизвестно'} с</dd></div>
+              <div><dt>Груз за рейс</dt><dd>{formatDecimal(manualEstimate.inputs.units_per_trip) ?? 'неизвестно'} ед.</dd></div>
+            </>}
+          </dl><small>Источник: допущения типового процесса. Полная методика сохранена в архиве.</small></div>}
         {manualEstimate?.status === 'ESTIMATE' && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => applyManualProductivityEstimate(current, manualEstimate))}>Взять оценку как допущение и подтвердить ниже</button>}
         {manualEstimate?.status === 'UNSUPPORTED' && <p className="mt-2 text-amber-800">Для этого процесса нет утверждённой оценки ручной выработки. Введите измеренную норму; расчёт без неё останется частичным.</p>}
         {process?.scope === 'CLEANING_AREA' && <p className="mt-2">Для уборки укажите ручную выработку за смену; оценка реестра доступна как предварительное допущение.</p>}
@@ -260,7 +282,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         const staffingField = ['control_transfer_monthly_supplement_gross', 'technician_transfer_monthly_supplement_gross', 'technician_contractor_annual_gross'].includes(server);
         const displayLabel = key === 'manualUnitsPerShift' ? `Выработка одного сотрудника ${roleLabel} в процессе «${processLabel}»` : label;
         return <div key={key} className="block rounded border border-slate-500/40 p-3 text-sm">
-          <strong className="block">{displayLabel} <span className="font-normal">· {unit}</span></strong>
+          <label htmlFor={`economics-${server}`} className="block"><strong>{displayLabel}</strong> · {unit}</label>
 
           <input id={`economics-${server}`} type="text" inputMode="decimal" aria-label={displayLabel} value={values[key]} onChange={(event) => setValues((current) => editEconomicsField(current, key, server, event.target.value, { enableTemplate: demoEligible }))} className="w-full border rounded p-2 mt-2" placeholder="Неизвестно — оставьте пустым" aria-invalid={fieldIssues.some((item) => !['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code))} />
           <details className="mt-2"><summary className="text-xs cursor-pointer">Источник и допущения</summary><small className="block mt-1">{why} Возможный источник: {source}. {['Покупка', 'RaaS'].includes(group) ? 'Коммерческое условие требует отдельной проверки.' : ''}</small>
@@ -269,13 +291,13 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
             <option value="USER">Данные пользователя</option><option value="ASSUMPTION">Допущение для сценария</option>
           </select>}
           {values.sources[server] === 'ASSUMPTION' && <div className="mt-2 rounded bg-amber-50 p-2 text-xs">
-            {demoEligible && WAREHOUSE_ECONOMICS_DEMO.fields[server] ? <p>Предложение для «{fieldPresentation(server).label}» от {WAREHOUSE_ECONOMICS_DEMO.published_on}: {WAREHOUSE_ECONOMICS_DEMO.fields[server].value} {WAREHOUSE_ECONOMICS_DEMO.fields[server].unit}. {WAREHOUSE_ECONOMICS_DEMO.fields[server].rationale}. Источник: {WAREHOUSE_ECONOMICS_DEMO.source}.</p>
+            {demoEligible && WAREHOUSE_ECONOMICS_DEMO.fields[server] ? <p>Допущение типового примера от {WAREHOUSE_ECONOMICS_DEMO.published_on}: {presentationValue(server, WAREHOUSE_ECONOMICS_DEMO.fields[server].value, WAREHOUSE_ECONOMICS_DEMO.fields[server].unit)}. {fieldPresentation(server).action}</p>
               : <p>Для этого поля нет шаблона. Введите число вручную и подтвердите его как ваше сценарное допущение.</p>}
             {values[key] !== '' && values.assumptions[server] && <label className="mt-1 flex gap-2"><input type="checkbox" checked={values.assumptions[server].confirmed === true} onChange={(event) => setValues((current) => confirmEconomicsAssumption(current, server, event.target.checked))} />Подтверждаю число {values[key]} для этого сценария</label>}
             {values[key] !== '' && !values.assumptions[server] && <p>Нужно ввести и подтвердить число.</p>}
           </div>}
           </details>
-          {fieldIssues.map((item, index) => <small key={index} className={`block mt-1 ${['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code) ? 'text-amber-900' : 'text-red-700'}`} role="status">{item.message} {item.next_step}</small>)}
+          {fieldIssues.map((item, index) => <small key={index} className={`block mt-1 ${['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code) ? 'text-amber-900' : 'text-red-700'}`} role="status">{humanizePresentation(item.message)} {humanizePresentation(item.next_step)}</small>)}
         </div>;
       })}</div>}
       {group === 'Покупка' && <label className="block mt-3 text-sm">Дата оценки · дата<input id="economics-evaluation_date" type="date" value={values.evaluationDate} onChange={set('evaluationDate')} className="w-full border rounded p-2" /><small>Для привязки цен; источник — дата оценки проекта.</small></label>}

@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+.economics-inputs-v2 .labour-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.economics-inputs-v2 .labour-field { display: grid; align-content: start; gap: .5rem; min-width: 0; }
+.economics-inputs-v2 .labour-field-full { grid-column: 1 / -1; }
+.economics-inputs-v2 label:has(input:not([type="checkbox"]), select, textarea) { display: grid; gap: .5rem; min-width: 0; }
+.economics-inputs-v2 input:not([type="checkbox"]), .economics-inputs-v2 select, .economics-inputs-v2 textarea { display: block; width: 100%; min-width: 0; min-height: 2.75rem; padding: .625rem .75rem; box-sizing: border-box; }
+.economics-inputs-v2 textarea { resize: vertical; }
+.economics-inputs-v2 .grid > *, .economics-inputs-v2 details { min-width: 0; }
+.economics-inputs-v2 label, .economics-inputs-v2 summary, .economics-inputs-v2 strong { overflow-wrap: anywhere; }
+.economics-inputs-v2 button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.economics-inputs-v2 { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .economics-inputs-v2, .economics-inputs-v2 details { padding: .75rem; }
+}
+.economics-inputs-v2 .labour-field-message { min-height: 1em; }
+.economics-inputs-v2 input[type="checkbox"] { flex: 0 0 auto; }
+.saved-conditions { margin-top: 1rem; font-size: .875rem; }
+.saved-conditions h4 { margin: 1rem 0 .5rem; font-weight: 700; }
+.saved-conditions dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: .75rem; }
+.saved-conditions dl > div { padding: .75rem; border: 1px solid #64748b60; border-radius: .5rem; overflow-wrap: anywhere; }
+.saved-conditions dt { margin-bottom: .4rem; }
+.saved-conditions dd { margin: 0; }
+.saved-conditions dd strong { display: block; font-size: 1rem; }
+.productivity-inputs > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; margin: .4rem 0; }
+.candidate-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: .75rem; }
+.candidate-option { display: flex; align-items: center; gap: .75rem; padding: .75rem; border: 1px solid #64748b60; border-radius: .5rem; min-width: 0; }
+.candidate-option > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.candidate-option small { display: block; margin-top: .25rem; }
+.candidate-thumbnail { display: flex; align-items: center; justify-content: center; width: 5rem; height: 5rem; flex: 0 0 5rem; border-radius: .375rem; background: #fff; color: #475569; text-align: center; font-size: .625rem; }
+.candidate-thumbnail img { width: 100%; height: 100%; object-fit: contain; }
+.facility-plan > svg { display: block; width: 100%; height: min(60vh, 36rem); }
+.facility-operations { grid-auto-rows: 120px; max-height: 376px; overflow: auto; scrollbar-gutter: stable; }
+.facility-operations > div { min-width: 0; overflow: auto; overflow-wrap: anywhere; }
+/* Browser zoom can make a 390 px viewport narrower than 320 CSS px. */
+html body:has(.economics-inputs-v2, .commercial-screen, .candidate-options) { min-width: 0; }
+.commercial-screen, .candidate-options { min-width: 0; overflow-wrap: anywhere; }
+.commercial-screen .grid > * { min-width: 0; }
+.commercial-screen button { max-width: 100%; white-space: normal; }
+.candidate-comparison { min-width: 0; overflow-wrap: anywhere; }
+.candidate-comparison label { min-width: 0; max-width: 100%; }
+.candidate-comparison input:not([type="checkbox"]), .candidate-comparison select { max-width: 100%; min-width: 0; }
+.candidate-comparison button { max-width: 100%; white-space: normal; }
+
 :root {
   font-family: Inter, Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #eef1f2;
