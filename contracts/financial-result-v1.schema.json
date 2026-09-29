@@ -524,7 +524,8 @@
       "default": "full-cashflows-reconciliation-v2",
       "enum": [
         "full-cashflows-reconciliation-v1",
-        "full-cashflows-reconciliation-v2"
+        "full-cashflows-reconciliation-v2",
+        "full-cashflows-reconciliation-v3"
       ],
       "title": "Engine Version",
       "type": "string"

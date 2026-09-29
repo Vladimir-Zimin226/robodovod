@@ -98,6 +98,18 @@ def test_tax_modes_other_income_and_fifo_loss_carry():
     assert carry[1].loss_used == Decimal(50) and carry[2].loss_used == Decimal(50)
 
 
+def test_explicit_tax_supplement_preserves_current_pretax_metrics():
+    raw = request().model_dump(mode='json')
+    raw['additional_income'] = {'mode': 'INCLUDED', 'annual_amount': {'value': '100000000', 'unit': 'RUB/year', 'source': 'USER', 'provenance_ref': 'prov.user.additional-income'}}
+    primary = analyze_financials(FinancialAnalysisRequestV1.model_validate(raw))
+    raw['tax_mode'] = 'ILLUSTRATIVE_NO_OTHER_INCOME'
+    supplement = analyze_financials(FinancialAnalysisRequestV1.model_validate(raw))
+    assert any(Decimal(item.tax_scenario.tax) > 0 for item in supplement.annual_ledgers)
+    assert any(Decimal(item.supplement_cf_scenario) < Decimal(item.primary_cf_scenario) for item in supplement.annual_ledgers)
+    for key in ('npv_base', 'npv_scenario', 'npv_project', 'cumulative_effect', 'roi_on_capex_cashflow', 'simple_payback', 'discounted_payback', 'tco_purchase_gross'):
+        assert getattr(supplement, key) == getattr(primary, key)
+
+
 def test_payback_interpolation_late_nonmonotonic_and_not_reached():
     assert payback([Decimal(-25), Decimal(10), Decimal(10), Decimal(10)]) == Decimal("2.5")
     assert payback([Decimal(-10), Decimal(15), Decimal(-20), Decimal(30)]) == Decimal(10) / Decimal(15)
@@ -137,6 +149,38 @@ def test_additional_income_requires_explicit_mode_and_provenance():
     raw["additional_income"] = {"mode": "EXCLUDED"}
     with pytest.raises(ValidationError):
         FinancialAnalysisRequestV1.model_validate(raw)
+
+
+def test_v3_indexes_additional_income_without_changing_v2_replay():
+    raw = request().model_dump(mode="json")
+    raw["additional_income"] = {"mode": "INCLUDED", "annual_amount": {"value": "1000000", "unit": "RUB/year", "source": "USER", "provenance_ref": "prov.user.additional-income"}}
+    included = FinancialAnalysisRequestV1.model_validate(raw)
+    old = calculate_financial_result(included, engine_version="full-cashflows-reconciliation-v2")
+    new = calculate_financial_result(included, engine_version="full-cashflows-reconciliation-v3")
+    expected = [Decimal("1000000") * Decimal("1.05") ** year for year in range(5)]
+    for result, values in ((old, [Decimal("1000000")] * 5), (new, expected)):
+        actual = [Decimal(next(line.amount for line in ledger.scenario_lines if line.line_id.endswith("scenario-additional-income"))) for ledger in result.annual_ledgers]
+        assert actual == [-value for value in values]
+    assert Decimal(new.cumulative_effect.value) - Decimal(old.cumulative_effect.value) == sum(expected) - Decimal("5000000")
+    discount = Decimal(included.discount_rate.value)
+    discounted_gain = sum(((value - Decimal('1000000')) / (1 + discount) ** year for year, value in enumerate(expected, start=1)), Decimal(0))
+    assert abs(Decimal(new.npv_project.value) - Decimal(old.npv_project.value) - discounted_gain) <= Decimal('0.01')
+    assert new.tco_purchase_gross == old.tco_purchase_gross
+    flows = [-Decimal(included.purchase_ledger.capex_cashflow)] + [Decimal(item.differential_cf) for item in new.annual_ledgers]
+    assert new.simple_payback.value == format(payback(flows).quantize(Decimal('0.01')), 'f')
+
+
+def test_v3_golden_service_and_schema_are_replayable_without_mutating_inputs():
+    import jsonschema
+
+    data = json.loads((ROOT / "contracts/fixtures/financial-result-v3.additional-income.golden.json").read_text(encoding="utf-8"))
+    request = FinancialAnalysisRequestV1.model_validate(data['request'])
+    before = request.model_dump(mode='json')
+    result = analyze_financials(request, engine_version='full-cashflows-reconciliation-v3')
+    assert result.model_dump(mode='json') == data['result']
+    assert request.model_dump(mode='json') == before
+    schema = json.loads((ROOT / 'contracts/financial-result-v1.schema.json').read_text(encoding='utf-8'))
+    jsonschema.validate(data['result'], schema)
 
 
 def test_tco_publishes_gross_and_net_of_residual_without_double_battery():

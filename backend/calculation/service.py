@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Literal
 
 from catalog_repository import CatalogPositionDTO, CatalogSnapshotDTO
 from catalog_selection import numeric_fact, SAFE_FACT_STATUSES
@@ -385,10 +385,11 @@ def analyze_purchase_costs(request: PurchaseLedgerRequestV1) -> PurchaseCostLedg
     return calculate_purchase_ledger(request)
 
 
-def analyze_financials(request: FinancialAnalysisRequestV1) -> FinancialResultV1:
+def analyze_financials(request: FinancialAnalysisRequestV1, *,
+                       engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3"] = "full-cashflows-reconciliation-v2") -> FinancialResultV1:
     """Versioned C16 boundary over immutable C14/C15 snapshots."""
 
-    return calculate_financial_result(request)
+    return calculate_financial_result(request, engine_version=engine_version)
 
 
 def analyze_raas_financials(request: RaasAnalysisRequestV1) -> RaasFinancialResultV1:

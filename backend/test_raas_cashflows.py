@@ -58,6 +58,30 @@ def test_payment_is_a_separate_line_and_counted_once_in_tco():
     assert Decimal(result.tco_raas.value) == capex + customer + payments
 
 
+def test_raas_inherits_indexed_additional_income_from_v3_comparator():
+    from calculation.economics.cashflow import FinancialAnalysisRequestV1, calculate_financial_result
+
+    raw = request().model_dump(mode="json")
+    comparator = raw["purchase_comparator_request"]
+    excluded_c16 = calculate_financial_result(FinancialAnalysisRequestV1.model_validate(comparator), engine_version="full-cashflows-reconciliation-v3")
+    raw["purchase_comparator_result"] = excluded_c16.model_dump(mode="json")
+    redigest(raw)
+    excluded = calculate_raas_financials(RaasAnalysisRequestV1.model_validate(raw))
+    comparator["additional_income"] = {"mode": "INCLUDED", "annual_amount": {"value": "1000000", "unit": "RUB/year", "source": "USER", "provenance_ref": "prov.user.additional-income"}}
+    c16_request = FinancialAnalysisRequestV1.model_validate(comparator)
+    raw["purchase_comparator_request"] = c16_request.model_dump(mode="json")
+    c16 = calculate_financial_result(c16_request, engine_version="full-cashflows-reconciliation-v3")
+    raw["purchase_comparator_result"] = c16.model_dump(mode="json")
+    redigest(raw)
+    import jsonschema
+    jsonschema.validate(raw, json.loads((ROOT / 'contracts/raas-analysis-request-v1.schema.json').read_text(encoding='utf-8')))
+    included = calculate_raas_financials(RaasAnalysisRequestV1.model_validate(raw))
+    assert included.status == "COMPLETE"
+    for year, (old, new) in enumerate(zip(excluded.annual_ledgers, included.annual_ledgers), start=1):
+        expected = Decimal("1000000") * Decimal("1.05") ** (year - 1)
+        assert Decimal(new.ebitda_scenario) - Decimal(old.ebitda_scenario) == expected
+
+
 def test_raas_zeroes_purchase_assets_battery_and_residual_explicitly():
     result = calculate_raas_financials(request())
     assert {item.area for item in result.zeroed_lines} == {"HARDWARE", "CHARGING", "INTEGRATION", "MAINTENANCE", "SOFTWARE", "BATTERY", "RESIDUAL"}

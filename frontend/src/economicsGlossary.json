@@ -473,7 +473,7 @@
   "source_bindings": {
     "backend/calculation/capacity/quantities.py": "937eb60e06054849a2f4d0aecbdfa9fb9ecd8ace77e10051b4b420e5f3bc15e2",
     "backend/calculation/capacity/transport.py": "5a234e2e9c6e09839fcc098f43dbded29abc029bae3596208d8cf6d39793d7c3",
-    "backend/calculation/economics/cashflow.py": "56fdec89e4a46b076be8169a100af72a8f93e7ba3d9678837971d895359ca3dd",
+    "backend/calculation/economics/cashflow.py": "89cc975ba0d3ac9e48707dfa4df555de13d12e3d800a94969289465592490a02",
     "backend/calculation/economics/metrics.py": "74c288b0c3a873a515b6e10f390ab1fcc85d42cd50dc6da903ff35d2db8c1501",
     "backend/calculation/economics/purchase.py": "42ce99a77e31d07feb93ff045633195a4718639491ec035d16ba3c119c71dd0d",
     "backend/calculation/economics/raas.py": "5a574759008a12940535e725b7bbac39775ff111e9d7c5cda28d335bd742ee1e",

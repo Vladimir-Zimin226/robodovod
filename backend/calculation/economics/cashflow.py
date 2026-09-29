@@ -216,7 +216,7 @@ class FinancialResultV1(StrictContractModel):
     precision_policy_version: Literal["decimal-context-28-half-even-v1"] = "decimal-context-28-half-even-v1"
     purchase_ledger_version: Literal["purchase-cost-ledger-v1"] = "purchase-cost-ledger-v1"
     labour_result_version: Literal["role-labour-result-v1"] = "role-labour-result-v1"
-    engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2"] = "full-cashflows-reconciliation-v2"
+    engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3"] = "full-cashflows-reconciliation-v2"
     replay: FinancialReplayV1
 
 
@@ -258,7 +258,7 @@ def _reconciliation(complete: bool) -> list[ReconciliationFindingV1]:
 
 def calculate_financial_result(request: FinancialAnalysisRequestV1,
                                registry: CalculationParameterRegistryV1 | None = None,
-                               *, engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2"] = "full-cashflows-reconciliation-v2") -> FinancialResultV1:
+                               *, engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3"] = "full-cashflows-reconciliation-v2") -> FinancialResultV1:
     registry = registry or load_registry()
     purchase = request.purchase_ledger
     labour = request.labour_result
@@ -290,6 +290,7 @@ def calculate_financial_result(request: FinancialAnalysisRequestV1,
         ramp = _d(annual.ramp)
         labor_factor = (Decimal(1) + labour_index) ** (year - 1)
         other_factor = (Decimal(1) + other_index) ** (year - 1)
+        additional_t = additional * other_factor if engine_version == "full-cashflows-reconciliation-v3" else additional
         base_direct = base_overhead = scenario_direct = deficit_base = deficit_scenario = severance = Decimal(0)
         role_missing = False
         for role in labour.roles:
@@ -347,10 +348,10 @@ def calculate_financial_result(request: FinancialAnalysisRequestV1,
             _line(f"year.{year}.scenario-equipment", equipment_scenario, [] if request.baseline_equipment is None else [request.baseline_equipment.annual_cost_per_unit.provenance_ref]),
             _line(f"year.{year}.scenario-remaining-deficit", None if role_missing else deficit_scenario, [request.labour_result_digest]),
             _line(f"year.{year}.scenario-purchase-opex", None if opex_missing else opex, [request.purchase_ledger_digest]),
-            _line(f"year.{year}.scenario-additional-income", -additional, additional_refs),
+            _line(f"year.{year}.scenario-additional-income", -additional_t, additional_refs),
         ]
         base_cost = None if role_missing else base_direct + base_overhead + equipment_base + deficit_base
-        scenario_cost = None if role_missing or opex_missing else scenario_direct + base_overhead + equipment_scenario + deficit_scenario + opex - additional
+        scenario_cost = None if role_missing or opex_missing else scenario_direct + base_overhead + equipment_scenario + deficit_scenario + opex - additional_t
         ebitda_base = None if base_cost is None else -base_cost
         ebitda_scenario = None if scenario_cost is None else -scenario_cost
         depreciation = None if amortizable is None else (amortizable / Decimal(5) if year <= 5 else Decimal(0))
