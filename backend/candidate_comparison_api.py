@@ -225,9 +225,9 @@ def rank_cohort(rows: list[dict[str, Any]], finance: dict[str, dict[str, str]] |
     if ordered:
         best = ordered[0]
         technical = {"status": "PRELIMINARY" if best["readiness"] != "VERIFIED" else "RECOMMENDED",
-                     "position_id": best["position_id"], "reason": "Технический балл C19 без закупочной готовности"}
+                     "position_id": best["position_id"], "reason": "Оценка пригодности; условия закупки требуют отдельного подтверждения"}
     financial = {"status": "INCOMPLETE", "position_id": None,
-                 "reason": "Для всех допустимых позиций нужны сопоставимые подтверждённые финансовые runs"}
+                 "reason": "Для всех допустимых позиций нужны сопоставимые подтверждённые финансовые расчёты"}
     if len(eligible) >= 2 and all(row["position_id"] in finance for row in eligible):
         cases = [finance[row["position_id"]] for row in eligible]
         if len({case["basis_digest"] for case in cases}) == 1:
@@ -254,7 +254,7 @@ def rank_cohort(rows: list[dict[str, Any]], finance: dict[str, dict[str, str]] |
                          if positive else {"status": "NO_POSITIVE_CASE", "position_id": None,
                                            "reason": "У всех сопоставимых позиций NPV неположительный"})
         else:
-            financial["reason"] = "У финансовых runs различаются подтверждённые условия"
+            financial["reason"] = "У финансовых расчётов различаются подтверждённые условия"
     return {"technical_recommendation": technical, "financial_recommendation": financial,
             "candidates": sorted(rows, key=lambda row: row["position_id"])}
 
@@ -474,11 +474,15 @@ def create_comparison_router(discovery_loader: Callable[[], CatalogSnapshotDTO])
                 continue
             finance_options.append({"run_id": str(finance_run.id), "position_id": linked_request.position_id,
                                     "npv_project": npv, "basis_digest": _finance_basis(basis),
+                                    "conditions": {"horizon_years": basis.get("horizon_years"), "discount_rate": basis.get("discount_rate")},
                                     "created_at": finance_run.created_at})
         return {"catalog_version": snapshot.version.code, "source_position_id": request.position_id,
                 "process_id": request.process.process_id,
                 "object_constraint_context": getattr(request, 'object_constraint_context', None),
                 "items": [{"position_id": item.id, "name": item.model.name,
+                           "media": ({"url": f"/api/catalog/media/{snapshot.version.code}/{item.media.sha256}",
+                                      "width_px": item.media.width_px, "height_px": item.media.height_px}
+                                     if item.media else None),
                            "maturity_status": item.model.maturity_status,
                            "calculation_ready": item.model.capacity_runtime.calculation_ready,
                            "price_status": item.procurement_option.price_status,
