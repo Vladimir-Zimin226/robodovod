@@ -1,0 +1,4 @@
+{
+  "schema_version": "investor-presentation-versions-v1",
+  "supported": ["investor-presentation-v1", "investor-presentation-v2", "investor-presentation-v3"]
+}

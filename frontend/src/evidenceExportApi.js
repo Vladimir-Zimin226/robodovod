@@ -1,4 +1,16 @@
+import investorPresentations from '../../contracts/investor-presentation-versions-v1.json' with { type: 'json' };
+
 const API = import.meta.env?.VITE_API_URL || '';
+export const SUPPORTED_INVESTOR_PRESENTATIONS = Object.freeze(investorPresentations.supported);
+
+export function exportErrorMessage(error) {
+  const message = error?.message || '';
+  console.error('Calculation export:', error);
+  if (message.includes('presentation version')) return 'Эта версия отчёта пока не поддерживается. Обновите страницу; если ошибка повторится, скачайте архив ZIP.';
+  if (message.includes('content digest')) return 'Файл не прошёл проверку целостности. Повторите скачивание.';
+  if (/binding|digest|snapshot/.test(message)) return 'Источник файла не совпадает с выбранным расчётом или симуляцией. Выберите расчёт заново.';
+  return 'Не удалось получить файл. Проверьте соединение и повторите попытку.';
+}
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
 const ROOT_KEYS = [
   'schema_version', 'run_id', 'project_id', 'run_kind', 'revision_id',
@@ -107,6 +119,7 @@ export class EvidenceExportSession {
     );
     if (!response.ok) throw new Error(`export manifest unavailable (${response.status})`);
     const manifest = parseEvidenceManifest(await response.json(), { projectId, runId });
+    if (simulationRequestId && manifest.simulation_request_id !== simulationRequestId) throw new Error('simulation request binding mismatch');
     if (sequence !== this.sequence) throw new Error('stale evidence response');
     return manifest;
   }
@@ -163,8 +176,11 @@ export class EvidenceExportSession {
     if (sequence !== this.sequence) throw new Error('stale evidence response');
     const response = await this.fetchImpl(`${base}/investor-report.pdf${suffix}`, { credentials: 'include' });
     if (!response.ok) throw new Error(`investor report unavailable (${response.status})`);
+    if (!SUPPORTED_INVESTOR_PRESENTATIONS.includes(response.headers.get('X-Report-Presentation'))) {
+      throw new Error('unsupported investor presentation version');
+    }
+    if (simulationRequestId && manifest.simulation_request_id !== simulationRequestId) throw new Error('simulation request binding mismatch');
     if (response.headers.get('X-Report-Source-Digest') !== manifest.source_snapshot_digests.result
-      || response.headers.get('X-Report-Presentation') !== 'investor-presentation-v1'
       || response.headers.get('X-Simulation-Report-Digest') !== (manifest.simulation_report_digest || 'none')) {
       throw new Error('investor report source binding mismatch');
     }

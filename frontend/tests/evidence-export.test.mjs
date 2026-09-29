@@ -24,7 +24,7 @@ test('investor PDF download binds saved data, presentation, simulation and actua
   assert.match(saved[0],/инвестиционная оценка от 01\.01\.2026\.pdf$/);
   for (const [key,value] of [['X-Report-Source-Digest','sha256:'+'0'.repeat(64)],['X-Report-Presentation','unknown'],['X-Simulation-Report-Digest','sha256:'+'0'.repeat(64)],['ETag','"sha256:'+'0'.repeat(64)+'"']]) {
     const previous = headers[key]; headers[key] = value;
-    await assert.rejects(session.downloadInvestorReport(manifestV2.project_id,manifestV2.run_id),/binding mismatch|content digest mismatch/);
+    await assert.rejects(session.downloadInvestorReport(manifestV2.project_id,manifestV2.run_id),/binding mismatch|content digest mismatch|presentation version/);
     headers[key] = previous;
   }
   assert.equal(saved.length,1);

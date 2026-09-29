@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { EvidenceExportSession } from '../evidenceExportApi';
+import { EvidenceExportSession, exportErrorMessage } from '../evidenceExportApi';
 import { sectionLabel, statusLabel, savedCalculationLabel } from '../presentation';
 
 const API = import.meta.env?.VITE_API_URL || '';
 
 export default function EvidenceExportPanel({ projectId, runId }) {
+  return <EvidenceExportSource key={`${projectId}:${runId}`} projectId={projectId} runId={runId} />;
+}
+
+function EvidenceExportSource({ projectId, runId }) {
   const [session] = useState(() => new EvidenceExportSession());
   const [manifest, setManifest] = useState(null);
   const [status, setStatus] = useState('loading');
@@ -32,7 +36,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
       .then((next) => { setManifest(next); setStatus('ready'); })
       .catch((reason) => {
         if (reason.message !== 'stale evidence response') {
-          setError(reason.message);
+          setError(exportErrorMessage(reason));
           setStatus('error');
         }
       });
@@ -48,7 +52,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
       setStatus('downloaded');
     } catch (reason) {
       if (reason.message !== 'stale evidence response') {
-        setError(reason.message);
+        setError(exportErrorMessage(reason));
         setStatus('error');
       }
     }
@@ -63,7 +67,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
       setStatus('downloaded-pdf');
     } catch (reason) {
       if (reason.message !== 'stale evidence response') {
-        setError(reason.message);
+        setError(exportErrorMessage(reason));
         setStatus('error');
       }
     }
@@ -75,7 +79,7 @@ export default function EvidenceExportPanel({ projectId, runId }) {
       const next = await session.downloadFormat(projectId, runId, format, simulationRequestId || null);
       setManifest(next); setStatus(`downloaded-${format}`);
     } catch (reason) {
-      if (reason.message !== 'stale evidence response') { setError(reason.message); setStatus('error'); }
+      if (reason.message !== 'stale evidence response') { setError(exportErrorMessage(reason)); setStatus('error'); }
     }
   };
 
@@ -100,7 +104,10 @@ export default function EvidenceExportPanel({ projectId, runId }) {
         </div>
       </div>
       {simulations.length > 0 && <label className="block text-sm">Сохранённая симуляция для PDF и пакета
-        <select value={simulationRequestId} onChange={(event) => setSimulationRequestId(event.target.value)}>
+        <select value={simulationRequestId} onChange={(event) => {
+          session.cancel(); setManifest(null); setError(''); setStatus('loading');
+          setSimulationRequestId(event.target.value);
+        }}>
           {simulations.map((item, index) => <option key={item.id} value={item.id}>Сохранённая симуляция {index + 1}</option>)}
         </select>
       </label>}

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import uuid
 import hashlib
+import json
+from pathlib import Path
 from collections.abc import Callable
 from urllib.parse import quote
 
@@ -22,6 +24,11 @@ from calculation.investor_report import VERSION as INVESTOR_PRESENTATION, build_
 from database import database_session
 from persistence_models import AnalysisRun, Project, SimulationArtifact
 from simulation_artifacts import SimulationArtifactIntegrityError, load_artifact
+
+SUPPORTED_INVESTOR_PRESENTATIONS = tuple(json.loads((
+    Path(__file__).resolve().parents[1] / "contracts/investor-presentation-versions-v1.json"
+).read_text(encoding="utf-8"))["supported"])
+assert INVESTOR_PRESENTATION in SUPPORTED_INVESTOR_PRESENTATIONS
 
 
 RunLoader = Callable[[Session, uuid.UUID, uuid.UUID, uuid.UUID], EvidenceRunSnapshotV1 | None]
