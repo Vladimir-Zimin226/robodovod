@@ -708,7 +708,7 @@ def expected_files() -> tuple[tuple[Path, bytes], ...]:
                     ("R03", "Разобрать/Версии проекта от Жени/reference/03_FORMULAS.md", "REFERENCE"),
                     ("R04", "Разобрать/Версии проекта от Жени/reference/04_DECISIONS.md", "REFERENCE"),
                     ("R06", "Разобрать/Версии проекта от Жени/reference/06_EXPERT.md", "REFERENCE"),
-                    ("POLICY_V1", "docs/planning/calculation-policy-decisions-v1.md", "ACCEPTED_POLICY"),
+                    ("POLICY_V1", "data/calculation/sources/POLICY_V1.md", "ACCEPTED_POLICY"),
                 )
             ],
             "parameter_count": len(registry.parameters),

@@ -8,6 +8,7 @@ contracts/*.json text eol=lf
 contracts/fixtures/*.json text eol=lf
 frontend/tests/fixtures/*.json text eol=lf
 data/calculation/*.json text eol=lf
+data/calculation/sources/POLICY_V1.md -text -diff
 data/review/*.json text eol=lf
 data/review/*.md text eol=lf
 data/commercial/*.json text eol=lf

@@ -65,7 +65,7 @@
       "source_id": "R06"
     },
     {
-      "path": "docs/planning/calculation-policy-decisions-v1.md",
+      "path": "data/calculation/sources/POLICY_V1.md",
       "role": "ACCEPTED_POLICY",
       "runtime_dependency": false,
       "sha256": "212754fe55fca4d5890961b89361ff8b3494650ee5ec9dbcfd22055f98bdd584",
