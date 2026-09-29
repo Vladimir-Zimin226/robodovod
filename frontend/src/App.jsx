@@ -42,6 +42,11 @@ const API = import.meta.env.VITE_API_URL || '';
 const sessionStore = () => {
   try { return window.sessionStorage; } catch { return null; }
 };
+const copyIntakeEntry = (setter, source, target) => {
+  if (source === target) return;
+  setter((current) => current[source] && !current[target]
+    ? { ...current, [target]: current[source] } : current);
+};
 
 export default function App() {
   const [phase, setPhase] = useState(() => phaseFromHash(window.location.hash));
@@ -60,6 +65,8 @@ export default function App() {
   const [assistantImport, setAssistantImport] = useState(null);
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [resumeIntake, setResumeIntake] = useState(false);
   const [activeProject, setActiveProject] = useState(null);
   const [projectChoices, setProjectChoices] = useState([]);
   const [projectStatus, setProjectStatus] = useState('loading');
@@ -71,6 +78,7 @@ export default function App() {
   const catalogReturnPhase = useRef('onboarding');
   const pendingResultTarget = useRef(null);
   const previousPhase = useRef(phase);
+  const pendingIntakeReturn = useRef(false);
 
   const showPhase = (nextPhase) => {
     if (phase !== nextPhase) {
@@ -160,7 +168,25 @@ export default function App() {
     return () => controller.abort();
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!pendingIntakeReturn.current || !user?.id || !activeProject?.id || !objectType) return;
+    const source = `${user.id}:none:${objectType}`;
+    const target = `${user.id}:${activeProject.id}:${objectType}`;
+    copyIntakeEntry(setIntakeDrafts, source, target);
+    copyIntakeEntry(setIntakeSnapshots, source, target);
+    pendingIntakeReturn.current = false;
+    setResumeIntake(false);
+  }, [user?.id, activeProject?.id, objectType]);
+
   const selectActiveProject = (project) => {
+    if (phase === 'intake' || pendingIntakeReturn.current) {
+      const source = `${user?.id || 'guest'}:${activeProject?.id || 'none'}:${objectType || 'none'}`;
+      const target = `${user?.id || 'guest'}:${project.id}:${objectType || 'none'}`;
+      copyIntakeEntry(setIntakeDrafts, source, target);
+      copyIntakeEntry(setIntakeSnapshots, source, target);
+      pendingIntakeReturn.current = false;
+      setResumeIntake(false);
+    }
     setCatalogContext(null);
     setActiveProject(project);
     setActiveRun(null);
@@ -170,6 +196,8 @@ export default function App() {
   };
 
   const restart = () => {
+    pendingIntakeReturn.current = false;
+    setResumeIntake(false);
     setIntakeDrafts({});
     setIntakeSnapshots({});
     setCatalogContext(null);
@@ -252,6 +280,13 @@ export default function App() {
       showPhase(user ? 'projects' : 'account');
       return;
     }
+    if (id === 'register') {
+      pendingIntakeReturn.current = phase === 'intake';
+      setResumeIntake(phase === 'intake');
+      setAuthMode('register');
+      showPhase('account');
+      return;
+    }
     if (id === 'admin') {
       showPhase(user?.role === 'ADMIN' ? 'admin' : 'account');
       return;
@@ -261,6 +296,9 @@ export default function App() {
       return;
     }
     if (id === 'account') {
+      pendingIntakeReturn.current = phase === 'intake' && !user;
+      setResumeIntake(phase === 'intake' && !user);
+      setAuthMode('login');
       showPhase('account');
       return;
     }
@@ -355,16 +393,16 @@ export default function App() {
             importedAssistant={assistantImport}
             activeProject={activeProject}
             initialFacilityContext={userInput?.facility_context || activeRun?.input_snapshot?.facility_context}
-            initialDraft={intakeDrafts[intakeDraftKey]}
-            initialNormalized={intakeSnapshots[intakeDraftKey]}
+            initialDraft={intakeDrafts[intakeDraftKey] || (resumeIntake && intakeDrafts[`${user?.id || 'guest'}:none:${objectType || 'none'}`])}
+            initialNormalized={intakeSnapshots[intakeDraftKey] || (resumeIntake && intakeSnapshots[`${user?.id || 'guest'}:none:${objectType || 'none'}`])}
             onDraftChange={rememberIntakeDraft}
             user={user}
             authChecked={authChecked}
             projectChoices={projectChoices}
             projectStatus={projectStatus}
             onChooseProject={selectActiveProject}
-            onOpenProjects={() => showPhase('projects')}
-            onOpenAccount={() => showPhase('account')}
+            onOpenProjects={() => { pendingIntakeReturn.current = true; setResumeIntake(true); showPhase('projects'); }}
+            onOpenAccount={() => { pendingIntakeReturn.current = true; setResumeIntake(true); setAuthMode('register'); showPhase('account'); }}
             onFileApplied={(normalized, imported) => {
               setIntakeDrafts((current) => {
                 const next = { ...current }; delete next[intakeDraftKey]; return next;
@@ -397,14 +435,23 @@ export default function App() {
             onBack={() => showPhase(catalogReturnPhase.current)} />
         ) : phase === 'account' ? (
           <AuthScreen
+            key={authMode}
             user={user}
+            initialMode={authMode}
             onAuthenticated={(nextUser) => {
+              const returnToIntake = pendingIntakeReturn.current;
+              if (returnToIntake) {
+                const source = `guest:none:${objectType || 'none'}`;
+                const target = `${nextUser.id}:none:${objectType || 'none'}`;
+                copyIntakeEntry(setIntakeDrafts, source, target);
+                copyIntakeEntry(setIntakeSnapshots, source, target);
+              }
               setActiveProject(null);
               setProjectChoices([]);
               setProjectStatus('loading');
               setUser(nextUser);
               setAuthChecked(true);
-              showPhase('account');
+              showPhase(returnToIntake ? 'intake' : 'account');
             }}
             onLoggedOut={() => {
               setIntakeDrafts({});
@@ -420,7 +467,7 @@ export default function App() {
           />
         ) : phase === 'projects' ? (
           <ProjectsScreen
-            onOpenProject={(project) => { selectActiveProject(project); showPhase('onboarding'); }}
+            onOpenProject={(project) => { const returnToIntake = pendingIntakeReturn.current; selectActiveProject(project); showPhase(returnToIntake ? 'intake' : 'onboarding'); }}
             onOpenRun={openSavedRun}
           />
         ) : phase === 'admin' ? (

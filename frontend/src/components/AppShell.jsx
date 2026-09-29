@@ -76,6 +76,9 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
             <div><strong>{activeProject?.name || (user ? 'Проект не выбран' : isResult ? 'Текущий расчёт' : 'Гостевой расчёт')}</strong><span>{activeProject ? 'Сохраняемый проект' : user ? 'Выберите проект для v2' : isResult ? 'Предварительное ТЭО' : 'Россия'}</span></div>
           </div>
           <button className={`user-avatar ${activeNav === 'account' ? 'active' : ''}`} onClick={() => navigate({ id: 'account' })} aria-label={user ? `Аккаунт ${user.email}` : 'Войти или зарегистрироваться'} title={user ? user.email : 'Войти'}>{initials}</button>
+          <button type="button" className="mobile-account-action" onClick={() => navigate({ id: user ? 'account' : 'register' })}>
+            {user ? 'Мой аккаунт' : 'Войти / регистрация'}
+          </button>
           <p className="command-examples">Например: «Перемещение паллет на складе», «Упаковка готовой продукции», «Подача материалов на линию»</p>
         </header>
         <div className="app-content" style={isResult ? { overflowAnchor: 'none' } : undefined}>{children}</div>

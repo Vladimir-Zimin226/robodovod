@@ -363,8 +363,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       {!activeProject && <section className="mb-4 rounded-lg border border-amber-400/50 bg-[#2b281d] p-3 text-xs text-amber-100" aria-label="Проект для расчёта">
         <p className="font-semibold">Для расчёта парка нужен открытый проект</p>
         {!authChecked ? <p className="mt-1">Проверяем вход…</p> : !user ? <>
-          <p className="mt-1">Гостевой ввод можно проверить, но сохранение расчёта и полная экономика доступны после входа.</p>
-          <button type="button" className="mt-2 font-semibold text-lime-300 underline" onClick={onOpenAccount}>Войти или зарегистрироваться</button>
+          <p className="mt-1">Гостевой ввод можно проверить. Чтобы увидеть и сохранить свой расчёт, зарегистрируйтесь или войдите. Заполненные поля останутся в этой вкладке.</p>
+          <button type="button" className="mt-2 font-semibold text-lime-300 underline" onClick={onOpenAccount}>Зарегистрироваться или войти</button>
         </> : projectStatus === 'loading' ? <p className="mt-1">Восстанавливаем ваш проект…</p> : projectStatus === 'error' ? <>
           <p className="mt-1">Не удалось загрузить ваши проекты. Откройте список проектов и повторите попытку.</p>
           <button type="button" className="mt-2 font-semibold text-lime-300 underline" onClick={onOpenProjects}>Мои проекты</button>
@@ -447,9 +447,10 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                 ? 'Варианты каталога и отдельная проверка комплектовки' : 'Операция описана; расчётной формулы пока нет'}</span>
           </button>;
         })}</div>
-        <button type="button" className="primary-action mt-3" disabled={batchBusy || !activeProject?.id || !acknowledged} onClick={runBatch}>{batchBusy ? `Рассчитываем операции · ${batchProgress}` : 'Рассчитать все выбранные операции'}</button>
+        {activeProject ? <button type="button" className="primary-action mt-3" disabled={batchBusy || !acknowledged} onClick={runBatch}>{batchBusy ? `Рассчитываем операции · ${batchProgress}` : 'Рассчитать все выбранные операции'}</button>
+          : <button type="button" className="primary-action mt-3" onClick={user ? onOpenProjects : onOpenAccount}>{user ? 'Выбрать проект для расчёта' : 'Зарегистрироваться для расчёта'}</button>}
         {batchError && <p role="alert" className="text-red-700 mt-2">{batchError}</p>}
-        {operationBatch?.project_id === activeProject?.id && <div className="mt-3 rounded border p-2" aria-label="Сохранённая сводка операций">
+        {operationBatch && activeProject && operationBatch.project_id === activeProject.id && <div className="mt-3 rounded border p-2" aria-label="Сохранённая сводка операций">
           <p><strong>Сводка версии {operationBatch.input_revision}</strong> · {operationBatch.status === 'PARTIAL' ? 'частичная' : 'все отдельные операции обработаны'} · {operationBatch.operations.length} операций.</p>
           <div className="overflow-x-auto"><table className="w-full min-w-[650px] text-left"><thead><tr><th>Зона и операция</th><th>Объём</th><th>Модель и парк</th><th>Состояние</th></tr></thead><tbody>{operationBatch.operations.map(item =>
             <tr key={item.process_id}><td>{item.zone_label} · {draft.processes.find(process => process.processId === item.process_id)?.label || item.process_code}</td><td>{item.demand.normalized_value ?? 'нет данных'} {item.demand.unit}</td>
@@ -506,7 +507,11 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           <label className="flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={acknowledged} onChange={(event) => { setAcknowledged(event.target.checked); invalidateComparison(); }} />Подтверждаю, что данные типового объекта и непроверенные условия дают только предварительную оценку.</label>
           {!acknowledged && <p className="text-xs text-amber-800" role="status">Чтобы запустить расчёт, подтвердите предварительные допущения выше.</p>}
           {acknowledged && candidatePositions.length > 0 && !selectedPosition && <p className="text-xs text-amber-800" role="status">Выберите модель в списке выше. Расчёт можно запустить вручную, даже если автоматический подбор недоступен.</p>}
-          <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={activeProject ? runCapacity : () => setError('Сначала выберите сохраняемый проект в блоке выше.')}>{capacityBusy ? 'Считаем…' : activeProject ? 'Рассчитать и сохранить' : 'Сначала выберите проект'}</button>
+          {activeProject ? <button type="button" className="w-full rounded-xl py-2 bg-blue-600 text-white text-sm disabled:bg-slate-200 disabled:text-slate-400" disabled={capacityBusy || !selectedPosition || !acknowledged} onClick={runCapacity}>{capacityBusy ? 'Считаем…' : 'Рассчитать и сохранить'}</button>
+            : <div className="rounded-lg border border-amber-400/50 p-3 text-xs" role="status">
+              <p>{user ? 'Выберите проект, чтобы получить и сохранить расчёт.' : 'Расчёт вашего сценария откроется после регистрации или входа. Ввод останется в этой вкладке.'}</p>
+              <button type="button" className="primary-action mt-2" onClick={user ? onOpenProjects : onOpenAccount}>{user ? 'Выбрать или создать проект' : 'Зарегистрироваться для расчёта'}</button>
+            </div>}
         </>}
       </section>}
     </section>

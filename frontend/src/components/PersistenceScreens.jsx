@@ -5,8 +5,8 @@ import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { economicsRunView } from '../economicsRunModel';
 import { reopenCapacityRun } from '../reopenCapacityRun';
 
-export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
-  const [mode, setMode] = useState('login');
+export function AuthScreen({ user, initialMode = 'login', onAuthenticated, onLoggedOut, onNavigate }) {
+  const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({ email: '', password: '', name: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -72,7 +72,7 @@ export function AuthScreen({ user, onAuthenticated, onLoggedOut, onNavigate }) {
       <div className="persistence-heading">
         <span className="eyebrow">СОХРАНЯЕМЫЕ ПРОЕКТЫ</span>
         <h1>{mode === 'login' ? 'Вход' : 'Регистрация'}</h1>
-        <p>Гостевой расчёт остаётся доступен без учётной записи. Войдите, чтобы хранить проекты и версии расчётов.</p>
+        <p>Гостевое демо доступно без учётной записи. Для расчёта и сохранения собственного сценария создайте аккаунт или войдите.</p>
       </div>
       <div className="auth-tabs">
         <button className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>Вход</button>

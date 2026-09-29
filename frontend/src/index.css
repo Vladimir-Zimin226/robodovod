@@ -330,6 +330,7 @@ button:disabled { cursor: not-allowed; }
 .project-context span { font-size: 10px; margin-top: 2px; }
 .user-avatar { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 50%; background: #25333d; color: #dbe2e5; font-size: 12px; }
 .user-avatar:hover, .user-avatar.active { border-color: var(--lime); color: var(--lime); }
+.mobile-account-action { display: none; }
 .app-content, .phase-content { min-height: calc(100vh - 118px); }
 .stepper-shell { border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); padding: 10px 24px; }
 
@@ -657,6 +658,12 @@ button:disabled { cursor: not-allowed; }
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+
+@media (max-width: 520px) {
+  .command-header { min-height: 0; }
+  .command-examples { display: none; }
+  .mobile-account-action { display: inline-flex; justify-self: start; align-items: center; min-height: 40px; padding: 0 10px; border: 1px solid var(--border-medium); border-radius: 8px; background: var(--bg-panel); color: var(--lime); font-size: 12px; font-weight: 700; }
+}
 
 /* Economics glossary is a standalone route backed by generated engine examples. */
 .economics-glossary { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 70px; color: var(--text-primary); }
