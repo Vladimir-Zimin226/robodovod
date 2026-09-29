@@ -1,0 +1,66 @@
+{
+  "schema_version": "evgeny-fixes-source-manifest-v1",
+  "review_date": "2026-09-29",
+  "sources": [
+    {
+      "path": "Разобрать/Версии проекта от Жени/фиксы/Fix 2.txt",
+      "sha256": "55510ffaeda6afd4a6a9786c025325b4191a3b11edd541aa5f2de8f5089eeae2"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/фиксы/fix.txt",
+      "sha256": "3d047415b22d4960ea9d92ce747f4c28d8442cc86b1c6757a560bb213eb53dca"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/Референсы/reference v2/00_METHODOLOGY.md",
+      "sha256": "bbf66a169149e39235a1cd38c4534fc2461c1accdd3ad1d31fddd02717556cb0"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/Референсы/reference v2/02_CONSTANTS.md",
+      "sha256": "64eeb1214557190177b7d6cb44833eb86e10acd8b81a2bcc0ec31ff9d37109c8"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/Референсы/reference v2/03_FORMULAS.md",
+      "sha256": "7f506fa35336bb642a3959273eb6f5b1d7e85a6d4dc7b9c161683b53720b4f58"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/Референсы/reference v2/04_DECISIONS.md",
+      "sha256": "5f793bc792683e2b8116acb918906406362366b8f2526e77e8eb0bc1af1b2226"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/Референсы/reference v2/06_EXPERT.md",
+      "sha256": "1f851d8712cb500b1c5f35fdedddb74e11d116257451a2ed5ea67f1e9670cc8a"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/Референсы/reference v2/09_OPEN_QUESTIONS.md",
+      "sha256": "a476dc7d27ff7d94c1c2bef28465008d1baf18ef8a1986ce7e03a0fecaa7b8e4"
+    },
+    {
+      "path": "Разобрать/Версии проекта от Жени/Референсы/reference v2/13_RECONCILIATION.md",
+      "sha256": "4a6102ffc1b88ac527fbb80a64954ce1976527ab872511c0955d36c8f24d3944"
+    },
+    {
+      "path": "Разобрать/Материалы от организаторов/ТЗ/1. ФЦ БАС.pdf",
+      "sha256": "acc5feed8f8686ee9928839a56c9b084e1bd577db55ef1e63b5c5b42278d4713"
+    },
+    {
+      "path": "Разобрать/Материалы от организаторов/ТЗ/Дополнения для участников.pdf",
+      "sha256": "64eac97cc4c985035286ebbedfcd5b356c4aba4af1d1d69f2ac0ca1f20adc456"
+    },
+    {
+      "path": "data/calculation/registry-v1.json",
+      "sha256": "6a54e7934abc36d90c19582d8ef038deacc49d4e04ff7e4bf360bb5da3c43e22"
+    },
+    {
+      "path": "data/calculation/registry-v1.manifest.json",
+      "sha256": "a683d011c6826a6ef9acdc5bc748d34a1264cad32fd30b0ec678f99bb8f7d2eb"
+    },
+    {
+      "path": "docs/planning/calculation-policy-decisions-v1.md",
+      "sha256": "38ad2ee42a88379fb45cec2c9dc1ed761f7f4ece30b9ef7375a7841f3fc3d0eb"
+    },
+    {
+      "path": "docs/planning/zhenya-reference-v2-delta.md",
+      "sha256": "6955d9039c3cabae5d9306739ffe5d0434091d18cfd45ff68ec0b726b83eb72b"
+    }
+  ]
+}
