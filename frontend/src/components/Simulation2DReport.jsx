@@ -11,7 +11,7 @@ import {
 import RobCraftFrame from './RobCraftFrame';
 import Warehouse2DPlan from './Warehouse2DPlan';
 import Facility2DPlan from './Facility2DPlan';
-import { supportsFacilityPlan, FACILITY_TIME_SCALE } from '../../../robcraft/src/integration/facility-playback.js';
+import { LIVE_TIME_SCALE } from '../../../robcraft/src/integration/safe-playback-v2.js';
 import SimulationChainSetup from './SimulationChainSetup';
 import { humanizePresentation, statusLabel } from '../presentation';
 import { formatModelClock } from '../simulationDefaults';
@@ -76,7 +76,15 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   const previousFrame = useRef(null);
   const canvas = useRef(null);
   const startedRequest = useRef(null);
-  const facilityTimeScale = supportsFacilityPlan(active?.request?.scenario_spec) ? FACILITY_TIME_SCALE : 1;
+  const facilityTimeScale = LIVE_TIME_SCALE;
+  const playbackAction = (action) => {
+    const now = performance.now();
+    if (timeline.status === 'RUNNING' && !document.hidden && previousFrame.current !== null) {
+      dispatch({ type: 'TICK', deltaMs: Math.max(0, now - previousFrame.current), modelSecondsPerRealSecond: facilityTimeScale });
+    }
+    previousFrame.current = now;
+    dispatch(action);
+  };
 
   const startRun = useCallback(async () => {
     if (!active?.request || startedRequest.current === active.request.request_id) return;
@@ -109,15 +117,21 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
 
   useEffect(() => {
     if (timeline.status !== 'RUNNING') return undefined;
+    if (previousFrame.current === null) previousFrame.current = document.hidden ? null : performance.now();
     let animation;
-    const tick = (stamp) => {
-      if (previousFrame.current !== null) dispatch({ type: 'TICK', deltaMs: Math.min(stamp - previousFrame.current, 250), modelSecondsPerRealSecond: facilityTimeScale });
+    const tick = () => {
+      const stamp = performance.now();
+      if (document.hidden) { previousFrame.current = null; animation = requestAnimationFrame(tick); return; }
+      if (previousFrame.current !== null) dispatch({ type: 'TICK', deltaMs: stamp - previousFrame.current, modelSecondsPerRealSecond: facilityTimeScale });
       previousFrame.current = stamp;
       animation = requestAnimationFrame(tick);
     };
+    const resetClock = () => { previousFrame.current = null; };
+    document.addEventListener('visibilitychange', resetClock);
     animation = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(animation);
+      document.removeEventListener('visibilitychange', resetClock);
       previousFrame.current = null;
     };
   }, [timeline.status, facilityTimeScale]);
@@ -167,7 +181,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
     if (!active?.request || !report) return null;
     try {
       const bundle = parseSimulationBundle(active.request, report);
-      const scene = buildSimulationScene(bundle.spec, { facilityPlans: true, report });
+      const scene = buildSimulationScene(bundle.spec, { safePlayback: true, report });
       return { bundle, scene };
     } catch (failure) { return { failure }; }
   }, [active, report]);
@@ -222,13 +236,13 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   };
   const saveSvg = () => {
     try {
-      const metadata = visualExportMetadata(active.request, report, analysisRunId, presentation.frame.simulationTimeUs, activeZoneId, new Date().toISOString());
+      const metadata = visualExportMetadata(active.request, report, analysisRunId, presentation.frame.simulationTimeUs, activeZoneId, new Date().toISOString(), 'conditional-live-playback-v2');
       downloadSimulationSvg(canvas.current?.querySelector('svg'), metadata, active.label);
     } catch (failure) { setError(failure.message); }
   };
 
   return (
-    <section className="simulation-2d panel" id="visualization" aria-label="2D/3D-симуляция и отчёт">
+    <section className="simulation-2d panel" id="visualization" aria-label="2D/3D-симуляция и отчёт" data-template={active?.request?.scenario_spec?.template}>
       <header className="simulation-2d-header">
         <div>
           <p className="eyebrow">Симуляция процесса · схема работы</p>
@@ -260,43 +274,37 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
 
       {presentation && !presentation.failure && (
         <>
-          <details className="simulation-bindings"><summary>Технические данные и скачивание кадров</summary>
-            <strong>Исходный расчёт парка C11: {presentation.bundle.spec.analysis.capacity_run_id}</strong>
-            <span>Физический сценарий: {active.label} · расчёт {analysisRunId || 'демо'}</span>
-            {physicalInputs(presentation.bundle.spec).map((line, index) => <span key={index}>{line}</span>)}
-            <p>Покупка и аренда используют общие сохранённые парк и график. Финансовые варианты и их ramp не переключают физический сценарий. CONSISTENT подтверждает согласованность модели; пригодность к внедрению требует обследования.</p>
-            <span>Модельное время: {formatModelClock(report.model_start, presentation.frame.simulationTimeUs) || `${(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} с`}</span>
+          <details className="simulation-bindings"><summary>Основание схемы и скачивание кадров</summary>
+            <strong>Исходный сохранённый расчёт парка</strong>
+            <p>Физический сценарий: {active.label}</p>
+            <ul>{physicalInputs(presentation.bundle.spec).map((line, index) => <li key={index}>{humanizePresentation(line)}</li>)}</ul>
+            <p>Покупка и аренда используют общие сохранённые парк и график. Финансовые варианты не переключают физический сценарий. Пригодность к внедрению требует обследования.</p>
+            <p>Модельное время: {formatModelClock(report.model_start, presentation.frame.simulationTimeUs) || `${(presentation.frame.simulationTimeUs / 1_000_000).toFixed(1)} с`}</p>
             <button type="button" onClick={saveSvg}>Сохранить открытый 2D-кадр · SVG</button>
             {analysisRunId && <a href={`/api/v2/simulations/projects/${encodeURIComponent(active.request.project_id)}/analysis-runs/${encodeURIComponent(analysisRunId)}/${encodeURIComponent(active.request.request_id)}/evidence.json`} download>Скачать технические данные симуляции</a>}
-            <details><summary>Технические подробности</summary>
-              <span>Представление: {viewMode}</span>
-              <span>scenario <code>{presentation.frame.scenarioRevisionId}</code></span>
-              <span>report <code>{presentation.frame.reportId}</code></span>
-              <span>Выполнено до конца окна <code>{report.queue.completed_by_measurement_end}</code></span>
-              <span>Максимальная очередь <code>{report.queue.maximum_jobs}</code></span>
-              <span>Предел парка <code>{report.capacity.expected_effective_per_hour} {report.capacity.unit}</code></span>
-              <span>digest <code>{presentation.frame.reportDigest.slice(0, 18)}…</code></span>
-              <span>seed <code>{presentation.frame.seed}</code></span>
-            </details>
+            <p>Версии, контрольные суммы и полные источники находятся в техническом архиве.</p>
           </details>
 
           <div className="simulation-view-tabs" role="tablist" aria-label="Представление симуляции">
             {['2D', '3D'].map((mode) => <button key={mode} type="button" role="tab" aria-selected={viewMode === mode} onClick={() => setViewMode(mode)}>{mode}</button>)}
           </div>
 
-          <div className="simulation-controls" aria-label="Управление timeline">
-            <button type="button" onClick={() => dispatch({ type: 'START' })}>Старт</button>
-            <button type="button" onClick={() => dispatch({ type: 'PAUSE' })}>Пауза</button>
-            <button type="button" onClick={() => dispatch({ type: 'STOP' })}>Стоп</button>
-            <button type="button" onClick={() => dispatch({ type: 'RESTART' })}>Перезапуск</button>
-            <label>Скорость<select value={timeline.speed} onChange={(event) => dispatch({ type: 'SET_SPEED', speed: Number(event.target.value) })}>{[0.5, 1, 2, 4].map((speed) => <option key={speed} value={speed}>×{speed}</option>)}</select></label>
+          <div className="simulation-controls" aria-label="Управление воспроизведением" data-model-seconds={timeline.simulationTimeUs / 1_000_000} data-playback-status={timeline.status} data-playback-speed={timeline.speed} data-playback-version="conditional-live-playback-v2">
+            <button type="button" onClick={() => playbackAction({ type: 'START' })}>Старт</button>
+            <button type="button" onClick={() => playbackAction({ type: 'PAUSE' })}>Пауза</button>
+            <button type="button" onClick={() => playbackAction({ type: 'STOP' })}>Стоп</button>
+            <button type="button" onClick={() => playbackAction({ type: 'RESTART' })}>Перезапуск</button>
+            <label>Скорость<select value={timeline.speed} onChange={(event) => playbackAction({ type: 'SET_SPEED', speed: Number(event.target.value) })}>{[0.5, 1, 2, 4].map((speed) => <option key={speed} value={speed}>×{speed}</option>)}</select></label>
             <strong>{STATUS_LABELS[timeline.status]}</strong>
             {facilityScene && <><span>×1: 1 секунда просмотра = 1 минута модели</span>
               <span>{formatModelClock(report.model_start, timeline.simulationTimeUs) || `${Math.floor(timeline.simulationTimeUs / 60_000_000)} мин`}</span>
               <button type="button" disabled={!presentation.frame.zones.some(zone => Number.isFinite(zone.nextStartSeconds))} onClick={() => {
                 const next = Math.min(...presentation.frame.zones.map(zone => zone.nextStartSeconds));
                 if (Number.isFinite(next)) dispatch({ type: 'SEEK', simulationTimeUs: Math.round(next * 1_000_000) });
-              }}>Следующее задание</button></>}
+              }}>Следующее задание</button>
+              <label>Перейти к минуте модели<input type="number" min="0" max="4320" step="1" value={Math.floor(timeline.simulationTimeUs / 60_000_000)} onChange={(event) => { if (event.target.value !== '') dispatch({ type: 'SEEK', simulationTimeUs: Math.round(Number(event.target.value) * 60_000_000) }); }} /></label>
+              <span>Визуально выполнено: {presentation.frame.zones.reduce((sum, zone) => sum + zone.completedJobs, 0)} заданий.</span>
+              {presentation.scene.playback.some((item) => item.delayedJobs > 0) && <p>Условная геометрия добавляет время на безопасный транзит, общие проходы и точки передачи. Визуальный счётчик может отставать от агрегированной серверной очереди; сохранённые показатели отчёта и экономика остаются исходными.</p>}</>}
           </div>
 
           <div ref={canvas} role="tabpanel" hidden={viewMode !== '2D'}>{warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} stages={report.stages} /> : facilityScene ? <Facility2DPlan scene={facilityScene} frame={presentation.frame} selectedZoneId={activeZoneId} /> : <div className="simulation-canvas-wrap">
@@ -331,7 +339,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
           {report.stages && presentation.bundle.spec.profile.process_code.startsWith('warehouse_') && <div className="simulation-kpis" aria-label="Стадии складской цепочки">{report.stages.map((stage) =>
             metric(({ PICKING: 'Отбор', BUFFER: 'Буфер', FEED_TO_PACK: 'Подача к упаковке', PACKAGING: 'Упаковка' })[stage.stage],
               stage.status === 'MODELED' ? number(stage.maximum_queue_jobs, ' в очереди') : 'Внешняя граница',
-              stage.status === 'MODELED' ? `Занятость ${number(Number(stage.utilization_fraction) * 100, '%')} · ${stage.resource_kind} · ${stage.resource_id}` : 'Нет отдельной скорости, ресурса или подтверждённой связи', stage.stage)
+              stage.status === 'MODELED' ? `Занятость ${number(Number(stage.utilization_fraction) * 100, '%')} · ресурс сохранённого прогона` : 'Нет отдельной скорости, ресурса или подтверждённой связи', stage.stage)
           )}</div>}
 
           {hasCapacityWarning(report) && (

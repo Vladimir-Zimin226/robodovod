@@ -600,8 +600,8 @@ export function buildRendererReport(simulation, authoritativeReport = null) {
       scheduler_seed: authoritativeReport?.time_basis?.seed ?? null
     }),
     versions: Object.freeze({
-      renderer_engine_version: simulation.facilityFrame ? 'facility-playback-v1' : 'robcraft-time-step-v1',
-      event_profile_version: simulation.facilityFrame ? 'uniform-arrivals-visual-reconstruction-v1' : 'robcraft-visual-events-v1',
+      renderer_engine_version: simulation.facilityFrame?.presentationVersion || (simulation.facilityFrame ? 'facility-playback-v1' : 'robcraft-time-step-v1'),
+      event_profile_version: simulation.facilityFrame?.presentationVersion || (simulation.facilityFrame ? 'uniform-arrivals-visual-reconstruction-v1' : 'robcraft-visual-events-v1'),
       report_version: 'robcraft-renderer-report-v1'
     }),
     measurement_basis: Object.freeze({
@@ -646,7 +646,8 @@ export function buildRendererReport(simulation, authoritativeReport = null) {
       engineering_claim: 'CONCEPTUAL_VISUALIZATION_NOT_CERTIFICATION'
     }),
     limitations: Object.freeze([
-      ...(simulation.facilityFrame ? ['facility-plan-is-illustrative-not-surveyed', 'visual-jobs-reconstructed-not-c23-event-log', 'no-collision-battery-energy-or-failure-model-in-facility-playback'] : []),
+      ...(simulation.facilityFrame ? ['facility-plan-is-illustrative-not-surveyed', 'visual-jobs-reconstructed-not-c23-event-log',
+        simulation.facilityFrame.presentationVersion ? 'swept-safety-can-delay-visual-completions-server-kpis-unchanged' : 'no-collision-battery-energy-or-failure-model-in-facility-playback'] : []),
       'live-window-not-c23-measurement-window',
       'moving-utilization-is-not-productive-utilization',
       'energy-is-arbitrary-renderer-unit',
@@ -912,7 +913,8 @@ export function createSimulation(scene) {
     robotType: route.robotType || 'pallet-amr',
     modelCode: route.modelCode || 'RC-P1200',
     equipmentModelId: route.equipmentModelId || route.modelCode || 'RC-P1200',
-    radius: route.radius || .61,
+    radius: route.visualFootprint?.radius || route.radius || .61,
+    visualFootprint: route.visualFootprint || null,
     maxLoadKg: route.maxLoadKg || 1200,
     drive: route.drive || 'electric',
     cargoLabel: route.cargoLabel || 'Груз',
@@ -1041,7 +1043,8 @@ export function createSimulation(scene) {
       }
       return counts;
     }, new Map()),
-    trafficCapacity: Math.min(robots.length, scene.config.template === 'warehouse' ? 2 : 3)
+    // Actual path reservations and swept collision checks govern dispatch; building type is not a fleet limit.
+    trafficCapacity: scene.safePlaybackPlan ? robots.length : Math.min(robots.length, scene.config.template === 'warehouse' ? 2 : 3)
   };
   if (scene.scenario && robots.length && !scene.routes[0]?.stationaryCycle) {
     // Start one real task immediately so low-frequency demand does not look like

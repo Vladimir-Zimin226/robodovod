@@ -126,6 +126,9 @@ export class Renderer {
     this.gl = canvas.getContext('webgl', { antialias: true, alpha: false });
     if (!this.gl) throw new Error('WebGL недоступен. Включите аппаратное ускорение браузера.');
     const gl = this.gl;
+    const rendererInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    const rendererName = String(gl.getParameter(rendererInfo ? rendererInfo.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    this.softwareRasterizer = /SwiftShader|llvmpipe|software/i.test(rendererName);
     this.program = createProgram(gl);
     this.locations = {
       position: gl.getAttribLocation(this.program, 'aPosition'),
@@ -155,10 +158,16 @@ export class Renderer {
     this.heatmapCache = new WeakMap();
   }
 
-  resize() {
+  resize(safePlayback = false) {
     const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
-    const width = Math.floor(this.canvas.clientWidth * ratio);
-    const height = Math.floor(this.canvas.clientHeight * ratio);
+    const requestedWidth = this.canvas.clientWidth * ratio;
+    const requestedHeight = this.canvas.clientHeight * ratio;
+    // The safe facility scene is often embedded beside the report. Keep its
+    // framebuffer bounded so software WebGL remains usable on laptop screens.
+    const pixelBudget = this.softwareRasterizer ? 150000 : 1000000;
+    const scale = safePlayback ? Math.min(1, Math.sqrt(pixelBudget / Math.max(1, requestedWidth * requestedHeight))) : 1;
+    const width = Math.max(1, Math.floor(requestedWidth * scale));
+    const height = Math.max(1, Math.floor(requestedHeight * scale));
     if (this.canvas.width !== width || this.canvas.height !== height) {
       this.canvas.width = width;
       this.canvas.height = height;
@@ -166,8 +175,8 @@ export class Renderer {
     this.gl.viewport(0, 0, width, height);
   }
 
-  begin(camera) {
-    this.resize();
+  begin(camera, safePlayback = false) {
+    this.resize(safePlayback);
     const gl = this.gl;
     gl.clearColor(.54, .69, .72, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -198,24 +207,24 @@ export class Renderer {
   }
 
   render(scene, simulation, camera, editorState = null) {
-    this.begin(camera);
+    this.begin(camera, Boolean(scene.safePlaybackPlan));
     const surfaces = scene.staticObjects.filter(object => ['ground', 'asphalt', 'floor', 'roof'].includes(object.type));
     const opaque = scene.staticObjects.filter(object => !['ground', 'asphalt', 'floor', 'roof', 'glass'].includes(object.type));
     const glass = scene.staticObjects.filter(object => object.type === 'glass');
     surfaces.forEach(object => this.staticObject(object));
-    this.contactShadows(opaque);
+    if (!scene.safePlaybackPlan) this.contactShadows(opaque);
     opaque.forEach(object => this.staticObject(object));
     this.gl.depthMask(false);
     glass.forEach(object => this.staticObject(object, .34));
     this.gl.depthMask(true);
     if (this.analytics) this.heatmap(simulation);
-    this.routeGuides(simulation);
+    if (!scene.safePlaybackPlan) this.routeGuides(simulation);
     simulation.robots.forEach(robot => { if (robot.activeTask && robot.cargoStage === 'waiting') this.waitingCargo(robot); });
     simulation.people.forEach(person => this.person(person));
     simulation.deliveredCargo.forEach(cargo => this.deliveredCargo(cargo));
     simulation.robots.forEach(robot => this.robot(robot));
     if (editorState) this.editorOverlay(editorState);
-    this.dust(scene, camera);
+    if (!scene.safePlaybackPlan) this.dust(scene, camera);
   }
 
   staticObject(object, alpha = 1) {
@@ -467,6 +476,17 @@ export class Renderer {
       const oz = -offset[0] * Math.sin(yaw) + offset[2] * Math.cos(yaw);
       this.cube([x + ox, y + offset[1], z + oz], scale, color, yaw, material, emission);
     };
+    if (robot.visualFootprint) {
+      // All physical parts of this explicitly illustrative v2 glyph stay inside its declared footprint.
+      const { width, length } = robot.visualFootprint;
+      const waiting = robot.mode === 'idle';
+      const color = waiting ? [.30, .43, .47] : [.10, .69, .55];
+      part([0, 0, 0], [width, .3, length], color);
+      part([0, robot.kind === 'medical' ? .53 : .27, 0], [width * .70, robot.kind === 'medical' ? .8 : .24, length * .65],
+        robot.kind === 'medical' ? [.71, .90, .86] : robot.carrying ? [.81, .61, .28] : [.12, .29, .32]);
+      part([0, robot.kind === 'medical' ? 1.04 : .46, 0], [.10, .10, .10], waiting ? [.96, .67, .10] : [.25, .95, .71], 7, .5);
+      return;
+    }
     const charging = robot.mode === 'charging';
     const fault = robot.mode === 'fault';
     const type = robot.robotType || 'pallet-amr';

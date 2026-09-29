@@ -178,7 +178,7 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
   };
 
   windowObject.addEventListener('message', listener);
-  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'scenario-spec-v2', 'simulation-report-v1-binding', 'robcraft-renderer-report-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'playback-sync-v1', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
+  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'scenario-spec-v2', 'simulation-report-v1-binding', 'robcraft-renderer-report-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'playback-sync-v1', 'safe-playback-v2', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
   return {
     dispose: () => windowObject.removeEventListener('message', listener),
     cameraModeChanged,

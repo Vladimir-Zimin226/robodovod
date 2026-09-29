@@ -23,6 +23,7 @@ class LocalBrowser:
         self.profile = output / f'chrome-{time.time_ns()}'
         command = [os.getenv('CHROME_PATH', r'C:\Program Files\Google\Chrome\Application\chrome.exe'),
             '--headless=new', '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0',
+            '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
             '--remote-allow-origins=*', f'--user-data-dir={self.profile}', url]
         if software_gpu:
             command += ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']

@@ -44,6 +44,7 @@ let simulation;
 let active = false;
 let inspectedEntity = null;
 let lastFrame = performance.now();
+let lastVisualRender = 0;
 let hudTimer = 0;
 let analyticsEnabled = false;
 let reportEnabled = false;
@@ -141,7 +142,7 @@ function requestManualPointerLock() {
 }
 
 function prepareEmbeddedScenario(spec, simulationReport = null) {
-  const generated = generateWorldsFromScenarioSpec(spec, { facilityPlans: Boolean(simulationReport) });
+  const generated = generateWorldsFromScenarioSpec(spec, { facilityPlans: Boolean(simulationReport), safePlayback: Boolean(simulationReport) });
   if (!generated.zones.some(zone => zone.supported)) {
     throw new TypeError(`Нет поддерживаемых 3D-зон: ${generated.zones.map(zone => `${zone.zone.name} — ${zone.reason}`).join('; ')}`);
   }
@@ -180,13 +181,15 @@ function activateZone(index, reason = 'ZONE_SELECTED', resetCamera = true) {
   document.body.classList.remove('editor-active');
   document.querySelector('#zone-select').disabled = false;
   buildWorldLabels(); updateScenePatchUi(); updateCameraUi();
-  document.querySelector('#hud-seed').textContent = scene.facilityPlan ? (scene.config.template === 'hospital' ? 'КЛИНИКА' : 'АЭРОПОРТ') : scene.config.seed;
+  const objectLabel = {warehouse: 'СКЛАД', airport: 'АЭРОПОРТ', hospital: 'КЛИНИКА'};
+  const processLabel = {transport: 'Перевозка', delivery: 'Доставка', cleaning: 'Уборка', palletizing: 'Паллетизация'};
+  document.querySelector('#hud-seed').textContent = scene.facilityPlan ? (objectLabel[scene.config.template] || 'ОБЪЕКТ') : scene.config.seed;
   document.querySelector('#hud-trips').previousElementSibling.textContent = scene.facilityPlan ? 'ЗАДАНИЙ' : 'РЕЙСЫ';
   document.querySelector('#hud-cargo').parentElement.classList.toggle('hidden', Boolean(scene.facilityPlan));
   document.querySelector('#hud-robots').textContent = simulation.robots.length;
-  document.querySelector('#hud-mode').textContent = `${scene.scenario.processType.toUpperCase()} // ${scene.scenario.zoneName}`;
+  document.querySelector('#hud-mode').textContent = `${processLabel[scene.scenario.processType] || 'Процесс'} · ${scene.scenario.zoneName}`;
   document.querySelector('#zone-select').value = session.zoneId;
-  document.querySelector('#zone-note').textContent = `Концептуальная сцена · ${scene.scenario.zoneName} · ${scene.scenario.processType}${scene.scenario.taskId ? ` · задание ${scene.scenario.taskId}` : ''}`;
+  document.querySelector('#zone-note').textContent = `Концептуальная сцена · ${scene.scenario.zoneName} · ${processLabel[scene.scenario.processType] || 'Процесс'}`;
   if (reason !== 'INITIAL') { announceScenePatch(); announceEditorState(); }
   return true;
 }
@@ -824,7 +827,8 @@ function frame(now) {
             embeddedPlayback.reset = false;
           }
           simulation.speedMultiplier = 1;
-          for (let steps = 0; simulation.elapsed + .05 < target && steps < 1200; steps += 1)
+          // Unsupported legacy physical scenes have a bounded frame budget; the versioned saved playback seeks directly.
+          for (let steps = 0; simulation.elapsed + .05 < target && steps < 8; steps += 1)
             updateSimulation(simulation, Math.min(.05, target - simulation.elapsed), scene.solids);
           simulation.speedMultiplier = embeddedPlayback.speed;
           if (embeddedPlayback.status === 'RUNNING') updateSimulation(simulation, delta, scene.solids);
@@ -840,8 +844,11 @@ function frame(now) {
       updateEditorPreview();
     }
     const camera = active && cameraState === 'AUTOPILOT' && !editorMode ? cameraDirector : player;
-    renderer.render(scene, simulation, camera, editorMode ? editorRenderState() : null);
-    if (active) updateWorldLabels(camera);
+    if (!scene.safePlaybackPlan || now - lastVisualRender >= 1000 / 30) {
+      renderer.render(scene, simulation, camera, editorMode ? editorRenderState() : null);
+      if (active) updateWorldLabels(camera);
+      lastVisualRender = now;
+    }
   }
   requestAnimationFrame(frame);
 }
@@ -877,6 +884,10 @@ try {
           || (playback.status === 'STOPPED' && embeddedPlayback?.status !== 'STOPPED');
         embeddedPlayback = { ...playback, reset };
         document.body.classList.add('playback-synchronized');
+        if (scene.safePlaybackPlan && authoritativeSimulationReport && !simulation.sceneModified) {
+          applyFacilityPlayback(simulation, scene, authoritativeSimulationReport, playback.elapsed_seconds);
+          embeddedBridge?.rendererReportChanged();
+        }
       },
       getRendererReport: () => buildRendererReport(simulation, authoritativeSimulationReport)
     });

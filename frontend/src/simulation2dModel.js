@@ -1,5 +1,6 @@
 import { buildWarehouseScene, warehouseFrameAt } from './warehouse2dScene.js';
 import { supportsFacilityPlan, createFacilityPlan, createFacilityPlayback, facilityFrameAt } from '../../robcraft/src/integration/facility-playback.js';
+import { supportsSafePlayback, createSafePlan, createSafePlayback, safeFrameAt } from '../../robcraft/src/integration/safe-playback-v2.js';
 
 const REQUEST_FIELDS = new Set([
   'schema_version', 'request_id', 'tenant_id', 'project_id', 'scenario_spec',
@@ -108,8 +109,15 @@ function routePoints(zone) {
   ];
 }
 
-export function buildSimulationScene(spec, { facilityPlans = false, report = null } = {}) {
+export function buildSimulationScene(spec, { facilityPlans = false, safePlayback = false, report = null } = {}) {
   object(spec, 'ScenarioSpec');
+  if (safePlayback) {
+    if (!supportsSafePlayback(spec)) throw new TypeError('Для этого процесса движение пока не поддерживается. Сохранённые показатели доступны в отчёте.');
+    const plans = spec.zones.map((zone) => createSafePlan(spec, zone.zone_id)).filter(Boolean);
+    return { kind: 'FACILITY_PROCESS', width: 960, height: 640, plans,
+      zones: plans.map((plan) => ({ id: plan.zoneId, label: plan.label })),
+      playback: plans.map((plan) => createSafePlayback(plan, spec, report)), safePlayback: true };
+  }
   // Legacy capture v2 is kept reproducible; live presentation opts into v1
   // facility plans without changing any saved scenario/report or golden.
   if (facilityPlans && supportsFacilityPlan(spec)) {
@@ -250,7 +258,7 @@ function interpolate(points, progress) {
 
 export function frameAt(scene, bundle, simulationTimeUs) {
   if (scene.kind === 'FACILITY_PROCESS') {
-    const frames = scene.playback.map(playback => facilityFrameAt(playback, simulationTimeUs / 1_000_000));
+    const frames = scene.playback.map(playback => scene.safePlayback ? safeFrameAt(playback, simulationTimeUs / 1_000_000) : facilityFrameAt(playback, simulationTimeUs / 1_000_000));
     return { simulationTimeUs, scenarioRevisionId: bundle.spec.revision_id,
       reportId: bundle.report.report_id, reportDigest: bundle.report.replay.report_content_digest,
       seed: bundle.spec.seed, zones: frames, robots: frames.flatMap(frame => frame.robots) };

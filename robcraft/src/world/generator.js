@@ -8,6 +8,8 @@ import { parseScenarioSpec } from '../integration/scenario-spec.js';
 import { generateProcessZoneWorld } from './process-zone.js';
 import { generateFacilityWorld } from './facility.js';
 import { supportsFacilityPlan } from '../integration/facility-playback.js';
+import { generateSafeFacilityWorld } from './safe-facility-v2.js';
+import { supportsSafePlayback } from '../integration/safe-playback-v2.js';
 
 const COLORS = {
   ground: [0.18, 0.29, 0.22], asphalt: [0.18, 0.21, 0.21], concrete: [0.48, 0.52, 0.50],
@@ -294,7 +296,8 @@ function generateZoneScene(parsed, zoneEntry, options = {}) {
     occupancy: facility.occupancy_percent || 72
   }, { extendedFleet: true });
   let scene;
-  if (options.facilityPlans && supportsFacilityPlan(source)) scene = generateFacilityWorld(config, source, scenario.zoneId);
+  if (options.safePlayback && supportsSafePlayback(source)) scene = generateSafeFacilityWorld(config, source, scenario.zoneId);
+  else if (options.facilityPlans && supportsFacilityPlan(source)) scene = generateFacilityWorld(config, source, scenario.zoneId);
   else if (scenario.processType === 'cleaning' || scenario.processType === 'palletizing') scene = generateProcessZoneWorld(config, scenario);
   else if (source.template === 'airport') scene = generateAirportWorld(config);
   else if (source.template === 'hospital') scene = generateHospitalWorld(config);

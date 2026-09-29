@@ -28,7 +28,7 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, p
     if (!ready || !scenarioSpec) return null;
     try {
       negotiateScenarioSpec(scenarioSpec, capabilities);
-      if (playbackEnabled && !capabilities.includes('playback-sync-v1')) return 'Эта версия 3D не поддерживает общую временную шкалу. Откройте вкладку 2D.';
+      if (playbackEnabled && (!capabilities.includes('playback-sync-v1') || !capabilities.includes('safe-playback-v2'))) return 'Эта версия 3D не поддерживает текущее безопасное воспроизведение. Обновите страницу или откройте 2D.';
       return null;
     } catch (failure) { return failure.message; }
   }, [ready, scenarioSpec, capabilities, playbackEnabled]);
@@ -151,7 +151,7 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, p
       <div className="robcraft-frame-header flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white">
         <div>
           <div className="text-sm font-semibold">RobCraft · сценарная 3D-симуляция</div>
-          <div className="text-[11px] text-slate-400">Условная схема объекта{scenePatch.zoneId ? ` · ${scenarioSpec?.zones?.find(zone => (zone.zone_id || zone.id) === scenePatch.zoneId)?.label || scenarioSpec?.zones?.find(zone => zone.id === scenePatch.zoneId)?.name || 'Рабочая зона'}` : ''}<details><summary>Технические подробности</summary>Версия ввода: {revisionId || 'не получена'} · отчёт: {simulationReport?.report_id || 'не получен'} · выполнено: {simulationReport?.queue?.completed_by_measurement_end ?? 'нет данных'} · максимальная очередь: {simulationReport?.queue?.maximum_jobs ?? 'нет данных'}</details></div>
+          <div className="text-[11px] text-slate-400">Условная схема объекта{scenePatch.zoneId ? ` · ${scenarioSpec?.zones?.find(zone => (zone.zone_id || zone.id) === scenePatch.zoneId)?.label || scenarioSpec?.zones?.find(zone => zone.id === scenePatch.zoneId)?.name || 'Рабочая зона'}` : ''}<details><summary>Подробности прогона</summary>Сохранённый отчёт · выполнено: {simulationReport?.queue?.completed_by_measurement_end ?? 'нет данных'} · максимальная очередь: {simulationReport?.queue?.maximum_jobs ?? 'нет данных'}. Связи исходных данных доступны в техническом архиве.</details></div>
           {scenarioSpec?.template === 'warehouse' && (scenarioSpec?.profile?.process_code === 'warehouse_receiving_shipping' ||
             scenarioSpec?.zones?.some((zone) => zone.process_type === 'transport')) &&
             <div className="mt-1 text-[11px] text-amber-200">3D показывает перевозку готовой паллеты от точки передачи. Человек — контролёр зоны; отбор и упаковка здесь не моделируются.</div>}

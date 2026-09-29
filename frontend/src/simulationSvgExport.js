@@ -1,11 +1,14 @@
 import { parseSimulationBundle } from './simulation2dModel.js';
 import { physicalInputs } from './physicalScenario.js';
+import { LIVE_PLAYBACK_VERSION } from '../../robcraft/src/integration/safe-playback-v2.js';
+import { humanizePresentation } from './presentation.js';
 
 // Reusable by the report package: a frame plus the exact saved source, no calculation.
-export function visualExportMetadata(request, report, analysisRunId, simulationTimeUs, zoneId, date) {
+export function visualExportMetadata(request, report, analysisRunId, simulationTimeUs, zoneId, date, playbackVersion = null) {
   const { spec } = parseSimulationBundle(request, report);
   return {
-    schema_version: 'simulation-visual-export-v1', exported_at: date,
+    schema_version: playbackVersion ? 'simulation-visual-export-v2' : 'simulation-visual-export-v1', exported_at: date,
+    ...(playbackVersion ? {playback_version: playbackVersion} : {}),
     analysis_run_id: analysisRunId, capacity_run_id: spec.analysis.capacity_run_id,
     scenario_revision_id: spec.revision_id, scenario_spec_digest: report.replay.scenario_spec_digest,
     report_id: report.report_id, report_content_digest: report.replay.report_content_digest,
@@ -21,7 +24,13 @@ export function serializeSimulationSvg(source, metadata, label) {
   const ns = 'http://www.w3.org/2000/svg';
   const create = (name) => doc.createElementNS(ns, name);
   const root = create('svg');
-  const lines = [
+  const lines = metadata.playback_version === LIVE_PLAYBACK_VERSION ? [
+    `РОБОДОВОД · ${label}`, `Дата: ${metadata.exported_at} · кадр: ${metadata.simulation_time_us / 1e6} с`,
+    ...physicalInputs(metadata.request.scenario_spec).map(humanizePresentation),
+    `Сохранённый прогон: парк ${metadata.report.workload.fleet_units} роботов; максимальная очередь ${metadata.report.queue.maximum_jobs} заданий.`,
+    'Условные безопасные маршруты. Визуальные задержки не заменяют сохранённые серверные показатели.',
+    'Полные связи, версии и контрольные суммы сохранены в метаданных файла.',
+  ] : [
     `РОБОДОВОД · ${label}`, `Дата: ${metadata.exported_at} · кадр: ${metadata.simulation_time_us / 1e6} с · зона: ${metadata.zone_id || 'все'}`,
     `Расчёт: ${metadata.analysis_run_id || 'демо'} · C11: ${metadata.capacity_run_id}`,
     ...physicalInputs(metadata.request.scenario_spec),

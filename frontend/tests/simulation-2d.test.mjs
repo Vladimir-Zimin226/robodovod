@@ -233,7 +233,7 @@ test('saved simulation uses run-scoped CSRF POST and reopens persisted report', 
 
 test('component exposes controls, bindings and honest SLA/charging labels without client formulas', async () => {
   const source = await readFile(new URL('../src/components/Simulation2DReport.jsx', import.meta.url), 'utf8');
-  for (const label of ['Старт', 'Пауза', 'Стоп', 'Перезапуск', 'Скорость', 'scenario', 'report', 'seed']) assert.match(source, new RegExp(label));
+  for (const label of ['Старт', 'Пауза', 'Стоп', 'Перезапуск', 'Скорость', 'report', 'архив']) assert.match(source, new RegExp(label));
   assert.match(source, /Норматив времени не оценён/);
   assert.match(source, /зарядка учтена агрегированно/i);
   assert.match(source, /Координаты и движение роботов условные/);

@@ -1,23 +1,32 @@
 import { createFacilityPlayback, facilityFrameAt } from './facility-playback.js';
 import { facilityWorldPoint } from '../world/facility.js';
+import { createSafePlayback, safeFrameAt } from './safe-playback-v2.js';
+import { safeWorldPoint } from '../world/safe-facility-v2.js';
 
 export function applyFacilityPlayback(simulation, scene, report, elapsedSeconds) {
   if (!simulation.facilityPlayback || simulation.facilityPlaybackReport !== report) {
-    simulation.facilityPlayback = createFacilityPlayback(scene.facilityPlan, scene.scenarioSpec, report);
+    simulation.facilityPlayback = scene.safePlaybackPlan ? createSafePlayback(scene.safePlaybackPlan, scene.scenarioSpec, report)
+      : createFacilityPlayback(scene.facilityPlan, scene.scenarioSpec, report);
     simulation.facilityPlaybackReport = report;
   }
-  const frame = facilityFrameAt(simulation.facilityPlayback, elapsedSeconds);
+  const frame = scene.safePlaybackPlan ? safeFrameAt(simulation.facilityPlayback, elapsedSeconds) : facilityFrameAt(simulation.facilityPlayback, elapsedSeconds);
+  const worldPoint = scene.safePlaybackPlan ? (pose) => safeWorldPoint(scene.safePlaybackPlan, pose) : facilityWorldPoint;
+  if (scene.safePlaybackPlan) frame.plan = scene.safePlaybackPlan;
   simulation.facilityFrame = frame;
   simulation.elapsed = elapsedSeconds;
   simulation.trips = frame.completedJobs;
   simulation.taskQueue = [];
-  simulation.generatedTasks = simulation.facilityPlayback.jobs.filter(job => job.release <= simulation.facilityPlayback.calendar.workAt(elapsedSeconds)).length;
+  const jobs = simulation.facilityPlayback.jobs, work = simulation.facilityPlayback.calendar.workAt(elapsedSeconds);
+  let low = 0, high = jobs.length;
+  while (low < high) { const middle = (low + high) >>> 1; if (jobs[middle].release <= work) low = middle + 1; else high = middle; }
+  simulation.generatedTasks = low;
   simulation.completedUnits = 0;
   frame.robots.forEach((pose, index) => {
     const robot = simulation.robots[index];
     if (!robot) return;
-    const [x, z] = facilityWorldPoint(pose);
+    const [x, z] = worldPoint(pose);
     robot.position = [x, .42, z]; robot.yaw = pose.yaw;
+    if (scene.safePlaybackPlan) { robot.visualFootprint = scene.safePlaybackPlan.footprint; robot.radius = robot.visualFootprint.radius; }
     robot.state = `${pose.stageLabel} · ${pose.areaLabel}`;
     robot.mode = ['WAITING', 'OFF_SHIFT', 'ALLOWANCE', 'WAIT_RESOURCE'].includes(pose.stage) ? 'idle' : 'working';
     robot.activeTask = pose.jobSequence === null ? null : { id: pose.jobSequence, units: pose.units };
@@ -26,12 +35,13 @@ export function applyFacilityPlayback(simulation, scene, report, elapsedSeconds)
     robot.operationProgress = pose.progress;
     robot.facilityPose = pose;
     robot.currentSpeed = ['OUTBOUND', 'RETURN', 'WORK'].includes(pose.stage) ? 1 : 0;
-    robot.route.points = [...pose.route.outbound, ...pose.route.work, ...pose.route.returning].map(facilityWorldPoint);
+    robot.route.points = [...(pose.route.toLoad || []), ...pose.route.outbound, ...pose.route.work, ...pose.route.returning].map(worldPoint);
     robot.route.pickupWaypoint = 0;
-    robot.route.dropPosition = facilityWorldPoint(pose.route.handoff);
+    robot.route.dropPosition = worldPoint(pose.route.handoff);
     robot.trips = pose.completedJobs;
-    simulation.completedUnits += simulation.facilityPlayback.byRobot[index].slice(0, pose.completedJobs).reduce((sum, job) => sum + job.units, 0);
+    if (!scene.safePlaybackPlan) simulation.completedUnits += simulation.facilityPlayback.byRobot[index].slice(0, pose.completedJobs).reduce((sum, job) => sum + job.units, 0);
   });
+  if (scene.safePlaybackPlan) simulation.completedUnits = frame.completedUnits;
   // No synthetic battery, faults, energy or collision observations are added.
   return frame;
 }
@@ -40,8 +50,8 @@ export function updateFacilityCamera(camera, frame, elapsedWallSeconds) {
   const active = frame.robots.filter(robot => !['WAITING', 'OFF_SHIFT', 'ALLOWANCE', 'WAIT_RESOURCE'].includes(robot.stage));
   const robot = (active.length ? active : frame.robots)[Math.floor(elapsedWallSeconds / 12) % Math.max(1, (active.length ? active : frame.robots).length)];
   const overview = !robot || elapsedWallSeconds % 12 >= 9;
-  const [x,z] = robot ? facilityWorldPoint(robot) : [0,0];
-  camera.position = overview ? [0, 35, 25] : [x + 6, 8, z + 7];
+  const [x,z] = robot ? frame.plan ? safeWorldPoint(frame.plan, robot) : facilityWorldPoint(robot) : [0,0];
+  camera.position = overview ? [0, Math.max(35, (frame.plan?.height || 32) * .8), Math.max(25, (frame.plan?.height || 32) * .55)] : [x + 6, 8, z + 7];
   const target = overview ? [0, 0, 0] : [x, .8, z];
   const dx = target[0] - camera.position[0], dy = target[1] - camera.position[1], dz = target[2] - camera.position[2];
   camera.yaw = Math.atan2(dx, -dz);
