@@ -7,7 +7,7 @@ RUN npm ci
 
 COPY frontend/ .
 COPY robcraft/ /robcraft/
-COPY contracts/presentation-v2.json contracts/service-assistant-knowledge-v1.json /contracts/
+COPY contracts/ /contracts/
 COPY data/scenarios/warehouse-economics-demo-v1.json /data/scenarios/warehouse-economics-demo-v1.json
 RUN npm run build
 
