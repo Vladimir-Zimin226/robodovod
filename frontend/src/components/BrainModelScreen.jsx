@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { brainRequest } from '../brainRequest';
 import { BRAIN_FIELDS, capacityKpiDiff, makeBrainDraft, profileInputDiff } from '../brainProfile';
 import { buildDemoCapacityRequest, brainCandidates, DEMO_MODELS } from '../demoCapacityFlow';
 import { readCsrfCookie } from '../persistenceApi';
@@ -14,13 +15,9 @@ import { isCommercialScenariosBundle } from '../commercialScenariosModel';
 
 const API = import.meta.env.VITE_API_URL || '';
 const labels = Object.fromEntries(BRAIN_FIELDS.map(([key, label]) => [key, label]));
-const action = (projectId, route, body) => fetch(`${API}/api/brain/projects/${encodeURIComponent(projectId)}/${route}`, {
+const action = (projectId, route, body, signal) => brainRequest(`${API}/api/brain/projects/${encodeURIComponent(projectId)}/${route}`, {
   method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
-  body: JSON.stringify(body),
-}).then(async (response) => {
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail : `HTTP ${response.status}`);
-  return payload;
+  body: JSON.stringify(body), signal,
 });
 
 export default function BrainModelScreen({ project, user, onOpenProjects, onOpenAccount, onViewRun }) {
@@ -42,6 +39,8 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
   const [priorResult, setPriorResult] = useState(null);
   const [savedSource, setSavedSource] = useState(null);
   const [catalogDefaults, setCatalogDefaults] = useState(null);
+  const activeRequest = useRef(null);
+  const lifetime = useRef(null);
   const profile = record?.profile;
   const pendingSince = turnStartedAt ?? (profile?.model_status === 'PENDING' ? Date.parse(profile.model_started_at || '') : null);
   const readiness = record?.readiness;
@@ -53,13 +52,14 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
   useEffect(() => {
     if (!project?.id) return undefined;
     const controller = new AbortController();
+    lifetime.current = controller;
     fetch(`${API}/api/brain/projects/${encodeURIComponent(project.id)}`, { credentials: 'include', signal: controller.signal })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
       .then((value) => { setRecord(value); setMessage(sessionStorage.getItem(`brain-draft:${project.id}`) || ''); if (value.profile?.selected_process) setProcessCode(value.profile.selected_process); })
       .catch((e) => { if (e.name !== 'AbortError') setError(e.message); });
     fetch(`${API}/api/catalog/defaults`, { signal: controller.signal }).then((r) => r.ok ? r.json() : null)
       .then(setCatalogDefaults).catch(() => {});
-    return () => controller.abort();
+    return () => { controller.abort(); activeRequest.current?.abort(); };
   }, [project?.id]);
 
   useEffect(() => {
@@ -69,17 +69,20 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
   }, [pendingSince]);
 
   useEffect(() => {
-    if (!project?.id || profile?.model_status !== 'PENDING' || busy) return undefined;
+    if (!project?.id || (profile?.model_status !== 'PENDING' && turnStartedAt === null)) return undefined;
+    const controller = new AbortController();
+    let reading = false;
     const timer = window.setInterval(async () => {
+      if (reading) return;
+      reading = true;
       try {
-        const response = await fetch(`${API}/api/brain/projects/${encodeURIComponent(project.id)}`, { credentials: 'include' });
-        if (!response.ok) return;
-        const value = await response.json();
-        setRecord(value);
+        const value = await brainRequest(`${API}/api/brain/projects/${encodeURIComponent(project.id)}`, { credentials: 'include', signal: controller.signal }, 10000);
+        if (!controller.signal.aborted) setRecord(old => value.profile.profile_version >= (old?.profile?.profile_version || 0) ? value : old);
       } catch { /* Keep the saved pending state visible until the next poll. */ }
+      finally { reading = false; }
     }, 2000);
-    return () => window.clearInterval(timer);
-  }, [project?.id, profile?.model_status, busy]);
+    return () => { window.clearInterval(timer); controller.abort(); };
+  }, [project?.id, profile?.model_status, turnStartedAt]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -90,25 +93,39 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
   }, [processCode]);
 
   const runAction = async (route, body, onSuccess) => {
+    if (activeRequest.current) return null;
+    const controller = new AbortController();
+    const owner = lifetime.current;
+    activeRequest.current = controller;
     setBusy(true); setError('');
     try {
-      const result = await action(project.id, route, body);
+      const result = await action(project.id, route, body, controller.signal);
+      if (owner?.signal.aborted || controller.signal.aborted) return null;
       if (result.profile?.profile_version > (record?.profile?.profile_version || 0)) {
         setPriorResult(capacity || priorResult);
         setCapacity(null); setEconomics(null); setCapacityRequest(null);
       }
-      if (result.profile) setRecord((old) => ({ ...old, ...result, versions: result.profile.profile_version > (old?.profile?.profile_version || 0)
+      if (result.profile) setRecord((old) => result.profile.profile_version < (old?.profile?.profile_version || 0) ? old : ({ ...old, ...result, versions: result.profile.profile_version > (old?.profile?.profile_version || 0)
         ? [...(old?.versions || []), result.profile] : (old?.versions || []).map((version) => version.profile_version === result.profile.profile_version ? result.profile : version) }));
       onSuccess?.(result);
       return result;
-    } catch (e) { setError(e.message || 'Не удалось сохранить черновик.'); return null; }
-    finally { setBusy(false); }
+    } catch (e) {
+      if (!owner?.signal.aborted) {
+        setError(e.message || 'Не удалось сохранить черновик.');
+        try {
+          const saved = await brainRequest(`${API}/api/brain/projects/${encodeURIComponent(project.id)}`, { credentials: 'include', signal: owner?.signal }, 10000);
+          if (!owner?.signal.aborted) setRecord(old => saved.profile.profile_version >= (old?.profile?.profile_version || 0) ? saved : old);
+        } catch { /* The error and local text remain available for a retry. */ }
+      }
+      return null;
+    }
+    finally { if (activeRequest.current === controller) activeRequest.current = null; if (!owner?.signal.aborted) setBusy(false); }
   };
 
   const send = async (event) => {
     event.preventDefault();
     const text = message.trim();
-    if (!text || !profile) return;
+    if (!text || !profile || activeRequest.current || profile.model_status === 'PENDING') return;
     setWaitingSeconds(0); setTurnStartedAt(Date.now());
     const result = await runAction('turn', { expected_version: profile.profile_version, message: text });
     setTurnStartedAt(null);

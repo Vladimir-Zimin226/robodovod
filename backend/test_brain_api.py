@@ -165,6 +165,39 @@ def test_brain_request_uses_provider_compatible_strict_schema(monkeypatch):
     assert usage["finish_reason"] == "stop"
 
 
+def test_model_gets_only_confirmed_context_and_server_next_question(monkeypatch):
+    monkeypatch.setenv("YC_API_KEY", "test")
+    monkeypatch.setenv("YC_FOLDER_ID", "test")
+    profile = brain._current({"versions": []}, uuid.uuid4())
+    profile["fields"] = {"object_type": {"value": "retail", "confirmed_by_user": True},
+                         "zone_constraints": {"value": "UNCONFIRMED_PRIVATE_NOTE", "confirmed_by_user": False}}
+    def post(_url, *, json, **_kwargs):
+        prompt = json['messages'][0]['content']
+        assert 'retail' in prompt and 'next_question' in prompt
+        assert 'UNCONFIRMED_PRIVATE_NOTE' not in prompt
+        assert json['messages'][1]['content'] == 'Перевозка паллет'
+        return SimpleNamespace(status_code=200, raise_for_status=lambda: None, json=lambda: {
+            'choices': [{'finish_reason': 'stop', 'message': {'content':
+                '{"message":"Какой объём?","field_updates":[],"process_updates":[],"next_action":"ask","question":null}'}}]})
+    monkeypatch.setattr(brain.requests, 'post', post)
+    brain._call_model('Перевозка паллет', profile)
+
+
+def test_short_answers_follow_saved_question_without_confirming_numbers():
+    profile = brain._current({"versions": []}, uuid.uuid4())
+    for key, value in (("object_type", "retail"), ("process_type", "transport"), ("operations_per_day", "220")):
+        profile['fields'][key] = {'value': value, 'unit': brain.FIELD_UNITS[key], 'confirmed_by_user': True}
+    proposals = brain._answer_to_saved_question('2', profile)
+    assert len(proposals) == 1 and proposals[0].path == 'shifts_count'
+    brain._apply_proposals(profile, '2', proposals, [])
+    assert profile['fields']['shifts_count']['value'] == '2'
+    assert not profile['fields']['shifts_count']['confirmed_by_user']
+    profile['fields']['shifts_count']['confirmed_by_user'] = True
+    proposals = brain._answer_to_saved_question('11', profile)
+    assert proposals[0].path == 'shift_hours'
+    assert not brain._answer_to_saved_question('11 км', profile)
+
+
 @pytest.mark.parametrize("status", [400, 401, 403, 429, 500, 503])
 def test_brain_provider_http_failure_is_classified(monkeypatch, status):
     monkeypatch.setenv("YC_API_KEY", "secret-test-key")

@@ -169,10 +169,10 @@
 .warehouse-zone-details strong { color: #f0f7f4; font-size: 14px; }
 .warehouse-zone-details code { color: #93edce; overflow-wrap: anywhere; }
 .warehouse-canvas-wrap .simulation-legend { flex-wrap: wrap; }
-.warehouse-robot-states { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 7px; margin-top: 9px; }
-.warehouse-robot-states > div { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid #28474d; border-radius: 7px; background: #10232a; font-size: 11px; }
+.warehouse-robot-states { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); grid-auto-rows: 104px; gap: 7px; margin-top: 9px; max-height: 326px; overflow: auto; scrollbar-gutter: stable; font-variant-numeric: tabular-nums; }
+.warehouse-robot-states > div { display: grid; grid-template-rows: 18px minmax(0, 1fr) 28px; gap: 2px; padding: 8px 10px; border: 1px solid #28474d; border-radius: 7px; background: #10232a; font-size: 11px; line-height: 16px; min-width: 0; }
 .warehouse-robot-states strong { color: #e8f8f1; }
-.warehouse-robot-states span { color: #a9e7cf; }
+.warehouse-robot-states span { color: #a9e7cf; overflow: auto; overflow-wrap: anywhere; }
 .warehouse-robot-states small { color: #b5c7ca; }
 .simulation-schematic-note { margin: 8px 14px 12px; color: #cbd5e1; font-size: .83rem; }
 .zone-name { fill: #eff7ff; font-size: 16px; font-weight: 700; }

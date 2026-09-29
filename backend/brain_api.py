@@ -417,6 +417,18 @@ def _explicit_facts(message: str) -> tuple[list[TurnUpdate], list[ProcessUpdate]
     return fields, processes
 
 
+def _answer_to_saved_question(message: str, profile: dict[str, Any]) -> list[TurnUpdate]:
+    """A bare numeric reply may propose only the field the server asked about."""
+    question = readiness(profile).get("next_question") or {}
+    field = question.get("field")
+    if field not in NUMERIC or not re.fullmatch(r"\s*\d+(?:[.,]\d+)?\s*", message):
+        return []
+    unit = FIELD_UNITS[field]
+    if field == "operations_per_day" and profile.get("fields", {}).get("process_type", {}).get("value") == "cleaning":
+        unit = "m2/day"
+    return [TurnUpdate(path=field, value=message.strip().replace(",", "."), unit=unit, provenance="user")]
+
+
 def _apply_proposals(profile: dict[str, Any], message: str, updates: list[TurnUpdate], process_updates: list[ProcessUpdate]) -> None:
     explicit_processes = {item.process_id for item in _explicit_facts(message)[1]}
     process_updates = [item for item in process_updates if item.process_id in explicit_processes]
@@ -458,8 +470,15 @@ def _call_model(message: str, profile: dict[str, Any]) -> tuple[BrainTurn, dict[
               "Паллетная перевозка на складе: transport. Из нескольких операций активируй их коды. "
               "Неподтверждённые поля не становятся фактами. Не рассчитывай парк или NPV. "
               "Верни JSON по схеме. Поля: " + json.dumps(FIELD_UNITS, ensure_ascii=False))
-    # The task is extraction from this message, so the saved profile is deliberately
-    # excluded from the provider prompt. Version binding remains server-owned.
+    confirmed = {key: {"value": value.get("value"), "unit": value.get("unit")}
+                 for key, value in profile.get("fields", {}).items()
+                 if key in FIELD_UNITS and value.get("confirmed_by_user")}
+    next_question = readiness({**profile, "fields": profile.get("fields", {})}).get("next_question")
+    prompt += (" Ты извлекаешь предложения, а не подтверждаешь их. Короткий ответ относится только к следующему вопросу. "
+               "Не копируй сохранённые значения в field_updates. Веди беседу одним следующим вопросом; "
+               "расчёты и выбор следующего обязательного поля выполняет сервер. Подтверждённый контекст: "
+               + json.dumps({"fields": confirmed, "selected_process": profile.get("selected_process"),
+                             "next_question": next_question}, ensure_ascii=False))
     body = {"model": f"gpt://{folder}/{MODEL}", "messages": [
         {"role": "system", "content": prompt},
         {"role": "user", "content": message}],
@@ -618,7 +637,7 @@ def create_brain_router() -> APIRouter:
         if failure is not None:
             current["model_error"] = failure.detail
             local_updates, local_processes = _explicit_facts(message)
-            _apply_proposals(current, message, local_updates, local_processes)
+            _apply_proposals(current, message, [*local_updates, *_answer_to_saved_question(message, previous)], local_processes)
             current["model_message"] = "Локально распознаны только явно названные значения. Проверьте и подтвердите их."
             current["model_status"] = "TIMEOUT" if getattr(failure, "kind", None) == "TIMEOUT" else "FALLBACK"
             current["model_failure_kind"] = getattr(failure, "kind", "MODEL_ERROR")
@@ -628,7 +647,7 @@ def create_brain_router() -> APIRouter:
             current["model_failure_kind"] = "TOKEN_LIMIT"
         else:
             local_updates, local_processes = _explicit_facts(message)
-            _apply_proposals(current, message, [*answer.field_updates, *local_updates],
+            _apply_proposals(current, message, [*answer.field_updates, *local_updates, *_answer_to_saved_question(message, previous)],
                              [*answer.process_updates, *local_processes])
             current["model_message"] = answer.message[:1000]
             current["model_error"] = None
