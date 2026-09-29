@@ -237,7 +237,7 @@ def test_openapi_publishes_v2_contract_and_keeps_legacy_endpoint():
     operation = schema["paths"]["/api/v2/capacity-analyses"]["post"]
     request_schema = operation["requestBody"]["content"]["application/json"]["schema"]
     assert {item["$ref"].rsplit("/", 1)[-1] for item in request_schema["anyOf"]} == {
-        "CapacityAnalysisRequest", "CapacityAnalysisRequestV3",
+        "CapacityAnalysisRequest", "CapacityAnalysisRequestV3", "CapacityAnalysisRequestV4",
     }
     assert operation["responses"]["201"]["content"]["application/json"]["schema"]["$ref"].endswith("CapacityAnalysisResponse")
     assert operation["responses"]["503"]["content"]["application/json"]["schema"]["$ref"].endswith("CapacityAnalysisErrorResponse")

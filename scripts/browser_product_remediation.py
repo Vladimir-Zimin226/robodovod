@@ -55,7 +55,7 @@ window.fetch=async (url,options={})=>{
  const body=options.body ? JSON.parse(options.body) : null; window.requests.push({url,body});
  if(window.mockMode==='hold') return new Promise(resolve=>window.pending.push({url,body,resolve}));
  if(url.includes('/api/brain/projects/')) return new Response(JSON.stringify(window.brainRecord),{status:200});
- if(url.includes('/api/catalog/')) return new Response(JSON.stringify({items:[],defaults:[]}),{status:200});
+ if(url.includes('/api/catalog/') || url.includes('/api/v2/capacity-catalog/positions')) return new Response(JSON.stringify({items:[],defaults:[]}),{status:200});
  if(url.endsWith('/preview')) return new Response(JSON.stringify(await window.previewData(body)),{status:200});
  window.saved.push(body); if(window.failSave) {window.failSave=false; throw new TypeError('Соединение потеряно');}
  return new Response(JSON.stringify({id:'new-run',input_snapshot:{economics:body.input},result_snapshot:window.fixture.results[1]}),{status:201});

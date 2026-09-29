@@ -629,6 +629,35 @@ def discover_catalog_models(
     return result
 
 
+@app.get('/api/v2/capacity-catalog/positions')
+def capacity_catalog_positions(
+    object_kind: str = Query(..., pattern='^(warehouse|airport|clinic)$'),
+    process_code: str = Query(..., max_length=100),
+    max_payload_kg: str | None = Query(None, pattern=r'^(?:0|[1-9]\d*)(?:\.\d+)?$', max_length=16),
+):
+    """Calculation candidates from the approved capacity snapshot, not discovery."""
+    from catalog_selection import filter_items
+    from calculation.process_profiles.catalog import load_process_profile_catalog
+    profile = next((item for item in load_process_profile_catalog().profiles if item.process_code == process_code), None)
+    if profile is None or object_kind != profile.object_kind.lower():
+        raise HTTPException(422, 'Процесс должен принадлежать выбранному объекту')
+    snapshot = _capacity_snapshot()
+    if snapshot.version.status != 'PUBLISHED':
+        raise HTTPException(503, 'capacity source unavailable')
+    items = filter_items([_discovery_position(position, snapshot.version.code) for position in snapshot.positions],
+        object_kind=object_kind, process_code=process_code, include_unknown=True,
+        context={'max_payload_kg':max_payload_kg})
+    selector_fields = ('position_id', 'model_id', 'organizer_id', 'manufacturer', 'name',
+                       'source_row_number', 'calculation_ready', 'calculation_profile',
+                       'maturity_status')
+    public = [{**{key:item.get(key) for key in selector_fields},
+               'selection':{key:(item.get('selection') or {}).get(key)
+                            for key in ('status', 'reasons', 'calculation_compatible')}} for item in items]
+    return {'catalog':{'id':snapshot.version.id, 'code':snapshot.version.code,
+                       'status':snapshot.version.status, 'source':'approved_capacity'},
+            'items':public, 'total':len(items)}
+
+
 @app.get("/api/catalog/positions/{position_id}")
 def get_catalog_position(position_id: str):
     """Return one position with gated description enrichment and provenance."""

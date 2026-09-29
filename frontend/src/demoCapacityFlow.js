@@ -1,4 +1,5 @@
 // Browser-side request assembly only. All formulae and evidence gates remain server-owned.
+import { buildObjectConstraintContext } from './objectConstraintContext.js';
 // Authored profiles use stable organizer_id; C11 must still receive the catalog's model_id.
 export const DEMO_MODELS = Object.freeze({
   'ecd7d582-b342-449a-b43b-66288d159a32': 'MULE · демонстрационный профиль',
@@ -101,6 +102,11 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
     execution_mode: 'PRELIMINARY_DEMO', demo_assumptions_confirmed: true,
     provenance,
   };
+  const context = buildObjectConstraintContext(zone, process);
+  if (context) {
+    request.schema_version = 'capacity-analysis-request-v4';
+    request.object_constraint_context = context;
+  }
   const rawAreas = normalized.response.raw_extensions?.facility_areas;
   if (rawAreas?.total_area || rawAreas?.active_area) {
     const area = (raw) => raw ? { value: raw.value, unit: 'm2',

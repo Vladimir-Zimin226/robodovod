@@ -28,6 +28,25 @@ def test_capacity_v2_route_is_bound_to_dedicated_capacity_snapshot():
     assert bindings["resolve_capacity_catalog"] is not main._discovery_snapshot
 
 
+def test_calculation_picker_reads_approved_capacity_version_only(monkeypatch):
+    from test_capacity_analysis_service import snapshot
+    capacity = snapshot()
+
+    class Runtime:
+        def load_capacity(self):
+            return capacity
+
+        def load_discovery(self):
+            raise AssertionError('calculation picker must not read discovery')
+
+    monkeypatch.setattr(main, '_CATALOG_RUNTIME', Runtime())
+    response = main.capacity_catalog_positions('warehouse', 'warehouse_receiving_shipping', None)
+    assert response['catalog']['source'] == 'approved_capacity'
+    assert response['catalog']['code'] == capacity.version.code
+    assert any(item['position_id'] == capacity.positions[0].id for item in response['items'])
+    assert all('price' not in item and 'price_status' not in item for item in response['items'])
+
+
 def test_economics_v2_is_bound_to_capacity_catalog_not_empty_legacy_runtime():
     routes = list(main.app.routes)
     for included in main.app.routes:

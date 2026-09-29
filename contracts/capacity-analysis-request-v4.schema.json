@@ -1,0 +1,1458 @@
+{
+  "$defs": {
+    "AssumptionProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "ASSUMPTION",
+          "default": "ASSUMPTION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "assumption_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Assumption Id",
+          "type": "string"
+        },
+        "assumption_version": {
+          "minLength": 1,
+          "title": "Assumption Version",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "permitted_scope": {
+          "minLength": 1,
+          "title": "Permitted Scope",
+          "type": "string"
+        },
+        "confirmation_state": {
+          "enum": [
+            "POLICY_ACCEPTED",
+            "USER_CONFIRMED"
+          ],
+          "title": "Confirmation State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provenance_id",
+        "assumption_id",
+        "assumption_version",
+        "rationale",
+        "permitted_scope",
+        "confirmation_state"
+      ],
+      "title": "AssumptionProvenance",
+      "type": "object"
+    },
+    "CapacityZoneContextV1": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "capacity-zone-context-v1",
+          "default": "capacity-zone-context-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "zone_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Zone Id",
+          "type": "string"
+        },
+        "label": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "constraints_note": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Constraints Note",
+          "type": "string"
+        },
+        "constraints_status": {
+          "const": "UNVERIFIED",
+          "default": "UNVERIFIED",
+          "title": "Constraints Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "zone_id",
+        "label"
+      ],
+      "title": "CapacityZoneContextV1",
+      "type": "object"
+    },
+    "DerivedProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "DERIVED",
+          "default": "DERIVED",
+          "title": "Kind",
+          "type": "string"
+        },
+        "parent_node_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Parent Node Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provenance_id",
+        "parent_node_ids"
+      ],
+      "title": "DerivedProvenance",
+      "type": "object"
+    },
+    "FacilityAreaValueV1": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Value",
+          "type": "string"
+        },
+        "unit": {
+          "const": "m2",
+          "default": "m2",
+          "title": "Unit",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "FILE",
+            "ASSUMPTION",
+            "LLM"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "confirmed": {
+          "title": "Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value",
+        "source",
+        "confirmed"
+      ],
+      "title": "FacilityAreaValueV1",
+      "type": "object"
+    },
+    "FacilityContextV1": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "facility-context-v1",
+          "default": "facility-context-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "total_area": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FacilityAreaValueV1"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "active_area": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FacilityAreaValueV1"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "FacilityContextV1",
+      "type": "object"
+    },
+    "FileProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "FILE",
+          "default": "FILE",
+          "title": "Kind",
+          "type": "string"
+        },
+        "file_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "File Digest",
+          "type": "string"
+        },
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provenance_id",
+        "file_digest",
+        "locator"
+      ],
+      "title": "FileProvenance",
+      "type": "object"
+    },
+    "KnownQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "KNOWN",
+          "default": "KNOWN",
+          "title": "Status",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/QuantityName"
+        },
+        "raw_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Raw Value",
+          "type": "string"
+        },
+        "raw_unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "normalized_value": {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "title": "Normalized Value",
+          "type": "string"
+        },
+        "unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "numeric_encoding": {
+          "const": "DECIMAL_STRING",
+          "default": "DECIMAL_STRING",
+          "title": "Numeric Encoding",
+          "type": "string"
+        },
+        "provenance_ref": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "raw_value",
+        "raw_unit",
+        "normalized_value",
+        "unit",
+        "quantity_kind",
+        "provenance_ref"
+      ],
+      "title": "KnownQuantity",
+      "type": "object"
+    },
+    "MissingQuantity": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "MISSING",
+          "default": "MISSING",
+          "title": "Status",
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/QuantityName"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/QuantityKind"
+        },
+        "expected_unit": {
+          "$ref": "#/$defs/Unit"
+        },
+        "missing_reason": {
+          "$ref": "#/$defs/MissingReason"
+        },
+        "provenance_ref": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provenance Ref"
+        }
+      },
+      "required": [
+        "name",
+        "quantity_kind",
+        "expected_unit",
+        "missing_reason"
+      ],
+      "title": "MissingQuantity",
+      "type": "object"
+    },
+    "MissingReason": {
+      "enum": [
+        "MISSING_INPUT",
+        "MISSING_SAFE_FACT",
+        "UNIT_MISMATCH",
+        "CONFLICTING_FACT",
+        "UNAPPROVED_ASSUMPTION",
+        "NOT_APPLICABLE"
+      ],
+      "title": "MissingReason",
+      "type": "string"
+    },
+    "NormalizedProcess": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "normalized-process-v1",
+          "default": "normalized-process-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "process_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Process Id",
+          "type": "string"
+        },
+        "input_revision": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Input Revision",
+          "type": "string"
+        },
+        "object_kind": {
+          "$ref": "#/$defs/ObjectKind"
+        },
+        "process_code": {
+          "$ref": "#/$defs/ProcessCode"
+        },
+        "scope": {
+          "$ref": "#/$defs/ProcessScope"
+        },
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "quantity_kind": {
+          "$ref": "#/$defs/ProcessQuantityKind"
+        },
+        "demand": {
+          "discriminator": {
+            "mapping": {
+              "KNOWN": "#/$defs/KnownQuantity",
+              "MISSING": "#/$defs/MissingQuantity"
+            },
+            "propertyName": "status"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/KnownQuantity"
+            },
+            {
+              "$ref": "#/$defs/MissingQuantity"
+            }
+          ],
+          "title": "Demand"
+        },
+        "schedule": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcessSchedule"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "route_distance": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "KNOWN": "#/$defs/KnownQuantity",
+                  "MISSING": "#/$defs/MissingQuantity"
+                },
+                "propertyName": "status"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/KnownQuantity"
+                },
+                {
+                  "$ref": "#/$defs/MissingQuantity"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Route Distance"
+        },
+        "exchange": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "SPLIT": "#/$defs/SplitExchange",
+                  "TOTAL": "#/$defs/TotalExchange"
+                },
+                "propertyName": "mode"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/TotalExchange"
+                },
+                {
+                  "$ref": "#/$defs/SplitExchange"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exchange"
+        },
+        "item_mass": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "KNOWN": "#/$defs/KnownQuantity",
+                  "MISSING": "#/$defs/MissingQuantity"
+                },
+                "propertyName": "status"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/KnownQuantity"
+                },
+                {
+                  "$ref": "#/$defs/MissingQuantity"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Item Mass"
+        },
+        "explicit_batch": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "KNOWN": "#/$defs/KnownQuantity",
+                  "MISSING": "#/$defs/MissingQuantity"
+                },
+                "propertyName": "status"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/KnownQuantity"
+                },
+                {
+                  "$ref": "#/$defs/MissingQuantity"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Explicit Batch"
+        },
+        "role_refs": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Role Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "process_id",
+        "input_revision",
+        "object_kind",
+        "process_code",
+        "scope",
+        "active",
+        "quantity_kind",
+        "demand"
+      ],
+      "title": "NormalizedProcess",
+      "type": "object"
+    },
+    "ObjectKind": {
+      "enum": [
+        "WAREHOUSE",
+        "AIRPORT",
+        "CLINIC"
+      ],
+      "title": "ObjectKind",
+      "type": "string"
+    },
+    "OperatingAvailabilityV1": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "operating-availability-v1",
+          "default": "operating-availability-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "ALL_IN",
+            "EXPLICIT_DOWNTIME"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "availability": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Availability"
+        },
+        "autonomy_hours": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Autonomy Hours"
+        },
+        "charge_hours": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Charge Hours"
+        },
+        "service_hours_per_day": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Service Hours Per Day"
+        },
+        "refill_hours_per_day": {
+          "anyOf": [
+            {
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refill Hours Per Day"
+        },
+        "basis": {
+          "maxLength": 500,
+          "minLength": 3,
+          "title": "Basis",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "ASSUMPTION"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "confirmed": {
+          "title": "Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mode",
+        "basis",
+        "source",
+        "confirmed"
+      ],
+      "title": "OperatingAvailabilityV1",
+      "type": "object"
+    },
+    "PolicyProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "POLICY",
+          "default": "POLICY",
+          "title": "Kind",
+          "type": "string"
+        },
+        "policy_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_version": {
+          "minLength": 1,
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "decision_refs": {
+          "items": {
+            "pattern": "^K(?:0[1-9]|[12][0-9])$",
+            "type": "string"
+          },
+          "title": "Decision Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provenance_id",
+        "policy_id",
+        "policy_version",
+        "decision_refs"
+      ],
+      "title": "PolicyProvenance",
+      "type": "object"
+    },
+    "PresetProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "PRESET",
+          "default": "PRESET",
+          "title": "Kind",
+          "type": "string"
+        },
+        "preset_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Preset Id",
+          "type": "string"
+        },
+        "preset_version": {
+          "minLength": 1,
+          "title": "Preset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provenance_id",
+        "preset_id",
+        "preset_version"
+      ],
+      "title": "PresetProvenance",
+      "type": "object"
+    },
+    "ProcessCode": {
+      "enum": [
+        "warehouse_receiving_shipping",
+        "warehouse_storage",
+        "warehouse_picking",
+        "warehouse_palletizing",
+        "warehouse_cleaning",
+        "warehouse_inventory",
+        "airport_baggage",
+        "airport_catering",
+        "airport_fuelling",
+        "airport_internal_logistics",
+        "airport_terminal_cleaning",
+        "airport_apron_cleaning",
+        "airport_waste",
+        "airport_inspection",
+        "airport_passenger_assistance",
+        "airport_ground_service",
+        "clinic_food",
+        "clinic_linen",
+        "clinic_medicines",
+        "clinic_biomaterials",
+        "clinic_sterile_sets",
+        "clinic_consumables",
+        "clinic_waste_a",
+        "clinic_waste_b",
+        "clinic_results",
+        "clinic_cleaning",
+        "clinic_inventory",
+        "clinic_safety_requirements"
+      ],
+      "title": "ProcessCode",
+      "type": "string"
+    },
+    "ProcessQuantityKind": {
+      "enum": [
+        "PALLET",
+        "BOX",
+        "CASE",
+        "CART",
+        "DELIVERY",
+        "PORTION",
+        "KILOGRAM",
+        "SAMPLE",
+        "SET",
+        "BIN",
+        "ITEM",
+        "SQUARE_METER",
+        "PICK",
+        "DIGITAL_FLOW"
+      ],
+      "title": "ProcessQuantityKind",
+      "type": "string"
+    },
+    "ProcessSchedule": {
+      "additionalProperties": false,
+      "properties": {
+        "shifts_per_day": {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        "shift_hours": {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        "days_per_year": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "shifts_per_day",
+        "shift_hours",
+        "days_per_year"
+      ],
+      "title": "ProcessSchedule",
+      "type": "object"
+    },
+    "ProcessScope": {
+      "enum": [
+        "TRANSPORT_CYCLE",
+        "DELIVERY_CYCLE",
+        "CLEANING_AREA",
+        "FIXED_CELL",
+        "REFERENCE_ONLY",
+        "SCENARIO_ONLY",
+        "CONSTRAINT_ONLY"
+      ],
+      "title": "ProcessScope",
+      "type": "string"
+    },
+    "QuantityKind": {
+      "enum": [
+        "TIME",
+        "DISTANCE",
+        "MASS",
+        "AREA",
+        "COUNT",
+        "FLOW",
+        "SPEED",
+        "RATE",
+        "FRACTION",
+        "MONEY",
+        "ENERGY",
+        "POWER",
+        "UNIT_DEFINITION"
+      ],
+      "title": "QuantityKind",
+      "type": "string"
+    },
+    "QuantityName": {
+      "enum": [
+        "shifts_per_day",
+        "shift_hours",
+        "operating_hours_per_day",
+        "days_per_year",
+        "demand_per_day",
+        "cleaning_area",
+        "total_area",
+        "cleaning_area_share",
+        "cleaning_area_per_day",
+        "peak_factor",
+        "reserve_share",
+        "one_way_distance",
+        "exchange_total_time",
+        "load_time",
+        "unload_time",
+        "operating_speed",
+        "safe_max_speed",
+        "payload",
+        "item_mass",
+        "handling_batch_limit",
+        "passport_batch_limit",
+        "geometry_batch_limit",
+        "units_per_trip",
+        "cycle_time",
+        "units_per_cycle",
+        "trips_per_hour",
+        "seconds_per_hour",
+        "required_capacity",
+        "fleet_capacity",
+        "cleaning_frequency",
+        "cleaning_rate",
+        "cell_rate",
+        "cell_efficiency",
+        "minutes_per_hour",
+        "picks_per_hour",
+        "boxes_per_pallet",
+        "boxes_per_day",
+        "pallets_per_day",
+        "availability",
+        "fleet_selected",
+        "fleet_recommended",
+        "nominal_capacity",
+        "effective_capacity",
+        "coverage",
+        "raw_load_ratio",
+        "utilization",
+        "role_headcount",
+        "monthly_gross_salary"
+      ],
+      "title": "QuantityName",
+      "type": "string"
+    },
+    "RoleCode": {
+      "enum": [
+        "forklift_driver",
+        "loader",
+        "storekeeper",
+        "picker",
+        "sorter",
+        "packer",
+        "cleaner",
+        "inventory_worker",
+        "baggage_handler",
+        "trolley_operator",
+        "special_equipment_driver",
+        "terminal_cleaner",
+        "perron_cleaner",
+        "runway_inspector",
+        "security_guard",
+        "passenger_assistant",
+        "courier",
+        "ramp_worker",
+        "ground_support_worker",
+        "catering_worker",
+        "laundry_worker",
+        "sanitary",
+        "porter",
+        "lab_assistant",
+        "sterile_supply_worker",
+        "consumable_worker",
+        "lab_result_courier",
+        "tech_support",
+        "control_operator"
+      ],
+      "title": "RoleCode",
+      "type": "string"
+    },
+    "RoleEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "role_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Role Id",
+          "type": "string"
+        },
+        "object_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObjectKind"
+            },
+            {
+              "const": "SITE",
+              "type": "string"
+            }
+          ],
+          "title": "Object Scope"
+        },
+        "role_code": {
+          "$ref": "#/$defs/RoleCode"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "headcount": {
+          "discriminator": {
+            "mapping": {
+              "KNOWN": "#/$defs/KnownQuantity",
+              "MISSING": "#/$defs/MissingQuantity"
+            },
+            "propertyName": "status"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/KnownQuantity"
+            },
+            {
+              "$ref": "#/$defs/MissingQuantity"
+            }
+          ],
+          "title": "Headcount"
+        },
+        "monthly_gross_salary": {
+          "discriminator": {
+            "mapping": {
+              "KNOWN": "#/$defs/KnownQuantity",
+              "MISSING": "#/$defs/MissingQuantity"
+            },
+            "propertyName": "status"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/KnownQuantity"
+            },
+            {
+              "$ref": "#/$defs/MissingQuantity"
+            }
+          ],
+          "title": "Monthly Gross Salary"
+        },
+        "zero_cost_marker": {
+          "anyOf": [
+            {
+              "const": "ZERO_COST_ROLE",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Zero Cost Marker"
+        },
+        "process_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "title": "Process Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "role_id",
+        "object_scope",
+        "role_code",
+        "headcount",
+        "monthly_gross_salary"
+      ],
+      "title": "RoleEntry",
+      "type": "object"
+    },
+    "RolePool": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "role-pool-v1",
+          "default": "role-pool-v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "pool_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Pool Id",
+          "type": "string"
+        },
+        "object_kind": {
+          "$ref": "#/$defs/ObjectKind"
+        },
+        "roles": {
+          "items": {
+            "$ref": "#/$defs/RoleEntry"
+          },
+          "title": "Roles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "pool_id",
+        "object_kind",
+        "roles"
+      ],
+      "title": "RolePool",
+      "type": "object"
+    },
+    "SplitExchange": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "SPLIT",
+          "default": "SPLIT",
+          "title": "Mode",
+          "type": "string"
+        },
+        "load_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        "unload_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "load_time",
+        "unload_time"
+      ],
+      "title": "SplitExchange",
+      "type": "object"
+    },
+    "TotalExchange": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "TOTAL",
+          "default": "TOTAL",
+          "title": "Mode",
+          "type": "string"
+        },
+        "total_time": {
+          "$ref": "#/$defs/KnownQuantity"
+        }
+      },
+      "required": [
+        "total_time"
+      ],
+      "title": "TotalExchange",
+      "type": "object"
+    },
+    "Unit": {
+      "enum": [
+        "s",
+        "h",
+        "day",
+        "m",
+        "kg",
+        "m2",
+        "unit",
+        "person",
+        "robot",
+        "shift",
+        "trip",
+        "unit/day",
+        "pallet/day",
+        "box/day",
+        "case/day",
+        "cart/day",
+        "delivery/day",
+        "portion/day",
+        "kg/day",
+        "sample/day",
+        "set/day",
+        "bin/day",
+        "item/day",
+        "pick/day",
+        "m2/day",
+        "unit/h",
+        "trip/h",
+        "s/h",
+        "min/h",
+        "1/day",
+        "m2/h",
+        "unit/min",
+        "pick/min",
+        "pick/h",
+        "pallet/min",
+        "box/pallet",
+        "m/s",
+        "kg/unit",
+        "unit/trip",
+        "unit/cycle",
+        "1",
+        "%",
+        "RUB",
+        "RUB/person/month",
+        "kWh",
+        "W"
+      ],
+      "title": "Unit",
+      "type": "string"
+    },
+    "UserProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "USER",
+          "default": "USER",
+          "title": "Kind",
+          "type": "string"
+        },
+        "confirmation_revision": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Confirmation Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provenance_id",
+        "confirmation_revision"
+      ],
+      "title": "UserProvenance",
+      "type": "object"
+    },
+    "VendorFactProvenance": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Provenance Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "VENDOR_FACT",
+          "default": "VENDOR_FACT",
+          "title": "Kind",
+          "type": "string"
+        },
+        "fact_id": {
+          "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "model_id": {
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "position_id": {
+          "minLength": 1,
+          "title": "Position Id",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "evidence_status": {
+          "enum": [
+            "CORROBORATED",
+            "CROSS_DOCUMENT_ENRICHED",
+            "ORGANIZER_NAME",
+            "VERIFIED_OFFICIAL",
+            "VERIFIED_AUTHORIZED_PARTNER",
+            "MANUALLY_APPROVED"
+          ],
+          "title": "Evidence Status",
+          "type": "string"
+        },
+        "permitted_for_matching": {
+          "const": true,
+          "title": "Permitted For Matching",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "provenance_id",
+        "fact_id",
+        "model_id",
+        "position_id",
+        "scope",
+        "evidence_ids",
+        "evidence_status",
+        "permitted_for_matching"
+      ],
+      "title": "VendorFactProvenance",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "capacity-analysis-request-v4",
+      "default": "capacity-analysis-request-v4",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "project_id": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Project Id",
+      "type": "string"
+    },
+    "input_revision": {
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+      "title": "Input Revision",
+      "type": "string"
+    },
+    "process": {
+      "$ref": "#/$defs/NormalizedProcess"
+    },
+    "role_pool": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RolePool"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "model_id": {
+      "minLength": 1,
+      "title": "Model Id",
+      "type": "string"
+    },
+    "position_id": {
+      "minLength": 1,
+      "title": "Position Id",
+      "type": "string"
+    },
+    "acquisition": {
+      "enum": [
+        "PURCHASE",
+        "RAAS"
+      ],
+      "title": "Acquisition",
+      "type": "string"
+    },
+    "uncertainty": {
+      "enum": [
+        "PESSIMISTIC",
+        "BASE",
+        "OPTIMISTIC"
+      ],
+      "title": "Uncertainty",
+      "type": "string"
+    },
+    "execution_mode": {
+      "default": "VERIFIED",
+      "enum": [
+        "VERIFIED",
+        "PRELIMINARY_DEMO"
+      ],
+      "title": "Execution Mode",
+      "type": "string"
+    },
+    "demo_assumptions_confirmed": {
+      "default": false,
+      "title": "Demo Assumptions Confirmed",
+      "type": "boolean"
+    },
+    "selected_fleet": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "operating_speed": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "cleaning_area": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "cleaning_frequency": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/KnownQuantity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "operations": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OperatingAvailabilityV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "provenance": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "ASSUMPTION": "#/$defs/AssumptionProvenance",
+            "DERIVED": "#/$defs/DerivedProvenance",
+            "FILE": "#/$defs/FileProvenance",
+            "POLICY": "#/$defs/PolicyProvenance",
+            "PRESET": "#/$defs/PresetProvenance",
+            "USER": "#/$defs/UserProvenance",
+            "VENDOR_FACT": "#/$defs/VendorFactProvenance"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/UserProvenance"
+          },
+          {
+            "$ref": "#/$defs/FileProvenance"
+          },
+          {
+            "$ref": "#/$defs/PresetProvenance"
+          },
+          {
+            "$ref": "#/$defs/VendorFactProvenance"
+          },
+          {
+            "$ref": "#/$defs/AssumptionProvenance"
+          },
+          {
+            "$ref": "#/$defs/PolicyProvenance"
+          },
+          {
+            "$ref": "#/$defs/DerivedProvenance"
+          }
+        ]
+      },
+      "title": "Provenance",
+      "type": "array"
+    },
+    "zone_context": {
+      "$ref": "#/$defs/CapacityZoneContextV1"
+    },
+    "facility_context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FacilityContextV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "object_constraint_context": {
+      "$ref": "object-constraint-context-v1.schema.json"
+    }
+  },
+  "required": [
+    "project_id",
+    "input_revision",
+    "process",
+    "model_id",
+    "position_id",
+    "acquisition",
+    "uncertainty",
+    "zone_context",
+    "object_constraint_context"
+  ],
+  "title": "CapacityAnalysisRequestV4",
+  "type": "object"
+}

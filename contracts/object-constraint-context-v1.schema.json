@@ -1,0 +1,336 @@
+{
+  "$defs": {
+    "ObjectKind": {
+      "enum": [
+        "WAREHOUSE",
+        "AIRPORT",
+        "CLINIC"
+      ],
+      "title": "ObjectKind",
+      "type": "string"
+    },
+    "RequirementSource": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "USER",
+            "FILE",
+            "ASSUMPTION",
+            "POLICY"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "source_ref": {
+          "minLength": 1,
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "user_confirmed": {
+          "default": false,
+          "title": "User Confirmed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "source_ref"
+      ],
+      "title": "RequirementSource",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "object_kind": {
+      "$ref": "#/$defs/ObjectKind"
+    },
+    "route_zones": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Route Zones",
+      "type": "array"
+    },
+    "route_floors": {
+      "items": {
+        "type": "integer"
+      },
+      "title": "Route Floors",
+      "type": "array"
+    },
+    "time_scope": {
+      "default": "ANY",
+      "enum": [
+        "DAY",
+        "NIGHT",
+        "ANY"
+      ],
+      "title": "Time Scope",
+      "type": "string"
+    },
+    "required_cargo_kind": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Required Cargo Kind"
+    },
+    "max_payload_kg": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Payload Kg"
+    },
+    "min_aisle_width_m": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Min Aisle Width M"
+    },
+    "ceiling_height_m": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ceiling Height M"
+    },
+    "required_lift_height_m": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Required Lift Height M"
+    },
+    "temperature_min_c": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Temperature Min C"
+    },
+    "temperature_max_c": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Temperature Max C"
+    },
+    "max_noise_dba": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Noise Dba"
+    },
+    "floor_flatness_mm_2m": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Floor Flatness Mm 2M"
+    },
+    "floor_covering": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Floor Covering"
+    },
+    "max_slope_percent": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Slope Percent"
+    },
+    "outdoor_required": {
+      "default": false,
+      "title": "Outdoor Required",
+      "type": "boolean"
+    },
+    "airside_required": {
+      "default": false,
+      "title": "Airside Required",
+      "type": "boolean"
+    },
+    "apron_required": {
+      "default": false,
+      "title": "Apron Required",
+      "type": "boolean"
+    },
+    "restricted_zone_required": {
+      "default": false,
+      "title": "Restricted Zone Required",
+      "type": "boolean"
+    },
+    "sanitization_required": {
+      "default": false,
+      "title": "Sanitization Required",
+      "type": "boolean"
+    },
+    "class_b_containment_required": {
+      "default": false,
+      "title": "Class B Containment Required",
+      "type": "boolean"
+    },
+    "required_access_protocols": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Access Protocols",
+      "type": "array"
+    },
+    "required_integrations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Integrations",
+      "type": "array"
+    },
+    "horizon_years": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Horizon Years"
+    },
+    "budget_rub": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Budget Rub"
+    },
+    "available_charging_power_kw": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Available Charging Power Kw"
+    },
+    "active_area_m2": {
+      "anyOf": [
+        {
+          "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Active Area M2"
+    },
+    "fleet_units": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fleet Units"
+    },
+    "requirement_sources": {
+      "additionalProperties": {
+        "$ref": "#/$defs/RequirementSource"
+      },
+      "title": "Requirement Sources",
+      "type": "object"
+    }
+  },
+  "required": [
+    "object_kind"
+  ],
+  "title": "ObjectConstraintContext",
+  "type": "object"
+}

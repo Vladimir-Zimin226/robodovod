@@ -852,8 +852,21 @@ class CapacityAnalysisRequestV3(CapacityAnalysisRequest):
         return self
 
 
-def parse_capacity_analysis_request(raw: dict[str, Any]) -> CapacityAnalysisRequest | CapacityAnalysisRequestV3:
-    model = CapacityAnalysisRequestV3 if raw.get("schema_version") == "capacity-analysis-request-v3" else CapacityAnalysisRequest
+class CapacityAnalysisRequestV4(CapacityAnalysisRequestV3):
+    schema_version: Literal['capacity-analysis-request-v4'] = 'capacity-analysis-request-v4'
+    object_constraint_context: dict[str, Any]
+
+    @model_validator(mode='after')
+    def validate_constraints(self) -> 'CapacityAnalysisRequestV4':
+        # Lazy import keeps the foundational quantity contracts independent of C05.
+        from calculation.object_context import validate_object_context
+        self.object_constraint_context = validate_object_context(self.object_constraint_context, self.process)
+        return self
+
+
+def parse_capacity_analysis_request(raw: dict[str, Any]) -> CapacityAnalysisRequest | CapacityAnalysisRequestV3 | CapacityAnalysisRequestV4:
+    model = {'capacity-analysis-request-v3': CapacityAnalysisRequestV3,
+             'capacity-analysis-request-v4': CapacityAnalysisRequestV4}.get(raw.get('schema_version'), CapacityAnalysisRequest)
     return model.model_validate(raw)
 
 

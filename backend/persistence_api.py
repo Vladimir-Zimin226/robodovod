@@ -35,7 +35,7 @@ from fastapi.responses import JSONResponse
 from models import CalculationResponse, UserInput
 from calculation.service import CapacityExecutionSnapshotV2, capacity_version_bindings
 from calculation.labour import manual_productivity_estimate
-from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisRequestV3, CapacityAnalysisResponse, ContractIssue, KnownQuantity, parse_capacity_analysis_request
+from calculation_contracts import CapacityAnalysisErrorResponse, CapacityAnalysisRequest, CapacityAnalysisRequestV3, CapacityAnalysisRequestV4, CapacityAnalysisResponse, ContractIssue, KnownQuantity, NormalizedProcess, parse_capacity_analysis_request
 from catalog_models import EquipmentModel
 from economics_runtime_migration import (
     EconomicsMigrationError,
@@ -1818,7 +1818,7 @@ def create_persistence_router(
         status_code=status.HTTP_201_CREATED,
     )
     def create_capacity_analysis(
-        payload: CapacityAnalysisRequest | CapacityAnalysisRequestV3,
+        payload: CapacityAnalysisRequest | CapacityAnalysisRequestV3 | CapacityAnalysisRequestV4,
         context: AuthContext = Depends(require_csrf),
         db: Session = Depends(database_session),
     ):

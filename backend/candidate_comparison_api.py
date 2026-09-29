@@ -29,7 +29,7 @@ from calculation.ranking import (
     score_financial_components,
     score_technical_candidate,
 )
-from calculation.service import CapacityExecutionSnapshotV2, analyze_capacity
+from calculation.service import CapacityExecutionSnapshotV2, analyze_capacity, conservative_constraints
 from calculation_contracts import parse_capacity_analysis_request, semantic_digest
 from catalog_repository import CatalogPositionDTO, CatalogSnapshotDTO
 from database import database_session
@@ -97,6 +97,13 @@ def _fact(position: CatalogPositionDTO, codes: tuple[str, ...]) -> tuple[str | N
 
 
 def _constraints(request: Any, position: CatalogPositionDTO, selected: CompareRequest):
+    if getattr(request, 'object_constraint_context', None) is not None:
+        saved = request.object_constraint_context
+        for field in ('max_payload_kg', 'min_aisle_width_m', 'required_integrations'):
+            value = getattr(selected, field)
+            if value and value != saved.get(field):
+                raise HTTPException(409, 'comparison requirements differ from saved object context')
+        return conservative_constraints(request, position)
     known: dict[str, Any] = {}
     evidence: dict[str, EvidenceBinding] = {}
     for field in ("supported_object_kinds", "supported_process_scopes"):
@@ -470,6 +477,7 @@ def create_comparison_router(discovery_loader: Callable[[], CatalogSnapshotDTO])
                                     "created_at": finance_run.created_at})
         return {"catalog_version": snapshot.version.code, "source_position_id": request.position_id,
                 "process_id": request.process.process_id,
+                "object_constraint_context": getattr(request, 'object_constraint_context', None),
                 "items": [{"position_id": item.id, "name": item.model.name,
                            "maturity_status": item.model.maturity_status,
                            "calculation_ready": item.model.capacity_runtime.calculation_ready,

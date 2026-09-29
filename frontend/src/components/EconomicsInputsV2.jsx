@@ -132,7 +132,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     if (key === 'implementationCost') return values.implementationMode !== 'PERCENT';
     if (key === 'raasMonthly') return values.raasMode !== 'PERCENT';
     if (key === 'controlMonthlyGross') return Number(values.controlHeadcount) > 0 || Object.values(staffingPreview).some((item) => item?.control_additional > 0) || values.controlMode === 'HIRE' && Number(values.controlHeadcount || 0) === 0 && Number(fleet) > 0;
-    if (key === 'technicianMonthlyGross') return Number(values.technicianHeadcount) > 0 || Math.ceil(Number(fleet || 0) / 20) > Number(values.technicianHeadcount || 0) && (values.technicianPurchaseMode === 'HIRE' || values.technicianRaasMode === 'HIRE');
+    if (key === 'technicianMonthlyGross') return Number(values.technicianHeadcount) > 0 || (values.technicianPurchaseMode === 'HIRE' || values.technicianRaasMode === 'HIRE') && Number(fleet) > 0;
     if (key === 'controlTransferSupplement') return values.controlMode === 'TRANSFER';
     if (key === 'techTransferSupplement') return values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER';
     if (key === 'technicianContractorAnnual') return values.technicianPurchaseMode === 'CONTRACTOR' || values.technicianRaasMode === 'CONTRACTOR';

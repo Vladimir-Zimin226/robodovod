@@ -93,6 +93,21 @@ def _presentation_rows(comparison: dict[str, Any] | None,
     if linked is not None:
         process = linked.input_snapshot.get("process") or {}
         capacity = (linked.result_snapshot.get("capacity") or {}).get("value") or {}
+        context = linked.input_snapshot.get('object_constraint_context') or {}
+        labels = {'max_payload_kg': ('Требуемая грузоподъёмность за рейс', 'kg'), 'min_aisle_width_m': ('Доступная ширина прохода', 'm'),
+                  'required_lift_height_m': ('Требуемая высота подъёма', 'm'), 'ceiling_height_m': ('Высота потолка', 'm'),
+                  'floor_flatness_mm_2m': ('Неровность пола', 'mm/2m'), 'max_slope_percent': ('Уклон', '%'),
+                  'outdoor_required': ('Требуется работа на улице', ''), 'floor_covering': ('Покрытие пола', ''),
+                  'available_charging_power_kw': ('Доступная мощность зарядки', 'kW')}
+        for field, (label, unit) in labels.items():
+            if context.get(field) is not None and context.get(field) is not False:
+                source = (context.get('requirement_sources') or {}).get(field) or {}
+                rows.append(['Ограничения объекта', 'Все сценарии', '', label, str(context[field]), unit,
+                             f"подтверждено: {source.get('user_confirmed', False)}; {source.get('source_ref') or 'источник не сохранён'}"])
+        if context:
+            for check in linked.result_snapshot.get('trace', {}).get('constraints', []):
+                rows.append(['Проверка пригодности', 'Все сценарии', '', check.get('check_id') or 'Проверка',
+                             str(check.get('status') or 'UNKNOWN'), '', str(check.get('reason_code') or 'сохранённая проверка C05')])
         for key, label in (("demand", "Объём работ"), ("route_distance", "Плечо маршрута")):
             field = process.get(key) or {}
             rows.append(["Процесс и парк", "Все сценарии", "", label,

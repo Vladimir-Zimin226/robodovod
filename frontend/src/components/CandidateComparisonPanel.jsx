@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { objectConstraintLabel } from '../objectConstraintContext';
 import { readCsrfCookie } from '../persistenceApi';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -88,14 +89,15 @@ export default function CandidateComparisonPanel({ project, capacityRunId }) {
         <input type="checkbox" checked={selected.includes(item.position_id)} disabled={!selected.includes(item.position_id) && selected.length >= 3} onChange={() => change(item.position_id)} />{' '}
         {item.name} <span className="text-slate-500">· {item.comparison_note} · цена {item.price_status}</span>
       </label>)}</div>
+      {options.object_constraint_context && <p>Сравнение использует подтверждённые ограничения сохранённого расчёта: {Object.entries(options.object_constraint_context).filter(([key, value]) => !['object_kind', 'requirement_sources', 'time_scope'].includes(key) && value !== null && value !== false && (!Array.isArray(value) || value.length > 0)).map(([key, value]) => `${objectConstraintLabel(key)}: ${value === true ? 'да' : value}`).join('; ')}. Для изменения создайте новую физическую версию.</p>}
       <details><summary>Ограничения объекта и финансовые runs</summary>
         <p className="text-sm">Ограничения применяются ко всем позициям одинаково. Неизвестный паспорт остаётся неподтверждённым.</p>
-        <div className="flex flex-wrap gap-2 text-sm">
+        {!options.object_constraint_context && <div className="flex flex-wrap gap-2 text-sm">
           <label>Масса паллеты, кг <input aria-label="Масса паллеты" className="w-24 rounded border p-1" value={constraints.payload} onChange={(e) => constraint('payload', e.target.value)} /></label>
           <label>Доступная ширина прохода, м <input aria-label="Ширина прохода" className="w-24 rounded border p-1" value={constraints.aisle} onChange={(e) => constraint('aisle', e.target.value)} /></label>
           <label>Нужные интеграции, через запятую <input aria-label="Нужные интеграции" className="w-44 rounded border p-1" value={constraints.integrations} onChange={(e) => constraint('integrations', e.target.value)} /></label>
           <label><input type="checkbox" checked={constraints.confirmed} onChange={(e) => constraint('confirmed', e.target.checked)} /> Подтверждаю ограничения</label>
-        </div>
+        </div>}
         <p className="mt-2 text-sm">Для денежного сравнения выберите сохранённый полный финансовый run каждой допустимой позиции. Сервер повторно проверит исходный C11, одинаковые входы и условия. Пустой выбор оставляет денежный вывод недоступным.</p>
         {selected.map((id) => <label key={id} className="mt-1 block text-sm">{options.items.find((item) => item.position_id === id)?.name} — финансовый run{' '}
           <select aria-label={`Финансовый run ${id}`} className="max-w-full rounded border p-1" value={financeRuns[id] || ''} onChange={(e) => { setFinanceRuns((current) => ({ ...current, [id]: e.target.value })); setResult(null); }}>

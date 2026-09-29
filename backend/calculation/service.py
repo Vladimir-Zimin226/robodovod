@@ -180,6 +180,10 @@ def conservative_constraints(request: CapacityAnalysisRequest, position: Catalog
         payload_kg=format(payload, "f") if payload is not None else None,
         evidence=evidence,
     )
+    if getattr(request, 'object_constraint_context', None) is not None:
+        from calculation.object_context import catalog_constraint_facts
+        context = ObjectConstraintContext.model_validate(request.object_constraint_context)
+        candidate = catalog_constraint_facts(position, candidate)
     return evaluate_constraints(ConstraintEvaluationRequest(
         input_revision=request.input_revision,
         process_id=request.process.process_id,
