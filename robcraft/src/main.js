@@ -44,7 +44,6 @@ let simulation;
 let active = false;
 let inspectedEntity = null;
 let lastFrame = performance.now();
-let lastVisualRender = 0;
 let hudTimer = 0;
 let analyticsEnabled = false;
 let reportEnabled = false;
@@ -844,11 +843,8 @@ function frame(now) {
       updateEditorPreview();
     }
     const camera = active && cameraState === 'AUTOPILOT' && !editorMode ? cameraDirector : player;
-    if (!scene.safePlaybackPlan || now - lastVisualRender >= 1000 / 30) {
-      renderer.render(scene, simulation, camera, editorMode ? editorRenderState() : null);
-      if (active) updateWorldLabels(camera);
-      lastVisualRender = now;
-    }
+    renderer.render(scene, simulation, camera, editorMode ? editorRenderState() : null);
+    if (active) updateWorldLabels(camera);
   }
   requestAnimationFrame(frame);
 }

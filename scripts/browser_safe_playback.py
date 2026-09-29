@@ -42,7 +42,7 @@ window.show=i=>root.render(React.createElement(Simulation,{key:i,request:cases[i
     def elapsed():
         return browser.js("Number(document.querySelector('.simulation-controls').dataset.modelSeconds)")
     def measure_fps(frame_window='window'):
-        return browser.js(f"new Promise(resolve=>{{let start=null,previous=null,frames=0,max=0;const tick=t=>{{if(start===null)start=t;if(previous!==null)max=Math.max(max,t-previous);previous=t;frames++;if(t-start>=3000)resolve({{fps:(frames-1)*1000/(t-start),max_frame_ms:max}});else {frame_window}.requestAnimationFrame(tick)}};{frame_window}.requestAnimationFrame(tick)}})")
+        return browser.js(f"new Promise(resolve=>{{let start=null,previous=null,frames=0,max=0;const tick=t=>{{if(start===null)start=t;if(previous!==null)max=Math.max(max,t-previous);previous=t;frames++;if(t-start>=3000)resolve({{fps:(frames-1)*1000/(t-start),max_frame_ms:max,seconds:(t-start)/1000}});else {frame_window}.requestAnimationFrame(tick)}};{frame_window}.requestAnimationFrame(tick)}})")
     try:
         browser.until('window.ready')
         browser.viewport(1366)
@@ -78,17 +78,19 @@ window.show=i=>root.render(React.createElement(Simulation,{key:i,request:cases[i
                 for width in [1366,390]:
                     browser.viewport(width);click('Старт')
                     panel_height=browser.js("document.querySelector('iframe').getBoundingClientRect().height")
+                    browser.js("(()=>{const gl=document.querySelector('iframe').contentDocument.querySelector('canvas').getContext('webgl');gl.__originalClear ||= gl.clear.bind(gl);gl.__visualFrames=0;gl.clear=(...args)=>{gl.__visualFrames++;return gl.__originalClear(...args)}})()")
                     fps=measure_fps()
+                    rendered=browser.js("document.querySelector('iframe').contentDocument.querySelector('canvas').getContext('webgl').__visualFrames")/fps['seconds']
                     canvas=browser.js("(()=>{const c=document.querySelector('iframe').contentDocument.querySelector('canvas');return {width:c.width,height:c.height,clientWidth:c.clientWidth,clientHeight:c.clientHeight}})()")
                     browser.screenshot(f'warehouse-3d-{width}.png');click('Пауза')
                     assert abs(browser.js("document.querySelector('iframe').getBoundingClientRect().height")-panel_height)<1
                     horizontal=browser.js("document.documentElement.scrollWidth-document.documentElement.clientWidth")
                     assert horizontal<=1,(width,horizontal)
-                    evidence['checks'].append({'template':template,'width':width,'view':'3D',**fps,'canvas':canvas,'panel_height_px':panel_height,'horizontal_overflow_px':horizontal})
+                    evidence['checks'].append({'template':template,'width':width,'view':'3D',**fps,'rendered_fps':rendered,'canvas':canvas,'panel_height_px':panel_height,'horizontal_overflow_px':horizontal})
             click('2D');browser.viewport(1366);browser.screenshot(f'{template}-2d.png')
         print(json.dumps(evidence,ensure_ascii=False))
         (OUT/'evidence.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2),encoding='utf-8')
-        assert all(c.get('fps',30)>=30 for c in evidence['checks'] if c.get('view')=='3D'), 'FPS criterion not met on the recorded renderer'
+        assert all(c.get('rendered_fps',0)>=30 for c in evidence['checks'] if c.get('view')=='3D'), '3D rendered FPS criterion not met on the recorded renderer'
     finally:
         (OUT/'evidence.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2),encoding='utf-8')
         browser.close()
