@@ -35,11 +35,37 @@ test('warehouse camera follows a robot steadily after a brief opening view', () 
   updateFacilityCamera(camera, frame, 3);
   const first = camera.currentShot.id;
   assert.match(first, /^facility-robot-/);
-  for (const second of [8, 15, 22, 27]) {
+  for (const second of [8, 15, 22]) {
     updateFacilityCamera(camera, frame, second);
     assert.equal(camera.currentShot.id, first);
   }
+  updateFacilityCamera(camera, frame, 27);
+  assert.equal(camera.currentShot.id, 'facility-overview');
   updateFacilityCamera(camera, frame, 29);
+  assert.equal(camera.currentShot.id, 'facility-overview');
+  updateFacilityCamera(camera, frame, 32);
   assert.match(camera.currentShot.id, /^facility-robot-/);
   assert.notEqual(camera.currentShot.id, first);
+});
+
+test('warehouse follow camera settles close enough to read the robot and its load', () => {
+  const plan = createSafePlan(playbackCase('warehouse', 15).spec);
+  const robot = { ...plan.robots[0], ...safeRoute(plan, 0).home,
+    stage: 'OUTBOUND', stageLabel: 'В зону отгрузки', areaLabel: 'Стеллаж 1' };
+  const frame = { plan, robots: [robot] }, camera = { position: [0, 20, 20] };
+  for (let step = 0; step <= 70; step += 1) updateFacilityCamera(camera, frame, step / 10);
+  assert.match(camera.currentShot.id, /^facility-robot-/);
+  const x = robot.x - plan.width / 2, z = robot.y - plan.height / 2;
+  assert.ok(Math.hypot(camera.position[0] - x, camera.position[2] - z) < 9);
+  assert.ok(camera.position[1] < 7);
+});
+
+test('a robot selected in the plan remains the 3D camera subject', () => {
+  const plan = createSafePlan(playbackCase('warehouse', 15).spec);
+  const robots = plan.robots.map(robot => ({ ...robot, ...safeRoute(plan, robot.ordinal).home,
+    stage: 'OUTBOUND', stageLabel: 'В зону отгрузки', areaLabel: `Стеллаж ${robot.ordinal + 1}` }));
+  const camera = { position: [0, 20, 20], facilityPinnedOrdinal: 3 };
+  for (const second of [0, 3, 11, 25, 32]) updateFacilityCamera(camera, { plan, robots }, second);
+  assert.equal(camera.currentShot.id, `facility-robot-${robots[3].id}`);
+  assert.equal(camera.facilityFollowOrdinal, 3);
 });

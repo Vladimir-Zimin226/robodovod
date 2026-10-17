@@ -236,6 +236,7 @@ function applyEmbeddedScenario(candidate) {
   } else {
     player.reset(scene.spawn);
     cameraDirector.reset(scene, simulation, scene.spawn);
+    cameraDirector.facilityPinnedOrdinal = null;
     document.exitPointerLock?.();
   }
   visualFingerprint = candidate.fingerprint;
@@ -864,6 +865,12 @@ try {
           if (index < 0) return false;
           if (index === activeZoneIndex) { pinnedZoneId = zoneId; announceScenePatch(); return true; }
           return activateZone(index, 'PARENT_SELECTED');
+      },
+      selectRobot: ordinal => {
+        if (ordinal !== null && (!scene.safePlaybackPlan || ordinal >= scene.safePlaybackPlan.robots.length)) return false;
+        cameraDirector.facilityPinnedOrdinal = ordinal;
+        cameraDirector.facilityFollowUntil = -1;
+        return true;
       },
       setCameraMode: mode => mode === 'MANUAL_FIRST_PERSON'
         ? enterManualCamera('PARENT_REQUEST')

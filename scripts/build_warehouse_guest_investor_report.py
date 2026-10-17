@@ -48,7 +48,7 @@ def load_verified_package() -> tuple[dict, str]:
     return package, sha(payload)
 
 
-def report_bytes(package: dict) -> bytes:
+def report_bytes(package: dict, *, presentation_name: str = "warehouse-pallet-investor-v1", source_note: str | None = None) -> bytes:
     demo = package["demo"]
     scenarios = demo["scenarios"]
     if len(scenarios) != 6:
@@ -58,7 +58,8 @@ def report_bytes(package: dict) -> bytes:
     deck = Deck("Полный · авторский пример", package["as_of"], presentation_version=VERSION)
     deck.page("Роботизация: сценарии и экономика", package["title"] + " · публичный проверочный пример")
     deck.card(40, 137, "Расчётный парк", f"{demo['capacity']['value']['selected_fleet']} роботов", "Перевозка подготовленных паллет")
-    deck.card(234, 137, "Требуемый объём", "2 000 паллет/сутки", "2 × 11 часов; плечо 120 м")
+    demand = f"{int(package['simulation']['report']['workload']['daily_units']):,}".replace(",", " ")
+    deck.card(234, 137, "Требуемый объём", f"{demand} паллет/сутки", "2 × 11 часов; плечо 120 м")
     deck.card(428, 137, "NPV покупки", amount(purchase["npv_project"]["value"], millions=True), "Денежный контур прямого процесса", GREEN)
     deck.card(622, 137, "NPV аренды", amount(raas["npv_project"]["value"], millions=True), "Денежный контур прямого процесса", BLUE)
     deck.paragraph("Показаны сохранённые результаты полного авторского примера: покупка, аренда, шесть вариантов и чувствительность. Денежный контур прямого процесса может включать оценку дефицита персонала; это не полный проектный бюджет.", 40, 285, size=13)
@@ -102,7 +103,7 @@ def report_bytes(package: dict) -> bytes:
     y = 140
     for limit in package["limitations"]:
         y = deck.paragraph("• " + limit, 40, y, size=12) + 17
-    deck.paragraph("Обследование → коммерческая проверка → пилот → решение о масштабе. Полная точность исходного примера доступна в прежнем техническом ZIP; этот PDF — отдельное новое представление тех же чисел.", 40, y + 18, size=11, color=MUTED)
+    deck.paragraph(source_note or "Обследование → коммерческая проверка → пилот → решение о масштабе. Полная точность исходного примера доступна в прежнем техническом ZIP; этот PDF — отдельное новое представление тех же чисел.", 40, y + 18, size=11, color=MUTED)
 
     assumptions = package["assumptions"]
     rows = [[field_label(k)[0], _number(v["value"]) or str(v["value"]), v["unit"], v["rationale"]] for k, v in assumptions["fields"].items()]
@@ -115,7 +116,7 @@ def report_bytes(package: dict) -> bytes:
     y = deck.paragraph("Источник: авторский offline-пакет " + package["schema_version"] + "; дата " + package["as_of"] + ". Глубина представления: полный авторский пример. Он создан до появления поля глубины в пользовательских расчётах; историческому снимку новая глубина не присваивалась.", 40, 139, size=11)
     for label, key in [("Результат экономики", "economics_result_digest"), ("Вход расчёта", "capacity_economics_input_digest"), ("Отчёт симуляции", "simulation_report_digest")]:
         y = deck.paragraph(label + ": " + package["bindings"][key], 40, y + 18, size=9, color=MUTED)
-    deck.paragraph("Версия оформления: " + VERSION + ". Новое представление: warehouse-pallet-investor-v1. Прежний ZIP содержит исходные данные, полные значения и прежний PDF.", 40, y + 30, size=11)
+    deck.paragraph("Версия оформления: " + VERSION + ". Новое представление: " + presentation_name + (". Прежний ZIP содержит исходные данные, полные значения и прежний PDF." if presentation_name == "warehouse-pallet-investor-v1" else ". Исходные данные второго сценария находятся в отдельном JSON."), 40, y + 30, size=11)
     return deck.finish()
 
 

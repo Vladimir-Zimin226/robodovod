@@ -52,22 +52,31 @@ export function updateFacilityCamera(camera, frame, elapsedWallSeconds) {
   const warehouse = Boolean(frame.plan?.warehouseTransport);
   let robot;
   if (warehouse) {
-    if (camera.facilityFollowUntil === undefined || elapsedWallSeconds >= camera.facilityFollowUntil) {
+    if (Number.isInteger(camera.facilityPinnedOrdinal)) {
+      robot = frame.robots.find(item => item.ordinal === camera.facilityPinnedOrdinal);
+      camera.facilityFollowOrdinal = robot?.ordinal;
+    } else if (camera.facilityFollowUntil === undefined || elapsedWallSeconds >= camera.facilityFollowUntil
+        || (elapsedWallSeconds - (camera.facilityFollowStartedAt ?? elapsedWallSeconds) >= 4
+          && active.length && !active.some(item => item.ordinal === camera.facilityFollowOrdinal))) {
       const candidates = active.length ? active : frame.robots;
       const turn = camera.facilityFollowTurn ?? 0;
       robot = candidates[turn % Math.max(1, candidates.length)];
       camera.facilityFollowOrdinal = robot?.ordinal;
       camera.facilityFollowTurn = turn + 1;
       camera.facilityFollowUntil = elapsedWallSeconds + 28;
+      camera.facilityFollowStartedAt = elapsedWallSeconds;
       camera.facilitySide = null;
     } else robot = frame.robots.find(item => item.ordinal === camera.facilityFollowOrdinal);
-  } else robot = (active.length ? active : frame.robots)[Math.floor(elapsedWallSeconds / 12) % Math.max(1, (active.length ? active : frame.robots).length)];
-  const overview = !robot || (warehouse ? elapsedWallSeconds - camera.facilityStartedAt < 2.5
+  } else robot = Number.isInteger(camera.facilityPinnedOrdinal)
+    ? frame.robots.find(item => item.ordinal === camera.facilityPinnedOrdinal)
+    : (active.length ? active : frame.robots)[Math.floor(elapsedWallSeconds / 12) % Math.max(1, (active.length ? active : frame.robots).length)];
+  const warehouseShotTime = (elapsedWallSeconds - camera.facilityStartedAt) % 30;
+  const overview = !robot || (warehouse ? warehouseShotTime < 1.2 || warehouseShotTime >= 26
     : frame.plan ? (elapsedWallSeconds - camera.facilityStartedAt) % 12 < 4 : elapsedWallSeconds % 12 >= 9);
   const [x,z] = robot ? frame.plan ? safeWorldPoint(frame.plan, robot) : facilityWorldPoint(robot) : [0,0];
   const plan = frame.plan;
   const clamp = (value, limit) => Math.max(-limit / 2 + 1.3, Math.min(limit / 2 - 1.3, value));
-  const candidates = warehouse ? [[9, 7], [9, -7], [-7, 8], [-7, -8]] : [[-7, 8], [7, 8], [-7, -8], [7, -8]];
+  const candidates = warehouse ? [[4.5, 4], [4.5, -4], [-4.5, 4], [-4.5, -4]] : [[-7, 8], [7, 8], [-7, -8], [7, -8]];
   const rankedSides = !plan ? [] : candidates.map(([dx, dz], index) => {
     const point = { x: clamp(x + dx, plan.width) + plan.width / 2, y: clamp(z + dz, plan.height) + plan.height / 2 };
     const target = { x: x + plan.width / 2, y: z + plan.height / 2 };
@@ -82,11 +91,11 @@ export function updateFacilityCamera(camera, frame, elapsedWallSeconds) {
   const freeSide = plan ? chosenSide.offset : candidates[1];
   const desired = overview ? warehouse ? [0, Math.max(24, plan.height * .56), Math.max(20, plan.height * .4)]
     : [0, Math.max(35, (plan?.height || 32) * .92), Math.max(25, (plan?.height || 32) * .68)]
-    : [plan ? clamp(x + freeSide[0], plan.width) : x + freeSide[0], warehouse ? 7.2 : 9,
+    : [plan ? clamp(x + freeSide[0], plan.width) : x + freeSide[0], warehouse ? 4 : 9,
       plan ? clamp(z + freeSide[1], plan.height) : z + freeSide[1]];
   const target = overview ? [0, 0, 0] : [x, .8, z];
   const delta = Math.max(0, Math.min(.1, elapsedWallSeconds - (camera.facilityLastTime ?? elapsedWallSeconds)));
-  const mix = camera.facilityLastTime === undefined ? 1 : 1 - Math.exp(-delta * (warehouse ? 1.5 : 2.8));
+  const mix = camera.facilityLastTime === undefined ? 1 : 1 - Math.exp(-delta * (warehouse ? 2.2 : 2.8));
   camera.position = camera.position.map((value, index) => value + (desired[index] - value) * mix);
   camera.facilityLastTime = elapsedWallSeconds;
   if (warehouse) {

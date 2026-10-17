@@ -17,6 +17,9 @@ import PartialEconomicsResult from './components/PartialEconomicsResult';
 import SavedEconomicsEditor from './components/SavedEconomicsEditor';
 import GuestWarehouseDemo from './components/GuestWarehouseDemo';
 import ResultSimulation from './components/ResultSimulation';
+import FacilityLayoutEvidence from './components/FacilityLayoutEvidence';
+import CapacityScenarioDelta from './components/CapacityScenarioDelta';
+import { loadLayoutEvidence, saveLayoutEvidence } from './facilityLayoutEvidence';
 import { commercialSimulationSource, resultCapacityRunId } from './resultSimulationModel';
 import BrainModelScreen from './components/BrainModelScreen';
 import CandidateComparisonPanel from './components/CandidateComparisonPanel';
@@ -56,6 +59,9 @@ export default function App() {
   const [intakeSnapshots, setIntakeSnapshots] = useState({});
   const [userInput, setUserInput] = useState(null);
   const [result, setResult] = useState(null);
+  const [layoutEvidence, setLayoutEvidence] = useState(null);
+  const [capacityComparison, setCapacityComparison] = useState(null);
+  const lastCapacity = useRef(null);
   const [command, setCommand] = useState('');
   const [intakePrompt, setIntakePrompt] = useState('');
   const [intakeInitialSources, setIntakeInitialSources] = useState(null);
@@ -215,6 +221,27 @@ export default function App() {
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
   const assistantSessionKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}`;
   const intakeDraftKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}:${objectType || 'none'}`;
+  const evidenceRunId = resultCapacityRunId(result, activeRun);
+  useEffect(() => {
+    if (!activeProject?.id || !evidenceRunId) return undefined;
+    const controller = new AbortController();
+    loadLayoutEvidence(activeProject.id, evidenceRunId, controller.signal)
+      .then((snapshot) => {
+        if (snapshot) setLayoutEvidence({ capacityRunId: evidenceRunId, projectId: activeProject.id,
+          facilityPlan: snapshot.layout, processId: snapshot.process_id,
+          appliedDistanceM: Number(snapshot.applied_distance_m), saveStatus: 'saved',
+          layoutDigest: snapshot.layout_digest });
+      }).catch(() => {});
+    return () => controller.abort();
+  }, [activeProject?.id, evidenceRunId]);
+  const persistLayoutEvidence = (projectId, runId, evidence) => {
+    saveLayoutEvidence(projectId, runId, evidence)
+      .then((snapshot) => setLayoutEvidence((current) => current?.capacityRunId === runId
+        ? { ...current, facilityPlan: snapshot.layout, saveStatus: 'saved',
+          layoutDigest: snapshot.layout_digest } : current))
+      .catch((failure) => setLayoutEvidence((current) => current?.capacityRunId === runId
+        ? { ...current, saveStatus: 'error', saveError: failure.message } : current));
+  };
   const rememberIntakeDraft = useCallback((draft) => setIntakeDrafts((current) =>
     current[intakeDraftKey] === draft ? current : { ...current, [intakeDraftKey]: draft }), [intakeDraftKey]);
 
@@ -246,6 +273,8 @@ export default function App() {
       restart();
       return;
     }
+    if (id === 'demo') { showPhase('guestDemo'); return; }
+    if (id === 'results') { showPhase(result ? 'results' : 'guestDemo'); return; }
     if (id === 'process') {
       showPhase('process');
       return;
@@ -422,9 +451,18 @@ export default function App() {
             }}
             onOpenObjects={() => showPhase('onboarding')}
             onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; setIntakeSnapshots((current) => ({ ...current, [intakeDraftKey]: snapshot })); const p = snapshot.response?.normalized_processes?.find((p) => p.active); setCatalogContext(p ? { process_code: p.process_code, constraints: p.item_mass?.status === 'KNOWN' ? { max_payload_kg: p.item_mass.normalized_value } : {} } : null); }}
-            onCapacityResult={(response, request) => {
+            onCapacityResult={(response, request, evidence) => {
+              const previous = lastCapacity.current;
+              const next = { response, request, projectId: activeProject?.id };
+              setCapacityComparison(previous && previous.projectId === next.projectId
+                && previous.request?.process?.process_id === request?.process?.process_id
+                && previous.response.run_id !== response.run_id ? { before: previous, after: next } : null);
+              lastCapacity.current = next;
               setResult(response);
               setUserInput(request);
+              setLayoutEvidence(evidence ? { ...evidence, capacityRunId: response.run_id,
+                projectId: activeProject?.id, saveStatus: 'saving' } : null);
+              if (evidence && activeProject?.id) persistLayoutEvidence(activeProject.id, response.run_id, evidence);
               setActiveRun({ id: response.run_id, run_kind: 'CAPACITY_ANALYSIS' });
               setSaveState('saved');
               showPhase('results');
@@ -481,6 +519,14 @@ export default function App() {
             <ResultSimulation key={resultCapacityRunId(result, activeRun) || activeRun?.id || 'none'} result={result}
               run={activeRun} technicalRun={technicalExportRun} capacityRequest={userInput}
               project={activeProject} onReady={setTechnicalExportRun} />
+            {layoutEvidence?.capacityRunId === resultCapacityRunId(result, activeRun)
+              && layoutEvidence.projectId === activeProject?.id && <FacilityLayoutEvidence evidence={layoutEvidence}
+                onRetrySave={layoutEvidence.saveStatus === 'error' ? () => {
+                  setLayoutEvidence((current) => ({ ...current, saveStatus: 'saving' }));
+                  persistLayoutEvidence(activeProject.id, layoutEvidence.capacityRunId, layoutEvidence);
+                } : null} />}
+            {capacityComparison?.after.response.run_id === resultCapacityRunId(result, activeRun)
+              && capacityComparison.after.projectId === activeProject?.id && <CapacityScenarioDelta comparison={capacityComparison} />}
             {result?.schema_version === 'simulation-2d-bundle-v1' ? (
               <Simulation2DReport key={result.request?.request_id || result.run_id} request={result.request} initialReport={result.report} scenarios={result.scenarios} />
             ) : isCapacityAnalysisResponse(result) ? (

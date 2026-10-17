@@ -12,6 +12,7 @@ import {
   setRoleActive,
   updateProcess,
   updateFacility,
+  updateFacilityPlan,
   updateRole,
   updateZone,
   validateDraft,
@@ -26,6 +27,8 @@ import ObjectConstraints from './ObjectConstraints';
 import { calculateOperationBatch } from '../operationBatch';
 import { toV2Draft } from '../assistantInterview';
 import { workbookDraft, confirmWorkbookDraft } from '../projectWorkbook';
+import WarehouseLayoutSketch from './WarehouseLayoutSketch';
+import { estimateFacilityRoute, layoutFingerprint } from '../facilityLayout';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -254,7 +257,11 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       });
       const response = await capacityClient.current.create(payload, readCsrfCookie());
       if (latestRevision.current !== payload.input_revision) return;
-      onCapacityResult?.(response, payload);
+      const plannedProcess = draft.processes.find((item) => item.processId === selectedProcess?.process_id);
+      onCapacityResult?.(response, payload, draft.facilityPlan && plannedProcess?.distanceFromPlan === layoutFingerprint(draft.facilityPlan)
+        ? { facilityPlan: draft.facilityPlan, processId: plannedProcess.processId,
+          appliedDistanceM: Number(plannedProcess.distance), fingerprint: plannedProcess.distanceFromPlan }
+        : null);
     } catch (runError) {
       if (runError.code !== 'STALE_CAPACITY_RESPONSE') setError(runError.message || 'Расчёт недоступен');
     } finally {
@@ -323,6 +330,17 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           : 'Из датасета: 45 000 м², 1 950 порций/сутки, плечо 180 м, зарплата 52 000 ₽ gross. Активная зона 18 000 м², 6 сотрудников только доставки, 3×8 ч, 65 порций за рейс и обмен 180 с — допущения. Приготовление пищи, лифты и санитарные режимы отдельно не моделируются.'} Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
         {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад использует 1 паллету за рейс, плечо 120 м и обмен 90 сек. как допущения. Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
       </header>
+
+      {objectType === 'retail' && <WarehouseLayoutSketch value={draft.facilityPlan}
+        processes={draft.processes.filter((process) => process.scope === 'TRANSPORT_CYCLE' && process.zoneId === selectedZoneId)}
+        onChange={(facilityPlan) => setDraft((current) => updateFacilityPlan(current, facilityPlan))}
+        onApplyDistance={(targetProcessId) => setDraft((current) => {
+          const route = estimateFacilityRoute(current.facilityPlan, { robotWidthM: Number(current.facilityPlan.robot_width_m) || 1 });
+          if (route.status !== 'READY') return current;
+          return updateProcess(current, targetProcessId, { distance: String(route.length_m),
+            distanceFromPlan: layoutFingerprint(current.facilityPlan),
+            fieldSources: { distance: 'USER' }, fieldConfirmations: { distance: true } });
+        })} />}
 
       <section className="mb-4 rounded-xl border p-3" aria-label="Площадь объекта">
         <h3 className="font-semibold text-sm">{draft.facility?.name || activeProject?.name || 'Объект'} · площадь</h3>
@@ -400,7 +418,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                   <NumberField label="Смен/сут" value={process.shifts} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для доступного времени; например 2. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { shifts: value }))} />
                   <NumberField label="Часов/смена" value={process.hours} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для доступного времени; например 8. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { hours: value }))} />
                   <NumberField label="Дней/год" value={process.days} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для годовой загрузки; например 250. Источник — календарь работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { days: value }))} />
-                  {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField id={`intake-${process.processId}.distance`} label="Одностороннее плечо, м" value={process.distance} issue={fieldIssue(`${process.processId}.distance`)} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { distance: value }))} />}
+                  {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField id={`intake-${process.processId}.distance`} label="Одностороннее плечо, м" value={process.distance} issue={fieldIssue(`${process.processId}.distance`)} hint={process.distanceFromPlan ? 'Применено из локальной проверки планировки; изменение схемы сбросит это значение.' : 'Измерьте на объекте или примените предварительный маршрут из конструктора выше.'} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { distance: value }))} />}
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <div className="sm:col-span-2 lg:col-span-3 rounded border border-amber-300 p-2"><NumberField id={`intake-${process.processId}.batch`} label={`Сколько ${process.quantityKind === 'PALLET' ? 'паллет' : 'единиц груза'} робот перевозит за один рейс?`} value={process.batch} issue={fieldIssue(`${process.processId}.batch`)} hint={`Для «${process.label}» в зоне «${selectedZone.label}». Объём ${process.demand || 'неизвестен'} ${process.unit}, плечо ${process.distance || 'неизвестно'} м. Укажите целое число; для своего процесса значение не подставляется.`} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />
                     {process.fieldSources?.batch === 'ASSUMPTION' && <label className="mt-2 flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={process.fieldConfirmations?.batch === true} onChange={(event) => event.target.checked && setDraft((current) => confirmProcessAssumption(current, process.processId, 'batch'))} />Подтверждаю допущение: {process.batch} {process.quantityKind === 'PALLET' ? 'паллет' : process.quantityKind === 'PORTION' ? 'порций' : 'единиц груза'} за рейс для этого процесса</label>}</div>}
                 </div>

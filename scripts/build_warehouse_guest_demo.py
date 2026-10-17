@@ -19,7 +19,9 @@ from test_economics_orchestrator import _capacity_request, _inputs, _snapshot  #
 TARGET = ROOT / "frontend/src/warehouseGuestDemo.json"
 
 
-def build_capture() -> tuple[dict, dict, CapacityAnalysisRequest, dict, object]:
+def build_capture(daily_units: int = 2000, run_suffix: str = "") -> tuple[dict, dict, CapacityAnalysisRequest, dict, object]:
+    if daily_units <= 0 or (run_suffix and not run_suffix.replace("-", "").isalnum()):
+        raise ValueError("Invalid public demo scenario")
     assumptions = json.loads((ROOT / "data/scenarios/warehouse-economics-demo-v1.json").read_text(encoding="utf-8"))
     snapshot = _snapshot()
     snapshot = replace(snapshot, version=replace(
@@ -27,16 +29,17 @@ def build_capture() -> tuple[dict, dict, CapacityAnalysisRequest, dict, object]:
     ))
     raw = _capacity_request().model_dump(mode="json")
     for quantity, value in (
-        (raw["process"]["demand"], "2000"),
+        (raw["process"]["demand"], str(daily_units)),
         (raw["process"]["schedule"]["shift_hours"], "11"),
         (raw["role_pool"]["roles"][0]["headcount"], "25"),
         (raw["role_pool"]["roles"][0]["monthly_gross_salary"], "120000"),
     ):
         quantity["raw_value"] = quantity["normalized_value"] = value
     request = CapacityAnalysisRequest.model_validate(raw)
-    capacity = analyze_capacity(request, snapshot, "run.demo.warehouse.c11")
+    capacity_run_id = f"run.demo.warehouse.c11{run_suffix}"
+    capacity = analyze_capacity(request, snapshot, capacity_run_id)
     context = EconomicsExecutionContextV1(
-        run_id="run.demo.warehouse.economics", project_id=request.project_id,
+        run_id=f"run.demo.warehouse.economics{run_suffix}", project_id=request.project_id,
         tenant_id="tenant.demo", capacity_request=request,
         capacity_response=capacity.response,
         constraint_report=capacity.constraints.model_dump(mode="json"),
@@ -55,7 +58,7 @@ def build_capture() -> tuple[dict, dict, CapacityAnalysisRequest, dict, object]:
         "schema_version": "warehouse-guest-demo-v1", "assumptions_version": assumptions["schema_version"],
         "as_of": "2026-09-25", "source": "offline engine capture: scripts/build_warehouse_guest_demo.py",
         "model_notice": "Авторский расчётный профиль MULE из проверочного сценария, не паспорт и не коммерческое предложение",
-        "process": "Паллетные перемещения на условном складе: 2 000 паллет/сутки, 2 × 11 ч, плечо 120 м, обмен 90 с",
+        "process": f"Паллетные перемещения на условном складе: {format(daily_units, ',').replace(',', ' ')} паллет/сутки, 2 × 11 ч, плечо 120 м, обмен 90 с",
         "capacity": capacity.response.capacity.model_dump(mode="json"),
         "c05": capacity.constraints.eligibility,
         "procurement": "UNVERIFIED",

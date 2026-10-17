@@ -1,0 +1,20 @@
+{
+  "baseline_input_digest": "sha256:7e851c4a5498522206304a053959307636281864d73f7e03005fadfb18ad7c3d",
+  "bindings": {
+    "capacity_economics_input_digest": "sha256:79819d5932d3303785d4781c0126870f9c0c813abc41c5b8d31eb0abd7509756",
+    "economics_result_digest": "sha256:7be9a1422d5c25bef9d23beacb821f7bc6c745f98b1bf8f2e446ffa490d6fa64",
+    "scenario_revision_id": "calc_3fe8359763215ab1",
+    "simulation_report_digest": "sha256:dc0fb2b6772a8a5f57a51cefc00c16cd2b4a06002e9399adb751688e820554f3"
+  },
+  "files": {
+    "report.pdf": {
+      "bytes": 444093,
+      "sha256": "sha256:a9a935abf8731a23a06321b15647fc6a79b4d70cb9a73ec30c4c0f22df5c716d"
+    },
+    "scenario.json": {
+      "bytes": 36976,
+      "sha256": "sha256:2f8bee82a820e328e32523428ed751bc744c01bb007485aa4b88dafe7c0d7190"
+    }
+  },
+  "schema_version": "warehouse-comparison-manifest-v1"
+}

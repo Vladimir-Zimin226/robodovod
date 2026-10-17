@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 import demo from '../src/warehouseGuestDemo.json' with { type: 'json' };
 import guestPackage from '../src/warehouseGuestPackageV2.json' with { type: 'json' };
+import comparison from '../src/warehouseGuestComparisonV1.json' with { type: 'json' };
 
 test('guest warehouse capture includes baseline, six branches and sensitivity with honest gates', () => {
   assert.equal(demo.schema_version, 'warehouse-guest-demo-v1');
@@ -19,10 +20,23 @@ test('guest screen does not submit or persist user data', async () => {
   const source = await readFile(new URL('../src/components/GuestWarehouseDemo.jsx', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /fetch\(|localStorage|sessionStorage|POST/);
   assert.match(source, /не отправляются/);
-  assert.match(source, /Simulation2DReport request=\{simulation\.request\} initialReport=\{simulation\.report\}/);
+  assert.match(source, /Simulation2DReport key=\{simulation\.request\.request_id\} request=\{simulation\.request\} initialReport=\{simulation\.report\}/);
   assert.match(source, /report\.pdf/);
   assert.match(source, /evidence\.zip/);
   assert.doesNotMatch(source, /bg-white|text-slate/);
+});
+
+test('guest comparison keeps the same authored assumptions and calculates a second physical and financial result', () => {
+  assert.equal(comparison.schema_version, 'warehouse-guest-comparison-v1');
+  assert.equal(comparison.baseline_input_digest, guestPackage.demo.input_digest);
+  assert.equal(comparison.demo.capacity.value.selected_fleet, 22);
+  assert.equal(comparison.simulation.report.workload.daily_units, '2400');
+  assert.equal(comparison.simulation.report.workload.fleet_units, 22);
+  assert.equal(comparison.simulation.report.scenario_revision_id, comparison.bindings.scenario_revision_id);
+  assert.equal(comparison.simulation.report.replay.report_content_digest, comparison.bindings.simulation_report_digest);
+  assert.equal(comparison.demo.scenarios.length, 6);
+  assert.notEqual(comparison.demo.scenarios.find(item => item.acquisition === 'PURCHASE' && item.uncertainty === 'BASE').npv_project.value,
+    guestPackage.demo.scenarios.find(item => item.acquisition === 'PURCHASE' && item.uncertainty === 'BASE').npv_project.value);
 });
 
 test('guest package presents one authored warehouse scenario across economics and simulation', () => {

@@ -188,9 +188,21 @@ export function updateProcess(draft, processKey, patch) {
       for (const key of ['demand', 'shifts', 'hours', 'days', 'distance', 'batch']) {
         if (Object.hasOwn(patch, key)) { fieldSources[key] = 'USER'; fieldConfirmations[key] = false; }
       }
-      return { ...item, ...patch, fieldSources: { ...fieldSources, ...(patch.fieldSources || {}) },
+      return { ...item, ...patch,
+        ...(Object.hasOwn(patch, 'distance') && !Object.hasOwn(patch, 'distanceFromPlan') ? { distanceFromPlan: null } : {}),
+        fieldSources: { ...fieldSources, ...(patch.fieldSources || {}) },
         fieldConfirmations: { ...fieldConfirmations, ...(patch.fieldConfirmations || {}) } };
     }),
+  });
+}
+
+export function updateFacilityPlan(draft, facilityPlan) {
+  // Any changed geometry makes a distance previously taken from this plan stale.
+  return revise(draft, { facilityPlan,
+    processes: draft.processes.map((process) => process.distanceFromPlan
+      ? { ...process, distance: '', distanceFromPlan: null,
+        fieldConfirmations: { ...process.fieldConfirmations, distance: false } }
+      : process),
   });
 }
 
@@ -396,7 +408,11 @@ export function serializeDraft(draft) {
         shift_hours: quantity(process.hours, 'h', process.fieldSources?.hours || 'USER', process.fieldConfirmations?.hours === true, process.fileSource),
         days_per_year: quantity(process.days, 'day', process.fieldSources?.days || 'USER', process.fieldConfirmations?.days === true, process.fileSource),
       } : null,
-      route_distance: quantity(process.distance, 'm', process.fieldSources?.distance || 'USER', process.fieldConfirmations?.distance === true, process.fileSource),
+      route_distance: process.distanceFromPlan && process.distance
+        ? { ...quantity(process.distance, 'm', 'USER', true), provenance: {
+          source: 'USER', raw_text: `${process.distance} м · пользователь применил предварительную оценку по нарисованной планировке; геометрия не верифицирована`, user_confirmed: true,
+        } }
+        : quantity(process.distance, 'm', process.fieldSources?.distance || 'USER', process.fieldConfirmations?.distance === true, process.fileSource),
       explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER', process.fieldConfirmations?.batch === true, process.fileSource),
       role_refs: draft.roles.filter((role) => role.processIds.includes(process.processId)).map((role) => role.roleId),
     })),

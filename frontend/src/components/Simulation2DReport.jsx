@@ -45,12 +45,12 @@ function path(points) {
   return points.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
 }
 
-export default function Simulation2DReport({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
+export default function Simulation2DReport({ request, initialReport = null, scenarios = null, analysisRunId = null, autoPlay = false, initialViewMode = '2D', compact = false }) {
   return <SimulationPlayer key={`${analysisRunId || 'guest'}:${request?.request_id}`} request={request}
-    analysisRunId={analysisRunId} initialReport={initialReport} scenarios={scenarios} />;
+    analysisRunId={analysisRunId} initialReport={initialReport} scenarios={scenarios} autoPlay={autoPlay} initialViewMode={initialViewMode} compact={compact} />;
 }
 
-function SimulationPlayer({ request, initialReport = null, scenarios = null, analysisRunId = null }) {
+function SimulationPlayer({ request, initialReport = null, scenarios = null, analysisRunId = null, autoPlay = false, initialViewMode = '2D', compact = false }) {
   const [savedOptions, setSavedOptions] = useState([]);
   const [savedReady, setSavedReady] = useState(!analysisRunId);
   const options = useMemo(
@@ -61,14 +61,20 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   const [selected, setSelected] = useState(options[0]?.id || '');
   const active = useMemo(() => options.find((item) => item.id === selected) || options[0], [options, selected]);
   const [report, setReport] = useState(active?.report || null);
-  const [viewMode, setViewMode] = useState('2D');
+  const [viewMode, setViewMode] = useState(initialViewMode);
+  const [robotChoice, setRobotChoice] = useState({ bindingKey: null, ordinal: null });
   const [runState, setRunState] = useState(null);
   const [error, setError] = useState('');
   const api = useRef(new SimulationApiSession());
   const bindingKey = report && active?.request
     ? `${active.request.scenario_spec.revision_id}:${report.replay.report_content_digest}`
     : `pending:${active?.request?.scenario_spec?.revision_id || 'none'}`;
+  const selectedRobotOrdinal = robotChoice.bindingKey === bindingKey ? robotChoice.ordinal : null;
+  const setSelectedRobotOrdinal = (ordinal) => setRobotChoice({ bindingKey, ordinal });
   const [timeline, dispatch] = useReducer(reduceTimeline, bindingKey, createTimelineState);
+  useEffect(() => {
+    if (autoPlay && initialReport) dispatch({ type: 'START' });
+  }, [autoPlay, initialReport]);
   const [zoneChoice, setZoneChoice] = useState({ bindingKey: null, id: null });
   const persistedZoneId = useMemo(() => {
     try { return window.sessionStorage.getItem(`simulation-zone:${bindingKey}`); }
@@ -233,6 +239,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   const activeZoneId = zonalScene?.zones.some((zone) => zone.id === selectedZoneId)
     ? selectedZoneId : zonalScene?.zones[0]?.id;
   const selectZone = (id) => {
+    if (id !== activeZoneId) setSelectedRobotOrdinal(null);
     setZoneChoice({ bindingKey, id });
     try { window.sessionStorage.setItem(`simulation-zone:${bindingKey}`, id); } catch { /* private mode */ }
   };
@@ -244,8 +251,8 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
   };
 
   return (
-    <section className="simulation-2d panel" id="visualization" aria-label="2D/3D-симуляция и отчёт" data-template={active?.request?.scenario_spec?.template}>
-      <header className="simulation-2d-header">
+    <section className={`simulation-2d panel${compact ? ' simulation-2d-compact' : ''}`} id="visualization" aria-label="2D/3D-симуляция и отчёт" data-template={active?.request?.scenario_spec?.template}>
+      {!compact && <header className="simulation-2d-header">
         <div>
           <p className="eyebrow">Симуляция процесса · схема работы</p>
           <h2>Схема работы и расчёт очереди</h2>
@@ -259,7 +266,7 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
             {zonalScene.zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.label}</option>)}
           </select>
         </label>}
-      </header>
+      </header>}
 
       {analysisRunId && request?.schema_version === 'simulation-request-v2'
         && <SimulationChainSetup baseRequest={request} onStart={startExtended} />}
@@ -294,6 +301,12 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
           </div>
 
           <div className="simulation-controls" aria-label="Управление воспроизведением" data-model-seconds={timeline.simulationTimeUs / 1_000_000} data-playback-status={timeline.status} data-playback-speed={timeline.speed} data-playback-version={LIVE_PLAYBACK_VERSION} data-model-seconds-per-view-second={facilityTimeScale}>
+            {compact ? <>
+              <button type="button" onClick={() => playbackAction({ type: timeline.status === 'RUNNING' ? 'PAUSE' : 'START' })}>{timeline.status === 'RUNNING' ? 'Пауза' : 'Продолжить'}</button>
+              <button type="button" onClick={() => playbackAction({ type: 'RESTART' })}>С начала</button>
+              <span>Время модели: {formatModelClock(report.model_start, timeline.simulationTimeUs) || `${Math.floor(timeline.simulationTimeUs / 60_000_000)} мин`}</span>
+              <strong>{STATUS_LABELS[timeline.status]}</strong>
+            </> : <>
             <button type="button" onClick={() => playbackAction({ type: 'START' })}>Старт</button>
             <button type="button" onClick={() => playbackAction({ type: 'PAUSE' })}>Пауза</button>
             <button type="button" onClick={() => playbackAction({ type: 'STOP' })}>Стоп</button>
@@ -309,9 +322,10 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
               <label>Перейти к минуте модели<input type="number" min="0" max="4320" step="1" value={Math.floor(timeline.simulationTimeUs / 60_000_000)} onChange={(event) => { if (event.target.value !== '') dispatch({ type: 'SEEK', simulationTimeUs: Math.round(Number(event.target.value) * 60_000_000) }); }} /></label>
               <span>Визуально выполнено: {presentation.frame.zones.reduce((sum, zone) => sum + zone.completedJobs, 0)} заданий.</span>
               {presentation.scene.playback.some((item) => item.delayedJobs > 0) && <p>Условная геометрия добавляет время на безопасный транзит, общие проходы и точки передачи. Визуальный счётчик может отставать от агрегированной серверной очереди; сохранённые показатели отчёта и экономика остаются исходными.</p>}</>}
+            </>}
           </div>
 
-          <div ref={canvas} role="tabpanel" hidden={viewMode !== '2D'}>{warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} stages={report.stages} /> : facilityScene ? <Facility2DPlan scene={facilityScene} frame={presentation.frame} selectedZoneId={activeZoneId} /> : <div className="simulation-canvas-wrap">
+          <div ref={canvas} role="tabpanel" hidden={viewMode !== '2D'}>{warehouseScene ? <Warehouse2DPlan scene={warehouseScene} frame={presentation.frame} selectedZoneId={activeZoneId} stages={report.stages} /> : facilityScene ? <Facility2DPlan scene={facilityScene} frame={presentation.frame} selectedZoneId={activeZoneId} compact={compact} selectedOrdinal={selectedRobotOrdinal} onSelectRobot={setSelectedRobotOrdinal} /> : <div className="simulation-canvas-wrap">
             <svg viewBox={`0 0 ${presentation.scene.width} ${presentation.scene.height}`} role="img" aria-label="Зоны, маршруты, парк и операции">
               <defs><marker id="simulation-flow-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#67e8f9" /></marker></defs>
               {presentation.scene.zones.map((zone) => <g key={zone.id}><rect className={`simulation-zone source-${zone.geometrySource.toLowerCase()}`} x={zone.x} y={zone.y} width={zone.width} height={zone.height} rx="16" /><text className="zone-name" x={zone.x + 16} y={zone.y + 26}>{zone.label}</text><text className="geometry-source" x={zone.x + 16} y={zone.y + 46}>{zone.geometryLabel}</text></g>)}
@@ -322,9 +336,9 @@ function SimulationPlayer({ request, initialReport = null, scenarios = null, ana
             <div className="simulation-legend"><span>→ направление потока · обратный ход по нижней линии</span><span><i className="legend-robot" /> условное положение робота</span><span>↯ зарядка учтена агрегированно; точка не задана</span></div>
             <p className="simulation-schematic-note">Зоны и точки показаны схематично; предоставленная схема означает ссылку на геометрию, а не нанесённые здесь координаты. Операции и движение иллюстрируют процесс, показатели берутся из отчёта симуляции.</p>
           </div>}</div>
-          <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}{viewMode === '3D' && <RobCraftFrame key={bindingKey} scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline} visible
+          <div role="tabpanel" hidden={viewMode !== '3D'}>{report.stages?.some((stage) => stage.status === 'MODELED') && <p className="simulation-schematic-note">3D показывает только паллетную перевозку. Для отбора, буфера и упаковки нет подтверждённой 3D-модели; их очереди и загрузка показаны в 2D и в отчёте выше.</p>}{viewMode === '3D' && <RobCraftFrame key={bindingKey} scenarioSpec={active.request.scenario_spec} simulationReport={report} playback={timeline} visible selectedRobotOrdinal={facilityScene ? selectedRobotOrdinal : null}
             selectedZoneId={zonalScene ? activeZoneId : null} onZoneChange={zonalScene ? selectZone : null} compact />}
-            {facilityScene && <div className="facility-operations mt-3" aria-label="Действия роботов в 3D">{presentation.frame.robots.filter(robot => robot.zoneId === activeZoneId).map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.areaLabel}{robot.carrying ? ` · ${cargoLabel(robot.units, active.request.scenario_spec.template)}` : ''}</small></div>)}</div>}
+            {facilityScene && !compact && <div className="facility-operations mt-3" aria-label="Действия роботов в 3D">{presentation.frame.robots.filter(robot => robot.zoneId === activeZoneId).map(robot => <div key={robot.id}><strong>Робот {robot.ordinal + 1}</strong><span>{robot.stageLabel}</span><small>{robot.areaLabel}{robot.carrying ? ` · ${cargoLabel(robot.units, active.request.scenario_spec.template)}` : ''}</small></div>)}</div>}
           </div>
 
           <div className="simulation-kpis">

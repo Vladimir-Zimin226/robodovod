@@ -1,6 +1,6 @@
 export const MESSAGE_SCHEMA_VERSION = 'robcraft-message-v1';
 
-const INBOUND_TYPES = new Set(['LOAD_SCENARIO', 'APPLY_REVISION', 'SET_CAMERA_MODE', 'SET_EDITOR_MODE', 'SELECT_ZONE', 'SET_PLAYBACK']);
+const INBOUND_TYPES = new Set(['LOAD_SCENARIO', 'APPLY_REVISION', 'SET_CAMERA_MODE', 'SET_EDITOR_MODE', 'SELECT_ZONE', 'SELECT_ROBOT', 'SET_PLAYBACK']);
 const CAMERA_MODES = new Set(['AUTOPILOT', 'MANUAL_FIRST_PERSON']);
 const ENVELOPE_FIELDS = new Set([
   'schema_version', 'type', 'revision_id', 'request_id', 'payload'
@@ -51,6 +51,10 @@ export function parseParentMessage(value) {
   } else if (value.type === 'SELECT_ZONE') {
     assertExactFields(value.payload, new Set(['zone_id']), 'SELECT_ZONE.payload');
     if (typeof value.payload.zone_id !== 'string' || !value.payload.zone_id) throw new TypeError('SELECT_ZONE.zone_id обязателен');
+  } else if (value.type === 'SELECT_ROBOT') {
+    assertExactFields(value.payload, new Set(['ordinal']), 'SELECT_ROBOT.payload');
+    if (value.payload.ordinal !== null && (!Number.isInteger(value.payload.ordinal) || value.payload.ordinal < 0 || value.payload.ordinal > 999))
+      throw new TypeError('SELECT_ROBOT.ordinal должен быть номером робота или null');
   } else if (value.type === 'SET_PLAYBACK') {
     assertExactFields(value.payload, new Set(['elapsed_seconds', 'status', 'speed', 'restart']), 'SET_PLAYBACK.payload');
     if (!Number.isFinite(value.payload.elapsed_seconds) || value.payload.elapsed_seconds < 0
@@ -75,7 +79,7 @@ export function childMessage(type, revisionId, requestId, payload = {}) {
   };
 }
 
-export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState, getRendererReport, selectZone, setPlayback }) {
+export function installParentBridge(windowObject, { prepare, apply, setCameraMode, getCameraState, setEditorMode, getEditorState, getScenePatchState, getRendererReport, selectZone, selectRobot, setPlayback }) {
   if (windowObject.parent === windowObject) return { dispose() {}, cameraModeChanged() {}, editorModeChanged() {}, scenePatchChanged() {}, rendererReportChanged() {} };
   const origin = windowObject.location.origin;
   let prepared = null;
@@ -88,7 +92,7 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
     source.revision_id ?? null,
     source.request_id ?? null,
     {
-      code: source.type === 'SET_CAMERA_MODE' ? 'CAMERA_CONTROL_REJECTED' : source.type === 'SET_EDITOR_MODE' ? 'EDITOR_CONTROL_REJECTED' : source.type === 'SELECT_ZONE' ? 'ZONE_SELECTION_REJECTED' : 'SCENARIO_REJECTED',
+      code: source.type === 'SET_CAMERA_MODE' ? 'CAMERA_CONTROL_REJECTED' : source.type === 'SET_EDITOR_MODE' ? 'EDITOR_CONTROL_REJECTED' : source.type === 'SELECT_ZONE' ? 'ZONE_SELECTION_REJECTED' : source.type === 'SELECT_ROBOT' ? 'ROBOT_SELECTION_REJECTED' : 'SCENARIO_REJECTED',
       message: error instanceof Error ? error.message : String(error)
     }
   ));
@@ -165,6 +169,8 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
         cameraModeChanged(state.mode, state.reason || 'PARENT_REQUEST', state.pointerLocked);
       } else if (message.type === 'SELECT_ZONE') {
         if (!selectZone || !await selectZone(message.payload.zone_id)) throw new TypeError('3D-зона недоступна для выбора');
+      } else if (message.type === 'SELECT_ROBOT') {
+        if (!selectRobot || !await selectRobot(message.payload.ordinal)) throw new TypeError('3D-робот недоступен для выбора');
       } else if (message.type === 'SET_PLAYBACK') {
         if (!setPlayback) throw new TypeError('3D-воспроизведение недоступно');
         setPlayback(message.payload);
@@ -178,7 +184,7 @@ export function installParentBridge(windowObject, { prepare, apply, setCameraMod
   };
 
   windowObject.addEventListener('message', listener);
-  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'scenario-spec-v2', 'simulation-report-v1-binding', 'robcraft-renderer-report-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'playback-sync-v1', 'safe-playback-v2', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
+  send(childMessage('ROBCRAFT_READY', null, null, { capabilities: ['scenario-spec-v1', 'scenario-spec-v2', 'simulation-report-v1-binding', 'robcraft-renderer-report-v1', 'two-phase-apply', 'scene-patch-v1', 'embedded-editor', 'multi-zone-representative-v1', 'playback-sync-v1', 'safe-playback-v2', 'select-robot-v1', 'transport', 'clinical-delivery', 'cleaning-coverage', 'stationary-palletizing'] }));
   return {
     dispose: () => windowObject.removeEventListener('message', listener),
     cameraModeChanged,

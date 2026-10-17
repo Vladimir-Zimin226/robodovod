@@ -3,18 +3,22 @@ import AppIcon from './AppIcon';
 
 const NAVIGATION = [
   { id: 'home', label: 'Главная', icon: 'home' },
+  { id: 'demo', label: 'Готовый пример', icon: 'cube' },
+  { id: 'calculation', label: 'Мой объект и расчёт', icon: 'calculator' },
+  { id: 'results', label: 'Мой результат', icon: 'chart' },
+];
+const TOOL_NAVIGATION = [
   { id: 'process', label: 'Помощник по сервису', icon: 'process' },
-  { id: 'calculation', label: 'Расчёт', icon: 'calculator' },
   { id: 'model', label: 'Моделирование процесса', icon: 'cube' },
   { id: 'expert', label: 'Робоэксперт', icon: 'chart' },
-  { id: 'economics', label: 'Экономика', icon: 'money', target: 'economics' },
-  { id: 'report', label: 'Отчёт', icon: 'report', target: 'report' },
+  { id: 'economics', label: 'Справочник экономики', icon: 'money' },
+  { id: 'report', label: 'Отчёты', icon: 'report' },
 ];
 
 export function AppShell({ phase, user, activeProject, onNavigate, command, setCommand, onCommand, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isResult = phase === 'results';
-  const activeNav = phase === 'onboarding' ? 'home' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase === 'reports' ? 'report' : phase === 'economicsMethodology' ? 'economics' : phase;
+  const activeNav = phase === 'onboarding' ? 'home' : phase === 'guestDemo' ? 'demo' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase === 'reports' ? 'report' : phase === 'economicsMethodology' ? 'economics' : phase;
   const initials = (user?.name || user?.email || 'Г')
     .split(/[\s@]+/)
     .filter(Boolean)
@@ -48,6 +52,14 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
             </button>
           ))}
         </nav>
+        <details className="app-tool-nav" open={TOOL_NAVIGATION.some((item) => item.id === activeNav) ? true : undefined}>
+          <summary>Дополнительные инструменты</summary>
+          <nav className="app-nav" aria-label="Дополнительные инструменты">
+            {TOOL_NAVIGATION.map((item) => <button key={item.id} onClick={() => navigate(item)} className={item.id === activeNav ? 'active' : ''} aria-current={item.id === activeNav ? 'page' : undefined}>
+              <AppIcon name={item.icon} /><span>{item.label}</span>
+            </button>)}
+          </nav>
+        </details>
         <nav className="nav-secondary" aria-label="Проект и данные">
           <button className={activeNav === 'templates' ? 'active' : ''} aria-current={activeNav === 'templates' ? 'page' : undefined} onClick={() => navigate({ id: 'templates' })}><AppIcon name="report" /><span>Шаблоны и загрузка данных</span></button>
           <button className={activeNav === 'library' ? 'active' : ''} aria-current={activeNav === 'library' ? 'page' : undefined} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>

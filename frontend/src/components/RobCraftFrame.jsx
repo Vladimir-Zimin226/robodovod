@@ -3,7 +3,7 @@ import { negotiateScenarioSpec, parentMessage, parseRobCraftMessage } from '../r
 
 const LOAD_TIMEOUT_MS = 12000;
 
-export default function RobCraftFrame({ scenarioSpec, simulationReport = null, playback = null, compact = false, selectedZoneId = null, onZoneChange = null, visible = true }) {
+export default function RobCraftFrame({ scenarioSpec, simulationReport = null, playback = null, compact = false, selectedZoneId = null, selectedRobotOrdinal = null, onZoneChange = null, visible = true }) {
   const iframeRef = useRef(null);
   const requestCounter = useRef(0);
   const activeRequest = useRef(null);
@@ -126,6 +126,12 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, p
     zoneSyncReady.current = true;
     post(parentMessage('SELECT_ZONE', current.revisionId, current.requestId, { zone_id: selectedZoneId }));
   }, [appliedRevision, bindingKey, selectedZoneId]);
+
+  useEffect(() => {
+    const current = activeRequest.current;
+    if (appliedRevision !== bindingKey || current?.bindingKey !== bindingKey || !capabilities.includes('select-robot-v1')) return;
+    post(parentMessage('SELECT_ROBOT', current.revisionId, current.requestId, { ordinal: selectedRobotOrdinal }));
+  }, [appliedRevision, bindingKey, capabilities, selectedRobotOrdinal]);
 
   useEffect(() => {
     const current = activeRequest.current;

@@ -1,0 +1,1071 @@
+{
+  "baseline_input_digest": "sha256:7e851c4a5498522206304a053959307636281864d73f7e03005fadfb18ad7c3d",
+  "baseline_package_version": "warehouse-pallet-demo-v2",
+  "bindings": {
+    "capacity_economics_input_digest": "sha256:79819d5932d3303785d4781c0126870f9c0c813abc41c5b8d31eb0abd7509756",
+    "economics_result_digest": "sha256:7be9a1422d5c25bef9d23beacb821f7bc6c745f98b1bf8f2e446ffa490d6fa64",
+    "scenario_revision_id": "calc_3fe8359763215ab1",
+    "simulation_report_digest": "sha256:dc0fb2b6772a8a5f57a51cefc00c16cd2b4a06002e9399adb751688e820554f3"
+  },
+  "demo": {
+    "as_of": "2026-09-25",
+    "assumptions_version": "warehouse-economics-demo-v1",
+    "c05": "NEEDS_VALIDATION",
+    "capacity": {
+      "blockers": [],
+      "process_id": "process.receiving",
+      "schema_version": "capacity-result-v1",
+      "status": "WITH_ASSUMPTIONS",
+      "trace_ref": "trace.run.demo.warehouse.c11-peak",
+      "value": {
+        "coverage": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "1"
+        },
+        "effective_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "168"
+        },
+        "nominal_capacity": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "RATE",
+          "unit": "unit/h",
+          "value": "240"
+        },
+        "overloaded": false,
+        "raw_load_ratio": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9740259740259740259740259738"
+        },
+        "recommended_fleet": 22,
+        "selected_fleet": 22,
+        "utilization": {
+          "numeric_encoding": "DECIMAL_STRING",
+          "quantity_kind": "FRACTION",
+          "unit": "1",
+          "value": "0.9740259740259740259740259738"
+        }
+      },
+      "warnings": [
+        {
+          "code": "demo-applicability-unverified",
+          "decision_refs": [
+            "K15"
+          ],
+          "field_refs": [
+            "constraints.validation_codes"
+          ],
+          "message": "Preliminary calculation only; critical C05 checks need validation before procurement or deployment",
+          "node_refs": [],
+          "reason": "MISSING_SAFE_FACT",
+          "severity": "WARNING"
+        },
+        {
+          "code": "speed-safe-max-proxy",
+          "decision_refs": [
+            "K02"
+          ],
+          "field_refs": [
+            "operating_speed"
+          ],
+          "message": "Safe maximum used as disclosed optimistic speed proxy",
+          "node_refs": [],
+          "reason": "UNAPPROVED_ASSUMPTION",
+          "severity": "WARNING"
+        }
+      ]
+    },
+    "input_digest": "sha256:79819d5932d3303785d4781c0126870f9c0c813abc41c5b8d31eb0abd7509756",
+    "model_notice": "Авторский расчётный профиль MULE из проверочного сценария, не паспорт и не коммерческое предложение",
+    "process": "Паллетные перемещения на условном складе: 2 400 паллет/сутки, 2 × 11 ч, плечо 120 м, обмен 90 с",
+    "procurement": "UNVERIFIED",
+    "result_digest": "sha256:7be9a1422d5c25bef9d23beacb821f7bc6c745f98b1bf8f2e446ffa490d6fa64",
+    "scenarios": [
+      {
+        "acquisition": "PURCHASE",
+        "annual_ledgers": [
+          {
+            "differential_cf": "35914704.94",
+            "primary_cf_base": "-127045440.00",
+            "primary_cf_scenario": "-91130735.06",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.pessimistic.year-1"
+            ],
+            "status": "COMPLETE",
+            "year": 1
+          },
+          {
+            "differential_cf": "67081552.28",
+            "primary_cf_base": "-137209075.20",
+            "primary_cf_scenario": "-70127522.92",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.pessimistic.year-2"
+            ],
+            "status": "COMPLETE",
+            "year": 2
+          },
+          {
+            "differential_cf": "96720486.38",
+            "primary_cf_base": "-148185801.22",
+            "primary_cf_scenario": "-51465314.84",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.pessimistic.year-3"
+            ],
+            "status": "COMPLETE",
+            "year": 3
+          },
+          {
+            "differential_cf": "116115356.07",
+            "primary_cf_base": "-160040665.31",
+            "primary_cf_scenario": "-43925309.25",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.pessimistic.year-4"
+            ],
+            "status": "COMPLETE",
+            "year": 4
+          },
+          {
+            "differential_cf": "148732883.91",
+            "primary_cf_base": "-172843918.54",
+            "primary_cf_scenario": "-24111034.62",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.pessimistic.year-5"
+            ],
+            "status": "COMPLETE",
+            "year": 5
+          }
+        ],
+        "npv_project": {
+          "status": "COMPLETE",
+          "unit": "RUB",
+          "value": "198024620.31"
+        },
+        "uncertainty": "PESSIMISTIC"
+      },
+      {
+        "acquisition": "PURCHASE",
+        "annual_ledgers": [
+          {
+            "differential_cf": "47528701.18",
+            "primary_cf_base": "-127045440.00",
+            "primary_cf_scenario": "-79516738.82",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.base.year-1"
+            ],
+            "status": "COMPLETE",
+            "year": 1
+          },
+          {
+            "differential_cf": "87787613.20",
+            "primary_cf_base": "-137209075.20",
+            "primary_cf_scenario": "-49421462.00",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.base.year-2"
+            ],
+            "status": "COMPLETE",
+            "year": 2
+          },
+          {
+            "differential_cf": "112378048.24",
+            "primary_cf_base": "-148185801.22",
+            "primary_cf_scenario": "-35807752.97",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.base.year-3"
+            ],
+            "status": "COMPLETE",
+            "year": 3
+          },
+          {
+            "differential_cf": "122208619.24",
+            "primary_cf_base": "-160040665.31",
+            "primary_cf_scenario": "-37832046.08",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.base.year-4"
+            ],
+            "status": "COMPLETE",
+            "year": 4
+          },
+          {
+            "differential_cf": "151987518.77",
+            "primary_cf_base": "-172843918.54",
+            "primary_cf_scenario": "-20856399.77",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.base.year-5"
+            ],
+            "status": "COMPLETE",
+            "year": 5
+          }
+        ],
+        "npv_project": {
+          "status": "COMPLETE",
+          "unit": "RUB",
+          "value": "253887577.13"
+        },
+        "uncertainty": "BASE"
+      },
+      {
+        "acquisition": "PURCHASE",
+        "annual_ledgers": [
+          {
+            "differential_cf": "68657413.65",
+            "primary_cf_base": "-127045440.00",
+            "primary_cf_scenario": "-58388026.35",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.optimistic.year-1"
+            ],
+            "status": "COMPLETE",
+            "year": 1
+          },
+          {
+            "differential_cf": "103883817.41",
+            "primary_cf_base": "-137209075.20",
+            "primary_cf_scenario": "-33325257.79",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.optimistic.year-2"
+            ],
+            "status": "COMPLETE",
+            "year": 2
+          },
+          {
+            "differential_cf": "119675218.34",
+            "primary_cf_base": "-148185801.22",
+            "primary_cf_scenario": "-28510582.88",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.optimistic.year-3"
+            ],
+            "status": "COMPLETE",
+            "year": 3
+          },
+          {
+            "differential_cf": "129752465.24",
+            "primary_cf_base": "-160040665.31",
+            "primary_cf_scenario": "-30288200.07",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.optimistic.year-4"
+            ],
+            "status": "COMPLETE",
+            "year": 4
+          },
+          {
+            "differential_cf": "159131119.87",
+            "primary_cf_base": "-172843918.54",
+            "primary_cf_scenario": "-13712798.67",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.finance.optimistic.year-5"
+            ],
+            "status": "COMPLETE",
+            "year": 5
+          }
+        ],
+        "npv_project": {
+          "status": "COMPLETE",
+          "unit": "RUB",
+          "value": "303884271.96"
+        },
+        "uncertainty": "OPTIMISTIC"
+      },
+      {
+        "acquisition": "RAAS",
+        "annual_ledgers": [
+          {
+            "differential_cf": "-8890991.06",
+            "primary_cf_base": "-127045440.00",
+            "primary_cf_scenario": "-135936431.06",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.pessimistic.year-1"
+            ],
+            "status": "COMPLETE",
+            "year": 1
+          },
+          {
+            "differential_cf": "26956310.84",
+            "primary_cf_base": "-137209075.20",
+            "primary_cf_scenario": "-110252764.36",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.pessimistic.year-2"
+            ],
+            "status": "COMPLETE",
+            "year": 2
+          },
+          {
+            "differential_cf": "59292753.43",
+            "primary_cf_base": "-148185801.22",
+            "primary_cf_scenario": "-88893047.79",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.pessimistic.year-3"
+            ],
+            "status": "COMPLETE",
+            "year": 3
+          },
+          {
+            "differential_cf": "80500879.23",
+            "primary_cf_base": "-160040665.31",
+            "primary_cf_scenario": "-79539786.08",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.pessimistic.year-4"
+            ],
+            "status": "COMPLETE",
+            "year": 4
+          },
+          {
+            "differential_cf": "91085391.78",
+            "primary_cf_base": "-172843918.54",
+            "primary_cf_scenario": "-81758526.76",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.pessimistic.year-5"
+            ],
+            "status": "COMPLETE",
+            "year": 5
+          }
+        ],
+        "npv_project": {
+          "status": "COMPLETE",
+          "unit": "RUB",
+          "value": "142949671.70"
+        },
+        "uncertainty": "PESSIMISTIC"
+      },
+      {
+        "acquisition": "RAAS",
+        "annual_ledgers": [
+          {
+            "differential_cf": "3203581.18",
+            "primary_cf_base": "-127045440.00",
+            "primary_cf_scenario": "-123841858.82",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.base.year-1"
+            ],
+            "status": "COMPLETE",
+            "year": 1
+          },
+          {
+            "differential_cf": "48422292.88",
+            "primary_cf_base": "-137209075.20",
+            "primary_cf_scenario": "-88786782.32",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.base.year-2"
+            ],
+            "status": "COMPLETE",
+            "year": 2
+          },
+          {
+            "differential_cf": "75052968.31",
+            "primary_cf_base": "-148185801.22",
+            "primary_cf_scenario": "-73132832.91",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.base.year-3"
+            ],
+            "status": "COMPLETE",
+            "year": 3
+          },
+          {
+            "differential_cf": "85524496.90",
+            "primary_cf_base": "-160040665.31",
+            "primary_cf_scenario": "-74516168.41",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.base.year-4"
+            ],
+            "status": "COMPLETE",
+            "year": 4
+          },
+          {
+            "differential_cf": "96186898.86",
+            "primary_cf_base": "-172843918.54",
+            "primary_cf_scenario": "-76657019.68",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.base.year-5"
+            ],
+            "status": "COMPLETE",
+            "year": 5
+          }
+        ],
+        "npv_project": {
+          "status": "COMPLETE",
+          "unit": "RUB",
+          "value": "185469274.87"
+        },
+        "uncertainty": "BASE"
+      },
+      {
+        "acquisition": "RAAS",
+        "annual_ledgers": [
+          {
+            "differential_cf": "25517845.65",
+            "primary_cf_base": "-127045440.00",
+            "primary_cf_scenario": "-101527594.35",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.optimistic.year-1"
+            ],
+            "status": "COMPLETE",
+            "year": 1
+          },
+          {
+            "differential_cf": "65082861.17",
+            "primary_cf_base": "-137209075.20",
+            "primary_cf_scenario": "-72126214.03",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.optimistic.year-2"
+            ],
+            "status": "COMPLETE",
+            "year": 2
+          },
+          {
+            "differential_cf": "81913548.40",
+            "primary_cf_base": "-148185801.22",
+            "primary_cf_scenario": "-66272252.82",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.optimistic.year-3"
+            ],
+            "status": "COMPLETE",
+            "year": 3
+          },
+          {
+            "differential_cf": "92609923.41",
+            "primary_cf_base": "-160040665.31",
+            "primary_cf_scenario": "-67430741.90",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.optimistic.year-4"
+            ],
+            "status": "COMPLETE",
+            "year": 4
+          },
+          {
+            "differential_cf": "103839159.49",
+            "primary_cf_base": "-172843918.54",
+            "primary_cf_scenario": "-69004759.05",
+            "source_refs": [
+              "run.demo.warehouse.economics-peak.raas.optimistic.year-5"
+            ],
+            "status": "COMPLETE",
+            "year": 5
+          }
+        ],
+        "npv_project": {
+          "status": "COMPLETE",
+          "unit": "RUB",
+          "value": "229837350.65"
+        },
+        "uncertainty": "OPTIMISTIC"
+      }
+    ],
+    "schema_version": "warehouse-guest-demo-v1",
+    "sensitivity": [
+      {
+        "npv_project": {
+          "delta_value": "8078597.93",
+          "unit": "RUB"
+        },
+        "override": {
+          "direction": "LOWER",
+          "parameter_id": "EQUIPMENT_PRICE"
+        },
+        "status": "COMPLETE",
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ],
+        "variant_id": "variant.equipment_price.lower"
+      },
+      {
+        "npv_project": {
+          "delta_value": "-8078597.94",
+          "unit": "RUB"
+        },
+        "override": {
+          "direction": "UPPER",
+          "parameter_id": "EQUIPMENT_PRICE"
+        },
+        "status": "COMPLETE",
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ],
+        "variant_id": "variant.equipment_price.upper"
+      },
+      {
+        "npv_project": {
+          "delta_value": "20708778.03",
+          "unit": "RUB"
+        },
+        "override": {
+          "direction": "LOWER",
+          "parameter_id": "OPERATION_VOLUME"
+        },
+        "status": "COMPLETE",
+        "step_reasons": [
+          "discrete-fleet-step",
+          "no-headcount-step"
+        ],
+        "variant_id": "variant.operation_volume.lower"
+      },
+      {
+        "npv_project": {
+          "delta_value": "-8362703.31",
+          "unit": "RUB"
+        },
+        "override": {
+          "direction": "UPPER",
+          "parameter_id": "OPERATION_VOLUME"
+        },
+        "status": "COMPLETE",
+        "step_reasons": [
+          "discrete-fleet-step",
+          "no-headcount-step"
+        ],
+        "variant_id": "variant.operation_volume.upper"
+      },
+      {
+        "npv_project": {
+          "delta_value": "-11940430.41",
+          "unit": "RUB"
+        },
+        "override": {
+          "direction": "LOWER",
+          "parameter_id": "ROLE_SALARY"
+        },
+        "status": "COMPLETE",
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ],
+        "variant_id": "variant.role_salary.lower"
+      },
+      {
+        "npv_project": {
+          "delta_value": "11940430.40",
+          "unit": "RUB"
+        },
+        "override": {
+          "direction": "UPPER",
+          "parameter_id": "ROLE_SALARY"
+        },
+        "status": "COMPLETE",
+        "step_reasons": [
+          "no-discrete-fleet-step",
+          "no-headcount-step"
+        ],
+        "variant_id": "variant.role_salary.upper"
+      }
+    ],
+    "source": "offline engine capture: scripts/build_warehouse_guest_demo.py"
+  },
+  "difference": "Тот же авторский профиль объекта и робота, маршрут 120 м, две смены по 11 ч и денежные допущения; меняется только суточный спрос. Условная геометрия сцены перестраивается под размер парка.",
+  "schema_version": "warehouse-guest-comparison-v1",
+  "simulation": {
+    "report": {
+      "capacity": {
+        "capacity_headroom_per_hour": "59.5454545454545454545454545",
+        "ceiling_verdict": "WITHIN_CEILING",
+        "demand_shortfall_per_hour": "0.6363636363636363636363636",
+        "denominator": "REQUIRED_DEMAND",
+        "deviation_percent": "0.5833333333333333333333333",
+        "expected_effective_per_hour": "168",
+        "observed_per_hour": "108.4545454545454545454545455",
+        "required_per_hour": "109.0909090909090909090909091",
+        "unit": "unit/h",
+        "verdict": "CONSISTENT",
+        "warning_threshold_percent": "10"
+      },
+      "engineering_claim": "PRELIMINARY_SCENARIO_SIMULATION_NOT_CERTIFICATION",
+      "limitations": [
+        "charging-in-aggregate-allowance",
+        "end-of-window-unfinished-jobs",
+        "extended-stage-economics-not-evaluated",
+        "no-random-failure-model",
+        "not-engineering-certification",
+        "resource-bottlenecks-not-modelled",
+        "synthetic-route-geometry",
+        "unmodelled-warehouse-stages-external-boundaries"
+      ],
+      "model_start": {
+        "seconds_from_midnight": 28800,
+        "timezone": "Europe/Moscow",
+        "weekday": "MONDAY"
+      },
+      "project_id": "00000000-0000-0000-0000-000000000041",
+      "queue": {
+        "censored_jobs": 0,
+        "completed_by_measurement_end": 2386,
+        "completed_unit": "unit/cycle",
+        "completed_units_by_measurement_end": "2386",
+        "completed_units_with_grace": "2400",
+        "completed_with_grace": 2400,
+        "maximum_jobs": 1,
+        "mean_turnaround_seconds": "513.428571",
+        "mean_wait_seconds": "0",
+        "measurement_jobs": 2400,
+        "p95_turnaround_seconds": "471.428571",
+        "p95_wait_seconds": "0"
+      },
+      "replay": {
+        "canonical_request_digest": "sha256:4715fceaf5a9701228f891379194180071750b22d4744e1015319608fa40d412",
+        "report_content_digest": "sha256:dc0fb2b6772a8a5f57a51cefc00c16cd2b4a06002e9399adb751688e820554f3",
+        "scenario_spec_digest": "sha256:83b0ca94a9d48b504f2214b43a2f9bf3aac7828a5376205887e10b98803f9315"
+      },
+      "report_id": "report.6955fa5766674834",
+      "request_id": "simulation.public.warehouse.pallet.peak.v1",
+      "resources": [],
+      "scenario_revision_id": "calc_3fe8359763215ab1",
+      "schema_version": "simulation-report-v3",
+      "sla": {
+        "denominator_jobs": 2400,
+        "on_time_fraction": null,
+        "on_time_jobs": 0,
+        "reason_codes": [
+          "sla-not-supplied"
+        ],
+        "sla_minutes": null,
+        "target_fraction": null,
+        "verdict": "NOT_EVALUATED"
+      },
+      "stages": [
+        {
+          "capacity": null,
+          "completed_by_measurement_end": null,
+          "maximum_queue_jobs": null,
+          "mean_wait_seconds": null,
+          "resource_id": null,
+          "resource_kind": null,
+          "source_ref": null,
+          "stage": "PICKING",
+          "status": "EXTERNAL_BOUNDARY",
+          "utilization_fraction": null
+        },
+        {
+          "capacity": null,
+          "completed_by_measurement_end": null,
+          "maximum_queue_jobs": null,
+          "mean_wait_seconds": null,
+          "resource_id": null,
+          "resource_kind": null,
+          "source_ref": null,
+          "stage": "BUFFER",
+          "status": "EXTERNAL_BOUNDARY",
+          "utilization_fraction": null
+        },
+        {
+          "capacity": null,
+          "completed_by_measurement_end": null,
+          "maximum_queue_jobs": null,
+          "mean_wait_seconds": null,
+          "resource_id": null,
+          "resource_kind": null,
+          "source_ref": null,
+          "stage": "FEED_TO_PACK",
+          "status": "EXTERNAL_BOUNDARY",
+          "utilization_fraction": null
+        },
+        {
+          "capacity": null,
+          "completed_by_measurement_end": null,
+          "maximum_queue_jobs": null,
+          "mean_wait_seconds": null,
+          "resource_id": null,
+          "resource_kind": null,
+          "source_ref": null,
+          "stage": "PACKAGING",
+          "status": "EXTERNAL_BOUNDARY",
+          "utilization_fraction": null
+        }
+      ],
+      "status": "CONDITIONAL_MODEL",
+      "tenant_id": "tenant.demo",
+      "time_basis": {
+        "completion_grace_days": 1,
+        "measurement_days": 1,
+        "operating_hours_per_day": "22",
+        "seed": 42,
+        "timezone": "Europe/Moscow",
+        "unit": "MICROSECOND",
+        "warmup_days": 1,
+        "window_refs": [
+          "window.next-day",
+          "window.primary"
+        ]
+      },
+      "trace": [
+        {
+          "input_refs": [
+            "scenario.fleet.nominal_capacity",
+            "scenario.fleet.effective_capacity",
+            "scenario.task.batch"
+          ],
+          "node_id": "simulation.service",
+          "operation": "DERIVE_SERVICE_TIME",
+          "output_ref": "service.effective-seconds",
+          "unit": "s",
+          "value": "471.4285714285714285714285714"
+        },
+        {
+          "input_refs": [
+            "scenario.operating_windows"
+          ],
+          "node_id": "simulation.calendar",
+          "operation": "BUILD_CALENDAR",
+          "output_ref": "calendar.operating-hours",
+          "unit": "h/day",
+          "value": "22"
+        },
+        {
+          "input_refs": [
+            "scenario.task.demand",
+            "scenario.task.batch"
+          ],
+          "node_id": "simulation.arrivals",
+          "operation": "GENERATE_ARRIVALS",
+          "output_ref": "workload.jobs-per-day",
+          "unit": "job/day",
+          "value": "2400"
+        },
+        {
+          "input_refs": [
+            "workload.arrivals",
+            "scenario.fleet.selected"
+          ],
+          "node_id": "simulation.dispatch",
+          "operation": "DISPATCH_FIFO",
+          "output_ref": "queue.completed-with-grace",
+          "unit": "job",
+          "value": "2400"
+        },
+        {
+          "input_refs": [
+            "service.nominal-seconds",
+            "service.effective-seconds"
+          ],
+          "node_id": "simulation.allowance",
+          "operation": "APPLY_NONPRODUCTIVE_ALLOWANCE",
+          "output_ref": "utilization.nonproductive-seconds",
+          "unit": "s",
+          "value": "339428.57112"
+        },
+        {
+          "input_refs": [
+            "workload.required-per-hour",
+            "scenario.fleet.effective-capacity",
+            "queue.completed-by-measurement-end"
+          ],
+          "node_id": "simulation.capacity",
+          "operation": "COMPARE_CAPACITY",
+          "output_ref": "capacity.deviation-percent",
+          "unit": "%",
+          "value": "0.5833333333333333333333333"
+        },
+        {
+          "input_refs": [
+            "request.sla",
+            "queue.turnaround"
+          ],
+          "node_id": "simulation.sla",
+          "operation": "EVALUATE_SLA",
+          "output_ref": "sla.on-time-fraction",
+          "unit": "1",
+          "value": null
+        }
+      ],
+      "utilization": {
+        "busy_fraction": "0.6493506487603305785123966942",
+        "busy_seconds": "1131428.5704",
+        "denominator": "FLEET_OPERATING_TIME",
+        "failure_downtime_seconds": null,
+        "failure_downtime_status": "NOT_EVALUATED_NO_INPUT",
+        "nonproductive_allowance_seconds": "339428.57112",
+        "nonproductive_fraction": "0.1948051946280991735537190083",
+        "productive_fraction": "0.454545454132231404958677686",
+        "productive_seconds": "791999.99928",
+        "resource_wait_seconds": "0"
+      },
+      "versions": {
+        "arrival_model_version": "uniform-arrivals-v1",
+        "availability_model_version": "aggregate-nonproductive-allowance-v1",
+        "engine_version": "deterministic-queue-v3",
+        "event_order_version": "event-order-time-priority-process-resource-job-v1",
+        "failure_model_version": "not-provided",
+        "policy_version": "hackathon-calculation-policy-v1+process-chain-v2",
+        "precision_policy_version": "decimal-context-28-half-even-v1",
+        "report_version": "simulation-report-v3",
+        "request_version": "simulation-request-v2",
+        "scenario_contract_version": "scenario-spec-v2"
+      },
+      "workload": {
+        "arrival_assumption": "UNIFORM_ARRIVALS",
+        "batch_units": "1",
+        "daily_units": "2400",
+        "fleet_units": 22,
+        "jobs_per_day": 2400,
+        "mode": "DAILY",
+        "peak_factor": null,
+        "quantity_unit": "pallet/day",
+        "simulated_units_per_day": "2400"
+      }
+    },
+    "request": {
+      "limits": {
+        "max_fleet": 100,
+        "max_jobs_per_day": 10000,
+        "max_runtime_seconds": 60,
+        "progress_event_batch": 1000
+      },
+      "mode": "DAILY",
+      "model_start": {
+        "seconds_from_midnight": 28800,
+        "timezone": "Europe/Moscow",
+        "weekday": "MONDAY"
+      },
+      "peak_factor": null,
+      "process_chain": null,
+      "project_id": "00000000-0000-0000-0000-000000000041",
+      "request_id": "simulation.public.warehouse.pallet.peak.v1",
+      "resources": [],
+      "scenario_spec": {
+        "analysis": {
+          "capacity_request_digest": "sha256:67670780bf20b03545cab670853b3cacf6f0eba1fc9b3d0a771b3dedad2e68c5",
+          "capacity_result_digest": "sha256:83760c8eae0156ab67667c26d84d0e26b6405c66c92d9590468acef9d5f2d3e2",
+          "capacity_run_id": "run.demo.warehouse.c11-peak",
+          "capacity_trace_digest": "sha256:db739b165511c6a92a0cc354024716ad2cea147c87a8dd87f2f229b3cbfe148e",
+          "input_revision": "revision.orchestrator.v1",
+          "project_id": "00000000-0000-0000-0000-000000000041",
+          "tenant_id": "tenant.demo"
+        },
+        "assumptions": [
+          {
+            "assumption_id": "assumption.synthetic-geometry",
+            "message": "Геометрия синтетическая и не изменяет аналитический маршрут или экономику",
+            "provenance_ref": "assumption.synthetic-geometry",
+            "scope": "VISUALIZATION_ONLY",
+            "version": "v1"
+          }
+        ],
+        "finance": {
+          "acquisition": "PURCHASE",
+          "cohort_id": "cohort.run.demo.warehouse.economics-peak.purchase",
+          "horizon_years": 5,
+          "npv_project": {
+            "status": "COMPLETE",
+            "unit": "RUB",
+            "value": "2172418.27"
+          },
+          "project_capex_cashflow": {
+            "status": "COMPLETE",
+            "unit": "RUB",
+            "value": "73150000.00"
+          },
+          "simple_payback": {
+            "status": "COMPLETE",
+            "unit": "YEAR",
+            "value": "3.467466356338134696549955842"
+          },
+          "source_result_digest": "sha256:3642a3b08dd82757a182c9d3b0505f523bf09f1e7123736b64994b6108e88b0d",
+          "source_run_id": "run.demo.warehouse.economics-peak.allocation.purchase.base",
+          "source_schema_version": "multiprocess-allocation-result-v1",
+          "uncertainty": "BASE",
+          "versions": {
+            "calculation_policy_version": "hackathon-calculation-policy-v1",
+            "engine_version": "multiprocess-allocation-v1",
+            "labour_policy_overlay_version": "hackathon-calculation-policy-v1+v2a-c14",
+            "precision_policy_version": "decimal-context-28-half-even-v1",
+            "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+            "registry_version": "hackathon-calculation-parameter-registry-v1",
+            "result_version": "multiprocess-allocation-result-v1"
+          }
+        },
+        "fleet": [
+          {
+            "coverage": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "FRACTION",
+              "unit": "1",
+              "value": "1"
+            },
+            "effective_capacity": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "RATE",
+              "unit": "unit/h",
+              "value": "168"
+            },
+            "fleet_id": "fleet.process.receiving",
+            "model_id": "model.demo.mule",
+            "nominal_capacity": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "RATE",
+              "unit": "unit/h",
+              "value": "240"
+            },
+            "overloaded": false,
+            "position_id": "position.demo.mule",
+            "process_id": "process.receiving",
+            "raw_load_ratio": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "FRACTION",
+              "unit": "1",
+              "value": "0.9740259740259740259740259738"
+            },
+            "recommended_fleet": 22,
+            "selected_fleet": 22,
+            "utilization": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "FRACTION",
+              "unit": "1",
+              "value": "0.9740259740259740259740259738"
+            },
+            "zone_id": "zone.process.receiving"
+          }
+        ],
+        "operating_windows": [
+          {
+            "duration": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "TIME",
+              "unit": "h",
+              "value": "6"
+            },
+            "provenance_ref": "input.economics.operating-window",
+            "source": "USER",
+            "start_time": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "TIME",
+              "unit": "s",
+              "value": "0"
+            },
+            "timezone": "Europe/Moscow",
+            "window_id": "window.next-day"
+          },
+          {
+            "duration": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "TIME",
+              "unit": "h",
+              "value": "16"
+            },
+            "provenance_ref": "input.economics.operating-window",
+            "source": "USER",
+            "start_time": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "TIME",
+              "unit": "s",
+              "value": "28800"
+            },
+            "timezone": "Europe/Moscow",
+            "window_id": "window.primary"
+          }
+        ],
+        "profile": {
+          "calculation_profile": "TRANSPORT_CYCLE_V1",
+          "capacity_status": "WITH_ASSUMPTIONS",
+          "process_code": "warehouse_receiving_shipping",
+          "process_id": "process.receiving",
+          "process_scope": "TRANSPORT_CYCLE",
+          "quantity_kind": "PALLET"
+        },
+        "revision_id": "calc_3fe8359763215ab1",
+        "routes": [
+          {
+            "assumption_ref": "assumption.synthetic-geometry",
+            "geometry_ref": null,
+            "geometry_source": "SYNTHETIC",
+            "one_way_distance": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "DISTANCE",
+              "unit": "m",
+              "value": "120"
+            },
+            "route_id": "route.process.receiving"
+          }
+        ],
+        "schema_version": "scenario-spec-v2",
+        "seed": "scenario-8adeab4676fd8be3",
+        "source": "capacity-analysis",
+        "tasks": [
+          {
+            "batch": {
+              "provenance_ref": "prov.user",
+              "semantics": "PHYSICAL_BATCH",
+              "units_per_cycle": {
+                "numeric_encoding": "DECIMAL_STRING",
+                "quantity_kind": "RATE",
+                "unit": "unit/cycle",
+                "value": "1"
+              }
+            },
+            "demand": {
+              "numeric_encoding": "DECIMAL_STRING",
+              "quantity_kind": "FLOW",
+              "unit": "pallet/day",
+              "value": "2400"
+            },
+            "exchange": {
+              "load_time": null,
+              "mode": "TOTAL",
+              "total_time": {
+                "numeric_encoding": "DECIMAL_STRING",
+                "quantity_kind": "TIME",
+                "unit": "s",
+                "value": "90"
+              },
+              "unload_time": null
+            },
+            "operating_window_refs": [
+              "window.next-day",
+              "window.primary"
+            ],
+            "process_id": "process.receiving",
+            "route_ref": "route.process.receiving",
+            "task_id": "task.process.receiving",
+            "zone_id": "zone.process.receiving"
+          }
+        ],
+        "template": "warehouse",
+        "trace_node_refs": [
+          "node.f01",
+          "node.f02",
+          "node.f03",
+          "node.f04",
+          "node.f07"
+        ],
+        "versions": {
+          "calculation": {
+            "calculation_policy_version": "hackathon-calculation-policy-v1",
+            "capacity_projection_digest": "sha256:c8743f9f553d1d63d3409adb8d5149e8c86177f0c0422a769b2a45a6a02b59d6",
+            "capacity_projection_version": "formula-executability-profiles-v3",
+            "catalog_content_digest": "sha256:bcccaf9125d3cf949aa1a438ac6a33b96171f0d4009c49a7abd179bfa3cbb354",
+            "catalog_version_id": "orchestrator-test-v1",
+            "commercial_policy_version": "hackathon-commercial-policy-v1",
+            "constraint_rules_version": "calculation-constraint-rules-v2",
+            "formula_bundle_version": "calculation-formulas-v1",
+            "precision_policy_version": "decimal-context-28-half-even-v1",
+            "process_catalog_version": "calculation-process-catalog-v1",
+            "registry_digest": "sha256:155172ed710137515e8f9a3b4535967c81338cd95fca6ffa21e37a95dbf4e3e6",
+            "registry_version": "hackathon-calculation-parameter-registry-v1"
+          },
+          "capacity_result_version": "capacity-result-v1",
+          "capacity_trace_version": "calculation-trace-v1",
+          "scenario_contract_version": "scenario-spec-v2",
+          "scenario_policy_version": "scenario-spec-policy-v2"
+        },
+        "warnings": [
+          "ScenarioSpec не является инженерным цифровым двойником.",
+          "Предварительный demo: неподтверждённые C05 checks не являются PASS."
+        ],
+        "zones": [
+          {
+            "assumption_ref": "assumption.synthetic-geometry",
+            "geometry_ref": null,
+            "geometry_source": "SYNTHETIC",
+            "label": "warehouse_receiving_shipping",
+            "zone_id": "zone.process.receiving"
+          }
+        ]
+      },
+      "schema_version": "simulation-request-v2",
+      "sla": null,
+      "tenant_id": "tenant.demo"
+    }
+  },
+  "title": "Повышенная нагрузка · 2 400 паллет в сутки"
+}

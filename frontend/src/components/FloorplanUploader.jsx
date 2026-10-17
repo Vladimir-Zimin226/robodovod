@@ -21,6 +21,7 @@ export default function FloorplanUploader({ onResult, zoneOptions = [] }) {
   const [zoneAssignments, setZoneAssignments] = useState([]);
   const [currentZone, setCurrentZone] = useState([]);
   const [showUploader, setShowUploader] = useState(false);
+  const [fileError, setFileError] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -33,6 +34,12 @@ export default function FloorplanUploader({ onResult, zoneOptions = [] }) {
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) {
+      setFileError('Выберите PNG, JPG или WebP размером до 10 МБ. DWG/DXF пока сохраните как изображение.');
+      e.target.value = '';
+      return;
+    }
+    setFileError('');
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
@@ -42,8 +49,10 @@ export default function FloorplanUploader({ onResult, zoneOptions = [] }) {
         setStep(1);
         setIsFullscreen(true);
       };
+      img.onerror = () => setFileError('Не удалось открыть изображение плана. Выберите другой файл.');
       img.src = ev.target.result;
     };
+    reader.onerror = () => setFileError('Не удалось прочитать файл. Попробуйте другое изображение.');
     reader.readAsDataURL(file);
   };
 
@@ -423,7 +432,7 @@ export default function FloorplanUploader({ onResult, zoneOptions = [] }) {
                 disabled={zones.length === 0 && currentZone.length < 3}
                 className="w-full max-w-xs mx-auto bg-green-600 text-white rounded-lg px-6 py-2 text-sm font-semibold disabled:bg-slate-700"
               >
-                Завершить и рассчитать ({zones.length} зон)
+                Сохранить разметку ({zones.length} зон)
               </button>
             </div>
           )}
@@ -446,12 +455,13 @@ export default function FloorplanUploader({ onResult, zoneOptions = [] }) {
 
       {step === 0 && (
         <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center">
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+          <input ref={fileRef} type="file" accept=".png,.jpg,.jpeg,.webp" onChange={handleFile} className="hidden" />
           <button onClick={function() { fileRef.current.click(); }}
             className="bg-blue-600 text-white rounded-xl px-6 py-3 text-sm font-semibold">
             Выбрать файл
           </button>
-          <p className="text-[10px] text-slate-400 mt-2">PNG, JPG. Не покидает браузер.</p>
+          <p className="text-[10px] text-slate-400 mt-2">PNG, JPG, WebP · до 10 МБ. Не покидает браузер.</p>
+          {fileError && <p role="alert" className="text-xs text-red-500 mt-2">{fileError}</p>}
         </div>
       )}
 

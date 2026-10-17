@@ -26,6 +26,17 @@ export function generateSafeFacilityWorld(config, spec, zoneId) {
     scene.staticObjects.push(makeBlock([x, .06, z], [area.width - .1, .04, area.height - .1], [.23, .38, .41], { type: 'floor' }));
     scene.labels.push({ text: area.label.toUpperCase(), position: [x, 1.3, area.y + 1 - plan.height / 2], kind: spec.template });
   }
+  if (plan.warehouseTransport) {
+    // Overhead architectural cues are presentation only. They never enter the
+    // collision map or the server's route and capacity calculation.
+    for (const x of [-24, -12, 0, 12, 24]) {
+      scene.staticObjects.push(makeBlock([x, 5.8, 0], [.18, .18, plan.height - 1], [.24, .36, .38], { type: 'decor' }));
+      for (const z of [-plan.height / 3, 0, plan.height / 3])
+        scene.staticObjects.push(makeBlock([x + 1.2, 5.7, z], [2.2, .08, .44], [.79, .94, .84], { type: 'light' }));
+    }
+    for (const z of [-plan.height / 2 + .18, plan.height / 2 - .18])
+      scene.staticObjects.push(makeBlock([0, 2.25, z], [plan.width - 1, .08, .08], [.26, .58, .54], { type: 'decor' }));
+  }
   for (const rect of plan.walls) {
     const [x, z] = safeWorldPoint(plan, { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
     addSolid(scene, [x, 1.55, z], [rect.width, 3.1, rect.height], [.64, .76, .76], { type: 'wall' });

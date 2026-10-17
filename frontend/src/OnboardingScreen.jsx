@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import AppIcon from './components/AppIcon';
 import demo from './warehouseGuestDemo.json' with { type: 'json' };
+import comparison from './warehouseGuestComparisonV1.json' with { type: 'json' };
 import { formatFleet } from './displayNumber';
 import { formatServerQuantity } from './capacityResultsModel';
 import './landing.css';
@@ -28,28 +30,46 @@ const FAQ = [
 ];
 
 function WarehousePreview() {
-  return <div className="landing-preview" role="group" aria-label="Пример результата условного склада">
-    <div className="landing-preview-top"><span className="landing-live-dot" /> ПРИМЕР · УСЛОВНЫЙ СКЛАД <span className="landing-preview-code">РАСЧЁТ ПАРКА</span></div>
+  const [load, setLoad] = useState('base');
+  const shown = load === 'base' ? demo : comparison.demo;
+  return <div className="landing-preview" role="group" aria-label="Два рассчитанных примера условного склада">
+    <div className="landing-preview-top"><span className="landing-live-dot" /> СКЛАД · ПЕРЕВОЗКА ПАЛЛЕТ <span className="landing-preview-code">ДЕМО</span></div>
+    <div className="landing-preview-switch" role="group" aria-label="Нагрузка демонстрационного склада">
+      <button type="button" aria-pressed={load === 'base'} onClick={() => setLoad('base')}>2 000 / сутки</button>
+      <button type="button" aria-pressed={load === 'peak'} onClick={() => setLoad('peak')}>2 400 / сутки</button>
+    </div>
     <div className="landing-route" aria-hidden="true">
-      <svg viewBox="0 0 390 158" role="presentation" focusable="false">
-        <defs><pattern id="landing-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#254047" strokeWidth="1" /></pattern></defs>
-        <rect x="1" y="1" width="388" height="156" rx="12" fill="url(#landing-grid)" />
-        <rect x="28" y="31" width="71" height="93" rx="6" fill="#294038" stroke="#55785b" />
-        <rect x="292" y="31" width="71" height="93" rx="6" fill="#294038" stroke="#55785b" />
-        <path d="M100 79 H292" stroke="#4ccfe3" strokeWidth="3" strokeDasharray="7 6" fill="none" />
-        <circle cx="103" cy="79" r="7" fill="#efb55f" stroke="#ffdf9d" />
-        <circle cx="287" cy="79" r="7" fill="#4ccfe3" stroke="#b3f5f9" />
-        <rect x="171" y="62" width="48" height="34" rx="8" fill="#93ed43" stroke="#c6ff83" strokeWidth="2" />
-        <path d="M184 79h22m-5-5 5 5-5 5" stroke="#183022" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        <text x="40" y="142">ПРИЁМКА</text><text x="299" y="142">ОТГРУЗКА</text>
+      <svg viewBox="0 0 520 296" role="presentation" focusable="false">
+        <defs>
+          <pattern id="landing-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#26454a" strokeWidth="1" /></pattern>
+          <linearGradient id="landing-floor" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#16343a" /><stop offset="1" stopColor="#0a1b22" /></linearGradient>
+          <linearGradient id="landing-rack" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#456456" /><stop offset="1" stopColor="#203d38" /></linearGradient>
+        </defs>
+        <rect x="1" y="1" width="518" height="294" rx="12" fill="url(#landing-floor)" />
+        <rect x="1" y="1" width="518" height="294" rx="12" fill="url(#landing-grid)" />
+        <rect x="18" y="22" width="484" height="244" rx="6" fill="none" stroke="#5a7772" strokeWidth="4" />
+        <rect x="32" y="37" width="109" height="205" rx="4" fill="#1b3436" stroke="#54776a" />
+        {[0, 1, 2, 3].map((row) => <g key={row}>
+          <rect x="46" y={49 + row * 48} width="82" height="28" rx="3" fill="url(#landing-rack)" stroke="#91ad77" />
+          <path d={`M48 ${59 + row * 48}h78 M48 ${68 + row * 48}h78`} stroke="#a4be91" opacity=".7" />
+          <path d={`M146 ${63 + row * 48} H450`} stroke="#4bd0cd" strokeWidth="2" strokeDasharray="7 8" opacity=".6" />
+          <circle cx="443" cy={63 + row * 48} r="5" fill="#efc075" />
+          <g className="landing-amr" style={{ animationDelay: `${-row * 1.8}s` }}>
+            <rect x="153" y={52 + row * 48} width="25" height="21" rx="6" fill="#9ff555" stroke="#d5ff99" strokeWidth="2" />
+            <rect x="160" y={48 + row * 48} width="11" height="7" rx="1" fill="#d8a45a" />
+          </g>
+        </g>)}
+        <rect x="467" y="39" width="21" height="204" rx="3" fill="#233b3c" stroke="#647e78" />
+        <text x="42" y="257">СТЕЛЛАЖИ</text><text x="355" y="257">ОТГРУЗКА</text>
+        <text x="270" y="30" textAnchor="middle">УСЛОВНЫЙ ПЛАН · ДВИЖЕНИЕ ИЛЛЮСТРАТИВНОЕ</text>
       </svg>
     </div>
     <div className="landing-preview-metrics">
-      <div><span>Предварительный парк</span><strong>{formatFleet(demo.capacity.value.selected_fleet)}</strong></div>
-      <div><span>Эффективная мощность</span><strong>{formatServerQuantity(demo.capacity.value.effective_capacity)}</strong></div>
-      <div><span>Покрытие нагрузки</span><strong>{formatServerQuantity(demo.capacity.value.coverage)}</strong></div>
+      <div><span>Расчётный парк</span><strong>{formatFleet(shown.capacity.value.selected_fleet)}</strong></div>
+      <div><span>Эффективная мощность</span><strong>{formatServerQuantity(shown.capacity.value.effective_capacity)}</strong></div>
+      <div><span>Покрытие нагрузки</span><strong>{formatServerQuantity(shown.capacity.value.coverage)}</strong></div>
     </div>
-    <p className="landing-preview-note">Фиксированный пример от {demo.as_of} · пригодность требует проверки · закупка не подтверждена</p>
+    <p className="landing-preview-note">Два сохранённых расчёта · {shown.as_of} · движение условное · пригодность и закупка не подтверждены</p>
   </div>;
 }
 
@@ -59,11 +79,11 @@ export default function OnboardingScreen({ onChoose, onGuestDemo, onOwnProcess, 
       <section className="landing-hero" aria-labelledby="landing-title">
         <div className="landing-hero-copy">
           <p className="landing-eyebrow"><span className="landing-eyebrow-line" /> РОБОДОВОД · ПРЕДВАРИТЕЛЬНАЯ ОЦЕНКА</p>
-          <h1 id="landing-title">От процесса до <span>предварительного сценария</span> роботизации</h1>
-          <p className="landing-lead">Для владельцев бизнеса, руководителей предприятий, операционных и финансовых директоров, руководителей автоматизации и специалистов объекта. Оцените потребный парк, денежные сценарии и вопросы, которые нужно проверить до решения о внедрении.</p>
+          <h1 id="landing-title">Увидьте работу робота <span>до решения о покупке</span></h1>
+          <p className="landing-lead">Покажем, как меняется работа склада при росте нагрузки: маршруты, потребный парк и денежный результат. Затем поможем проверить ваш процесс и условия объекта.</p>
           <div className="landing-actions">
-            <button type="button" className="landing-button landing-button-primary" onClick={onGuestDemo}>Попробовать демо <AppIcon name="arrow" size={18} /></button>
-            <button type="button" className="landing-button landing-button-secondary" onClick={onOwnProcess}>Рассчитать свой процесс <AppIcon name="arrow" size={18} /></button>
+            <button type="button" className="landing-button landing-button-primary" onClick={onGuestDemo}>Смотреть два сценария <AppIcon name="arrow" size={18} /></button>
+            <button type="button" className="landing-button landing-button-secondary" onClick={onOwnProcess}>Описать свой объект <AppIcon name="arrow" size={18} /></button>
           </div>
           <p className="landing-entry-note">Демо открывается без регистрации. Свой процесс можно ввести в разделе «Расчёт»; для сохранения результата понадобится проект.</p>
           <button type="button" className="landing-catalog-link" onClick={onOpenCatalog}><AppIcon name="library" size={18} /> Смотреть каталог решений <AppIcon name="arrow" size={16} /></button>
