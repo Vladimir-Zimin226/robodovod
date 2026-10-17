@@ -388,7 +388,10 @@ def create_comparison_router(discovery_loader: Callable[[], CatalogSnapshotDTO])
         ids = [item.id for item in snapshot.positions
                if item.model.capacity_runtime.calculation_profile == profile]
         mass = request.process.item_mass
-        payload_kg = mass.normalized_value if mass is not None and mass.status == "KNOWN" else None
+        batch = request.process.explicit_batch
+        payload_kg = (format(Decimal(mass.normalized_value) * (Decimal(batch.normalized_value)
+                      if batch is not None and batch.status == "KNOWN" else Decimal(1)), 'f')
+                      if mass is not None and mass.status == "KNOWN" else None)
         selected = CompareRequest.model_construct(
             source_run_id=uuid.UUID(int=0), position_ids=ids,
             max_payload_kg=payload_kg, min_aisle_width_m=None,

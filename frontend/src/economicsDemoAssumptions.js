@@ -85,7 +85,7 @@ export function changeManualProductivityRole(values, primaryRoleId) {
   };
 }
 
-export function applyTypicalObjectEconomics(values, fields, objectKind, estimate, processCode = 'warehouse_receiving_shipping') {
+export function applyTypicalObjectEconomics(values, fields, objectKind, estimate, processCode = 'warehouse_receiving_shipping', { catalogPriceAvailable = false } = {}) {
   const warehouse = objectKind === 'WAREHOUSE';
   let next = applyWarehouseEconomicsDemo(values, fields);
   if (!warehouse || processCode !== 'warehouse_receiving_shipping') {
@@ -108,8 +108,11 @@ export function applyTypicalObjectEconomics(values, fields, objectKind, estimate
   // warehouse template's 08:00 evidence for a user's 09:00 value.
   next = editEconomicsField(next, 'startSeconds', 'start_seconds_from_midnight',
     String(values.startSeconds || 32400), { enableTemplate: false });
-  next = editEconomicsField({ ...next, sources: { ...next.sources, purchase_price_override_gross: 'ASSUMPTION' } },
+  if (!catalogPriceAvailable) next = editEconomicsField({ ...next, sources: { ...next.sources, purchase_price_override_gross: 'ASSUMPTION' } },
     'purchasePriceOverride', 'purchase_price_override_gross', warehouse ? '2500000' : objectKind === 'AIRPORT' ? '1200000' : '1800000', { enableTemplate: false });
+  else if (!String(values.purchasePriceOverride || '').trim()) next = { ...next, purchasePriceOverride: '', purchasePriceSource: '',
+    sources: { ...next.sources, purchase_price_override_gross: 'USER' },
+    assumptions: { ...next.assumptions, purchase_price_override_gross: null } };
   next = confirmAllEconomicsAssumptions(next);
   return { ...next, calculationDepth: 'FULL', evaluationDate: new Date().toISOString().slice(0, 10),
     robotsPerControlPost: '5', robotsPerDayTechnician: '20', rotationFactor: '1',
@@ -119,6 +122,6 @@ export function applyTypicalObjectEconomics(values, fields, objectKind, estimate
     controlMode: 'HIRE', technicianPurchaseMode: 'HIRE', technicianRaasMode: 'VENDOR',
     grossConfirm: true, currencyConfirm: true, initialBatteryConfirm: true, batteryServiceConfirm: true,
     raasScopeConfirm: true, raasInfrastructureOwner: 'VENDOR',
-    purchasePriceSource: 'Авторское допущение для типового объекта от 2026-09-28; не цена организаторов и не оферта поставщика',
+    purchasePriceSource: catalogPriceAvailable ? '' : 'Авторское допущение для типового объекта от 2026-09-28; не цена организаторов и не оферта поставщика',
   };
 }

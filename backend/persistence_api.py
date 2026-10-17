@@ -8,6 +8,8 @@ import json
 import logging
 import os
 import uuid
+from io import BytesIO
+from zipfile import ZipFile, ZIP_DEFLATED
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -248,6 +250,11 @@ class OperationBatchCreateRequest(ApiModel):
     batch_id: uuid.UUID
     input_revision: str = Field(min_length=1, max_length=120)
     operations: list[OperationBatchRowRequest] = Field(min_length=1, max_length=40)
+
+
+class ProjectPortfolioCreateRequest(ApiModel):
+    new_batch_id: uuid.UUID
+    economics_run_ids: dict[str, uuid.UUID] = Field(min_length=1, max_length=40)
 
 
 def _user_dict(user: User) -> dict[str, Any]:
@@ -2052,6 +2059,82 @@ def create_persistence_router(
             raise HTTPException(status_code=404, detail='operation batch not found')
         return operation_batch_dict(batch)
 
+    @router.post('/v2/projects/{project_id}/operation-batches/{batch_id}/project-economics', status_code=201)
+    def create_project_portfolio(project_id: uuid.UUID, batch_id: uuid.UUID,
+                                 payload: ProjectPortfolioCreateRequest,
+                                 context: AuthContext = Depends(require_csrf),
+                                 db: Session = Depends(database_session)):
+        """Bind complete per-model purchase runs to one project-wide C14/C18 result."""
+        _owned_project(db, project_id, context.user.id)
+        batch = db.scalar(select(OperationBatch).where(
+            OperationBatch.id == batch_id, OperationBatch.project_id == project_id))
+        if batch is None:
+            raise HTTPException(404, 'operation batch not found')
+        source = operation_batch_dict(batch)
+        operations = [item for item in source['operations'] if item['status'] == 'CALCULATED']
+        excluded = [item for item in source['operations'] if item['status'] != 'CALCULATED']
+        if not operations:
+            raise HTTPException(422, 'no calculated operation is available for project economics')
+        if set(payload.economics_run_ids) != {item['process_id'] for item in operations}:
+            raise HTTPException(422, 'provide one economics run for every calculated operation')
+        catalog_resolver = resolve_economics_catalog or resolve_catalog
+        if catalog_resolver is None:
+            raise HTTPException(503, 'economics catalog unavailable')
+        catalog = catalog_resolver()
+        prepared = []
+        for item in operations:
+            econ_id = payload.economics_run_ids[item['process_id']]
+            run = db.scalar(select(AnalysisRun).where(
+                AnalysisRun.id == econ_id, AnalysisRun.project_id == project_id,
+                AnalysisRun.run_kind == 'FULL_ANALYSIS', AnalysisRun.status == 'SUCCEEDED'))
+            if (run is None or run.result_snapshot is None
+                    or _canonical_sha256(run.input_snapshot) != run.input_sha256
+                    or _canonical_sha256(run.result_snapshot) != run.result_sha256
+                    or run.catalog_version_code != catalog.version.code
+                    or run.input_snapshot.get('capacity_run_id') != item['run_id']
+                    or str(run.parent_run_id) != item['run_id']
+                    or run.input_snapshot.get('economics', {}).get('schema_version') != PROJECT_INPUT_VERSION
+                    or run.input_snapshot.get('economics', {}).get('salary_basis') != 'EMPLOYER_COST'
+                    or (run.result_snapshot.get('schema_version') not in {
+                        'commercial-scenarios-bundle-v3', 'commercial-scenarios-bundle-v4'}
+                        and not (run.result_snapshot.get('schema_version') == 'economics-partial-result-v1'
+                                 and run.result_snapshot.get('branches', {}).get('purchase', {}).get('status') == 'CALCULATED'))):
+                raise HTTPException(409, f'economics run for {item["process_id"]} is incomplete, outdated or changed')
+            _, capacity_context = _economics_capacity_context(
+                db, project_id=project_id, tenant_id=context.user.id,
+                capacity_run_id=uuid.UUID(item['run_id']), catalog_snapshot=catalog,
+                economics_run_id=run.id)
+            prepared.append((capacity_context, run.input_snapshot['economics'], run.result_snapshot))
+        from project_portfolio import calculate_project_portfolio
+        try:
+            report = calculate_project_portfolio(
+                prepared, catalog, project_id=str(project_id), tenant_id=str(context.user.id),
+                run_id=f'run.{payload.new_batch_id}')
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from None
+        snapshot = {key: value for key, value in batch.snapshot.items() if key not in {'project_economics', 'status'}}
+        snapshot['status'] = 'PROJECT_ECONOMICS_PARTIAL' if excluded else 'PROJECT_ECONOMICS'
+        snapshot['parent_batch_id'] = str(batch_id)
+        snapshot['project_economics'] = {
+            'status': 'PARTIAL' if excluded else 'CALCULATED',
+            'reason': 'Экономика рассчитана только для покрытых операций; перечисленные ниже процессы исключены из денежных итогов.' if excluded else 'Общая экономика проекта рассчитана по выбранным моделям; общие роли и расходы площадки учтены один раз.',
+            'excluded_processes': [{'process_id': item['process_id'], 'reason': item.get('blocker') or 'Парк не рассчитан'} for item in excluded],
+            'economics_run_ids': {key: str(value) for key, value in payload.economics_run_ids.items()},
+            'report': report,
+        }
+        digest = _canonical_sha256(snapshot)
+        existing = db.get(OperationBatch, payload.new_batch_id)
+        if existing is not None:
+            if existing.project_id != project_id or existing.snapshot_sha256 != digest:
+                raise HTTPException(409, 'project economics id already used for another result')
+            return operation_batch_dict(existing)
+        saved = OperationBatch(id=payload.new_batch_id, project_id=project_id,
+                               input_revision=batch.input_revision, snapshot=snapshot, snapshot_sha256=digest)
+        db.add(saved)
+        db.commit()
+        db.refresh(saved)
+        return operation_batch_dict(saved)
+
     @router.get('/v2/projects/{project_id}/operation-batches/{batch_id}/report.pdf')
     def operation_batch_pdf(project_id: uuid.UUID, batch_id: uuid.UUID,
                             context: AuthContext = Depends(require_auth_context), db: Session = Depends(database_session)):
@@ -2077,8 +2160,36 @@ def create_persistence_router(
                               (f"Каталог: {item.get('catalog_version') or 'неизвестно'}", 'body'),
                               (f"Digest результата: {item.get('result_sha256') or 'неизвестно'}", 'note')])
         lines.append((f"Экономика проекта: {data['project_economics']['reason']}", 'note'))
+        report = data['project_economics'].get('report') or {}
+        if report:
+            lines.extend([(f"Капитальные затраты проекта: {report.get('project_capex_rub')} RUB", 'body'),
+                          (f"NPV проекта: {report.get('project_npv_rub')} RUB", 'body'),
+                          (f"ROI проекта за горизонт: {report.get('project_net_roi_percent') or 'не определён'} %", 'body'),
+                          (f"Эффект в первом году: {report.get('first_year_effect_rub')} RUB", 'body'),
+                          (f"Высвобождено сотрудников: {report.get('total_released_people')}", 'body'),
+                          (f"Электроэнергия за первый год: {report.get('first_year_energy_rub')} RUB", 'body'),
+                          (f"Пиковая мощность зарядки: {report.get('peak_charging_power_kw') if report.get('peak_charging_power_kw') is not None else 'неизвестно'} кВт", 'body')])
+            for row in report.get('rows', []):
+                lines.append((f"{row['process_id']}: {row['fleet']} × {row['model_id']}; CAPEX {row['direct_capex_rub']} RUB; энергия за первый год {row.get('first_year_energy_rub') or 'неизвестно'} RUB; мощность {row.get('power_w_per_robot')} Вт ({row.get('energy_power_basis')})", 'body'))
         return Response(content=_pdf(lines), media_type='application/pdf',
                         headers={'Content-Disposition': f'attachment; filename="operation-batch-{batch_id}.pdf"',
+                                 'X-Report-Source-Digest': data['checksum']})
+
+    @router.get('/v2/projects/{project_id}/operation-batches/{batch_id}/archive.zip')
+    def operation_batch_archive(project_id: uuid.UUID, batch_id: uuid.UUID,
+                                context: AuthContext = Depends(require_auth_context),
+                                db: Session = Depends(database_session)):
+        data = get_operation_batch(project_id, batch_id, context, db)
+        pdf = operation_batch_pdf(project_id, batch_id, context, db).body
+        buffer = BytesIO()
+        with ZipFile(buffer, 'w', ZIP_DEFLATED) as archive:
+            archive.writestr('project-result.json', json.dumps(data, ensure_ascii=False, sort_keys=True, indent=2))
+            archive.writestr('project-report.pdf', pdf)
+            archive.writestr('README.txt', 'Сохранённая версия сводки операций и проектной экономики.\n'
+                             'Контрольная сумма snapshot: ' + data['checksum'] + '\n'
+                             'Неизвестные технические и коммерческие условия остаются в результате.\n')
+        return Response(content=buffer.getvalue(), media_type='application/zip',
+                        headers={'Content-Disposition': f'attachment; filename="operation-batch-{batch_id}.zip"',
                                  'X-Report-Source-Digest': data['checksum']})
 
     @router.get("/projects/{project_id}/analysis-runs")

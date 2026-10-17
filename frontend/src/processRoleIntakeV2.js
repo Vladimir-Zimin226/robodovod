@@ -77,6 +77,7 @@ export function createDraft(objectType, sequence = 1) {
       days: '',
       distance: '',
       batch: '',
+      itemMass: '',
       fieldSources: {},
       fieldConfirmations: {},
     })),
@@ -98,7 +99,7 @@ export function addZone(draft, objectType) {
     ...definition, zoneId, blockId: `block.${zoneId}.${definition.code}`,
     processId: `${zoneId}.${definition.code}`, active: false,
     activationSource: 'USER', demand: '', shifts: '', hours: '', days: '',
-    distance: '', batch: '', fieldSources: {}, fieldConfirmations: {},
+    distance: '', batch: '', itemMass: '', fieldSources: {}, fieldConfirmations: {},
   }));
   return revise(draft, { zones: [...draft.zones, { zoneId, label: `Зона ${displayNumber}`, constraints: '' }],
     processes: [...draft.processes, ...processes] });
@@ -136,7 +137,9 @@ export function createWarehouseDemoDraft() {
   draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);
   return updateRole(draft, `${draft.objectId}.forklift_driver`, {
     headcount: '25', headcountSource: 'ASSUMPTION',
-    salary: '120000', salarySource: 'ASSUMPTION', salaryConfirmed: false,
+    // Organizer salary is gross. The example converts it using the C14 1.302
+    // employer-contribution assumption so the new employer-cost basis is honest.
+    salary: '156240', salarySource: 'ASSUMPTION', salaryConfirmed: false,
   });
 }
 
@@ -228,7 +231,7 @@ export function createTypicalObjectDraft(objectType) {
   draft = setRoleActive(draft, code, role, true);
   return updateRole(draft, `${draft.objectId}.${role}`, {
     headcount: airport ? '30' : '6', headcountSource: 'ASSUMPTION',
-    salary: airport ? '65000' : '52000', salarySource: 'ORGANIZER', salaryConfirmed: false });
+    salary: airport ? '84630' : '67704', salarySource: 'ASSUMPTION', salaryConfirmed: false });
 }
 
 // The dedicated loader click accepts the displayed typical-object assumptions.
@@ -358,6 +361,7 @@ export function validateDraft(draft, { requireFacilityAreas = false } = {}) {
       if (!/^[1-9][0-9]*$/.test(String(process.batch))) issues.push({ severity: 'BLOCKER', code: 'BATCH_REQUIRED', ref: `${process.processId}.batch` });
       if (process.fieldSources?.batch === 'ASSUMPTION' && !process.fieldConfirmations?.batch) issues.push({ severity: 'BLOCKER', code: 'BATCH_CONFIRMATION_REQUIRED', ref: `${process.processId}.batch` });
     }
+    if (process.itemMass != null && process.itemMass !== '' && !positive(process.itemMass)) issues.push({ severity: 'BLOCKER', code: 'ITEM_MASS_INVALID', ref: `${process.processId}.itemMass` });
     const assigned = draft.roles.filter((role) => role.processIds.includes(process.processId));
     if (assigned.length === 0) issues.push({ severity: 'INFO', code: 'NO_FOT_BENEFIT', ref: process.processId });
   }
@@ -414,6 +418,7 @@ export function serializeDraft(draft) {
         } }
         : quantity(process.distance, 'm', process.fieldSources?.distance || 'USER', process.fieldConfirmations?.distance === true, process.fileSource),
       explicit_batch: quantity(process.batch, 'unit/trip', process.fieldSources?.batch || 'USER', process.fieldConfirmations?.batch === true, process.fileSource),
+      item_mass: quantity(process.itemMass, 'kg/unit', process.fieldSources?.itemMass || 'USER', process.fieldConfirmations?.itemMass === true, process.fileSource),
       role_refs: draft.roles.filter((role) => role.processIds.includes(process.processId)).map((role) => role.roleId),
     })),
     roles: draft.roles.map((role) => ({

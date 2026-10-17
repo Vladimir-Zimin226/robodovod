@@ -43,6 +43,7 @@ const profilesForScope = (scope) => ({
   CLEANING_AREA: ['CLEANING_AREA_V1'],
   DELIVERY_CYCLE: ['DELIVERY_CYCLE_V1', 'TRANSPORT_CYCLE_V1'],
   TRANSPORT_CYCLE: ['TRANSPORT_CYCLE_V1'],
+  FIXED_CELL: ['PALLETIZING_THROUGHPUT_V1'],
 }[scope] || []);
 
 export function demoCandidates(items, scope) {
@@ -62,7 +63,7 @@ export function brainCandidates(items, scope) {
   });
 }
 
-export function buildDemoCapacityRequest({ normalized, projectId, processId, position, exchangeSeconds, cleaningFrequency = '1', acknowledged, zone, brainProfileVersion = null }) {
+export function buildDemoCapacityRequest({ normalized, projectId, processId, position, exchangeSeconds, cleaningFrequency = '1', acknowledged, zone, facility = null, brainProfileVersion = null }) {
   if (!acknowledged) throw new Error('Подтвердите демонстрационные допущения.');
   if (!projectId) throw new Error('Откройте проект для сохранения расчёта.');
   const process = normalized?.response?.normalized_processes?.find((item) => item.process_id === processId);
@@ -102,7 +103,7 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
     execution_mode: 'PRELIMINARY_DEMO', demo_assumptions_confirmed: true,
     provenance,
   };
-  const context = buildObjectConstraintContext(zone, process);
+  const context = buildObjectConstraintContext(zone, process, facility);
   if (context) {
     request.schema_version = 'capacity-analysis-request-v4';
     request.object_constraint_context = context;
@@ -119,7 +120,7 @@ export function buildDemoCapacityRequest({ normalized, projectId, processId, pos
     if (!positive(cleaningFrequency)) throw new Error('Укажите число уборок площади в сутки.');
     request.cleaning_area = quantity('cleaning_area', process.demand?.normalized_value, 'm2', 'AREA', 'prov.demo.confirmation');
     request.cleaning_frequency = quantity('cleaning_frequency', cleaningFrequency, '1/day', 'RATE', 'prov.demo.confirmation');
-  } else {
+  } else if (process.scope !== 'FIXED_CELL') {
     if (!positive(exchangeSeconds)) throw new Error('Укажите время погрузки и выгрузки за рейс, сек.');
     requestProcess.exchange = {
       mode: 'TOTAL',

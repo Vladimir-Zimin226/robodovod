@@ -26,7 +26,7 @@ export async function calculateOperationBatch({ fetcher = fetch, api = '', norma
     }
     const row = { process, zone_id: zone.zoneId, zone_label: zone.label };
     const block = reason => { operations.push({ ...row, blocker: reason }); onCheckpoint([...operations]); onProgress(operations.length, processes.length); };
-    if (!['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(process.scope)) {
+    if (!['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA', 'FIXED_CELL'].includes(process.scope)) {
       block('Для этого профиля пока нет утверждённой формулы мощности. Операция сохранена как непокрытая.');
       continue;
     }
@@ -34,14 +34,17 @@ export async function calculateOperationBatch({ fetcher = fetch, api = '', norma
     let capacity;
     {
       const params = new URLSearchParams({ object_kind: process.object_kind.toLowerCase(), process_code: process.process_code });
-      if (process.item_mass?.status === 'KNOWN') params.set('max_payload_kg', process.item_mass.normalized_value);
+      if (process.item_mass?.status === 'KNOWN') {
+        const units = process.explicit_batch?.status === 'KNOWN' ? Number(process.explicit_batch.normalized_value) : 1;
+        params.set('max_payload_kg', String(Number(process.item_mass.normalized_value) * units));
+      }
       const catalog = await json(fetcher, `${api}/api/v2/capacity-catalog/positions?${params}`);
       const candidates = demoCandidates(catalog.items || [], process.scope);
       if (!candidates.length) { block('В активном каталоге нет расчётной модели для этого физического профиля.'); continue; }
       try {
         capacity = buildDemoCapacityRequest({ normalized, projectId, processId: process.process_id,
           position: candidates[0], exchangeSeconds: source?.exchangeSeconds,
-          cleaningFrequency: source?.cleaningFrequency ?? '1', acknowledged, zone });
+          cleaningFrequency: source?.cleaningFrequency ?? '1', acknowledged, zone, facility: draft.facility });
       } catch (error) { block(`Не хватает входов для отдельного расчёта: ${error.message}`); continue; }
       const preview = await json(fetcher, `${api}/api/candidate-comparisons/preview`, {
         method: 'POST', headers, body: JSON.stringify({ capacity_request: capacity }),

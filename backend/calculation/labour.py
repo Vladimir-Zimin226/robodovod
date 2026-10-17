@@ -210,6 +210,7 @@ class LabourAnalysisRequestV1(StrictContractModel):
     staffing_decision: StaffingDecisionV1 | None = None
     staffing_policy: StaffingPolicyV2 | None = None
     work_share: WorkShareV1 | None = None
+    salary_basis: Literal["GROSS", "EMPLOYER_COST"] = "GROSS"
 
     @model_serializer(mode="wrap")
     def serialize_optional_decision(self, handler):
@@ -220,6 +221,8 @@ class LabourAnalysisRequestV1(StrictContractModel):
             payload.pop("staffing_policy", None)
         if self.work_share is None:
             payload.pop("work_share", None)
+        if self.salary_basis == "GROSS":
+            payload.pop("salary_basis", None)
         return payload
 
     @model_validator(mode="after")
@@ -444,19 +447,22 @@ def _role_headcount(role: RoleEntry) -> int:
     return int(value)
 
 
-def _money(role: RoleEntry, registry: CalculationParameterRegistryV1) -> MoneyBreakdownV1 | None:
+def _money(role: RoleEntry, registry: CalculationParameterRegistryV1, salary_basis: str = "GROSS") -> MoneyBreakdownV1 | None:
     if isinstance(role.monthly_gross_salary, MissingQuantity):
         return None
-    monthly = _d(role.monthly_gross_salary.normalized_value)
+    supplied_monthly = _d(role.monthly_gross_salary.normalized_value)
+    direct_multiplier = _registry_value(registry, "labor.cost.direct-multiplier")
+    monthly = supplied_monthly / direct_multiplier if salary_basis == "EMPLOYER_COST" else supplied_monthly
     annual = monthly * 12
+    annual_direct = supplied_monthly * 12 if salary_basis == "EMPLOYER_COST" else annual * direct_multiplier
     return MoneyBreakdownV1(
         monthly_gross=_canonical(monthly),
         annual_gross=_canonical(annual),
-        annual_direct=_canonical(annual * _registry_value(registry, "labor.cost.direct-multiplier")),
-        annual_full=_canonical(annual * _registry_value(registry, "labor.cost.full-multiplier")),
+        annual_direct=_canonical(annual_direct),
+        annual_full=_canonical(annual_direct + annual * _registry_value(registry, "labor.cost.fixed-overhead-multiplier")),
         annual_fixed_overhead=_canonical(annual * _registry_value(registry, "labor.cost.fixed-overhead-multiplier")),
         salary_provenance_ref=role.monthly_gross_salary.provenance_ref,
-        zero_cost_role=monthly == 0,
+        zero_cost_role=supplied_monthly == 0,
     )
 
 
@@ -769,7 +775,7 @@ def calculate_role_labour(
         surplus = max(0, headcount - required)
         released = released_by_role.get(role_id, 0)
         transferred = transferred_by_role.get(role_id, 0)
-        money = _money(role, registry)
+        money = _money(role, registry, request.salary_basis)
         reason_codes: list[str] = []
         if money is None:
             reason_codes.append("salary-missing")
@@ -807,8 +813,8 @@ def calculate_role_labour(
     control_role = next((role for role in request.role_pool.roles if role.role_code == RoleCode.CONTROL_OPERATOR), None)
     tech_role = next((role for role in request.role_pool.roles if role.role_code == RoleCode.TECH_SUPPORT), None)
     staff_reasons: list[str] = []
-    control_money = _money(control_role, registry) if control_role else None
-    tech_money = _money(tech_role, registry) if tech_role else None
+    control_money = _money(control_role, registry, request.salary_basis) if control_role else None
+    tech_money = _money(tech_role, registry, request.salary_basis) if tech_role else None
     if control_additional > 0 and control_money is None:
         staff_reasons.append("control-salary-missing")
         issues.add("control-salary-missing")

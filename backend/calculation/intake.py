@@ -104,6 +104,7 @@ class ProcessIntake(StrictContractModel):
     schedule: ProcessScheduleInput | None = None
     route_distance: RawQuantity | None = None
     explicit_batch: RawQuantity | None = None
+    item_mass: RawQuantity | None = None
     role_refs: list[StableId] = Field(default_factory=list)
 
 
@@ -347,8 +348,19 @@ def normalize_intake(request: CalculationIntakeRequestV2) -> NormalizationRespon
         ):
             required.append(f"{field_root}.explicit_batch")
 
+        item_mass = None
+        if process.item_mass is not None:
+            try:
+                item_mass = _known(process.item_mass, name=QuantityName.ITEM_MASS, kind=QuantityKind.RATE,
+                                   expected_unit=Unit.KILOGRAM_PER_UNIT, field=f"{field_root}.item_mass", conversions=conversions)
+                if Decimal(item_mass.normalized_value) <= 0:
+                    raise UnitNormalizationError("ITEM_MASS_NOT_POSITIVE")
+            except UnitNormalizationError as exc:
+                item_mass = None
+                _issue(errors, required, str(exc), f"{field_root}.item_mass", "Item mass must be positive kg/unit")
+
         if process_semantic_valid:
-            normalized_processes.append(NormalizedProcess(process_id=process.process_id, input_revision=request.input_revision, object_kind=request.object_kind, process_code=process.process_code, scope=definition.scope, active=process.active, quantity_kind=process.quantity_kind, demand=demand, schedule=schedule, route_distance=route, explicit_batch=explicit_batch, role_refs=process.role_refs))
+            normalized_processes.append(NormalizedProcess(process_id=process.process_id, input_revision=request.input_revision, object_kind=request.object_kind, process_code=process.process_code, scope=definition.scope, active=process.active, quantity_kind=process.quantity_kind, demand=demand, schedule=schedule, route_distance=route, explicit_batch=explicit_batch, item_mass=item_mass, role_refs=process.role_refs))
 
     normalized_roles: list[RoleEntry] = []
     for role in request.roles:

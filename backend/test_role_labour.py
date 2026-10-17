@@ -117,6 +117,19 @@ def test_warehouse_rotation_27_and_conservation_golden():
     assert result.forklifts.withdrawn <= result.forklifts.base_count
 
 
+def test_employer_cost_salary_basis_does_not_charge_contributions_twice():
+    old = request(roles=[role("role.driver", "forklift_driver", 20, ["process.receiving"], salary_value="120000")])
+    employer = request(roles=[role("role.driver", "forklift_driver", 20, ["process.receiving"], salary_value="156240")])
+    employer.salary_basis = "EMPLOYER_COST"
+    old_money = calculate_role_labour(old).roles[0].money
+    employer_money = calculate_role_labour(employer).roles[0].money
+    assert old_money.annual_direct == employer_money.annual_direct == "1874880"
+    assert old_money.annual_full == employer_money.annual_full == "2232000"
+    assert employer_money.monthly_gross == "120000"
+    assert "salary_basis" not in old.model_dump(mode="json")
+    assert employer.model_dump(mode="json")["salary_basis"] == "EMPLOYER_COST"
+
+
 def test_pallet_transport_does_not_release_pickers_or_packers():
     roles = [
         role("role.driver", "forklift_driver", 20, ["process.receiving"]),

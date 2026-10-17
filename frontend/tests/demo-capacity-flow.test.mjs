@@ -139,6 +139,22 @@ test('cleaning demo exposes one pass per day rather than inventing vendor availa
   assert.equal(request.availability, undefined);
 });
 
+test('palletizing cell uses its own fixed-cell profile without transport exchange', () => {
+  const input = structuredClone(normalized);
+  input.response.normalized_processes[0] = {
+    active: true, process_id: 'zone.draft.warehouse.main.warehouse_palletizing', input_revision: 'draft.1',
+    object_kind: 'WAREHOUSE', scope: 'FIXED_CELL', process_code: 'warehouse_palletizing',
+    demand: q('demand_per_day', '100', 'pallet/day'),
+  };
+  const cell = { ...mule, position_id: 'position.cell', calculation_profile: 'PALLETIZING_THROUGHPUT_V1' };
+  assert.deepEqual(demoCandidates([mule, cell], 'FIXED_CELL'), [cell]);
+  const request = buildDemoCapacityRequest({ normalized: input, projectId: 'project.1',
+    processId: input.response.normalized_processes[0].process_id, position: cell, acknowledged: true,
+    zone: { zoneId: 'zone.draft.warehouse.main', label: 'Основная зона' } });
+  assert.equal(request.process.scope, 'FIXED_CELL');
+  assert.equal(request.process.exchange, undefined);
+});
+
 test('organizer warehouse preset requires explicit salary confirmation', () => {
   const draft = createWarehouseDemoDraft();
   const receiving = draft.processes.find((item) => item.code === 'warehouse_receiving_shipping');

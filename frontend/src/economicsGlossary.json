@@ -477,8 +477,8 @@
     "backend/calculation/economics/metrics.py": "74c288b0c3a873a515b6e10f390ab1fcc85d42cd50dc6da903ff35d2db8c1501",
     "backend/calculation/economics/purchase.py": "42ce99a77e31d07feb93ff045633195a4718639491ec035d16ba3c119c71dd0d",
     "backend/calculation/economics/raas.py": "fffe8231a91f13f0ad9a7f478dc5ca7090a6f3c6d89114ca567c2a80fdeb2346",
-    "backend/calculation/economics/sensitivity.py": "02ac0de881f1a510024222a585ad1204d41b32f773f3a81a45e461d189f21c6c",
-    "backend/calculation/labour.py": "03971868cc1c6310eb7d4bd795439278384672c3a012e61e67f42e23b811596c",
+    "backend/calculation/economics/sensitivity.py": "2f15794dbf229d2a26ac3c965dc61f6e3e4fbfc2c632d4c4127c2deb3840f527",
+    "backend/calculation/labour.py": "522ad7a30f9365d6b73a1033c395325021b17ba1436d41fd44d82f2b6e9b4710",
     "data/calculation/registry-v1.json": "6a54e7934abc36d90c19582d8ef038deacc49d4e04ff7e4bf360bb5da3c43e22"
   },
   "versions": {

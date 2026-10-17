@@ -75,7 +75,8 @@ test('airport and clinic preserve organizer scope and distinguish assumed staff 
   assert.equal(food.fieldConfirmations.batch, false);
   assert.equal(clinic.roles[0].headcount, '6');
   assert.equal(clinic.roles[0].headcountSource, 'ASSUMPTION');
-  assert.equal(clinic.roles[0].salary, '52000');
+  assert.equal(clinic.roles[0].salary, '67704');
+  assert.equal(clinic.roles[0].salarySource, 'ASSUMPTION');
 });
 
 test('organizer proposals serialize through the existing provenance contract with their source retained', () => {

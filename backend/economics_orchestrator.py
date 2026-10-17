@@ -137,6 +137,7 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     primary_role_id: StableId | None = None
     manual_units_per_shift: DecimalString | None = None
     role_salaries_confirmed_as_monthly_gross: bool
+    salary_basis: Literal["GROSS", "EMPLOYER_COST"] = Field(default="GROSS", exclude=True)
     control_headcount: Annotated[int, Field(ge=0)]
     control_monthly_gross: DecimalString
     technician_headcount: Annotated[int, Field(ge=0)]
@@ -465,6 +466,7 @@ def _labour(
         staffing_decision=getattr(inputs, "staffing_raas" if acquisition == "RAAS" else "staffing_purchase", None),
         staffing_policy=getattr(inputs, 'staffing_policy', None),
         work_share=getattr(inputs, 'work_share', None),
+        salary_basis=getattr(inputs, 'salary_basis', 'GROSS'),
     )
     result = analyze_role_labour(labour_request)
     if result.finance_status != "COMPLETE":
@@ -623,7 +625,7 @@ def _equipment_class(position: CatalogPositionDTO) -> str:
     profile = position.model.capacity_runtime.calculation_profile
     if profile == "CLEANING_AREA_V1":
         return "CLEANER"
-    if profile == "PALLETIZING_CELL_V1":
+    if profile in {"PALLETIZING_CELL_V1", "PALLETIZING_THROUGHPUT_V1"}:
         return "FIXED_CELL"
     return "AMR"
 
@@ -1037,7 +1039,11 @@ def _sensitivity(
             "unit/day",
             request.process.process_id,
         ),
-        "ROLE_SALARY": (role.money.monthly_gross, "RUB/person/month", role.role_id),
+            # C20 perturbs the amount entered by the user. In EMPLOYER_COST
+            # mode C14's recovered gross can be fractional and is not that input.
+            "ROLE_SALARY": (next(item.monthly_gross_salary.normalized_value
+                                  for item in request.role_pool.roles if item.role_id == role.role_id),
+                            "RUB/person/month", role.role_id),
     }
     variants: list[SensitivityVariantInputV1] = []
     for parameter in ("EQUIPMENT_PRICE", "OPERATION_VOLUME", "ROLE_SALARY"):

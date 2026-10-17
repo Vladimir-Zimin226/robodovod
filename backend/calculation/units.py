@@ -31,6 +31,8 @@ UNIT_RULES: dict[str, UnitRule] = {
     "km": UnitRule("m", Decimal("1000"), "DISTANCE"),
     "kg": UnitRule("kg", Decimal("1"), "MASS"),
     "t": UnitRule("kg", Decimal("1000"), "MASS"),
+    "kg/unit": UnitRule("kg/unit", Decimal("1"), "RATE"),
+    "t/unit": UnitRule("kg/unit", Decimal("1000"), "RATE"),
     "m2": UnitRule("m2", Decimal("1"), "AREA"),
     "person": UnitRule("person", Decimal("1"), "COUNT"),
     "shift": UnitRule("shift", Decimal("1"), "COUNT"),

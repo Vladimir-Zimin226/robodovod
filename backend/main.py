@@ -658,6 +658,42 @@ def capacity_catalog_positions(
             'items':public, 'total':len(items)}
 
 
+@app.get('/api/v2/capacity-catalog/positions/{position_id}')
+def capacity_catalog_position_detail(position_id: str):
+    """Commercial and passport context from the same approved capacity catalog."""
+    snapshot = _capacity_snapshot()
+    if snapshot.version.status != 'PUBLISHED':
+        raise HTTPException(503, 'capacity source unavailable')
+    position = next((item for item in snapshot.positions if item.id == position_id), None)
+    if position is None:
+        raise HTTPException(404, 'capacity position not found')
+    facts = position.model.facts
+    def financial_fact(codes: set[str], units: set[str]) -> dict[str, Any]:
+        match = next((fact for fact in facts if fact.code in codes and fact.canonical_unit in units
+                      and fact.resolution_status in {'VERIFIED_OFFICIAL', 'VERIFIED_AUTHORIZED_PARTNER', 'MANUALLY_APPROVED'}
+                      and fact.evidence_id), None)
+        return ({'status': 'UNKNOWN'} if match is None else
+                {'status': 'KNOWN', 'value': str(match.value), 'unit': match.canonical_unit,
+                 'evidence_id': match.evidence_id, 'evidence_status': match.resolution_status})
+    price = position.procurement_option
+    return {'catalog': {'id': snapshot.version.id, 'code': snapshot.version.code},
+            'position': _discovery_position(position, snapshot.version.code),
+            'financial_facts': {
+                'price': {'status': 'UNKNOWN'} if price is None or price.amount is None else {
+                    'status': 'CATALOG_PRICE', 'value': str(price.amount), 'currency': price.currency,
+                    'price_status': price.price_status, 'evidence_id': price.evidence_id,
+                    'source_record_key': position.source_record_key,
+                    'source_row_number': position.source_row_number,
+                    'observed_on': None if position.source_observed_on is None else str(position.source_observed_on)},
+                'annual_service_rub': financial_fact({'annual_service_rub', 'specs.annual_service_rub'}, {'RUB/year'}),
+                'warranty_years': financial_fact({'warranty_years', 'specs.warranty_years'}, {'year'}),
+                'average_power_w': financial_fact({'average_power_w', 'specs.average_power_w'}, {'W'}),
+                'max_power_w': financial_fact({'max_power_w', 'specs.max_power_w'}, {'W'}),
+                'battery_kwh': financial_fact({'battery_kwh', 'specs.battery_kwh'}, {'kWh'}),
+                'charger_power_kw': financial_fact({'charger_power_kw', 'specs.charger_power_kw'}, {'kW'}),
+            }}
+
+
 @app.get("/api/catalog/positions/{position_id}")
 def get_catalog_position(position_id: str):
     """Return one position with gated description enrichment and provenance."""

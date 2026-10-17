@@ -110,6 +110,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [batchBusy, setBatchBusy] = useState(false);
   const [batchProgress, setBatchProgress] = useState('');
   const [batchError, setBatchError] = useState('');
+  const [projectEconomicsBusy, setProjectEconomicsBusy] = useState(false);
   const batchGuard = useRef(false);
   const batchAttempt = useRef(null);
   const latestRevision = useRef(draft.inputRevision);
@@ -172,7 +173,10 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     if (!selectedProcess) return undefined;
     const controller = new AbortController();
     const params = new URLSearchParams({ object_kind: selectedProcess.object_kind.toLowerCase(), process_code: selectedProcess.process_code });
-    if (selectedProcess.item_mass?.status === 'KNOWN') params.set('max_payload_kg', selectedProcess.item_mass.normalized_value);
+    if (selectedProcess.item_mass?.status === 'KNOWN') {
+      const units = selectedProcess.explicit_batch?.status === 'KNOWN' ? Number(selectedProcess.explicit_batch.normalized_value) : 1;
+      params.set('max_payload_kg', String(Number(selectedProcess.item_mass.normalized_value) * units));
+    }
     fetch(`${API}/api/v2/capacity-catalog/positions?${params}`, { signal: controller.signal })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
       .then((payload) => { setPositions(payload.items || []); setComparison(null); setComparisonState(''); setCatalogState('ready'); })
@@ -204,7 +208,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       capacityRequest = buildDemoCapacityRequest({
         normalized: result, projectId: activeProject.id, processId: selectedProcess.process_id,
         position: candidates[0], exchangeSeconds, acknowledged, cleaningFrequency,
-        zone: draft.zones.find((item) => selectedProcess.process_id.startsWith(`${item.zoneId}.`)),
+        zone: draft.zones.find((item) => selectedProcess.process_id.startsWith(`${item.zoneId}.`)), facility: draft.facility,
       });
     } catch { return undefined; }
     const controller = new AbortController();
@@ -228,7 +232,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       })
       .catch((reason) => { if (reason.name !== 'AbortError') setComparisonState('error'); });
     return () => controller.abort();
-  }, [selectedProcess, activeProject?.id, acknowledged, exchangeSeconds, cleaningFrequency, result, positions, draft.zones]);
+  }, [selectedProcess, activeProject?.id, acknowledged, exchangeSeconds, cleaningFrequency, result, positions, draft.zones, draft.facility]);
   const choosePhysicalInputs = (raw) => {
     setExchangeSeconds(raw?.exchangeSeconds ?? '');
     setCleaningFrequency(raw?.cleaningFrequency ?? '1');
@@ -288,7 +292,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         normalized: result, projectId: activeProject?.id, processId: selectedProcess?.process_id,
         position: selectedPosition, exchangeSeconds, acknowledged,
         cleaningFrequency,
-        zone: draft.zones.find((item) => selectedProcess?.process_id.startsWith(`${item.zoneId}.`)),
+        zone: draft.zones.find((item) => selectedProcess?.process_id.startsWith(`${item.zoneId}.`)), facility: draft.facility,
       });
       const response = await capacityClient.current.create(payload, readCsrfCookie());
       if (latestRevision.current !== payload.input_revision) return;
@@ -338,6 +342,43 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       onCapacityResult?.(capacity, run.input_snapshot);
     } catch (reason) { setBatchError(`Не удалось открыть операцию: ${reason.message}`); }
   };
+  const runProjectEconomics = async () => {
+    if (!operationBatch || !activeProject) return;
+    setProjectEconomicsBusy(true); setBatchError('');
+    try {
+      const listResponse = await fetch(`${API}/api/projects/${encodeURIComponent(activeProject.id)}/analysis-runs`, { credentials: 'include' });
+      if (!listResponse.ok) throw new Error('Не удалось открыть историю расчётов проекта.');
+      const history = await listResponse.json();
+      const sources = {};
+      for (const item of operationBatch.operations.filter(row => row.status === 'CALCULATED')) {
+        const candidates = history.items?.filter(candidate => candidate.run_kind === 'FULL_ANALYSIS'
+          && candidate.status === 'SUCCEEDED' && candidate.parent_run_id === item.run_id) || [];
+        let matched = null;
+        for (const candidate of candidates) {
+          const detailResponse = await fetch(`${API}/api/projects/${encodeURIComponent(activeProject.id)}/analysis-runs/${encodeURIComponent(candidate.id)}`, { credentials: 'include' });
+          if (!detailResponse.ok) continue;
+          const detail = await detailResponse.json();
+          if (detail.input_snapshot?.economics?.schema_version === 'economics-explicit-inputs-v6'
+              && detail.input_snapshot.economics.salary_basis === 'EMPLOYER_COST'
+              && (['commercial-scenarios-bundle-v3', 'commercial-scenarios-bundle-v4'].includes(detail.result_snapshot?.schema_version)
+                || detail.result_snapshot?.schema_version === 'economics-partial-result-v1'
+                  && detail.result_snapshot?.branches?.purchase?.status === 'CALCULATED')) {
+            matched = candidate.id; break;
+          }
+        }
+        if (!matched) throw new Error(`Для операции «${item.zone_label} · ${item.process_code}» сохраните рассчитанную покупку с базой «расходы компании».`);
+        sources[item.process_id] = matched;
+      }
+      const response = await fetch(`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches/${encodeURIComponent(operationBatch.id)}/project-economics`, {
+        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
+        body: JSON.stringify({ new_batch_id: crypto.randomUUID(), economics_run_ids: sources }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.detail || 'Не удалось объединить экономику проекта.');
+      setOperationBatch(body);
+    } catch (reason) { setBatchError(reason.message || 'Экономика проекта недоступна.'); }
+    finally { setProjectEconomicsBusy(false); }
+  };
 
   return (
     <section className="w-full min-w-0 rounded-xl border bg-white p-4 md:p-6" aria-label="Процессы и роли">
@@ -363,9 +404,9 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           setError('');
         }}>Загрузить типовой {objectType === 'retail' ? 'склад' : objectType === 'airport' ? 'аэропорт' : 'объект клиники'} организаторов</button>
         {objectType !== 'retail' && <p className="text-xs text-amber-800 mt-2">{objectType === 'airport'
-          ? 'Из датасета: терминал 85 000 м², уборка 51 000 м², зарплата 65 000 ₽ gross. 30 уборщиков, 3×8 ч и одна уборка в сутки — допущения.'
-          : 'Из датасета: 45 000 м², 1 950 порций/сутки, плечо 180 м, зарплата 52 000 ₽ gross. Активная зона 18 000 м², 6 сотрудников только доставки, 3×8 ч, 65 порций за рейс и обмен 180 с — допущения. Приготовление пищи, лифты и санитарные режимы отдельно не моделируются.'} Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
-        {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад использует 1 паллету за рейс, плечо 120 м и обмен 90 сек. как допущения. Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
+          ? 'Из датасета: терминал 85 000 м², уборка 51 000 м², зарплата 65 000 ₽ начисленная. Для формы полных расходов компании она условно пересчитана с коэффициентом взносов 1,302: 84 630 ₽. 30 уборщиков, 3×8 ч и одна уборка в сутки — допущения.'
+          : 'Из датасета: 45 000 м², 1 950 порций/сутки, плечо 180 м, зарплата 52 000 ₽ начисленная. Для формы расходов компании условно пересчитано с коэффициентом 1,302: 67 704 ₽. Активная зона 18 000 м², 6 сотрудников только доставки, 3×8 ч, 65 порций за рейс и обмен 180 с — допущения. Приготовление пищи, лифты и санитарные режимы отдельно не моделируются.'} Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
+        {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад использует 1 паллету за рейс, плечо 120 м и обмен 90 сек. как допущения. Зарплата 120 000 ₽ из примера условно пересчитана по коэффициенту взносов 1,302 в 156 240 ₽ полных расходов компании. Нажатие кнопки подтверждает эти значения для предварительной оценки.</p>}
       </header>
 
       {objectType === 'retail' && <WarehouseLayoutSketch value={draft.facilityPlan}
@@ -393,6 +434,12 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                   onChange={(event) => event.target.checked && setDraft((current) => confirmFacilityArea(current, key))} />Подтверждаю значение и источник</label>}
             </div>)}
         </div>
+      </section>
+
+      <section className="mb-4 rounded-xl border border-slate-600 p-3 text-xs" aria-label="Общие условия объекта">
+        <h3 className="font-semibold">Условия всего объекта</h3>
+        <p>Если температура, пол или проходы одинаковы во всех зонах, укажите их здесь. Значения отдельной зоны переопределяют общие.</p>
+        <ObjectConstraints zone={draft.facility} scopeLabel="объекта" onChange={value => { invalidateComparison(); setDraft(current => updateFacility(current, { objectConstraints: value })); }} />
       </section>
 
       <section className="mb-4 rounded-xl border border-slate-600 p-3 text-xs" aria-label="Зоны">
@@ -473,6 +520,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <NumberField id={`intake-${process.processId}.distance`} label="Одностороннее плечо, м" value={process.distance} issue={fieldIssue(`${process.processId}.distance`)} hint={process.distanceFromPlan ? 'Применено из локальной проверки планировки; изменение схемы сбросит это значение.' : 'Измерьте на объекте или примените предварительный маршрут из конструктора выше.'} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { distance: value }))} />}
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <div className="sm:col-span-2 lg:col-span-3 rounded border border-amber-300 p-2"><NumberField id={`intake-${process.processId}.batch`} label={`Сколько ${process.quantityKind === 'PALLET' ? 'паллет' : 'единиц груза'} робот перевозит за один рейс?`} value={process.batch} issue={fieldIssue(`${process.processId}.batch`)} hint={`Для «${process.label}» в зоне «${selectedZone.label}». Объём ${process.demand || 'неизвестен'} ${process.unit}, плечо ${process.distance || 'неизвестно'} м. Укажите целое число; для своего процесса значение не подставляется.`} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />
                     {process.fieldSources?.batch === 'ASSUMPTION' && <label className="mt-2 flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={process.fieldConfirmations?.batch === true} onChange={(event) => event.target.checked && setDraft((current) => confirmProcessAssumption(current, process.processId, 'batch'))} />Подтверждаю допущение: {process.batch} {process.quantityKind === 'PALLET' ? 'паллет' : process.quantityKind === 'PORTION' ? 'порций' : 'единиц груза'} за рейс для этого процесса</label>}</div>}
+                  {process.quantityKind === 'PALLET' && process.scope === 'TRANSPORT_CYCLE' && <NumberField id={`intake-${process.processId}.itemMass`} label="Наибольшая ожидаемая масса одной паллеты, кг" value={process.itemMass || ''} issue={fieldIssue(`${process.processId}.itemMass`)} hint="Необязательно. Для типового склада средняя масса в наборе организаторов — 800 кг; для проверки грузоподъёмности укажите верхнюю массу вместе с паллетой." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { itemMass: value }))} />}
                 </div>
                 <fieldset><legend className="text-xs font-semibold">{roleCode ? 'Сотрудники и оплата этой роли' : 'Роли'}</legend>
                   {process.roles.length === 0 ? <p className="text-xs text-slate-500 mt-1">Роль не требуется: ФОТ-эффект не рассчитывается.</p> : process.roles.filter((code) => !roleCode || code === roleCode).map((code) => {
@@ -481,9 +529,9 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                       {!roleCode && <label className="flex gap-2 text-xs"><input type="checkbox" checked={Boolean(role)} onChange={(event) => setDraft((current) => setRoleActive(current, process.processId, code, event.target.checked))} />{ROLE_LABELS[code] || code}</label>}
                       {role && <div className="grid grid-cols-2 gap-2 mt-2">
                         <NumberField label="Численность, чел." value={role.headcount} issue={fieldIssue(`${role.roleId}.headcount`)} hint="Для технической и трудовой модели; например 25. Источник — штатное расписание." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value, headcountSource: 'USER' }))} />
-                        <NumberField id={`intake-${role.roleId}.salary`} label="Зарплата gross, ₽/чел./мес." value={role.salary} issue={fieldIssue(`${role.roleId}.salary`)} hint="Для ФОТ и NPV; например 120000. Пусто — экономика неизвестна, 0 — подтверждённая бесплатная роль. Источник — ФОТ." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
+                        <NumberField id={`intake-${role.roleId}.salary`} label="Месячные расходы компании на сотрудника, ₽" value={role.salary} issue={fieldIssue(`${role.roleId}.salary`)} hint="Включая страховые взносы; НДФЛ отдельно не прибавляется. Если у вас старая начисленная зарплата, выберите её базу на шаге экономики." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
                         {role.salarySource === 'ASSUMPTION' && !role.salaryConfirmed && <label className="col-span-2 text-[10px] text-amber-700"><input type="checkbox" className="mr-1" onChange={(event) => event.target.checked && setDraft((current) => confirmRoleAssumption(current, role.roleId))} />Подтверждаю это допущение для текущего ввода</label>}
-                        {!role.salary && <p className="col-span-2 text-[10px] text-amber-700">Без месячной зарплаты до удержаний технический расчёт возможен, а экономика останется частичной.</p>}
+                        {!role.salary && <p className="col-span-2 text-[10px] text-amber-700">Без месячных расходов на сотрудника технический расчёт возможен, а экономика останется частичной.</p>}
                       </div>}
                     </div>;
                   })}
@@ -512,7 +560,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           return <button key={process.process_id} type="button" className={`rounded border p-2 text-left ${selectedProcess?.process_id === process.process_id ? 'border-blue-500' : 'border-slate-500'}`}
             onClick={() => { setSelectedZoneId(zone?.zoneId || draft.zones[0].zoneId); setProcessId(process.process_id); setPositionId(''); invalidateComparison(); choosePhysicalInputs(source); }}>
             <strong>{zone?.label || 'Зона'} · {source?.label || process.process_code}</strong>
-            <span className="block mt-1">{['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA'].includes(process.scope)
+            <span className="block mt-1">{['TRANSPORT_CYCLE', 'DELIVERY_CYCLE', 'CLEANING_AREA', 'FIXED_CELL'].includes(process.scope)
               ? 'Отдельный предварительный расчёт парка' : process.process_code === 'warehouse_picking'
                 ? 'Варианты каталога и отдельная проверка комплектовки' : 'Операция описана; расчётной формулы пока нет'}</span>
           </button>;
@@ -521,12 +569,26 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           : <button type="button" className="primary-action mt-3" onClick={user ? onOpenProjects : onOpenAccount}>{user ? 'Выбрать проект для расчёта' : 'Зарегистрироваться для расчёта'}</button>}
         {batchError && <p role="alert" className="text-red-700 mt-2">{batchError}</p>}
         {operationBatch && activeProject && operationBatch.project_id === activeProject.id && <div className="mt-3 rounded border p-2" aria-label="Сохранённая сводка операций">
-          <p><strong>Сводка версии {operationBatch.input_revision}</strong> · {operationBatch.status === 'PARTIAL' ? 'частичная' : 'все отдельные операции обработаны'} · {operationBatch.operations.length} операций.</p>
+          <p><strong>Сводка версии {operationBatch.input_revision}</strong> · {['PARTIAL', 'PROJECT_ECONOMICS_PARTIAL'].includes(operationBatch.status) ? 'частичная' : operationBatch.status === 'PROJECT_ECONOMICS' ? 'экономика проекта рассчитана' : 'все отдельные операции обработаны'} · {operationBatch.operations.length} операций.</p>
           <div className="overflow-x-auto"><table className="w-full min-w-[650px] text-left"><thead><tr><th>Зона и операция</th><th>Объём</th><th>Модель и парк</th><th>Состояние</th></tr></thead><tbody>{operationBatch.operations.map(item =>
             <tr key={item.process_id}><td>{item.zone_label} · {draft.processes.find(process => process.processId === item.process_id)?.label || item.process_code}</td><td>{item.demand.normalized_value ?? 'нет данных'} {item.demand.unit}</td>
               <td>{item.model_id || '—'} · {item.capacity?.recommended_fleet ?? '—'}</td><td>{item.blocker || CAPACITY_STATUS_LABELS[item.capacity_status] || item.status}{item.run_id && <button type="button" className="ml-2 underline" onClick={() => openSavedOperation(item)}>Открыть расчёт</button>}</td></tr>)}</tbody></table></div>
           <p className="mt-2 text-amber-800">Экономика проекта: {operationBatch.project_economics.reason}</p>
-          <a className="underline" href={`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches/${encodeURIComponent(operationBatch.id)}/report.pdf`}>Скачать PDF этой сводки</a>
+          {operationBatch.project_economics.report && <div className="mt-2 rounded border border-emerald-300 bg-emerald-50 p-3 text-sm">
+            <strong>Итог по всем рассчитанным операциям</strong>
+            {operationBatch.project_economics.excluded_processes?.length > 0 && <p className="text-amber-900">В денежный итог не вошли: {operationBatch.project_economics.excluded_processes.map(item => item.process_id).join(', ')}. Это не NPV всего объекта.</p>}
+            <p>Вложения: {Number(operationBatch.project_economics.report.project_capex_rub).toLocaleString('ru-RU')} ₽ · NPV: {Number(operationBatch.project_economics.report.project_npv_rub).toLocaleString('ru-RU')} ₽ · ROI за горизонт: {operationBatch.project_economics.report.project_net_roi_percent == null ? 'не определён' : `${operationBatch.project_economics.report.project_net_roi_percent} %`} · высвобождено: {operationBatch.project_economics.report.total_released_people} чел.</p>
+            <p>Эффект в первом году: {Number(operationBatch.project_economics.report.first_year_effect_rub).toLocaleString('ru-RU')} ₽. ROI = (сумма годовых эффектов − вложения) / вложения.</p>
+            <p>Управление парком: {operationBatch.project_economics.report.control_required_once} чел.; техники: {operationBatch.project_economics.report.technicians_required_once} чел. Общие расходы учтены один раз.</p>
+            <p>Электроэнергия за первый год: {Number(operationBatch.project_economics.report.first_year_energy_rub).toLocaleString('ru-RU')} ₽. Пиковая мощность зарядки: {operationBatch.project_economics.report.peak_charging_power_kw == null ? 'неизвестна — нужны параметры зарядки и доля одновременности для всех моделей' : `${operationBatch.project_economics.report.peak_charging_power_kw} кВт`}.</p>
+            <div className="mt-2 overflow-x-auto"><table className="w-full min-w-[620px] text-left"><thead><tr><th>Операция и модель</th><th>Штук</th><th>Вложения</th><th>Энергия, первый год</th></tr></thead><tbody>{operationBatch.project_economics.report.rows.map(row => <tr key={row.process_id}>
+              <td>{row.process_id} · {row.model_id}<small className="block">{row.energy_power_basis === 'MAX_UPPER_BOUND' ? 'Верхняя оценка по максимуму' : 'Рабочая оценка по средней мощности'} · {row.power_w_per_robot} Вт/робот</small></td>
+              <td>{row.fleet}</td><td>{Number(row.direct_capex_rub).toLocaleString('ru-RU')} ₽</td><td>{Number(row.first_year_energy_rub).toLocaleString('ru-RU')} ₽</td>
+            </tr>)}</tbody></table></div>
+          </div>}
+          {['OPERATIONS_ONLY', 'PARTIAL'].includes(operationBatch.status) && operationBatch.operations.some(item => item.status === 'CALCULATED') && <button type="button" className="secondary-action mt-2" disabled={projectEconomicsBusy} onClick={runProjectEconomics}>{projectEconomicsBusy ? 'Объединяем расчёты…' : operationBatch.status === 'PARTIAL' ? 'Считать экономику покрытых операций' : 'Считать экономику всего проекта'}</button>}
+          <div className="mt-2 flex gap-4"><a className="underline" href={`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches/${encodeURIComponent(operationBatch.id)}/report.pdf`}>Скачать PDF</a>
+            <a className="underline" href={`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches/${encodeURIComponent(operationBatch.id)}/archive.zip`}>Скачать ZIP с расчётом</a></div>
         </div>}
       </section>}
       {normalizedIsCurrent && <section className="preliminary-section mt-4 space-y-3" aria-label="Предварительный расчёт">
@@ -539,6 +601,16 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
             <strong>{selectedZone.label} · {draft.processes.find((item) => item.processId === selectedProcess.process_id)?.label || selectedProcess.process_code}</strong>
             {selectedProcess.process_code === 'warehouse_picking' ? <>
               <p>Комплектовка не равна перевозке паллет. Ни погрузчик, ни мойщик не получают экономию комплектовщика. Ниже — возможные технологии из активного каталога для изучения, без подтверждённого расчёта парка или закупочной рекомендации.</p>
+              <button type="button" className="secondary-action" onClick={() => {
+                let next = addZone(draft, objectType);
+                const zoneId = next.zones.at(-1).zoneId;
+                next = updateZone(next, zoneId, { label: 'Подвоз для комплектации' });
+                const transport = next.processes.find(item => item.zoneId === zoneId && item.code === 'warehouse_receiving_shipping');
+                next = updateProcess(next, transport.processId, { active: true, activationSource: 'USER' });
+                next = setRoleActive(next, transport.processId, 'loader', true);
+                setDraft(next); setSelectedZoneId(zoneId); setProcessId(''); setPositionId(''); invalidateComparison();
+              }}>Добавить отдельный подвоз товара</button>
+              <p>Для подвоза укажите перемещаемый объём, маршрут и груз за рейс в новой зоне. Экономия комплектовщика не переносится в перевозку: полный отбор останется без ROI до подтверждения производительности и остаточной ручной работы.</p>
               {!activeProject && <p>Выберите проект, чтобы получить позиции активного каталога и проверить арифметику отбора.</p>}
               {pickingCatalogError && <p role="alert">{pickingCatalogError}</p>}
               {activeProject && !pickingCatalog && !pickingCatalogError && <p role="status">Ищем варианты комплектации в активном каталоге…</p>}

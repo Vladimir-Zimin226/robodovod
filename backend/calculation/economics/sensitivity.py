@@ -315,7 +315,11 @@ def _validate_variant(
         before, after = base_roles[override.scope_id], derived_roles[override.scope_id]
         if before.money is None or after.money is None:
             raise ValueError("salary sensitivity requires complete role money")
-        if _d(before.money.monthly_gross) != _d(override.base_value) or _d(after.money.monthly_gross) != _d(override.variant_value):
+        gross_pair = (_d(before.money.monthly_gross) == _d(override.base_value)
+                      and _d(after.money.monthly_gross) == _d(override.variant_value))
+        employer_cost_pair = (_d(before.money.annual_direct) == _d(override.base_value) * 12
+                              and _d(after.money.annual_direct) == _d(override.variant_value) * 12)
+        if not (gross_pair or employer_cost_pair):
             raise ValueError("salary override differs from C14 role money")
 
 

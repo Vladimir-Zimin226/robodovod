@@ -22,9 +22,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 const FIELDS = [
   ['Труд', 'manualUnitsPerShift', 'manual_units_per_shift', 'Выработка одного сотрудника', 'ед./смену', 'Для потребности в персонале и экономии оплаты труда; например 100.', 'Замер или подтверждённая оценка'],
   ['Труд', 'controlHeadcount', 'control_headcount', 'Диспетчеры сейчас', 'чел.', 'Для добавочной численности; например 0.', 'Штатное расписание'],
-  ['Труд', 'controlMonthlyGross', 'control_monthly_gross', 'Диспетчер · начислено до НДФЛ', '₽/чел./мес.', 'Для расходов на пульт; например 100000.', 'ФОТ'],
+  ['Труд', 'controlMonthlyGross', 'control_monthly_gross', 'Диспетчер · стоимость для компании', '₽/чел./мес.', 'Включая страховые взносы при выбранной базе.', 'ФОТ'],
   ['Труд', 'technicianHeadcount', 'technician_headcount', 'Техники сейчас', 'чел.', 'Для дополнительной техподдержки; например 0.', 'Штатное расписание'],
-  ['Труд', 'technicianMonthlyGross', 'technician_monthly_gross', 'Техник · начислено до НДФЛ', '₽/чел./мес.', 'Для расходов на поддержку; например 120000.', 'ФОТ'],
+  ['Труд', 'technicianMonthlyGross', 'technician_monthly_gross', 'Техник · стоимость для компании', '₽/чел./мес.', 'Включая страховые взносы при выбранной базе.', 'ФОТ'],
   ['Труд', 'controlTransferSupplement', 'control_transfer_monthly_supplement_gross', 'Доплата переведённому диспетчеру', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
   ['Труд', 'techTransferSupplement', 'technician_transfer_monthly_supplement_gross', 'Доплата переведённому технику', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
   ['Труд', 'technicianContractorAnnual', 'technician_contractor_annual_gross', 'Техподдержка подрядчика', '₽/техник/год, gross', 'Стоимость только непокрытой функции.', 'Договор или допущение'],
@@ -41,20 +41,25 @@ const FIELDS = [
   ['Визуализация', 'startSeconds', 'start_seconds_from_midnight', 'Начало смены', 'сек. от 00:00', 'Модельное начало, отдельно от кнопки воспроизведения.', 'График работы'],
 ];
 const CHECKS = [
-  ['Труд', 'grossConfirm', 'role_salaries_confirmed_as_monthly_gross', 'Подтверждаю, что зарплаты ролей и этой формы указаны за месяц до удержаний.'],
+  ['Труд', 'grossConfirm', 'role_salaries_confirmed_as_monthly_gross', 'Подтверждаю выбранную базу месячных расходов для всех ролей.'],
   ['Покупка', 'currencyConfirm', 'organizer_price_currency_rub_confirmed', 'Для сценария трактую цену организаторов как рубли. Это не оферта поставщика.'],
   ['Покупка', 'initialBatteryConfirm', 'initial_battery_in_robot_price_confirmed', 'Для сценария начальная батарея включена в цену робота.'],
   ['Покупка', 'batteryServiceConfirm', 'battery_replacements_in_service_confirmed', 'Для сценария замены батареи включены в сервис.'],
   ['RaaS', 'raasScopeConfirm', 'raas_vendor_scope_confirmed', 'Для сценария RaaS включает оборудование, батареи, зарядку, обслуживание, ПО и интеграцию. Это не факт поставщика.'],
 ];
 const CALCULATION_RULES = [
-  ['Труд', 'Годовая прямая стоимость роли = подтверждённая месячная gross зарплата × 12 × множитель текущего реестра. Высвобождение ограничено парком, ролью и пультом.', 'Зарплата роли и график из сохранённого процесса; коэффициенты из версии расчётного реестра. Без зарплаты денежная ветка остаётся частичной.'],
+  ['Труд', 'Прямая годовая стоимость = месячная стоимость работодателя × 12. Для старого ввода начисленной зарплаты расходы работодателя добавляются по допущению реестра.', 'База зарплаты сохраняется с расчётом. Высвобождение ограничено парком, ролью и пультом.'],
   ['Покупка', 'Разовые затраты = оборудование + подтверждённые статьи внедрения и площадки + резерв. Амортизируемая база исключает резерв.', 'Цена позиции каталога или указанная вами цена; затраты и гарантия из формы; резерв и отдельные нормы из действующего реестра.'],
   ['RaaS', 'Затраты заказчика = его инфраструктура + годовые расходы заказчика + платежи по выбранному тарифу.', 'Тариф, срок и владелец инфраструктуры из формы; состав услуги требует отдельного подтверждения и не является фактом поставщика.'],
   ['Денежный результат', 'NPV проекта = NPV сценария − NPV базы; ROI покупки = (эффект − CAPEX) / CAPEX × 100 %. Для RaaS из эффекта вычитается CAPEX инфраструктуры клиента, результат делится на TCO услуги и умножается на 100 %.', 'Годовые потоки строит сервер из сохранённых труда, парка и затрат. При нулевом CAPEX ROI не определён.'],
   ['Налог', 'Основной денежный маршрут рассчитывается до налога на прибыль. НДС не пересчитывается единой ставкой: денежная база использует gross цену по принятому условию сценария.', 'Налоговый режим организации в этой форме неизвестен; иллюстративная налоговая ветка не включается в основной NPV.'],
 ];
-const defaults = { calculationDepth: 'BASIC', evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '',
+const FINANCIAL_FACTS = [
+  ['warranty_years', 'Гарантия', 'лет'], ['annual_service_rub', 'Сервис', '₽/год'],
+  ['average_power_w', 'Средняя мощность', 'Вт'], ['max_power_w', 'Максимальная мощность', 'Вт'],
+  ['battery_kwh', 'Батарея', 'кВт·ч'], ['charger_power_kw', 'Зарядка', 'кВт'],
+];
+const defaults = { calculationDepth: 'BASIC', evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '', salaryBasis: 'EMPLOYER_COST', energyPowerBasis: 'AVERAGE', chargerPowerKw: '', chargingSimultaneityFraction: '',
   implementationMode: 'FIXED', implementationPercent: '', raasMode: 'FIXED', raasPercentMonthly: '',
   robotsPerControlPost: '', robotsPerDayTechnician: '', rotationFactor: '', technicianPresence: 'DAY_WORKLOAD', robotizableShare: '', residualOperations: '',
   controlMode: '', technicianPurchaseMode: '', technicianRaasMode: '', qualifiedTechTransfer: false,
@@ -66,6 +71,10 @@ function restored(capacityRunId, input, project) {
   values.purchasePriceOverride = String(input?.purchase_price_override_gross ?? '');
   values.purchasePriceSource = input?.purchase_price_source || '';
   CHECKS.forEach(([, key, server]) => { values[key] = input?.[server] === true; });
+  values.salaryBasis = input?.salary_basis || (input ? 'GROSS' : 'EMPLOYER_COST');
+  values.energyPowerBasis = input?.energy_power_basis || 'AVERAGE';
+  values.chargerPowerKw = String(input?.charger_power_kw ?? '');
+  values.chargingSimultaneityFraction = String(input?.charging_simultaneity_fraction ?? '');
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
     startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
@@ -106,6 +115,17 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [manualEstimate, setManualEstimate] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  useEffect(() => {
+    const positionId = capacityRequest?.position_id;
+    if (!positionId) return undefined;
+    const controller = new AbortController();
+    fetch(`${API}/api/v2/capacity-catalog/positions/${encodeURIComponent(positionId)}`, { credentials: 'include', signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
+      .then((result) => setSelectedPosition(result))
+      .catch((reason) => { if (reason.name !== 'AbortError') setSelectedPosition(null); });
+    return () => controller.abort();
+  }, [capacityRequest?.position_id]);
   useEffect(() => {
     if (!project?.id || !capacityRunId) return undefined;
     const controller = new AbortController();
@@ -226,15 +246,54 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     <section className="rounded-xl border border-lime-400 bg-teal-950 p-4 text-white text-sm" aria-label="Полный расчёт типового объекта">
       <button type="button" disabled={busy} className="rounded-xl bg-lime-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50" onClick={() => {
         const proposed = applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
-          (process?.process_code?.startsWith('airport_') ? 'AIRPORT' : process?.process_code?.startsWith('clinic_') ? 'CLINIC' : 'WAREHOUSE'), manualEstimate, process?.process_code);
-        setValues(proposed); void submit(null, proposed);
-      }}>Сделать полный расчет для типового объекта со всеми допущениями</button>
-      <p className="mt-2">Кнопка заменит экономические входы авторскими допущениями и сразу сохранит новый расчёт. Это включает зарплаты новых специалистов, условную цену робота, сервис, батареи и состав аренды. Условия не являются ценами или нормативами организаторов. Числа и источники сохранятся в отчёте; их можно изменить.</p>
+          (process?.process_code?.startsWith('airport_') ? 'AIRPORT' : process?.process_code?.startsWith('clinic_') ? 'CLINIC' : 'WAREHOUSE'), manualEstimate, process?.process_code,
+          { catalogPriceAvailable: selectedPosition?.position?.purchase?.amount != null });
+        setValues(proposed);
+      }}>Заполнить пример для типового объекта</button>
+      <p className="mt-2">Пример заполнит недостающие расходы и условия сценарными допущениями. Проверьте числа перед сохранением. При доступной цене выбранной модели она сохранится как основа, иначе пример предложит условную цену; это не оферта поставщика.</p>
     </section>
     {['Труд', 'Покупка', 'RaaS', 'Визуализация'].filter((group) => ECONOMICS_DEPTHS.findIndex((level) => level.groups.includes(group)) <= depthIndex(values.calculationDepth)).map((group) => <details open key={group} aria-label={group} className="rounded-xl border p-4">
       <summary className="font-semibold cursor-pointer">{group}</summary>
+      {group === 'Покупка' && <div className="mt-3 rounded-xl border border-blue-300 bg-blue-50 p-4 text-sm">
+        <strong>Смета выбранного решения</strong>
+        <p>{selectedPosition?.position?.name || 'Выбранная модель загружается'} · {fleet ?? '—'} шт.</p>
+        {selectedPosition?.position?.purchase?.amount != null
+          ? <p>Цена позиции: {Number(selectedPosition.financial_facts?.price?.value || selectedPosition.position.purchase.amount).toLocaleString('ru-RU')} {selectedPosition.position.purchase.currency === 'RUB' ? '₽' : '(валюта не подтверждена)'} за робота. Она используется расчётом после подтверждения рублёвой базы, если ниже не задана другая цена. Источник: строка {selectedPosition.financial_facts?.price?.source_row_number || '—'} каталога {selectedPosition.catalog.code}{selectedPosition.financial_facts?.price?.observed_on ? ` от ${selectedPosition.financial_facts.price.observed_on}` : ''}; статус: {selectedPosition.position.purchase.price_status}.</p>
+          : <p>Подтверждённой цены позиции нет. Для денежного результата понадобится предложение поставщика или явно принятое допущение.</p>}
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">{FINANCIAL_FACTS.map(([key, label, unit]) => {
+          const fact = selectedPosition?.financial_facts?.[key];
+          return <p key={key} className="rounded border bg-white p-2"><strong>{label}:</strong> {fact?.status === 'KNOWN' ? `${fact.value} ${unit}` : 'нет подтверждённого значения в активном каталоге'}{fact?.evidence_id && <small className="block">Источник: {fact.evidence_id}</small>}</p>;
+        })}</div>
+        <p>Паспортные характеристики модели и коммерческие условия поставки различаются. В этой версии каталога неизвестные сервис, гарантия и мощность не подставляются автоматически: тогда итог покажет недостающие данные.</p>
+        <label className="mt-3 block">Как оценивать электроэнергию этой модели?
+          <select className="mt-1 block w-full rounded border p-2" value={values.energyPowerBasis} onChange={set('energyPowerBasis')}>
+            <option value="AVERAGE">Рабочая оценка по средней мощности</option>
+            <option value="MAX_UPPER_BOUND">Осторожная верхняя граница по максимальной мощности</option>
+          </select>
+        </label>
+        <p className="mt-1">В поле мощности ниже введите значение для выбранного режима. Максимальная паспортная мощность × время работы даёт верхнюю оценку кВт·ч, а не ожидаемый счёт. Пиковая нагрузка зарядки требует отдельной мощности зарядного устройства и числа одновременных зарядок.</p>
+        <details className="mt-3 rounded border bg-white p-2"><summary>Уточнить пиковую нагрузку зарядки (необязательно)</summary>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2"><label>Мощность зарядного устройства, кВт<input type="number" min="0" step="any" value={values.chargerPowerKw} onChange={set('chargerPowerKw')} className="block w-full rounded border p-2" /></label>
+            <label>Доля парка на зарядке одновременно, 0–1<input type="number" min="0" max="1" step="any" value={values.chargingSimultaneityFraction} onChange={set('chargingSimultaneityFraction')} className="block w-full rounded border p-2" /></label></div>
+          <p>Оба значения нужны для оценки пика по этой модели: парк × мощность зарядки × доля одновременности. Пустые поля сохраняются как неизвестные.</p>
+        </details>
+      </div>}
+      {group === 'Труд' && <div className="mt-3 rounded-xl border border-teal-300 bg-teal-50 p-4 text-sm space-y-3">
+        <strong>1. Сколько сейчас стоит работа команды?</strong>
+        <p>Численность и стоимость основных ролей уже введены на шаге «Объект». Здесь укажите выработку и сотрудников, которые будут сопровождать роботов.</p>
+        <label className="block">Что означают месячные суммы для всех ролей?
+          <select id="economics-salary-basis" className="mt-1 block w-full rounded border p-2" value={values.salaryBasis} onChange={set('salaryBasis')}>
+            <option value="EMPLOYER_COST">Полные расходы компании, включая страховые взносы</option>
+            <option value="GROSS">Начисленная зарплата без взносов работодателя (старые данные)</option>
+          </select>
+        </label>
+        <p>При первом варианте страховые взносы второй раз не начисляются. НДФЛ отдельно к расходам компании не прибавляется. Для старого ввода выберите второй вариант и проверьте суммы в «Объекте».</p>
+        <label className="flex gap-2 rounded border bg-white p-2"><input id="economics-condition-grossConfirm" type="checkbox" checked={values.grossConfirm} onChange={set('grossConfirm')} />Подтверждаю, что суммы всех ролей и этой формы указаны в выбранной базе за месяц на человека.</label>
+      </div>}
       {group === 'Труд' && <div className="mt-3 rounded border border-blue-300 p-3 text-sm space-y-3" aria-label="Покрытие новых функций после расчёта парка">
+        <strong>2. Как изменится работа после роботизации?</strong>
         <details><summary>Как определена потребность в новых функциях</summary><p>Парк: {fleet ?? 'нет данных'} роботов. Посты управления рассчитываются по числу роботов; штат — по постам, сменам и ротации. Техник может быть дневным, сменным или у поставщика. {staffingPreview.PURCHASE ? `На текущем вводе: диспетчеры ${staffingPreview.PURCHASE.control_required}, техники ${staffingPreview.PURCHASE.technicians_required}, перевод на пульт ${staffingPreview.PURCHASE.control_transferred}.` : 'Точное распределение будет показано после сохранения расчёта.'}</p></details>
+        <details className="rounded border bg-white p-3"><summary>Уточнить нагрузку команды и долю работы робота</summary>
         <div className="labour-fields">
           <LabourField id="economics-robots-per-control" label="Роботов на пост" hint="Нагрузка одного поста управления, роботов."><input type="number" min="0.01" step="any" value={values.robotsPerControlPost} onChange={set('robotsPerControlPost')} /></LabourField>
           <LabourField id="economics-robots-per-technician" label="Роботов на дневного техника" hint="Нагрузка обслуживания, роботов."><input type="number" min="0.01" step="any" value={values.robotsPerDayTechnician} onChange={set('robotsPerDayTechnician')} /></LabourField>
@@ -243,6 +302,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
           <LabourField id="economics-work-share" label="Доля роботизируемой работы роли" hint={`Доля от 0 до 1. Текущий ввод: ${formatPercent(values.robotizableShare)}.`}><input type="number" min="0" max="1" step="any" value={values.robotizableShare} onChange={set('robotizableShare')} /></LabourField>
           <LabourField id="economics-residual-operations" label="Какие ручные операции остаются" hint="Эта работа сохраняется у сотрудников выбранной роли." full><textarea rows="3" value={values.residualOperations} onChange={set('residualOperations')} /></LabourField>
         </div>
+        </details>
         <p>Численность «сейчас» ниже описывает только исходный штат. Выберите, кто покроет новую функцию; перевод сохраняет человека в штате и уменьшает высвобождение.</p>
         <label className="block">Пульт<select id="economics-staffing-control" className="block w-full border rounded p-2" value={values.controlMode} onChange={set('controlMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод из заменяемой роли</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option></select></label>
         <label className="block">Техподдержка при покупке<select id="economics-staffing-purchase" className="block w-full border rounded p-2" value={values.technicianPurchaseMode} onChange={set('technicianPurchaseMode')}><option value="">Выберите покрытие</option><option value="TRANSFER">Перевод квалифицированного сотрудника</option><option value="HIRE">Отдельный найм</option><option value="EXISTING">Существующая функция</option><option value="CONTRACTOR">Подрядчик</option></select></label>
@@ -251,7 +311,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         <p>Зарплата или стоимость услуги запрашивается ниже только для непокрытой функции. Неизвестная стоимость даёт частичный результат; выбор и источник сохраняются в новом расчёте.</p>
       </div>}
       {group === 'Труд' && roleRefs.length > 1 && <label className="block mt-3 text-sm">Основная роль процесса
-        <select value={values.primaryRoleId} onChange={(event) => setValues((current) => changeManualProductivityRole(current, event.target.value))} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id, index) => <option key={id} value={id}>Роль {index + 1}</option>)}</select>
+        <select value={values.primaryRoleId} onChange={(event) => setValues((current) => changeManualProductivityRole(current, event.target.value))} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id, index) => <option key={id} value={id}>{roleName(capacityRequest?.role_pool?.roles?.find((role) => role.role_id === id)?.role_code) || `Роль ${index + 1}`}</option>)}</select>
         <small>Для сравнения труда; источник — введённые роли процесса.</small></label>}
       {group === 'Труд' && <div className="mt-3 rounded border border-teal-300 p-3 text-sm" aria-label="Оценка ручной выработки">
         <strong>Выработка одного сотрудника {roleLabel} в процессе «{processLabel}»</strong>
@@ -277,10 +337,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         <label className="mt-2 block">Часовой пояс<select id="economics-timezone" value={values.timezone} onChange={set('timezone')} className="block w-full border rounded p-2"><option value="">Выберите часовой пояс</option>{timezoneChoices(values.timezone).map((zone) => <option key={zone} value={zone}>{zone.replaceAll('_', ' ')}</option>)}</select></label>
         <details className="mt-2"><summary>Детальная настройка модельного времени</summary><label className="mt-2 block">Начало смены · местное время<input id="economics-start_seconds_from_midnight" type="time" value={`${String(Math.floor(Number(values.startSeconds) / 3600)).padStart(2, '0')}:${String(Math.floor(Number(values.startSeconds) % 3600 / 60)).padStart(2, '0')}`} onChange={(event) => { const [h, m] = event.target.value.split(':').map(Number); setValues((current) => ({ ...current, startSeconds: String(h * 3600 + m * 60) })); }} className="block border rounded p-2" /></label><p>График смен из процесса сохраняется. Здесь задаётся только местное начало.</p></details>
       </div>}
-      {group !== 'Визуализация' && <div className="mt-2 grid gap-3 md:grid-cols-3">{FIELDS.filter((field) => field[0] === group && visibleField(field)).map(([, key, server, label, unit, why, source]) => {
+      {group !== 'Визуализация' && <details open={group !== 'Покупка'} className="mt-3 rounded border p-3"><summary className="cursor-pointer font-semibold">{group === 'Покупка' ? 'Уточнить затраты и условия покупки' : 'Данные для расчёта'}</summary><div className="mt-2 grid gap-3 md:grid-cols-3">{FIELDS.filter((field) => field[0] === group && visibleField(field)).map(([, key, server, label, unit, why, source]) => {
         const fieldIssues = issues.filter((item) => item.field === server);
         const staffingField = ['control_transfer_monthly_supplement_gross', 'technician_transfer_monthly_supplement_gross', 'technician_contractor_annual_gross'].includes(server);
-        const displayLabel = key === 'manualUnitsPerShift' ? `Выработка одного сотрудника ${roleLabel} в процессе «${processLabel}»` : label;
+        const displayLabel = key === 'manualUnitsPerShift' ? `Выработка одного сотрудника ${roleLabel} в процессе «${processLabel}»`
+          : key === 'averagePowerW' && values.energyPowerBasis === 'MAX_UPPER_BOUND' ? 'Максимальная паспортная мощность робота' : label;
         return <div key={key} className="block rounded border border-slate-500/40 p-3 text-sm">
           <label htmlFor={`economics-${server}`} className="block"><strong>{displayLabel}</strong> · {unit}</label>
 
@@ -299,7 +360,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
           </details>
           {fieldIssues.map((item, index) => <small key={index} className={`block mt-1 ${['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code) ? 'text-amber-900' : 'text-red-700'}`} role="status">{humanizePresentation(item.message)} {humanizePresentation(item.next_step)}</small>)}
         </div>;
-      })}</div>}
+      })}</div></details>}
       {group === 'Покупка' && <label className="block mt-3 text-sm">Дата оценки · дата<input id="economics-evaluation_date" type="date" value={values.evaluationDate} onChange={set('evaluationDate')} className="w-full border rounded p-2" /><small>Для привязки цен; источник — дата оценки проекта.</small></label>}
       {group === 'Покупка' && <div className="mt-3 rounded border p-3 text-sm"><label>Внедрение<select value={values.implementationMode} onChange={set('implementationMode')}><option value="FIXED">Сумма на проект</option><option value="PERCENT">% стоимости оборудования</option></select></label>{values.implementationMode === 'PERCENT' && <label>Процент внедрения<input type="number" min="0" max="100" step="any" value={values.implementationPercent} onChange={set('implementationPercent')} /></label>}<p>Сервер применяет процент к цене робота × сохранённый парк. Общая инфраструктура вводится отдельно.</p></div>}
       {group === 'Покупка' && depthIndex(values.calculationDepth) >= 2 && <div className="mt-3 rounded border p-3 text-sm"><strong>Уточнить цену одного робота</strong><p>Оставьте пустым для цены сохранённой позиции каталога. Изменение создаст новый экономический run; каталог и прежний расчёт останутся прежними.</p>
@@ -312,7 +373,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     <section className="rounded-xl border border-amber-300 p-4 text-sm" aria-label="Пять условий экономического сценария">
       <h3 className="font-semibold">Условия выбранного уровня</h3>
       <p>Каждое подтверждение относится только к этому сценарию и не подтверждает условия поставщика. Отметьте условия для собственного ввода. Кнопка типового объекта принимает их как сценарные допущения.</p>
-      {CHECKS.filter(([group]) => group === 'Труд' || group === 'Покупка' && depthIndex(values.calculationDepth) >= 1 || group === 'RaaS' && depthIndex(values.calculationDepth) >= 2).map(([, key, server, label]) => <label key={key} className="mt-3 flex gap-2 rounded border p-2"><input id={`economics-condition-${key}`} type="checkbox" checked={values[key]} onChange={set(key)} /><span>{label}<small className="block">{ECONOMICS_CONDITIONS.find((item) => item.key === key)?.consequence}</small>{issues.some((item) => item.field === server) && <small className="block text-red-700">Нужно для этой ветки.</small>}</span></label>)}
+      {CHECKS.filter(([group, key]) => key !== 'grossConfirm' && (group === 'Покупка' && depthIndex(values.calculationDepth) >= 1 || group === 'RaaS' && depthIndex(values.calculationDepth) >= 2)).map(([, key, server, label]) => <label key={key} className="mt-3 flex gap-2 rounded border p-2"><input id={`economics-condition-${key}`} type="checkbox" checked={values[key]} onChange={set(key)} /><span>{label}<small className="block">{ECONOMICS_CONDITIONS.find((item) => item.key === key)?.consequence}</small>{issues.some((item) => item.field === server) && <small className="block text-red-700">Нужно для этой ветки.</small>}</span></label>)}
     </section>
     <p className="text-sm">Пригодность на объекте и закупочная готовность проверяются отдельно. Этот расчёт не подтверждает поставщика и не даёт рекомендации к закупке.</p>
     {error && <p className="text-red-700" role="alert">{error}</p>}

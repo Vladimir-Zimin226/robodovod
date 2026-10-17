@@ -82,6 +82,18 @@ def test_facility_areas_preserve_provenance_without_changing_process_demand():
         CalculationIntakeRequestV2.model_validate(raw)
 
 
+def test_pallet_mass_reaches_normalized_process_for_payload_matching():
+    raw = _request()
+    raw["processes"][0]["explicit_batch"] = {"value": "2", "unit": "unit/trip", "provenance": _source()}
+    raw["processes"][0]["item_mass"] = {"value": "800", "unit": "kg/unit", "provenance": _source()}
+    result = normalize_intake(CalculationIntakeRequestV2.model_validate(raw))
+    assert result.valid, result.errors
+    assert result.normalized_processes[0].item_mass.normalized_value == "800"
+    assert result.normalized_processes[0].explicit_batch.normalized_value == "2"
+    assert any(row.field.endswith(".item_mass") for row in result.conversions)
+
+
+
 def test_zone_process_ids_survive_c03_c11_and_c23_without_aggregating_shared_role():
     from calculation.service import analyze_capacity
     from economics_orchestrator import EconomicsExecutionContextV1

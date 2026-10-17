@@ -144,9 +144,11 @@ def conservative_constraints(request: CapacityAnalysisRequest, position: Catalog
         for fact in position.model.facts
     ]}, "payload")
     mass = request.process.item_mass
+    batch = request.process.explicit_batch
+    trip_mass = Decimal(mass.normalized_value) * (Decimal(batch.normalized_value) if isinstance(batch, KnownQuantity) else Decimal(1)) if isinstance(mass, KnownQuantity) else None
     context = ObjectConstraintContext(
         object_kind=request.process.object_kind,
-        max_payload_kg=mass.normalized_value if isinstance(mass, KnownQuantity) else None,
+        max_payload_kg=format(trip_mass, 'f') if trip_mass is not None else None,
     )
     evidence = {
         "supported_object_kinds": {"evidence_status": "MATCHING_SAFE", "source_ref": source},

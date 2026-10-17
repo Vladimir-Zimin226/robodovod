@@ -23,7 +23,7 @@ export const INTERVIEW_FIELDS = [
   { key: 'zone_label', label: 'Название зоны', step: 'Маршрут и зоны', kind: 'text' },
   { key: 'zone_constraints', label: 'Ограничения зоны', step: 'Маршрут и зоны', kind: 'text' },
   { key: 'staff_headcount', label: 'Сотрудников сейчас', step: 'Персонал и экономика', kind: 'number' },
-  { key: 'monthly_gross_salary', label: 'Зарплата gross, ₽/чел./мес.', step: 'Персонал и экономика', kind: 'number' },
+  { key: 'monthly_gross_salary', label: 'Расходы компании на сотрудника с взносами, ₽/мес.', step: 'Персонал и экономика', kind: 'number' },
 ];
 export const INTERVIEW_STEPS = [...new Set(INTERVIEW_FIELDS.map((field) => field.step))];
 const NUMERIC = new Set(INTERVIEW_FIELDS.filter((field) => field.kind === 'number').map((field) => field.key));

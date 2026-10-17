@@ -50,6 +50,8 @@ DECIMALS = {
     "implementation_cost_total_gross": (Decimal("0"), None),
     "annual_service_per_robot_gross": (Decimal("0"), None),
     "average_power_w": (Decimal("0"), None),
+    "charger_power_kw": (Decimal("0"), None),
+    "charging_simultaneity_fraction": (Decimal("0"), Decimal("1")),
     "purchase_price_override_gross": (Decimal("0"), None),
     "shared_site_capital_gross": (Decimal("0"), None),
     "shared_annual_cost_gross": (Decimal("0"), None),
@@ -57,7 +59,7 @@ DECIMALS = {
     "implementation_percent": (Decimal("0"), Decimal("100")),
     "raas_percent_monthly": (Decimal("0"), Decimal("100")),
 }
-POSITIVE = {"manual_units_per_shift", "average_power_w"}
+POSITIVE = {"manual_units_per_shift", "average_power_w", "charger_power_kw"}
 INTEGERS = {
     "horizon_years": (5, 15),
     "control_headcount": (0, None),
@@ -123,6 +125,14 @@ def _issue(field: str, code: str, message: str, next_step: str) -> dict[str, str
 def _parse(raw: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
     values: dict[str, Any] = {"schema_version": raw.get("schema_version"), "input_ranges": {}}
     issues: list[dict[str, str]] = []
+    basis = raw.get("salary_basis", "GROSS")
+    values["salary_basis"] = basis if basis in {"GROSS", "EMPLOYER_COST"} else "GROSS"
+    if basis not in {"GROSS", "EMPLOYER_COST"}:
+        issues.append(_issue("salary_basis", "INVALID_VALUE", "Неизвестна база затрат на сотрудников.", "Выберите начисленную зарплату или полные расходы работодателя."))
+    power_basis = raw.get("energy_power_basis", "AVERAGE")
+    values["energy_power_basis"] = power_basis if power_basis in {"AVERAGE", "MAX_UPPER_BOUND"} else "AVERAGE"
+    if power_basis not in {"AVERAGE", "MAX_UPPER_BOUND"}:
+        issues.append(_issue("energy_power_basis", "INVALID_VALUE", "Неизвестен режим оценки электроэнергии.", "Выберите среднюю или паспортную максимальную мощность."))
     for field, (minimum, maximum) in DECIMALS.items():
         value = raw.get(field)
         if value is None or value == "":
@@ -372,7 +382,8 @@ def execute_partial_economics_v2(
         purchase_missing.append("catalog_position")
         raas_missing.append("catalog_position")
         issues.append(_issue("catalog_position", "CATALOG_UNAVAILABLE", str(exc), "Выберите доступную позицию активного каталога."))
-    if position is not None and position.procurement_option is None:
+    if (position is not None and (position.procurement_option is None or position.procurement_option.amount is None)
+            and values.get("purchase_price_override_gross") is None):
         purchase_missing.append("organizer_price")
         raas_missing.append("organizer_price")
         issues.append(_issue("organizer_price", "MISSING_INPUT", "В каталоге нет исходной цены для сравнения.", "Выберите позицию с ценой; не подставляйте ноль."))
@@ -479,6 +490,8 @@ def execute_partial_economics_v2(
                                    'amount_gross_rub': values['implementation_cost_total_gross']},
                 'raas': {'mode': values['raas_mode'], 'percent_monthly': values['raas_percent_monthly'] if values['raas_mode'] == 'PERCENT' else None,
                          'per_robot_month_gross_rub': values['raas_monthly_per_robot_gross']},
+                'energy': {'power_basis': values['energy_power_basis'], 'power_w_per_robot': values['average_power_w'],
+                           'interpretation': 'UPPER_BOUND_NOT_EXPECTED_BILL' if values['energy_power_basis'] == 'MAX_UPPER_BOUND' else 'OPERATING_ESTIMATE'},
             }
             result['versions']['operating_policy'] = 'staffing-policy-v2'
             result['versions']['work_share'] = 'robotizable-work-share-v1'
