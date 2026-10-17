@@ -57,7 +57,7 @@ def _new_presentation(run: EvidenceRunSnapshotV1) -> bool:
 
 def _scenario_input_rows(run: EvidenceRunSnapshotV1) -> list[list[str]]:
     inputs = run.input_snapshot.get('economics') or {}
-    if inputs.get('schema_version') != 'economics-explicit-inputs-v6':
+    if inputs.get('schema_version') not in {'economics-explicit-inputs-v6', 'economics-explicit-inputs-v7'}:
         return []
     fields = [('implementation_mode', 'Режим внедрения', ''), ('implementation_percent', 'Внедрение, % цены парка', '%'),
               ('implementation_cost_total_gross', 'Внедрение', 'RUB'), ('raas_mode', 'Режим RaaS', ''),
@@ -69,6 +69,11 @@ def _scenario_input_rows(run: EvidenceRunSnapshotV1) -> list[list[str]]:
               ('average_power_w', 'Средняя мощность робота', 'Вт'), ('shared_site_capital_gross', 'Общие вложения объекта', 'RUB'),
               ('shared_annual_cost_gross', 'Общие расходы объекта за год', 'RUB'), ('manual_units_per_shift', 'Ручная выработка выбранной роли за смену', 'ед./смену')]
     rows = []
+    if inputs.get('schema_version') == 'economics-explicit-inputs-v7':
+        for category, label in [('DELIVERY', 'Доставка'), ('COMMISSIONING', 'Пусконаладка'), ('INTEGRATION', 'Интеграция')]:
+            line = (inputs.get('implementation_lines') or {}).get(category) or {}
+            rows.append([label, str(line.get('amount') if line.get('amount') is not None else 'неизвестно'), 'RUB',
+                         f"{line.get('status') or 'UNKNOWN'}; источник: {line.get('source_ref') or 'не указан'}; {line.get('explanation') or ''}"])
     for field, label, unit in fields:
         if field in {'implementation_percent', 'implementation_cost_total_gross'} and (field.endswith('percent')) != (inputs.get('implementation_mode') == 'PERCENT'):
             continue

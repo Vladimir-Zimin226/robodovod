@@ -73,20 +73,39 @@ function WarehousePreview() {
   </div>;
 }
 
-export default function OnboardingScreen({ onChoose, onGuestDemo, onOwnProcess, onOpenCatalog }) {
+const OBJECTS = [
+  { id: 'retail', title: 'Склад', text: 'Перевозка паллет, комплектация, уборка и другие поддержанные операции.' },
+  { id: 'airport', title: 'Аэропорт', text: 'Операции терминала и служебных зон; глубина расчёта зависит от процесса.' },
+  { id: 'clinic', title: 'Медицинское учреждение', text: 'Внутренняя доставка и сервисные операции с проверкой ограничений.' },
+];
+const MODES = [
+  { id: 'FAMILIAR', label: 'Ознакомиться', note: 'Посмотреть готовый учебный пример' },
+  { id: 'ADVANCED', label: 'Оценить мой объект', note: 'Ввести главное, остальное уточнить позже' },
+  { id: 'FULL', label: 'Подготовить материалы', note: 'Добавить план, смету и подробный отчёт' },
+];
+
+export default function OnboardingScreen({ onChoose, onGuestDemo, onOwnProcess, onOpenCatalog, mode = 'ADVANCED', onModeChange }) {
   return <main className="onboarding-screen landing-page">
     <div className="landing-shell">
       <section className="landing-hero" aria-labelledby="landing-title">
         <div className="landing-hero-copy">
           <p className="landing-eyebrow"><span className="landing-eyebrow-line" /> РОБОДОВОД · ПРЕДВАРИТЕЛЬНАЯ ОЦЕНКА</p>
-          <h1 id="landing-title">Увидьте работу робота <span>до решения о покупке</span></h1>
-          <p className="landing-lead">Покажем, как меняется работа склада при росте нагрузки: маршруты, потребный парк и денежный результат. Затем поможем проверить ваш процесс и условия объекта.</p>
+          <h1 id="landing-title">Что хотите <span>роботизировать?</span></h1>
+          <p className="landing-lead">Подберём технику, покажем затраты и работу на объекте. Начните с готового примера или опишите свой процесс.</p>
+          <div className="journey-mode-choice" role="group" aria-label="Уровень оценки">
+            {MODES.map((item) => <button key={item.id} type="button" aria-pressed={mode === item.id} onClick={() => onModeChange?.(item.id)}>
+              <strong>{item.label}</strong><span>{item.note}</span></button>)}
+          </div>
           <div className="landing-actions">
             <button type="button" className="landing-button landing-button-primary" onClick={onGuestDemo}>Смотреть два сценария <AppIcon name="arrow" size={18} /></button>
             <button type="button" className="landing-button landing-button-secondary" onClick={onOwnProcess}>Описать свой объект <AppIcon name="arrow" size={18} /></button>
           </div>
           <p className="landing-entry-note">Демо открывается без регистрации. Свой процесс можно ввести в разделе «Расчёт»; для сохранения результата понадобится проект.</p>
           <button type="button" className="landing-catalog-link" onClick={onOpenCatalog}><AppIcon name="library" size={18} /> Смотреть каталог решений <AppIcon name="arrow" size={16} /></button>
+          <div className="journey-object-choice" role="group" aria-label="Тип объекта">
+            {OBJECTS.map((item) => <button key={item.id} type="button" onClick={() => onChoose(item.id)}>
+              <strong>{item.title}</strong><span>{item.text}</span><small>Выбрать объект →</small></button>)}
+          </div>
         </div>
         <WarehousePreview />
       </section>

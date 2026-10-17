@@ -4,7 +4,7 @@
 
 ## Что делает Compose
 
-`db` — PostgreSQL 16 с named volume; `migrate` выполняет `alembic upgrade head`; `backend` запускается после успешной миграции; `frontend` — после готового backend; `caddy` проксирует сайт и `/api/*`, `/health`, `/ready`. Production overlay убирает опубликованные порты БД, backend и frontend, оставляя 80/443 у Caddy. Сети `data` и `edge` разделены. Проверено синтаксически: `docker compose --env-file .env.production.example -f compose.yaml -f compose.production.yaml config --quiet`. Сборка образов и запуск stack в этой среде не проверены, поскольку Docker Engine недоступен.
+`db` — PostgreSQL 16 с named volume; `migrate` выполняет `alembic upgrade head`; `backend` запускается после успешной миграции; `frontend` — после готового backend; `caddy` проксирует сайт и `/api/*`, `/health`, `/ready`. Production overlay убирает опубликованные порты БД, backend и frontend, оставляя 80/443 у Caddy. Сети `data` и `edge` разделены. Проверено синтаксически: `docker compose --env-file .env.production.example -f compose.yaml -f compose.production.yaml config --quiet`. Изолированная PostgreSQL использовалась для интеграционного теста новой сметы; сборка Docker-образов и запуск полного stack локально не подтверждены.
 
 ## Перед любым изменением сервера
 

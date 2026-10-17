@@ -488,7 +488,7 @@ def build_investor_report(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapsho
             names = list(dict.fromkeys(field_label(str(key))[0] for key in branch['required_fields']))
             y = deck.paragraph(label+': уточните '+', '.join(names)+'.',40,y,size=10,color=MUTED)+14
 
-    if inputs.get('schema_version') == 'economics-explicit-inputs-v6':
+    if inputs.get('schema_version') in {'economics-explicit-inputs-v6', 'economics-explicit-inputs-v7'}:
         staffing = _obj(result.get('staffing_preview'))
         work_share = _obj(result.get('work_share'))
         monetary = _obj(result.get('monetary_input_basis'))
@@ -511,6 +511,18 @@ def build_investor_report(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapsho
         deck.paragraph('Цена робота: '+str(monetary.get('unit_price_gross_rub') or MISSING)+' ₽ gross; парк: '+str(monetary.get('fleet') if monetary.get('fleet') is not None else MISSING)+
             '. Внедрение: '+str(implementation.get('mode') or MISSING)+' / '+str(implementation.get('amount_gross_rub') or MISSING)+' ₽. RaaS: '+
             str(raas_basis.get('mode') or MISSING)+' / '+str(raas_basis.get('per_robot_month_gross_rub') or MISSING)+' ₽/робот/мес.',40,y+25,size=10)
+        if inputs.get('schema_version') == 'economics-explicit-inputs-v7':
+            coverage = _obj(result.get('implementation_coverage'))
+            deck.page('Смета внедрения','Цена оборудования отделена от доставки, пусконаладки и интеграции.')
+            rows = []
+            for category, label in [('DELIVERY','Доставка'),('COMMISSIONING','Пусконаладка'),('INTEGRATION','Интеграция')]:
+                line = _obj(_obj(coverage.get('lines')).get(category))
+                rows.append([label, str(line.get('status') or 'UNKNOWN'),
+                             str(line.get('amount') if line.get('amount') is not None else MISSING),
+                             str(line.get('source_ref') or line.get('explanation') or 'Источник не указан')[:75]])
+            y = deck.table(['Статья','Статус','Сумма, ₽','Основание'], rows, widths=[130,135,115,252], size=9)
+            deck.paragraph('Известная сумма: '+str(coverage.get('known_subtotal_gross_rub') or MISSING)+
+                ' ₽. Полнота: '+str(coverage.get('status') or 'PARTIAL')+'. Неизвестная статья не считается нулевой.',40,y+20,size=10)
 
     deck.page('Перед инвестиционным решением','Предварительная оценка помогает выбрать условия пилота. Она не подтверждает готовность объекта к внедрению.')
     risk_rows = [

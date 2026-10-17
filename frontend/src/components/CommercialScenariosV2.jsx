@@ -10,6 +10,7 @@ import ProjectWhatIf from './ProjectWhatIf';
 import { roleLabel } from '../roleLabels';
 import { fieldPresentation, humanizePresentation, presentationValue, reasonLabel, sourceLabel, statusLabel } from '../presentation';
 import { formatDecimal, formatPercent } from '../displayNumber';
+import ImplementationCoverage from './ImplementationCoverage';
 
 const STATUS_LABELS = {
   COMPLETE: 'Рассчитано', INCOMPLETE: 'Недостаточно данных',
@@ -42,6 +43,7 @@ export default function CommercialScenariosV2({ bundle, projectName, project, ru
         </div>
       </header>
       <ProjectWhatIf project={project} run={run} onComplete={onComplete} onCreateVersion={onRecalculate} onPhysical={onRecalculate} />
+      <ImplementationCoverage coverage={bundle.implementation_coverage} />
 
       <section className="commercial-inputs" aria-label="Коммерческие исходные данные">
         <div className="commercial-section-title"><div><span>01</span><h2>Исходные данные</h2></div><p>После изменения полей сохранённый результат нужно пересчитать.</p></div>

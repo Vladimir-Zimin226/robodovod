@@ -3,13 +3,14 @@ import { negotiateScenarioSpec, parentMessage, parseRobCraftMessage } from '../r
 
 const LOAD_TIMEOUT_MS = 12000;
 
-export default function RobCraftFrame({ scenarioSpec, simulationReport = null, playback = null, compact = false, selectedZoneId = null, selectedRobotOrdinal = null, onZoneChange = null, visible = true }) {
+export default function RobCraftFrame({ scenarioSpec, simulationReport = null, playback = null, compact = false, selectedZoneId = null, selectedRobotOrdinal = null, onZoneChange = null, onUnavailable = null, visible = true }) {
   const iframeRef = useRef(null);
   const requestCounter = useRef(0);
   const activeRequest = useRef(null);
   const zoneSyncReady = useRef(false);
   const hiddenBinding = useRef(null);
   const onZoneChangeRef = useRef(onZoneChange);
+  const onUnavailableRef = useRef(onUnavailable);
   const [ready, setReady] = useState(false);
   const [capabilities, setCapabilities] = useState([]);
   const [appliedRevision, setAppliedRevision] = useState(null);
@@ -33,6 +34,8 @@ export default function RobCraftFrame({ scenarioSpec, simulationReport = null, p
     } catch (failure) { return failure.message; }
   }, [ready, scenarioSpec, capabilities, playbackEnabled]);
   const visibleError = error || negotiationError;
+  useEffect(() => { onUnavailableRef.current = onUnavailable; }, [onUnavailable]);
+  useEffect(() => { if (visibleError) onUnavailableRef.current?.(visibleError); }, [visibleError]);
   const visualizationOnly = Boolean(scenarioSpec?.zones?.some((zone) =>
     zone.status === 'NO_ACCEPTABLE_ECONOMICS'
       && scenarioSpec.fleet?.some((item) => item.zone_id === zone.id)));

@@ -150,6 +150,9 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     purchase_price_override_gross: DecimalString | None = None
     purchase_price_source: Annotated[str, Field(min_length=3, max_length=240)] | None = None
     implementation_cost_total_gross: DecimalString
+    # V7 only: preserved on the validated object for the purchase ledger, but
+    # excluded from historical v1 serialization and saved through the raw run.
+    implementation_lines: dict[str, dict[str, Any]] | None = Field(default=None, exclude=True)
     annual_service_per_robot_gross: DecimalString
     warranty_years: Annotated[int, Field(ge=0, le=15)]
     average_power_w: DecimalString
@@ -509,17 +512,33 @@ def _purchase_report(
         request=request,
         boundary="SERVICE_TARIFF",
     )
-    terms = PurchaseTermsV1(
-        primary_price=primary_money,
-        cost_lines=[
+    named_implementation_lines = getattr(inputs, "implementation_lines", None)
+    implementation_cost_lines = [
             CommercialCostLineV1(
                 line_id="implementation",
-                category="INTEGRATION",
+                category="OTHER" if named_implementation_lines is not None else "INTEGRATION",
                 timing="CAPITAL_ONCE",
                 basis=FixedTotalBasisV1(money=implementation),
                 excluded_by_scenario=Decimal(inputs.implementation_cost_total_gross)
                 == 0,
             ),
+    ]
+    if named_implementation_lines is not None:
+        for category, row in named_implementation_lines.items():
+            if row["status"] in {"UNKNOWN", "NOT_APPLICABLE", "INCLUDED"}:
+                continue
+            line_money = _user_money(
+                row["amount"], source_id=f"input.economics.implementation.{category.lower()}",
+                request=request, boundary="TURNKEY_SOLUTION",
+            )
+            implementation_cost_lines.append(CommercialCostLineV1(
+                line_id=f"implementation-{category.lower()}", category=category,
+                timing="CAPITAL_ONCE", basis=FixedTotalBasisV1(money=line_money),
+                excluded_by_scenario=row["status"] == "EXPLICIT_ZERO",
+            ))
+    terms = PurchaseTermsV1(
+        primary_price=primary_money,
+        cost_lines=implementation_cost_lines + [
             CommercialCostLineV1(
                 line_id="annual-service",
                 category="SERVICE",

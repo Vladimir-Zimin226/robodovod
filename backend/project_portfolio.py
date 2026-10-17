@@ -28,7 +28,7 @@ from economics_partial import _parse
 
 
 def _explicit(raw: dict[str, Any], saved_result: dict[str, Any]) -> Any:
-    if raw.get("schema_version") != "economics-explicit-inputs-v6":
+    if raw.get("schema_version") not in {"economics-explicit-inputs-v6", "economics-explicit-inputs-v7"}:
         raise ValueError("project portfolio requires project economics input v6")
     partial_purchase = saved_result.get("schema_version") == "economics-partial-result-v1"
     if partial_purchase and (saved_result.get("branches", {}).get("purchase", {}).get("status") != "CALCULATED"

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import OnboardingScreen from './OnboardingScreen';
 import IntakeScreen from './components/IntakeScreen';
-import ProcessScreen from './components/ProcessScreen';
 import HistoricalRunViewer from './components/HistoricalRunViewer';
 import CapacityResultsTrace from './components/CapacityResultsTrace';
 import CommercialScenariosV2 from './components/CommercialScenariosV2';
@@ -21,9 +20,7 @@ import FacilityLayoutEvidence from './components/FacilityLayoutEvidence';
 import CapacityScenarioDelta from './components/CapacityScenarioDelta';
 import { loadLayoutEvidence, saveLayoutEvidence } from './facilityLayoutEvidence';
 import { commercialSimulationSource, resultCapacityRunId } from './resultSimulationModel';
-import BrainModelScreen from './components/BrainModelScreen';
 import CandidateComparisonPanel from './components/CandidateComparisonPanel';
-import RoboExpertScreen from './components/RoboExpertScreen';
 import EconomicsGlossaryScreen from './components/EconomicsGlossaryScreen';
 import EconomicsMethodologyScreen from './components/EconomicsMethodologyScreen';
 import ReportsScreen from './components/ReportsScreen';
@@ -37,11 +34,14 @@ import { humanizePresentation } from './presentation';
 
 const STEPS = [
   { id: 'object', label: 'Объект' },
-  { id: 'intake', label: 'Расчёт' },
-  { id: 'results', label: 'Визуализация' },
+  { id: 'intake', label: 'Работа' },
+  { id: 'robots', label: 'Роботы' },
+  { id: 'money', label: 'Деньги' },
+  { id: 'results', label: 'Результат' },
 ];
 
 const API = import.meta.env.VITE_API_URL || '';
+const visiblePhase = (phase) => ['process', 'model', 'expert'].includes(phase) ? 'onboarding' : phase;
 const sessionStore = () => {
   try { return window.sessionStorage; } catch { return null; }
 };
@@ -52,7 +52,8 @@ const copyIntakeEntry = (setter, source, target) => {
 };
 
 export default function App() {
-  const [phase, setPhase] = useState(() => phaseFromHash(window.location.hash));
+  const [phase, setPhase] = useState(() => visiblePhase(phaseFromHash(window.location.hash)));
+  const [journeyMode, setJourneyMode] = useState(() => sessionStore()?.getItem('robodovod-journey-mode') || 'ADVANCED');
   const [objectType, setObjectType] = useState(() => window.location.hash === '#calculation' ? 'retail' : null);
   const [preset, setPreset] = useState(null);
   const [intakeDrafts, setIntakeDrafts] = useState({});
@@ -69,7 +70,6 @@ export default function App() {
   const [intakeInitialSources, setIntakeInitialSources] = useState(null);
   const [catalogFocusId, setCatalogFocusId] = useState(null);
   const [catalogContext, setCatalogContext] = useState(null);
-  const [assistantSession, setAssistantSession] = useState(null);
   const [assistantImport, setAssistantImport] = useState(null);
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -94,30 +94,28 @@ export default function App() {
       url.hash = phaseHash(nextPhase);
       window.history.pushState({ robodovodPhase: nextPhase }, '', url);
     }
-    setPhase(nextPhase);
+    setPhase(visiblePhase(nextPhase));
   };
 
   useEffect(() => {
-    if (window.location.hash !== '#process') return;
+    const legacyPhase = phaseFromHash(window.location.hash);
+    if (!['process', 'model', 'expert'].includes(legacyPhase)) return;
+    // Legacy entry points remain parseable for old bookmarks, but no longer start AI selection.
     const url = new URL(window.location.href);
-    url.hash = '#assistant';
-    window.history.replaceState({ robodovodPhase: 'process' }, '', url);
+    url.hash = '';
+    window.history.replaceState({ robodovodPhase: 'onboarding' }, '', url);
+    if (legacyPhase === 'process') window.dispatchEvent(new Event('robodovod:open-help'));
   }, []);
 
   useEffect(() => {
     const restore = () => {
-      if (window.location.hash === '#process') {
-        const url = new URL(window.location.href);
-        url.hash = '#assistant';
-        window.history.replaceState({ robodovodPhase: 'process' }, '', url);
-      }
       const nextPhase = phaseFromHash(window.location.hash, Boolean(result));
       if (nextPhase === 'onboarding' && window.location.hash === '#results') {
         const url = new URL(window.location.href);
         url.hash = '';
         window.history.replaceState({ robodovodPhase: 'onboarding' }, '', url);
       }
-      setPhase(nextPhase);
+      setPhase(visiblePhase(nextPhase));
     };
     window.addEventListener('popstate', restore);
     return () => window.removeEventListener('popstate', restore);
@@ -223,8 +221,7 @@ export default function App() {
     intakeV2Snapshot.current = null;
   };
 
-  const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
-  const assistantSessionKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}`;
+  const currentStep = ({ onboarding: 0, intake: 1, robots: 2, money: 3, results: 4 })[phase] ?? 0;
   const intakeDraftKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}:${objectType || 'none'}`;
   const currentDraft = intakeDrafts[intakeDraftKey];
   const hasEditableDraft = Boolean(currentDraft?.objectKind);
@@ -301,18 +298,8 @@ export default function App() {
     }
     if (id === 'demo') { showPhase('guestDemo'); return; }
     if (id === 'results') { showPhase(result ? 'results' : 'guestDemo'); return; }
-    if (id === 'process') {
-      showPhase('process');
-      return;
-    }
-    if (id === 'model') {
-      showPhase('model');
-      return;
-    }
-    if (id === 'expert' || id === 'variants') {
-      showPhase('expert');
-      return;
-    }
+    if (id === 'process') { window.dispatchEvent(new Event('robodovod:open-help')); return; }
+    if (id === 'model' || id === 'expert' || id === 'variants') { showPhase(result ? 'robots' : 'intake'); return; }
     if (id === 'economics') {
       showPhase('economics');
       return;
@@ -385,7 +372,7 @@ export default function App() {
 
   return (
     <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
-      {['onboarding', 'intake', 'results'].includes(phase) && <Stepper current={currentStep}
+      {['onboarding', 'intake', 'robots', 'money', 'results'].includes(phase) && <Stepper current={currentStep}
         canOpenIntake={Boolean(objectType || activeProject)} canOpenResults={Boolean(result)}
         onSelect={(id) => {
           if (id === 'object') showPhase('onboarding');
@@ -393,6 +380,8 @@ export default function App() {
             if (phase === 'results' && !canEditResultDraft && activeRun?.input_snapshot?.economics) editCalculatedInputs();
             else openCalculation(phase === 'results' && canEditResultDraft);
           }
+          else if (id === 'robots' && result) showPhase('robots');
+          else if (id === 'money' && result) showPhase('money');
           else if (id === 'results' && result) showPhase('results');
         }} />}
       <div className={`phase-content${phase === 'results' ? ' phase-content-visualization' : ''}`}>
@@ -407,6 +396,8 @@ export default function App() {
           <GuestWarehouseDemo onContinue={() => { setIntakePrompt(''); setObjectType('retail'); showPhase('intake'); }} onBack={restart} />
         ) : phase === 'onboarding' ? (
           <OnboardingScreen
+            mode={journeyMode}
+            onModeChange={(value) => { setJourneyMode(value); sessionStore()?.setItem('robodovod-journey-mode', value); }}
             onGuestDemo={() => showPhase('guestDemo')}
             onOwnProcess={openCalculation}
             onOpenCatalog={() => { setCatalogFocusId(null); catalogReturnPhase.current = 'onboarding'; showPhase('catalog'); }}
@@ -427,26 +418,6 @@ export default function App() {
           <EconomicsMethodologyScreen onBack={() => showPhase('economics')} onOpenCalculation={openCalculation} />
         ) : phase === 'reports' ? (
           <ReportsScreen user={user} onOpenAccount={() => showPhase('account')} onOpenRun={openSavedRun} />
-        ) : phase === 'process' ? (
-          <ProcessScreen key={assistantSessionKey} activeProject={activeProject} user={user} hasResult={Boolean(result)}
-            sessionKey={assistantSessionKey}
-            session={assistantSession?.key === assistantSessionKey ? assistantSession.value : null}
-            onSessionChange={setAssistantSession}
-            onStartCalculation={openCalculation}
-            onOpenCatalog={(positionId = null) => { setCatalogFocusId(positionId); catalogReturnPhase.current = 'process'; showPhase('catalog'); }}
-            onOpenDemo={() => showPhase('guestDemo')}
-            onOpenProjects={() => showPhase(user ? 'projects' : 'account')}
-            onReturnToResult={() => showPhase('results')} />
-        ) : phase === 'model' ? (
-          <BrainModelScreen key={activeProject?.id || 'no-project'} project={activeProject} user={user}
-            onOpenProjects={() => showPhase('projects')} onOpenAccount={() => showPhase('account')}
-            onViewRun={(run, request) => {
-              setActiveRun(run); setResult(run.result_snapshot); setUserInput(request); showPhase('results');
-            }} />
-        ) : phase === 'expert' ? (
-          <RoboExpertScreen user={user} project={activeProject}
-            capacityRunId={activeRun?.run_kind === 'CAPACITY_ANALYSIS' ? activeRun.id : null}
-            onOpenAccount={() => showPhase('account')} />
         ) : phase === 'intake' ? (
           <IntakeScreen
             key={`${activeProject?.id || 'guest'}:${objectType}`}
@@ -503,9 +474,33 @@ export default function App() {
               if (evidence && activeProject?.id) persistLayoutEvidence(activeProject.id, response.run_id, evidence);
               setActiveRun({ id: response.run_id, run_kind: 'CAPACITY_ANALYSIS' });
               setSaveState('saved');
-              showPhase('results');
+              showPhase('robots');
             }}
           />
+        ) : phase === 'robots' ? (
+          <main className="journey-panel" aria-label="Какие роботы могут подойти?">
+            <p className="eyebrow">Шаг 3 из 5</p><h1>Какие роботы могут подойти?</h1>
+            <p>Сначала посмотрите расчёт парка и ограничения выбранной модели. Сравнение использует тот же сохранённый расчёт и каталог.</p>
+            {isCapacityAnalysisResponse(result) ? <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
+              : <p>{result ? 'Открыт сохранённый денежный результат. Его модель и ограничения указаны в итоговом отчёте.' : 'Сначала опишите работу и сохраните расчёт потребного парка.'}</p>}
+            {activeProject && evidenceRunId && <CandidateComparisonPanel project={activeProject} capacityRunId={activeRun?.input_snapshot?.capacity_run_id || evidenceRunId} />}
+            <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => openCalculation()}>Назад к работе</button>
+              <button type="button" className="primary-action" onClick={() => showPhase('money')}>Продолжить к стоимости</button></div>
+          </main>
+        ) : phase === 'money' ? (
+          <main className="journey-panel" aria-label="Сколько это будет стоить?">
+            <p className="eyebrow">Шаг 4 из 5</p><h1>Сколько это будет стоить?</h1>
+            <p>Оборудование, внедрение и эксплуатация считаются отдельно. Неизвестные условия останутся видимыми в результате.</p>
+            {isCapacityAnalysisResponse(result) ? <EconomicsInputsV2
+              key={activeRun?.id || result.run_id} initialDepth={journeyMode === 'FAMILIAR' ? 'BASIC' : journeyMode === 'FULL' ? 'FULL' : 'ADVANCED'}
+              capacityRequest={userInput} capacityResult={result} capacityRunId={activeRun?.id || result.run_id} project={activeProject}
+              onComplete={(run) => { setActiveRun(run); setResult(run.result_snapshot); setSaveState('saved'); showPhase('results'); }} />
+              : result?.schema_version === 'economics-partial-result-v1' ? <PartialEconomicsResult result={result} run={activeRun} project={activeProject} onComplete={(run) => { setActiveRun(run); setResult(run.result_snapshot); showPhase('results'); }} />
+                : isCommercialScenariosBundle(result) ? <SavedEconomicsEditor project={activeProject} run={activeRun} autoOpen onComplete={(run) => { setActiveRun(run); setResult(run.result_snapshot); showPhase('results'); }} />
+                : <p>{result ? 'Смета сохранена в этом расчёте. На следующем шаге показаны сравнение и источники.' : 'Сначала опишите работу и сохраните расчёт потребного парка.'}</p>}
+            <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => showPhase('robots')}>Назад к роботам</button>
+              <button type="button" className="secondary-action" onClick={() => showPhase('results')}>Посмотреть доступный результат</button></div>
+          </main>
         ) : phase === 'catalog' ? (
           <CatalogScreen key={`${activeProject?.id || 'guest'}-${objectType}`} projectContext={catalogContext} objectType={objectType || 'other'} focusPositionId={catalogFocusId} onContinue={openCalculation}
             onBack={() => showPhase(catalogReturnPhase.current)} />
@@ -644,7 +639,7 @@ function Stepper({ current, canOpenIntake, canOpenResults, onSelect }) {
           return (
             <div key={step.id} className="flex items-center flex-1">
               <div className="flex items-center gap-2">
-                <button type="button" disabled={step.id === 'intake' ? !canOpenIntake : step.id === 'results' ? !canOpenResults : false}
+                <button type="button" disabled={step.id === 'intake' ? !canOpenIntake : ['robots', 'money', 'results'].includes(step.id) ? !canOpenResults : false}
                   aria-current={isActive ? 'step' : undefined} onClick={() => onSelect(step.id)}
                   className={`stepper-link flex items-center gap-2 text-sm font-medium ${isDone ? 'text-green-600' : isActive ? 'text-blue-600' : 'text-slate-400'}`}>
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${

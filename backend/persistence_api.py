@@ -49,7 +49,7 @@ from economics_runtime_migration import (
 )
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
 from economics_final import execute_economics_v3, execute_economics_v4, execute_economics_v5
-from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, INPUT_VERSION_V3 as ASSUMPTION_INPUT_VERSION, INPUT_VERSION_V4 as TECHNICAL_INPUT_VERSION, INPUT_VERSION_V5 as STAFFING_INPUT_VERSION, INPUT_VERSION_V6 as PROJECT_INPUT_VERSION, execute_partial_economics_v2
+from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, INPUT_VERSION_V3 as ASSUMPTION_INPUT_VERSION, INPUT_VERSION_V4 as TECHNICAL_INPUT_VERSION, INPUT_VERSION_V5 as STAFFING_INPUT_VERSION, INPUT_VERSION_V6 as PROJECT_INPUT_VERSION, INPUT_VERSION_V7 as LEDGER_INPUT_VERSION, execute_partial_economics_v2
 from calculation.picking_study import PickingStudyV1, PickingStudyV2, calculate_picking_study, calculate_picking_study_v2
 from persistence_models import (
     AnalysisRun,
@@ -1502,8 +1502,8 @@ def create_persistence_router(
         saved_capacity_id = source.input_snapshot.get('capacity_run_id')
         if saved_capacity_id is None or payload.capacity_run_id is None or str(payload.capacity_run_id) != saved_capacity_id:
             raise HTTPException(status_code=409, detail='capacity source mismatch')
-        if payload.input.get('schema_version') != PROJECT_INPUT_VERSION:
-            raise HTTPException(status_code=422, detail='preview requires project input v6')
+        if payload.input.get('schema_version') not in {PROJECT_INPUT_VERSION, LEDGER_INPUT_VERSION}:
+            raise HTTPException(status_code=422, detail='preview requires project input v6/v7')
         if resolve_economics_version is None:
             raise HTTPException(status_code=503, detail='economics route unavailable')
         try:
@@ -1579,7 +1579,7 @@ def create_persistence_router(
             raise HTTPException(status_code=404, detail="scenario not found")
         if resolve_economics_version is None or calculate_economics_v2 is None:
             raise HTTPException(status_code=503, detail="economics v2 route unavailable")
-        if (require_economics_capacity_source or payload.input.get("schema_version") in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION, PROJECT_INPUT_VERSION}) and payload.capacity_run_id is None:
+        if (require_economics_capacity_source or payload.input.get("schema_version") in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION, PROJECT_INPUT_VERSION, LEDGER_INPUT_VERSION}) and payload.capacity_run_id is None:
             return JSONResponse(status_code=422, content={
                 "schema_version": "economics-partial-error-v1",
                 "issues": [{"field": "capacity_run_id", "code": "MISSING_INPUT",
@@ -1646,9 +1646,9 @@ def create_persistence_router(
                 economics_run_id=run_id,
             )
         input_version = payload.input.get("schema_version")
-        partial_input = input_version in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION, PROJECT_INPUT_VERSION}
+        partial_input = input_version in {PARTIAL_INPUT_VERSION, ASSUMPTION_INPUT_VERSION, TECHNICAL_INPUT_VERSION, STAFFING_INPUT_VERSION, PROJECT_INPUT_VERSION, LEDGER_INPUT_VERSION}
         input_snapshot = {
-            "schema_version": "economics-run-input-v7" if input_version == PROJECT_INPUT_VERSION else "economics-run-input-v6" if input_version == STAFFING_INPUT_VERSION else "economics-run-input-v5" if input_version == TECHNICAL_INPUT_VERSION else "economics-run-input-v4" if input_version == ASSUMPTION_INPUT_VERSION else "economics-run-input-v3" if partial_input else "economics-run-input-v2",
+            "schema_version": "economics-run-input-v8" if input_version == LEDGER_INPUT_VERSION else "economics-run-input-v7" if input_version == PROJECT_INPUT_VERSION else "economics-run-input-v6" if input_version == STAFFING_INPUT_VERSION else "economics-run-input-v5" if input_version == TECHNICAL_INPUT_VERSION else "economics-run-input-v4" if input_version == ASSUMPTION_INPUT_VERSION else "economics-run-input-v3" if partial_input else "economics-run-input-v2",
             "capacity_run_id": None if payload.capacity_run_id is None else str(payload.capacity_run_id),
             "source_run_id": None if payload.source_run_id is None else str(payload.source_run_id),
             "economics": payload.input,
@@ -1758,7 +1758,7 @@ def create_persistence_router(
                 raise EconomicsMigrationError("saved economics snapshot checksum mismatch")
             envelope = run.input_snapshot
             if (
-                envelope.get("schema_version") not in {"economics-run-input-v2", "economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7"}
+                envelope.get("schema_version") not in {"economics-run-input-v2", "economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7", "economics-run-input-v8"}
                 or not isinstance(envelope.get("economics"), dict)
                 or not isinstance(envelope.get("capacity_run_id"), str)
             ):
@@ -1787,7 +1787,7 @@ def create_persistence_router(
                                  else execute_economics_v4 if run.application_version == "production-economics-orchestrator-v4"
                                  else execute_economics_v5),
                 )
-                if envelope["schema_version"] in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7"}
+                if envelope["schema_version"] in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7", "economics-run-input-v8"}
                 else (execute_economics_v2 if run.application_version == "production-economics-orchestrator-v2"
                       else execute_economics_v3 if run.application_version == "production-economics-orchestrator-v3"
                       else execute_economics_v4 if run.application_version == "production-economics-orchestrator-v4"
@@ -2095,7 +2095,7 @@ def create_persistence_router(
                     or run.catalog_version_code != catalog.version.code
                     or run.input_snapshot.get('capacity_run_id') != item['run_id']
                     or str(run.parent_run_id) != item['run_id']
-                    or run.input_snapshot.get('economics', {}).get('schema_version') != PROJECT_INPUT_VERSION
+                    or run.input_snapshot.get('economics', {}).get('schema_version') not in {PROJECT_INPUT_VERSION, LEDGER_INPUT_VERSION}
                     or run.input_snapshot.get('economics', {}).get('salary_basis') != 'EMPLOYER_COST'
                     or (run.result_snapshot.get('schema_version') not in {
                         'commercial-scenarios-bundle-v3', 'commercial-scenarios-bundle-v4'}

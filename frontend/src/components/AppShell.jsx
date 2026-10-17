@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AppIcon from './AppIcon';
+import RDAssistantWidget from './RDAssistantWidget';
 
 const NAVIGATION = [
   { id: 'home', label: 'Главная', icon: 'home' },
@@ -8,9 +9,6 @@ const NAVIGATION = [
   { id: 'results', label: 'Мой результат', icon: 'chart' },
 ];
 const TOOL_NAVIGATION = [
-  { id: 'process', label: 'Помощник по сервису', icon: 'process' },
-  { id: 'model', label: 'Моделирование процесса', icon: 'cube' },
-  { id: 'expert', label: 'Робоэксперт', icon: 'chart' },
   { id: 'economics', label: 'Справочник экономики', icon: 'money' },
   { id: 'report', label: 'Отчёты', icon: 'report' },
 ];
@@ -95,6 +93,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
         </header>
         <div className="app-content" style={isResult ? { overflowAnchor: 'none' } : undefined}>{children}</div>
       </div>
+      <RDAssistantWidget activeProject={activeProject} onNavigate={onNavigate} />
     </div>
   );
 }

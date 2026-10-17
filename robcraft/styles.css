@@ -23,6 +23,9 @@ button, input { font: inherit; }
 .embedded .manual-toggle { pointer-events: auto; position: absolute; right: 22px; bottom: 20px; display: block; border: 1px solid rgba(76,224,163,.55); border-radius: 999px; padding: 9px 14px; color: #dffff3; background: rgba(3,20,15,.86); box-shadow: 0 8px 28px rgba(0,0,0,.28); cursor: pointer; font-size: 10px; font-weight: 850; letter-spacing: .06em; }
 .embedded .manual-toggle:hover, .embedded .manual-toggle:focus-visible { border-color: #59e3aa; background: rgba(12,48,36,.95); outline: 2px solid rgba(89,227,170,.25); outline-offset: 2px; }
 .embedded.manual-active .manual-toggle { display: none; }
+.quality-control { pointer-events: auto; position: absolute; bottom: 20px; left: 22px; display: flex; align-items: center; gap: 5px; padding: 5px; border: 1px solid rgba(76,224,163,.3); border-radius: 7px; color: #cde9de; background: rgba(3,20,15,.86); font-size: 9px; }
+.quality-control button { border: 1px solid transparent; border-radius: 4px; padding: 5px 7px; color: #cde9de; background: transparent; cursor: pointer; font-size: 9px; }
+.quality-control button[aria-pressed="true"] { border-color: #55dfa8; color: #07130f; background: #55dfa8; }
 .embedded:not(.scenario-active) .manual-toggle, .embedded.manual-unavailable .manual-toggle { display: none; }
 .embedded.manual-active #crosshair, .embedded.manual-active #prompt, .embedded.manual-active .controls-hint { display: block !important; }
 .embedded.manual-active #world { cursor: none; }

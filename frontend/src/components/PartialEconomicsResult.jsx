@@ -5,6 +5,7 @@ import { formatServerMoney } from '../commercialScenariosModel';
 import { formatFleet } from '../displayNumber';
 import { fieldPresentation, statusLabel, savedCalculationLabel } from '../presentation';
 import { depthLabel } from '../economicsDepth';
+import ImplementationCoverage from './ImplementationCoverage';
 
 const BRANCHES = [
   ['capacity', 'Расчёт потребного парка'], ['labour', 'Расчёт труда'],
@@ -15,6 +16,7 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
   const branches = result.branches || {};
   return <div className="mx-auto max-w-6xl space-y-5" id="economics-result" aria-label="Частичный результат экономики">
     <ProjectWhatIf key={run?.id} project={project} run={run} onComplete={onComplete} onCreateVersion={() => document.getElementById('edit-economics-run')?.setAttribute('open', '')} />
+    <ImplementationCoverage coverage={result.implementation_coverage} />
     <section className="economics-inputs-v2 rounded-2xl border p-5">
       <h2 className="text-xl font-semibold">Сохранён частичный расчёт</h2>
       <p>Глубина расчёта: <strong>{depthLabel(run?.input_snapshot?.economics?.calculation_depth)}</strong></p>

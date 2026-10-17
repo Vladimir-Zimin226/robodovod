@@ -14,6 +14,7 @@ const contentTypes = {
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
+  '.glb': 'model/gltf-binary',
 }
 
 function robcraftAssets() {
@@ -41,6 +42,7 @@ function robcraftAssets() {
         cp(join(robcraftRoot, 'index.html'), join(outputRoot, 'index.html')),
         cp(join(robcraftRoot, 'styles.css'), join(outputRoot, 'styles.css')),
         cp(join(robcraftRoot, 'src'), join(outputRoot, 'src'), { recursive: true }),
+        cp(join(robcraftRoot, 'public'), join(outputRoot, 'public'), { recursive: true }),
       ])
     },
   }

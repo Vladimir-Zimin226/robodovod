@@ -1,4 +1,5 @@
 import { mat4LookAt, mat4Model, mat4Multiply, mat4Perspective } from './math.js';
+import { loadRobotModels } from './glb-model.js';
 
 const VERTEX_SHADER = `
 attribute vec3 aPosition;
@@ -141,6 +142,7 @@ export class Renderer {
       emission: gl.getUniformLocation(this.program, 'uEmission')
     };
     const buffer = gl.createBuffer();
+    this.cubeBuffer = buffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, CUBE_VERTICES, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(this.locations.position);
@@ -156,16 +158,44 @@ export class Renderer {
     gl.useProgram(this.program);
     this.analytics = false;
     this.heatmapCache = new WeakMap();
+    this.quality = 'AUTO';
+    this.models = {};
+    this.modelStatus = 'LOADING';
+    loadRobotModels().then(models => {
+      for (const [name, groups] of Object.entries(models)) this.models[name] = groups.map(group => {
+        const meshBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, meshBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, group.vertices, gl.STATIC_DRAW);
+        return { ...group, buffer: meshBuffer, count: group.vertices.length / 6 };
+      });
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeBuffer);
+      this.bindVertices();
+      this.modelStatus = 'READY';
+    }).catch(error => { this.modelStatus = `FALLBACK: ${error.message}`; });
+  }
+
+  bindVertices() {
+    const gl = this.gl;
+    gl.enableVertexAttribArray(this.locations.position);
+    gl.vertexAttribPointer(this.locations.position, 3, gl.FLOAT, false, 24, 0);
+    gl.enableVertexAttribArray(this.locations.normal);
+    gl.vertexAttribPointer(this.locations.normal, 3, gl.FLOAT, false, 24, 12);
+  }
+
+  setQuality(quality) {
+    if (!['AUTO', 'HIGH', 'ECONOMY'].includes(quality)) return;
+    this.quality = quality;
   }
 
   resize(safePlaybackPlan = null) {
-    const ratio = Math.min(window.devicePixelRatio || 1, 1.75);
+    const ratio = Math.min(window.devicePixelRatio || 1, this.quality === 'HIGH' ? 2 : this.quality === 'ECONOMY' ? 1 : 1.5);
     const requestedWidth = this.canvas.clientWidth * ratio;
     const requestedHeight = this.canvas.clientHeight * ratio;
     // The safe facility scene is often embedded beside the report. Keep its
     // framebuffer bounded so software WebGL remains usable on laptop screens.
     const denseWarehouse = safePlaybackPlan?.warehouseTransport && safePlaybackPlan.robots.length >= 15;
-    const pixelBudget = this.softwareRasterizer ? denseWarehouse ? 100000 : 150000 : 1000000;
+    const pixelBudget = this.softwareRasterizer ? denseWarehouse ? 100000 : 150000
+      : this.quality === 'ECONOMY' ? 450000 : this.quality === 'HIGH' ? 1800000 : 1000000;
     const scale = safePlaybackPlan ? Math.min(1, Math.sqrt(pixelBudget / Math.max(1, requestedWidth * requestedHeight))) : 1;
     const width = Math.max(1, Math.floor(requestedWidth * scale));
     const height = Math.max(1, Math.floor(requestedHeight * scale));
@@ -178,6 +208,7 @@ export class Renderer {
 
   begin(camera, safePlaybackPlan = null) {
     this.resize(safePlaybackPlan);
+    this.cameraPosition = camera.position;
     const gl = this.gl;
     gl.clearColor(.54, .69, .72, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -199,12 +230,33 @@ export class Renderer {
 
   cube(position, scale, color, yaw = 0, material = 0, emission = 0, alpha = 1) {
     const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeBuffer);
+    this.bindVertices();
     gl.uniformMatrix4fv(this.locations.model, false, mat4Model(position, scale, yaw));
     gl.uniform3fv(this.locations.color, color);
     gl.uniform1f(this.locations.material, material);
     gl.uniform1f(this.locations.emission, emission);
     gl.uniform1f(this.locations.alpha, alpha);
     gl.drawArrays(gl.TRIANGLES, 0, 36);
+  }
+
+  model(name, position, scale, yaw = 0) {
+    const groups = this.models[name];
+    if (!groups || this.quality === 'ECONOMY') return false;
+    const gl = this.gl;
+    gl.uniformMatrix4fv(this.locations.model, false, mat4Model(position, scale, yaw));
+    gl.uniform1f(this.locations.alpha, 1);
+    for (const group of groups) {
+      gl.bindBuffer(gl.ARRAY_BUFFER, group.buffer);
+      this.bindVertices();
+      gl.uniform3fv(this.locations.color, group.color);
+      gl.uniform1f(this.locations.material, group.metallic > .4 ? 4 : 0);
+      gl.uniform1f(this.locations.emission, group.emission);
+      gl.drawArrays(gl.TRIANGLES, 0, group.count);
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeBuffer);
+    this.bindVertices();
+    return true;
   }
 
   render(scene, simulation, camera, editorState = null) {
@@ -493,6 +545,22 @@ export class Renderer {
   robot(robot) {
     const [x, y, z] = robot.position;
     const yaw = robot.yaw;
+    const assetName = robot.robotType === 'forklift' ? 'forklift'
+      : robot.robotType === 'cleaning-robot' ? 'cleaning-robot'
+        : robot.robotType === 'medical-cart' || robot.kind === 'medical' ? 'medical-cart' : 'pallet-amr';
+    const footprintScale = robot.visualFootprint
+      ? Math.min(1, robot.visualFootprint.width / 1.18, robot.visualFootprint.length / 1.45) : 1;
+    const distance = Math.hypot(x - this.cameraPosition[0], z - this.cameraPosition[2]);
+    const detailed = this.quality !== 'ECONOMY' && distance < (this.quality === 'HIGH' ? 32 : 16);
+    if (detailed && this.model(assetName, [x, 0, z], [footprintScale, footprintScale, footprintScale], yaw + Math.PI)) {
+      const light = robot.mode === 'idle' ? [.9, .62, .12] : [.16, .9, .68];
+      this.cube([x, .075, z], [robot.radius * 1.9, .025, robot.radius * 2.2], light, yaw, 7, .13, .48);
+      if (robot.carrying && assetName === 'pallet-amr') {
+        this.cube([x, .72 * footprintScale, z], [.78 * footprintScale, .1, .85 * footprintScale], [.43, .28, .14], yaw, 4);
+        this.cube([x, 1.02 * footprintScale, z], [.72 * footprintScale, .46, .78 * footprintScale], [.72, .53, .27], yaw, 2);
+      }
+      return;
+    }
     const part = (offset, scale, color, material = 4, emission = 0) => {
       const ox = offset[0] * Math.cos(yaw) + offset[2] * Math.sin(yaw);
       const oz = -offset[0] * Math.sin(yaw) + offset[2] * Math.cos(yaw);

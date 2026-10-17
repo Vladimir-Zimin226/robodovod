@@ -10,9 +10,12 @@ Backend — FastAPI. Точные типы запросов и ответов б
 | Ввод и каталог | `POST /api/v2/calculation-intake/normalize`; `GET /api/catalog/models` и `/positions/{position_id}`. |
 | Физический расчёт | `POST /api/v2/capacity-analyses`; `GET /api/v2/capacity-analyses/{run_id}`. |
 | Денежный расчёт | `POST /api/v2/projects/{project_id}/economics-runs`; `POST .../economics-runs/preview`; `POST .../economics-runs/{run_id}/replay`. |
+| РД-помощник | `POST /api/assistant/service` — локальные версионированные ответы по интерфейсу. |
 | История и экспорт | `GET /api/projects/{project_id}/analysis-runs` и `/{run_id}`; `GET .../{run_id}/exports/investor-report.pdf`, `/investor-report-preview.pdf`, `/evidence.zip`. |
 | Администратор каталога | `/api/admin/catalog`: версии, разделы, импорт JSON, validate, publish, activate и audit. |
 
 `/ready` может вернуть 200 при ещё не импортированном каталоге. `discovery` нужен для просмотра каталога, `capacity` — для нового расчёта парка, отдельный economics route — для нового денежного расчёта. Legacy `runtime` маршруты на organizer bundle остаются недоступны. Статусы активации проверяются tools CLI из [инструкции запуска](GETTING_STARTED.md).
 
 Изменяющие запросы к проектам и расчётам требуют действующую сессию и CSRF; данные проекта читаются только владельцем. Административные методы требуют роль ADMIN. Снимки расчётов и экспорта сохраняют свою версию и контрольные суммы. Для точного списка полей используйте OpenAPI текущего запущенного commit, а не примеры исторических спецификаций.
+
+Новые денежные запуски формы используют `economics-explicit-inputs-v7` и оболочку `economics-run-input-v8`. Поле `implementation_lines` содержит `DELIVERY`, `COMMISSIONING`, `INTEGRATION` со статусом, суммой, источником и объяснением. Отсутствующая статья остаётся `UNKNOWN`; сервер сохраняет частичный результат и не выдаёт NPV/окупаемость покупки. Старые версии читаются без пересчёта. AI-маршруты Brain turn/retry, Roboexpert summary/web и assistant web оставлены как legacy и возвращают HTTP 410; детерминированные каталожные маршруты действуют.

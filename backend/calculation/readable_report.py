@@ -641,11 +641,11 @@ def build_readable_report(
     else:
         lines.append((_unknown("годовые денежные потоки отсутствуют в сохранённом результате"), "body"))
     evidence = _obj(inputs.get("assumption_evidence"))
-    if inputs.get('schema_version') == 'economics-explicit-inputs-v6':
+    if inputs.get('schema_version') in {'economics-explicit-inputs-v6', 'economics-explicit-inputs-v7'}:
         lines.append(('Финансовые входы сохранённой версии', 'section'))
         labels = {'purchase_price_override_gross': 'Цена одного робота, ₽',
                   'implementation_mode': 'Режим внедрения', 'implementation_percent': 'Внедрение, % цены парка',
-                  'implementation_cost_total_gross': 'Внедрение, ₽ всего', 'raas_mode': 'Режим RaaS',
+                  'implementation_cost_total_gross': 'Прочие работы внедрения, ₽ всего', 'raas_mode': 'Режим RaaS',
                   'raas_percent_monthly': 'RaaS, % цены одного робота в месяц',
                   'raas_monthly_per_robot_gross': 'Введённая фиксированная аренда, ₽/робот/месяц',
                   'raas_contract_months': 'Срок договора, месяцев', 'manual_units_per_shift': 'Выработка человека выбранной роли, ед./смену',
@@ -661,6 +661,13 @@ def build_readable_report(
             lines.append((f"{label}: {_plain(inputs.get(key))}; источник: {_obj(inputs.get('field_sources')).get(key) or 'сохранённый ввод'}", 'body'))
         basis = _obj(result.get('monetary_input_basis'))
         lines.append((f"Денежная база: цена робота {_money(basis.get('unit_price_gross_rub'))}; парк {_plain(basis.get('fleet'))}; внедрение {_money(_obj(basis.get('implementation')).get('amount_gross_rub'))}", 'body'))
+        if inputs.get('schema_version') == 'economics-explicit-inputs-v7':
+            coverage = _obj(result.get('implementation_coverage'))
+            lines.append(('Покрытие статей внедрения', 'section'))
+            for category, label in [('DELIVERY','Доставка'),('COMMISSIONING','Пусконаладка'),('INTEGRATION','Интеграция')]:
+                line = _obj(_obj(coverage.get('lines')).get(category))
+                lines.append((f"{label}: {line.get('status') or 'UNKNOWN'}; сумма {_money(line.get('amount'))}; источник: {line.get('source_ref') or line.get('explanation') or 'не указан'}", 'body'))
+            lines.append((f"Известная сумма: {_money(coverage.get('known_subtotal_gross_rub'))}; полнота: {coverage.get('status') or 'PARTIAL'}. Неизвестные затраты не считаются нулевыми.", 'note'))
     if evidence:
         lines.append(("Подтверждённые допущения сценария", "section"))
         lines.append(("Эти значения сохранены как предварительные условия пользователя, а не паспорт или предложение поставщика.", "note"))

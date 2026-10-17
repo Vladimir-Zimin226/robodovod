@@ -133,11 +133,12 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
   return {
     scenario_id: scenario.id, capacity_run_id: values.capacityRunId,
     ...(sourceRunId ? { source_run_id: sourceRunId } : {}),
-    input: { schema_version: projectPolicyMode || values.staffingPolicy || values.workShare ? 'economics-explicit-inputs-v6' : 'economics-explicit-inputs-v5', input_revision: capacityRequest.input_revision,
+    input: { schema_version: values.implementationLines ? 'economics-explicit-inputs-v7' : projectPolicyMode || values.staffingPolicy || values.workShare ? 'economics-explicit-inputs-v6' : 'economics-explicit-inputs-v5', input_revision: capacityRequest.input_revision,
       ...(values.calculationDepth ? { calculation_depth: values.calculationDepth } : {}),
       ...fields, staffing_purchase: staffing(values.technicianPurchaseMode),
       staffing_raas: staffing(values.technicianRaasMode), field_sources, assumption_evidence,
       staffing_policy: values.staffingPolicy || null, work_share: values.workShare || null,
+      ...(values.implementationLines ? { implementation_lines: values.implementationLines } : {}),
       implementation_mode: values.implementationMode || 'FIXED',
       implementation_percent: values.implementationMode === 'PERCENT' ? optional(values.implementationPercent) : null,
       raas_mode: values.raasMode || 'FIXED',

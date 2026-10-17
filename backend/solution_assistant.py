@@ -403,6 +403,7 @@ def create_solution_assistant_router(load_snapshot: Callable[[], CatalogSnapshot
 
     @router.post("/web")
     def web(payload: WebSearchRequest, request: Request, db: Session = Depends(database_session)):
+        raise HTTPException(410, "Внешний поиск помощника отключён. РД-помощник отвечает по сервису локально.")
         if len(payload.query.split()) > 40:
             raise HTTPException(422, "Для внешнего поиска используйте не более 40 слов.")
         subject = _owned_project(payload.project_id, request, db, csrf=True)

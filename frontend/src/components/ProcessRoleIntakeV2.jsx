@@ -358,7 +358,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           const detailResponse = await fetch(`${API}/api/projects/${encodeURIComponent(activeProject.id)}/analysis-runs/${encodeURIComponent(candidate.id)}`, { credentials: 'include' });
           if (!detailResponse.ok) continue;
           const detail = await detailResponse.json();
-          if (detail.input_snapshot?.economics?.schema_version === 'economics-explicit-inputs-v6'
+          if (['economics-explicit-inputs-v6', 'economics-explicit-inputs-v7'].includes(detail.input_snapshot?.economics?.schema_version)
               && detail.input_snapshot.economics.salary_basis === 'EMPLOYER_COST'
               && (['commercial-scenarios-bundle-v3', 'commercial-scenarios-bundle-v4'].includes(detail.result_snapshot?.schema_version)
                 || detail.result_snapshot?.schema_version === 'economics-partial-result-v1'

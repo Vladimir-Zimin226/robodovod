@@ -205,14 +205,14 @@ def historical_mapping(
 
         economics_input = input_snapshot.get("economics", {})
         partial_basis_complete = (
-            input_snapshot.get("schema_version") not in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7"}
+            input_snapshot.get("schema_version") not in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7", "economics-run-input-v8"}
             or (
                 isinstance(economics_input, dict)
                 and economics_input.get("role_salaries_confirmed_as_monthly_gross") is True
                 and (economics_input.get("control_monthly_gross") is not None
-                     or economics_input.get("schema_version") in {"economics-explicit-inputs-v5", "economics-explicit-inputs-v6"})
+                     or economics_input.get("schema_version") in {"economics-explicit-inputs-v5", "economics-explicit-inputs-v6", "economics-explicit-inputs-v7"})
                 and (economics_input.get("technician_monthly_gross") is not None
-                     or economics_input.get("schema_version") in {"economics-explicit-inputs-v5", "economics-explicit-inputs-v6"})
+                     or economics_input.get("schema_version") in {"economics-explicit-inputs-v5", "economics-explicit-inputs-v6", "economics-explicit-inputs-v7"})
                 and input_snapshot.get("capacity_role_salaries_complete") is True
             )
         )

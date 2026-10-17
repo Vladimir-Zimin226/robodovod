@@ -2,6 +2,15 @@
 .landing-shell { width: min(1160px, 100%); margin: 0 auto; }
 .landing-hero { display: grid; grid-template-columns: minmax(0,.95fr) minmax(390px,1.05fr); align-items: center; gap: clamp(22px,3vw,42px); min-height: 560px; padding: clamp(20px,3vw,38px) 0; }
 .landing-hero-copy { min-width: 0; }
+.journey-mode-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 18px 0 0; }
+.journey-mode-choice button, .journey-object-choice button { text-align: left; border: 1px solid #36544d; border-radius: 12px; background: #112225; color: #eaf7ed; padding: 12px; cursor: pointer; }
+.journey-mode-choice button[aria-pressed="true"] { border-color: #a5ed45; background: #1e3826; }
+.journey-mode-choice strong, .journey-mode-choice span, .journey-object-choice strong, .journey-object-choice span, .journey-object-choice small { display: block; }
+.journey-mode-choice span, .journey-object-choice span { margin-top: 6px; color: #b8c9c6; font-size: 12px; line-height: 1.35; }
+.journey-object-choice { display: grid; gap: 8px; margin-top: 20px; }
+.journey-object-choice button { padding: 12px 15px; }
+.journey-object-choice small { margin-top: 8px; color: #a5ed45; }
+@media (max-width: 600px) { .journey-mode-choice { grid-template-columns: 1fr; }.journey-mode-choice button { padding: 10px 12px; } }
 .landing-eyebrow { display: flex; align-items: center; gap: 9px; margin: 0; color: var(--lime); font-size: 10px; font-weight: 800; letter-spacing: .15em; line-height: 1.5; }
 .landing-eyebrow-line { width: 22px; height: 1px; flex: 0 0 22px; background: var(--lime); }
 .landing-hero h1 { max-width: 700px; margin: 20px 0 18px; font-size: clamp(38px,4.2vw,62px); line-height: 1.07; letter-spacing: -.052em; font-weight: 760; }
@@ -77,3 +86,16 @@
   .landing-footer { padding: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { .landing-button { transition: none; }.landing-button:hover { transform: none; }.landing-amr { animation: none; } }
+.cinematic-scene { position: relative; }
+.cinematic-launch { display: inline-flex; margin: 0 0 12px; padding: 10px 16px; border-radius: 12px; color: #05251e; background: #b9f28a; font-weight: 750; }
+.cinematic-scene.is-cinematic { position: fixed; inset: 0; z-index: 1000; overflow: auto; padding: 16px; color: white; background: #061813; }
+.cinematic-scene.is-cinematic:fullscreen { position: relative; width: 100vw; height: 100vh; }
+.cinematic-scene.is-cinematic .simulation-report { max-width: none; margin: 0; }
+.cinematic-overlay { position: sticky; top: 0; z-index: 5; display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 14px 18px; border: 1px solid #37816f; border-radius: 14px; background: rgba(5, 27, 23, .97); box-shadow: 0 12px 35px #0007; }
+.cinematic-overlay h3 { margin: 3px 0; font-size: clamp(1.2rem, 2vw, 2rem); }
+.cinematic-overlay p { margin: 4px 0; }
+.cinematic-overlay small { display: block; color: #a5d6c1; font-size: .7rem; }
+.cinematic-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; min-width: 230px; }
+.cinematic-actions button { padding: 7px 10px; border: 1px solid #639586; border-radius: 8px; color: white; background: #17443a; font-size: .8rem; cursor: pointer; }
+@media (max-width: 700px) { .cinematic-overlay { align-items: start; flex-direction: column; } .cinematic-actions { justify-content: start; } }
+@media (prefers-reduced-motion: reduce) { .cinematic-scene *, .cinematic-scene *::before, .cinematic-scene *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

@@ -22,6 +22,7 @@ def test_service_questions_cover_navigation_without_catalog_answers():
         "Где найти сохранённый отчёт?": "reports",
         "Где посмотреть 2D и 3D?": "visualization",
         "Сколько стоит конкретный робот?": "catalog",
+        "Почему стоимость внедрения неполная?": "implementation",
     }
     for question, expected in examples.items():
         answer = answer_service_question(question)

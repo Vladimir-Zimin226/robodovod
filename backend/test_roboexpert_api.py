@@ -129,7 +129,7 @@ def test_ai_output_is_limited_and_falls_back_when_it_makes_unsupported_claim(mon
     assert answer["usage"]["estimated_rub"] == 0.04
 
 
-def test_rate_limits_and_http_web_provenance(monkeypatch):
+def test_legacy_ai_routes_are_gone_while_catalog_comparison_remains(monkeypatch):
     limiter = PilotLimiter()
     limiter.check("ai", "user", daily=2, minute=2)
     limiter.check("ai", "user", daily=2, minute=2)
@@ -137,11 +137,8 @@ def test_rate_limits_and_http_web_provenance(monkeypatch):
         limiter.check("ai", "user", daily=2, minute=2)
     assert limited.value.status_code == 429
 
-    monkeypatch.setattr("roboexpert_api.search_web", lambda _query: {
-        "status": "ok", "searched_at": "2026-09-26T00:00:00+00:00", "results": [
-            {"url": "https://example.org/passport", "title": "Passport", "snippet": "External result"}],
-        "message": "Search result requires checking",
-    })
+    monkeypatch.setattr("roboexpert_api.search_web", lambda _query: (_ for _ in ()).throw(AssertionError('external web called')))
+    monkeypatch.setattr("roboexpert_api._llm_summary", lambda _comparison: (_ for _ in ()).throw(AssertionError('model called')))
     app = FastAPI()
     app.include_router(create_roboexpert_router(catalog))
     app.dependency_overrides[require_csrf] = lambda: SimpleNamespace(user=SimpleNamespace(id=uuid.uuid4()))
@@ -154,10 +151,7 @@ def test_rate_limits_and_http_web_provenance(monkeypatch):
         stale = client.post("/api/roboexpert/summary", json={"catalog_version": catalog().version.code,
                            "position_ids": ["position.synthetic.transport", "position.second"],
                            "comparison_digest": "sha256:" + "0" * 64})
-        assert stale.status_code == 409
+        assert stale.status_code == 410
         web = client.post("/api/roboexpert/web", json={"catalog_version": catalog().version.code,
                           "position_id": "position.second", "topic": "passport"})
-        assert web.status_code == 200
-        assert web.json()["verification_status"] == "REQUIRES_VERIFICATION"
-        assert web.json()["results"][0]["url"] == "https://example.org/passport"
-        assert web.json()["pricing_estimate"]["daytime_synchronous_request_rub"] == "0.488"
+        assert web.status_code == 410

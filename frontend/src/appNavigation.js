@@ -1,5 +1,5 @@
 const PHASE_HASH = Object.freeze({
-  onboarding: '', process: '#assistant', model: '#model', intake: '#calculation', catalog: '#catalog',
+  onboarding: '', process: '#assistant', model: '#model', intake: '#calculation', robots: '#robots', money: '#money', catalog: '#catalog',
   results: '#results', reports: '#reports', projects: '#projects', account: '#account', admin: '#admin',
   guestDemo: '#demo-warehouse', expert: '#roboexpert', economics: '#economics', economicsMethodology: '#economics-methodology',
   templates: '#templates', adminCatalog: '#admin-catalog',

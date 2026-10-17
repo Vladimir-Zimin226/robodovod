@@ -1,4 +1,4 @@
-"""Catalog scoped Roboexpert comparison with optional, bounded AI and web research."""
+"""Legacy Roboexpert comparison; external AI and web calls are retired."""
 
 from __future__ import annotations
 
@@ -273,6 +273,7 @@ def create_roboexpert_router(load_snapshot: Callable[[], CatalogSnapshotDTO]) ->
 
     @router.post("/summary")
     def summary(payload: SummaryRequest, context: AuthContext = CSRF):
+        raise HTTPException(410, "AI-обзор выведен из сервиса. Сравните проверяемые поля каталога.")
         comparison = compare_catalog(load_snapshot(), payload)
         if comparison["comparison_digest"] != payload.comparison_digest:
             raise HTTPException(409, "Сравнение изменилось. Обновите страницу.")
@@ -283,6 +284,7 @@ def create_roboexpert_router(load_snapshot: Callable[[], CatalogSnapshotDTO]) ->
 
     @router.post("/web")
     def web(payload: SearchRequest, context: AuthContext = CSRF):
+        raise HTTPException(410, "Внешний поиск Робоэксперта отключён.")
         snapshot = load_snapshot()
         if payload.catalog_version != snapshot.version.code:
             raise HTTPException(409, "Активный каталог обновился. Загрузите Робоэксперт заново.")

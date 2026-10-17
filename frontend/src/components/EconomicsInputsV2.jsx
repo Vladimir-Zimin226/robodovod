@@ -28,7 +28,7 @@ const FIELDS = [
   ['Труд', 'controlTransferSupplement', 'control_transfer_monthly_supplement_gross', 'Доплата переведённому диспетчеру', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
   ['Труд', 'techTransferSupplement', 'technician_transfer_monthly_supplement_gross', 'Доплата переведённому технику', '₽/чел./мес., gross', 'Введите подтверждённый ноль, если доплаты нет.', 'Кадровое решение'],
   ['Труд', 'technicianContractorAnnual', 'technician_contractor_annual_gross', 'Техподдержка подрядчика', '₽/техник/год, gross', 'Стоимость только непокрытой функции.', 'Договор или допущение'],
-  ['Покупка', 'implementationCost', 'implementation_cost_total_gross', 'Внедрение и интеграция', '₽ всего, gross', 'Разовый расход; например 500000.', 'Смета или допущение'],
+  ['Покупка', 'implementationCost', 'implementation_cost_total_gross', 'Прочие работы по внедрению', '₽ всего, gross', 'Только работы сверх доставки, пусконаладки и интеграции. Введите 0, если прочих работ точно нет; пустое поле остаётся неизвестным.', 'Смета или допущение'],
   ['Покупка', 'annualService', 'annual_service_per_robot_gross', 'Сервис одного робота', '₽/год, gross', 'Ежегодный расход; например 120000.', 'Договор или допущение'],
   ['Покупка', 'warrantyYears', 'warranty_years', 'Гарантия', 'лет', 'Влияет на жизненный цикл; например 1.', 'Условия поставки'],
   ['Покупка', 'averagePowerW', 'average_power_w', 'Средняя мощность робота', 'Вт', 'Для электроэнергии; например 1000.', 'Паспорт, замер или допущение'],
@@ -59,11 +59,14 @@ const FINANCIAL_FACTS = [
   ['average_power_w', 'Средняя мощность', 'Вт'], ['max_power_w', 'Максимальная мощность', 'Вт'],
   ['battery_kwh', 'Батарея', 'кВт·ч'], ['charger_power_kw', 'Зарядка', 'кВт'],
 ];
+const IMPLEMENTATION_LINES = [['DELIVERY', 'Доставка'], ['COMMISSIONING', 'Пусконаладка'], ['INTEGRATION', 'Интеграция']];
+const blankImplementationLines = () => Object.fromEntries(IMPLEMENTATION_LINES.map(([category]) =>
+  [category, { status: 'UNKNOWN', amount: '', source_ref: '', explanation: '', included_in: null }]));
 const defaults = { calculationDepth: 'BASIC', evaluationDate: today(), primaryRoleId: '', raasInfrastructureOwner: '', timezone: '', purchasePriceOverride: '', purchasePriceSource: '', salaryBasis: 'EMPLOYER_COST', energyPowerBasis: 'AVERAGE', chargerPowerKw: '', chargingSimultaneityFraction: '',
   implementationMode: 'FIXED', implementationPercent: '', raasMode: 'FIXED', raasPercentMonthly: '',
   robotsPerControlPost: '', robotsPerDayTechnician: '', rotationFactor: '', technicianPresence: 'DAY_WORKLOAD', robotizableShare: '', residualOperations: '',
   controlMode: '', technicianPurchaseMode: '', technicianRaasMode: '', qualifiedTechTransfer: false,
-  sources: {}, assumptions: {}, userValues: {} };
+  sources: {}, assumptions: {}, userValues: {}, implementationLines: blankImplementationLines() };
 function restored(capacityRunId, input, project) {
   const values = { ...defaults, calculationDepth: input?.calculation_depth || (input ? 'FULL' : 'BASIC'), capacityRunId, sources: { ...(input?.field_sources || {}) },
     assumptions: { ...(input?.assumption_evidence || {}) }, userValues: {} };
@@ -78,7 +81,7 @@ function restored(capacityRunId, input, project) {
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
     startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
-  if (['economics-explicit-inputs-v5', 'economics-explicit-inputs-v6'].includes(input?.schema_version)) Object.assign(values, {
+  if (['economics-explicit-inputs-v5', 'economics-explicit-inputs-v6', 'economics-explicit-inputs-v7'].includes(input?.schema_version)) Object.assign(values, {
     controlMode: input.staffing_purchase?.control_mode || '',
     technicianPurchaseMode: input.staffing_purchase?.technician_mode || '',
     technicianRaasMode: input.staffing_raas?.technician_mode || '',
@@ -90,7 +93,7 @@ function restored(capacityRunId, input, project) {
     technicianContractorAnnual: input.staffing_purchase?.technician_contractor_annual_gross
       || input.staffing_raas?.technician_contractor_annual_gross || '',
   });
-  if (input?.schema_version === 'economics-explicit-inputs-v6') Object.assign(values, {
+  if (['economics-explicit-inputs-v6', 'economics-explicit-inputs-v7'].includes(input?.schema_version)) Object.assign(values, {
     implementationMode: input.implementation_mode || 'FIXED', implementationPercent: input.implementation_percent || '',
     raasMode: input.raas_mode || 'FIXED', raasPercentMonthly: input.raas_percent_monthly || '',
     robotsPerControlPost: input.staffing_policy?.robots_per_control_post || '',
@@ -99,6 +102,11 @@ function restored(capacityRunId, input, project) {
     technicianPresence: input.staffing_policy?.technician_presence || 'DAY_WORKLOAD',
     robotizableShare: input.work_share?.fraction || '', residualOperations: input.work_share?.residual_operations || '',
   });
+  if (input?.schema_version === 'economics-explicit-inputs-v7') values.implementationLines = Object.fromEntries(
+    IMPLEMENTATION_LINES.map(([category]) => [category, {
+      ...blankImplementationLines()[category], ...(input.implementation_lines?.[category] || {}),
+      amount: String(input.implementation_lines?.[category]?.amount ?? ''),
+    }]));
   if (!input) Object.assign(values, { startSeconds: String(MODEL_START_SECONDS), timezone: modelTimezone(project) });
   return values;
 }
@@ -110,8 +118,9 @@ function LabourField({ id, label, hint, full = false, children }) {
     <small id={`${id}-hint`}>{hint}</small><small id={`${id}-message`} className="labour-field-message" aria-live="polite" />
   </div>;
 }
-export default function EconomicsInputsV2({ capacityRequest, capacityResult, capacityRunId, project, onComplete, initialInput, savedResult, sourceRunId }) {
-  const [values, setValues] = useState(() => restored(capacityRunId, initialInput || workbookEconomics(project?.profile?.file_intake_v2), project));
+export default function EconomicsInputsV2({ capacityRequest, capacityResult, capacityRunId, project, onComplete, initialInput, savedResult, sourceRunId, initialDepth = 'BASIC' }) {
+  const [values, setValues] = useState(() => ({ ...restored(capacityRunId, initialInput || workbookEconomics(project?.profile?.file_intake_v2), project),
+    ...(initialInput ? {} : { calculationDepth: initialDepth }) }));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [manualEstimate, setManualEstimate] = useState(null);
@@ -141,6 +150,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const scenario = project?.scenarios?.find((item) => item.slot === 'BASE');
   const issues = savedResult?.issues || [];
   const set = (key) => (event) => setValues((current) => ({ ...current, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value }));
+  const setImplementationLine = (category, key, value) => setValues((current) => ({ ...current,
+    implementationLines: { ...current.implementationLines,
+      [category]: { ...current.implementationLines[category], [key]: value,
+        ...(key === 'status' ? { amount: value === 'EXPLICIT_ZERO' ? '0' : '',
+          included_in: value === 'INCLUDED' ? 'implementation_cost_total_gross' : null } : {}) } } }));
   const demoEligible = capacityRequest?.process?.process_code === 'warehouse_receiving_shipping';
   const fieldReady = ([, key, server]) => {
     const value = String(values[key] ?? '');
@@ -185,6 +199,13 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     setError(''); setBusy(true);
     try {
       const prepared = valuesAtDepth(submitted, FIELDS);
+      if (depthIndex(prepared.calculationDepth) >= 1) prepared.implementationLines = Object.fromEntries(
+        IMPLEMENTATION_LINES.map(([category]) => {
+          const line = prepared.implementationLines[category];
+          return [category, { ...line, amount: ['USER_ESTIMATE', 'USER_MEASURED', 'POLICY_ASSUMPTION', 'EXPLICIT_ZERO'].includes(line.status) ? line.amount : null,
+            included_in: line.status === 'INCLUDED' ? 'implementation_cost_total_gross' : null }];
+        }));
+      else prepared.implementationLines = blankImplementationLines();
       const policyDate = today();
       const body = buildPartialEconomicsRunRequest({ values: { ...prepared, capacityRunId,
         staffingPolicy: prepared.robotsPerControlPost && prepared.robotsPerDayTechnician && prepared.rotationFactor ? {
@@ -244,14 +265,14 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         onClick={() => setValues((current) => ({ ...current, calculationDepth: level.code }))}>
         <strong className="block">{level.label}</strong><span className="block text-sm mt-2">{level.description}</span></button>)}
     </div>
-    <section className="rounded-xl border border-lime-400 bg-teal-950 p-4 text-white text-sm" aria-label="Полный расчёт типового объекта">
+    <section className="rounded-xl border border-lime-400 bg-teal-950 p-4 text-white text-sm" aria-label="Черновые допущения типового объекта">
       <button type="button" disabled={busy} className="rounded-xl bg-lime-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50" onClick={() => {
         const proposed = applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
           (process?.process_code?.startsWith('airport_') ? 'AIRPORT' : process?.process_code?.startsWith('clinic_') ? 'CLINIC' : 'WAREHOUSE'), manualEstimate, process?.process_code,
           { catalogPriceAvailable: selectedPosition?.position?.purchase?.amount != null });
         setValues(proposed);
-      }}>Заполнить пример для типового объекта</button>
-      <p className="mt-2">Пример заполнит недостающие расходы и условия сценарными допущениями. Проверьте числа перед сохранением. При доступной цене выбранной модели она сохранится как основа, иначе пример предложит условную цену; это не оферта поставщика.</p>
+      }}>Подставить черновые допущения</button>
+      <p className="mt-2">Пример предложит часть расходов и условий как сценарные допущения. Доставку, пусконаладку и интеграцию подтвердите отдельно: без них покупка останется частичной. При доступной цене выбранной модели она сохранится как основа, иначе пример предложит условную цену; это не оферта поставщика.</p>
     </section>
     {['Труд', 'Покупка', 'RaaS', 'Визуализация'].filter((group) => ECONOMICS_DEPTHS.findIndex((level) => level.groups.includes(group)) <= depthIndex(values.calculationDepth)).map((group) => <details open key={group} aria-label={group} className="rounded-xl border p-4">
       <summary className="font-semibold cursor-pointer">{group}</summary>
@@ -279,6 +300,30 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
           <p>Оба значения нужны для оценки пика по этой модели: парк × мощность зарядки × доля одновременности. Пустые поля сохраняются как неизвестные.</p>
         </details>
       </div>}
+      {group === 'Покупка' && <section className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm" aria-label="Статьи внедрения">
+        <h3 className="font-semibold">Что входит в стоимость внедрения?</h3>
+        <p>Цена робота из каталога может не включать доставку, пусконаладку и интеграцию. Для каждой статьи укажите сумму и источник либо объясните подтверждённый ноль. Пока статья неизвестна, NPV и окупаемость покупки не считаются.</p>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">{IMPLEMENTATION_LINES.map(([category, label]) => {
+          const line = values.implementationLines[category];
+          const lineIssues = issues.filter((item) => item.field === `implementation_lines.${category.toLowerCase()}`);
+          return <div className="rounded border bg-white p-3" key={category}>
+            <strong>{label}</strong>
+            <label className="mt-2 block">Статус<select className="block w-full rounded border p-2" value={line.status} onChange={(event) => setImplementationLine(category, 'status', event.target.value)}>
+              <option value="UNKNOWN">Неизвестно</option><option value="USER_ESTIMATE">Оценка по смете</option>
+              <option value="USER_MEASURED">Подтверждённая сумма</option><option value="POLICY_ASSUMPTION">Моё допущение</option>
+              <option value="EXPLICIT_ZERO">Подтверждённый ноль</option><option value="NOT_APPLICABLE">Не применяется</option>
+              <option value="INCLUDED">Включено в прочие работы</option>
+            </select></label>
+            {['USER_ESTIMATE', 'USER_MEASURED', 'POLICY_ASSUMPTION'].includes(line.status) && <>
+              <label className="mt-2 block">Сумма, ₽ gross<input className="block w-full rounded border p-2" type="text" inputMode="decimal" value={line.amount} onChange={(event) => setImplementationLine(category, 'amount', event.target.value)} placeholder="Например, 150000" /></label>
+              <label className="mt-2 block">Источник суммы<input className="block w-full rounded border p-2" value={line.source_ref} onChange={(event) => setImplementationLine(category, 'source_ref', event.target.value)} placeholder="Смета и дата или моё допущение" /></label>
+            </>}
+            {['EXPLICIT_ZERO', 'NOT_APPLICABLE', 'INCLUDED', 'POLICY_ASSUMPTION'].includes(line.status) && <label className="mt-2 block">Основание<textarea className="block w-full rounded border p-2" rows="2" value={line.explanation} onChange={(event) => setImplementationLine(category, 'explanation', event.target.value)} placeholder="Почему выбран этот статус" /></label>}
+            {line.status === 'INCLUDED' && <p>Укажите сумму в поле «Прочие работы по внедрению» ниже.</p>}
+            {lineIssues.map((item, index) => <p key={index} className="mt-2 text-red-700" role="status">{item.message} {item.next_step}</p>)}
+          </div>;
+        })}</div>
+      </section>}
       {group === 'Труд' && <div className="mt-3 rounded-xl border border-teal-300 bg-teal-50 p-4 text-sm space-y-3">
         <strong>1. Сколько сейчас стоит работа команды?</strong>
         <p>Численность и стоимость основных ролей уже введены на шаге «Объект». Здесь укажите выработку и сотрудников, которые будут сопровождать роботов.</p>

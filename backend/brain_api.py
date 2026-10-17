@@ -1,4 +1,4 @@
-"""Conversational profile adapter for Brain v1.1; calculations remain in v2 routes."""
+"""Legacy Brain profile adapter; external AI turns are retired."""
 
 from __future__ import annotations
 
@@ -670,6 +670,7 @@ def create_brain_router() -> APIRouter:
 
     @router.post("/projects/{project_id}/turn")
     def turn(project_id: uuid.UUID, payload: TurnRequest, context: AuthContext = CSRF_DEP, db: Session = DB_DEP):
+        raise HTTPException(410, "AI-подбор выведен из сервиса. Используйте пятишаговый расчёт и РД-помощник.")
         started = time.perf_counter()
         project = _owned(db, project_id, context.user.id, lock=True)
         state = _state(project)
@@ -698,6 +699,7 @@ def create_brain_router() -> APIRouter:
     @router.post("/projects/{project_id}/retry")
     def retry(project_id: uuid.UUID, payload: RetryRequest,
               context: AuthContext = CSRF_DEP, db: Session = DB_DEP):
+        raise HTTPException(410, "Повторные вызовы AI-подбора отключены.")
         started = time.perf_counter()
         project = _owned(db, project_id, context.user.id, lock=True)
         state = _state(project)

@@ -4,7 +4,7 @@ import ProjectScenarioDialog from './ProjectScenarioDialog';
 export default function ProjectWhatIf({ project, run, onComplete, onCreateVersion, onPhysical }) {
   const [open, setOpen] = useState(false);
   if (!run || !project?.id) return null;
-  if (run.input_snapshot?.economics?.schema_version !== 'economics-explicit-inputs-v6') return <section className="commercial-details">
+  if (!['economics-explicit-inputs-v6', 'economics-explicit-inputs-v7'].includes(run.input_snapshot?.economics?.schema_version)) return <section className="commercial-details">
     <p>Эта версия сохранена со старым набором входов. Для пересчёта нужно заполнить недостающие значения.</p>
     {onCreateVersion && <button onClick={onCreateVersion}>Создать новую версию для пересчёта</button>}
   </section>;

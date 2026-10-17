@@ -475,6 +475,32 @@ button:disabled { cursor: not-allowed; }
 .stepper-shell { border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); padding: 10px 24px; }
 .stepper-link { border: 0; background: transparent; cursor: pointer; white-space: nowrap; }
 .stepper-link:disabled { cursor: default; opacity: .5; }
+.stepper-shell { overflow-x: auto; }
+.stepper-shell > div { min-width: 680px; }
+.journey-panel { max-width: 1160px; margin: 0 auto; padding: 28px 22px 70px; display: grid; gap: 18px; }
+.journey-panel > h1 { font-size: clamp(28px, 3vw, 42px); line-height: 1.14; font-weight: 750; }
+.journey-panel > p { max-width: 760px; color: var(--text-secondary); }
+.journey-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+.rd-help { position: fixed; z-index: 100; right: 24px; bottom: 20px; }
+.rd-help-launcher { width: 68px; height: 68px; border-radius: 22px; background: #a5ed45; color: #102019; border: 2px solid #d6ff9a; font-weight: 850; box-shadow: 0 12px 32px #0008; cursor: pointer; }
+.rd-help-dialog { position: absolute; right: 0; bottom: 80px; width: min(390px, calc(100vw - 28px)); max-height: min(640px, calc(100dvh - 110px)); display: flex; flex-direction: column; border: 1px solid #527061; border-radius: 18px; overflow: hidden; background: #101c21; color: #f2f9f3; box-shadow: 0 24px 70px #000a; }
+.rd-help-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; background: #193027; }
+.rd-help-dialog header strong, .rd-help-dialog header small { display: block; }
+.rd-help-dialog header small, .rd-help-note { color: #b8cbc6; font-size: 12px; }
+.rd-help-dialog header button { border: 0; background: none; color: inherit; font-size: 30px; line-height: 1; cursor: pointer; }
+.rd-help-turns { min-height: 170px; overflow-y: auto; padding: 16px; display: grid; align-content: start; gap: 12px; }
+.rd-help-turns article { max-width: 94%; padding: 10px 12px; border-radius: 12px; background: #20343a; }
+.rd-help-turns article.user { justify-self: end; background: #294539; }
+.rd-help-turns article p { margin: 4px 0; white-space: pre-wrap; }
+.rd-help-turns article small { color: #b7d8c1; }
+.rd-help-turns article button, .rd-help-starters button { display: block; margin-top: 6px; padding: 7px 9px; border: 1px solid #5c8668; border-radius: 8px; background: #172c27; color: #d9ffd7; text-align: left; cursor: pointer; }
+.rd-help-dialog form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #34514a; }
+.rd-help-dialog textarea { flex: 1; min-width: 0; resize: vertical; border: 1px solid #547268; border-radius: 8px; background: #0a171b; color: #f4fff7; padding: 9px; }
+.rd-help-dialog form button { border: 0; border-radius: 8px; background: #a5ed45; color: #102019; font-weight: 750; padding: 8px; cursor: pointer; }
+.rd-help-dialog form button:disabled { opacity: .5; cursor: default; }
+.rd-help-note, .rd-help-error { margin: 0 12px 12px; }
+.rd-help-error { color: #ffb4a3; }
+@media (max-width: 600px) { .rd-help { right: 12px; bottom: 12px; }.rd-help-launcher { width: 58px; height: 58px; }.rd-help-dialog { bottom: 68px; max-height: calc(100dvh - 85px); } }
 
 .panel { background: linear-gradient(145deg, rgba(18,29,35,.98), rgba(12,22,27,.98)); border: 1px solid var(--border-subtle); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
 .dashboard-overview { padding: 14px 14px 0; }

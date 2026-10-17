@@ -852,6 +852,13 @@ function frame(now) {
 
 try {
   renderer = new Renderer(canvas);
+  canvas.addEventListener('webglcontextlost', event => {
+    event.preventDefault();
+    showError(new Error('Контекст WebGL потерян. Откройте 2D-представление.'));
+    if (embeddedMode) window.parent.postMessage(childMessage('ROBCRAFT_ERROR', null, null, {
+      code: 'WEBGL_UNAVAILABLE', message: 'Контекст WebGL потерян; переключаемся на 2D.'
+    }), location.origin);
+  });
   player = new Player(canvas);
   cameraDirector = new CameraDirector();
   if (embeddedMode) {
@@ -920,6 +927,10 @@ form.addEventListener('submit', event => {
   if (description && descriptionSpec?.source !== description) parseDescription();
   startWorld(readForm());
 });
+document.querySelectorAll('[data-quality]').forEach(button => button.addEventListener('click', () => {
+  renderer?.setQuality(button.dataset.quality);
+  document.querySelectorAll('[data-quality]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+}));
 
 fields.occupancy.addEventListener('input', () => { document.querySelector('#occupancy-value').value = `${fields.occupancy.value}%`; });
 fields.template.addEventListener('change', updateTemplateLabels);

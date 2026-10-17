@@ -6,6 +6,7 @@ import { formatServerQuantity } from '../capacityResultsModel';
 import { formatFleet } from '../displayNumber';
 import { fieldPresentation, statusLabel } from '../presentation';
 import Simulation2DReport from './Simulation2DReport';
+import CinematicScene from './CinematicScene';
 
 const acquisitionLabel = { PURCHASE: 'Покупка', RAAS: 'Аренда роботов' };
 const uncertaintyLabel = { PESSIMISTIC: 'Пессимистичный', BASE: 'Базовый', OPTIMISTIC: 'Оптимистичный' };
@@ -44,7 +45,11 @@ export default function GuestWarehouseDemo({ onContinue, onBack }) {
 
     <section className="guest-demo-simulation" aria-label="Сохранённая симуляция">
       <div className="guest-demo-stage-heading"><div><span className="guest-demo-step">02 · РАБОТА СКЛАДА</span><h2>{selectedScenario === 'base' ? 'Обычная нагрузка' : 'Нагрузка +20 %'}</h2></div><p>Переключите 2D и 3D прямо в сцене. Показывается сохранённый физический расчёт выбранного варианта.</p></div>
-      <Simulation2DReport key={simulation.request.request_id} request={simulation.request} initialReport={simulation.report} autoPlay initialViewMode="3D" compact />
+      <CinematicScene selectedScenario={selectedScenario} onSelectScenario={setSelectedScenario}
+        fleet={demo.capacity.value.selected_fleet} queue={simulation.report.queue.maximum_jobs}
+        npv={formatServerMoney(currentPurchase?.npv_project?.value)} resultDigest={demo.result_digest}>
+        <Simulation2DReport key={simulation.request.request_id} request={simulation.request} initialReport={simulation.report} autoPlay initialViewMode="3D" compact />
+      </CinematicScene>
       <p className="guest-demo-simulation-note">2D и 3D показывают один сохранённый сценарий. Координаты условные; показатели взяты из отчёта симуляции. Рост спроса заново пересчитал парк и экономику.</p>
     </section>
 

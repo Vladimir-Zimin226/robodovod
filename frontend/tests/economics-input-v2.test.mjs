@@ -67,6 +67,21 @@ test('current UI keeps unknown project policy fields in v6 partial input', () =>
   assert.equal(result.input.work_share, null);
 });
 
+test('itemized implementation costs use v7 without turning unknown into zero', () => {
+  const implementationLines = {
+    DELIVERY: { status: 'USER_ESTIMATE', amount: '150000', source_ref: 'Смета 17.10.2026' },
+    COMMISSIONING: { status: 'UNKNOWN', amount: null },
+    INTEGRATION: { status: 'EXPLICIT_ZERO', amount: '0', explanation: 'Работа включена' },
+  };
+  const result = buildPartialEconomicsRunRequest({
+    values: { ...values, implementationCost: '', implementationLines }, capacityRequest,
+    project: { id: 'project.1' }, scenario: { id: 'scenario.1' }, projectPolicyMode: true,
+  });
+  assert.equal(result.input.schema_version, 'economics-explicit-inputs-v7');
+  assert.equal(result.input.implementation_cost_total_gross, null);
+  assert.deepEqual(result.input.implementation_lines, implementationLines);
+});
+
 test('partial economics does not silently select the first of two roles', () => {
   const request = { ...capacityRequest, process: { ...capacityRequest.process,
     role_refs: ['role.driver', 'role.loader'] } };
