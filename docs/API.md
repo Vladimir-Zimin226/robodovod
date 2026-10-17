@@ -10,9 +10,11 @@ Backend — FastAPI. Точные типы запросов и ответов б
 | Ввод и каталог | `POST /api/v2/calculation-intake/normalize`; `GET /api/catalog/models` и `/positions/{position_id}`. |
 | Физический расчёт | `POST /api/v2/capacity-analyses`; `GET /api/v2/capacity-analyses/{run_id}`. |
 | Денежный расчёт | `POST /api/v2/projects/{project_id}/economics-runs`; `POST .../economics-runs/preview`; `POST .../economics-runs/{run_id}/replay`. |
-| РД-помощник | `POST /api/assistant/service` — локальные версионированные ответы по интерфейсу. |
+| РД-помощник | `POST /api/assistant/service` — свободный диалог через Yandex Cloud с поиском по справке, методике и активному каталогу. |
 | История и экспорт | `GET /api/projects/{project_id}/analysis-runs` и `/{run_id}`; `GET .../{run_id}/exports/investor-report.pdf`, `/investor-report-preview.pdf`, `/evidence.zip`. |
 | Администратор каталога | `/api/admin/catalog`: версии, разделы, импорт JSON, validate, publish, activate и audit. |
+
+Для `POST /api/assistant/service` передайте `message` (2–2000 символов) и, при продолжении диалога, до восьми предыдущих сообщений `history: [{"role":"user|assistant","content":"..."}]`. Ответ `service-assistant-chat-v2` содержит `reply` и список найденных `sources` с заголовками и ссылками на карточки, когда они есть. История не сохраняется сервером и не меняет проект. Ключ `YC_API_KEY` и папка `YC_FOLDER_ID` обязательны; модель задаётся `RD_ASSISTANT_MODEL` (по умолчанию `yandexgpt/latest`). При отсутствии конфигурации сервер возвращает 503, при недоступности модели 502/504.
 
 `/ready` может вернуть 200 при ещё не импортированном каталоге. `discovery` нужен для просмотра каталога, `capacity` — для нового расчёта парка, отдельный economics route — для нового денежного расчёта. Legacy `runtime` маршруты на organizer bundle остаются недоступны. Статусы активации проверяются tools CLI из [инструкции запуска](GETTING_STARTED.md).
 

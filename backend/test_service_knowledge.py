@@ -45,6 +45,10 @@ def test_unknown_and_robot_specific_question_do_not_invent_model_facts():
 def test_service_route_is_guest_accessible_and_project_scoped(monkeypatch):
     import main
 
+    monkeypatch.setattr(assistant, "answer_chat", lambda message, history, snapshot: {
+        "schema_version": "service-assistant-chat-v2", "reply": "Начните с объекта.", "sources": [],
+    })
+
     def fake_session():
         yield SimpleNamespace(scalar=lambda query: None)
 
@@ -53,7 +57,7 @@ def test_service_route_is_guest_accessible_and_project_scoped(monkeypatch):
         with TestClient(main.app) as client:
             guest = client.post("/api/assistant/service", json={"message": "С чего начать?"})
             assert guest.status_code == 200
-            assert guest.json()["topic_id"] == "start"
+            assert guest.json()["schema_version"] == "service-assistant-chat-v2"
 
             project_id = str(uuid.uuid4())
             project = client.post("/api/assistant/service", json={"message": "С чего начать?", "project_id": project_id})

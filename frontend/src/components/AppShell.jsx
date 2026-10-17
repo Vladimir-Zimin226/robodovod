@@ -123,7 +123,7 @@ export function AppShell({ phase, user, activeProject, objectType, journeyMode, 
           </aside>}
         </div>
       </div>
-      <RDAssistantWidget activeProject={activeProject} phase={phase} onNavigate={onNavigate} />
+      <RDAssistantWidget />
     </div>
   );
 }

@@ -1,19 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import knowledge from '../../../contracts/service-assistant-knowledge-v1.json' with { type: 'json' };
 import AppIcon from './AppIcon';
 
 const API = import.meta.env.VITE_API_URL || '';
 
-const STEP_HELP = {
-  onboarding: ['С чего начать оценку роботизации?', 'Что показывает демо?', 'Как начать без регистрации?'],
-  intake: ['Какие данные нужны для первого расчёта?', 'Сколько паллет за рейс?', 'Что такое зона?'],
-  robots: ['Как сравнить модели роботов?', 'Что показывает 2D и 3D?', 'Как найти робота в каталоге?'],
-  money: ['Чем допущение отличается от факта?', 'Почему стоимость внедрения неполная?', 'Как сравнить покупку с арендой?'],
-  results: ['Почему отчёт частичный?', 'Где найти сохранённый отчёт?', 'Почему нет NPV?'],
-};
-const NEXT_STEP = { onboarding: ['Перейти к работе', 'calculation'], robots: ['Перейти к деньгам', 'money'], money: ['Посмотреть результат', 'results'], results: ['Открыть проекты', 'projects'] };
-
-export default function RDAssistantWidget({ activeProject, phase, onNavigate }) {
+export default function RDAssistantWidget() {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [turns, setTurns] = useState([]);
@@ -22,6 +12,7 @@ export default function RDAssistantWidget({ activeProject, phase, onNavigate }) 
   const input = useRef(null);
   const launcher = useRef(null);
   const wasOpen = useRef(false);
+  const end = useRef(null);
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -33,53 +24,55 @@ export default function RDAssistantWidget({ activeProject, phase, onNavigate }) 
     else if (wasOpen.current) launcher.current?.focus();
     wasOpen.current = open;
   }, [open]);
+  useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [turns, busy]);
 
-  const send = async (event, suggested = '') => {
+  const send = async (event) => {
     event?.preventDefault();
-    const question = (suggested || message).trim();
-    if (busy || question.length < 3) return;
+    const question = message.trim();
+    if (busy || question.length < 2) return;
     setBusy(true); setError('');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55000);
     try {
       const response = await fetch(`${API}/api/assistant/service`, { method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: question }) });
+        headers: { 'Content-Type': 'application/json' }, signal: controller.signal,
+        body: JSON.stringify({ message: question, history: turns.slice(-8).map(({ role, text }) => ({ role, content: text })) }) });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok || body.schema_version !== knowledge.version || !Array.isArray(body.actions)) {
-        throw new Error('Справка временно недоступна. Попробуйте ещё раз.');
+      if (!response.ok) {
+        throw new Error(typeof body.detail === 'string' ? body.detail : 'Помощник временно недоступен. Повторите вопрос.');
       }
+      if (body.schema_version !== 'service-assistant-chat-v2' || typeof body.reply !== 'string') throw new Error('Ответ помощника не удалось прочитать.');
       setTurns((current) => [...current, { role: 'user', text: question },
-        { role: 'assistant', text: body.reply, actions: body.actions }].slice(-20));
+        { role: 'assistant', text: body.reply, sources: Array.isArray(body.sources) ? body.sources : [] }].slice(-20));
       setMessage('');
-    } catch (failure) { setError(failure.message); }
-    finally { setBusy(false); input.current?.focus(); }
+    } catch (failure) { setError(failure.name === 'AbortError' ? 'Ответ задерживается. Повторите вопрос.' : failure.message); }
+    finally { clearTimeout(timeout); setBusy(false); input.current?.focus(); }
   };
 
-  const follow = (id) => {
-    setOpen(false);
-    onNavigate({ id: ({ demo: 'demo', calculation: 'calculation', catalog: 'library', projects: 'projects', result: 'results', robots: 'robots', money: 'money' })[id] || 'home' });
-  };
   return <div className="rd-help">
     <button ref={launcher} type="button" className="rd-help-launcher" aria-label={open ? 'Закрыть РД-помощника' : 'Открыть РД-помощника'}
       aria-expanded={open} aria-controls="rd-help-dialog" title="Открыть помощника" onClick={() => setOpen((value) => !value)}><AppIcon name="assistant" size={30} /></button>
     {open && <section id="rd-help-dialog" className="rd-help-dialog" role="dialog" aria-modal="false" aria-label="РД-помощник"
       onKeyDown={(event) => { if (event.key === 'Escape') setOpen(false); }}>
-      <header><div><strong>РД-помощник</strong><small>Помощь по сервису · {activeProject?.name || 'гостевой режим'}</small></div>
+      <header><div><strong>РД-помощник</strong><small>Сервис · роботы · экономика</small></div>
         <button type="button" aria-label="Закрыть чат" onClick={() => setOpen(false)}>×</button></header>
       <div className="rd-help-turns" role="log" aria-live="polite">
-        {!turns.length && <><p>Я помогу пройти текущий шаг и объясню, откуда берутся показатели.</p>
-          <div className="rd-help-starters">{(STEP_HELP[phase] || knowledge.starters.slice(0, 3)).map((question) => <button type="button" key={question}
-            onClick={() => send(null, question)} disabled={busy}>{question}</button>)}</div></>}
+        {!turns.length && <p>Здравствуйте! Я помогу разобраться в сервисе, роботах и экономике. Задайте любой вопрос.</p>}
         {turns.map((turn, index) => <article key={`${index}-${turn.role}`} className={turn.role}>
           <small>{turn.role === 'user' ? 'Вы' : 'РД-помощник'}</small><p>{turn.text}</p>
-          {turn.actions?.map((action) => <button type="button" key={action.id} onClick={() => follow(action.id)}>{action.label} →</button>)}
+          {!!turn.sources?.length && <details className="rd-help-sources"><summary>Материалы по теме</summary><ul>{turn.sources.map((source, sourceIndex) =>
+            <li key={`${source.title}-${sourceIndex}`}>{source.url ? <a href={source.url}>{source.title}</a> : source.title}</li>)}</ul></details>}
         </article>)}
+        {busy && <p className="rd-help-wait" role="status">Думаю над ответом…</p>}
+        <div ref={end} />
       </div>
-      {NEXT_STEP[phase] && <button type="button" className="rd-help-next" onClick={() => follow(NEXT_STEP[phase][1])}>{NEXT_STEP[phase][0]} <AppIcon name="arrow" size={16} /></button>}
       <form onSubmit={send}><label className="sr-only" htmlFor="rd-help-question">Вопрос РД-помощнику</label>
-        <textarea id="rd-help-question" ref={input} rows="2" maxLength="400" value={message}
-          onChange={(event) => setMessage(event.target.value)} placeholder="Например: почему стоимость неполная?" />
-        <button type="submit" disabled={busy || message.trim().length < 3}>{busy ? '…' : 'Отправить'}</button></form>
+        <textarea id="rd-help-question" ref={input} rows="2" maxLength="2000" value={message}
+          onChange={(event) => setMessage(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); } }}
+          placeholder="Напишите вопрос…" />
+        <button type="submit" disabled={busy || message.trim().length < 2}>{busy ? '…' : 'Отправить'}</button></form>
       {error && <p className="rd-help-error" role="alert">{error}</p>}
-      <small className="rd-help-note">Помощник объясняет сервис. Расчёт и данные проекта он не меняет.</small>
+      <small className="rd-help-note">Помощник использует Yandex Cloud. Не отправляйте личные или закрытые данные. Расчёты он не меняет.</small>
     </section>}
   </div>;
 }

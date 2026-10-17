@@ -24,7 +24,7 @@ from persistence_models import Project
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from service_knowledge import answer_service_question
+from service_chat import answer_chat
 
 
 WEB_SEARCH_URL = "https://searchapi.api.cloud.yandex.net/v2/web/search"
@@ -104,8 +104,16 @@ class WebSearchRequest(BaseModel):
 
 
 class ServiceQuestionRequest(BaseModel):
-    message: str = Field(min_length=3, max_length=400)
+    message: str = Field(min_length=2, max_length=2000)
+    history: list[dict[str, str]] = Field(default_factory=list, max_length=8)
     project_id: uuid.UUID | None = None
+
+    @model_validator(mode="after")
+    def validate_history(self) -> "ServiceQuestionRequest":
+        for turn in self.history:
+            if set(turn) != {"role", "content"} or turn["role"] not in {"user", "assistant"} or len(turn["content"]) > 2000:
+                raise ValueError("invalid chat history")
+        return self
 
 
 class AssistantFieldV1(BaseModel):
@@ -389,8 +397,16 @@ def create_solution_assistant_router(load_snapshot: Callable[[], CatalogSnapshot
     @router.post("/service")
     def service(payload: ServiceQuestionRequest, request: Request, db: Session = Depends(database_session)):
         subject = _owned_project(payload.project_id, request, db, csrf=payload.project_id is not None)
-        _LIMITER.check("service", subject or (request.client.host if request.client else "unknown"), 60)
-        return answer_service_question(payload.message)
+        _LIMITER.check("service", subject or (request.client.host if request.client else "unknown"), 20)
+        try:
+            snapshot = load_snapshot()
+        except (FileNotFoundError, RuntimeError, ValueError):
+            snapshot = None
+        except HTTPException as exc:
+            if exc.status_code != 503:
+                raise
+            snapshot = None
+        return answer_chat(payload.message, payload.history, snapshot)
 
     @router.post("/catalog")
     def catalog(payload: AssistantRequest, request: Request, db: Session = Depends(database_session)):

@@ -500,6 +500,12 @@ button:disabled { cursor: not-allowed; }
 .rd-help-dialog form button:disabled { opacity: .5; cursor: default; }
 .rd-help-note, .rd-help-error { margin: 0 12px 12px; }
 .rd-help-error { color: #ffb4a3; }
+.rd-help-wait { color: #d9ffd7; margin: 4px 0; }
+.rd-help-sources { margin-top: 8px; color: #bbd5c8; font-size: 12px; }
+.rd-help-sources summary { cursor: pointer; }
+.rd-help-sources ul { margin: 6px 0 0; padding-left: 17px; }
+.rd-help-sources li { margin: 4px 0; }
+.rd-help-sources a { color: #c7f6a5; }
 @media (max-width: 600px) { .rd-help { right: 12px; bottom: 12px; }.rd-help-launcher { width: 58px; height: 58px; }.rd-help-dialog { bottom: 68px; max-height: calc(100dvh - 85px); } }
 
 .panel { background: linear-gradient(145deg, rgba(18,29,35,.98), rgba(12,22,27,.98)); border: 1px solid var(--border-subtle); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
