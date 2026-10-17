@@ -211,8 +211,9 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const roleRefs = capacityRequest?.process?.role_refs || [];
   const process = capacityRequest?.process;
   const processLabel = PROCESS_DEFINITIONS.find((item) => item.code === process?.process_code)?.label || 'выбранном процессе';
-  const selectedRole = capacityRequest?.role_pool?.roles?.find((item) => item.role_id === (values.primaryRoleId || roleRefs[0]));
-  const roleLabel = roleName(selectedRole?.role_code).toLowerCase();
+  const selectedRoleId = values.primaryRoleId || (roleRefs.length === 1 ? roleRefs[0] : null);
+  const selectedRole = capacityRequest?.role_pool?.roles?.find((item) => item.role_id === selectedRoleId);
+  const roleLabel = selectedRole ? roleName(selectedRole.role_code).toLowerCase() : 'выбранной роли';
   const estimateShown = manualEstimate?.status === 'ESTIMATE'
     ? formatDecimal(manualEstimate.value) : null;
   return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={(event) => event.preventDefault()} noValidate aria-label="Расчёт экономики роботизации">
@@ -310,9 +311,9 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         {(values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER') && <label className="flex gap-2"><input type="checkbox" checked={values.qualifiedTechTransfer} onChange={set('qualifiedTechTransfer')} />Подтверждаю квалификацию переводимого сотрудника для техподдержки</label>}
         <p>Зарплата или стоимость услуги запрашивается ниже только для непокрытой функции. Неизвестная стоимость даёт частичный результат; выбор и источник сохраняются в новом расчёте.</p>
       </div>}
-      {group === 'Труд' && roleRefs.length > 1 && <label className="block mt-3 text-sm">Основная роль процесса
-        <select value={values.primaryRoleId} onChange={(event) => setValues((current) => changeManualProductivityRole(current, event.target.value))} className="w-full border rounded p-2"><option value="">Неизвестно</option>{roleRefs.map((id, index) => <option key={id} value={id}>{roleName(capacityRequest?.role_pool?.roles?.find((role) => role.role_id === id)?.role_code) || `Роль ${index + 1}`}</option>)}</select>
-        <small>Для сравнения труда; источник — введённые роли процесса.</small></label>}
+      {group === 'Труд' && roleRefs.length > 1 && <div className="block mt-3 rounded border border-amber-400 bg-amber-50 p-3 text-sm"><label>Чью работу заменяет эта операция?
+        <select id="economics-primary_role_id" value={values.primaryRoleId} onChange={(event) => setValues((current) => changeManualProductivityRole(current, event.target.value))} className="w-full border rounded p-2"><option value="">Не выбрано — труд и деньги останутся частичными</option>{roleRefs.map((id, index) => <option key={id} value={id}>{roleName(capacityRequest?.role_pool?.roles?.find((role) => role.role_id === id)?.role_code) || `Роль ${index + 1}`}</option>)}</select></label>
+        <small>Для выбранной роли рассчитываются возможное высвобождение и ФОТ-эффект. Другие роли этой операции сохраняются в объекте, но их экономия требует отдельной модели работы и пока не входит в итог. Для других операций создайте отдельные расчёты.</small></div>}
       {group === 'Труд' && <div className="mt-3 rounded border border-teal-300 p-3 text-sm" aria-label="Оценка ручной выработки">
         <strong>Выработка одного сотрудника {roleLabel} в процессе «{processLabel}»</strong>
         <p>Объём: {presentationValue('', process?.demand?.normalized_value, process?.demand?.unit)}; смен: {formatDecimal(process?.schedule?.shifts_per_day?.normalized_value) ?? 'неизвестно'}; показатель определяет потребность в персонале и экономию оплаты труда только выбранной роли.</p>
@@ -328,7 +329,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
               <div><dt>Груз за рейс</dt><dd>{formatDecimal(manualEstimate.inputs.units_per_trip) ?? 'неизвестно'} ед.</dd></div>
             </>}
           </dl><small>Источник: допущения типового процесса. Полная методика сохранена в архиве.</small></div>}
-        {manualEstimate?.status === 'ESTIMATE' && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => applyManualProductivityEstimate(current, manualEstimate))}>Взять оценку как допущение и подтвердить ниже</button>}
+        {manualEstimate?.status === 'ESTIMATE' && selectedRoleId && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => applyManualProductivityEstimate(current, manualEstimate))}>Взять оценку как допущение для выбранной роли</button>}
         {manualEstimate?.status === 'UNSUPPORTED' && <p className="mt-2 text-amber-800">Для этого процесса нет утверждённой оценки ручной выработки. Введите измеренную норму; расчёт без неё останется частичным.</p>}
         {process?.scope === 'CLEANING_AREA' && <p className="mt-2">Для уборки укажите ручную выработку за смену; оценка реестра доступна как предварительное допущение.</p>}
       </div>}

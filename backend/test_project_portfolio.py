@@ -1,3 +1,11 @@
+from dataclasses import replace
+from decimal import Decimal
+
+import pytest
+
+from calculation.service import analyze_capacity
+from calculation_contracts import CapacityAnalysisRequest
+from economics_orchestrator import EconomicsExecutionContextV1
 from economics_partial import execute_partial_economics_v2
 from project_portfolio import calculate_project_portfolio
 from test_economics_partial import _context
@@ -91,11 +99,52 @@ def test_purchase_only_advanced_input_can_enter_project_without_raas_contract():
     assert report["status"] == "CALCULATED"
     assert Decimal(report["project_capex_rub"]) > 0
 
-from dataclasses import replace
-from decimal import Decimal
 
-import pytest
+def test_second_selected_role_is_visible_as_unassessed_in_project_economics():
+    snapshot, original = _context()
+    payload = original.capacity_request.model_dump(mode="json")
+    payload["process"]["role_refs"].append("role.loader")
+    loader = {**payload["role_pool"]["roles"][0], "role_id": "role.loader",
+              "role_code": "loader"}
+    payload["role_pool"]["roles"].append(loader)
+    request = CapacityAnalysisRequest.model_validate(payload)
+    calculated = analyze_capacity(request, snapshot, "run.capacity.two.roles")
+    context = EconomicsExecutionContextV1(
+        run_id="run.economics.two.roles", project_id=original.project_id,
+        tenant_id=original.tenant_id, capacity_request=request,
+        capacity_response=calculated.response,
+        constraint_report=calculated.constraints.model_dump(mode="json"),
+        executability=calculated.executability.model_dump(mode="json"))
+    raw = {**project_input(), "primary_role_id": "role.driver"}
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    report = calculate_project_portfolio(
+        [(context, raw, result)], snapshot, project_id=context.project_id,
+        tenant_id=context.tenant_id, run_id="run.project.two.roles")
+    assert report["schema_version"] == "project-portfolio-economics-v2"
+    assert report["status"] == "PARTIAL"
+    roles = {item["role_code"]: item for item in report["role_effects"]}
+    assert roles["forklift_driver"]["status"] == "CALCULATED"
+    assert roles["loader"]["status"] == "NOT_CALCULATED"
+    assert roles["loader"]["released"] is None
+    assert report["unassessed_roles"] == [roles["loader"]]
 
-from calculation.service import analyze_capacity
-from calculation_contracts import CapacityAnalysisRequest
-from economics_orchestrator import EconomicsExecutionContextV1
+
+def test_blocked_operation_roles_remain_visible_in_project_economics():
+    snapshot, context = _context()
+    raw = project_input()
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    report = calculate_project_portfolio(
+        [(context, raw, result)], snapshot, project_id=context.project_id,
+        tenant_id=context.tenant_id, run_id="run.project.blocked.roles",
+        excluded_operations=[
+            {"process_id": "process.blocked.driver", "role_refs": ["role.driver"]},
+            {"process_id": "process.blocked.picker", "role_refs": ["role.picker"]},
+        ])
+    roles = {item["role_id"]: item for item in report["role_effects"]}
+    assert report["status"] == "PARTIAL"
+    assert roles["role.driver"]["status"] == "PARTIAL"
+    assert roles["role.driver"]["released"] is not None
+    assert roles["role.driver"]["excluded_process_ids"] == ["process.blocked.driver"]
+    assert roles["role.picker"]["status"] == "NOT_CALCULATED"
+    assert roles["role.picker"]["released"] is None
+    assert {item["role_id"] for item in report["unassessed_roles"]} == {"role.driver", "role.picker"}

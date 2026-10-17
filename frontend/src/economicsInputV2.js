@@ -79,6 +79,7 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
     throw new Error('Откройте сохранённый расчёт мощности C11 и сценарий проекта.');
   }
   const optional = (value) => String(value ?? '').trim() || null;
+  const roleRefs = capacityRequest.process?.role_refs || [];
   const staffing = (technicianMode) => values.controlMode && technicianMode ? {
     control_mode: values.controlMode,
     technician_mode: technicianMode,
@@ -93,7 +94,9 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
   const fields = {
     evaluation_date: optional(values.evaluationDate), horizon_years: optional(values.horizonYears),
     discount_rate: optional(values.discountRate),
-    primary_role_id: optional(values.primaryRoleId) || capacityRequest.process?.role_refs?.[0] || null,
+    // A choice among several roles changes the labour effect. Never use the
+    // checkbox order as an implicit economic decision.
+    primary_role_id: optional(values.primaryRoleId) || (roleRefs.length === 1 ? roleRefs[0] : null),
     manual_units_per_shift: optional(values.manualUnitsPerShift),
     role_salaries_confirmed_as_monthly_gross: values.grossConfirm === true,
     salary_basis: values.salaryBasis || 'GROSS',

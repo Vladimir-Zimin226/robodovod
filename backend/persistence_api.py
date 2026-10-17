@@ -1984,7 +1984,8 @@ def create_persistence_router(
             item = {'process_id': process.process_id, 'process_code': process.process_code,
                     'scope': process.scope, 'object_kind': process.object_kind,
                     'zone_id': row.zone_id, 'zone_label': row.zone_label,
-                    'demand': process.demand.model_dump(mode='json')}
+                    'demand': process.demand.model_dump(mode='json'),
+                    'role_refs': list(process.role_refs)}
             if (row.run_id is None) == (row.blocker is None):
                 raise HTTPException(status_code=422, detail='each operation needs one run or one blocker')
             if row.blocker is not None:
@@ -2008,6 +2009,7 @@ def create_persistence_router(
                 if (saved.get('input_revision') != payload.input_revision or
                     saved_process.get('process_id') != process.process_id or
                     saved_process.get('scope') != process.scope or
+                    saved_process.get('role_refs') != list(process.role_refs) or
                     saved_process.get('demand') != process.demand.model_dump(mode='json') or
                     saved_zone.get('zone_id') != row.zone_id or
                     (run.result_snapshot.get('capacity') or {}).get('process_id') != process.process_id or
@@ -2109,16 +2111,20 @@ def create_persistence_router(
         try:
             report = calculate_project_portfolio(
                 prepared, catalog, project_id=str(project_id), tenant_id=str(context.user.id),
-                run_id=f'run.{payload.new_batch_id}')
+                run_id=f'run.{payload.new_batch_id}', excluded_operations=excluded)
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from None
         snapshot = {key: value for key, value in batch.snapshot.items() if key not in {'project_economics', 'status'}}
-        snapshot['status'] = 'PROJECT_ECONOMICS_PARTIAL' if excluded else 'PROJECT_ECONOMICS'
+        incomplete_roles = report['unassessed_roles']
+        partial = bool(excluded or incomplete_roles)
+        snapshot['status'] = 'PROJECT_ECONOMICS_PARTIAL' if partial else 'PROJECT_ECONOMICS'
         snapshot['parent_batch_id'] = str(batch_id)
         snapshot['project_economics'] = {
-            'status': 'PARTIAL' if excluded else 'CALCULATED',
-            'reason': 'Экономика рассчитана только для покрытых операций; перечисленные ниже процессы исключены из денежных итогов.' if excluded else 'Общая экономика проекта рассчитана по выбранным моделям; общие роли и расходы площадки учтены один раз.',
-            'excluded_processes': [{'process_id': item['process_id'], 'reason': item.get('blocker') or 'Парк не рассчитан'} for item in excluded],
+            'status': 'PARTIAL' if partial else 'CALCULATED',
+            'reason': ('Экономика частичная: непокрытые операции или роли без отдельного трудового эффекта исключены из соответствующих статей. '
+                       'Общие роли и расходы площадки учтены один раз.') if partial else 'Общая экономика проекта рассчитана по выбранным моделям; общие роли и расходы площадки учтены один раз.',
+            'excluded_processes': [{'process_id': item['process_id'], 'role_refs': item.get('role_refs') or [],
+                                    'reason': item.get('blocker') or 'Парк не рассчитан'} for item in excluded],
             'economics_run_ids': {key: str(value) for key, value in payload.economics_run_ids.items()},
             'report': report,
         }
@@ -2148,6 +2154,7 @@ def create_persistence_router(
             lines.extend([(f"Операция: {item['process_id']}", 'section'),
                           (f"Зона: {item['zone_label']}", 'body'),
                           (f"Профиль: {item['scope']}", 'body'),
+                          (f"Роли: {', '.join(item.get('role_refs') or []) or 'не указаны'}", 'body'),
                           (f"Объём: {item['demand'].get('normalized_value') or 'неизвестно'} {item['demand'].get('unit') or ''}", 'body'),
                           (f"Состояние: {item['status']}", 'body'),
                           (f"Расчёт: {item.get('run_id') or item.get('blocker') or ''}", 'body')])
@@ -2162,15 +2169,17 @@ def create_persistence_router(
         lines.append((f"Экономика проекта: {data['project_economics']['reason']}", 'note'))
         report = data['project_economics'].get('report') or {}
         if report:
-            lines.extend([(f"Капитальные затраты проекта: {report.get('project_capex_rub')} RUB", 'body'),
-                          (f"NPV проекта: {report.get('project_npv_rub')} RUB", 'body'),
-                          (f"ROI проекта за горизонт: {report.get('project_net_roi_percent') or 'не определён'} %", 'body'),
+            lines.extend([(f"Капитальные затраты рассчитанного охвата: {report.get('project_capex_rub')} RUB", 'body'),
+                          (f"NPV рассчитанного охвата: {report.get('project_npv_rub')} RUB", 'body'),
+                          (f"ROI рассчитанного охвата за горизонт: {report.get('project_net_roi_percent') or 'не определён'} %", 'body'),
                           (f"Эффект в первом году: {report.get('first_year_effect_rub')} RUB", 'body'),
                           (f"Высвобождено сотрудников: {report.get('total_released_people')}", 'body'),
                           (f"Электроэнергия за первый год: {report.get('first_year_energy_rub')} RUB", 'body'),
                           (f"Пиковая мощность зарядки: {report.get('peak_charging_power_kw') if report.get('peak_charging_power_kw') is not None else 'неизвестно'} кВт", 'body')])
             for row in report.get('rows', []):
                 lines.append((f"{row['process_id']}: {row['fleet']} × {row['model_id']}; CAPEX {row['direct_capex_rub']} RUB; энергия за первый год {row.get('first_year_energy_rub') or 'неизвестно'} RUB; мощность {row.get('power_w_per_robot')} Вт ({row.get('energy_power_basis')})", 'body'))
+            for role in report.get('role_effects', []):
+                lines.append((f"Роль {role.get('role_code') or role['role_id']}: {role['status']}; высвобождено {role['released'] if role['released'] is not None else 'не рассчитано'}; непокрытые операции {', '.join(role['excluded_process_ids']) or 'нет'}", 'body'))
         return Response(content=_pdf(lines), media_type='application/pdf',
                         headers={'Content-Disposition': f'attachment; filename="operation-batch-{batch_id}.pdf"',
                                  'X-Report-Source-Digest': data['checksum']})

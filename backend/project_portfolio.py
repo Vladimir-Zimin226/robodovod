@@ -58,6 +58,7 @@ def _explicit(raw: dict[str, Any], saved_result: dict[str, Any]) -> Any:
 def calculate_project_portfolio(
     rows: list[tuple[Any, dict[str, Any], dict[str, Any]]], snapshot: Any,
     *, project_id: str, tenant_id: str, run_id: str,
+    excluded_operations: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Combine one complete PURCHASE run per process without averaging models.
 
@@ -85,6 +86,7 @@ def calculate_project_portfolio(
     configurations = []
     cost_rows = []
     seen = set()
+    primary_processes_by_role: dict[str, set[str]] = {}
     for context, inputs, raw in prepared:
         request = context.capacity_request
         response = context.capacity_response
@@ -115,8 +117,11 @@ def calculate_project_portfolio(
             coverage=response.capacity.value.coverage.value,
             capacity_result_digest=semantic_digest(response.capacity),
         )
+        primary_role_id = _primary_role(request, inputs)
+        if primary_role_id is not None:
+            primary_processes_by_role.setdefault(primary_role_id, set()).add(process.process_id)
         processes.append(ProcessLabourInputV1(
-            process=process, capacity=projection, role_id=_primary_role(request, inputs),
+            process=process, capacity=projection, role_id=primary_role_id,
             manual_units_per_shift=_manual_productivity(request, inputs),
         ))
         artifact = _scenario_artifacts(context, inputs, snapshot, "PURCHASE", "BASE")
@@ -149,6 +154,40 @@ def calculate_project_portfolio(
     labour = analyze_role_labour(labour_request)
     if labour.finance_status != "COMPLETE":
         raise ValueError("project-wide labour is incomplete: " + ", ".join(labour.issues))
+    calculated_roles = {item.role_id: item for item in labour.roles}
+    blocked_processes_by_role: dict[str, set[str]] = {}
+    for operation in excluded_operations or []:
+        for role_id in operation.get("role_refs") or []:
+            blocked_processes_by_role.setdefault(role_id, set()).add(operation["process_id"])
+    role_effects = []
+    for role in sorted(roles, key=lambda item: item.role_id):
+        linked = sorted(set(role.process_ids) & seen)
+        blocked = blocked_processes_by_role.pop(role.role_id, set())
+        if not linked and not blocked:
+            continue  # Site-wide control and technical staff are reported separately.
+        included = sorted(primary_processes_by_role.get(role.role_id, set()) & set(linked))
+        excluded = sorted((set(linked) - set(included)) | blocked)
+        result = calculated_roles.get(role.role_id)
+        status = "NOT_CALCULATED" if not included or result is None else "PARTIAL" if excluded else "CALCULATED"
+        role_effects.append({
+            "role_id": role.role_id, "role_code": role.role_code,
+            "headcount": role.headcount.normalized_value if isinstance(role.headcount, KnownQuantity) else None,
+            "status": status, "included_process_ids": included,
+            "excluded_process_ids": excluded,
+            "released": result.released if result is not None and included else None,
+            "annual_direct_rub_per_person": result.money.annual_direct if result is not None and result.money else None,
+            "reason": None if status == "CALCULATED" else "Для этой роли нет подтверждённой отдельной трудовой модели во всех связанных операциях.",
+        })
+    for role_id, process_ids in sorted(blocked_processes_by_role.items()):
+        role_effects.append({
+            "role_id": role_id, "role_code": None, "headcount": None,
+            "status": "NOT_CALCULATED", "included_process_ids": [],
+            "excluded_process_ids": sorted(process_ids), "released": None,
+            "annual_direct_rub_per_person": None,
+            "reason": "Для этой роли нет рассчитанного парка и трудового эффекта.",
+        })
+    role_effects.sort(key=lambda item: item["role_id"])
+    unassessed_roles = [item for item in role_effects if item["status"] != "CALCULATED"]
     shared_capex = first_inputs.shared_site_capital_gross
     shared_annual = first_inputs.shared_annual_cost_gross
     allocation = analyze_multiprocess_allocation(MultiprocessAllocationRequestV1(
@@ -174,7 +213,7 @@ def calculate_project_portfolio(
     peak_charging = (format(sum(Decimal(row['charger_power_kw']) * Decimal(row['charging_simultaneity_fraction'])
                                  * row['fleet'] for row in cost_rows if row['fleet'] > 0), 'f')
                      if charge_inputs_complete else None)
-    return {"schema_version": "project-portfolio-economics-v1", "status": "CALCULATED",
+    return {"schema_version": "project-portfolio-economics-v2", "status": "PARTIAL" if unassessed_roles else "CALCULATED",
             "source_result_digest": semantic_digest(allocation),
             "project_capex_rub": allocation.project_capex_cashflow,
             "project_npv_rub": allocation.npv_project.value,
@@ -183,6 +222,8 @@ def calculate_project_portfolio(
             "simple_payback_years": allocation.simple_payback.value,
             "discounted_payback_years": allocation.discounted_payback.value,
             "total_released_people": allocation.total_released_people,
+            "role_effects": role_effects,
+            "unassessed_roles": unassessed_roles,
             "control_required_once": allocation.control_required_once,
             "technicians_required_once": allocation.technicians_required_once,
             "rows": cost_rows,

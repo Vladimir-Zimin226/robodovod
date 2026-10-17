@@ -67,6 +67,17 @@ test('current UI keeps unknown project policy fields in v6 partial input', () =>
   assert.equal(result.input.work_share, null);
 });
 
+test('partial economics does not silently select the first of two roles', () => {
+  const request = { ...capacityRequest, process: { ...capacityRequest.process,
+    role_refs: ['role.driver', 'role.loader'] } };
+  const unknown = buildPartialEconomicsRunRequest({ values, capacityRequest: request,
+    project: { id: 'project.1' }, scenario: { id: 'scenario.1' }, projectPolicyMode: true });
+  assert.equal(unknown.input.primary_role_id, null);
+  const selected = buildPartialEconomicsRunRequest({ values: { ...values, primaryRoleId: 'role.loader' },
+    capacityRequest: request, project: { id: 'project.1' }, scenario: { id: 'scenario.1' }, projectPolicyMode: true });
+  assert.equal(selected.input.primary_role_id, 'role.loader');
+});
+
 test('staffing choices and qualification are preserved without an invented price', () => {
   const result = buildPartialEconomicsRunRequest({
     values: { ...values, controlMode: 'TRANSFER', controlTransferSupplement: '0',
