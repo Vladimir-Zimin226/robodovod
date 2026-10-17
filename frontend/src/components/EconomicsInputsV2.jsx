@@ -238,8 +238,8 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const estimateShown = manualEstimate?.status === 'ESTIMATE'
     ? formatDecimal(manualEstimate.value) : null;
   return <form className="economics-inputs-v2 mx-auto my-6 max-w-6xl rounded-2xl border p-5 shadow-sm space-y-5" onSubmit={(event) => event.preventDefault()} noValidate aria-label="Расчёт экономики роботизации">
-    <header><h2 className="text-xl font-semibold">Рассчитать экономику</h2>
-      <p className="mt-1 text-sm">Пустое поле — неизвестно, 0 — подтверждённый ноль. Диапазон вводите как 500000..800000: он сохранится, но NPV без точечного значения не считается. Для оценки выберите «Допущение»; она не станет фактом поставщика.</p></header>
+    <header><span className="simple-step-eyebrow">ШАГ 4 ИЗ 5 · ДЕНЬГИ</span><h2 className="text-xl font-semibold">Сколько будет стоить решение?</h2>
+      <p className="mt-1 text-sm">Выберите глубину оценки, затем откройте нужный блок затрат. Пустое поле означает «неизвестно», а ноль требует подтверждения.</p></header>
     <details className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm" aria-label="Источники и полнота входов"><summary>Источники и полнота входов</summary>
       <p>Параметры объекта и расчёт потребного парка показаны в техническом результате со своими источниками. Здесь «Данные пользователя» — ваш ввод; «Допущение для сценария» — предлагаемое или изменённое вами число. Цена каталога и условия аренды остаются неподтверждёнными коммерческими условиями.</p>
       <p className="mt-2">Расчёт парка: {capacityRunId ? 'сохранён' : 'нужен расчёт'} · Труд: {groupCount('Труд').join('/')} · Покупка: {groupCount('Покупка').join('/')} · Аренда: {groupCount('RaaS').join('/')} · Визуализация: {groupCount('Визуализация').join('/')}. Полноту расчёта окончательно проверяет сервер.</p>
@@ -265,6 +265,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         onClick={() => setValues((current) => ({ ...current, calculationDepth: level.code }))}>
         <strong className="block">{level.label}</strong><span className="block text-sm mt-2">{level.description}</span></button>)}
     </div>
+    <div className="economics-cost-overview" aria-label="Три части экономики">
+      <div><span>01</span><strong>Труд</strong><small>Что стоит ручная работа и какие функции останутся</small><b>{groupCount('Труд').join('/')} входов</b></div>
+      <div><span>02</span><strong>Покупка</strong><small>Роботы, доставка, внедрение и эксплуатация</small><b>{depthIndex(values.calculationDepth) >= 1 ? `${groupCount('Покупка').join('/')} входов` : 'Следующий уровень'}</b></div>
+      <div><span>03</span><strong>Аренда</strong><small>Ежемесячный тариф и условия поставщика</small><b>{depthIndex(values.calculationDepth) >= 2 ? `${groupCount('RaaS').join('/')} входов` : 'Полный уровень'}</b></div>
+    </div>
     <section className="rounded-xl border border-lime-400 bg-teal-950 p-4 text-white text-sm" aria-label="Черновые допущения типового объекта">
       <button type="button" disabled={busy} className="rounded-xl bg-lime-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50" onClick={() => {
         const proposed = applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
@@ -274,8 +279,8 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
       }}>Подставить черновые допущения</button>
       <p className="mt-2">Пример предложит часть расходов и условий как сценарные допущения. Доставку, пусконаладку и интеграцию подтвердите отдельно: без них покупка останется частичной. При доступной цене выбранной модели она сохранится как основа, иначе пример предложит условную цену; это не оферта поставщика.</p>
     </section>
-    {['Труд', 'Покупка', 'RaaS', 'Визуализация'].filter((group) => ECONOMICS_DEPTHS.findIndex((level) => level.groups.includes(group)) <= depthIndex(values.calculationDepth)).map((group) => <details open key={group} aria-label={group} className="rounded-xl border p-4">
-      <summary className="font-semibold cursor-pointer">{group}</summary>
+    {['Труд', 'Покупка', 'RaaS', 'Визуализация'].filter((group) => ECONOMICS_DEPTHS.findIndex((level) => level.groups.includes(group)) <= depthIndex(values.calculationDepth)).map((group) => <details defaultOpen={group === 'Труд'} key={group} aria-label={group} className="economics-cost-section rounded-xl border p-4">
+      <summary className="font-semibold cursor-pointer">{group === 'RaaS' ? 'Аренда' : group} <small> · {group === 'Визуализация' ? 'время и условия сцены' : `${groupCount(group).join('/')} входов`}</small></summary>
       {group === 'Покупка' && <div className="mt-3 rounded-xl border border-blue-300 bg-blue-50 p-4 text-sm">
         <strong>Смета выбранного решения</strong>
         <p>{selectedPosition?.position?.name || 'Выбранная модель загружается'} · {fleet ?? '—'} шт.</p>

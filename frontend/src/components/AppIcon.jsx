@@ -13,6 +13,10 @@ const paths = {
   check: <path d="m5 12 4 4L19 6"/>,
   menu: <><path d="M4 7h16M4 12h16M4 17h16"/></>,
   close: <><path d="m6 6 12 12M18 6 6 18"/></>,
+  warehouse: <><path d="M3 9 12 4l9 5v11H3z"/><path d="M3 9h18M7 20v-8h10v8M10 12v8M14 12v8"/></>,
+  airport: <><path d="M3 20h18M5 20V9h14v11M8 9V6h8v3M10 6V4h4v2M8 13h2m4 0h2m-8 3h2m4 0h2"/><path d="m3 8 3-2m15 2-3-2"/></>,
+  clinic: <><path d="M4 20V5h16v15M3 20h18M9 20v-5h6v5M10 8h4m-2-2v4M7 12h2m6 0h2"/></>,
+  assistant: <><path d="M5 5.5A3.5 3.5 0 0 1 8.5 2h7A3.5 3.5 0 0 1 19 5.5v10a3.5 3.5 0 0 1-3.5 3.5H9l-4 3v-6.5z"/><path d="M9 10h.01M15 10h.01M9.5 14c1.5 1.2 3.5 1.2 5 0"/></>,
 };
 
 export default function AppIcon({ name, size = 20, className = '' }) {

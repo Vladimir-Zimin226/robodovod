@@ -298,6 +298,8 @@ export default function App() {
     }
     if (id === 'demo') { showPhase('guestDemo'); return; }
     if (id === 'results') { showPhase(result ? 'results' : 'guestDemo'); return; }
+    if (id === 'robots') { showPhase(result ? 'robots' : 'intake'); return; }
+    if (id === 'money') { showPhase(result ? 'money' : 'intake'); return; }
     if (id === 'process') { window.dispatchEvent(new Event('robodovod:open-help')); return; }
     if (id === 'model' || id === 'expert' || id === 'variants') { showPhase(result ? 'robots' : 'intake'); return; }
     if (id === 'economics') {
@@ -371,7 +373,8 @@ export default function App() {
   };
 
   return (
-    <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
+    <AppShell phase={phase} user={user} activeProject={activeProject} objectType={objectType} journeyMode={journeyMode} result={result}
+      onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
       {['onboarding', 'intake', 'robots', 'money', 'results'].includes(phase) && <Stepper current={currentStep}
         canOpenIntake={Boolean(objectType || activeProject)} canOpenResults={Boolean(result)}
         onSelect={(id) => {
@@ -422,6 +425,7 @@ export default function App() {
           <IntakeScreen
             key={`${activeProject?.id || 'guest'}:${objectType}`}
             objectType={objectType}
+            journeyMode={journeyMode}
             initialCollected={preset}
             initialSources={intakeInitialSources}
             initialPrompt={intakePrompt}
@@ -481,9 +485,9 @@ export default function App() {
           <main className="journey-panel" aria-label="Какие роботы могут подойти?">
             <p className="eyebrow">Шаг 3 из 5</p><h1>Какие роботы могут подойти?</h1>
             <p>Сначала посмотрите расчёт парка и ограничения выбранной модели. Сравнение использует тот же сохранённый расчёт и каталог.</p>
-            {isCapacityAnalysisResponse(result) ? <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
+            {isCapacityAnalysisResponse(result) ? <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} compact />
               : <p>{result ? 'Открыт сохранённый денежный результат. Его модель и ограничения указаны в итоговом отчёте.' : 'Сначала опишите работу и сохраните расчёт потребного парка.'}</p>}
-            {activeProject && evidenceRunId && <CandidateComparisonPanel project={activeProject} capacityRunId={activeRun?.input_snapshot?.capacity_run_id || evidenceRunId} />}
+            {activeProject && evidenceRunId && <details className="simple-robot-comparison"><summary>Сравнить модели и посмотреть источники</summary><CandidateComparisonPanel project={activeProject} capacityRunId={activeRun?.input_snapshot?.capacity_run_id || evidenceRunId} /></details>}
             <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => openCalculation()}>Назад к работе</button>
               <button type="button" className="primary-action" onClick={() => showPhase('money')}>Продолжить к стоимости</button></div>
           </main>

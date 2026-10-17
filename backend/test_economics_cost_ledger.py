@@ -1,6 +1,7 @@
 """New financial runs keep commercial unknowns distinct from confirmed zero."""
 
 from copy import deepcopy
+import json
 
 from economics_cost_ledger import parse_implementation_lines
 from economics_partial import INPUT_VERSION_V7, execute_partial_economics_v2
@@ -31,6 +32,7 @@ def test_missing_commissioning_blocks_purchase_npv_without_erasing_known_subtota
     raw["implementation_lines"]["COMMISSIONING"] = _line("UNKNOWN")
     before = deepcopy(raw)
     result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    json.dumps(result, sort_keys=True)
     assert raw == before
     assert result["implementation_coverage"]["known_subtotal_gross_rub"] == "370000.00"
     assert result["implementation_coverage"]["status"] == "PARTIAL"
@@ -42,6 +44,7 @@ def test_missing_commissioning_blocks_purchase_npv_without_erasing_known_subtota
 def test_explicit_zero_and_itemized_costs_reach_full_result():
     snapshot, context = _context()
     result = execute_partial_economics_v2(_raw(), snapshot, context).result_snapshot
+    json.dumps(result, sort_keys=True)
     assert result["implementation_coverage"]["status"] == "COMPLETE"
     assert result["implementation_coverage"]["known_subtotal_gross_rub"] == "370000.00"
     assert len(result["scenarios"]) == 6

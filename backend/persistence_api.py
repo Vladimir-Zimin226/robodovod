@@ -1674,6 +1674,12 @@ def create_persistence_router(
         except Exception:
             logger.exception("Economics v2 calculation failed before persistence")
             raise HTTPException(status_code=500, detail="economics v2 calculation failed") from None
+        try:
+            result_sha256 = _canonical_sha256(execution.result_snapshot)
+            scenario_spec_sha256 = _canonical_sha256(execution.scenario_spec_snapshot)
+        except (TypeError, ValueError):
+            logger.exception("Economics v2 produced a non-serializable result")
+            raise HTTPException(status_code=500, detail="economics v2 result serialization failed") from None
         run = AnalysisRun(
             id=run_id, project_id=project.id, scenario_id=scenario.id,
             parent_run_id=(source.id if source is not None else (capacity_source.id if capacity_source is not None else None)),
@@ -1699,9 +1705,9 @@ def create_persistence_router(
         run.started_at = utcnow()
         db.commit()
         run.result_snapshot = execution.result_snapshot
-        run.result_sha256 = _canonical_sha256(execution.result_snapshot)
+        run.result_sha256 = result_sha256
         run.scenario_spec_snapshot = execution.scenario_spec_snapshot
-        run.scenario_spec_sha256 = _canonical_sha256(execution.scenario_spec_snapshot)
+        run.scenario_spec_sha256 = scenario_spec_sha256
         run.revision_id = execution.revision_id
         run.diagnostics = {**execution.diagnostics, **({'what_if_save': binding} if binding else {})}
         run.status = "SUCCEEDED"

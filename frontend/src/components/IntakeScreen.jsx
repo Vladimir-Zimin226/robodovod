@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ProjectFileIntake from './ProjectFileIntake';
 import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 
-export default function IntakeScreen({ objectType, initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked,
+export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
   onFileApplied, onIntakeV2Normalized, onCapacityResult }) {
   const [v2FileInput, setV2FileInput] = useState(() => activeProject?.profile?.file_intake_v2?.object_type === objectType
@@ -21,11 +21,12 @@ export default function IntakeScreen({ objectType, initialPrompt = '', importedA
     onFileApplied?.(normalized, imported);
   };
 
-  return <main className="intake-screen min-h-full w-full max-w-[1440px] mx-auto p-4 md:p-6 space-y-4" aria-label="Новый расчёт">
+  return <main className="intake-screen simple-intake min-h-full w-full max-w-[1440px] mx-auto p-4 md:p-6 space-y-4" aria-label="Описание работы">
     <div className="space-y-3">
       <header>
-        <h1 className="text-xl font-bold">Расчёт сценария роботизации</h1>
-        <p className="text-sm text-slate-400">Объект → зоны → процессы и роли → расчёт парка → экономика.</p>
+        <span className="simple-step-eyebrow">ШАГ 2 ИЗ 5 · РАБОТА</span>
+        <h1>Какую работу вы хотите автоматизировать?</h1>
+        <p className="text-sm text-slate-400">Выберите одну операцию и укажите её объём. Подробности можно раскрыть позже.</p>
       </header>
       {initialPrompt && <section className="rounded-xl border p-4 text-sm">
         <h2 className="font-semibold">Ваше описание процесса</h2>
@@ -36,15 +37,16 @@ export default function IntakeScreen({ objectType, initialPrompt = '', importedA
         <h2 className="font-semibold">Для этого объекта расчёт пока не поддержан</h2>
         <p className="mt-2 text-sm">Выберите склад, аэропорт или клинику. Старые сохранённые результаты доступны в проектах для просмотра и экспорта.</p>
         <button type="button" className="primary-action mt-3" onClick={onOpenObjects}>Выбрать поддержанный объект</button>
-      </section> : <>
-        <p className="text-sm">Скачайте шаблон XLSX/CSV и заполните его сами или передайте шаблон вместе с внешним промптом в LLM. Затем загрузите файл, проверьте предложения и подтвердите входы. Числа из LLM не считаются проверенными автоматически.</p>
+      </section> : <details className="simple-advanced-panel">
+        <summary>У меня есть заполненный файл XLSX/CSV</summary>
+        <p className="text-sm">Загрузите шаблон, затем проверьте значения и источники. Числа из внешнего файла не считаются подтверждёнными автоматически.</p>
         <ProjectFileIntake objectType={objectType} project={activeProject}
           scenario={activeProject?.scenarios?.find((item) => item.slot === 'BASE')} onApplied={applyFile} />
         {fileNotice && <p className="text-xs text-amber-300">{fileNotice}</p>}
-      </>}
+      </details>}
     </div>
     {supported && <ProcessRoleIntakeV2 key={`${objectType}:${activeProject?.id || 'guest'}:${v2FileInput?.imported?.id || importedAssistant?.id || 'manual'}`}
-      objectType={objectType} importedFile={v2FileInput} importedAssistant={importedAssistant?.profile} activeProject={activeProject} initialFacilityContext={initialFacilityContext} initialDraft={initialDraft} initialNormalized={initialNormalized} initialCapacityRequest={initialCapacityRequest} focusTarget={focusTarget} onDraftChange={onDraftChange} user={user}
+      objectType={objectType} journeyMode={journeyMode} importedFile={v2FileInput} importedAssistant={importedAssistant?.profile} activeProject={activeProject} initialFacilityContext={initialFacilityContext} initialDraft={initialDraft} initialNormalized={initialNormalized} initialCapacityRequest={initialCapacityRequest} focusTarget={focusTarget} onDraftChange={onDraftChange} user={user}
       authChecked={authChecked} projectChoices={projectChoices} projectStatus={projectStatus}
       onChooseProject={onChooseProject} onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount}
       onNormalized={onIntakeV2Normalized} onCapacityResult={onCapacityResult} />}

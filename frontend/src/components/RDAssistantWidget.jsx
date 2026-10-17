@@ -1,9 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import knowledge from '../../../contracts/service-assistant-knowledge-v1.json' with { type: 'json' };
+import AppIcon from './AppIcon';
 
 const API = import.meta.env.VITE_API_URL || '';
 
-export default function RDAssistantWidget({ activeProject, onNavigate }) {
+const STEP_HELP = {
+  onboarding: ['С чего начать оценку роботизации?', 'Что показывает демо?', 'Как начать без регистрации?'],
+  intake: ['Какие данные нужны для первого расчёта?', 'Сколько паллет за рейс?', 'Что такое зона?'],
+  robots: ['Как сравнить модели роботов?', 'Что показывает 2D и 3D?', 'Как найти робота в каталоге?'],
+  money: ['Чем допущение отличается от факта?', 'Почему стоимость внедрения неполная?', 'Как сравнить покупку с арендой?'],
+  results: ['Почему отчёт частичный?', 'Где найти сохранённый отчёт?', 'Почему нет NPV?'],
+};
+const NEXT_STEP = { onboarding: ['Перейти к работе', 'calculation'], robots: ['Перейти к деньгам', 'money'], money: ['Посмотреть результат', 'results'], results: ['Открыть проекты', 'projects'] };
+
+export default function RDAssistantWidget({ activeProject, phase, onNavigate }) {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [turns, setTurns] = useState([]);
@@ -45,24 +55,25 @@ export default function RDAssistantWidget({ activeProject, onNavigate }) {
 
   const follow = (id) => {
     setOpen(false);
-    onNavigate({ id: ({ demo: 'demo', calculation: 'calculation', catalog: 'library', projects: 'projects', result: 'results' })[id] || 'home' });
+    onNavigate({ id: ({ demo: 'demo', calculation: 'calculation', catalog: 'library', projects: 'projects', result: 'results', robots: 'robots', money: 'money' })[id] || 'home' });
   };
   return <div className="rd-help">
     <button ref={launcher} type="button" className="rd-help-launcher" aria-label={open ? 'Закрыть РД-помощника' : 'Открыть РД-помощника'}
-      aria-expanded={open} aria-controls="rd-help-dialog" onClick={() => setOpen((value) => !value)}>РД<span aria-hidden="true"> · ?</span></button>
+      aria-expanded={open} aria-controls="rd-help-dialog" title="Открыть помощника" onClick={() => setOpen((value) => !value)}><AppIcon name="assistant" size={30} /></button>
     {open && <section id="rd-help-dialog" className="rd-help-dialog" role="dialog" aria-modal="false" aria-label="РД-помощник"
       onKeyDown={(event) => { if (event.key === 'Escape') setOpen(false); }}>
       <header><div><strong>РД-помощник</strong><small>Помощь по сервису · {activeProject?.name || 'гостевой режим'}</small></div>
         <button type="button" aria-label="Закрыть чат" onClick={() => setOpen(false)}>×</button></header>
       <div className="rd-help-turns" role="log" aria-live="polite">
-        {!turns.length && <><p>Спросите, как пройти оценку, проверить допущение или скачать отчёт.</p>
-          <div className="rd-help-starters">{knowledge.starters.slice(0, 4).map((question) => <button type="button" key={question}
+        {!turns.length && <><p>Я помогу пройти текущий шаг и объясню, откуда берутся показатели.</p>
+          <div className="rd-help-starters">{(STEP_HELP[phase] || knowledge.starters.slice(0, 3)).map((question) => <button type="button" key={question}
             onClick={() => send(null, question)} disabled={busy}>{question}</button>)}</div></>}
         {turns.map((turn, index) => <article key={`${index}-${turn.role}`} className={turn.role}>
           <small>{turn.role === 'user' ? 'Вы' : 'РД-помощник'}</small><p>{turn.text}</p>
           {turn.actions?.map((action) => <button type="button" key={action.id} onClick={() => follow(action.id)}>{action.label} →</button>)}
         </article>)}
       </div>
+      {NEXT_STEP[phase] && <button type="button" className="rd-help-next" onClick={() => follow(NEXT_STEP[phase][1])}>{NEXT_STEP[phase][0]} <AppIcon name="arrow" size={16} /></button>}
       <form onSubmit={send}><label className="sr-only" htmlFor="rd-help-question">Вопрос РД-помощнику</label>
         <textarea id="rd-help-question" ref={input} rows="2" maxLength="400" value={message}
           onChange={(event) => setMessage(event.target.value)} placeholder="Например: почему стоимость неполная?" />

@@ -1,5 +1,5 @@
 import { mat4LookAt, mat4Model, mat4Multiply, mat4Perspective } from './math.js';
-import { loadRobotModels } from './glb-model.js';
+import { loadRobotModels, loadEnvironmentModels } from './glb-model.js';
 
 const VERTEX_SHADER = `
 attribute vec3 aPosition;
@@ -161,7 +161,7 @@ export class Renderer {
     this.quality = 'AUTO';
     this.models = {};
     this.modelStatus = 'LOADING';
-    loadRobotModels().then(models => {
+    const installModels = models => {
       for (const [name, groups] of Object.entries(models)) this.models[name] = groups.map(group => {
         const meshBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, meshBuffer);
@@ -170,8 +170,10 @@ export class Renderer {
       });
       gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeBuffer);
       this.bindVertices();
-      this.modelStatus = 'READY';
-    }).catch(error => { this.modelStatus = `FALLBACK: ${error.message}`; });
+    };
+    loadRobotModels().then(models => { installModels(models); this.modelStatus = 'READY'; })
+      .catch(error => { this.modelStatus = `FALLBACK: ${error.message}`; });
+    loadEnvironmentModels().then(installModels).catch(() => { /* Existing primitives remain available. */ });
   }
 
   bindVertices() {
@@ -298,6 +300,17 @@ export class Renderer {
     const material = materialFor(object.type);
     const emission = object.type === 'light' || object.type === 'sign' ? .72 : object.type === 'charger' ? .24 : 0;
     const userBuilt = object.editorId?.startsWith('user:');
+    const distance = this.cameraPosition
+      ? Math.hypot(object.position[0] - this.cameraPosition[0], object.position[2] - this.cameraPosition[2]) : Infinity;
+    const near = this.quality === 'HIGH' ? distance < 28 : distance < 14;
+    const [width, height, depth] = object.scale;
+    const origin = [object.position[0], object.position[1] - height / 2, object.position[2]];
+    if (alpha === 1 && near && (userBuilt || object.meta?.detailed) && object.type === 'rack'
+        && this.model('rack-module', origin, [width / 1.2, height / 2.6, depth], object.yaw || 0)) return;
+    if (alpha === 1 && near && height >= .3 && object.type === 'charger'
+        && this.model('charger-station', origin, [width, height / .72, depth], object.yaw || 0)) return;
+    if (alpha === 1 && near && height >= .3 && object.type === 'cargo' && object.editorKind !== 'rack'
+        && this.model('pallet-load', origin, [width / 1.2, height / .75, depth / .8], object.yaw || 0)) return;
     if (!((userBuilt || object.meta?.detailed) && ['rack', 'fence'].includes(object.type))) this.cube(object.position, object.scale, object.color, object.yaw, material, emission, alpha);
     if (object.type === 'cargo' && !object.meta?.onRack && (userBuilt || object.editorKind !== 'rack')) this.cargoDetails(object);
     if (object.type === 'charger' && !object.meta?.compact) this.chargerDetails(object);

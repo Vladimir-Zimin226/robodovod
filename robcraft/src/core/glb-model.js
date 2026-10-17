@@ -72,13 +72,17 @@ export function decodeGlb(buffer) {
 }
 
 export const ROBOT_ASSET_NAMES = Object.freeze(['pallet-amr', 'forklift', 'cleaning-robot', 'medical-cart']);
+export const ENVIRONMENT_ASSET_NAMES = Object.freeze(['rack-module', 'pallet-load', 'charger-station']);
 
-export async function loadRobotModels(fetcher = fetch) {
-  const entries = await Promise.all(ROBOT_ASSET_NAMES.map(async name => {
-    const url = new URL(`../../public/assets/robots/${name}.glb`, import.meta.url);
+async function loadModels(names, directory, fetcher) {
+  const entries = await Promise.all(names.map(async name => {
+    const url = new URL(`../../public/assets/${directory}/${name}.glb`, import.meta.url);
     const response = await fetcher(url);
     if (!response.ok) throw new Error(`GLB ${name}: HTTP ${response.status}`);
     return [name, decodeGlb(await response.arrayBuffer())];
   }));
   return Object.fromEntries(entries);
 }
+
+export function loadRobotModels(fetcher = fetch) { return loadModels(ROBOT_ASSET_NAMES, 'robots', fetcher); }
+export function loadEnvironmentModels(fetcher = fetch) { return loadModels(ENVIRONMENT_ASSET_NAMES, 'environment', fetcher); }

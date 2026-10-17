@@ -11,6 +11,8 @@ import math
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "robcraft" / "public" / "assets" / "robots"
 OUT.mkdir(parents=True, exist_ok=True)
+ENV_OUT = ROOT / "robcraft" / "public" / "assets" / "environment"
+ENV_OUT.mkdir(parents=True, exist_ok=True)
 
 
 def material(name, color, metallic=0.0, roughness=0.5, emission=None):
@@ -115,17 +117,63 @@ def medical_cart():
     box('status light', (0, -.42, 1.54), (.11, .1, .11), signal, .022)
 
 
-def export(name, build):
+def rack_module():
+    """1.2 m wide, 1 m deep, 2.6 m high; origin at the floor."""
+    for x in (-.54, .54):
+        for y in (-.44, .44):
+            box('rack upright', (x, y, 1.30), (.07, .08, 2.6), blue, .008)
+            box('rack foot plate', (x, y, .025), (.17, .17, .05), steel, .005)
+    for level in (.28, 1.38, 2.46):
+        for y in (-.45, .45):
+            box('safety orange beam', (0, y, level), (1.19, .085, .105), amber, .012)
+        box('ventilated steel shelf', (0, 0, level + .055), (1.09, .89, .035), steel, .005)
+    for z in (.83, 1.93):
+        box('carton on rack', (-.24, 0, z), (.43, .62, .74), cardboard, .018)
+        box('carton on rack', (.25, 0, z), (.43, .62, .74), cardboard, .018)
+        for x in (-.24, .25):
+            box('carton seam', (x, -.315, z + .10), (.31, .006, .014), wood, .002)
+    for x in (-.56, .56):
+        box('height warning marker', (x, -.445, .21), (.012, .014, .32), paint, .003)
+
+
+def pallet_load():
+    """1.2 × 0.8 m pallet and wrapped box load, origin at the floor."""
+    for y in (-.29, 0, .29):
+        box('pallet bearer', (0, y, .075), (1.16, .12, .15), wood, .006)
+    for x in (-.43, -.14, .15, .44):
+        box('pallet deck plank', (x, 0, .17), (.25, .79, .045), wood, .005)
+    for x in (-.29, .29):
+        for y in (-.18, .18):
+            box('boxed goods', (x, y, .46), (.53, .34, .51), cardboard, .022)
+            box('box tape', (x, y - .174, .46), (.055, .007, .48), paint, .002)
+    for x in (-.35, .35):
+        box('shipping band', (x, 0, .73), (.025, .75, .025), dark, .002)
+
+
+def charger_station():
+    """1 × 1 m robot charging bay, floor origin, 0.68 m high."""
+    box('charge floor tray', (0, 0, .045), (.98, .96, .09), dark, .025)
+    for x in (-.37, .37):
+        box('wheel positioning rail', (x, .08, .095), (.07, .62, .09), amber, .015)
+    box('power pedestal', (0, -.34, .38), (.64, .20, .59), blue, .05)
+    box('power pedestal cap', (0, -.34, .69), (.68, .24, .045), steel, .012)
+    box('status screen', (0, -.224, .48), (.37, .014, .16), glass, .008)
+    box('charging status bar', (0, -.214, .60), (.29, .011, .025), signal, .004)
+    for x in (-.24, .24):
+        box('contact plate', (x, -.21, .18), (.12, .045, .12), steel, .008)
+
+
+def export(name, build, output=OUT):
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.object.delete(use_global=False)
     build()
     bpy.ops.object.select_all(action='SELECT')
-    bpy.ops.export_scene.gltf(filepath=str(OUT / f'{name}.glb'), export_format='GLB',
+    bpy.ops.export_scene.gltf(filepath=str(output / f'{name}.glb'), export_format='GLB',
                               use_selection=True, export_apply=True, export_lights=False,
                               export_cameras=False, export_yup=True)
     mesh_count = sum(obj.type == 'MESH' for obj in bpy.context.scene.objects)
     face_count = sum(len(obj.data.polygons) for obj in bpy.context.scene.objects if obj.type == 'MESH')
-    print(f'{name}: {mesh_count} parts, {face_count} faces, {(OUT / (name + ".glb")).stat().st_size} bytes')
+    print(f'{name}: {mesh_count} parts, {face_count} faces, {(output / (name + ".glb")).stat().st_size} bytes')
 
 
 if __name__ == '__main__':
@@ -133,3 +181,10 @@ if __name__ == '__main__':
     for name, build in [('pallet-amr', pallet_amr), ('forklift', forklift),
                         ('cleaning-robot', cleaning), ('medical-cart', medical_cart)]:
         export(name, build)
+    wood = material('sealed pallet timber', (.38, .25, .12), .0, .78)
+    cardboard = material('kraft corrugated board', (.56, .42, .25), .0, .86)
+    blue = material('warehouse blue powder coat', (.07, .22, .37), .48, .46)
+    paint = material('white safety marking', (.82, .87, .75), .06, .64)
+    for name, build in [('rack-module', rack_module), ('pallet-load', pallet_load),
+                        ('charger-station', charger_station)]:
+        export(name, build, ENV_OUT)

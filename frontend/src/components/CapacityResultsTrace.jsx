@@ -6,11 +6,27 @@ import { humanizePresentation, savedCalculationLabel } from '../presentation';
 
 const issueText = (issue) => humanizePresentation(issue.message || issue.code);
 
-export default function CapacityResultsTrace({ response, expectedRevision = null, onRestart, zoneContext = null }) {
+export default function CapacityResultsTrace({ response, expectedRevision = null, onRestart, zoneContext = null, compact = false }) {
   const model = useMemo(
     () => getCapacityResultsModel(response, expectedRevision),
     [response, expectedRevision],
   );
+
+  if (compact) return <section className="simple-capacity-summary" aria-label="Парк и ограничения">
+    <div className="simple-capacity-hero"><span className="simple-step-eyebrow">СОХРАНЁННЫЙ РАСЧЁТ ПАРКА</span>
+      <strong>{formatFleet(model.selectedFleet)}</strong><span>роботов для выбранной работы</span>
+      <p>{model.statusLabel} · {zoneContext?.label || zoneForProcessId(model.processId)}</p></div>
+    <div className="simple-capacity-facts"><div><span>Покрытие объёма</span><strong>{formatServerQuantity(model.coverage)}</strong></div>
+      <div><span>Эффективная производительность</span><strong>{formatServerQuantity(model.effectiveCapacity)}</strong></div>
+      <div><span>Перегрузка</span><strong>{model.overloaded == null ? 'Неизвестно' : model.overloaded ? 'Есть' : 'Нет'}</strong></div></div>
+    <details className="simple-capacity-details"><summary>Что учтено и что ещё проверить</summary>
+      <p>{model.participationLabel}: {model.participationHint}</p>
+      {model.processId?.includes('warehouse_receiving_shipping') && <p>Учтена перевозка подготовленных паллет; отбор коробок и упаковка не рассчитаны.</p>}
+      {[...model.blockers, ...model.warnings].map((issue) => <p key={`${issue.code}-${issue.message}`}>{issueText(issue)}</p>)}
+      {model.assumptions.map((item) => <p key={item.assumption_id}>{humanizePresentation(item.rationale)}</p>)}
+      <p>Зона и операция рассчитаны отдельно. Другие парки и денежные эффекты нельзя складывать без модели общих ресурсов.</p>
+    </details>
+  </section>;
 
   return (
     <main className="capacity-results-v2 max-w-6xl mx-auto p-6 space-y-5" aria-label="Результат расчёта производительности">

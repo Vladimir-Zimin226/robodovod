@@ -527,7 +527,7 @@ def execute_partial_economics_v2(
             if raw.get("schema_version") == INPUT_VERSION_V7:
                 result["implementation_coverage"] = {"lines": values["implementation_lines"],
                     "known_subtotal_gross_rub": values["implementation_known_subtotal"], "status": "COMPLETE",
-                    "evaluation_date": values["evaluation_date"], "input_revision": request.input_revision,
+                    "evaluation_date": values["evaluation_date"].isoformat() if values["evaluation_date"] else None, "input_revision": request.input_revision,
                     "run_id": context.run_id}
             result['staffing_preview'] = staffing_preview
             result['work_share'] = values['work_share'].model_dump(mode='json')
@@ -578,7 +578,7 @@ def execute_partial_economics_v2(
             "known_subtotal_gross_rub": values["implementation_known_subtotal"],
             "status": "PARTIAL" if values["implementation_line_missing"] or values["implementation_cost_total_gross"] is None else "COMPLETE",
             "missing": values["implementation_line_missing"],
-            "evaluation_date": values["evaluation_date"], "input_revision": request.input_revision,
+            "evaluation_date": values["evaluation_date"].isoformat() if values["evaluation_date"] else None, "input_revision": request.input_revision,
             "run_id": context.run_id,
         }
     if raw.get("schema_version") in {INPUT_VERSION_V5, INPUT_VERSION_V6, INPUT_VERSION_V7}:

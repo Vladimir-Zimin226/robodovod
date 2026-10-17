@@ -8,14 +8,29 @@ const NAVIGATION = [
   { id: 'calculation', label: 'Мой объект и расчёт', icon: 'calculator' },
   { id: 'results', label: 'Мой результат', icon: 'chart' },
 ];
+const JOURNEY_NAVIGATION = [
+  { id: 'home', label: 'Объект', icon: 'warehouse' },
+  { id: 'calculation', label: 'Работа', icon: 'process' },
+  { id: 'robots', label: 'Роботы', icon: 'cube' },
+  { id: 'money', label: 'Деньги', icon: 'money' },
+  { id: 'results', label: 'Результат', icon: 'chart' },
+];
+const GUIDE = {
+  onboarding: ['Начнём с главного', 'Выберите объект. Пока не нужны названия моделей, формулы или смета.', 'Готовый пример можно посмотреть без регистрации.'],
+  intake: ['Сначала задача', 'Выберите одну работу и укажите её объём. Расширенные параметры доступны ниже.', 'Для сохранения собственного расчёта нужен проект.'],
+  robots: ['Что показано', 'Сначала смотрите расчётный парк и ограничения. Конкретная модель требует проверки на объекте.', 'Следующий шаг — стоимость.'],
+  money: ['Неизвестное видно', 'Стоимость разделена на оборудование, внедрение и эксплуатацию. Пропущенная статья не становится нулём.', 'Можно сохранить частичный результат.'],
+  results: ['Проверьте вывод', 'Результат показывает парк, доступные денежные ветки и недостающие данные.', 'Сохранённый расчёт можно открыть и уточнить позже.'],
+};
 const TOOL_NAVIGATION = [
   { id: 'economics', label: 'Справочник экономики', icon: 'money' },
   { id: 'report', label: 'Отчёты', icon: 'report' },
 ];
 
-export function AppShell({ phase, user, activeProject, onNavigate, command, setCommand, onCommand, children }) {
+export function AppShell({ phase, user, activeProject, objectType, journeyMode, result, onNavigate, command, setCommand, onCommand, children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isResult = phase === 'results';
+  const isJourney = Object.hasOwn(GUIDE, phase);
   const activeNav = phase === 'onboarding' ? 'home' : phase === 'guestDemo' ? 'demo' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase === 'reports' ? 'report' : phase === 'economicsMethodology' ? 'economics' : phase;
   const initials = (user?.name || user?.email || 'Г')
     .split(/[\s@]+/)
@@ -30,7 +45,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
   };
 
   return (
-    <div className="robodovod-app">
+    <div className={`robodovod-app${isJourney ? ' is-simple-journey' : ''}`}>
       <button className="mobile-menu-button" onClick={() => setMenuOpen((open) => !open)} aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'} aria-expanded={menuOpen}>
         <AppIcon name={menuOpen ? 'close' : 'menu'} />
       </button>
@@ -42,25 +57,26 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
           </div>
           <p>Больше, чем роботы.<br />Доводы до инвестиций.</p>
         </div>
-        <nav className="app-nav">
-          {NAVIGATION.map((item) => (
-            <button key={item.id} onClick={() => navigate(item)} className={item.id === activeNav ? 'active' : ''} aria-current={item.id === activeNav ? 'page' : undefined}>
-              <AppIcon name={item.icon} />
+        {isJourney && <p className="journey-nav-label">ВАШ ПУТЬ</p>}
+        <nav className={`app-nav${isJourney ? ' journey-nav' : ''}`}>
+          {(isJourney ? JOURNEY_NAVIGATION : NAVIGATION).map((item, index) => (
+            <button key={item.id} onClick={() => navigate(item)} className={item.id === activeNav ? 'active' : ''} aria-current={item.id === activeNav ? 'step' : undefined}>
+              {isJourney ? <span className="journey-nav-number">{index + 1}</span> : <AppIcon name={item.icon} />}
               <span>{item.label}</span>
             </button>
           ))}
         </nav>
-        <details className="app-tool-nav" open={TOOL_NAVIGATION.some((item) => item.id === activeNav) ? true : undefined}>
+        {!isJourney && <details className="app-tool-nav" open={TOOL_NAVIGATION.some((item) => item.id === activeNav) ? true : undefined}>
           <summary>Дополнительные инструменты</summary>
           <nav className="app-nav" aria-label="Дополнительные инструменты">
             {TOOL_NAVIGATION.map((item) => <button key={item.id} onClick={() => navigate(item)} className={item.id === activeNav ? 'active' : ''} aria-current={item.id === activeNav ? 'page' : undefined}>
               <AppIcon name={item.icon} /><span>{item.label}</span>
             </button>)}
           </nav>
-        </details>
+        </details>}
         <nav className="nav-secondary" aria-label="Проект и данные">
-          <button className={activeNav === 'templates' ? 'active' : ''} aria-current={activeNav === 'templates' ? 'page' : undefined} onClick={() => navigate({ id: 'templates' })}><AppIcon name="report" /><span>Шаблоны и загрузка данных</span></button>
-          <button className={activeNav === 'library' ? 'active' : ''} aria-current={activeNav === 'library' ? 'page' : undefined} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>
+          {!isJourney && <button className={activeNav === 'templates' ? 'active' : ''} aria-current={activeNav === 'templates' ? 'page' : undefined} onClick={() => navigate({ id: 'templates' })}><AppIcon name="report" /><span>Шаблоны и загрузка данных</span></button>}
+          {!isJourney && <button className={activeNav === 'library' ? 'active' : ''} aria-current={activeNav === 'library' ? 'page' : undefined} onClick={() => navigate({ id: 'library' })}><AppIcon name="library" /><span>Библиотека решений</span></button>}
           {user && <button className={activeNav === 'projects' ? 'active' : ''} aria-current={activeNav === 'projects' ? 'page' : undefined} onClick={() => navigate({ id: 'projects' })}><AppIcon name="report" /><span>Мои проекты</span></button>}
         </nav>
         {user?.role === 'ADMIN' && <nav className="nav-secondary nav-admin" aria-label="Администрирование">
@@ -74,7 +90,7 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
         </div>
       </aside>
       <div className="app-workspace">
-        <header className="command-header">
+        <header className={`command-header${isJourney ? ' journey-header' : ''}`}>
           <form onSubmit={onCommand} className="command-form" role="search">
             <AppIcon name="search" />
             <label className="sr-only" htmlFor="process-command">Какой процесс вы хотите автоматизировать?</label>
@@ -91,9 +107,23 @@ export function AppShell({ phase, user, activeProject, onNavigate, command, setC
           </button>
           <p className="command-examples">Например: «Перемещение паллет на складе», «Упаковка готовой продукции», «Подача материалов на линию»</p>
         </header>
-        <div className="app-content" style={isResult ? { overflowAnchor: 'none' } : undefined}>{children}</div>
+        <div className={`app-stage${isJourney ? ' with-guide' : ''}`}>
+          <div className="app-content" style={isResult ? { overflowAnchor: 'none' } : undefined}>{children}</div>
+          {isJourney && <aside className="journey-guide" aria-label="Подсказка по текущему шагу">
+            <p className="journey-guide-label">ВАШ ЦИФРОВОЙ ИНЖЕНЕР</p>
+            <div className="journey-guide-card"><span className="journey-guide-icon"><AppIcon name="assistant" size={25} /></span>
+              <h2>{GUIDE[phase][0]}</h2><p>{GUIDE[phase][1]}</p><small>{GUIDE[phase][2]}</small>
+              <button type="button" onClick={() => window.dispatchEvent(new Event('robodovod:open-help'))}>Задать вопрос <AppIcon name="arrow" size={16} /></button>
+            </div>
+            <div className="journey-guide-status"><h3>Состояние оценки</h3>
+              <p><span>Объект</span><strong>{({ retail: 'Склад', airport: 'Аэропорт', clinic: 'Клиника' })[objectType] || 'Не выбран'}</strong></p>
+              <p><span>Режим</span><strong>{({ FAMILIAR: 'Ознакомиться', ADVANCED: 'Свой объект', FULL: 'Полная оценка' })[journeyMode] || 'Свой объект'}</strong></p>
+              <p><span>Результат</span><strong>{result ? 'Есть сохранённый расчёт' : 'Пока нет'}</strong></p>
+            </div>
+          </aside>}
+        </div>
       </div>
-      <RDAssistantWidget activeProject={activeProject} onNavigate={onNavigate} />
+      <RDAssistantWidget activeProject={activeProject} phase={phase} onNavigate={onNavigate} />
     </div>
   );
 }

@@ -28,6 +28,7 @@ import { calculateOperationBatch } from '../operationBatch';
 import { toV2Draft } from '../assistantInterview';
 import { workbookDraft, confirmWorkbookDraft } from '../projectWorkbook';
 import WarehouseLayoutSketch from './WarehouseLayoutSketch';
+import AppIcon from './AppIcon';
 import { estimateFacilityRoute, layoutFingerprint } from '../facilityLayout';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -43,6 +44,9 @@ const ROLE_LABELS = {
 };
 const CAPACITY_STATUS_LABELS = { COMPLETE:'Парк рассчитан', WITH_ASSUMPTIONS:'Предварительный парк; условия требуют проверки',
   BLOCKED:'Парк заблокирован', NOT_APPLICABLE:'Формула неприменима' };
+const DAY_UNITS = { 'pallet/day': 'паллет', 'pick/day': 'операций отбора', 'm2/day': 'м²', 'item/day': 'единиц',
+  'portion/day': 'порций', 'delivery/day': 'доставок', 'cart/day': 'тележек', 'kg/day': 'кг',
+  'sample/day': 'проб', 'set/day': 'наборов' };
 
 const salaryFocus = (draft, target) => {
   if (target?.kind !== 'salary') return null;
@@ -66,7 +70,7 @@ const statusFor = (process, issues, response) => {
   return ['Готов к нормализации', 'text-green-600'];
 };
 
-export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
+export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCED', importedFile, importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
   const [draft, setDraft] = useState(() => {
     if (importedAssistant) return toV2Draft(importedAssistant);
     if (initialDraft?.objectKind === { retail: 'WAREHOUSE', airport: 'AIRPORT', clinic: 'CLINIC' }[objectType]) return initialDraft;
@@ -104,6 +108,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [acknowledged, setAcknowledged] = useState(resumedCapacity?.demo_assumptions_confirmed === true);
   const [capacityBusy, setCapacityBusy] = useState(false);
   const [focusIssue, setFocusIssue] = useState('');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [pickingCatalog, setPickingCatalog] = useState(null);
   const [pickingCatalogError, setPickingCatalogError] = useState('');
   const [operationBatch, setOperationBatch] = useState(null);
@@ -130,11 +135,20 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
 
 
   const issues = useMemo(() => validateDraft(draft, { requireFacilityAreas: true }), [draft]);
-  const fieldIssue = (ref) => issues.find((item) => item.ref === ref)
+  const fieldIssue = (ref) => (state === 'invalid' ? issues.find((item) => item.ref === ref) : null)
     || (result?.response?.input_revision === draft.inputRevision && result.response.errors?.find((item) => (item.field_refs || [item.field]).some((field) => field?.includes(ref))));
   const blockers = issues.filter((item) => item.severity === 'BLOCKER');
   const activeCount = draft.processes.filter((item) => item.active).length;
   const visibleProcesses = draft.processes.filter((item) => item.zoneId === selectedZoneId);
+  const featuredCodes = {
+    retail: ['warehouse_receiving_shipping', 'warehouse_palletizing', 'warehouse_cleaning'],
+    airport: ['airport_baggage', 'airport_internal_logistics', 'airport_terminal_cleaning'],
+    clinic: ['clinic_food', 'clinic_medicines', 'clinic_cleaning'],
+  }[objectType] || [];
+  const quickOptions = visibleProcesses.filter((item) => featuredCodes.includes(item.code) || item.active);
+  const otherOptions = visibleProcesses.filter((item) => item.scope !== 'CONSTRAINT_ONLY' && !quickOptions.includes(item));
+  const quickProcess = quickOptions.find((item) => item.active) || quickOptions[0];
+  const quickRole = draft.roles.find((item) => item.processIds.includes(quickProcess?.processId));
   const roleCards = objectType === 'retail'
     ? visibleProcesses.flatMap((process) => process.roles.map((roleCode) => ({ process, roleCode,
       id: `${process.processId}:${roleCode}` })))
@@ -151,6 +165,11 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   }, []);
   const selectedZone = draft.zones.find((zone) => zone.zoneId === selectedZoneId) || draft.zones[0];
   const normalizedIsCurrent = result?.response?.input_revision === draft.inputRevision;
+  useEffect(() => {
+    if (state !== 'ready' || !normalizedIsCurrent) return undefined;
+    const frame = window.requestAnimationFrame(() => document.getElementById('intake-robot-selection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [state, normalizedIsCurrent]);
   const activeProcesses = normalizedIsCurrent
     ? result.response.normalized_processes.filter((item) => item.active &&
       item.process_id.startsWith(`${selectedZoneId}.`))
@@ -246,6 +265,8 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       const affectedProcess = process || draft.processes.find((item) => affectedRole?.processIds.includes(item.processId));
       if (affectedProcess) { setSelectedZoneId(affectedProcess.zoneId); setExpanded(objectType === 'retail'
         ? `${affectedProcess.processId}:${affectedRole?.roleCode || affectedProcess.roles[0]}` : affectedProcess.processId); }
+      setAdvancedOpen(true);
+      setState('invalid');
       setFocusIssue(issue?.ref || '');
       setError(issue?.code === 'BATCH_REQUIRED'
         ? `Для «${process.label}» в зоне «${draft.zones.find((zone) => zone.zoneId === process.zoneId)?.label}» укажите, сколько единиц груза робот перевозит за один рейс.`
@@ -380,15 +401,34 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     finally { setProjectEconomicsBusy(false); }
   };
 
+  const selectQuickProcess = (process) => {
+    setDraft((current) => {
+      let next = current;
+      for (const old of current.processes.filter((item) => item.zoneId === selectedZoneId && item.active && item.processId !== process.processId)) {
+        for (const role of current.roles.filter((item) => item.processIds.includes(old.processId))) next = setRoleActive(next, old.processId, role.roleCode, false);
+        next = updateProcess(next, old.processId, { active: false });
+      }
+      next = updateProcess(next, process.processId, { active: true, activationSource: 'USER' });
+      if (process.roles.length && !next.roles.some((item) => item.processIds.includes(process.processId))) next = setRoleActive(next, process.processId, process.roles[0], true);
+      return next;
+    });
+    setExpanded(objectType === 'retail' ? `${process.processId}:${process.roles[0]}` : process.processId);
+    choosePhysicalInputs(process);
+    setProcessId(''); setPositionId(''); invalidateComparison();
+  };
+  const quickCard = (process) => <button type="button" key={process.processId} aria-pressed={process.active} onClick={() => selectQuickProcess(process)}>
+    <strong>{process.label}</strong><small>{process.scope === 'REFERENCE_ONLY' ? 'Можно описать; формулы парка пока нет' : 'Можно рассчитать парк при достаточных данных'}</small>
+  </button>;
+
   return (
-    <section className="w-full min-w-0 rounded-xl border bg-white p-4 md:p-6" aria-label="Процессы и роли">
+    <section className="w-full min-w-0 rounded-xl border bg-[#142229] p-4 md:p-6" aria-label="Процессы и роли">
       {draft.importPending && <section className="file-report"><p>Проверьте предложения книги, единицы, источники и допущения. Apply не подтверждает ввод для расчёта.</p>
         <button type="button" className="primary-action" onClick={() => setDraft(confirmWorkbookDraft(draft))}>Подтвердить входы книги для расчёта</button></section>}
       <header className="mb-3">
         <div className="flex justify-between gap-3 items-start">
-          <div><h2 className="font-semibold">Объект, процессы и роли</h2></div>
+          <div><h2 className="font-semibold">Данные для первой оценки</h2></div>
         </div>
-        <p className="text-xs text-slate-500 mt-2">Вводите исходные значения. Один расчёт относится к одному процессу в одной зоне; для других процессов создайте отдельные результаты. Единицы и производные величины проверяет сервер.</p>
+        <p className="text-xs text-slate-400 mt-2">Можно начать с готового примера и заменить значения своими.</p>
         <button type="button" className="mt-2 typical-object-action" onClick={() => {
           const typical = loadConfirmedTypicalObjectDraft(objectType);
           setDraft(typical);
@@ -402,12 +442,50 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           setAcknowledged(true);
           setResult(null);
           setError('');
-        }}>Загрузить типовой {objectType === 'retail' ? 'склад' : objectType === 'airport' ? 'аэропорт' : 'объект клиники'} организаторов</button>
+        }}>Заполнить пример {objectType === 'retail' ? 'склада' : objectType === 'airport' ? 'аэропорта' : 'клиники'}</button>
+        <details className="simple-source-details"><summary>Источники и допущения примера</summary>
         {objectType !== 'retail' && <p className="text-xs text-amber-800 mt-2">{objectType === 'airport'
           ? 'Из датасета: терминал 85 000 м², уборка 51 000 м², зарплата 65 000 ₽ начисленная. Для формы полных расходов компании она условно пересчитана с коэффициентом взносов 1,302: 84 630 ₽. 30 уборщиков, 3×8 ч и одна уборка в сутки — допущения.'
           : 'Из датасета: 45 000 м², 1 950 порций/сутки, плечо 180 м, зарплата 52 000 ₽ начисленная. Для формы расходов компании условно пересчитано с коэффициентом 1,302: 67 704 ₽. Активная зона 18 000 м², 6 сотрудников только доставки, 3×8 ч, 65 порций за рейс и обмен 180 с — допущения. Приготовление пищи, лифты и санитарные режимы отдельно не моделируются.'} Нажатие кнопки заполняет и подтверждает типовые значения для предварительной оценки.</p>}
         {objectType === 'retail' && <p className="text-[11px] text-amber-800 mt-1">Типовой склад использует 1 паллету за рейс, плечо 120 м и обмен 90 сек. как допущения. Зарплата 120 000 ₽ из примера условно пересчитана по коэффициенту взносов 1,302 в 156 240 ₽ полных расходов компании. Нажатие кнопки подтверждает эти значения для предварительной оценки.</p>}
+        </details>
       </header>
+
+      <div className="guided-intake" aria-label="Основные данные работы">
+        <div className="guided-intake-top"><div><span className="simple-step-eyebrow">СНАЧАЛА ГЛАВНОЕ</span><h3>Одна работа — один предварительный расчёт</h3>
+          <p>Выберите операцию и введите известные значения. Пустые расходы и условия не превращаются в ноль.</p></div>
+          <span className="guided-intake-depth">{journeyMode === 'FULL' ? 'Полная оценка' : journeyMode === 'FAMILIAR' ? 'Ознакомиться' : 'Свой объект'}</span></div>
+        <div className="guided-operation-grid" role="group" aria-label="Работа для расчёта">{quickOptions.map(quickCard)}</div>
+        {otherOptions.length > 0 && <details className="guided-other-operations"><summary>Другие работы · {otherOptions.length}</summary><div className="guided-operation-grid">{otherOptions.map(quickCard)}</div></details>}
+        {quickProcess?.active && <>
+          <div className="guided-field-grid">
+            <NumberField id="intake-facility.totalArea" label="Площадь объекта, м²" value={draft.facility?.totalArea || ''} issue={fieldIssue('facility.totalArea')} onChange={(value) => setDraft((current) => updateFacility(current, { totalArea: value }))} />
+            <NumberField id="intake-facility.activeArea" label="Рабочая площадь, м²" value={draft.facility?.activeArea || ''} issue={fieldIssue('facility.activeArea')} onChange={(value) => setDraft((current) => updateFacility(current, { activeArea: value }))} />
+            <NumberField id={`intake-${quickProcess.processId}.demand`} label={`Объём в сутки, ${DAY_UNITS[quickProcess.unit] || quickProcess.unit}`} value={quickProcess.demand} issue={fieldIssue(`${quickProcess.processId}.demand`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { demand: value }))} />
+            <NumberField label="Смен в сутки" value={quickProcess.shifts} issue={fieldIssue(`${quickProcess.processId}.schedule`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { shifts: value }))} />
+            <NumberField label="Часов в смене" value={quickProcess.hours} issue={fieldIssue(`${quickProcess.processId}.schedule`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { hours: value }))} />
+            <NumberField label="Рабочих дней в году" value={quickProcess.days} issue={fieldIssue(`${quickProcess.processId}.schedule`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { days: value }))} />
+            {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(quickProcess.scope) && <>
+              <NumberField id={`intake-${quickProcess.processId}.distance`} label="Плечо маршрута в одну сторону, м" value={quickProcess.distance} issue={fieldIssue(`${quickProcess.processId}.distance`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { distance: value }))} />
+              <NumberField id={`intake-${quickProcess.processId}.batch`} label="Груза за один рейс, единиц" value={quickProcess.batch} issue={fieldIssue(`${quickProcess.processId}.batch`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { batch: value }))} />
+            </>}
+            {quickRole && <>
+              <NumberField id={`intake-${quickRole.roleId}.headcount`} label={`${ROLE_LABELS[quickRole.roleCode] || quickRole.roleCode}: человек сейчас`} value={quickRole.headcount} issue={fieldIssue(`${quickRole.roleId}.headcount`)} onChange={(value) => setDraft((current) => updateRole(current, quickRole.roleId, { headcount: value, headcountSource: 'USER' }))} />
+              <NumberField id={`intake-${quickRole.roleId}.salary`} label="Полные расходы на человека, ₽/мес." value={quickRole.salary} issue={fieldIssue(`${quickRole.roleId}.salary`)} hint="Включая расходы работодателя; неизвестное оставьте пустым." onChange={(value) => setDraft((current) => updateRole(current, quickRole.roleId, { salary: value, salarySource: 'USER', salaryConfirmed: true }))} />
+            </>}
+          </div>
+          {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(quickProcess.scope) && <NumberField label="Погрузка и выгрузка за рейс, секунд" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); setDraft(current => updateProcess(current, quickProcess.processId, { exchangeSeconds: value })); invalidateComparison(); }} />}
+          {quickProcess.scope === 'CLEANING_AREA' && <NumberField label="Уборок этой площади в сутки" value={cleaningFrequency} onChange={(value) => { setCleaningFrequency(value); setDraft(current => updateProcess(current, quickProcess.processId, { cleaningFrequency: value })); invalidateComparison(); }} />}
+          <label className="guided-confirm"><input type="checkbox" checked={acknowledged} onChange={(event) => { setAcknowledged(event.target.checked); invalidateComparison(); }} />Понимаю, что неподтверждённые условия и профиль модели дают предварительный результат.</label>
+          {!activeProject && <div className="guided-project-note" role="status">Для расчёта своего объекта нужен проект. Ваши поля останутся в этой вкладке. <button type="button" onClick={user ? onOpenProjects : onOpenAccount}>{user ? 'Выбрать или создать проект' : 'Войти или зарегистрироваться'}</button></div>}
+          <button type="button" className="primary-action guided-check-button" disabled={state === 'loading'} onClick={normalize}>{state === 'loading' ? 'Проверяем…' : 'Проверить данные и перейти к роботу'}</button>
+          {state === 'invalid' && blockers.length > 0 && <p className="guided-validation">Нужны данные: {blockers.length} {blockers.length === 1 ? 'поле' : 'полей'}. Проверка покажет первое поле, которое следует уточнить.</p>}
+        </>}
+        {!quickProcess?.active && <p className="guided-select-note">Нажмите на одну из работ выше, чтобы открыть короткую форму.</p>}
+      </div>
+      {normalizedIsCurrent && <div className="guided-ready" role="status"><AppIcon name="check" size={20} /><span>Данные проверены. Теперь выберите модель робота и сохраните расчёт парка.</span><a href="#intake-robot-selection">К моделям ↓</a></div>}
+      <button type="button" className="guided-advanced-toggle" aria-expanded={advancedOpen} onClick={() => setAdvancedOpen((value) => !value)}>{advancedOpen ? 'Скрыть инженерные настройки ↑' : 'Подробнее: зоны, ограничения, импорт и роли ↓'}</button>
+      <div className="advanced-intake-content" hidden={!advancedOpen}>
 
       {objectType === 'retail' && <WarehouseLayoutSketch value={draft.facilityPlan}
         processes={draft.processes.filter((process) => process.scope === 'TRANSPORT_CYCLE' && process.zoneId === selectedZoneId)}
@@ -542,13 +620,15 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         })}
       </div>
 
+      </div>
+
       <div className="mt-3 text-xs" aria-live="polite">
-        {blockers.length > 0 && <p className="text-red-600">Исправьте обязательные поля: {blockers.length}.</p>}
+        {state === 'invalid' && blockers.length > 0 && <p className="text-red-600">Исправьте обязательные поля: {blockers.length}.</p>}
         {issues.some((item) => item.code === 'SALARY_REQUIRED') && <p className="text-amber-700">Для расчёта ФОТ нужна зарплата каждой активной роли.</p>}
         {error && <p className="text-red-600">{error}</p>}
-        {result && <NormalizationTrace result={result} />}
+        {result && <details className="simple-source-details"><summary>Проверка исходных данных · технические сведения</summary><NormalizationTrace result={result} /></details>}
       </div>
-      <button type="button" disabled={state === 'loading' || activeCount === 0} onClick={normalize} className="w-full rounded-xl py-3 mt-3 text-sm font-semibold bg-blue-600 text-white disabled:bg-slate-200 disabled:text-slate-400">
+      <button type="button" disabled={state === 'loading' || activeCount === 0} onClick={normalize} className="w-full rounded-xl py-3 mt-3 text-sm font-semibold bg-blue-600 text-white disabled:bg-slate-200 disabled:text-slate-400 advanced-intake-normalize" hidden={!advancedOpen}>
         {state === 'loading' ? 'Проверяем…' : 'Проверить ввод'}
       </button>
       {normalizedIsCurrent && <section className="mt-4 rounded-xl border p-3 text-xs" aria-label="Операции по зонам">
@@ -594,7 +674,7 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
             <a className="underline" href={`${API}/api/v2/projects/${encodeURIComponent(activeProject.id)}/operation-batches/${encodeURIComponent(operationBatch.id)}/archive.zip`}>Скачать ZIP с расчётом</a></div>
         </div>}
       </section>}
-      {normalizedIsCurrent && <section className="preliminary-section mt-4 space-y-3" aria-label="Предварительный расчёт">
+      {normalizedIsCurrent && <section id="intake-robot-selection" className="preliminary-section mt-4 space-y-3" aria-label="Предварительный расчёт">
         <header className="preliminary-section-heading"><div><span className="preliminary-eyebrow">ШАГ 02 · МОДЕЛЬ И ПАРК</span><h3>Предварительный расчёт</h3></div><span className="preliminary-review-badge">Оценка, не допуск к закупке</span></header>
         <p className="preliminary-section-lead">Выберите операцию и модель. Парк сохраняется отдельно для каждой зоны и операции.</p>
         <details className="preliminary-scope"><summary>Границы расчёта и допущения</summary><p>Отдельные парки и денежные эффекты нельзя складывать при общих роботах, ролях, межзональных потоках или расходах площадки. Демо-профиль не является паспортом изготовителя; неизвестные проверки пригодности остаются в результате.</p></details>
