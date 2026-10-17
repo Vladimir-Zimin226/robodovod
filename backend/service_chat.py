@@ -163,11 +163,17 @@ def answer_chat(message: str, history: list[dict], snapshot: CatalogSnapshotDTO 
         raise HTTPException(504, "Модель отвечает слишком долго. Повторите вопрос.") from None
     except requests.HTTPError as exc:
         status = exc.response.status_code if exc.response is not None else None
-        detail = ("Ключ или доступ к модели Yandex Cloud неверен. Сообщите администратору."
-                  if status in (401, 403) else "Не удалось получить ответ от Yandex Cloud. Повторите позже.")
-        raise HTTPException(503 if status in (401, 403) else 502, detail) from None
+        if status == 400:
+            raise HTTPException(503, "Yandex Cloud отклонил параметры модели (400). Проверьте RD_ASSISTANT_MODEL.") from None
+        if status in (401, 403):
+            raise HTTPException(503, f"Yandex Cloud отклонил доступ ({status}). Проверьте ключ и права модели.") from None
+        if status == 429:
+            raise HTTPException(503, "Лимит запросов Yandex Cloud исчерпан (429). Повторите позже.") from None
+        raise HTTPException(502, f"Yandex Cloud не ответил успешно ({status or 'HTTP'}). Повторите позже.") from None
+    except requests.ConnectionError:
+        raise HTTPException(503, "Нет соединения с Yandex Cloud. Проверьте доступ backend к ai.api.cloud.yandex.net.") from None
     except requests.RequestException:
-        raise HTTPException(502, "Не удалось получить ответ от Yandex Cloud. Повторите позже.") from None
+        raise HTTPException(502, "Ошибка соединения с Yandex Cloud. Повторите позже.") from None
     except (KeyError, IndexError, TypeError, ValueError):
         raise HTTPException(502, "Модель вернула неполный ответ. Повторите вопрос.") from None
     return {"schema_version": "service-assistant-chat-v2", "reply": reply.strip(),
