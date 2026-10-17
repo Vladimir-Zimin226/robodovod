@@ -39,7 +39,7 @@ def test_c14_aggregate_deficit_is_counted_once_in_v2_and_v1_remains_replayable()
     assert role.deficit == 7
     assert Decimal(role.annual_deficit_cost) == Decimal("10936800")
     old = calculate_financial_result(source, engine_version="full-cashflows-reconciliation-v1")
-    fixed = analyze_financials(source)
+    fixed = analyze_financials(source, engine_version="full-cashflows-reconciliation-v2")
     def deficit_line(result, suffix):
         lines = result.annual_ledgers[0].base_lines if suffix == "base-deficit" else result.annual_ledgers[0].scenario_lines
         return Decimal(next(line.amount for line in lines if line.line_id.endswith(suffix)))
@@ -52,8 +52,34 @@ def test_c14_aggregate_deficit_is_counted_once_in_v2_and_v1_remains_replayable()
 
 def test_corrected_v2_golden_is_exact_and_keeps_old_fixture_unchanged():
     data = json.loads((ROOT / "contracts/fixtures/financial-result-v2.warehouse.golden.json").read_text(encoding="utf-8"))
-    result = analyze_financials(FinancialAnalysisRequestV1.model_validate(data["request"]))
+    result = analyze_financials(FinancialAnalysisRequestV1.model_validate(data["request"]), engine_version="full-cashflows-reconciliation-v2")
     assert result.model_dump(mode="json") == data["result"]
+
+
+def test_current_roi_uses_net_benefit_and_prior_versions_replay():
+    source = request()
+    current = analyze_financials(source)
+    legacy = calculate_financial_result(source, engine_version="full-cashflows-reconciliation-v2")
+    capex = Decimal(source.purchase_ledger.capex_cashflow)
+    effect = Decimal(current.cumulative_effect.value)
+    assert current.engine_version == "full-cashflows-reconciliation-v4"
+    assert Decimal(current.net_benefit_after_investment.value) == effect - capex
+    assert Decimal(current.roi_on_capex_cashflow.value) == ((effect - capex) / capex * 100).quantize(Decimal("0.01"))
+    assert Decimal(legacy.roi_on_capex_cashflow.value) - Decimal(current.roi_on_capex_cashflow.value) == 100
+    assert current.npv_project == legacy.npv_project
+
+
+def test_net_roi_version_keeps_default_v2_cashflows_for_explicit_extra_income():
+    raw = request().model_dump(mode="json")
+    raw["additional_income"] = {"mode": "INCLUDED", "annual_amount": {
+        "value": "1000000", "unit": "RUB/year", "source": "USER",
+        "provenance_ref": "prov.user.additional-income"}}
+    source = FinancialAnalysisRequestV1.model_validate(raw)
+    old = calculate_financial_result(source, engine_version="full-cashflows-reconciliation-v2")
+    current = analyze_financials(source)
+    assert [row.differential_cf for row in current.annual_ledgers] == [row.differential_cf for row in old.annual_ledgers]
+    assert current.npv_project == old.npv_project
+    assert Decimal(old.roi_on_capex_cashflow.value) - Decimal(current.roi_on_capex_cashflow.value) == 100
 
 
 def test_npv_signs_use_scenario_minus_base():
@@ -143,8 +169,8 @@ def test_missing_upstream_finance_is_incomplete_not_zero():
 def test_additional_income_requires_explicit_mode_and_provenance():
     raw = request().model_dump(mode="json")
     raw["additional_income"] = {"mode": "INCLUDED", "annual_amount": {"value": "1000000", "unit": "RUB/year", "source": "USER", "provenance_ref": "prov.user.additional-income"}}
-    included = calculate_financial_result(FinancialAnalysisRequestV1.model_validate(raw))
-    excluded = calculate_financial_result(request())
+    included = calculate_financial_result(FinancialAnalysisRequestV1.model_validate(raw), engine_version="full-cashflows-reconciliation-v2")
+    excluded = calculate_financial_result(request(), engine_version="full-cashflows-reconciliation-v2")
     assert Decimal(included.cumulative_effect.value) - Decimal(excluded.cumulative_effect.value) == Decimal("5000000")
     raw["additional_income"] = {"mode": "EXCLUDED"}
     with pytest.raises(ValidationError):

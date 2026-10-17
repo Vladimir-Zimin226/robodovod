@@ -51,7 +51,7 @@ def outputs() -> dict[Path, str]:
     request = build_request()
     # The v1 golden is immutable evidence for historical replay.
     result = calculate_financial_result(request, engine_version="full-cashflows-reconciliation-v1")
-    corrected = calculate_financial_result(request)
+    corrected = calculate_financial_result(request, engine_version="full-cashflows-reconciliation-v2")
     return {
         ROOT / "contracts/financial-analysis-request-v1.schema.json": encoded(FinancialAnalysisRequestV1.model_json_schema()),
         ROOT / "contracts/financial-result-v1.schema.json": encoded(FinancialResultV1.model_json_schema()),

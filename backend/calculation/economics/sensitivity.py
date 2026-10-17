@@ -107,6 +107,7 @@ class SensitivityVariantInputV1(StrictContractModel):
         "purchase-cost-ledger-v1",
         "full-cashflows-reconciliation-v1",
         "full-cashflows-reconciliation-v2",
+        "full-cashflows-reconciliation-v4",
         "multiprocess-allocation-v1",
     ]]
     allocation_request: MultiprocessAllocationRequestV1 | None = None

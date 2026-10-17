@@ -44,10 +44,12 @@ def entry(id: str, title: str, synonyms: list[str], notation: str, formula: str,
 def build() -> dict:
     demo, _, _, _, execution = build_capture()
     financial_fixture = fixture("financial-result-v2.warehouse.golden.json")
-    financial = analyze_financials(FinancialAnalysisRequestV1.model_validate(financial_fixture["request"]))
+    financial = analyze_financials(FinancialAnalysisRequestV1.model_validate(financial_fixture["request"]),
+                                   engine_version="full-cashflows-reconciliation-v2")
     assert financial.model_dump(mode="json") == financial_fixture["result"], "financial golden fixture drift"
     raas_fixture = fixture("raas-financial-result-v1.warehouse.golden.json")
-    raas = analyze_raas_financials(RaasAnalysisRequestV1.model_validate(raas_fixture["request"]))
+    raas = analyze_raas_financials(RaasAnalysisRequestV1.model_validate(raas_fixture["request"]),
+                                   engine_version="raas-cashflows-v1")
     assert raas.model_dump(mode="json") == raas_fixture["result"], "RaaS golden fixture drift"
     f = financial_fixture["result"]
     r = raas_fixture["result"]

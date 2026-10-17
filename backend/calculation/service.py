@@ -386,16 +386,16 @@ def analyze_purchase_costs(request: PurchaseLedgerRequestV1) -> PurchaseCostLedg
 
 
 def analyze_financials(request: FinancialAnalysisRequestV1, *,
-                       engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3"] = "full-cashflows-reconciliation-v2") -> FinancialResultV1:
+                       engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3", "full-cashflows-reconciliation-v4"] = "full-cashflows-reconciliation-v4") -> FinancialResultV1:
     """Versioned C16 boundary over immutable C14/C15 snapshots."""
 
     return calculate_financial_result(request, engine_version=engine_version)
 
 
-def analyze_raas_financials(request: RaasAnalysisRequestV1) -> RaasFinancialResultV1:
+def analyze_raas_financials(request: RaasAnalysisRequestV1, *, engine_version: Literal["raas-cashflows-v1", "raas-cashflows-v2"] = "raas-cashflows-v2") -> RaasFinancialResultV1:
     """Versioned C17 RaaS boundary; C13-C16 snapshots stay immutable."""
 
-    return calculate_raas_financials(request)
+    return calculate_raas_financials(request, engine_version=engine_version)
 
 
 def analyze_multiprocess_allocation(request: MultiprocessAllocationRequestV1) -> MultiprocessAllocationResultV1:

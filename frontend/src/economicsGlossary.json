@@ -473,11 +473,11 @@
   "source_bindings": {
     "backend/calculation/capacity/quantities.py": "937eb60e06054849a2f4d0aecbdfa9fb9ecd8ace77e10051b4b420e5f3bc15e2",
     "backend/calculation/capacity/transport.py": "1fa83399a72e85cdae24ecba547176d569742d405a79884649db5473aa486b06",
-    "backend/calculation/economics/cashflow.py": "89cc975ba0d3ac9e48707dfa4df555de13d12e3d800a94969289465592490a02",
+    "backend/calculation/economics/cashflow.py": "cc45c6ac56de1e41acaac66f68376d15e719d00f6aa9479c3c334619f71bb12e",
     "backend/calculation/economics/metrics.py": "74c288b0c3a873a515b6e10f390ab1fcc85d42cd50dc6da903ff35d2db8c1501",
     "backend/calculation/economics/purchase.py": "42ce99a77e31d07feb93ff045633195a4718639491ec035d16ba3c119c71dd0d",
-    "backend/calculation/economics/raas.py": "5a574759008a12940535e725b7bbac39775ff111e9d7c5cda28d335bd742ee1e",
-    "backend/calculation/economics/sensitivity.py": "f4979700bcc3d9bd87848501bf3ea043366b5be0d056d6c9a67acccd1ad534e0",
+    "backend/calculation/economics/raas.py": "fffe8231a91f13f0ad9a7f478dc5ca7090a6f3c6d89114ca567c2a80fdeb2346",
+    "backend/calculation/economics/sensitivity.py": "02ac0de881f1a510024222a585ad1204d41b32f773f3a81a45e461d189f21c6c",
     "backend/calculation/labour.py": "03971868cc1c6310eb7d4bd795439278384672c3a012e61e67f42e23b811596c",
     "data/calculation/registry-v1.json": "6a54e7934abc36d90c19582d8ef038deacc49d4e04ff7e4bf360bb5da3c43e22"
   },

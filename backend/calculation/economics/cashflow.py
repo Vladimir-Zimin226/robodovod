@@ -216,7 +216,7 @@ class FinancialResultV1(StrictContractModel):
     precision_policy_version: Literal["decimal-context-28-half-even-v1"] = "decimal-context-28-half-even-v1"
     purchase_ledger_version: Literal["purchase-cost-ledger-v1"] = "purchase-cost-ledger-v1"
     labour_result_version: Literal["role-labour-result-v1"] = "role-labour-result-v1"
-    engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3"] = "full-cashflows-reconciliation-v2"
+    engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3", "full-cashflows-reconciliation-v4"] = "full-cashflows-reconciliation-v4"
     replay: FinancialReplayV1
 
 
@@ -258,7 +258,7 @@ def _reconciliation(complete: bool) -> list[ReconciliationFindingV1]:
 
 def calculate_financial_result(request: FinancialAnalysisRequestV1,
                                registry: CalculationParameterRegistryV1 | None = None,
-                               *, engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3"] = "full-cashflows-reconciliation-v2") -> FinancialResultV1:
+                               *, engine_version: Literal["full-cashflows-reconciliation-v1", "full-cashflows-reconciliation-v2", "full-cashflows-reconciliation-v3", "full-cashflows-reconciliation-v4"] = "full-cashflows-reconciliation-v4") -> FinancialResultV1:
     registry = registry or load_registry()
     purchase = request.purchase_ledger
     labour = request.labour_result
@@ -421,7 +421,10 @@ def calculate_financial_result(request: FinancialAnalysisRequestV1,
         tco_gross = (capex or Decimal(0)) + annual_tco
         residual_total = _d(purchase.terminal_residual or "0")
         tco_net = tco_gross - residual_total
-        roi = None if capex == 0 else effect / capex * Decimal(100)
+        net_effect = effect - (capex or Decimal(0))
+        # Older engine versions retain their published gross-effect formula for replay.
+        roi_numerator = net_effect if engine_version == "full-cashflows-reconciliation-v4" else effect
+        roi = None if capex == 0 else roi_numerator / capex * Decimal(100)
         if capex == 0:
             simple = Decimal(0) if effect > 0 and all(value >= 0 for value in diff_flows[1:]) else None
             discounted = simple
@@ -429,7 +432,7 @@ def calculate_financial_result(request: FinancialAnalysisRequestV1,
         npv_base_result, npv_scenario_result, npv_project_result = metric(npv_base_value, "RUB"), metric(npv_scenario_value, "RUB"), metric(npv_project_value, "RUB")
         simple_result = MetricValueV1(status="NOT_REACHED" if simple is None else "COMPLETE", value=_metric(simple), unit="YEAR")
         discounted_result = MetricValueV1(status="NOT_REACHED" if discounted is None else "COMPLETE", value=_metric(discounted), unit="YEAR")
-        effect_result, net_result = metric(effect, "RUB"), metric(effect - (capex or Decimal(0)), "RUB")
+        effect_result, net_result = metric(effect, "RUB"), metric(net_effect, "RUB")
         roi_result = MetricValueV1(status="N_A" if roi is None else "COMPLETE", value=_metric(roi), unit="PERCENT")
         tco_gross_result, tco_net_result = metric(tco_gross, "RUB"), metric(tco_net, "RUB")
         for formula, output, value, unit in (("F28", "npv-project", npv_project_value, "RUB"), ("F29", "simple-payback", simple, "YEAR"),

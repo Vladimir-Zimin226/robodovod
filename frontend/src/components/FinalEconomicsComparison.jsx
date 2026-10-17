@@ -40,7 +40,7 @@ export default function FinalEconomicsComparison({ comparison }) {
         const metric = item.metrics[key];
         return <td key={item.scenario_id}>{value(metric)}<small className="block">{humanizePresentation(metric?.basis || 'Источник не сохранён')}</small></td>;
       })}</tr>)}</tbody></table></div>
-    <p>ROI имеет базу вложений CAPEX; при нулевом CAPEX он не определён. TCO показывает затраты за горизонт, NPV — дисконтированный эффект; эти показатели имеют разные базы.</p>
+    <p>ROI = чистый эффект после первоначальных вложений / CAPEX × 100 %. При нулевом CAPEX он не определён. TCO показывает затраты за горизонт, NPV — дисконтированный эффект; эти показатели имеют разные базы.</p>
     <div className="commercial-table-wrap"><table><thead><tr><th>Год</th>{baseRows.map((item) => <th key={item.scenario_id}>{NAMES[item.acquisition]}</th>)}</tr></thead><tbody>
       {baseRows[0].annual_cashflows.map((flow) => <tr key={flow.year}><th>{flow.year}</th>{baseRows.map((item) => <td key={item.scenario_id}>{amount(item.annual_cashflows.find((row) => row.year === flow.year)?.scenario, 'RUB')}</td>)}</tr>)}
     </tbody></table></div>

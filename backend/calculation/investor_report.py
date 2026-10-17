@@ -411,7 +411,11 @@ def build_investor_report(run: EvidenceRunSnapshotV1, linked: EvidenceRunSnapsho
             end = deck.table(['Показатель','Без роботов','Покупка','Аренда'],rows,widths=[285,159,159,159],size=10)
             deck.text('Годовые затраты первого года',40,end+21,13)
             deck.bars([('Без роботов',metric_number(baseline,'opex_year_1'),MUTED),('Покупка',metric_number(purchase,'opex_year_1'),GREEN),('Аренда',metric_number(raas,'opex_year_1'),BLUE)],40,end+53,762,145)
-            deck.paragraph('ROI по модели: эффект за горизонт до вычета вложений / первоначальные вложения × 100 %. Сумма эффекта без дисконтирования показана отдельно от NPV.',40,end+210,size=9,color=MUTED)
+            roi_basis = purchase.get('metrics', {}).get('roi', {}).get('basis') or 'формула не сохранена'
+            roi_note = ('ROI по модели: эффект за горизонт до вычета вложений / первоначальные вложения × 100 %. Сумма эффекта без дисконтирования показана отдельно от NPV.'
+                        if roi_basis == 'эффект за горизонт / CAPEX проекта × 100' else
+                        f'ROI по модели: {roi_basis}. Сумма эффекта без дисконтирования показана отдельно от NPV.')
+            deck.paragraph(roi_note,40,end+210,size=9,color=MUTED)
 
         flows = [s.get('annual_cashflows',[]) for s in (purchase,raas)]
         years = sorted({f['year'] for fs in flows for f in fs if isinstance(f.get('year'),int)})

@@ -159,7 +159,7 @@ class RaasFinancialResultV1(StrictContractModel):
     commercial_policy_version: Literal["hackathon-commercial-policy-v1"] = "hackathon-commercial-policy-v1"
     calculation_policy_version: Literal["hackathon-calculation-policy-v1"] = "hackathon-calculation-policy-v1"
     policy_overlay_version: Literal["hackathon-calculation-policy-v1+v2bc-c17"] = "hackathon-calculation-policy-v1+v2bc-c17"
-    engine_version: Literal["raas-cashflows-v1"] = "raas-cashflows-v1"
+    engine_version: Literal["raas-cashflows-v1", "raas-cashflows-v2"] = "raas-cashflows-v2"
     replay: RaasReplayV1
 
 
@@ -188,7 +188,8 @@ def _capital_infrastructure(request: RaasAnalysisRequestV1, owner: str) -> tuple
 
 
 def calculate_raas_financials(request: RaasAnalysisRequestV1,
-                              registry: CalculationParameterRegistryV1 | None = None) -> RaasFinancialResultV1:
+                              registry: CalculationParameterRegistryV1 | None = None,
+                              *, engine_version: Literal["raas-cashflows-v1", "raas-cashflows-v2"] = "raas-cashflows-v2") -> RaasFinancialResultV1:
     registry = registry or load_registry()
     c16 = request.purchase_comparator_result
     comparator = request.purchase_comparator_request
@@ -315,7 +316,12 @@ def calculate_raas_financials(request: RaasAnalysisRequestV1,
         n_base, n_scenario = npv(base_flows, discount), npv(scenario_flows, discount)
         effect = sum(diff[1:], Decimal(0))
         tco = (capex_gross or Decimal(0)) + sum((_d(item.customer_opex) + _d(item.raas_payment) for item in annual), Decimal(0))
-        roi = None if tco == 0 else effect / tco * Decimal(100)
+        # Service payments are already reflected in effect. Only customer CAPEX
+        # is subtracted here; a vendor-funded installation has no ROI on investment.
+        if engine_version == "raas-cashflows-v2":
+            roi = None if capex_gross == 0 else (effect - capex_gross) / tco * Decimal(100)
+        else:
+            roi = None if tco == 0 else effect / tco * Decimal(100)
         simple, discounted = payback(diff), payback(diff, discount)
         rub = lambda value: MetricValueV1(status="COMPLETE", value=_money(value), unit="RUB")
         npv_base, npv_scenario, npv_project = rub(n_base), rub(n_scenario), rub(n_scenario - n_base)
@@ -341,7 +347,8 @@ def calculate_raas_financials(request: RaasAnalysisRequestV1,
         annual_ledgers=annual, npv_base=npv_base, npv_scenario=npv_scenario, npv_project=npv_project,
         simple_payback=simple_result, discounted_payback=discounted_result, cumulative_effect=effect_result,
         roi_on_raas_tco=roi_result, tco_raas=tco_result, issues=sorted(issues), trace=trace,
-        registry_version=registry.registry_version, registry_digest=registry.registry_digest, replay=replay)
+        registry_version=registry.registry_version, registry_digest=registry.registry_digest,
+        engine_version=engine_version, replay=replay)
     payload = result.model_dump(mode="json")
     payload["replay"]["trace_content_digest"] = None
     result.replay.trace_content_digest = _hash(payload)

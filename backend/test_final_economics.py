@@ -9,6 +9,7 @@ import uuid
 import xml.etree.ElementTree as ET
 import zipfile
 from dataclasses import replace
+from decimal import Decimal
 
 import jsonschema
 from calculation.evidence_export import EvidenceRunSnapshotV1
@@ -20,7 +21,7 @@ from calculation.scheduling import (
 )
 from calculation.service import analyze_capacity
 from calculation_contracts import parse_capacity_analysis_request, semantic_digest
-from economics_final import execute_economics_v3, execute_economics_v4
+from economics_final import execute_economics_v3, execute_economics_v4, execute_economics_v5
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
 from openpyxl import load_workbook
 from pypdf import PdfReader
@@ -32,7 +33,7 @@ from scripts.build_f5_contracts import ROOT, expected_outputs
 
 
 def _run(price: str | None = None, source: str | None = None,
-         demand: str = "1000", *, presentation_v4: bool = False):
+         demand: str = "1000", *, presentation_v4: bool = False, presentation_v5: bool = False):
     run, linked = _full_runs()
     linked = linked.model_copy(update={"run_id": "00000000-0000-4000-8000-000000000025"})
     snapshot = _snapshot()
@@ -52,7 +53,8 @@ def _run(price: str | None = None, source: str | None = None,
     if price is not None:
         inputs["purchase_price_override_gross"] = price
         inputs["purchase_price_source"] = source
-    execution = (execute_economics_v4 if presentation_v4 else execute_economics_v3)(inputs, snapshot, context)
+    engine = execute_economics_v5 if presentation_v5 else execute_economics_v4 if presentation_v4 else execute_economics_v3
+    execution = engine(inputs, snapshot, context)
     raw = run.model_dump(mode="json")
     raw["input_snapshot"] = {"capacity_run_id": linked.run_id, "economics": inputs}
     raw["result_snapshot"] = execution.result_snapshot
@@ -183,9 +185,31 @@ def test_f5_archive_pdf_xlsx_csv_share_one_verified_snapshot():
         saved_capex["value"], saved_capex["unit"], saved_capex["basis"], saved_capex["source_ref"])
     text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(first.files["Отчёт_Рободовод.pdf"])).pages)
     assert "Полное сравнение экономики F5" in text
-    assert "ROI = эффект" in text
+    assert "ROI = эффект за горизонт" in text
     assert "Сохранённая симуляция" in text
     assert saved_capex["value"] in text
+
+
+def test_current_v5_uses_net_roi_in_saved_comparison_and_pdf():
+    current, linked, execution = _run(presentation_v5=True)
+    old, _, _ = _run(presentation_v4=True)
+    assert execution.application_version == "production-economics-orchestrator-v5"
+    assert current.result_snapshot["versions"]["roi_method"] == "net-return-v1"
+    scenarios = current.result_snapshot["comparison"]["scenarios"]
+    purchase = next(item for item in scenarios if item["scenario_id"] == "scenario.purchase.base")
+    old_purchase = next(item for item in old.result_snapshot["comparison"]["scenarios"] if item["scenario_id"] == "scenario.purchase.base")
+    assert Decimal(old_purchase["metrics"]["roi"]["value"]) - Decimal(purchase["metrics"]["roi"]["value"]) == 100
+    for scenario in scenarios:
+        metrics = scenario["metrics"]
+        capex = Decimal(metrics["capex"]["value"])
+        assert Decimal(metrics["net_benefit"]["value"]) == Decimal(metrics["effect_total"]["value"]) - capex
+        if capex:
+            assert Decimal(metrics["roi"]["value"]) == (Decimal(metrics["net_benefit"]["value"]) / capex * 100).quantize(Decimal("0.01"))
+        else:
+            assert metrics["roi"]["status"] == "N_A" and metrics["roi"]["value"] is None
+    pdf = build_final_export(current, linked).files["Отчёт_Рободовод.pdf"]
+    assert "Основание: (эффект за горизонт − CAPEX) / CAPEX × 100" in "\n".join(
+        page.extract_text() or "" for page in PdfReader(io.BytesIO(pdf)).pages)
 
 
 def test_old_run_export_never_invents_missing_financial_metrics():

@@ -8,6 +8,7 @@ results; exports read those saved values and never rerun the engines.
 from __future__ import annotations
 
 from decimal import ROUND_HALF_EVEN, Decimal
+from functools import partial
 from types import SimpleNamespace
 from typing import Any
 from pydantic import BaseModel, Field
@@ -46,13 +47,16 @@ def _saved_metric(value: Any, basis: str, source: str) -> dict[str, Any]:
                    reason="Срок не достигнут за горизонт" if value.status == "NOT_REACHED" else None)
 
 
-def _project_metrics(artifact: Any) -> dict[str, Any]:
+def _project_metrics(artifact: Any, *, net_roi: bool = False) -> dict[str, Any]:
     allocation = artifact.allocation
     financial = artifact.financial
     purchase = artifact.acquisition == "PURCHASE"
     capex = Decimal(allocation.project_capex_cashflow)
     annual_effect = sum((Decimal(row.differential_cf) for row in allocation.annual_ledgers), Decimal(0))
-    roi = None if capex == 0 else _money(annual_effect / capex * 100)
+    net_effect = annual_effect - capex
+    roi = None if capex == 0 else _money((net_effect if net_roi else annual_effect) / capex * 100)
+    roi_basis = ("(эффект за горизонт − CAPEX) / CAPEX × 100" if net_roi
+                 else "эффект за горизонт / CAPEX проекта × 100")
     operating: list[Decimal] = []
     for index, row in enumerate(allocation.annual_ledgers):
         if purchase:
@@ -73,8 +77,8 @@ def _project_metrics(artifact: Any) -> dict[str, Any]:
         "effect_year_1": _metric(allocation.annual_ledgers[0].differential_cf, "RUB/year",
                                  "разность потоков против baseline, год 1", source),
         "effect_total": _metric(_money(annual_effect), "RUB", "сумма годовых разностей без первоначальных вложений", source),
-        "net_benefit": _metric(_money(annual_effect - capex), "RUB", "эффект за горизонт минус CAPEX", source),
-        "roi": _metric(roi, "PERCENT", "эффект за горизонт / CAPEX проекта × 100", source,
+        "net_benefit": _metric(_money(net_effect), "RUB", "эффект за горизонт минус CAPEX", source),
+        "roi": _metric(roi, "PERCENT", roi_basis, source,
                        status="N_A" if roi is None else "COMPLETE",
                        reason="Нулевые инвестиции: ROI на CAPEX не определён" if roi is None else None),
         "tco": _metric(_money(capex + sum(operating, Decimal(0))), "RUB",
@@ -116,7 +120,7 @@ def _baseline(artifact: Any) -> dict[str, Any]:
     }
 
 
-def _scenario(artifact: Any) -> dict[str, Any]:
+def _scenario(artifact: Any, *, net_roi: bool = False) -> dict[str, Any]:
     source = artifact.allocation.run_id
     if artifact.acquisition == "PURCHASE":
         capital = [{"label": line.line_id, "amount": line.amount, "unit": "RUB",
@@ -130,7 +134,7 @@ def _scenario(artifact: Any) -> dict[str, Any]:
     return {
         "scenario_id": f"scenario.{artifact.acquisition.lower()}.{artifact.uncertainty.lower()}",
         "acquisition": artifact.acquisition, "uncertainty": artifact.uncertainty,
-        "metrics": _project_metrics(artifact), "capital_lines": capital,
+        "metrics": _project_metrics(artifact, net_roi=net_roi), "capital_lines": capital,
         "annual_cashflows": [{"year": row.year, "baseline": row.combined_baseline_cf,
                               "scenario": row.combined_scenario_cf, "effect": row.differential_cf,
                               "source_ref": source} for row in artifact.allocation.annual_ledgers],
@@ -138,7 +142,7 @@ def _scenario(artifact: Any) -> dict[str, Any]:
 
 
 def _sensitivity(context: EconomicsExecutionContextV1, inputs: EconomicsExplicitInputsV1,
-                 snapshot: Any, artifact: Any) -> list[dict[str, Any]]:
+                 snapshot: Any, artifact: Any, *, net_roi: bool = False) -> list[dict[str, Any]]:
     """Rerun canonical engines for each scenario; keep failures as explicit BLOCKED."""
     request = context.capacity_request
     role_id = _primary_role(request, inputs)
@@ -206,7 +210,8 @@ def _sensitivity(context: EconomicsExecutionContextV1, inputs: EconomicsExplicit
                         constraint_report=context.constraint_report, executability=context.executability)
                 rerun = _scenario_artifacts(variant_context, variant_inputs, snapshot,
                     "PURCHASE" if artifact.acquisition == "BASELINE" else artifact.acquisition,
-                    artifact.uncertainty, primary_price_override=price_override, role_pool=role_pool)
+                    artifact.uncertainty, primary_price_override=price_override, role_pool=role_pool,
+                    net_roi=net_roi)
                 compared = rerun.allocation.npv_base if artifact.acquisition == "BASELINE" else rerun.allocation.npv_project
                 if compared.value is None:
                     raise ValueError("NPV варианта не рассчитан")
@@ -220,18 +225,19 @@ def _sensitivity(context: EconomicsExecutionContextV1, inputs: EconomicsExplicit
 
 
 def execute_economics_v3(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
-                         snapshot: Any, context: EconomicsExecutionContextV1, *, sensitivity_factory=None) -> EconomicsV2ExecutionV1:
+                         snapshot: Any, context: EconomicsExecutionContextV1, *, sensitivity_factory=None,
+                         net_roi: bool = False) -> EconomicsV2ExecutionV1:
     inputs = raw_inputs if isinstance(raw_inputs, EconomicsExplicitInputsV1) else EconomicsExplicitInputsV1.model_validate(raw_inputs)
-    accepted = execute_economics_v2(inputs, snapshot, context, sensitivity_factory=sensitivity_factory)
-    artifacts = [_scenario_artifacts(context, inputs, snapshot, acquisition, uncertainty)
+    accepted = execute_economics_v2(inputs, snapshot, context, sensitivity_factory=sensitivity_factory, net_roi=net_roi)
+    artifacts = [_scenario_artifacts(context, inputs, snapshot, acquisition, uncertainty, net_roi=net_roi)
                  for acquisition in ACQUISITIONS for uncertainty in UNCERTAINTIES]
     base = next(item for item in artifacts if item.acquisition == "PURCHASE" and item.uncertainty == "BASE")
     baseline = _baseline(base)
     baseline_sensitivity = _sensitivity(context, inputs, snapshot,
-        SimpleNamespace(acquisition="BASELINE", uncertainty="BASE", allocation=base.allocation))
-    scenarios = [_scenario(item) for item in artifacts]
+        SimpleNamespace(acquisition="BASELINE", uncertainty="BASE", allocation=base.allocation), net_roi=net_roi)
+    scenarios = [_scenario(item, net_roi=net_roi) for item in artifacts]
     sensitivity = {baseline["scenario_id"]: baseline_sensitivity}
-    sensitivity.update({row["scenario_id"]: _sensitivity(context, inputs, snapshot, item)
+    sensitivity.update({row["scenario_id"]: _sensitivity(context, inputs, snapshot, item, net_roi=net_roi)
                         for row, item in zip(scenarios, artifacts)})
     comparison = {
         "schema_version": PRESENTATION_VERSION,
@@ -291,6 +297,26 @@ def execute_economics_v4(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
     )
 
 
+def execute_economics_v5(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
+                         snapshot: Any, context: EconomicsExecutionContextV1) -> EconomicsV2ExecutionV1:
+    """New runs use net ROI while v3/v4 remain replayable with their saved formulas."""
+    previous = execute_economics_v3(raw_inputs, snapshot, context,
+                                    sensitivity_factory=partial(_versioned_legacy_sensitivity, net_roi=True),
+                                    net_roi=True)
+    result = dict(previous.result_snapshot)
+    if result['sensitivity']['source_schema_version'] == 'sensitivity-unavailable-zero-base-v1':
+        result['schema_version'] = 'commercial-scenarios-bundle-v4'
+    result["versions"] = {**result["versions"], "orchestrator": "production-economics-orchestrator-v5",
+                          "report_presentation": "result-presentation-v1", "roi_method": "net-return-v1"}
+    return EconomicsV2ExecutionV1(
+        result_snapshot=result, scenario_spec_snapshot=previous.scenario_spec_snapshot,
+        revision_id=previous.revision_id, rules_version=previous.rules_version,
+        object_profile_version=previous.object_profile_version,
+        application_version="production-economics-orchestrator-v5",
+        diagnostics=previous.diagnostics,
+    )
+
+
 class ZeroBaseSensitivityUnavailable(BaseModel):
     schema_version: str = 'sensitivity-unavailable-zero-base-v1'
     project_id: str
@@ -299,13 +325,13 @@ class ZeroBaseSensitivityUnavailable(BaseModel):
     reason: str = 'Процентная чувствительность прежней версии требует положительной базы; используйте сохранённую чувствительность сценариев.'
 
 
-def _versioned_legacy_sensitivity(context, inputs, snapshot, base, ranking):
+def _versioned_legacy_sensitivity(context, inputs, snapshot, base, ranking, *, net_roi: bool = False):
     from economics_orchestrator import _sensitivity as legacy_sensitivity
     price = base.procurement.money.cash_gross_rub
     role = next(item for item in base.labour.roles if item.role_id == _primary_role(context.capacity_request, inputs))
     if Decimal(price) == 0 or (role.money is not None and Decimal(role.money.monthly_gross) == 0):
         return ZeroBaseSensitivityUnavailable(project_id=context.project_id, tenant_id=context.tenant_id)
-    return legacy_sensitivity(context, inputs, snapshot, base, ranking)
+    return legacy_sensitivity(context, inputs, snapshot, base, ranking, net_roi=net_roi)
 
 
-__all__ = ["PRESENTATION_VERSION", "SENSITIVITY_VERSION", "execute_economics_v3", "execute_economics_v4"]
+__all__ = ["PRESENTATION_VERSION", "SENSITIVITY_VERSION", "execute_economics_v3", "execute_economics_v4", "execute_economics_v5"]

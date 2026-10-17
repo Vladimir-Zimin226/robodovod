@@ -2083,6 +2083,7 @@
               "purchase-cost-ledger-v1",
               "full-cashflows-reconciliation-v1",
               "full-cashflows-reconciliation-v2",
+              "full-cashflows-reconciliation-v4",
               "multiprocess-allocation-v1"
             ],
             "type": "string"

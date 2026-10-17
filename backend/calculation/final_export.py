@@ -51,7 +51,7 @@ SENSITIVITY_LABELS = {"EQUIPMENT_PRICE": "Цена робота", "RAAS_TARIFF":
 
 
 def _new_presentation(run: EvidenceRunSnapshotV1) -> bool:
-    return (run.versions.get("application") == "production-economics-orchestrator-v4"
+    return (run.versions.get("application") in {"production-economics-orchestrator-v4", "production-economics-orchestrator-v5"}
             and run.result_snapshot.get("versions", {}).get("report_presentation") == REPORT_PRESENTATION_VERSION)
 
 
@@ -420,7 +420,12 @@ def final_pdf(run: EvidenceRunSnapshotV1, previous_pdf: bytes,
                 value = metric.get("value") if metric.get("status") == "COMPLETE" else metric.get("status")
                 values.append(f"{SCENARIO_LABELS[scenario['acquisition']]}: {value or 'не сохранено'} {metric.get('unit') or ''}")
             lines.append((f"{label}: {' | '.join(values)}", "body"))
-        lines.extend([("ROI = эффект за горизонт / инвестиции в проект; при нулевом CAPEX — N/A. TCO = CAPEX + затраты за горизонт. NPV — отдельная дисконтированная метрика.", "note"),
+        roi_basis = _metric(rows[1], "roi").get("basis") or "формула ROI не сохранена"
+        legacy_roi_basis = "эффект за горизонт / CAPEX проекта × 100"
+        roi_note = ("ROI = эффект за горизонт / инвестиции в проект; при нулевом CAPEX — N/A. TCO = CAPEX + затраты за горизонт. NPV — отдельная дисконтированная метрика."
+                    if roi_basis == legacy_roi_basis else
+                    f"ROI = {roi_basis}. При нулевом CAPEX — N/A. TCO и NPV имеют другие базы.")
+        lines.extend([(roi_note, "note"),
                       ("Варианты неопределённости", "section")])
         for scenario in comparison["scenarios"]:
             lines.append((f"{_label(scenario)}: NPV {_metric(scenario, 'npv').get('value')} RUB; TCO {_metric(scenario, 'tco').get('value')} RUB; ROI {_metric(scenario, 'roi').get('value') or 'N/A'} %.", "body"))

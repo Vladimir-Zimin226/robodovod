@@ -59,7 +59,7 @@ def encoded(value: object) -> str:
 
 def outputs() -> dict[Path, str]:
     request = build_request()
-    result = calculate_raas_financials(request)
+    result = calculate_raas_financials(request, engine_version="raas-cashflows-v1")
     return {
         ROOT / "contracts/raas-analysis-request-v1.schema.json": encoded(RaasAnalysisRequestV1.model_json_schema()),
         ROOT / "contracts/raas-financial-result-v1.schema.json": encoded(RaasFinancialResultV1.model_json_schema()),

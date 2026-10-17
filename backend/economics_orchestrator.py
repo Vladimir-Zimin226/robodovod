@@ -716,6 +716,7 @@ def _purchase_financial(
     uncertainty: str,
     *,
     run_suffix: str = "",
+    net_roi: bool = False,
 ) -> tuple[FinancialAnalysisRequestV1, FinancialResultV1]:
     request = FinancialAnalysisRequestV1(
         run_id=f"{context.run_id}.finance.{uncertainty.lower()}{run_suffix}",
@@ -734,7 +735,8 @@ def _purchase_financial(
             provenance_ref="input.economics.additional-income-excluded"
         ),
     )
-    result = analyze_financials(request)
+    result = analyze_financials(request, engine_version=(
+        "full-cashflows-reconciliation-v4" if net_roi else "full-cashflows-reconciliation-v2"))
     if result.status != "COMPLETE":
         raise ValueError(
             "C16 financial result is incomplete: " + ", ".join(result.issues)
@@ -861,6 +863,7 @@ def _scenario_artifacts(
     primary_price_override: str | None = None,
     role_pool: RolePool | None = None,
     allocation_run_id: str | None = None,
+    net_roi: bool = False,
 ) -> ScenarioArtifacts:
     request = context.capacity_request
     position = _position(snapshot, request)
@@ -879,6 +882,7 @@ def _scenario_artifacts(
     )
     comparator_request, purchase_financial = _purchase_financial(
         context, inputs, purchase, labour, uncertainty, run_suffix=branch_suffix,
+        net_roi=net_roi,
     )
     if acquisition == "PURCHASE":
         procurement = purchase_procurement
@@ -897,7 +901,8 @@ def _scenario_artifacts(
             comparator_request_digest=semantic_digest(comparator_request),
             comparator_result_digest=semantic_digest(purchase_financial),
         )
-        financial = analyze_raas_financials(raas_request)
+        financial = analyze_raas_financials(raas_request, engine_version=(
+            "raas-cashflows-v2" if net_roi else "raas-cashflows-v1"))
         if financial.status != "COMPLETE":
             raise ValueError(
                 "C17 RaaS result is incomplete: " + ", ".join(financial.issues)
@@ -1014,6 +1019,8 @@ def _sensitivity(
     snapshot: CatalogSnapshotDTO,
     base: ScenarioArtifacts,
     ranking: RankingResultV2,
+    *,
+    net_roi: bool = False,
 ) -> SensitivityResultV1:
     request = context.capacity_request
     binding = _capacity_binding(context.capacity_response, request)
@@ -1062,7 +1069,7 @@ def _sensitivity(
                 primary_price = variant_value
                 engines = [
                     "purchase-cost-ledger-v1",
-                    "full-cashflows-reconciliation-v2",
+                    "full-cashflows-reconciliation-v4" if net_roi else "full-cashflows-reconciliation-v2",
                     "multiprocess-allocation-v1",
                 ]
             elif parameter == "ROLE_SALARY":
@@ -1080,7 +1087,7 @@ def _sensitivity(
                 engines = [
                     "role-labour-baseline-v1",
                     "purchase-cost-ledger-v1",
-                    "full-cashflows-reconciliation-v2",
+                    "full-cashflows-reconciliation-v4" if net_roi else "full-cashflows-reconciliation-v2",
                     "multiprocess-allocation-v1",
                 ]
             else:
@@ -1127,6 +1134,7 @@ def _sensitivity(
                 primary_price_override=primary_price,
                 role_pool=variant_pool,
                 allocation_run_id=derived_run_id,
+                net_roi=net_roi,
             )
             capacity = _capacity_binding(
                 variant_context.capacity_response,
@@ -1552,6 +1560,7 @@ def execute_economics_v2(
     context: EconomicsExecutionContextV1,
     *,
     sensitivity_factory=None,
+    net_roi: bool = False,
 ) -> EconomicsV2ExecutionV1:
     """Execute the accepted C13-C21 engines and return immutable snapshots."""
 
@@ -1575,7 +1584,7 @@ def execute_economics_v2(
         raise ValueError("capacity run/trace identity mismatch")
     position = _position(snapshot, request)
     artifacts = [
-        _scenario_artifacts(context, inputs, snapshot, acquisition, uncertainty)
+        _scenario_artifacts(context, inputs, snapshot, acquisition, uncertainty, net_roi=net_roi)
         for acquisition in ACQUISITIONS
         for uncertainty in UNCERTAINTIES
     ]
@@ -1585,7 +1594,9 @@ def execute_economics_v2(
         if item.acquisition == "PURCHASE" and item.uncertainty == "BASE"
     )
     ranking = _ranking(context, position, base)
-    sensitivity = (sensitivity_factory or _sensitivity)(context, inputs, snapshot, base, ranking)
+    sensitivity = (sensitivity_factory(context, inputs, snapshot, base, ranking)
+                   if sensitivity_factory is not None else
+                   _sensitivity(context, inputs, snapshot, base, ranking, net_roi=net_roi))
     bundle = _bundle(context, inputs, artifacts, ranking, sensitivity)
     scenario = _scenario_spec(context, inputs, base.allocation)
     return EconomicsV2ExecutionV1(

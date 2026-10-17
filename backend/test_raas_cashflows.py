@@ -29,12 +29,28 @@ def redigest(raw: dict) -> None:
 
 def test_golden_is_strict_replayable_and_complete():
     data = fixture()
-    first = analyze_raas_financials(RaasAnalysisRequestV1.model_validate(data["request"]))
-    second = calculate_raas_financials(RaasAnalysisRequestV1.model_validate(data["request"]))
+    first = analyze_raas_financials(RaasAnalysisRequestV1.model_validate(data["request"]), engine_version="raas-cashflows-v1")
+    second = calculate_raas_financials(RaasAnalysisRequestV1.model_validate(data["request"]), engine_version="raas-cashflows-v1")
     assert first.model_dump(mode="json") == data["result"] == second.model_dump(mode="json")
     assert first.status == "COMPLETE" and not first.issues
     assert first.infrastructure_owner == "CUSTOMER"
     assert first.fleet_count == data["request"]["purchase_comparator_request"]["purchase_ledger"]["fleet_count"]
+
+
+def test_current_raas_roi_subtracts_customer_capex_only_and_vendor_capex_is_na():
+    source = request()
+    current = analyze_raas_financials(source)
+    previous = calculate_raas_financials(source, engine_version="raas-cashflows-v1")
+    capex = Decimal(current.capex_infrastructure_gross)
+    tco = Decimal(current.tco_raas.value)
+    effect = Decimal(current.cumulative_effect.value)
+    assert current.engine_version == "raas-cashflows-v2"
+    assert Decimal(current.roi_on_raas_tco.value) == ((effect - capex) / tco * 100).quantize(Decimal("0.01"))
+    assert Decimal(previous.roi_on_raas_tco.value) == (effect / tco * 100).quantize(Decimal("0.01"))
+    raw = source.model_dump(mode="json")
+    next(item for item in raw["procurement"]["responsibilities"] if item["area"] == "INFRASTRUCTURE")["responsible_party"] = "VENDOR"
+    vendor = analyze_raas_financials(RaasAnalysisRequestV1.model_validate(raw))
+    assert vendor.roi_on_raas_tco.status == "N_A" and vendor.roi_on_raas_tco.value is None
 
 
 @pytest.mark.parametrize("uncertainty", ["PESSIMISTIC", "BASE", "OPTIMISTIC"])

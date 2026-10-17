@@ -563,8 +563,11 @@
       "$ref": "#/$defs/MetricValueV1"
     },
     "engine_version": {
-      "const": "raas-cashflows-v1",
-      "default": "raas-cashflows-v1",
+      "default": "raas-cashflows-v2",
+      "enum": [
+        "raas-cashflows-v1",
+        "raas-cashflows-v2"
+      ],
       "title": "Engine Version",
       "type": "string"
     },
