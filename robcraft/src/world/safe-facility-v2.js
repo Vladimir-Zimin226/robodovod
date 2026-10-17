@@ -9,17 +9,22 @@ export function generateSafeFacilityWorld(config, spec, zoneId) {
   const scene = createBaseScene({ ...config, width: plan.width, depth: plan.height });
   scene.facilityPlan = plan;
   scene.safePlaybackPlan = plan;
-  scene.staticObjects = scene.staticObjects.filter((object) => !['roof', 'light'].includes(object.type));
-  for (const object of scene.staticObjects.filter(object => object.type === 'wall')) {
-    if (object.solid === false) continue;
-    object.position[1] = 1.6; object.scale[1] = 3.2;
-    if (plan.cleaning && object.editorId === 'base:wall:3') {
-      object.type = 'glass'; object.color = [.32, .64, .71];
+  // The warehouse gets a complete shell. Other templates keep their existing
+  // cutaway camera view, since their overview cameras look in from outside.
+  if (plan.warehouseTransport) scene.staticObjects = scene.staticObjects.filter((object) => object.type !== 'light');
+  else {
+    scene.staticObjects = scene.staticObjects.filter((object) => !['roof', 'light'].includes(object.type));
+    for (const object of scene.staticObjects.filter(object => object.type === 'wall')) {
+      if (object.solid === false) continue;
+      object.position[1] = 1.6; object.scale[1] = 3.2;
+      if (plan.cleaning && object.editorId === 'base:wall:3') {
+        object.type = 'glass'; object.color = [.32, .64, .71];
+      }
     }
-  }
-  scene.staticObjects = scene.staticObjects.filter(object => !(object.type === 'wall' && object.solid === false));
-  for (const solid of scene.solids.filter(object => object.editorId?.startsWith('base:wall:'))) {
-    solid.position[1] = 1.6; solid.scale[1] = 3.2;
+    scene.staticObjects = scene.staticObjects.filter(object => !(object.type === 'wall' && object.solid === false));
+    for (const solid of scene.solids.filter(object => object.editorId?.startsWith('base:wall:'))) {
+      solid.position[1] = 1.6; solid.scale[1] = 3.2;
+    }
   }
   for (const area of plan.areas) {
     const [x, z] = safeWorldPoint(plan, { x: area.x + area.width / 2, y: area.y + area.height / 2 });
@@ -36,6 +41,17 @@ export function generateSafeFacilityWorld(config, spec, zoneId) {
     }
     for (const z of [-plan.height / 2 + .18, plan.height / 2 - .18])
       scene.staticObjects.push(makeBlock([0, 2.25, z], [plan.width - 1, .08, .08], [.26, .58, .54], { type: 'decor' }));
+    const front = plan.height / 2;
+    // Dock doors, fascia and roof seams make the exterior legible in the first
+    // shot. They have no collision geometry and do not imply a surveyed site.
+    for (const x of [-plan.width * .3, 0, plan.width * .3]) {
+      scene.staticObjects.push(makeBlock([x, 2.15, front + .27], [5.8, 3.8, .12], [.19, .28, .31], { type: 'decor' }));
+      scene.staticObjects.push(makeBlock([x, 4.1, front + .34], [6.1, .18, .2], [.86, .58, .22], { type: 'decor' }));
+      scene.staticObjects.push(makeBlock([x, .22, front + 1.2], [6.2, .38, 2.6], [.39, .43, .41], { type: 'decor' }));
+    }
+    scene.staticObjects.push(makeBlock([0, 6.35, front + .3], [plan.width - 2, .75, .14], [.13, .25, .27], { type: 'sign' }));
+    for (let x = -plan.width / 2 + 7; x < plan.width / 2; x += 7)
+      scene.staticObjects.push(makeBlock([x, 7.92, 0], [.11, .08, plan.height - 1], [.32, .42, .43], { type: 'roof' }));
   }
   for (const rect of plan.walls) {
     const [x, z] = safeWorldPoint(plan, { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });

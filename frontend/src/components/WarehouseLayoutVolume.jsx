@@ -49,6 +49,30 @@ export default function WarehouseLayoutVolume({ layout, route, robotPoint = null
       const at = project(item.x, item.y, h), bt = project(item.x + w, item.y, h);
       const ct = project(item.x + w, item.y + d, h), et = project(item.x, item.y + d, h);
       const [top, side, edge] = COLOR[item.kind] || COLOR.obstacle;
+      if (item.kind === 'rack') {
+        const corners = [[item.x, item.y], [item.x + w, item.y], [item.x + w, item.y + d], [item.x, item.y + d]];
+        return <g key={item.id || index}>
+          <title>Стеллаж · условные стойки, балки и паллеты · {item.provenance === 'PROVIDED' ? 'контур из DXF' : 'схема пользователя или примера'}</title>
+          <polygon points={polygon([project(item.x, item.y), b, c, e])} fill="#1a2529" opacity=".65" />
+          {[.28, .58, .89].map((level) => {
+            const shelf = corners.map(([cx, cy]) => project(cx, cy, h * level));
+            const cargo = [
+              project(item.x + w * .17, item.y + d * .15, h * level + 5),
+              project(item.x + w * .78, item.y + d * .15, h * level + 5),
+              project(item.x + w * .78, item.y + d * .8, h * level + 5),
+              project(item.x + w * .17, item.y + d * .8, h * level + 5),
+            ];
+            return <g key={level}>
+              <polygon points={polygon(shelf)} fill="#293d40" stroke="#e69b46" strokeWidth="2.4" />
+              <polygon points={polygon(cargo)} fill={level === .58 ? '#b7824d' : '#9a7148'} stroke="#d6ae72" strokeWidth="1" />
+              <path d={`M${shelf[0].join(' ')}L${shelf[1].join(' ')}M${shelf[3].join(' ')}L${shelf[2].join(' ')}`} fill="none" stroke="#f2ad53" strokeWidth="2" />
+            </g>;
+          })}
+          {corners.map(([cx, cy], post) => <path key={post} d={`M${project(cx, cy).join(' ')}L${project(cx, cy, h).join(' ')}`}
+            stroke="#1c3438" strokeWidth="4.2" strokeLinecap="square" />)}
+          <path d={`M${at.join(' ')}L${bt.join(' ')}L${ct.join(' ')}L${et.join(' ')}`} fill="none" stroke="#d2974c" strokeWidth="2" />
+        </g>;
+      }
       return <g key={item.id || index}>
         <title>{item.kind} · {item.provenance === 'ASSUMED' ? 'учебное допущение' : item.provenance === 'PROVIDED' ? 'импорт DXF' : 'нанесено пользователем'}</title>
         <polygon points={polygon([b, c, ct, bt])} fill={side} stroke={edge} strokeWidth="1" />

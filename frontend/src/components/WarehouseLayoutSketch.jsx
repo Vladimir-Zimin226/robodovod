@@ -74,7 +74,7 @@ export default function WarehouseLayoutSketch({ value, onChange, processes = [],
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
   return <section className="warehouse-layout-sketch" aria-label="План склада">
-    <div className="warehouse-layout-heading"><div><h3>План склада</h3><p>Загрузите изображение или нарисуйте схему. Отметьте точки передачи и препятствия: проверим, есть ли проезд, и покажем оценку длины маршрута.</p></div>
+    <div className="warehouse-layout-heading"><div><h3>План склада</h3><p>Откройте конструктор, чтобы загрузить DXF из AutoCAD, изображение плана или расставить объекты. Есть учебный DXF для пробы.</p></div>
       <button type="button" onClick={() => setExpanded((current) => !current)} aria-expanded={expanded}>{expanded ? 'Свернуть план' : 'Открыть конструктор'}</button></div>
     {expanded && <>
       <FloorplanUploader onResult={(data) => { setAppliedRoute(null); onChange({ ...emptyFacilityLayout(), source: 'IMAGE_REFERENCE', imageData: data.imageData,
@@ -102,7 +102,9 @@ export default function WarehouseLayoutSketch({ value, onChange, processes = [],
       <div className="warehouse-layout-views" role="tablist" aria-label="Вид планировки"><button type="button" role="tab" aria-selected={view === 'plan'} onClick={() => setView('plan')}>План сверху</button><button type="button" role="tab" aria-selected={view === 'volume'} onClick={() => setView('volume')}>Объёмный эскиз</button></div>
       <div className={`warehouse-layout-map${view === 'volume' ? ' is-volume' : ''}`} style={view === 'plan' ? { aspectRatio: `${width} / ${depth}` } : undefined}>
         {view === 'volume' ? <WarehouseLayoutVolume layout={layout} route={route} robotPoint={animateRoute ? robotPoint : null} /> : <svg viewBox={`0 0 ${width} ${depth}`} role="img" aria-label={`Схема склада ${width} на ${depth} метров`} onClick={placeFromPointer}>
-          <defs><pattern id="warehouse-draft-grid" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M5 0H0V5" fill="none" stroke="#43707a" strokeWidth=".12" /></pattern></defs>
+          <defs><pattern id="warehouse-draft-grid" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M5 0H0V5" fill="none" stroke="#43707a" strokeWidth=".12" /></pattern>
+            <pattern id="warehouse-rack-deck" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M0 0H1M0 .55H1" stroke="#c48e4c" strokeWidth=".09" /></pattern>
+            <pattern id="warehouse-obstacle-hatch" width=".8" height=".8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0V.8" stroke="#edb9a4" strokeWidth=".15" /></pattern></defs>
           <rect width={width} height={depth} fill="#102a32" />
           {layout.imageData && <image href={layout.imageData} x="0" y="0" width={width} height={depth} preserveAspectRatio="none" opacity=".5" />}
           <rect width={width} height={depth} fill="url(#warehouse-draft-grid)" />
@@ -111,6 +113,9 @@ export default function WarehouseLayoutSketch({ value, onChange, processes = [],
           {pickup && dropoff && route.status !== 'READY' && <path d={`M ${pickup.x + .5} ${pickup.y + .5} L ${dropoff.x + .5} ${dropoff.y + .5}`} fill="none" stroke="#f0a56f" strokeWidth=".3" strokeDasharray=".8 .6" />}
           {items.map((item, index) => { const [w, h] = itemSize(item); return <g key={itemKey(item, index)} onClick={(event) => { event.stopPropagation(); setSelectedId(itemKey(item, index)); }}>
             <rect x={item.x} y={item.y} width={w} height={h} rx=".2" fill={ITEM_FILL[item.kind] || ITEM_FILL.obstacle} fillOpacity={AREA_LABELS[item.kind] ? '.4' : '1'} stroke={selectedId === itemKey(item, index) ? '#fdf789' : item.provenance === 'ASSUMED' ? '#e8b778' : item.provenance === 'PROVIDED' ? '#75d9f4' : '#eff8ee'} strokeWidth={selectedId === itemKey(item, index) ? '.35' : '.15'} />
+            {item.kind === 'rack' && <><rect x={item.x + .18} y={item.y + .18} width={Math.max(0, w - .36)} height={Math.max(0, h - .36)} fill="url(#warehouse-rack-deck)" stroke="#d19d59" strokeWidth=".1" />
+              {[.2, .5, .8].map((fraction) => <line key={fraction} x1={item.x + w * fraction} y1={item.y + .1} x2={item.x + w * fraction} y2={item.y + h - .1} stroke="#223c3c" strokeWidth=".15" />)}</>}
+            {['obstacle', 'no_go'].includes(item.kind) && <rect x={item.x} y={item.y} width={w} height={h} fill="url(#warehouse-obstacle-hatch)" opacity=".55" />}
             {AREA_LABELS[item.kind] && <text x={Number(item.x) + w / 2} y={Number(item.y) + h / 2} textAnchor="middle" dominantBaseline="middle" fill="#eaf8f1" fontSize="1.2" fontWeight="700" pointerEvents="none">{AREA_LABELS[item.kind]}</text>}
             {['pickup', 'dropoff'].includes(item.kind) && <text x={item.x + .5} y={item.y - .25} textAnchor="middle" fill="#fff" fontSize="1.4">{item.kind === 'pickup' ? 'П' : 'О'}</text>}
           </g>; })}

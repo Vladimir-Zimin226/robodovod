@@ -25,14 +25,14 @@ test('safe scene keeps walls solid during manual flight', () => {
   }
 });
 
-test('warehouse camera follows a robot steadily after a brief opening view', () => {
+test('warehouse camera shows the roof before following a robot steadily', () => {
   const plan = createSafePlan(playbackCase('warehouse', 15).spec);
   const robots = plan.robots.map(robot => ({ ...robot, ...safeRoute(plan, robot.ordinal).home,
     stage: 'OUTBOUND', stageLabel: 'В зону отгрузки', areaLabel: `Стеллаж ${robot.ordinal + 1}` }));
   const frame = { plan, robots }, camera = { position: [0, 20, 20] };
   updateFacilityCamera(camera, frame, 0);
-  assert.equal(camera.currentShot.id, 'facility-overview');
-  updateFacilityCamera(camera, frame, 3);
+  assert.equal(camera.currentShot.id, 'facility-exterior');
+  updateFacilityCamera(camera, frame, 4);
   const first = camera.currentShot.id;
   assert.match(first, /^facility-robot-/);
   for (const second of [8, 15, 22]) {
@@ -43,7 +43,7 @@ test('warehouse camera follows a robot steadily after a brief opening view', () 
   assert.equal(camera.currentShot.id, 'facility-overview');
   updateFacilityCamera(camera, frame, 29);
   assert.equal(camera.currentShot.id, 'facility-overview');
-  updateFacilityCamera(camera, frame, 32);
+  updateFacilityCamera(camera, frame, 34);
   assert.match(camera.currentShot.id, /^facility-robot-/);
   assert.notEqual(camera.currentShot.id, first);
 });

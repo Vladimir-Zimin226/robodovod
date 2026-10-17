@@ -52,7 +52,7 @@ export function parseAsciiDxf(source) {
     malformed_entities: malformed };
 }
 
-export function dxfToFacilityLayout(parsed, { unit, layers, wallThicknessM = .2, sourceName = 'plan.dxf' }) {
+export function dxfToFacilityLayout(parsed, { unit, layers, layerKinds = {}, wallThicknessM = .2, sourceName = 'plan.dxf' }) {
   const factor = DXF_UNIT_METERS[unit];
   if (!factor) throw new Error('Выберите единицы чертежа перед импортом.');
   const chosen = parsed.segments.filter((line) => layers.includes(line.layer));
@@ -70,8 +70,11 @@ export function dxfToFacilityLayout(parsed, { unit, layers, wallThicknessM = .2,
     const dx = Math.abs(x2 - x1), dy = Math.abs(y2 - y1);
     if (Math.min(dx, dy) > Math.max(.02, Math.max(dx, dy) * .01)) { skipped.push(index + 1); return; }
     const horizontal = dx >= dy;
-    const thickness = Math.max(.05, Math.min(2, Number(wallThicknessM) || .2));
-    items.push({ id: `dxf-${index}`, kind: 'obstacle',
+    const kind = layerKinds[line.layer] === 'rack' ? 'rack' : 'obstacle';
+    // A rack layer is interpreted as shelf centre lines. Its physical width is
+    // a visible, editable assumption, not a value extracted from the drawing.
+    const thickness = kind === 'rack' ? 1.2 : Math.max(.05, Math.min(2, Number(wallThicknessM) || .2));
+    items.push({ id: `dxf-${index}`, kind,
       x: Math.max(0, Math.min(x1, x2) - (horizontal ? 0 : thickness / 2)),
       y: Math.max(0, Math.min(y1, y2) - (horizontal ? thickness / 2 : 0)),
       width_m: Math.max(thickness, dx), depth_m: Math.max(thickness, dy),
@@ -80,6 +83,7 @@ export function dxfToFacilityLayout(parsed, { unit, layers, wallThicknessM = .2,
   if (!items.length) throw new Error('На выбранных слоях нет горизонтальных или вертикальных отрезков. Диагонали не импортируются как препятствия.');
   return { ...emptyFacilityLayout(), source: 'DXF_TRACE', width_m: Number(width.toFixed(2)), depth_m: Number(depth.toFixed(2)), items,
     cad_metadata: { format: 'ASCII_DXF', file_name: sourceName, unit, selected_layers: layers,
+      selected_layer_kinds: Object.fromEntries(layers.map((layer) => [layer, layerKinds[layer] === 'rack' ? 'rack' : 'obstacle'])),
       imported_segments: items.length, skipped_diagonal_segments: skipped.length,
       unsupported_entities: parsed.unsupported_entities, malformed_entities: parsed.malformed_entities,
       wall_thickness_m: wallThicknessM } };

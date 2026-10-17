@@ -57,11 +57,13 @@ export default function App() {
   const [preset, setPreset] = useState(null);
   const [intakeDrafts, setIntakeDrafts] = useState({});
   const [intakeSnapshots, setIntakeSnapshots] = useState({});
+  const [intakeFocus, setIntakeFocus] = useState(null);
   const [userInput, setUserInput] = useState(null);
   const [result, setResult] = useState(null);
   const [layoutEvidence, setLayoutEvidence] = useState(null);
   const [capacityComparison, setCapacityComparison] = useState(null);
   const lastCapacity = useRef(null);
+  const [editableCapacityRunId, setEditableCapacityRunId] = useState(null);
   const [command, setCommand] = useState('');
   const [intakePrompt, setIntakePrompt] = useState('');
   const [intakeInitialSources, setIntakeInitialSources] = useState(null);
@@ -194,6 +196,7 @@ export default function App() {
       setResumeIntake(false);
     }
     setCatalogContext(null);
+    setEditableCapacityRunId(null);
     setActiveProject(project);
     setActiveRun(null);
     setResult(null);
@@ -206,6 +209,8 @@ export default function App() {
     setResumeIntake(false);
     setIntakeDrafts({});
     setIntakeSnapshots({});
+    setIntakeFocus(null);
+    setEditableCapacityRunId(null);
     setCatalogContext(null);
     showPhase('onboarding');
     setObjectType(null);
@@ -221,6 +226,14 @@ export default function App() {
   const currentStep = phase === 'onboarding' ? 0 : phase === 'intake' ? 1 : 2;
   const assistantSessionKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}`;
   const intakeDraftKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}:${objectType || 'none'}`;
+  const currentDraft = intakeDrafts[intakeDraftKey];
+  const hasEditableDraft = Boolean(currentDraft?.objectKind);
+  const resultRevision = userInput?.input_revision;
+  const canEditResultDraft = Boolean(result && hasEditableDraft && resultRevision
+    && currentDraft.objectKind === userInput?.process?.object_kind
+    && editableCapacityRunId === resultCapacityRunId(result, activeRun));
+  const resultNeedsRecalculation = Boolean(canEditResultDraft
+    && currentDraft.inputRevision !== resultRevision);
   const evidenceRunId = resultCapacityRunId(result, activeRun);
   useEffect(() => {
     if (!activeProject?.id || !evidenceRunId) return undefined;
@@ -245,19 +258,32 @@ export default function App() {
   const rememberIntakeDraft = useCallback((draft) => setIntakeDrafts((current) =>
     current[intakeDraftKey] === draft ? current : { ...current, [intakeDraftKey]: draft }), [intakeDraftKey]);
 
-  const openCalculation = () => {
+  const openCalculation = (focusSalary = false) => {
     setEditorRequestedRunId(null);
     setAssistantImport(null);
     setIntakeInitialSources(null);
     const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
-    const nextType = savedInput?.object_type || objectType || 'retail';
+    const nextType = hasEditableDraft ? objectType : savedInput?.object_type || objectType || 'retail';
     setObjectType(nextType);
     setPreset(savedInput || (preset?.object_type === nextType ? preset : null));
+    setIntakeFocus(focusSalary === true ? { kind: 'salary', processId: userInput?.process?.process_id, nonce: Date.now() } : null);
     showPhase('intake');
+  };
+
+  const editCalculatedInputs = () => {
+    if (canEditResultDraft) { openCalculation(true); return; }
+    if (activeRun?.input_snapshot?.economics) {
+      setEditorRequestedRunId(activeRun.id);
+      requestAnimationFrame(() => document.getElementById('edit-economics-run')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      return;
+    }
+    openCalculation();
   };
 
   const openSavedRun = (run, project, options = {}) => {
     selectActiveProject(project);
+    const savedType = project?.scenarios?.find((item) => item.slot === 'BASE')?.inputs?.object_type;
+    if (savedType) setObjectType(savedType);
     setActiveRun(run);
     setUserInput(run.input_snapshot);
     setResult(run.result_snapshot);
@@ -359,7 +385,16 @@ export default function App() {
 
   return (
     <AppShell phase={phase} user={user} activeProject={activeProject} onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
-      {['onboarding', 'intake'].includes(phase) && <Stepper current={currentStep} />}
+      {['onboarding', 'intake', 'results'].includes(phase) && <Stepper current={currentStep}
+        canOpenIntake={Boolean(objectType || activeProject)} canOpenResults={Boolean(result)}
+        onSelect={(id) => {
+          if (id === 'object') showPhase('onboarding');
+          else if (id === 'intake') {
+            if (phase === 'results' && !canEditResultDraft && activeRun?.input_snapshot?.economics) editCalculatedInputs();
+            else openCalculation(phase === 'results' && canEditResultDraft);
+          }
+          else if (id === 'results' && result) showPhase('results');
+        }} />}
       <div className={`phase-content${phase === 'results' ? ' phase-content-visualization' : ''}`}>
         {phase === 'templates' ? (
           <ProjectTemplatesScreen user={user} project={activeProject} projects={projectChoices} onChooseProject={selectActiveProject}
@@ -424,6 +459,8 @@ export default function App() {
             initialFacilityContext={userInput?.facility_context || activeRun?.input_snapshot?.facility_context}
             initialDraft={intakeDrafts[intakeDraftKey] || (resumeIntake && intakeDrafts[`${user?.id || 'guest'}:none:${objectType || 'none'}`])}
             initialNormalized={intakeSnapshots[intakeDraftKey] || (resumeIntake && intakeSnapshots[`${user?.id || 'guest'}:none:${objectType || 'none'}`])}
+            initialCapacityRequest={userInput}
+            focusTarget={intakeFocus}
             onDraftChange={rememberIntakeDraft}
             user={user}
             authChecked={authChecked}
@@ -458,6 +495,7 @@ export default function App() {
                 && previous.request?.process?.process_id === request?.process?.process_id
                 && previous.response.run_id !== response.run_id ? { before: previous, after: next } : null);
               lastCapacity.current = next;
+              setEditableCapacityRunId(response.run_id);
               setResult(response);
               setUserInput(request);
               setLayoutEvidence(evidence ? { ...evidence, capacityRunId: response.run_id,
@@ -516,6 +554,12 @@ export default function App() {
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
         ) : (
           <>
+            {resultNeedsRecalculation && <div className="mx-auto max-w-6xl px-4 pt-4" role="status"><div className="rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">Ввод изменён после этого расчёта. Показан сохранённый результат прежней версии. <button type="button" className="underline font-semibold" onClick={() => openCalculation(true)}>Вернуться к изменённым полям и пересчитать</button></div></div>}
+            {result && <div className="mx-auto max-w-6xl px-4 pt-4 flex flex-wrap items-center gap-3" aria-label="Действия с расчётом">
+              <button type="button" className="primary-action" onClick={editCalculatedInputs}>{canEditResultDraft ? 'Изменить зарплату или другие данные' : activeRun?.input_snapshot?.economics ? 'Изменить сохранённую экономику' : 'Новый расчёт по проекту'}</button>
+              {canEditResultDraft && <span className="text-sm text-slate-500">Заполненные поля сохранены в этой вкладке; после правки создайте новую версию расчёта.</span>}
+              {!canEditResultDraft && !activeRun?.input_snapshot?.economics && <span className="text-sm text-slate-500">Для архивного расчёта черновик формы не сохранён; откроются данные проекта.</span>}
+            </div>}
             <ResultSimulation key={resultCapacityRunId(result, activeRun) || activeRun?.id || 'none'} result={result}
               run={activeRun} technicalRun={technicalExportRun} capacityRequest={userInput}
               project={activeProject} onReady={setTechnicalExportRun} />
@@ -532,7 +576,7 @@ export default function App() {
             ) : isCapacityAnalysisResponse(result) ? (
               <>
                 <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} onRestart={restart} />
-                <div className="mx-auto max-w-6xl px-4 pb-4"><button type="button" className="secondary-action" onClick={openCalculation}>Вернуться к зонам и рассчитать другую операцию</button></div>
+                <div className="mx-auto max-w-6xl px-4 pb-4"><button type="button" className="secondary-action" onClick={() => openCalculation()}>Вернуться к заполненным зонам и операциям</button></div>
                 <EconomicsInputsV2
                   key={activeRun?.id || result.run_id}
                   capacityRequest={userInput}
@@ -589,7 +633,7 @@ export default function App() {
   );
 }
 
-function Stepper({ current }) {
+function Stepper({ current, canOpenIntake, canOpenResults, onSelect }) {
   return (
     <div className="stepper-shell">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -600,24 +644,13 @@ function Stepper({ current }) {
           return (
             <div key={step.id} className="flex items-center flex-1">
               <div className="flex items-center gap-2">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    isDone
-                      ? 'bg-green-500 text-white'
-                      : isActive
-                        ? 'bg-blue-600 text-white ring-4 ring-blue-100'
-                        : 'bg-slate-200 text-slate-400'
-                  }`}
-                >
-                  {isDone ? '✓' : '•'}
-                </div>
-                <span
-                  className={`text-sm font-medium ${
-                    isDone ? 'text-green-600' : isActive ? 'text-blue-600' : 'text-slate-400'
-                  }`}
-                >
-                  {step.label}
-                </span>
+                <button type="button" disabled={step.id === 'intake' ? !canOpenIntake : step.id === 'results' ? !canOpenResults : false}
+                  aria-current={isActive ? 'step' : undefined} onClick={() => onSelect(step.id)}
+                  className={`stepper-link flex items-center gap-2 text-sm font-medium ${isDone ? 'text-green-600' : isActive ? 'text-blue-600' : 'text-slate-400'}`}>
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    isDone ? 'bg-green-500 text-white' : isActive ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-slate-200 text-slate-400'
+                  }`}>{isDone ? '✓' : i + 1}</span>{step.label}
+                </button>
               </div>
               {!isLast && (
                 <div

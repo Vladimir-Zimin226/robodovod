@@ -44,6 +44,15 @@ const ROLE_LABELS = {
 const CAPACITY_STATUS_LABELS = { COMPLETE:'Парк рассчитан', WITH_ASSUMPTIONS:'Предварительный парк; условия требуют проверки',
   BLOCKED:'Парк заблокирован', NOT_APPLICABLE:'Формула неприменима' };
 
+const salaryFocus = (draft, target) => {
+  if (target?.kind !== 'salary') return null;
+  const wantedProcess = draft.processes.find((process) => process.processId === target.processId);
+  const role = draft.roles.find((item) => item.processIds.includes(wantedProcess?.processId)) || draft.roles[0];
+  const process = wantedProcess && role?.processIds.includes(wantedProcess.processId)
+    ? wantedProcess : draft.processes.find((item) => role?.processIds.includes(item.processId));
+  return process && role ? { process, role } : null;
+};
+
 const statusFor = (process, issues, response) => {
   if (!process.active) return ['Неактивен', 'text-slate-400'];
   const serverRefs = [
@@ -57,7 +66,7 @@ const statusFor = (process, issues, response) => {
   return ['Готов к нормализации', 'text-green-600'];
 };
 
-export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, onDraftChange, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
+export default function ProcessRoleIntakeV2({ objectType, importedFile, importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked, projectChoices = [], projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onNormalized, onCapacityResult }) {
   const [draft, setDraft] = useState(() => {
     if (importedAssistant) return toV2Draft(importedAssistant);
     if (initialDraft?.objectKind === { retail: 'WAREHOUSE', airport: 'AIRPORT', clinic: 'CLINIC' }[objectType]) return initialDraft;
@@ -72,8 +81,15 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
       fieldConfirmations: { totalArea: initialFacilityContext.total_area?.confirmed || false,
         activeArea: initialFacilityContext.active_area?.confirmed || false } });
   });
-  const [selectedZoneId, setSelectedZoneId] = useState(() => draft.zones[0].zoneId);
-  const [expanded, setExpanded] = useState(null);
+  const initialSalaryFocus = useRef(salaryFocus(draft, focusTarget));
+  const resumedCapacity = initialCapacityRequest?.input_revision === draft.inputRevision
+    && initialNormalized?.response?.input_revision === draft.inputRevision ? initialCapacityRequest : null;
+  const [selectedZoneId, setSelectedZoneId] = useState(() => salaryFocus(draft, focusTarget)?.process.zoneId
+    || draft.zones.find((zone) => zone.zoneId === resumedCapacity?.zone_context?.zone_id)?.zoneId || draft.zones[0].zoneId);
+  const [expanded, setExpanded] = useState(() => {
+    const focus = salaryFocus(draft, focusTarget);
+    return focus ? objectType === 'retail' ? `${focus.process.processId}:${focus.role.roleCode}` : focus.process.processId : null;
+  });
   const [result, setResult] = useState(initialNormalized || null);
   const [state, setState] = useState('');
   const [error, setError] = useState('');
@@ -81,11 +97,11 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const [catalogState, setCatalogState] = useState('loading');
   const [comparison, setComparison] = useState(null);
   const [comparisonState, setComparisonState] = useState('');
-  const [processId, setProcessId] = useState('');
-  const [positionId, setPositionId] = useState('');
+  const [processId, setProcessId] = useState(resumedCapacity?.process?.process_id || '');
+  const [positionId, setPositionId] = useState(resumedCapacity?.position_id || '');
   const [exchangeSeconds, setExchangeSeconds] = useState(draft.processes.find((item) => item.active)?.exchangeSeconds || '');
   const [cleaningFrequency, setCleaningFrequency] = useState(draft.processes.find((item) => item.active)?.cleaningFrequency ?? '1');
-  const [acknowledged, setAcknowledged] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(resumedCapacity?.demo_assumptions_confirmed === true);
   const [capacityBusy, setCapacityBusy] = useState(false);
   const [focusIssue, setFocusIssue] = useState('');
   const [pickingCatalog, setPickingCatalog] = useState(null);
@@ -118,6 +134,20 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
   const blockers = issues.filter((item) => item.severity === 'BLOCKER');
   const activeCount = draft.processes.filter((item) => item.active).length;
   const visibleProcesses = draft.processes.filter((item) => item.zoneId === selectedZoneId);
+  const roleCards = objectType === 'retail'
+    ? visibleProcesses.flatMap((process) => process.roles.map((roleCode) => ({ process, roleCode,
+      id: `${process.processId}:${roleCode}` })))
+    : visibleProcesses.map((process) => ({ process, roleCode: null, id: process.processId }));
+  useEffect(() => {
+    const focus = initialSalaryFocus.current;
+    if (!focus) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const field = document.getElementById(`intake-${focus.role.roleId}.salary`);
+      field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      field?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
   const selectedZone = draft.zones.find((zone) => zone.zoneId === selectedZoneId) || draft.zones[0];
   const normalizedIsCurrent = result?.response?.input_revision === draft.inputRevision;
   const activeProcesses = normalizedIsCurrent
@@ -208,7 +238,10 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     if (blockers.length || activeCount === 0) {
       const issue = blockers[0];
       const process = draft.processes.find((item) => issue?.ref.startsWith(`${item.processId}.`));
-      if (process) { setSelectedZoneId(process.zoneId); setExpanded(process.processId); }
+      const affectedRole = draft.roles.find((item) => issue?.ref.startsWith(`${item.roleId}.`));
+      const affectedProcess = process || draft.processes.find((item) => affectedRole?.processIds.includes(item.processId));
+      if (affectedProcess) { setSelectedZoneId(affectedProcess.zoneId); setExpanded(objectType === 'retail'
+        ? `${affectedProcess.processId}:${affectedRole?.roleCode || affectedProcess.roles[0]}` : affectedProcess.processId); }
       setFocusIssue(issue?.ref || '');
       setError(issue?.code === 'BATCH_REQUIRED'
         ? `Для «${process.label}» в зоне «${draft.zones.find((zone) => zone.zoneId === process.zoneId)?.label}» укажите, сколько единиц груза робот перевозит за один рейс.`
@@ -222,9 +255,11 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
     try {
       const normalized = await normalizationClient.current(draft);
       setResult(normalized);
-      setProcessId(normalized.response.normalized_processes.find((item) => item.active)?.process_id || '');
-      choosePhysicalInputs(draft.processes.find((item) => item.active && item.zoneId === selectedZoneId));
-      setPositionId('');
+      const available = normalized.response.normalized_processes.filter((item) => item.active);
+      const nextProcessId = available.some((item) => item.process_id === processId)
+        ? processId : available.find((item) => item.process_id.startsWith(`${selectedZoneId}.`))?.process_id || available[0]?.process_id || '';
+      setProcessId(nextProcessId);
+      choosePhysicalInputs(draft.processes.find((item) => item.processId === nextProcessId));
       invalidateComparison();
       onNormalized?.(normalized);
       setState('ready');
@@ -317,7 +352,9 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
           const typical = loadConfirmedTypicalObjectDraft(objectType);
           setDraft(typical);
           setSelectedZoneId(typical.zones[0].zoneId);
-          setExpanded(typical.processes.find((item) => item.active)?.processId);
+          const firstActive = typical.processes.find((item) => item.active);
+          setExpanded(firstActive ? objectType === 'retail'
+            ? `${firstActive.processId}:${firstActive.roles[0]}` : firstActive.processId : null);
           setExchangeSeconds(objectType === 'retail' ? '90' : objectType === 'clinic' ? '180' : '');
           setCleaningFrequency('1');
           setProcessId(''); setPositionId(''); invalidateComparison();
@@ -400,19 +437,34 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
         </label>}
       </section>}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-        {visibleProcesses.map((process) => {
-          const open = expanded === process.processId;
+      {objectType === 'retail' && <div className="mb-3 rounded-lg border border-emerald-400/40 bg-emerald-950/20 p-3 text-sm">
+        <strong>Кто работает на складе?</strong><p className="mt-1 text-xs text-slate-500">Отметьте роль — откроются нужные поля. Одна операция может относиться к нескольким ролям; их численность и зарплата не суммируются автоматически в общий эффект.</p>
+        <p className="mt-1 text-xs text-amber-700">Упаковщик есть в справочнике для паллетизации. Фасовщика как отдельной расчётной роли пока нет; его зарплата не попадает в экономию перевозки паллет.</p>
+      </div>}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3" aria-label={objectType === 'retail' ? 'Роли склада' : 'Операции объекта'}>
+        {roleCards.map(({ process, roleCode, id }) => {
+          const chosenRole = roleCode && draft.roles.find((item) => item.roleCode === roleCode && item.processIds.includes(process.processId));
+          const open = expanded === id && (!roleCode || Boolean(chosenRole));
           const [status, statusClass] = statusFor(process, issues, result?.response);
           return (
-            <section key={process.blockId} className={`border rounded-lg ${process.active ? 'border-blue-300' : 'border-slate-200'}`}>
+            <section key={id} className={`border rounded-lg ${(roleCode ? Boolean(chosenRole) : process.active) ? 'border-blue-300' : 'border-slate-200'}`}>
               <div className="flex items-center gap-2 px-3 py-2">
-                <input id={`active-${process.processId}`} type="checkbox" checked={process.active} onChange={(event) => setDraft((current) => updateProcess(current, process.processId, { active: event.target.checked, activationSource: 'USER' }))} />
-                <label htmlFor={`active-${process.processId}`} className="flex-1 text-sm font-medium">{process.label}</label>
-                <button type="button" aria-expanded={open} aria-controls={`panel-${process.processId}`} onClick={() => setExpanded(open ? null : process.processId)} className="text-xs text-blue-700">{open ? 'Свернуть' : 'Открыть'}</button>
+                <input id={`active-${id}`} type="checkbox" checked={roleCode ? Boolean(chosenRole) : process.active} onChange={(event) => {
+                  if (!roleCode) { setDraft((current) => updateProcess(current, process.processId, { active: event.target.checked, activationSource: 'USER' })); return; }
+                  const active = event.target.checked;
+                  setDraft((current) => {
+                    const next = setRoleActive(current, process.processId, roleCode, active);
+                    return !active && !next.roles.some((role) => role.processIds.includes(process.processId))
+                      ? updateProcess(next, process.processId, { active: false, activationSource: 'USER' }) : next;
+                  });
+                  setExpanded(active ? id : null);
+                }} />
+                <label htmlFor={`active-${id}`} className="flex-1 text-sm font-medium">{roleCode ? ROLE_LABELS[roleCode] || roleCode : process.label}
+                  {roleCode && <small className="block text-xs font-normal text-slate-500">{process.label}</small>}</label>
+                <button type="button" aria-expanded={open} aria-controls={`panel-${id}`} onClick={() => setExpanded(open ? null : id)} disabled={roleCode && !chosenRole} className="text-xs text-blue-700 disabled:opacity-40">{open ? 'Свернуть' : 'Заполнить'}</button>
               </div>
-              <div className="px-3 pb-2 flex justify-end text-xs"><span className={statusClass}>{status}</span></div>
-              {open && <div id={`panel-${process.processId}`} className="border-t bg-slate-50 p-3 space-y-3">
+              <div className="px-3 pb-2 flex justify-end text-xs"><span className={roleCode && !chosenRole ? 'text-slate-400' : statusClass}>{roleCode && !chosenRole ? 'Не выбрана' : status}</span></div>
+              {open && <div id={`panel-${id}`} className="border-t bg-slate-50 p-3 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   <NumberField id={`intake-${process.processId}.demand`} label={`Объём, ${process.unit}`} value={process.demand} issue={fieldIssue(`${process.processId}.demand`)} hint="Для мощности робота; например 2000 в сутки. Пусто — неизвестно, 0 означает отсутствие процесса." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { demand: value }))} />
                   <NumberField label="Смен/сут" value={process.shifts} issue={fieldIssue(`${process.processId}.schedule`)} hint="Для доступного времени; например 2. Источник — график работы." onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { shifts: value }))} />
@@ -422,14 +474,14 @@ export default function ProcessRoleIntakeV2({ objectType, importedFile, imported
                   {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(process.scope) && <div className="sm:col-span-2 lg:col-span-3 rounded border border-amber-300 p-2"><NumberField id={`intake-${process.processId}.batch`} label={`Сколько ${process.quantityKind === 'PALLET' ? 'паллет' : 'единиц груза'} робот перевозит за один рейс?`} value={process.batch} issue={fieldIssue(`${process.processId}.batch`)} hint={`Для «${process.label}» в зоне «${selectedZone.label}». Объём ${process.demand || 'неизвестен'} ${process.unit}, плечо ${process.distance || 'неизвестно'} м. Укажите целое число; для своего процесса значение не подставляется.`} onChange={(value) => setDraft((current) => updateProcess(current, process.processId, { batch: value }))} />
                     {process.fieldSources?.batch === 'ASSUMPTION' && <label className="mt-2 flex gap-2 text-xs text-amber-900"><input type="checkbox" checked={process.fieldConfirmations?.batch === true} onChange={(event) => event.target.checked && setDraft((current) => confirmProcessAssumption(current, process.processId, 'batch'))} />Подтверждаю допущение: {process.batch} {process.quantityKind === 'PALLET' ? 'паллет' : process.quantityKind === 'PORTION' ? 'порций' : 'единиц груза'} за рейс для этого процесса</label>}</div>}
                 </div>
-                <fieldset><legend className="text-xs font-semibold">Роли</legend>
-                  {process.roles.length === 0 ? <p className="text-xs text-slate-500 mt-1">Роль не требуется: ФОТ-эффект не рассчитывается.</p> : process.roles.map((roleCode) => {
-                    const role = draft.roles.find((item) => item.roleCode === roleCode && item.processIds.includes(process.processId));
-                    return <div key={roleCode} className="mt-2 border rounded bg-white p-2">
-                      <label className="flex gap-2 text-xs"><input type="checkbox" checked={Boolean(role)} onChange={(event) => setDraft((current) => setRoleActive(current, process.processId, roleCode, event.target.checked))} />{ROLE_LABELS[roleCode] || roleCode}</label>
+                <fieldset><legend className="text-xs font-semibold">{roleCode ? 'Сотрудники и оплата этой роли' : 'Роли'}</legend>
+                  {process.roles.length === 0 ? <p className="text-xs text-slate-500 mt-1">Роль не требуется: ФОТ-эффект не рассчитывается.</p> : process.roles.filter((code) => !roleCode || code === roleCode).map((code) => {
+                    const role = draft.roles.find((item) => item.roleCode === code && item.processIds.includes(process.processId));
+                    return <div key={code} className="mt-2 border rounded bg-white p-2">
+                      {!roleCode && <label className="flex gap-2 text-xs"><input type="checkbox" checked={Boolean(role)} onChange={(event) => setDraft((current) => setRoleActive(current, process.processId, code, event.target.checked))} />{ROLE_LABELS[code] || code}</label>}
                       {role && <div className="grid grid-cols-2 gap-2 mt-2">
                         <NumberField label="Численность, чел." value={role.headcount} issue={fieldIssue(`${role.roleId}.headcount`)} hint="Для технической и трудовой модели; например 25. Источник — штатное расписание." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value, headcountSource: 'USER' }))} />
-                        <NumberField label="Зарплата gross, ₽/чел./мес." value={role.salary} issue={fieldIssue(`${role.roleId}.salary`)} hint="Для ФОТ и NPV; например 120000. Пусто — экономика неизвестна, 0 — подтверждённая бесплатная роль. Источник — ФОТ." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
+                        <NumberField id={`intake-${role.roleId}.salary`} label="Зарплата gross, ₽/чел./мес." value={role.salary} issue={fieldIssue(`${role.roleId}.salary`)} hint="Для ФОТ и NPV; например 120000. Пусто — экономика неизвестна, 0 — подтверждённая бесплатная роль. Источник — ФОТ." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER' }))} />
                         {role.salarySource === 'ASSUMPTION' && !role.salaryConfirmed && <label className="col-span-2 text-[10px] text-amber-700"><input type="checkbox" className="mr-1" onChange={(event) => event.target.checked && setDraft((current) => confirmRoleAssumption(current, role.roleId))} />Подтверждаю это допущение для текущего ввода</label>}
                         {!role.salary && <p className="col-span-2 text-[10px] text-amber-700">Без месячной зарплаты до удержаний технический расчёт возможен, а экономика останется частичной.</p>}
                       </div>}

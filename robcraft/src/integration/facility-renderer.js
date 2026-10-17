@@ -71,7 +71,8 @@ export function updateFacilityCamera(camera, frame, elapsedWallSeconds) {
     ? frame.robots.find(item => item.ordinal === camera.facilityPinnedOrdinal)
     : (active.length ? active : frame.robots)[Math.floor(elapsedWallSeconds / 12) % Math.max(1, (active.length ? active : frame.robots).length)];
   const warehouseShotTime = (elapsedWallSeconds - camera.facilityStartedAt) % 30;
-  const overview = !robot || (warehouse ? warehouseShotTime < 1.2 || warehouseShotTime >= 26
+  const exterior = warehouse && !Number.isInteger(camera.facilityPinnedOrdinal) && warehouseShotTime < 3.5;
+  const overview = !robot || (warehouse ? exterior || warehouseShotTime >= 26
     : frame.plan ? (elapsedWallSeconds - camera.facilityStartedAt) % 12 < 4 : elapsedWallSeconds % 12 >= 9);
   const [x,z] = robot ? frame.plan ? safeWorldPoint(frame.plan, robot) : facilityWorldPoint(robot) : [0,0];
   const plan = frame.plan;
@@ -89,11 +90,12 @@ export function updateFacilityCamera(camera, frame, elapsedWallSeconds) {
   const chosenSide = warehouse && remembered && remembered.score <= rankedSides[0].score + 30 ? remembered : rankedSides[0];
   if (warehouse) camera.facilitySide = chosenSide?.index;
   const freeSide = plan ? chosenSide.offset : candidates[1];
-  const desired = overview ? warehouse ? [0, Math.max(24, plan.height * .56), Math.max(20, plan.height * .4)]
+  const desired = exterior ? [0, 20, plan.height / 2 + Math.max(38, plan.width * .62)]
+    : overview ? warehouse ? [0, Math.max(24, plan.height * .56), Math.max(20, plan.height * .4)]
     : [0, Math.max(35, (plan?.height || 32) * .92), Math.max(25, (plan?.height || 32) * .68)]
     : [plan ? clamp(x + freeSide[0], plan.width) : x + freeSide[0], warehouse ? 4 : 9,
       plan ? clamp(z + freeSide[1], plan.height) : z + freeSide[1]];
-  const target = overview ? [0, 0, 0] : [x, .8, z];
+  const target = exterior ? [0, 3.2, 0] : overview ? [0, 0, 0] : [x, .8, z];
   const delta = Math.max(0, Math.min(.1, elapsedWallSeconds - (camera.facilityLastTime ?? elapsedWallSeconds)));
   const mix = camera.facilityLastTime === undefined ? 1 : 1 - Math.exp(-delta * (warehouse ? 2.2 : 2.8));
   camera.position = camera.position.map((value, index) => value + (desired[index] - value) * mix);
@@ -106,6 +108,6 @@ export function updateFacilityCamera(camera, frame, elapsedWallSeconds) {
   const dx = lookAt[0] - camera.position[0], dy = lookAt[1] - camera.position[1], dz = lookAt[2] - camera.position[2];
   camera.yaw = Math.atan2(dx, -dz);
   camera.pitch = Math.atan2(dy, Math.hypot(dx,dz));
-  camera.currentShot = { id: overview ? 'facility-overview' : `facility-robot-${robot.id}`,
-    caption: overview ? 'Общий план · маршруты внутри объекта' : `Робот ${robot.ordinal + 1} · ${robot.stageLabel} · ${robot.areaLabel}` };
+  camera.currentShot = { id: exterior ? 'facility-exterior' : overview ? 'facility-overview' : `facility-robot-${robot.id}`,
+    caption: exterior ? 'Склад с крышей · условная архитектура' : overview ? 'Общий план · маршруты внутри объекта' : `Робот ${robot.ordinal + 1} · ${robot.stageLabel} · ${robot.areaLabel}` };
 }

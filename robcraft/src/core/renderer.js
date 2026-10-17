@@ -209,7 +209,8 @@ export class Renderer {
 
   render(scene, simulation, camera, editorState = null) {
     this.begin(camera, scene.safePlaybackPlan);
-    const surfaces = scene.staticObjects.filter(object => ['ground', 'asphalt', 'floor', 'roof'].includes(object.type));
+    const surfaces = scene.staticObjects.filter(object => ['ground', 'asphalt', 'floor'].includes(object.type));
+    const roof = scene.staticObjects.filter(object => object.type === 'roof');
     const opaque = scene.staticObjects.filter(object => !['ground', 'asphalt', 'floor', 'roof', 'glass'].includes(object.type));
     const glass = scene.staticObjects.filter(object => object.type === 'glass');
     surfaces.forEach(object => this.staticObject(object));
@@ -219,6 +220,18 @@ export class Renderer {
     this.gl.depthMask(false);
     glass.forEach(object => this.staticObject(object, .34));
     this.gl.depthMask(true);
+    if (roof.length) {
+      const inside = Math.abs(camera.position[0]) < scene.config.width / 2
+        && Math.abs(camera.position[2]) < scene.config.depth / 2 && camera.position[1] < roof[0].position[1];
+      const overhead = camera.position[1] > roof[0].position[1] + 1
+        && Math.abs(camera.position[0]) < scene.config.width / 2
+        && Math.abs(camera.position[2]) < scene.config.depth / 2;
+      if (!inside) {
+        if (overhead) this.gl.depthMask(false);
+        roof.forEach(object => this.staticObject(object, overhead ? .16 : 1));
+        if (overhead) this.gl.depthMask(true);
+      }
+    }
     if (this.analytics) this.heatmap(simulation);
     if (!scene.safePlaybackPlan) this.routeGuides(simulation);
     simulation.robots.forEach(robot => { if (robot.activeTask && robot.cargoStage === 'waiting') this.waitingCargo(robot); });

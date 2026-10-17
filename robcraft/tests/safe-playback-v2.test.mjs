@@ -8,6 +8,15 @@ import { applyFacilityPlayback } from '../src/integration/facility-renderer.js';
 
 import { playbackCase } from './support/safe-case.js';
 
+test('warehouse safe playback keeps a full-height presentation shell with roof', () => {
+  const { spec } = playbackCase('warehouse', 2);
+  const scene = generateWorldsFromScenarioSpec(spec, { safePlayback: true }).zones[0].scene;
+  assert.ok(scene.staticObjects.some((object) => object.type === 'roof'));
+  assert.ok(scene.staticObjects.some((object) => object.type === 'wall' && object.scale[1] >= 7));
+  assert.ok(scene.staticObjects.some((object) => object.type === 'sign'));
+  assert.ok(scene.staticObjects.some((object) => object.type === 'rack'));
+});
+
 for (const [template, fleets] of [['warehouse',[1,2,6,11,15,25]],['airport',[1,3,6,12]],['hospital',[1,2,4,8]],['baggage',[1,6]]]) {
   for (const count of fleets) test(`${template} ${count}: whole horizon, swept safety, shared 2D/3D and immutable source`,()=>{
     const {spec,report}=playbackCase(template,count), before=JSON.stringify({spec,report});

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { dxfToFacilityLayout, parseAsciiDxf } from '../src/dxfLayout.js';
 import { estimateFacilityRoute } from '../src/facilityLayout.js';
 
@@ -29,4 +30,16 @@ test('diagonal lines and unsupported entities are counted instead of silently tr
   assert.equal(layout.cad_metadata.skipped_diagonal_segments, 1);
   assert.equal(layout.cad_metadata.unsupported_entities, 1);
   assert.equal(layout.items.length, 1);
+});
+
+test('downloadable training DXF opens with metres and separate wall and rack layers', () => {
+  const source = readFileSync(new URL('../public/examples/warehouse-training-plan.dxf', import.meta.url), 'utf8');
+  const parsed = parseAsciiDxf(source);
+  const layout = dxfToFacilityLayout(parsed, { unit: parsed.unit, layers: ['WALLS', 'RACKS'],
+    layerKinds: { WALLS: 'obstacle', RACKS: 'rack' } });
+  assert.deepEqual(parsed.layers, ['RACKS', 'WALLS']);
+  assert.equal(layout.width_m, 76);
+  assert.equal(layout.depth_m, 52);
+  assert.equal(layout.items.length, 13);
+  assert.equal(layout.items.filter((item) => item.kind === 'rack').length, 8);
 });
