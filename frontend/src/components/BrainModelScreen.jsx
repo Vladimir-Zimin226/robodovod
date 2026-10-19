@@ -274,7 +274,7 @@ export default function BrainModelScreen({ project, user, onOpenProjects, onOpen
         <p className="text-xs">Модель предлагается из действующего каталога; сервер заново проверяет пригодность и доступность расчёта.</p>
         <button className="primary-action" disabled={busy || !readiness?.technical?.ready || !profile.preflight_confirmed || !positionId} onClick={calculate}>{capacity ? 'Пересчитать как новый run' : 'Рассчитать и сохранить'}</button></>}
       {capacity && <><CapacityResultsTrace response={capacity} zoneContext={capacityRequest?.zone_context} /><CandidateComparisonPanel key={`comparison:${capacity.run_id}`} project={project} capacityRunId={capacity.run_id} /><p className="text-sm">Без подтверждённой зарплаты и условий ниже экономический результат останется частичным.</p>
-        {scenario && <EconomicsInputsV2 key={`economics-inputs:${capacity.run_id}`} capacityRequest={capacityRequest} capacityRunId={capacity.run_id} project={project} onComplete={finishEconomics} sourceRunId={savedSource} />}
+        {scenario && <EconomicsInputsV2 key={`economics-inputs:${capacity.run_id}`} capacityRequest={capacityRequest} capacityResult={capacity} capacityRunId={capacity.run_id} project={project} onComplete={finishEconomics} sourceRunId={savedSource} />}
         <EvidenceExportPanel key={`capacity-export:${capacity.run_id}`} projectId={project.id} runId={capacity.run_id} />
         <button className="secondary-action" onClick={() => onViewRun({ id: capacity.run_id, run_kind: 'CAPACITY_ANALYSIS', input_snapshot: capacityRequest, result_snapshot: capacity }, capacityRequest)}>Открыть 2D/3D и полный технический результат</button></>}
       {economics && <>{isCommercialScenariosBundle(economics.result_snapshot)

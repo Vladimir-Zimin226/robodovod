@@ -33,6 +33,7 @@ export default function FinalEconomicsComparison({ comparison }) {
   const baseRows = [comparison.baseline, ...comparison.scenarios.filter((item) => item.uncertainty === 'BASE')];
   const active = [comparison.baseline, ...comparison.scenarios].find((item) => item.scenario_id === selected) || baseRows[1];
   const variants = comparison.sensitivity?.by_scenario?.[active.scenario_id] || [];
+  const roiBasis = baseRows.find((item) => item.acquisition === 'PURCHASE')?.metrics?.roi?.basis;
   return <section className="commercial-details" aria-label="Полное сравнение экономики">
     <div className="commercial-section-title"><div><span>05</span><h2>Без роботов, покупка и услуга</h2></div><p>Горизонт {comparison.horizon_years} лет · суммы в рублях</p></div>
     <div className="commercial-table-wrap"><table><thead><tr><th>Показатель</th>{baseRows.map((item) => <th key={item.scenario_id}>{NAMES[item.acquisition]}</th>)}</tr></thead>
@@ -40,7 +41,7 @@ export default function FinalEconomicsComparison({ comparison }) {
         const metric = item.metrics[key];
         return <td key={item.scenario_id}>{value(metric)}<small className="block">{humanizePresentation(metric?.basis || 'Источник не сохранён')}</small></td>;
       })}</tr>)}</tbody></table></div>
-    <p>ROI = чистый эффект после первоначальных вложений / CAPEX × 100 %. При нулевом CAPEX он не определён. TCO показывает затраты за горизонт, NPV — дисконтированный эффект; эти показатели имеют разные базы.</p>
+    <p>ROI по формуле сохранённого расчёта: {roiBasis || 'формула не сохранена'}. При нулевом CAPEX он не определён. TCO показывает затраты за горизонт, NPV — дисконтированный эффект; эти показатели имеют разные базы.</p>
     <div className="commercial-table-wrap"><table><thead><tr><th>Год</th>{baseRows.map((item) => <th key={item.scenario_id}>{NAMES[item.acquisition]}</th>)}</tr></thead><tbody>
       {baseRows[0].annual_cashflows.map((flow) => <tr key={flow.year}><th>{flow.year}</th>{baseRows.map((item) => <td key={item.scenario_id}>{amount(item.annual_cashflows.find((row) => row.year === flow.year)?.scenario, 'RUB')}</td>)}</tr>)}
     </tbody></table></div>

@@ -88,13 +88,16 @@ export default function DashboardOverview({ result, userInput }) {
           <article className="kpi-panel panel" id="economics">
             <div className="panel-heading"><h2>Ключевые показатели</h2><span>{SCENARIO_LABELS[scenario]} сценарий</span></div>
             {model.economics ? (
-              <div className="kpi-grid">
-                <Kpi tone="amber" label="CAPEX" value={money(model.economics.capex)} />
-                <Kpi tone="lime" label="Окупаемость" value={years(model.economics.payback_years, horizon)} />
-                <Kpi tone="cyan" label={`ROI (${horizon} лет)`} value={`${Math.round(model.economics.roi_pct)}%`} />
-                <Kpi tone="violet" label="NPV" value={money(model.economics.npv)} />
-                <Kpi tone="cyan" wide label="Экономия в год" value={money(model.economics.savings_annual)} />
-              </div>
+              <>
+                <div className="kpi-grid">
+                  <Kpi tone="amber" label="CAPEX" value={money(model.economics.capex)} />
+                  <Kpi tone="lime" label="Окупаемость" value={years(model.economics.payback_years, horizon)} />
+                  <Kpi tone="cyan" label={`ROI на TCO (исторический, ${horizon} лет)`} value={`${Math.round(model.economics.roi_pct)}%`} />
+                  <Kpi tone="violet" label="NPV" value={money(model.economics.npv)} />
+                  <Kpi tone="cyan" wide label="Экономия в год" value={money(model.economics.savings_annual)} />
+                </div>
+                <p className="data-note">Этот ROI рассчитан по исторической формуле (экономия + остаточная стоимость − TCO) / TCO × 100 %. Новый денежный расчёт показывает ROI на первоначальные вложения.</p>
+              </>
             ) : <p className="panel-empty">Показатели рекомендации отсутствуют. Сравните технически допустимые варианты ниже.</p>}
             <button className="primary-cta" onClick={() => document.getElementById('scenarios')?.scrollIntoView({ behavior: 'smooth' })}>Посмотреть варианты <AppIcon name="arrow" /></button>
           </article>
