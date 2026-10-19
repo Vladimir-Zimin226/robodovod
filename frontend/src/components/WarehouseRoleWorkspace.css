@@ -90,3 +90,10 @@
 .wr-loading, .wr-error { padding: 2rem; }
 @media (max-width: 720px) { .wr-workspace { padding: .8rem; } .wr-hero-mark { display: none; } .wr-progress { grid-template-columns: repeat(2, 1fr); } .wr-hero h1 { font-size: 1.8rem; } }
 @media (max-width: 420px) { .wr-role-fields { grid-template-columns: 1fr; } .wr-role-fields .wr-field:nth-child(2), .wr-role-fields .wr-field:nth-child(5) { grid-column: auto; } .wr-candidate-top { flex-direction: column; } }
+.wr-work-editor { border-top: 1px solid rgba(148,163,184,.35); padding: 1rem 0; margin-top: 1rem; }
+.wr-work-editor h3 { margin: 0 0 .5rem; font-size: 1rem; font-weight: 700; }
+.wr-work-result { border-top: 1px solid rgba(148,163,184,.35); padding: .75rem 0; }
+.wr-fleet-row { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(100px, 3fr) 3rem; gap: .75rem; align-items: center; margin: .65rem 0; font-size: .85rem; }
+.wr-fleet-track { height: .7rem; border-radius: 99px; background: rgba(148,163,184,.2); overflow: hidden; }
+.wr-fleet-track > div { height: 100%; border-radius: 99px; background: #9fdb53; }
+@media (max-width: 600px) { .wr-fleet-row { grid-template-columns: 1fr 3rem; } .wr-fleet-track { grid-column: 1; grid-row: 2; } .wr-fleet-row strong { grid-column: 2; grid-row: 2; } }

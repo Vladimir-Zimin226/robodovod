@@ -26,6 +26,7 @@ import EconomicsMethodologyScreen from './components/EconomicsMethodologyScreen'
 import ReportsScreen from './components/ReportsScreen';
 import ProjectTemplatesScreen from './components/ProjectTemplatesScreen';
 import WarehouseRoleResult from './components/WarehouseRoleResult';
+import { ObjectRoleResult } from './components/ObjectRoleWorkspace';
 import AdminCatalogScreen from './components/AdminCatalogScreen';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
@@ -490,7 +491,9 @@ export default function App() {
             }}
           />
         ) : phase === 'robots' ? (
-          result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
+          result?.schema_version === 'object-role-analysis-v2' ? <><ObjectRoleResult report={result} onEdit={() => openCalculation()} />
+            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('money')}>К экономике объекта</button></div></>
+          : result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('money')}>К экономике склада</button></div></>
           : <main className="journey-panel" aria-label="Какие роботы могут подойти?">
             <p className="eyebrow">Шаг 3 из 5</p><h1>Какие роботы могут подойти?</h1>
@@ -502,7 +505,9 @@ export default function App() {
               <button type="button" className="primary-action" onClick={() => showPhase('money')}>Продолжить к стоимости</button></div>
           </main>
         ) : phase === 'money' ? (
-          result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
+          result?.schema_version === 'object-role-analysis-v2' ? <><ObjectRoleResult report={result} onEdit={() => openCalculation()} />
+            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
+          : result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
           : <main className="journey-panel" aria-label="Сколько это будет стоить?">
             <p className="eyebrow">Шаг 4 из 5</p><h1>Сколько это будет стоить?</h1>
@@ -563,6 +568,8 @@ export default function App() {
         ) : phase === 'adminCatalog' ? (
           user?.role === 'ADMIN' ? <AdminCatalogScreen user={user} />
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
+        ) : result?.schema_version === 'object-role-analysis-v2' ? (
+          <ObjectRoleResult report={result} onEdit={() => openCalculation()} />
         ) : result?.schema_version === 'warehouse-role-analysis-v1' ? (
           <WarehouseRoleResult report={result} onEdit={() => openCalculation()} />
         ) : (

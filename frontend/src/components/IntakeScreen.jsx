@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ProjectFileIntake from './ProjectFileIntake';
 import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 import WarehouseRoleWorkspace from './WarehouseRoleWorkspace';
+import ObjectRoleWorkspace from './ObjectRoleWorkspace';
 
 export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
@@ -23,16 +24,19 @@ export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', ini
     onFileApplied?.(normalized, imported);
   };
 
-  if (objectType === 'retail' && !showLegacyWarehouse) return <>
-    <WarehouseRoleWorkspace activeProject={activeProject} user={user} authChecked={authChecked}
+  if (supported && !showLegacyWarehouse) return <>
+    {objectType === 'retail' ? <WarehouseRoleWorkspace activeProject={activeProject} user={user} authChecked={authChecked}
       projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject}
       onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved} />
+      : <ObjectRoleWorkspace kind={objectType.toUpperCase()} activeProject={activeProject} user={user} authChecked={authChecked}
+        projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject}
+        onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved} />}
     <div className="mx-auto mb-6 max-w-6xl px-4"><button type="button" className="text-sm text-slate-400 underline"
       onClick={() => setShowLegacyWarehouse(true)}>Открыть прежний расчёт по зонам и операциям</button></div>
   </>;
 
   return <main className="intake-screen simple-intake min-h-full w-full max-w-[1440px] mx-auto p-4 md:p-6 space-y-4" aria-label="Описание работы">
-    {objectType === 'retail' && <button type="button" className="text-sm text-lime-300 underline" onClick={() => setShowLegacyWarehouse(false)}>Вернуться к расчёту по всем ролям</button>}
+    {supported && <button type="button" className="text-sm text-lime-300 underline" onClick={() => setShowLegacyWarehouse(false)}>Вернуться к расчёту по всем ролям</button>}
     <div className="space-y-3">
       <header>
         <span className="simple-step-eyebrow">ШАГ 2 ИЗ 5 · РАБОТА</span>

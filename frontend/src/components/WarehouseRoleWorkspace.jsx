@@ -5,7 +5,7 @@ import './WarehouseRoleWorkspace.css';
 
 const API = import.meta.env.VITE_API_URL || '';
 const GUEST_DRAFT_KEY = 'robodovod:warehouse-role-guest-draft-v1';
-const money = (value) => value == null ? 'Нужна цена' : `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(Number(value))} ₽`;
+const money = (value) => value == null ? 'Нужны данные' : `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(Number(value))} ₽`;
 const decimal = (value) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(value));
 const UNIT = { pallet: 'паллет', pick: 'операций отбора', item: 'единиц', m2: 'м²' };
 const GENERAL_FIELDS = [
@@ -17,7 +17,10 @@ const GENERAL_FIELDS = [
 const ASSUMPTION_FIELDS = [
   ['robot_availability', 'Доступность робота, 0–1'],
   ['fleet_reserve_share', 'Резерв парка, 0–1'],
-  ['realizable_labor_share', 'Доля часов, переводимых в ставки, 0–1'],
+  ['realizable_labor_share', 'Какая часть высвобождённого времени реально уменьшит расходы на персонал? 0–1'],
+  ['raas_monthly_rub', 'Сценарный тариф аренды одного робота, ₽/мес.'],
+  ['raas_setup_rub', 'Вложения заказчика при аренде на одного робота, ₽'],
+  ['raas_customer_annual_rub', 'Дополнительные расходы заказчика при аренде, ₽/год на робота'],
   ['integration_share', 'Внедрение от цены парка, 0–2'],
   ['annual_service_share', 'Сервис от цены парка в год, 0–1'],
   ['discount_rate', 'Ставка дисконтирования, 0–1'],
@@ -33,7 +36,7 @@ function makeInput(draft) {
       daily_volume: row.daily_volume,
       manual_units_per_person_shift: row.manual_units_per_person_shift,
       robotizable_share: row.robotizable_share,
-      source: row.source, basis: row.basis,
+      source: row.source, basis: row.basis, realizable_labor_share: row.realizable_labor_share || null,
     })),
     selected_positions: Object.fromEntries(Object.entries(draft.selected_positions)
       .filter(([code]) => draft.roles.some((row) => row.role_code === code && row.selected))),
@@ -129,7 +132,9 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
   const changeOverride = (roleCode, positionId, field, value) => change((current) => {
     const other = current.overrides.filter((row) => row.role_code !== roleCode || row.position_id !== positionId);
     const prior = current.overrides.find((row) => row.role_code === roleCode && row.position_id === positionId);
-    const next = { ...prior, role_code: roleCode, position_id: positionId, [field]: value || null };
+    const next = { ...prior, role_code: roleCode, position_id: positionId, [field]: value === '' ? null : value };
+    if (field === 'price_rub' && value !== '') next.omit_purchase_price = false;
+    if (field === 'raas_monthly_rub' && value !== '') next.omit_raas_tariff = false;
     return { ...current, overrides: [...other, next] };
   });
 
@@ -223,7 +228,7 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
       <div className="wr-fields">{GENERAL_FIELDS.map(([key, label, hint]) => <Field key={key} label={label} hint={hint}
         value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}</div>
       <details className="wr-assumptions"><summary>Допущения сценария и экономики</summary>
-        <p>Эти значения можно изменить. Доля переводимых в ставки часов не равна автоматическому увольнению сотрудников.</p>
+        <p>Например, 2 потенциальные ставки × 0,5 = экономия расходов на 1 ставку; остальные часы перераспределяются. 0 означает отсутствие экономии ФОТ, 1 — полный учёт потенциала. Парк роботов не меняется.</p>
         <div className="wr-fields">{ASSUMPTION_FIELDS.map(([key, label]) => <Field key={key} label={label}
           value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}</div></details>
     </section>
@@ -244,6 +249,9 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
             onChange={(value) => changeRole(row.role_code, 'manual_units_per_person_shift', value)} />
           <Field label="Доля работы для роботизации, 0–1" value={row.robotizable_share} max="1"
             onChange={(value) => changeRole(row.role_code, 'robotizable_share', value)} />
+          <Field label="Какая часть высвобождённого времени уменьшит расходы на персонал? 0–1" value={row.realizable_labor_share ?? ''} max="1"
+            hint={`Пусто = общее значение ${draft.general.realizable_labor_share}. Это не обещание сокращения людей.`}
+            onChange={(value) => changeRole(row.role_code, 'realizable_labor_share', value)} />
         </div><details className="wr-basis"><summary>Откуда взяты числа</summary><p>{row.basis}</p><p>{row.salary_basis}</p>
           <label>Основание для вашего расчёта<textarea value={row.basis} rows="3" onChange={(event) => changeRole(row.role_code, 'basis', event.target.value)} /></label>
           <label className="wr-source"><input type="checkbox" checked={row.source === 'USER'} onChange={(event) => changeRole(row.role_code, 'source', event.target.checked ? 'USER' : 'SCENARIO_ASSUMPTION')} />
@@ -284,9 +292,11 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
               {role.candidates.length > 4 && <button type="button" className="wr-more" onClick={() => setExpandedRoles((current) => ({ ...current, [role.role_code]: !current[role.role_code] }))}>
                 {expandedRoles[role.role_code] ? 'Свернуть список' : `Показать все ${role.candidates.length} вариантов`}</button>}
               {selected && <div className="wr-selected-detail"><h4>Выбранный вариант: {selected.name}</h4>
-                <div className="wr-detail-metrics"><span>Парк <strong>{selected.fleet}</strong></span><span>Потенциал <strong>{decimal(selected.fte_equivalent)} ставки*</strong></span>
+                <div className="wr-detail-metrics"><span>Парк <strong>{selected.fleet}</strong></span><span>До коэффициента <strong>{decimal(selected.potential_fte ?? selected.fte_equivalent)} ставки</strong></span><span>После коэффициента <strong>{decimal(selected.fte_equivalent)} ставки*</strong></span>
                   <span>Годовой ФОТ эквивалент <strong>{money(selected.annual_labor_potential_rub)}</strong></span>
-                  <span>Капвложения <strong>{money(selected.capex_rub)}</strong></span><span>NPV сценария <strong>{money(selected.npv_rub)}</strong></span></div>
+                  <span>Покупка: CAPEX <strong>{money(selected.capex_rub)}</strong></span><span>Покупка: NPV <strong>{money(selected.npv_rub)}</strong></span><span>Покупка: ROI <strong>{selected.purchase_roi_percent == null ? 'Нужна цена' : `${decimal(selected.purchase_roi_percent)}%`}</strong></span><span>Аренда: NPV <strong>{money(selected.raas_npv_rub)}</strong></span></div>
+                <p className="wr-disclaimer">Аренда: ROI на CAPEX {selected.raas_roi_percent == null && Number(selected.raas_capex_rub) === 0 ? 'N/A — вложения заказчика равны нулю' : `${decimal(selected.raas_roi_percent)}%`}. Чувствительность ФОТ при 0 / 0,5 / 1: {money(0)} / {money(Number(selected.potential_fte ?? 0) * Number(role.monthly_employer_cost_rub) * 6)} / {money(Number(selected.potential_fte ?? 0) * Number(role.monthly_employer_cost_rub) * 12)} в год; парк {selected.fleet} во всех трёх случаях.</p>
+                {selected.labor_sensitivity?.map((point) => <p key={point.labor_share} className="wr-disclaimer">Коэффициент {decimal(point.labor_share)}: ФОТ {money(point.annual_labor_rub)}/год · NPV покупки {money(point.purchase_npv_rub)} · NPV аренды {money(point.raas_npv_rub)} · парк {selected.fleet}</p>)}
                 <p>Модель найдена по: {selected.match_basis === 'ROLE_NAME' ? 'названию модели'
                   : selected.match_basis === 'ROLE_DESCRIPTION' ? 'прямому описанию выполняемой работы'
                   : selected.match_basis === 'GENERAL_MANIPULATOR_HINT' ? 'общему типу манипулятора; пригодность для паллетизации не подтверждена'
@@ -300,8 +310,13 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
                   hint={`Сейчас ${decimal(selected.robot_units_per_hour)} (${selected.rate_source === 'SCENARIO_ASSUMPTION' ? 'допущение' : 'каталог'}). Оставьте пустым, чтобы использовать его.`}
                   onChange={(value) => changeOverride(role.role_code, selected.position_id, 'units_per_hour', value)} />
                   <Field label="Цена одного робота, ₽" value={override?.price_rub ?? ''}
-                    hint={selected.price_rub == null ? 'Для NPV укажите предложение поставщика или явно выбранную сценарную цену.' : `Сейчас ${money(selected.price_rub)} (${selected.price_source === 'CATALOG' ? 'каталог' : 'вы указали'}).`}
-                    onChange={(value) => changeOverride(role.role_code, selected.position_id, 'price_rub', value)} /></div>
+                    hint={selected.price_rub == null ? 'Для NPV укажите цену.' : `Сейчас ${money(selected.price_rub)} (${selected.price_source === 'CATALOG' ? 'каталог' : selected.price_source === 'SCENARIO_ASSUMPTION' ? 'бюджетное допущение, не предложение поставщика' : 'вы указали'}).`}
+                    onChange={(value) => changeOverride(role.role_code, selected.position_id, 'price_rub', value)} />
+                  <Field label="Тариф RaaS на одного робота, ₽/мес." value={override?.raas_monthly_rub ?? ''}
+                    hint={`Сейчас ${money(selected.raas_monthly_rub)} (${selected.raas_source === 'USER' ? 'ваша оценка' : 'сценарное допущение'}). Уточните состав услуги и ответственность за сервис.`}
+                    onChange={(value) => changeOverride(role.role_code, selected.position_id, 'raas_monthly_rub', value)} /></div>
+                <label className="wr-source"><input type="checkbox" checked={Boolean(override?.omit_purchase_price)} onChange={(event) => changeOverride(role.role_code, selected.position_id, 'omit_purchase_price', event.target.checked)} /> Цена покупки неизвестна — оставить покупку частичной</label>
+                <label className="wr-source"><input type="checkbox" checked={Boolean(override?.omit_raas_tariff)} onChange={(event) => changeOverride(role.role_code, selected.position_id, 'omit_raas_tariff', event.target.checked)} /> Тариф аренды неизвестен — оставить аренду частичной</label>
                 {dirty && <button type="button" className="wr-recalculate" disabled={busy !== ''} onClick={() => preview()}>Пересчитать с новыми данными</button>}
                 {!dirty && <button type="button" className="wr-more" onClick={() => clearCandidate(role.role_code)}>Не включать эту модель в общий итог</button>}
               </div>}</>}
@@ -311,10 +326,19 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
         <p>Одна строка персонала на каждую роль. Выбранные роботы закреплены за ролями отдельными назначениями.</p></div></div>
         <div className="wr-portfolio-grid"><div><span>Выбрано ролей с роботом</span><strong>{report.portfolio.selected_roles} / {report.roles.length}</strong></div>
           <div><span>Роботов по назначениям</span><strong>{report.portfolio.selected_robot_allocations}</strong></div>
+          <div><span>Без роботов: ФОТ выбранных ролей в год</span><strong>{money(report.portfolio.baseline_annual_labor_rub)}</strong></div>
           <div><span>Ставки в сценарии*</span><strong>{decimal(report.portfolio.fte_equivalent)}</strong></div>
           <div><span>Потенциал ФОТ в год*</span><strong>{money(report.portfolio.annual_labor_potential_rub)}</strong></div>
           <div><span>Капвложения</span><strong>{money(report.portfolio.capex_rub)}</strong></div>
-          <div><span>NPV сценария</span><strong>{money(report.portfolio.npv_rub)}</strong></div></div>
+          <div><span>Покупка: TCO / NPV</span><strong>{money(report.portfolio.purchase_tco_rub)} / {money(report.portfolio.npv_rub)}</strong></div>
+          <div><span>Покупка: эффект после сервиса в год</span><strong>{money(report.portfolio.annual_net_rub)}</strong></div>
+          <div><span>Покупка: ROI</span><strong>{report.portfolio.purchase_roi_percent == null ? 'Нужна цена' : `${decimal(report.portfolio.purchase_roi_percent)}%`}</strong></div>
+          <div><span>Аренда: TCO / NPV</span><strong>{money(report.portfolio.raas_tco_rub)} / {money(report.portfolio.raas_npv_rub)}</strong></div>
+          <div><span>Аренда: эффект после тарифа в год</span><strong>{money(report.portfolio.raas_annual_net_rub)}</strong></div>
+          <div><span>Аренда: ROI</span><strong>{report.portfolio.raas_roi_percent == null && Number(report.portfolio.raas_capex_rub) === 0 ? 'N/A: CAPEX = 0' : report.portfolio.raas_roi_percent == null ? 'Нужен тариф' : `${decimal(report.portfolio.raas_roi_percent)}%`}</strong></div></div>
+        <p className="wr-disclaimer">ROI покупки = (недисконтированный эффект за горизонт − CAPEX) / CAPEX × 100%. NPV учитывает дисконтирование. База без роботов: текущие расходы на труд; эффект приведён относительно неё.</p>
+        {report.portfolio.missing_purchase?.length > 0 && <p className="wr-message">Покупка: нужна цена для {report.portfolio.missing_purchase.join(', ')}.</p>}
+        {report.portfolio.missing_raas?.length > 0 && <p className="wr-message">Аренда: нужен тариф для {report.portfolio.missing_raas.join(', ')}.</p>}
         <p className="wr-disclaimer">* Потенциал при допущенной доле реализации. Это не подтверждённое сокращение штата. Денежный итог остаётся частичным, если хотя бы у одного выбранного робота нет цены.</p>
         <button type="button" className="wr-primary" disabled={busy !== '' || dirty} onClick={save}>{busy === 'save' ? 'Сохраняем…' : 'Сохранить расчёт в проекте'}</button>
         {version > 0 && <span className="wr-version">Текущая версия в проекте: {version}</span>}

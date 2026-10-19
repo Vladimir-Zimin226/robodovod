@@ -51,14 +51,16 @@ def test_every_warehouse_role_is_evaluated_with_a_numeric_fleet():
     assert result["portfolio"]["selected_roles"] == 8
 
 
-def test_portfolio_uses_only_selected_positions_and_keeps_unknown_price_partial():
+def test_portfolio_uses_selected_positions_and_marks_scenario_price():
     raw = sample()
     raw["roles"] = [role for role in raw["roles"] if role["role_code"] in {"picker", "forklift_driver"}]
     raw["selected_positions"] = {"picker": "picking", "forklift_driver": "transport"}
     value = WarehouseRoleInput.model_validate(raw)
     result = analyze_warehouse_roles(value, catalog())
     assert result["portfolio"]["selected_roles"] == 2
-    assert result["portfolio"]["capex_rub"] is None
+    assert result["portfolio"]["capex_rub"] is not None
+    picker = next(role for role in result["roles"] if role["role_code"] == "picker")
+    assert picker["candidates"][0]["price_source"] == "SCENARIO_ASSUMPTION"
     raw["overrides"] = [{"role_code": "picker", "position_id": "picking",
                          "units_per_hour": "250", "price_rub": "4000000"}]
     result = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())
@@ -67,6 +69,16 @@ def test_portfolio_uses_only_selected_positions_and_keeps_unknown_price_partial(
     picker = next(role for role in result["roles"] if role["role_code"] == "picker")
     chosen = next(item for item in picker["candidates"] if item["position_id"] == "picking")
     assert chosen["rate_source"] == "USER"
+
+
+def test_missing_price_in_modified_project_leaves_other_branch_numeric():
+    raw = sample()
+    raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "picker"]
+    raw["selected_positions"] = {"picker": "picking"}
+    raw["overrides"] = [{"role_code": "picker", "position_id": "picking", "omit_purchase_price": True}]
+    result = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())
+    assert result["portfolio"]["capex_rub"] is None
+    assert result["portfolio"]["raas_npv_rub"] is not None
 
 
 def test_duplicate_role_and_unrelated_selection_rejected():

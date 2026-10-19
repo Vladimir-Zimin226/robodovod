@@ -32,11 +32,21 @@ export default function WarehouseRoleResult({ report, focus = 'all', onEdit }) {
       <p>Суммы относятся к выбранным назначениям роботов; оценка по каждой роли остаётся видимой отдельно.</p></div></div>
       <div className="wr-portfolio-grid"><div><span>Ролей с выбранным роботом</span><strong>{report.portfolio.selected_roles}/{report.roles.length}</strong></div>
         <div><span>Парк</span><strong>{report.portfolio.selected_robot_allocations}</strong></div>
+        <div><span>Без роботов: ФОТ ролей в год</span><strong>{money(report.portfolio.baseline_annual_labor_rub)}</strong></div>
         <div><span>Ставки в сценарии*</span><strong>{count(report.portfolio.fte_equivalent)}</strong></div>
         <div><span>Потенциал ФОТ в год*</span><strong>{money(report.portfolio.annual_labor_potential_rub)}</strong></div>
-        <div><span>Капвложения</span><strong>{money(report.portfolio.capex_rub)}</strong></div>
-        <div><span>NPV сценария</span><strong>{money(report.portfolio.npv_rub)}</strong></div></div>
+        <div><span>Покупка: CAPEX / TCO</span><strong>{money(report.portfolio.capex_rub)} / {money(report.portfolio.purchase_tco_rub)}</strong></div>
+        <div><span>Покупка: NPV / ROI</span><strong>{money(report.portfolio.npv_rub)} / {report.portfolio.purchase_roi_percent == null ? 'N/A' : `${count(report.portfolio.purchase_roi_percent)}%`}</strong></div>
+        <div><span>Покупка: годовой эффект после сервиса</span><strong>{money(report.portfolio.annual_net_rub)}</strong></div>
+        <div><span>Аренда: TCO / NPV</span><strong>{money(report.portfolio.raas_tco_rub)} / {money(report.portfolio.raas_npv_rub)}</strong></div>
+        <div><span>Аренда: годовой эффект после тарифа</span><strong>{money(report.portfolio.raas_annual_net_rub)}</strong></div>
+        <div><span>Аренда: ROI на CAPEX</span><strong>{report.portfolio.raas_roi_percent == null && Number(report.portfolio.raas_capex_rub) === 0 ? 'N/A — CAPEX равен нулю' : report.portfolio.raas_roi_percent == null ? 'Нужен тариф' : `${count(report.portfolio.raas_roi_percent)}%`}</strong></div></div>
+      <p className="wr-disclaimer">ROI покупки = (недисконтированный эффект за горизонт − CAPEX) / CAPEX × 100%. NPV учитывает дисконтирование.</p>
       <p className="wr-disclaimer">* Оценка при сценарной доле реализации. Деньги остаются частичными, если нет цены хотя бы одного выбранного робота.</p></section>}
+    {showRobots && <section className="wr-panel"><h2>Визуализация парка по ролям</h2><p>Каждая полоса построена из того же сохранённого парка, что и денежный результат.</p>
+      {report.roles.map((role) => { const selected = role.candidates.find((row) => row.position_id === role.selected_position_id);
+        const maximum = Math.max(1, ...report.roles.flatMap((item) => item.candidates.filter((row) => row.position_id === item.selected_position_id).map((row) => row.fleet)));
+        return <div key={role.role_code} className="wr-fleet-row"><span>{role.label}</span><div className="wr-fleet-track"><div style={{ width: `${100 * (selected?.fleet || 0) / maximum}%` }} /></div><strong>{selected?.fleet || 0}</strong></div>; })}</section>}
     <details className="wr-limitations"><summary>Что нужно проверить перед решением о закупке</summary>
       <ul>{report.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
       {report.general && <p>Допущения: доступность робота {count(Number(report.general.robot_availability) * 100)}%, резерв парка {count(Number(report.general.fleet_reserve_share) * 100)}%,

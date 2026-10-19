@@ -44,7 +44,7 @@ docker compose --profile tools run --rm economics-activation status
 
 ## Документы и материалы
 
-- [Путь пользователя](docs/USER_GUIDE.md), [карта API](docs/API.md), [расчёты и ограничения](docs/CALCULATIONS.md).
+- [Путь пользователя](docs/USER_GUIDE.md), [карта API](docs/API.md), [расчёты и ограничения](docs/CALCULATIONS.md), [объектный расчёт 35 работ по ролям](docs/ROLE_SCENARIO_V2.md).
 - [Управление каталогом](docs/ADMIN_CATALOG.md), [production runbook](docs/PRODUCTION_DEPLOYMENT.md).
 - [Пример инвестиционной оценки, PDF](docs/examples/investment-assessment-2026-09-28.pdf) — сохранённый учебный расчёт от 28.09.2026; цена, зарплаты и условия в нём являются сценарными допущениями.
 - [Презентация, PDF](docs/presentation/Robodovod-ZMNCRAFT-2026.pdf) ([PPTX](docs/presentation/Robodovod-ZMNCRAFT-2026.pptx)). [Индекс документов](docs/README.md) отделяет действующие инструкции от [планов и истории](docs/planning/README.md).

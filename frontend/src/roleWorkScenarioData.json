@@ -24,7 +24,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WH-FORKLIFT-01",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Перевозка паллет между точками, погрузка проверяется отдельно",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "WAREHOUSE",
@@ -49,7 +54,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WH-LOADER-01",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Перевозка паллет к зоне ручной погрузки",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "WAREHOUSE",
@@ -74,7 +84,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WAREHOUSE-WAREHOUSE_STORAGE-STOREKEEPER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Подача паллет к месту хранения",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "WAREHOUSE",
@@ -99,7 +114,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WAREHOUSE-WAREHOUSE_PICKING-PICKER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Подвоз товара к станции ручного отбора",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "WAREHOUSE",
@@ -124,7 +144,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WAREHOUSE-WAREHOUSE_PICKING-SORTER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Перемещение и сортировка грузовых мест",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "WAREHOUSE",
@@ -149,7 +174,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WAREHOUSE-WAREHOUSE_PALLETIZING-PACKER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Паллетизация готовых упаковок",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "WAREHOUSE",
@@ -174,7 +204,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WAREHOUSE-WAREHOUSE_CLEANING-CLEANER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Уборка доступной площади пола",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "WAREHOUSE",
@@ -199,7 +234,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-WAREHOUSE-WAREHOUSE_INVENTORY-INVENTORY_WORKER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Считывание меток и сбор данных об остатках",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -224,7 +264,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_BAGGAGE-BAGGAGE_HANDLER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Перевозка стандартного багажа между узлами",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -249,7 +294,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_CATERING-TROLLEY_OPERATOR",
       "confirmed": "true",
-      "calculation_status": "ALLOCATION_REQUIRED"
+      "calculation_status": "ALLOCATION_REQUIRED",
+      "technical_task": "Перевозка тележек или контейнеров по указанному потоку",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -265,16 +315,21 @@
       "salary_source_ref": "Аэропорт!C33 100000 gross × 1.302",
       "manual_units_per_person_shift": "10",
       "manual_unit": "delivery/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "42",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Все операции заправки и контроль безопасности",
+      "robotizable_fraction": "0.1",
+      "residual_operations": "Саму заправку и контроль безопасности выполняет человек",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-AIRPORT-AIRPORT_FUELLING-SPECIAL_EQUIPMENT_DRIVER: Аэропорт!C24 = 280 рейсов/сутки, 30×10 = 300, DELIVERY условно равен рейсу. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-AIRPORT-AIRPORT_FUELLING-SPECIAL_EQUIPMENT_DRIVER: Аэропорт!C24 = 280 рейсов/сутки, 30×10 = 300, DELIVERY условно равен рейсу. Доля 42/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_FUELLING-SPECIAL_EQUIPMENT_DRIVER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Перевозка закрытого оборудования к пункту подготовки, без заправки",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -299,7 +354,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_INTERNAL_LOGISTICS-TROLLEY_OPERATOR",
       "confirmed": "true",
-      "calculation_status": "ALLOCATION_REQUIRED"
+      "calculation_status": "ALLOCATION_REQUIRED",
+      "technical_task": "Перевозка тележек или контейнеров по указанному потоку",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -324,7 +384,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-AP-CLEANER-01",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Уборка доступной площади терминала",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -340,16 +405,21 @@
       "salary_source_ref": "Аэропорт!C33 100000 gross × 1.302",
       "manual_units_per_person_shift": "3400",
       "manual_unit": "m2/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "105",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Вся уборка до допуска на перрон и подтверждения работы зимой",
+      "robotizable_fraction": "0.25",
+      "residual_operations": "Ручная уборка сложных участков, эксплуатация робота требует допуска",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-AIRPORT-AIRPORT_APRON_CLEANING-PERRON_CLEANER: Аэропорт!C5 = 100000 м², 30×3400 = 102000, допуск робота на перрон не подтверждён. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-AIRPORT-AIRPORT_APRON_CLEANING-PERRON_CLEANER: Аэропорт!C5 = 100000 м², 30×3400 = 102000, допуск робота на перрон не подтверждён. Доля 105/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_APRON_CLEANING-PERRON_CLEANER",
       "confirmed": "false",
-      "calculation_status": "SAFETY_BLOCKED"
+      "calculation_status": "SAFETY_BLOCKED",
+      "technical_task": "Уборка выделенного участка перрона при условном допуске",
+      "safety_conditions": "Допуск на перрон, погода, зоны движения, пригодность модели и маршрут не подтверждены",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -374,7 +444,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_WASTE-TROLLEY_OPERATOR",
       "confirmed": "true",
-      "calculation_status": "ALLOCATION_REQUIRED"
+      "calculation_status": "ALLOCATION_REQUIRED",
+      "technical_task": "Перевозка тележек или контейнеров по указанному потоку",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -390,16 +465,21 @@
       "salary_source_ref": "Допущение, 100000 gross × 1.302",
       "manual_units_per_person_shift": "10",
       "manual_unit": "item/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "63",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Все решения о безопасности и инспекция",
+      "robotizable_fraction": "0.15",
+      "residual_operations": "Решение о состоянии ВПП остаётся за инспектором",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-AIRPORT-AIRPORT_INSPECTION-RUNWAY_INSPECTOR: Условно 10 проверок/смену, в датасете поток инспекций отсутствует. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-AIRPORT-AIRPORT_INSPECTION-RUNWAY_INSPECTOR: Условно 10 проверок/смену, в датасете поток инспекций отсутствует. Доля 63/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_INSPECTION-RUNWAY_INSPECTOR",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Сбор изображений покрытия для решения инспектора",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -415,16 +495,21 @@
       "salary_source_ref": "Допущение, 80000 gross × 1.302",
       "manual_units_per_person_shift": "20",
       "manual_unit": "item/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "42",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Весь контроль доступа и реагирование",
+      "robotizable_fraction": "0.1",
+      "residual_operations": "Контроль доступа и реагирование остаются за охраной",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-AIRPORT-AIRPORT_INSPECTION-SECURITY_GUARD: Условно 20 проверок/смену, в датасете поток проверок охраны отсутствует. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-AIRPORT-AIRPORT_INSPECTION-SECURITY_GUARD: Условно 20 проверок/смену, в датасете поток проверок охраны отсутствует. Доля 42/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_INSPECTION-SECURITY_GUARD",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Патрульная видеосъёмка без решения об охране",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -440,16 +525,21 @@
       "salary_source_ref": "Допущение, 70000 gross × 1.302",
       "manual_units_per_person_shift": "8",
       "manual_unit": "delivery/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "42",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Непосредственная помощь пассажирам",
+      "robotizable_fraction": "0.1",
+      "residual_operations": "Непосредственная помощь пассажиру остаётся за человеком",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-AIRPORT-AIRPORT_PASSENGER_ASSISTANCE-PASSENGER_ASSISTANT: Условно 8 запросов помощи/смену, в датасете поток запросов отсутствует. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-AIRPORT-AIRPORT_PASSENGER_ASSISTANCE-PASSENGER_ASSISTANT: Условно 8 запросов помощи/смену, в датасете поток запросов отсутствует. Доля 42/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_PASSENGER_ASSISTANCE-PASSENGER_ASSISTANT",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Перевозка багажа по запросу без сопровождения человека",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -474,7 +564,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_PASSENGER_ASSISTANCE-COURIER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Доставка документов или вещей между разрешёнными точками",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -490,16 +585,21 @@
       "salary_source_ref": "Аэропорт!C33 100000 gross × 1.302",
       "manual_units_per_person_shift": "3",
       "manual_unit": "delivery/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "63",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Вся работа до выделения роботизируемой операции",
+      "robotizable_fraction": "0.15",
+      "residual_operations": "Обслуживание борта и погрузку выполняют люди",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-AIRPORT-AIRPORT_GROUND_SERVICE-RAMP_WORKER: Аэропорт!C16 = 280 рейсов/сутки, 100×3 = 300, DELIVERY условно равен рейсу. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-AIRPORT-AIRPORT_GROUND_SERVICE-RAMP_WORKER: Аэропорт!C16 = 280 рейсов/сутки, 100×3 = 300, DELIVERY условно равен рейсу. Доля 63/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_GROUND_SERVICE-RAMP_WORKER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Перевозка закрытого груза по разрешённому маршруту",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "AIRPORT",
@@ -515,16 +615,21 @@
       "salary_source_ref": "Аэропорт!C33 100000 gross × 1.302",
       "manual_units_per_person_shift": "5",
       "manual_unit": "delivery/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "63",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Все операции наземной поддержки",
+      "robotizable_fraction": "0.15",
+      "residual_operations": "Подключение оборудования и контроль выполняют люди",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-AIRPORT-AIRPORT_GROUND_SERVICE-GROUND_SUPPORT_WORKER: Аэропорт!C16 = 280 рейсов/сутки, 60×5 = 300, DELIVERY условно равен рейсу. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-AIRPORT-AIRPORT_GROUND_SERVICE-GROUND_SUPPORT_WORKER: Аэропорт!C16 = 280 рейсов/сутки, 60×5 = 300, DELIVERY условно равен рейсу. Доля 63/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_GROUND_SERVICE-GROUND_SUPPORT_WORKER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Доставка оборудования между наземными точками",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -549,7 +654,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CL-FOOD-01",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Перевозка готовых порций из пищеблока",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -574,7 +684,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_LINEN-LAUNDRY_WORKER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Перевозка упакованного белья",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -599,7 +714,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_MEDICINES-SANITARY",
       "confirmed": "true",
-      "calculation_status": "ALLOCATION_REQUIRED"
+      "calculation_status": "ALLOCATION_REQUIRED",
+      "technical_task": "Перевозка закрытого контейнера по выделенному маршруту",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -624,7 +744,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_MEDICINES-PORTER",
       "confirmed": "true",
-      "calculation_status": "ALLOCATION_REQUIRED"
+      "calculation_status": "ALLOCATION_REQUIRED",
+      "technical_task": "Перевозка закрытого контейнера по выделенному маршруту",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -649,7 +774,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_BIOMATERIALS-LAB_ASSISTANT",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Перевозка запечатанных проб с контролем условий",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -674,7 +804,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_STERILE_SETS-STERILE_SUPPLY_WORKER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Перевозка запечатанных стерильных наборов",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -699,7 +834,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_CONSUMABLES-CONSUMABLE_WORKER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Доставка упакованных расходников",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -724,7 +864,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_WASTE_A-SANITARY",
       "confirmed": "true",
-      "calculation_status": "ALLOCATION_REQUIRED"
+      "calculation_status": "ALLOCATION_REQUIRED",
+      "technical_task": "Перевозка закрытого контейнера по выделенному маршруту",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -749,7 +894,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_WASTE_A-PORTER",
       "confirmed": "true",
-      "calculation_status": "ALLOCATION_REQUIRED"
+      "calculation_status": "ALLOCATION_REQUIRED",
+      "technical_task": "Перевозка закрытого контейнера по выделенному маршруту",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -765,16 +915,21 @@
       "salary_source_ref": "Медучреждение!C52 55000 gross × 1.302",
       "manual_units_per_person_shift": "30",
       "manual_unit": "kg/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "42",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Вся работа до подтверждения санитарного режима",
+      "robotizable_fraction": "0.1",
+      "residual_operations": "Сортировка, герметизация и санитарный контроль остаются за человеком",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-CLINIC-CLINIC_WASTE_B-SANITARY: Медучреждение!C45 = 220 кг/сутки, 8×30 = 240, маршрут робота не согласован. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-CLINIC-CLINIC_WASTE_B-SANITARY: Медучреждение!C45 = 220 кг/сутки, 8×30 = 240, маршрут робота не согласован. Доля 42/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_WASTE_B-SANITARY",
       "confirmed": "false",
-      "calculation_status": "SAFETY_BLOCKED"
+      "calculation_status": "SAFETY_BLOCKED",
+      "technical_task": "Перевозка закрытого контейнера по выделенному маршруту",
+      "safety_conditions": "Санитарный режим, герметичный контейнер, маршрут, дезинфекция и пригодность модели не подтверждены",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -790,16 +945,21 @@
       "salary_source_ref": "Медучреждение!C52 55000 gross × 1.302",
       "manual_units_per_person_shift": "110",
       "manual_unit": "kg/person/shift",
-      "robotizable_task_minutes_per_person_shift": "0",
+      "robotizable_task_minutes_per_person_shift": "42",
       "paid_process_minutes_per_person_shift": "420",
-      "robotizable_fraction": "0",
-      "residual_operations": "Вся работа до подтверждения санитарного режима",
+      "robotizable_fraction": "0.1",
+      "residual_operations": "Передача контейнера и дезинфекция остаются за человеком",
       "work_data_source": "ASSUMPTION",
-      "work_basis": "RW-CLINIC-CLINIC_WASTE_B-PORTER: Медучреждение!C45 = 220 кг/сутки, 2×110 = 220, маршрут робота не согласован. Доля 0/420 — сценарное допущение, не замер",
+      "work_basis": "RW-CLINIC-CLINIC_WASTE_B-PORTER: Медучреждение!C45 = 220 кг/сутки, 2×110 = 220, маршрут робота не согласован. Доля 42/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_WASTE_B-PORTER",
       "confirmed": "false",
-      "calculation_status": "SAFETY_BLOCKED"
+      "calculation_status": "SAFETY_BLOCKED",
+      "technical_task": "Перевозка закрытого контейнера по выделенному маршруту",
+      "safety_conditions": "Санитарный режим, герметичный контейнер, маршрут, дезинфекция и пригодность модели не подтверждены",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -824,7 +984,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_RESULTS-LAB_RESULT_COURIER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Физическая доставка результатов, цифровой поток исключён",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -849,7 +1014,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_CLEANING-CLEANER",
       "confirmed": "true",
-      "calculation_status": "CALCULABLE"
+      "calculation_status": "CALCULABLE",
+      "technical_task": "Уборка доступной площади пола",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     },
     {
       "object_kind": "CLINIC",
@@ -874,7 +1044,12 @@
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_INVENTORY-INVENTORY_WORKER",
       "confirmed": "false",
-      "calculation_status": "REFERENCE_ONLY"
+      "calculation_status": "REFERENCE_ONLY",
+      "technical_task": "Считывание меток и сбор данных об остатках",
+      "safety_conditions": "",
+      "scenario_purchase_price_rub": "3000000",
+      "scenario_raas_monthly_rub": "120000",
+      "scenario_rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed"
     }
   ]
 }

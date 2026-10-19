@@ -3,9 +3,9 @@ import demo from './warehouseGuestDemo.json' with { type: 'json' };
 import comparison from './warehouseGuestComparisonV1.json' with { type: 'json' };
 
 const OBJECTS = [
-  { id: 'retail', icon: 'warehouse', title: 'Склад', detail: 'Перевозка паллет, уборка, комплектовка', note: 'Полный пример: перевозка паллет' },
-  { id: 'airport', icon: 'airport', title: 'Аэропорт', detail: 'Терминал, багаж и сервисные зоны', note: 'Глубина зависит от операции' },
-  { id: 'clinic', icon: 'clinic', title: 'Клиника', detail: 'Внутренняя доставка и уборка', note: 'Глубина зависит от операции' },
+  { id: 'retail', icon: 'warehouse', title: 'Склад', detail: 'Перевозка паллет, уборка, комплектовка', note: 'Рассчитать склад по ролям · 8 видов работы' },
+  { id: 'airport', icon: 'airport', title: 'Аэропорт', detail: 'Терминал, багаж и сервисные зоны', note: 'Рассчитать аэропорт по ролям · 13 видов работы' },
+  { id: 'clinic', icon: 'clinic', title: 'Клиника', detail: 'Внутренняя доставка и уборка', note: 'Рассчитать клинику по ролям · 14 видов работы' },
 ];
 
 const MODES = [
@@ -20,7 +20,7 @@ export default function OnboardingScreen({ onChoose, onGuestDemo, mode = 'ADVANC
   return <main className="simple-journey-page" aria-label="Выбор объекта и глубины оценки">
     <header className="simple-journey-head"><span>ШАГ 1 ИЗ 5 · ОБЪЕКТ</span>
       <h1>Где хотите использовать роботов?</h1>
-      <p>Выберите знакомый тип объекта. Работу, которую нужно передать роботам, опишем на следующем шаге.</p>
+      <p>Выберите объект и сразу перейдите к расчёту по всем его ролям. Для сохранения результата выберите или создайте проект. Прежний расчёт по отдельным операциям доступен на следующем экране.</p>
     </header>
     <section className="simple-journey-section" aria-label="Глубина оценки">
       <h2>Насколько подробно оценивать?</h2>
@@ -36,7 +36,7 @@ export default function OnboardingScreen({ onChoose, onGuestDemo, mode = 'ADVANC
         <button type="button" key={item.id} onClick={() => onChoose(item.id)}>
           <span className="simple-object-icon"><AppIcon name={item.icon} size={36} /></span>
           <strong>{item.title}</strong><span>{item.detail}</span><small>{item.note}</small>
-          <b>Продолжить с этим объектом <AppIcon name="arrow" size={17} /></b>
+          <b>Рассчитать {item.title.toLowerCase()} по ролям <AppIcon name="arrow" size={17} /></b>
         </button>)}</div>
     </section>
     <section className="simple-demo-callout" aria-label="Готовый пример склада">
