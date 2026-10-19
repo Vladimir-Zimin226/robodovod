@@ -246,6 +246,30 @@ export function createTypicalObjectDraft(objectType) {
     salary: scenario.monthlyEmployerCost, salarySource: 'ASSUMPTION', salaryConfirmed: false });
 }
 
+// Fill only empty staff fields for an executable process. Existing site data
+// wins, and the economics preset will refuse a mismatched role count.
+export function applyScenarioRolesToDraft(draft, processCode) {
+  const process = draft.processes.find((item) => item.code === processCode && item.active);
+  const scenario = ROLE_WORK_SCENARIOS[processCode];
+  if (!process || !scenario || !process.roles.every((code) => scenario[code])) return draft;
+  if (draft.roles.some((role) => scenario[role.roleCode]
+    && role.processIds.some((id) => id !== process.processId))) return draft;
+  let next = draft;
+  for (const [roleCode, row] of Object.entries(scenario)) {
+    next = setRoleActive(next, process.processId, roleCode, true);
+    const roleId = `${next.objectId}.${roleCode}`;
+    const current = next.roles.find((item) => item.roleId === roleId);
+    const patch = {};
+    if (!current.headcount) Object.assign(patch, { headcount: row.headcount, headcountSource: 'ASSUMPTION' });
+    if (!current.salary) Object.assign(patch, { salary: row.monthlyEmployerCost,
+      salarySource: 'ASSUMPTION', salaryConfirmed: false });
+    if (Object.keys(patch).length) next = updateRole(next, roleId, patch);
+    if (next.roles.find((item) => item.roleId === roleId).salarySource === 'ASSUMPTION'
+      && !next.roles.find((item) => item.roleId === roleId).salaryConfirmed) next = confirmRoleAssumption(next, roleId);
+  }
+  return next;
+}
+
 // The dedicated loader click accepts the displayed typical-object assumptions.
 // Keep their sources; accepting a proposal does not turn it into a measured fact.
 export function loadConfirmedTypicalObjectDraft(objectType) {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   addZone,
+  applyScenarioRolesToDraft,
   confirmFacilityArea,
   createDraft,
   loadConfirmedTypicalObjectDraft,
@@ -17,6 +18,7 @@ import {
   updateZone,
   validateDraft,
 } from '../processRoleIntakeV2';
+import { ROLE_WORK_SCENARIOS } from '../roleWorkScenarioAssumptions';
 import { createCapacityAnalysisClient } from '../capacityAnalysisApi';
 import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } from '../demoCapacityFlow';
 import { catalogDiagnostics, recommendedCandidates } from '../candidateRecommendation';
@@ -458,6 +460,13 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
         <div className="guided-operation-grid" role="group" aria-label="Работа для расчёта">{quickOptions.map(quickCard)}</div>
         {otherOptions.length > 0 && <details className="guided-other-operations"><summary>Другие работы · {otherOptions.length}</summary><div className="guided-operation-grid">{otherOptions.map(quickCard)}</div></details>}
         {quickProcess?.active && <>
+          {ROLE_WORK_SCENARIOS[quickProcess.code] && <div className="rounded border border-amber-400 p-3 text-sm">
+            <button type="button" className="secondary-action" onClick={() => {
+              setDraft((current) => applyScenarioRolesToDraft(current, quickProcess.code));
+              invalidateComparison();
+            }}>Подставить сценарный штат и расходы ролей</button>
+            <p>Заполняются только пустые поля. Это допущения для типового объекта, не кадровые данные вашей площадки. Объём, маршрут и другие параметры процесса проверьте отдельно.</p>
+          </div>}
           <div className="guided-field-grid">
             <NumberField id="intake-facility.totalArea" label="Площадь объекта, м²" value={draft.facility?.totalArea || ''} issue={fieldIssue('facility.totalArea')} onChange={(value) => setDraft((current) => updateFacility(current, { totalArea: value }))} />
             <NumberField id="intake-facility.activeArea" label="Рабочая площадь, м²" value={draft.facility?.activeArea || ''} issue={fieldIssue('facility.activeArea')} onChange={(value) => setDraft((current) => updateFacility(current, { activeArea: value }))} />

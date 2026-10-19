@@ -1,37 +1,23 @@
-// Scenario estimates for typical objects. These are not organizer measurements.
-// Keep the review table in data/role-work/role-process-measurement-template-v1.csv in sync.
-export const ROLE_WORK_SCENARIOS = Object.freeze({
-  warehouse_receiving_shipping: Object.freeze({
-    forklift_driver: Object.freeze({
-      id: 'RW-WH-FORKLIFT-01', headcount: '25', monthlyEmployerCost: '156240',
-      manualUnitsPerShift: '100', robotizableFraction: '0.8',
-      residualOperations: 'Ручная приёмка, проверка и нестандартные паллеты остаются у оператора.',
-      basis: 'RW-WH-FORKLIFT-01: сценарий 100 паллет/смену, 480 из 600 минут типовой работы заменяемы; не замер.',
-    }),
-    loader: Object.freeze({
-      id: 'RW-WH-LOADER-01', headcount: '8', monthlyEmployerCost: '104160',
-      manualUnitsPerShift: '250', robotizableFraction: '0.25',
-      residualOperations: 'Погрузка, крепление, сканирование, приёмка и исключения остаются у грузчика.',
-      basis: 'RW-WH-LOADER-01: сценарий 8 человек на 2000 паллет/сутки, 150 из 600 минут заменяемы; не замер.',
-    }),
-  }),
-  airport_terminal_cleaning: Object.freeze({
-    terminal_cleaner: Object.freeze({
-      id: 'RW-AP-CLEANER-01', headcount: '30', monthlyEmployerCost: '84630',
-      manualUnitsPerShift: '1700', robotizableFraction: '0.6',
-      residualOperations: 'Кромки, лестницы, загрязнения вне маршрута и санитарная обработка остаются вручную.',
-      basis: 'RW-AP-CLEANER-01: сценарий 30 из 180 работников терминала, 51000 м²/сутки, 252 из 420 минут заменяемы; не замер.',
-    }),
-  }),
-  clinic_food: Object.freeze({
-    catering_worker: Object.freeze({
-      id: 'RW-CL-FOOD-01', headcount: '6', monthlyEmployerCost: '67704',
-      manualUnitsPerShift: '325', robotizableFraction: '0.4',
-      residualOperations: 'Приготовление, загрузка тележки, раздача, контроль питания и санитарная проверка остаются вручную.',
-      basis: 'RW-CL-FOOD-01: сценарий 6 из 28 сотрудников пищеблока, 1950 порций/сутки, 168 из 420 минут заменяемы; не замер.',
-    }),
-  }),
-});
+import scenarioData from './roleWorkScenarioData.json' with { type: 'json' };
+
+// Only rows with an executable C11 process and no unresolved safety gate are
+// offered by the economics button. All 35 rows remain visible in the CSV.
+export const ROLE_WORK_SCENARIO_ROWS = Object.freeze(scenarioData.records);
+export const ROLE_WORK_SCENARIOS = Object.freeze(Object.fromEntries(
+  [...new Set(ROLE_WORK_SCENARIO_ROWS.filter((row) => row.calculation_status === 'CALCULABLE')
+    .map((row) => row.process_code))].map((processCode) => [processCode, Object.freeze(Object.fromEntries(
+    ROLE_WORK_SCENARIO_ROWS.filter((row) => row.process_code === processCode && row.calculation_status === 'CALCULABLE')
+      .map((row) => [row.role_code, Object.freeze({
+        id: row.evidence_ref,
+        headcount: String(Number(row.object_role_headcount) * Number(row.process_allocation_fraction)),
+        monthlyEmployerCost: row.monthly_amount_rub_per_person,
+        manualUnitsPerShift: row.manual_units_per_person_shift,
+        robotizableFraction: row.robotizable_fraction,
+        residualOperations: row.residual_operations,
+        basis: row.work_basis,
+      })]),
+  ))]),
+));
 
 export function applyRoleWorkScenario(values, capacityRequest) {
   const processCode = capacityRequest?.process?.process_code;
@@ -41,9 +27,10 @@ export function applyRoleWorkScenario(values, capacityRequest) {
   if (!scenario || !roleRefs.length) return values;
   const matched = roleRefs.map((roleId) => ({ roleId, role: roles.find((item) => item.role_id === roleId) }))
     .filter(({ role }) => role && scenario[role.role_code]
-      && String(role.headcount?.normalized_value) === scenario[role.role_code].headcount);
+      && String(role.headcount?.normalized_value) === scenario[role.role_code].headcount
+      && (!role.process_ids || role.process_ids.length === 1));
   if (matched.length !== roleRefs.length) return values;
-  const primary = matched[0];
+  const primary = matched.find(({ role }) => role.role_code === 'forklift_driver') || matched[0];
   const primaryData = scenario[primary.role.role_code];
   const profiles = Object.fromEntries(matched.map(({ roleId, role }) => {
     const row = scenario[role.role_code];
