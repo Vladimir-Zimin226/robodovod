@@ -35,6 +35,15 @@ def test_v7_cost_lines_survive_api_save_reopen_and_pdf(activated_actual_catalog)
         capacity = capacity_response.json()
         raw = project_input()
         raw.update(schema_version='economics-explicit-inputs-v7', implementation_cost_total_gross='0',
+                   role_work_profiles=[{
+                       'role_id': 'role.driver', 'robotizable_fraction': '0.5',
+                       'manual_units_per_shift': raw['manual_units_per_shift'],
+                       'process_allocation_fraction': '1',
+                       'residual_operations': 'Manual inspection remains',
+                       'source': 'ASSUMPTION',
+                       'basis': 'RW-WH-FORKLIFT-01: confirmed scenario assumption, not a site measurement',
+                       'confirmed': True,
+                   }],
                    implementation_lines={
                        'DELIVERY': {'status': 'USER_ESTIMATE', 'amount': '150000', 'source_ref': 'Смета 17.10.2026'},
                        'COMMISSIONING': {'status': 'EXPLICIT_ZERO', 'amount': '0', 'explanation': 'Свой персонал'},
@@ -47,11 +56,17 @@ def test_v7_cost_lines_survive_api_save_reopen_and_pdf(activated_actual_catalog)
         assert created.status_code == 201, created.text
         run = created.json()
         assert run['input_snapshot']['schema_version'] == 'economics-run-input-v8'
+        assert run['versions']['application'] == 'production-economics-orchestrator-v6'
+        assert run['result_snapshot']['role_work_profiles'][0]['process_allocation_fraction'] == '1'
+        assert run['result_snapshot']['role_labour']['roles'][0]['role_id'] == 'role.driver'
         assert run['result_snapshot']['implementation_coverage']['known_subtotal_gross_rub'] == '370000.00'
         assert run['result_snapshot']['implementation_coverage']['status'] == 'COMPLETE'
         reopened = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}")
         assert reopened.status_code == 200
         assert reopened.json()['result_snapshot'] == run['result_snapshot']
+        replay = client.post(f"{endpoint}/{run['id']}/replay", headers=headers)
+        assert replay.status_code == 200 and replay.json()['status'] == 'MATCH', replay.text
+        assert replay.json()['result_sha256'] == run['checksums']['result']
         pdf = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}/exports/investor-report.pdf")
         assert pdf.status_code == 200, pdf.text if pdf.status_code != 200 else ''
         pdf_text = '\n'.join(page.extract_text() for page in PdfReader(io.BytesIO(pdf.content)).pages)
