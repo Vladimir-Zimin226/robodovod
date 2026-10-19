@@ -82,6 +82,7 @@ def expected_outputs() -> dict[Path, bytes]:
             "role_id": {"type": "string", "minLength": 1},
             "robotizable_fraction": {"type": "string", "pattern": r"^(?:0(?:\.[0-9]+)?|1(?:\.0+)?)$"},
             "manual_units_per_shift": {"type": ["string", "null"]},
+            "process_allocation_fraction": {"type": "string", "pattern": r"^(?:0(?:\.[0-9]+)?|1(?:\.0+)?)$"},
             "residual_operations": {"type": "string", "minLength": 3},
             "source": {"enum": ["USER", "ASSUMPTION"]},
             "basis": {"type": "string", "minLength": 3},

@@ -48,7 +48,7 @@ from economics_runtime_migration import (
     verify_snapshot,
 )
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
-from economics_final import execute_economics_v3, execute_economics_v4, execute_economics_v5
+from economics_final import execute_economics_v3, execute_economics_v4, execute_economics_v5, execute_economics_v6
 from economics_partial import INPUT_VERSION as PARTIAL_INPUT_VERSION, INPUT_VERSION_V3 as ASSUMPTION_INPUT_VERSION, INPUT_VERSION_V4 as TECHNICAL_INPUT_VERSION, INPUT_VERSION_V5 as STAFFING_INPUT_VERSION, INPUT_VERSION_V6 as PROJECT_INPUT_VERSION, INPUT_VERSION_V7 as LEDGER_INPUT_VERSION, execute_partial_economics_v2
 from calculation.picking_study import PickingStudyV1, PickingStudyV2, calculate_picking_study, calculate_picking_study_v2
 from persistence_models import (
@@ -1523,7 +1523,7 @@ def create_persistence_router(
             raise HTTPException(status_code=409, detail='capacity revision mismatch')
         try:
             execution = execute_partial_economics_v2(payload.input, catalog_snapshot, capacity_context,
-                                                     full_engine=execute_economics_v5)
+                                                     full_engine=execute_economics_v6)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from None
         from economics_preview import preview_charts
@@ -1662,7 +1662,7 @@ def create_persistence_router(
         try:
             execution = (
                 execute_partial_economics_v2(payload.input, catalog_snapshot, capacity_context,
-                                             full_engine=execute_economics_v5)
+                                             full_engine=execute_economics_v6)
                 if partial_input and capacity_context is not None
                 else calculate_economics_v2(payload.input, catalog_snapshot, capacity_context)
                 if capacity_context is not None
@@ -1791,13 +1791,15 @@ def create_persistence_router(
                     full_engine=(execute_economics_v2 if run.application_version == "production-economics-orchestrator-v2"
                                  else execute_economics_v3 if run.application_version == "production-economics-orchestrator-v3"
                                  else execute_economics_v4 if run.application_version == "production-economics-orchestrator-v4"
-                                 else execute_economics_v5),
+                                 else execute_economics_v5 if run.application_version == "production-economics-orchestrator-v5"
+                                 else execute_economics_v6),
                 )
                 if envelope["schema_version"] in {"economics-run-input-v3", "economics-run-input-v4", "economics-run-input-v5", "economics-run-input-v6", "economics-run-input-v7", "economics-run-input-v8"}
                 else (execute_economics_v2 if run.application_version == "production-economics-orchestrator-v2"
                       else execute_economics_v3 if run.application_version == "production-economics-orchestrator-v3"
                       else execute_economics_v4 if run.application_version == "production-economics-orchestrator-v4"
-                      else execute_economics_v5)(envelope["economics"], catalog_snapshot, capacity_context)
+                      else execute_economics_v5 if run.application_version == "production-economics-orchestrator-v5"
+                      else execute_economics_v6)(envelope["economics"], catalog_snapshot, capacity_context)
             )
         except ValueError:
             raise HTTPException(

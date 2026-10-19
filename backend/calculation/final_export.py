@@ -51,7 +51,7 @@ SENSITIVITY_LABELS = {"EQUIPMENT_PRICE": "Цена робота", "RAAS_TARIFF":
 
 
 def _new_presentation(run: EvidenceRunSnapshotV1) -> bool:
-    return (run.versions.get("application") in {"production-economics-orchestrator-v4", "production-economics-orchestrator-v5"}
+    return (run.versions.get("application") in {"production-economics-orchestrator-v4", "production-economics-orchestrator-v5", "production-economics-orchestrator-v6"}
             and run.result_snapshot.get("versions", {}).get("report_presentation") == REPORT_PRESENTATION_VERSION)
 
 

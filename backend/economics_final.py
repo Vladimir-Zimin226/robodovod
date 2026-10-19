@@ -7,6 +7,7 @@ results; exports read those saved values and never rerun the engines.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from decimal import ROUND_HALF_EVEN, Decimal
 from functools import partial
 from types import SimpleNamespace
@@ -317,6 +318,62 @@ def execute_economics_v5(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
     )
 
 
+def execute_economics_v6(raw_inputs: dict[str, Any] | EconomicsExplicitInputsV1,
+                         snapshot: Any, context: EconomicsExecutionContextV1) -> EconomicsV2ExecutionV1:
+    """Bind new F5 cost presentation to C18's combined cashflow ledger.
+
+    The C18 direct projection excludes process labour and site staffing; C18
+    adds object labour once. C15 operating_total includes site staffing, so
+    adding it to C18 labour a second time overstated v5 OPEX and TCO.
+    C16/C17/C18 arithmetic and saved v5 runs remain unchanged.
+    """
+    inputs = raw_inputs if isinstance(raw_inputs, EconomicsExplicitInputsV1) else EconomicsExplicitInputsV1.model_validate(raw_inputs)
+    if inputs.staffing_purchase is None or inputs.staffing_raas is None:
+        raise ValueError("v6 requires explicit purchase and RaaS staffing decisions for one-count site labour")
+    previous = execute_economics_v5(inputs, snapshot, context)
+    result = deepcopy(previous.result_snapshot)
+    comparison = result["comparison"]
+    baseline = comparison["baseline"]["annual_cashflows"]
+    for scenario in comparison["scenarios"]:
+        rows = scenario["annual_cashflows"]
+        if len(rows) != len(baseline) or not rows:
+            raise ValueError("F5/C18 annual cashflow horizon mismatch")
+        operating = []
+        for expected, row in zip(baseline, rows):
+            if row["year"] != expected["year"] or Decimal(row["baseline"]) != Decimal(expected["baseline"]):
+                raise ValueError("purchase and RaaS must share the same no-robot baseline")
+            if abs(Decimal(row["scenario"]) - Decimal(row["baseline"]) - Decimal(row["effect"])) > Decimal("0.01"):
+                raise ValueError("F5/C18 annual effect does not reconcile")
+            cost = -Decimal(row["scenario"])
+            if cost < 0:
+                raise ValueError("F5 TCO needs separate income and cost lines")
+            operating.append(cost)
+        metrics = scenario["metrics"]
+        capex = Decimal(metrics["capex"]["value"])
+        first = operating[0]
+        baseline_first = -Decimal(rows[0]["baseline"])
+        for key, value, basis in (
+            ("opex_year_1", first, "C18: полные затраты сценария за год 1, ФОТ учтён один раз"),
+            ("opex_change_year_1", first - baseline_first, "C18: затраты сценария минус baseline, год 1"),
+            ("tco", capex + sum(operating, Decimal(0)),
+             "C18: CAPEX и полные затраты сценария за горизонт; без вычета остаточной стоимости"),
+        ):
+            metrics[key]["value"] = _money(value)
+            metrics[key]["basis"] = basis
+        if abs(Decimal(metrics["npv_scenario"]["value"]) - Decimal(metrics["npv_base"]["value"])
+               - Decimal(metrics["npv_project"]["value"])) > Decimal("0.01"):
+            raise ValueError("F5/C18 project NPV does not reconcile")
+    result["versions"] = {**result["versions"], "orchestrator": "production-economics-orchestrator-v6",
+                          "cashflow_reconciliation": "c18-combined-cashflow-v1"}
+    return EconomicsV2ExecutionV1(
+        result_snapshot=result, scenario_spec_snapshot=previous.scenario_spec_snapshot,
+        revision_id=previous.revision_id, rules_version=previous.rules_version,
+        object_profile_version=previous.object_profile_version,
+        application_version="production-economics-orchestrator-v6",
+        diagnostics={**previous.diagnostics, "financial_presentation_digest": semantic_digest(comparison)},
+    )
+
+
 class ZeroBaseSensitivityUnavailable(BaseModel):
     schema_version: str = 'sensitivity-unavailable-zero-base-v1'
     project_id: str
@@ -334,4 +391,4 @@ def _versioned_legacy_sensitivity(context, inputs, snapshot, base, ranking, *, n
     return legacy_sensitivity(context, inputs, snapshot, base, ranking, net_roi=net_roi)
 
 
-__all__ = ["PRESENTATION_VERSION", "SENSITIVITY_VERSION", "execute_economics_v3", "execute_economics_v4", "execute_economics_v5"]
+__all__ = ["PRESENTATION_VERSION", "SENSITIVITY_VERSION", "execute_economics_v3", "execute_economics_v4", "execute_economics_v5", "execute_economics_v6"]

@@ -10,7 +10,7 @@ from calculation_contracts import CapacityAnalysisRequest
 from calculation.service import analyze_capacity
 from economics_orchestrator import EconomicsExecutionContextV1
 from project_portfolio import calculate_project_portfolio
-from economics_final import execute_economics_v5
+from economics_final import execute_economics_v5, execute_economics_v6
 from economics_partial import INPUT_VERSION_V6, execute_partial_economics_v2
 from test_economics_partial import _context, _staffing_input
 
@@ -53,6 +53,18 @@ def test_confirmed_role_scenario_productivity_survives_partial_input_validation(
     result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
     assert result['schema_version'].startswith('commercial-scenarios-bundle-')
     assert result['role_labour']['roles'][0]['allocated_people'] == 20
+
+
+def test_new_financial_route_accepts_different_purchase_and_raas_staffing():
+    snapshot, context = _context()
+    raw = project_input()
+    execution = execute_partial_economics_v2(raw, snapshot, context, full_engine=execute_economics_v6)
+    assert execution.application_version == 'production-economics-orchestrator-v6'
+    comparison = execution.result_snapshot['comparison']
+    purchase = next(item for item in comparison['scenarios'] if item['scenario_id'] == 'scenario.purchase.base')
+    raas = next(item for item in comparison['scenarios'] if item['scenario_id'] == 'scenario.raas.base')
+    assert purchase['annual_cashflows'][0]['baseline'] == raas['annual_cashflows'][0]['baseline']
+    assert Decimal(purchase['metrics']['opex_year_1']['value']) == -Decimal(purchase['annual_cashflows'][0]['scenario'])
 
 
 def test_multirole_economics_keeps_conservative_loader_assumption_visible():

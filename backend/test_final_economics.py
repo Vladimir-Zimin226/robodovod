@@ -21,7 +21,7 @@ from calculation.scheduling import (
 )
 from calculation.service import analyze_capacity
 from calculation_contracts import parse_capacity_analysis_request, semantic_digest
-from economics_final import execute_economics_v3, execute_economics_v4, execute_economics_v5
+from economics_final import execute_economics_v3, execute_economics_v4, execute_economics_v5, execute_economics_v6
 from economics_orchestrator import EconomicsExecutionContextV1, execute_economics_v2
 from openpyxl import load_workbook
 from pypdf import PdfReader
@@ -33,7 +33,8 @@ from scripts.build_f5_contracts import ROOT, expected_outputs
 
 
 def _run(price: str | None = None, source: str | None = None,
-         demand: str = "1000", *, presentation_v4: bool = False, presentation_v5: bool = False):
+         demand: str = "1000", *, presentation_v4: bool = False, presentation_v5: bool = False,
+         presentation_v6: bool = False, with_staffing: bool = False):
     run, linked = _full_runs()
     linked = linked.model_copy(update={"run_id": "00000000-0000-4000-8000-000000000025"})
     snapshot = _snapshot()
@@ -50,10 +51,13 @@ def _run(price: str | None = None, source: str | None = None,
         executability=capacity.executability.model_dump(mode="json"),
     )
     inputs = _inputs()
+    if with_staffing or presentation_v6:
+        inputs["staffing_purchase"] = {"control_mode": "HIRE", "technician_mode": "HIRE"}
+        inputs["staffing_raas"] = {"control_mode": "HIRE", "technician_mode": "VENDOR"}
     if price is not None:
         inputs["purchase_price_override_gross"] = price
         inputs["purchase_price_source"] = source
-    engine = execute_economics_v5 if presentation_v5 else execute_economics_v4 if presentation_v4 else execute_economics_v3
+    engine = execute_economics_v6 if presentation_v6 else execute_economics_v5 if presentation_v5 else execute_economics_v4 if presentation_v4 else execute_economics_v3
     execution = engine(inputs, snapshot, context)
     raw = run.model_dump(mode="json")
     raw["input_snapshot"] = {"capacity_run_id": linked.run_id, "economics": inputs}
@@ -210,6 +214,37 @@ def test_current_v5_uses_net_roi_in_saved_comparison_and_pdf():
     pdf = build_final_export(current, linked).files["Отчёт_Рободовод.pdf"]
     assert "Основание: (эффект за горизонт − CAPEX) / CAPEX × 100" in "\n".join(
         page.extract_text() or "" for page in PdfReader(io.BytesIO(pdf)).pages)
+
+
+def test_v6_reconciles_opex_and_tco_with_c18_without_changing_npv_or_roi():
+    previous, _, _ = _run(presentation_v5=True, with_staffing=True)
+    current, linked, execution = _run(presentation_v6=True)
+    assert execution.application_version == "production-economics-orchestrator-v6"
+    assert current.result_snapshot["versions"]["cashflow_reconciliation"] == "c18-combined-cashflow-v1"
+    old_scenarios = {item["scenario_id"]: item for item in previous.result_snapshot["comparison"]["scenarios"]}
+    for scenario in current.result_snapshot["comparison"]["scenarios"]:
+        metrics = scenario["metrics"]
+        old = old_scenarios[scenario["scenario_id"]]["metrics"]
+        costs = [-Decimal(row["scenario"]) for row in scenario["annual_cashflows"]]
+        assert Decimal(metrics["opex_year_1"]["value"]) == costs[0]
+        assert Decimal(metrics["tco"]["value"]) == Decimal(metrics["capex"]["value"]) + sum(costs)
+        assert metrics["npv"]["value"] == old["npv"]["value"]
+        assert metrics["roi"]["value"] == old["roi"]["value"]
+        if scenario["acquisition"] == "PURCHASE":
+            assert Decimal(metrics["opex_year_1"]["value"]) < Decimal(old["opex_year_1"]["value"])
+    schema = json.loads((ROOT / f"contracts/{current.result_snapshot['schema_version']}.schema.json").read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator(schema).validate(current.result_snapshot)
+    package = build_final_export(current, linked)
+    purchase = next(item for item in current.result_snapshot["comparison"]["scenarios"]
+                    if item["scenario_id"] == "scenario.purchase.base")
+    tco = purchase["metrics"]["tco"]["value"]
+    assert tco in package.files["Сравнение.csv"].decode("utf-8-sig")
+    workbook = load_workbook(io.BytesIO(package.files["Результат.xlsx"]), read_only=True, data_only=True)
+    assert any(tco in row for row in workbook["Итог"].values)
+    pdf = package.files["Отчёт_Рободовод.pdf"]
+    assert pdf.startswith(b"%PDF-")
+    pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(pdf)).pages)
+    assert f"{float(tco):,.2f}".replace(",", " ") in pdf_text
 
 
 def test_old_run_export_never_invents_missing_financial_metrics():
