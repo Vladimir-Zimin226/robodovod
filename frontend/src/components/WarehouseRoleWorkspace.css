@@ -24,6 +24,7 @@
 .wr-assumptions p, .wr-basis p { line-height: 1.5; }
 .wr-assumptions .wr-fields { margin-top: 1rem; }
 .wr-role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 315px), 1fr)); gap: .85rem; }
+.wr-object-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .wr-role-card { min-width: 0; overflow: hidden; border: 1px solid #304047; border-radius: 1rem; background: #101c22; transition: border-color .16s, transform .16s; }
 .wr-role-card:hover { border-color: #617963; transform: translateY(-2px); }
 .wr-role-card.selected { border-color: #7cb94a; background: #15251f; box-shadow: inset 0 0 0 1px #5e904344; }
@@ -31,6 +32,8 @@
 .wr-role-select { display: grid; place-items: center; flex: 0 0 1.5rem; }
 .wr-role-select input { width: 1.15rem; height: 1.15rem; accent-color: #9fdb53; }
 .wr-role-expand { display: flex; align-items: center; flex: 1; min-width: 0; gap: .8rem; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
+.wr-role-card.selected .wr-role-expand .wr-role-check { border-color: #506269; background: transparent; color: #aebfc2; }
+@media (max-width: 760px) { .wr-object-role-grid { grid-template-columns: 1fr; } }
 .wr-role-card summary.wr-role-toggle { list-style: none; }
 .wr-role-card summary.wr-role-toggle::-webkit-details-marker { display: none; }
 .wr-role-icon { display: grid; flex: 0 0 2.9rem; width: 2.9rem; height: 2.9rem; place-items: center; border: 1px solid #4c6951; border-radius: .8rem; background: #21372b; color: var(--lime); }

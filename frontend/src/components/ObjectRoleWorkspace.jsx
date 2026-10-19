@@ -216,21 +216,26 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
           const project = projectChoices.find((row) => row.id === event.target.value); if (project) onChooseProject(project);
         }}><option value="">Выберите проект</option>{projectChoices.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select>
           : <button type="button" onClick={onOpenProjects}>Создать проект</button>}</section>}
-    <section className="wr-panel"><h2>Общие условия</h2><div className="wr-fields">
-      {[
+    <section className="wr-panel"><div className="wr-section-heading"><span className="wr-section-number">01</span><div><h2>Общие данные объекта</h2><p>Один график и общие условия для выбранных ролей.</p></div></div>
+      <div className="wr-fields">{[
         ['total_area_m2', 'Площадь объекта, м²'], ['shifts_per_day', 'Смен в сутки'],
         ['hours_per_shift', 'Часов в смене'], ['days_per_year', 'Рабочих дней в году'],
-        ['robot_availability', 'Доступность робота, 0–1'], ['fleet_reserve_share', 'Резерв парка, 0–1'],
-        ['integration_share', 'Внедрение от цены парка, 0–2'], ['annual_service_share', 'Сервис от цены парка в год, 0–1'],
-        ['discount_rate', 'Ставка дисконтирования, 0–1'], ['horizon_years', 'Горизонт, лет'],
-        ['raas_setup_rub', 'Вложения заказчика при аренде на одного робота, ₽'],
-        ['raas_customer_annual_rub', 'Дополнительные расходы заказчика при аренде, ₽/год на робота'],
-        ['gross_to_employer_factor', 'Коэффициент расходов работодателя к gross зарплате'],
-      ].map(([key, label]) => <Field key={key} label={label} value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}
-    </div><p>При аренде тариф задан по каждой работе; состав услуги и сервис необходимо проверить с поставщиком.</p></section>
-    <section className="wr-panel"><h2>Роли и виды работы</h2><p>Коэффициент ФОТ: какая часть высвобождённого времени реально уменьшит расходы? Например, 2 потенциальные ставки × 0,5 = экономия расходов на 1 ставку. При 0 люди перераспределяются, при 1 учитывается весь потенциал. Парк не меняется.</p>
+      ].map(([key, label]) => <Field key={key} label={label} value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}</div>
+      <details className="wr-assumptions"><summary>Допущения сценария и экономики</summary>
+        <div className="wr-fields">{[
+          ['robot_availability', 'Доступность робота, 0–1'], ['fleet_reserve_share', 'Резерв парка, 0–1'],
+          ['integration_share', 'Внедрение от цены парка, 0–2'], ['annual_service_share', 'Сервис от цены парка в год, 0–1'],
+          ['discount_rate', 'Ставка дисконтирования, 0–1'], ['horizon_years', 'Горизонт, лет'],
+          ['raas_setup_rub', 'Вложения заказчика при аренде на одного робота, ₽'],
+          ['raas_customer_annual_rub', 'Дополнительные расходы заказчика при аренде, ₽/год на робота'],
+          ['gross_to_employer_factor', 'Коэффициент расходов работодателя к gross зарплате'],
+        ].map(([key, label]) => <Field key={key} label={label} value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}</div>
+        <p>Тариф аренды задаётся по каждой работе. Состав услуги и сервис уточняются у поставщика.</p>
+      </details></section>
+    <section className="wr-panel"><div className="wr-section-heading"><span className="wr-section-number">02</span><div><h2>Кто работает на объекте?</h2><p>Выбрано {draft.roles.filter((role) => role.selected).length} из {draft.roles.length}. Откройте карточку только для настройки нужной роли.</p></div></div>
+      <details className="wr-assumptions"><summary>Как учитывается экономия ФОТ</summary><p>Потенциальные ставки × коэффициент ФОТ 0–1 × расходы работодателя. Например, 2 ставки × 0,5 = экономия расходов на 1 ставку. При 0 люди перераспределяются, при 1 учитывается весь потенциал. Парк роботов не меняется.</p></details>
       <div className="wr-actions"><button type="button" className="wr-more" onClick={() => update((current) => ({ ...current, roles: current.roles.map((role) => ({ ...role, selected: true })) }))}>Выбрать все типовые роли</button></div>
-      <div className="wr-role-grid">{draft.roles.map((role) => <article key={role.role_code} className={`wr-role-card${role.selected ? ' selected' : ''}`}>
+      <div className="wr-role-grid wr-object-role-grid">{draft.roles.map((role) => <article key={role.role_code} className={`wr-role-card${role.selected ? ' selected' : ''}`}>
         <div className="wr-role-toggle"><label className="wr-role-select"><input type="checkbox" checked={role.selected} onChange={(event) => changeRole(role.role_code, 'selected', event.target.checked)} aria-label={`Включить роль ${role.label}`} /></label><button type="button" className="wr-role-expand" aria-expanded={Boolean(expandedRoles[role.role_code])} onClick={() => setExpandedRoles((current) => ({ ...current, [role.role_code]: !current[role.role_code] }))}>
           <span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{role.works.length} видов работы · {num(role.headcount)} человек{role.works.some((work) => work.safety_conditions) ? ' · Есть неподтверждённый допуск' : ''}</small></span>
           <span className="wr-role-check">{expandedRoles[role.role_code] ? '−' : '+'}</span></button></div>
