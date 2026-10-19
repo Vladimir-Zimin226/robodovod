@@ -159,6 +159,29 @@ class OperationBatch(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
+class PickingProjectRun(Base):
+    """Immutable, owner-bound picking calculation and its saved financial result."""
+
+    __tablename__ = 'picking_project_runs'
+    __table_args__ = (
+        CheckConstraint("jsonb_typeof(input_snapshot) = 'object'", name='ck_picking_runs_input'),
+        CheckConstraint("jsonb_typeof(result_snapshot) = 'object'", name='ck_picking_runs_result'),
+        CheckConstraint(f"input_sha256 ~ '{SHA256_CHECK}'", name='ck_picking_runs_input_sha256'),
+        CheckConstraint(f"result_sha256 ~ '{SHA256_CHECK}'", name='ck_picking_runs_result_sha256'),
+        CheckConstraint("status IN ('COMPLETE', 'PARTIAL')", name='ck_picking_runs_status'),
+        Index('ix_picking_runs_project_created', 'project_id', 'created_at'),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('projects.id', ondelete='CASCADE'), nullable=False)
+    parent_run_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey('picking_project_runs.id', ondelete='CASCADE'))
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    input_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    input_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    result_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    result_sha256: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
 class ProjectFile(Base):
     __tablename__ = "project_files"
     __table_args__ = (

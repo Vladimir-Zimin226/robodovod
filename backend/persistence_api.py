@@ -1361,10 +1361,10 @@ def create_persistence_router(
                 migration_notice=mapping.migration_notice,
             )
         )
-        db.commit()
+        db.flush()
         run.status = "RUNNING"
         run.started_at = utcnow()
-        db.commit()
+        db.flush()
         try:
             calculation = (
                 calculate_for_catalog(input_model, catalog_snapshot)
@@ -1700,10 +1700,10 @@ def create_persistence_router(
             rerun_mode=mapping.rerun_mode, fte_basis_status=mapping.fte_basis_status,
             migration_notice=mapping.migration_notice,
         ))
-        db.commit()
+        db.flush()
         run.status = "RUNNING"
         run.started_at = utcnow()
-        db.commit()
+        db.flush()
         run.result_snapshot = execution.result_snapshot
         run.result_sha256 = result_sha256
         run.scenario_spec_snapshot = execution.scenario_spec_snapshot
@@ -1895,10 +1895,10 @@ def create_persistence_router(
             diagnostics={},
         )
         db.add(run)
-        db.commit()
+        db.flush()
         run.status = "RUNNING"
         run.started_at = utcnow()
-        db.commit()
+        db.flush()
         try:
             execution = analyze_capacity_for_catalog(payload, catalog_snapshot, str(run_id))
         except ValueError as exc:

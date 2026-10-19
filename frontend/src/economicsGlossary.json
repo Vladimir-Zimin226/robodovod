@@ -471,14 +471,14 @@
   },
   "schema_version": "economics-glossary-v1",
   "source_bindings": {
-    "backend/calculation/capacity/quantities.py": "937eb60e06054849a2f4d0aecbdfa9fb9ecd8ace77e10051b4b420e5f3bc15e2",
-    "backend/calculation/capacity/transport.py": "1fa83399a72e85cdae24ecba547176d569742d405a79884649db5473aa486b06",
-    "backend/calculation/economics/cashflow.py": "cc45c6ac56de1e41acaac66f68376d15e719d00f6aa9479c3c334619f71bb12e",
-    "backend/calculation/economics/metrics.py": "74c288b0c3a873a515b6e10f390ab1fcc85d42cd50dc6da903ff35d2db8c1501",
-    "backend/calculation/economics/purchase.py": "42ce99a77e31d07feb93ff045633195a4718639491ec035d16ba3c119c71dd0d",
-    "backend/calculation/economics/raas.py": "fffe8231a91f13f0ad9a7f478dc5ca7090a6f3c6d89114ca567c2a80fdeb2346",
-    "backend/calculation/economics/sensitivity.py": "2f15794dbf229d2a26ac3c965dc61f6e3e4fbfc2c632d4c4127c2deb3840f527",
-    "backend/calculation/labour.py": "522ad7a30f9365d6b73a1033c395325021b17ba1436d41fd44d82f2b6e9b4710",
+    "backend/calculation/capacity/quantities.py": "86a0e21ec235e2953f3b4dd7d1c4bb4230228e746c057888bfed1859f38bc035",
+    "backend/calculation/capacity/transport.py": "1e2d0188fd2cd3a178850548cce9d4d7431f3357128b0a3eb9eb83e450457437",
+    "backend/calculation/economics/cashflow.py": "16ef6c0c04f2433cfcd0a8d0430dfad82d82af000a636e416b758d8f789777d6",
+    "backend/calculation/economics/metrics.py": "5625740cf7dd204f85e22efdd8b8a7ea05c8c698a9405b27d78776aa518daf73",
+    "backend/calculation/economics/purchase.py": "a010abea68ec19248ee4c87445cdb6e1e5925de0a1390d5e43468bd7c5b57652",
+    "backend/calculation/economics/raas.py": "5553092ae13b10fad76c4de37e624966352ace0ff81fbb8741c8826647f28603",
+    "backend/calculation/economics/sensitivity.py": "cda1952c20823e0f427246986e0426ed119d4f1a9c21892cb166f319d5de1f78",
+    "backend/calculation/labour.py": "a1c51fce110c2d09a0856a9afce223605a2443d4e1e877c5975abb7bcf17b1e7",
     "data/calculation/registry-v1.json": "6a54e7934abc36d90c19582d8ef038deacc49d4e04ff7e4bf360bb5da3c43e22"
   },
   "versions": {

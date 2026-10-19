@@ -141,7 +141,9 @@ def build() -> dict:
                      "finance": financial.engine_version,
                      "purchase": fq["purchase_ledger"]["engine_version"], "raas": raas.engine_version,
                      "registry": financial.registry_version, "orchestrator": execution.result_snapshot["versions"]["orchestrator"]},
-        "source_bindings": {path: sha256((ROOT / path).read_bytes()).hexdigest() for path in binding_paths},
+        # Git checkout may use CRLF on Windows; bind the source text, not its line endings.
+        "source_bindings": {path: sha256((ROOT / path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+                            for path in binding_paths},
         "examples": {"warehouse_economics_result_digest": demo["result_digest"],
                      "financial_trace_digest": financial.replay.trace_content_digest,
                      "raas_trace_digest": raas.replay.trace_content_digest},

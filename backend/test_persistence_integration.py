@@ -164,6 +164,36 @@ def _create_project(client: TestClient, headers: dict[str, str]):
     return response.json()
 
 
+def test_saved_picking_project_replay_export_and_owner_boundary():
+    from test_picking_project import scenario
+    with TestClient(main.app) as client:
+        _, headers = _register(client, 'picking-project@example.com')
+        project = _create_project(client, headers)
+        base = f"/api/v2/projects/{project['id']}/picking-runs"
+        payload = scenario()
+        preview = client.post(f'{base}/preview', headers=headers, json=payload)
+        assert preview.status_code == 200, preview.text
+        assert preview.json()['labour']['total_released_people'] == 5
+        created = client.post(base, headers=headers, json={'input': payload})
+        assert created.status_code == 201, created.text
+        run = created.json()
+        assert run['result_snapshot'] == preview.json()
+        assert client.get(f"{base}/{run['id']}").json()['checksums'] == run['checksums']
+        assert client.post(f"{base}/{run['id']}/replay", headers=headers).json()['matches'] is True
+        assert client.get(f"{base}/{run['id']}/report.pdf").content.startswith(b'%PDF')
+        assert b'capacity' in client.get(f"{base}/{run['id']}/report.csv").content
+        archive = client.get(f"{base}/{run['id']}/archive.zip")
+        with zipfile.ZipFile(io.BytesIO(archive.content)) as saved:
+            assert {'input.json', 'result.json', 'manifest.json'} == set(saved.namelist())
+        assert len(client.get(f"{base}?process_id={payload['process_id']}").json()['items']) == 1
+        assert client.get(f'{base}?process_id=other.picking').json()['items'] == []
+
+    with TestClient(main.app) as other:
+        _, other_headers = _register(other, 'other-picking@example.com')
+        assert other.get(f"{base}/{run['id']}").status_code == 404
+        assert other.post(f"{base}/{run['id']}/replay", headers=other_headers).status_code == 404
+
+
 def test_research_picking_v2_preview_is_separate_and_non_persistent():
     from test_picking_study import research
     with TestClient(main.app) as client:

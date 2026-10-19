@@ -24,6 +24,7 @@ import { buildDemoCapacityRequest, demoCandidates, DEMO_MODELS, DEMO_PROFILES } 
 import { catalogDiagnostics, recommendedCandidates } from '../candidateRecommendation';
 import { readCsrfCookie } from '../persistenceApi';
 import PickingStudy from './PickingStudy';
+import PickingProjectCalculator from './PickingProjectCalculator';
 import PreliminaryCandidateSummary from './PreliminaryCandidateSummary';
 import ObjectConstraints from './ObjectConstraints';
 import { calculateOperationBatch } from '../operationBatch';
@@ -99,6 +100,7 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
   const [result, setResult] = useState(initialNormalized || null);
   const [state, setState] = useState('');
   const [error, setError] = useState('');
+  const [actionNotice, setActionNotice] = useState('');
   const [positions, setPositions] = useState([]);
   const [catalogState, setCatalogState] = useState('loading');
   const [comparison, setComparison] = useState(null);
@@ -150,7 +152,7 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
   const quickOptions = visibleProcesses.filter((item) => featuredCodes.includes(item.code) || item.active);
   const otherOptions = visibleProcesses.filter((item) => item.scope !== 'CONSTRAINT_ONLY' && !quickOptions.includes(item));
   const quickProcess = quickOptions.find((item) => item.active) || quickOptions[0];
-  const quickRole = draft.roles.find((item) => item.processIds.includes(quickProcess?.processId));
+  const quickRoles = draft.roles.filter((item) => item.processIds.includes(quickProcess?.processId));
   const roleCards = objectType === 'retail'
     ? visibleProcesses.flatMap((process) => process.roles.map((roleCode) => ({ process, roleCode,
       id: `${process.processId}:${roleCode}` })))
@@ -419,7 +421,7 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
     setProcessId(''); setPositionId(''); invalidateComparison();
   };
   const quickCard = (process) => <button type="button" key={process.processId} aria-pressed={process.active} onClick={() => selectQuickProcess(process)}>
-    <strong>{process.label}</strong><small>{process.scope === 'REFERENCE_ONLY' ? 'Можно описать; формулы парка пока нет' : 'Можно рассчитать парк при достаточных данных'}</small>
+    <strong>{process.label}</strong><small>{process.code === 'warehouse_picking' ? 'Отдельный сценарный расчёт парка, труда и экономики' : process.scope === 'REFERENCE_ONLY' ? 'Можно описать; формулы парка пока нет' : 'Можно рассчитать парк при достаточных данных'}</small>
   </button>;
 
   return (
@@ -453,7 +455,7 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
         </details>
       </header>
 
-      <div className="guided-intake" aria-label="Основные данные работы">
+      <div id="guided-intake" className="guided-intake" aria-label="Основные данные работы">
         <div className="guided-intake-top"><div><span className="simple-step-eyebrow">СНАЧАЛА ГЛАВНОЕ</span><h3>Одна работа — один предварительный расчёт</h3>
           <p>Выберите операцию и введите известные значения. Пустые расходы и условия не превращаются в ноль.</p></div>
           <span className="guided-intake-depth">{journeyMode === 'FULL' ? 'Полная оценка' : journeyMode === 'FAMILIAR' ? 'Ознакомиться' : 'Свой объект'}</span></div>
@@ -462,11 +464,27 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
         {quickProcess?.active && <>
           {ROLE_WORK_SCENARIOS[quickProcess.code] && <div className="rounded border border-amber-400 p-3 text-sm">
             <button type="button" className="secondary-action" onClick={() => {
-              setDraft((current) => applyScenarioRolesToDraft(current, quickProcess.code));
+              const before = draft.roles.filter((role) => role.processIds.includes(quickProcess.processId));
+              const next = applyScenarioRolesToDraft(draft, quickProcess.code);
+              const after = next.roles.filter((role) => role.processIds.includes(quickProcess.processId));
+              const filled = after.flatMap((role) => {
+                const prior = before.find((item) => item.roleCode === role.roleCode);
+                return ['headcount', 'salary'].filter((key) => !prior?.[key] && role[key]);
+              }).length;
+              const mismatch = after.filter((role) => ROLE_WORK_SCENARIOS[quickProcess.code]?.[role.roleCode]
+                && String(role.headcount) !== String(ROLE_WORK_SCENARIOS[quickProcess.code][role.roleCode].headcount));
+              setDraft(next);
+              console.info('ROBODOVOD_UI_ACTION', { action: 'APPLY_ROLE_SCENARIO',
+                status: next === draft ? 'UNAVAILABLE' : 'APPLIED',
+                reason_code: mismatch.length ? 'HEADCOUNT_MISMATCH' : 'OK', run_id: null });
+              setActionNotice(next === draft
+                ? 'Профиль для этой работы не найден; заполните роли вручную.'
+                : `Роли работы: ${after.map((role) => ROLE_LABELS[role.roleCode] || role.roleCode).join(', ')}. Добавлено ролей: ${after.length - before.length}; заполнено пустых полей: ${filled}. Уже введённые числа сохранены.${mismatch.length ? ` У ${mismatch.map((role) => ROLE_LABELS[role.roleCode] || role.roleCode).join(', ')} численность отличается от типового профиля; автоматическая подстановка экономики для этого профиля не сработает.` : ''}`);
               invalidateComparison();
             }}>Подставить сценарный штат и расходы ролей</button>
             <p>Заполняются только пустые поля. Это допущения для типового объекта, не кадровые данные вашей площадки. Объём, маршрут и другие параметры процесса проверьте отдельно.</p>
           </div>}
+          {actionNotice && <p className="rounded border border-blue-300 bg-blue-50 p-3 text-sm" role="status">{actionNotice}</p>}
           <div className="guided-field-grid">
             <NumberField id="intake-facility.totalArea" label="Площадь объекта, м²" value={draft.facility?.totalArea || ''} issue={fieldIssue('facility.totalArea')} onChange={(value) => setDraft((current) => updateFacility(current, { totalArea: value }))} />
             <NumberField id="intake-facility.activeArea" label="Рабочая площадь, м²" value={draft.facility?.activeArea || ''} issue={fieldIssue('facility.activeArea')} onChange={(value) => setDraft((current) => updateFacility(current, { activeArea: value }))} />
@@ -478,10 +496,11 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
               <NumberField id={`intake-${quickProcess.processId}.distance`} label="Плечо маршрута в одну сторону, м" value={quickProcess.distance} issue={fieldIssue(`${quickProcess.processId}.distance`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { distance: value }))} />
               <NumberField id={`intake-${quickProcess.processId}.batch`} label="Груза за один рейс, единиц" value={quickProcess.batch} issue={fieldIssue(`${quickProcess.processId}.batch`)} onChange={(value) => setDraft((current) => updateProcess(current, quickProcess.processId, { batch: value }))} />
             </>}
-            {quickRole && <>
-              <NumberField id={`intake-${quickRole.roleId}.headcount`} label={`${ROLE_LABELS[quickRole.roleCode] || quickRole.roleCode}: человек сейчас`} value={quickRole.headcount} issue={fieldIssue(`${quickRole.roleId}.headcount`)} onChange={(value) => setDraft((current) => updateRole(current, quickRole.roleId, { headcount: value, headcountSource: 'USER' }))} />
-              <NumberField id={`intake-${quickRole.roleId}.salary`} label="Полные расходы на человека, ₽/мес." value={quickRole.salary} issue={fieldIssue(`${quickRole.roleId}.salary`)} hint="Включая расходы работодателя; неизвестное оставьте пустым." onChange={(value) => setDraft((current) => updateRole(current, quickRole.roleId, { salary: value, salarySource: 'USER', salaryConfirmed: true }))} />
-            </>}
+            {quickRoles.map((role) => <div key={role.roleId} className="rounded border border-slate-300 p-3">
+              <strong className="block text-sm">{ROLE_LABELS[role.roleCode] || role.roleCode}</strong>
+              <NumberField id={`intake-${role.roleId}.headcount`} label="Человек сейчас" value={role.headcount} issue={fieldIssue(`${role.roleId}.headcount`)} onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { headcount: value, headcountSource: 'USER' }))} />
+              <NumberField id={`intake-${role.roleId}.salary`} label="Полные расходы на человека, ₽/мес." value={role.salary} issue={fieldIssue(`${role.roleId}.salary`)} hint="Включая расходы работодателя; неизвестное оставьте пустым." onChange={(value) => setDraft((current) => updateRole(current, role.roleId, { salary: value, salarySource: 'USER', salaryConfirmed: true }))} />
+            </div>)}
           </div>
           {['TRANSPORT_CYCLE', 'DELIVERY_CYCLE'].includes(quickProcess.scope) && <NumberField label="Погрузка и выгрузка за рейс, секунд" value={exchangeSeconds} onChange={(value) => { setExchangeSeconds(value); setDraft(current => updateProcess(current, quickProcess.processId, { exchangeSeconds: value })); invalidateComparison(); }} />}
           {quickProcess.scope === 'CLEANING_AREA' && <NumberField label="Уборок этой площади в сутки" value={cleaningFrequency} onChange={(value) => { setCleaningFrequency(value); setDraft(current => updateProcess(current, quickProcess.processId, { cleaningFrequency: value })); invalidateComparison(); }} />}
@@ -692,7 +711,7 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
           : selectedProcess?.scope === 'REFERENCE_ONLY' ? <div className="space-y-3 rounded-lg border border-amber-400 p-3 text-xs">
             <strong>{selectedZone.label} · {draft.processes.find((item) => item.processId === selectedProcess.process_id)?.label || selectedProcess.process_code}</strong>
             {selectedProcess.process_code === 'warehouse_picking' ? <>
-              <p>Комплектовка не равна перевозке паллет. Ни погрузчик, ни мойщик не получают экономию комплектовщика. Ниже — возможные технологии из активного каталога для изучения, без подтверждённого расчёта парка или закупочной рекомендации.</p>
+              <p>Выберите действие: рассчитать отбор отдельно ниже или добавить отдельный подвоз товара. Комплектовка не равна перевозке паллет. Проверочный расчёт отбора сохраняет парк, роли и экономику, но не подтверждает конкретную модель для закупки.</p>
               <button type="button" className="secondary-action" onClick={() => {
                 let next = addZone(draft, objectType);
                 const zoneId = next.zones.at(-1).zoneId;
@@ -701,8 +720,12 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
                 next = updateProcess(next, transport.processId, { active: true, activationSource: 'USER' });
                 next = setRoleActive(next, transport.processId, 'loader', true);
                 setDraft(next); setSelectedZoneId(zoneId); setProcessId(''); setPositionId(''); invalidateComparison();
+                console.info('ROBODOVOD_UI_ACTION', { action: 'ADD_PICKING_TRANSPORT_ZONE',
+                  status: 'ADDED_TO_DRAFT', reason_code: 'REQUIRES_NORMALIZATION', run_id: null });
+                setActionNotice('Добавлена зона «Подвоз для комплектации». Заполните объём перевозки в паллетах, маршрут, груз за рейс и расходы грузчика, затем нажмите «Проверить данные и перейти к роботу». Труд комплектовщиков считается отдельно.');
+                window.requestAnimationFrame(() => document.getElementById('guided-intake')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
               }}>Добавить отдельный подвоз товара</button>
-              <p>Для подвоза укажите перемещаемый объём, маршрут и груз за рейс в новой зоне. Экономия комплектовщика не переносится в перевозку: полный отбор останется без ROI до подтверждения производительности и остаточной ручной работы.</p>
+              <p>Для подвоза укажите перемещаемый объём, маршрут и груз за рейс в новой зоне. Экономия комплектовщика не переносится в перевозку. Для неё используйте отдельный расчёт отбора ниже.</p>
               {!activeProject && <p>Выберите проект, чтобы получить позиции активного каталога и проверить арифметику отбора.</p>}
               {pickingCatalogError && <p role="alert">{pickingCatalogError}</p>}
               {activeProject && !pickingCatalog && !pickingCatalogError && <p role="status">Ищем варианты комплектации в активном каталоге…</p>}
@@ -710,8 +733,13 @@ export default function ProcessRoleIntakeV2({ objectType, journeyMode = 'ADVANCE
                 <li key={candidate.position_id}>{candidate.name} · {({ ROBOT_ARM: 'роботизированный захват', ASRS_G2P: 'подача товара к человеку', PICK_ASSIST: 'помощь человеку', MOBILE_PICKER: 'мобильный робот-комплектовщик', OTHER_PICKING: 'другая технология комплектации' })[candidate.solution_family] || 'тип требует проверки'} · {candidate.maturity_status === 'RND' ? 'исследовательская разработка' : 'только сравнение'}; производительность отбора и пригодность на объекте требуют подтверждения.</li>)}</ul>
                 : <p>В активном каталоге нет позиции с подтверждённым профилем отбора. Нужны паспорт робота или измеренная производительность и проверка условий объекта.</p>)}
               {pickingRows.some((item) => item.solution_families) && <p>Классы решений: роботизированный захват, подача товара к человеку (G2P/AS-RS), подсказки комплектовщику (Voice/Light). Последние два сами не выполняют захват товара.</p>}
-              <PickingStudy key={selectedProcess.process_id} project={activeProject} process={selectedProcess} zone={selectedZone}
-                pickerHeadcount={draft.roles.find((role) => role.roleCode === 'picker' && role.processIds.includes(selectedProcess.process_id))?.headcount || ''} />
+              <PickingProjectCalculator key={`${activeProject?.id || 'no-project'}-${selectedProcess.process_id}`} project={activeProject} process={selectedProcess}
+                staffRoles={draft.roles.filter((role) => role.processIds.includes(selectedProcess.process_id))} />
+              <details className="rounded border p-2"><summary>Открыть прежнюю исследовательскую проверку отбора</summary>
+                <p>Эта проверка не сохраняется и не считает штат или NPV.</p>
+                <PickingStudy key={selectedProcess.process_id} project={activeProject} process={selectedProcess} zone={selectedZone}
+                  pickerHeadcount={draft.roles.find((role) => role.roleCode === 'picker' && role.processIds.includes(selectedProcess.process_id))?.headcount || ''} />
+              </details>
             </> : <p>Операция сохранена во вводе, но для неё нет проверенной формулы парка. Каталожное совпадение не означает расчёт пригодности.</p>}
           </div> : <>
           <label className="block text-xs">Процесс

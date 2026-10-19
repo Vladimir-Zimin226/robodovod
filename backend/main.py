@@ -957,6 +957,7 @@ def calculate_with_catalog(
 # Persistence resolves the snapshot before creating the run and reuses that
 # exact immutable value for calculation and version references.
 from persistence_api import create_persistence_router  # noqa: E402
+from picking_project_api import router as picking_project_router  # noqa: E402
 from evidence_export_api import create_evidence_export_router  # noqa: E402
 from brain_api import create_brain_router  # noqa: E402
 from warehouse_chain_api import create_warehouse_chain_router  # noqa: E402
@@ -984,6 +985,7 @@ app.include_router(
         require_economics_capacity_source=True,
     )
 )
+app.include_router(picking_project_router)
 app.include_router(create_simulation_router())
 app.include_router(create_solution_assistant_router(_discovery_snapshot))
 app.include_router(create_brain_router())

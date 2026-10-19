@@ -294,6 +294,12 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
       <div><span>02</span><strong>Покупка</strong><small>Роботы, доставка, внедрение и эксплуатация</small><b>{depthIndex(values.calculationDepth) >= 1 ? `${groupCount('Покупка').join('/')} входов` : 'Следующий уровень'}</b></div>
       <div><span>03</span><strong>Аренда</strong><small>Ежемесячный тариф и условия поставщика</small><b>{depthIndex(values.calculationDepth) >= 2 ? `${groupCount('RaaS').join('/')} входов` : 'Полный уровень'}</b></div>
     </div>
+    <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm" role="status">
+      <strong>Статьи внедрения для покупки:</strong> {IMPLEMENTATION_LINES.map(([category, label]) =>
+        `${label} — ${values.implementationLines[category]?.status === 'UNKNOWN' ? 'неизвестно' : 'указано как ' + values.implementationLines[category]?.status}`).join('; ')}.
+      <p>Для полного NPV покупки откройте уровень «Углублённый» и в блоке «Покупка» подтвердите каждую статью. Если расход действительно отсутствует, выберите «Подтверждённый ноль» и укажите причину. Пустое или неизвестное значение останется неполным.</p>
+      {depthIndex(values.calculationDepth) < 1 && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => ({ ...current, calculationDepth: 'ADVANCED' }))}>Открыть входы покупки</button>}
+    </div>
     <section className="rounded-xl border border-lime-400 bg-teal-950 p-4 text-white text-sm" aria-label="Черновые допущения типового объекта">
       <button type="button" disabled={busy} className="rounded-xl bg-lime-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50" onClick={() => {
         const proposed = applyRoleWorkScenario(applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
