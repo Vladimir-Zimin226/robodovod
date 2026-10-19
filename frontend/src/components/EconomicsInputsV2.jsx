@@ -66,7 +66,7 @@ const defaults = { calculationDepth: 'BASIC', evaluationDate: today(), primaryRo
   implementationMode: 'FIXED', implementationPercent: '', raasMode: 'FIXED', raasPercentMonthly: '',
   robotsPerControlPost: '', robotsPerDayTechnician: '', rotationFactor: '', technicianPresence: 'DAY_WORKLOAD', robotizableShare: '', residualOperations: '',
   controlMode: '', technicianPurchaseMode: '', technicianRaasMode: '', qualifiedTechTransfer: false,
-  sources: {}, assumptions: {}, userValues: {}, implementationLines: blankImplementationLines() };
+  sources: {}, assumptions: {}, userValues: {}, roleWorkProfiles: {}, implementationLines: blankImplementationLines() };
 function restored(capacityRunId, input, project) {
   const values = { ...defaults, calculationDepth: input?.calculation_depth || (input ? 'FULL' : 'BASIC'), capacityRunId, sources: { ...(input?.field_sources || {}) },
     assumptions: { ...(input?.assumption_evidence || {}) }, userValues: {} };
@@ -78,6 +78,9 @@ function restored(capacityRunId, input, project) {
   values.energyPowerBasis = input?.energy_power_basis || 'AVERAGE';
   values.chargerPowerKw = String(input?.charger_power_kw ?? '');
   values.chargingSimultaneityFraction = String(input?.charging_simultaneity_fraction ?? '');
+  values.roleWorkProfiles = Object.fromEntries((input?.role_work_profiles || []).map((profile) =>
+    [profile.role_id, { fraction: String(profile.robotizable_fraction), manual: String(profile.manual_units_per_shift ?? ''),
+      residual: profile.residual_operations, basis: profile.basis, source: profile.source }]));
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
     startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
@@ -150,6 +153,9 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   const scenario = project?.scenarios?.find((item) => item.slot === 'BASE');
   const issues = savedResult?.issues || [];
   const set = (key) => (event) => setValues((current) => ({ ...current, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value }));
+  const setRoleWork = (roleId, field) => (event) => setValues((current) => ({ ...current,
+    roleWorkProfiles: { ...current.roleWorkProfiles,
+      [roleId]: { ...current.roleWorkProfiles[roleId], [field]: event.target.value } } }));
   const setImplementationLine = (category, key, value) => setValues((current) => ({ ...current,
     implementationLines: { ...current.implementationLines,
       [category]: { ...current.implementationLines[category], [key]: value,
@@ -207,7 +213,25 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         }));
       else prepared.implementationLines = blankImplementationLines();
       const policyDate = today();
+      const primaryRoleId = prepared.primaryRoleId || (capacityRequest?.process?.role_refs?.length === 1
+        ? capacityRequest.process.role_refs[0] : null);
+      const roleWorkProfiles = prepared.robotizableShare !== '' && prepared.residualOperations && primaryRoleId
+        ? (capacityRequest?.process?.role_refs || []).map((roleId) => {
+          const secondary = prepared.roleWorkProfiles?.[roleId] || {};
+          const primary = roleId === primaryRoleId;
+          return {
+            role_id: roleId, robotizable_fraction: primary ? prepared.robotizableShare : (secondary.fraction ?? '0'),
+            manual_units_per_shift: primary ? (prepared.manualUnitsPerShift || null) : (secondary.manual || null),
+            residual_operations: primary ? prepared.residualOperations
+              : (secondary.residual || 'Работа этой роли сохраняется в сценарии; замещение роботом принято равным нулю.'),
+            source: primary ? 'ASSUMPTION' : (secondary.source || 'ASSUMPTION'),
+            basis: primary ? 'Проектное допущение пользователя о доле заменяемых задач; требуется замер на объекте.'
+              : (secondary.basis || 'Консервативное проектное допущение: без замера трудозатрат экономия роли равна нулю.'),
+            confirmed: true,
+          };
+        }) : null;
       const body = buildPartialEconomicsRunRequest({ values: { ...prepared, capacityRunId,
+        roleWorkProfiles,
         staffingPolicy: prepared.robotsPerControlPost && prepared.robotsPerDayTechnician && prepared.rotationFactor ? {
           schema_version: 'staffing-policy-v2', robots_per_control_post: prepared.robotsPerControlPost,
           robots_per_day_technician: prepared.robotsPerDayTechnician, rotation_factor: prepared.rotationFactor,
@@ -361,9 +385,22 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         {(values.technicianPurchaseMode === 'TRANSFER' || values.technicianRaasMode === 'TRANSFER') && <label className="flex gap-2"><input type="checkbox" checked={values.qualifiedTechTransfer} onChange={set('qualifiedTechTransfer')} />Подтверждаю квалификацию переводимого сотрудника для техподдержки</label>}
         <p>Зарплата или стоимость услуги запрашивается ниже только для непокрытой функции. Неизвестная стоимость даёт частичный результат; выбор и источник сохраняются в новом расчёте.</p>
       </div>}
-      {group === 'Труд' && roleRefs.length > 1 && <div className="block mt-3 rounded border border-amber-400 bg-amber-50 p-3 text-sm"><label>Чью работу заменяет эта операция?
+      {group === 'Труд' && roleRefs.length > 1 && <div className="block mt-3 rounded border border-amber-400 bg-amber-50 p-3 text-sm"><label>Основная роль операции
         <select id="economics-primary_role_id" value={values.primaryRoleId} onChange={(event) => setValues((current) => changeManualProductivityRole(current, event.target.value))} className="w-full border rounded p-2"><option value="">Не выбрано — труд и деньги останутся частичными</option>{roleRefs.map((id, index) => <option key={id} value={id}>{roleName(capacityRequest?.role_pool?.roles?.find((role) => role.role_id === id)?.role_code) || `Роль ${index + 1}`}</option>)}</select></label>
-        <small>Для выбранной роли рассчитываются возможное высвобождение и ФОТ-эффект. Другие роли этой операции сохраняются в объекте, но их экономия требует отдельной модели работы и пока не входит в итог. Для других операций создайте отдельные расчёты.</small></div>}
+        <small>Ниже задайте долю работы и ручную выработку каждой дополнительной роли. Нулевая доля — явное проектное допущение: эта роль остаётся в штате и экономия по ней равна нулю.</small>
+        {roleRefs.filter((id) => id !== selectedRoleId).map((id) => {
+          const role = capacityRequest?.role_pool?.roles?.find((item) => item.role_id === id);
+          const profile = values.roleWorkProfiles?.[id] || {};
+          return <div key={id} className="mt-3 rounded border border-amber-300 bg-white p-3 space-y-2">
+            <strong>{roleName(role?.role_code) || id}</strong>
+            <label className="block">Доля работы, заменяемой роботом (0–1)<input type="number" min="0" max="1" step="any" value={profile.fraction ?? '0'} onChange={setRoleWork(id, 'fraction')} className="block w-full border rounded p-2" /></label>
+            <label className="block">Ручная выработка этой роли, ед./смену<input type="number" min="0" step="any" value={profile.manual ?? ''} onChange={setRoleWork(id, 'manual')} className="block w-full border rounded p-2" /></label>
+            <small>Нужна, если доля больше нуля; берите замер или явно помечайте оценку.</small>
+            <label className="block">Какая работа остаётся<input value={profile.residual ?? 'Работа этой роли сохраняется в сценарии; замещение роботом принято равным нулю.'} onChange={setRoleWork(id, 'residual')} className="block w-full border rounded p-2" /></label>
+            <label className="block">Основание доли и выработки<input value={profile.basis ?? 'Консервативное проектное допущение: без замера трудозатрат экономия роли равна нулю.'} onChange={setRoleWork(id, 'basis')} className="block w-full border rounded p-2" /></label>
+            <label className="block">Тип данных<select value={profile.source || 'ASSUMPTION'} onChange={setRoleWork(id, 'source')} className="block w-full border rounded p-2"><option value="ASSUMPTION">Проектное допущение</option><option value="USER">Замер или данные объекта</option></select></label>
+          </div>;
+        })}</div>}
       {group === 'Труд' && <div className="mt-3 rounded border border-teal-300 p-3 text-sm" aria-label="Оценка ручной выработки">
         <strong>Выработка одного сотрудника {roleLabel} в процессе «{processLabel}»</strong>
         <p>Объём: {presentationValue('', process?.demand?.normalized_value, process?.demand?.unit)}; смен: {formatDecimal(process?.schedule?.shifts_per_day?.normalized_value) ?? 'неизвестно'}; показатель определяет потребность в персонале и экономию оплаты труда только выбранной роли.</p>

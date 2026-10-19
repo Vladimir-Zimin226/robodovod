@@ -138,6 +138,7 @@ export function buildPartialEconomicsRunRequest({ values, capacityRequest, proje
       ...fields, staffing_purchase: staffing(values.technicianPurchaseMode),
       staffing_raas: staffing(values.technicianRaasMode), field_sources, assumption_evidence,
       staffing_policy: values.staffingPolicy || null, work_share: values.workShare || null,
+      ...(values.roleWorkProfiles ? { role_work_profiles: values.roleWorkProfiles } : {}),
       ...(values.implementationLines ? { implementation_lines: values.implementationLines } : {}),
       implementation_mode: values.implementationMode || 'FIXED',
       implementation_percent: values.implementationMode === 'PERCENT' ? optional(values.implementationPercent) : null,

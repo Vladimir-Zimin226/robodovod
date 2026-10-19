@@ -6,6 +6,7 @@ import { formatFleet } from '../displayNumber';
 import { fieldPresentation, statusLabel, savedCalculationLabel } from '../presentation';
 import { depthLabel } from '../economicsDepth';
 import ImplementationCoverage from './ImplementationCoverage';
+import { roleLabel } from '../roleLabels';
 
 const BRANCHES = [
   ['capacity', 'Расчёт потребного парка'], ['labour', 'Расчёт труда'],
@@ -34,9 +35,16 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
         </article>;
       })}</div>
       <p className="mt-3">Проверка пригодности на объекте: {statusLabel(result.c05?.eligibility)} · Закупка не подтверждена. Рекомендация к закупке не сформирована.</p>
-      {result.labour && <div className="rounded border p-3 mt-3"><h3 className="font-semibold">Результат расчёта труда</h3>
+      {result.labour && <div className="rounded border p-3 mt-3"><h3 className="font-semibold">Результат расчёта труда · покупка, базовый сценарий</h3>
         <p>Высвобождение в выбранном процессе: {result.labour.total_released} чел. Новые диспетчеры: {result.labour.total_additional_control} чел.</p>
-        <p>Это изменение занятости выбранной роли; NPV и окупаемость появятся после ввода затрат покупки или аренды.</p></div>}
+        {result.labour.roles?.length > 0 && <ul>{result.labour.roles.map((role) => {
+          const profile = result.role_work_profiles?.find((item) => item.role_id === role.role_id);
+          return <li key={role.role_id}>{roleLabel(role.role_code)}: штат {role.headcount ?? '—'} чел.,
+            высвобождение {role.released} чел., осталось {role.remaining ?? '—'} чел.
+            {profile && <> · доля работы {Number(profile.robotizable_fraction) * 100}%
+              {profile.source === 'ASSUMPTION' ? ' (проектное допущение)' : ' (данные объекта)'}.</>}</li>;
+        })}</ul>}
+        <p>NPV и окупаемость появятся после ввода затрат покупки или аренды.</p></div>}
       {Object.entries(result.input_ranges || {}).length > 0 && <p className="mt-2">Сохранённые диапазоны (без расчёта денежного эффекта): {Object.entries(result.input_ranges).map(([field, range]) => `${economicsFieldLabel(field)}: ${range.min}–${range.max}`).join('; ')}.</p>}
     </section>
     {result.scenarios?.length > 0 && <section className="economics-inputs-v2 rounded-2xl border p-5">
@@ -45,6 +53,8 @@ export default function PartialEconomicsResult({ result, run, project, onComplet
         <strong>{scenario.acquisition === 'PURCHASE' ? 'Покупка' : 'Аренда'} · {scenario.uncertainty === 'BASE' ? 'базовый' : scenario.uncertainty === 'PESSIMISTIC' ? 'осторожный' : 'оптимистичный'}</strong>
         <p>{scenario.report_facts?.project_npv?.status === 'COMPLETE' ? 'NPV проекта C18' : 'NPV прямого процесса C16 (проектный не сохранён)'}: {scenario.report_facts?.project_npv?.status === 'COMPLETE' ? formatServerMoney(scenario.report_facts.project_npv.value) : scenario.financial?.npv_project?.status === 'COMPLETE' ? formatServerMoney(scenario.financial.npv_project.value) : 'не рассчитано'}</p>
         <p>Закупка: {statusLabel(scenario.procurement?.procurement_status)}</p>
+        {scenario.role_labour?.roles?.length > 0 && <ul>{scenario.role_labour.roles.map((role) =>
+          <li key={role.role_id}>{roleLabel(role.role_code)}: высвобождено {role.released} чел., осталось {role.remaining} чел.</li>)}</ul>}
       </article>)}</div>
     </section>}
     <SavedEconomicsEditor key={run?.id} project={project} run={run} autoOpen={autoOpenEditor || !result.scenarios?.length} onComplete={onComplete} />

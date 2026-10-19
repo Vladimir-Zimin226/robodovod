@@ -194,7 +194,8 @@
         "source": {
           "enum": [
             "USER",
-            "FILE"
+            "FILE",
+            "ASSUMPTION"
           ],
           "title": "Source",
           "type": "string"
@@ -528,6 +529,20 @@
         },
         "process": {
           "$ref": "#/$defs/NormalizedProcess"
+        },
+        "robotizable_fraction": {
+          "anyOf": [
+            {"type": "string", "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"},
+            {"type": "null"}
+          ],
+          "default": null
+        },
+        "work_provenance_ref": {
+          "anyOf": [
+            {"type": "string", "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$"},
+            {"type": "null"}
+          ],
+          "default": null
         },
         "role_id": {
           "anyOf": [

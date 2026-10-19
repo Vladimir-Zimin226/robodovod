@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+import jsonschema
 from pydantic import ValidationError
 
 from calculation.labour import LabourAnalysisRequestV1, LabourResultV1, calculate_role_labour
@@ -97,6 +98,41 @@ def request(*, object_kind: str = "WAREHOUSE", roles: list[RoleEntry] | None = N
             for item in roles if isinstance(item.monthly_gross_salary, KnownQuantity)
         ],
     })
+
+
+def test_two_roles_share_one_robot_fleet_and_keep_separate_work_assumptions():
+    value = process("process.receiving", "warehouse_receiving_shipping", "role.driver")
+    payload = value.model_dump(mode="json")
+    payload["role_refs"] = ["role.driver", "role.loader"]
+    value = NormalizedProcess.model_validate(payload)
+    driver = process_input(value, "role.driver", manual="100")
+    driver.update(robotizable_fraction="0.5", work_provenance_ref="assumption.driver")
+    loader = process_input(value, "role.loader", manual=None)
+    loader.update(robotizable_fraction="0", work_provenance_ref="assumption.loader")
+    source = request(roles=[
+        role("role.driver", "forklift_driver", 20, [value.process_id]),
+        role("role.loader", "loader", 8, [value.process_id]),
+        role("role.tech", "tech_support", 1, [], scope="SITE"),
+    ], processes=[driver, loader])
+    contract = json.loads((ROOT / "contracts/role-labour-analysis-v1.schema.json").read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator(contract).validate(source.model_dump(mode="json"))
+    result = calculate_role_labour(source)
+    by_role = {item.role_id: item for item in result.processes}
+    assert result.finance_status == "COMPLETE"
+    assert result.operating_staff.total_selected_fleet == 5
+    assert by_role["role.driver"].applied == 10
+    assert by_role["role.loader"].applied == 0
+    assert by_role["role.loader"].required_people == 8
+    assert len({item.node_id for item in result.trace}) == len(result.trace)
+    assert len(result.replay.capacity_result_digests) == 1
+
+    loader["manual_units_per_shift"] = {"value": "100", "unit": "pallet/shift",
+                                        "source": "ASSUMPTION", "provenance_ref": "assumption.loader.manual"}
+    loader["robotizable_fraction"] = "0.5"
+    with_loader = calculate_role_labour(request(roles=list(source.role_pool.roles), processes=[driver, loader]))
+    by_role = {item.role_id: item for item in with_loader.processes}
+    assert by_role["role.loader"].applied == 4
+    assert with_loader.operating_staff.total_selected_fleet == 5
 
 
 def test_warehouse_rotation_27_and_conservation_golden():

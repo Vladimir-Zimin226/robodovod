@@ -21,7 +21,7 @@ from calculation.labour import (
 from calculation.service import analyze_multiprocess_allocation, analyze_role_labour
 from calculation_contracts import KnownQuantity, RoleEntry, RolePool, semantic_digest
 from economics_orchestrator import (
-    EconomicsExplicitInputsV1, _manual_productivity, _primary_role,
+    EconomicsExplicitInputsV1, RoleWorkProfileV1, _role_labour_inputs,
     _role_pool, _scenario_artifacts,
 )
 from economics_partial import _parse
@@ -36,6 +36,9 @@ def _explicit(raw: dict[str, Any], saved_result: dict[str, Any]) -> Any:
                                         for item in saved_result.get("scenarios", []))):
         raise ValueError("project operation needs a calculated purchase branch")
     values, issues = _parse(raw)
+    if "role_work_profiles" in raw:
+        values["role_work_profiles"] = [RoleWorkProfileV1.model_validate(item)
+                                        for item in raw["role_work_profiles"]]
     if any(item['field'] in {'charger_power_kw', 'charging_simultaneity_fraction'} for item in issues) or (issues and not partial_purchase):
         raise ValueError("project economics input has invalid or unconfirmed fields")
     basis = saved_result.get("monetary_input_basis") or {}
@@ -117,13 +120,10 @@ def calculate_project_portfolio(
             coverage=response.capacity.value.coverage.value,
             capacity_result_digest=semantic_digest(response.capacity),
         )
-        primary_role_id = _primary_role(request, inputs)
-        if primary_role_id is not None:
-            primary_processes_by_role.setdefault(primary_role_id, set()).add(process.process_id)
-        processes.append(ProcessLabourInputV1(
-            process=process, capacity=projection, role_id=primary_role_id,
-            manual_units_per_shift=_manual_productivity(request, inputs),
-        ))
+        for labour_input in _role_labour_inputs(request, inputs, projection):
+            if labour_input.role_id is not None:
+                primary_processes_by_role.setdefault(labour_input.role_id, set()).add(process.process_id)
+            processes.append(labour_input)
         artifact = _scenario_artifacts(context, inputs, snapshot, "PURCHASE", "BASE")
         config = artifact.allocation_request.configurations[0]
         configurations.append(config)

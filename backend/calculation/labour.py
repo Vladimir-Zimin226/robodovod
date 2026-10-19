@@ -94,7 +94,7 @@ class CapacityLabourProjectionV1(StrictContractModel):
 class ManualProductivityInputV1(StrictContractModel):
     value: DecimalString
     unit: Annotated[str, Field(min_length=1, max_length=32)]
-    source: Literal["USER", "FILE"]
+    source: Literal["USER", "FILE", "ASSUMPTION"]
     provenance_ref: StableId
 
     @model_validator(mode="after")
@@ -109,6 +109,16 @@ class ProcessLabourInputV1(StrictContractModel):
     capacity: CapacityLabourProjectionV1
     role_id: StableId | None = None
     manual_units_per_shift: ManualProductivityInputV1 | None = None
+    robotizable_fraction: DecimalString | None = None
+    work_provenance_ref: StableId | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_role_work(self, handler):
+        payload = handler(self)
+        if self.robotizable_fraction is None:
+            payload.pop("robotizable_fraction", None)
+            payload.pop("work_provenance_ref", None)
+        return payload
 
     @model_validator(mode="after")
     def same_snapshot(self) -> "ProcessLabourInputV1":
@@ -118,6 +128,12 @@ class ProcessLabourInputV1(StrictContractModel):
             raise ValueError("capacity/process revision mismatch")
         if self.role_id is not None and self.role_id not in self.process.role_refs:
             raise ValueError("labour role must be an explicit C03 role_ref")
+        if self.robotizable_fraction is not None and not 0 <= _d(self.robotizable_fraction) <= 1:
+            raise ValueError("role robotizable fraction must be within 0..1")
+        if self.robotizable_fraction is not None and self.work_provenance_ref is None:
+            raise ValueError("role work fraction requires provenance")
+        if self.robotizable_fraction is not None and _d(self.robotizable_fraction) > 0 and self.manual_units_per_shift is None:
+            raise ValueError("positive role work fraction requires role-specific manual productivity")
         return self
 
 
@@ -231,13 +247,22 @@ class LabourAnalysisRequestV1(StrictContractModel):
             raise ValueError("role pool object mismatch")
         if not (Decimal("0") <= _d(self.replacement_limit) <= Decimal("1")):
             raise ValueError("replacement_limit must be within 0..1")
-        ids = [item.process.process_id for item in self.processes]
+        ids = [(item.process.process_id, item.role_id) for item in self.processes]
         if len(ids) != len(set(ids)):
-            raise ValueError("process labour inputs must be unique")
+            raise ValueError("process and role labour inputs must be unique")
         if any(item.process.input_revision != self.input_revision for item in self.processes):
             raise ValueError("all processes must use request input_revision")
         if any(item.process.object_kind != self.object_kind for item in self.processes):
             raise ValueError("all processes must use request object kind")
+        capacity_by_process: dict[str, CapacityLabourProjectionV1] = {}
+        snapshot_by_process: dict[str, NormalizedProcess] = {}
+        for item in self.processes:
+            previous = capacity_by_process.setdefault(item.process.process_id, item.capacity)
+            if previous != item.capacity:
+                raise ValueError("all roles of a process must share one capacity result")
+            previous_process = snapshot_by_process.setdefault(item.process.process_id, item.process)
+            if previous_process != item.process:
+                raise ValueError("all roles of a process must share one C03 process snapshot")
         role_ids = {item.role_id for item in self.role_pool.roles}
         for item in self.processes:
             if item.role_id is not None and item.role_id not in role_ids:
@@ -251,7 +276,7 @@ class LabourAnalysisRequestV1(StrictContractModel):
             raise ValueError("role-scoped inputs must be unique")
         if set(allocation_roles + deficit_roles + salary_roles) - role_ids:
             raise ValueError("role-scoped input references unknown role")
-        known_processes = set(ids)
+        known_processes = {process_id for process_id, _ in ids}
         if any(set(item.shares) - known_processes for item in self.allocations):
             raise ValueError("allocation references unknown process")
         salary_by_role = {item.role_id: item for item in self.salary_sources}
@@ -594,7 +619,7 @@ def calculate_role_labour(
     role_by_id = {role.role_id: role for role in request.role_pool.roles}
     explicit_allocations = {item.role_id: item for item in request.allocations}
     deficit_inputs = {item.role_id: item for item in request.deficit_costs}
-    process_work: dict[str, dict[str, object]] = {}
+    process_work: dict[tuple[str, str], dict[str, object]] = {}
     process_results: list[ProcessLabourResultV1] = []
     trace: list[LabourTraceNodeV1] = []
     issues: set[str] = set()
@@ -602,7 +627,11 @@ def calculate_role_labour(
     loss = _registry_value(registry, f"labor.nonproductive-loss.{str(request.object_kind).lower()}")
     vacation = _registry_value(registry, "labor.staffing.vacation-factor")
 
-    for item in sorted(request.processes, key=lambda row: row.process.process_id):
+    process_counts: dict[str, int] = {}
+    for item in request.processes:
+        process_counts[item.process.process_id] = process_counts.get(item.process.process_id, 0) + 1
+    multi_role_processes = {process_id for process_id, count in process_counts.items() if count > 1}
+    for item in sorted(request.processes, key=lambda row: (row.process.process_id, row.role_id or "")):
         process = item.process
         profile = catalog.by_code(process.process_code)
         if not process.active:
@@ -622,12 +651,16 @@ def calculate_role_labour(
             issues.add("capacity-projection-blocked")
             process_results.append(ProcessLabourResultV1(process_id=process.process_id, role_id=item.role_id, status="INCOMPLETE", reason_codes=["capacity-projection-blocked"]))
             continue
-        try:
-            manual, manual_unit, manual_provenance = _manual_shift_capacity(item, registry)
-        except ValueError:
-            issues.add("manual-productivity-required")
-            process_results.append(ProcessLabourResultV1(process_id=process.process_id, role_id=item.role_id, status="INCOMPLETE", reason_codes=["manual-productivity-required"]))
-            continue
+        zero_work = item.robotizable_fraction is not None and _d(item.robotizable_fraction) == 0
+        if zero_work:
+            manual, manual_unit, manual_provenance = Decimal("0"), "", [item.work_provenance_ref]
+        else:
+            try:
+                manual, manual_unit, manual_provenance = _manual_shift_capacity(item, registry)
+            except ValueError:
+                issues.add("manual-productivity-required")
+                process_results.append(ProcessLabourResultV1(process_id=process.process_id, role_id=item.role_id, status="INCOMPLETE", reason_codes=["manual-productivity-required"]))
+                continue
         schedule = process.schedule
         assert schedule is not None and isinstance(process.demand, KnownQuantity)
         shifts = int(_d(schedule.shifts_per_day.normalized_value))
@@ -635,63 +668,68 @@ def calculate_role_labour(
         days = _d(schedule.days_per_year.normalized_value)
         operating_hours = Decimal(shifts) * hours
         demand = _d(process.demand.normalized_value)
-        person_shifts = max(shifts, _ceil(demand / manual))
+        person_shifts = 0 if zero_work else max(shifts, _ceil(demand / manual))
         schedule_factor = Decimal("7") * days / Decimal("365") / (Decimal("40") / hours)
         rotation = max(Decimal("1"), schedule_factor * vacation) * (Decimal("1") + loss)
         required = _ceil(Decimal(person_shifts) * rotation)
         coverage = _d(item.capacity.coverage or "0")
-        process_work[process.process_id] = {
+        process_work[(process.process_id, item.role_id)] = {
             "item": item, "role_id": item.role_id, "shifts": shifts, "hours": hours,
             "person_shifts": person_shifts, "rotation": rotation, "required": required,
             "coverage": coverage, "manual": manual, "manual_unit": manual_unit,
+            "zero_work": zero_work,
         }
         process_results.append(ProcessLabourResultV1(
             process_id=process.process_id,
             role_id=item.role_id,
             status="INCOMPLETE",
         ))
-        trace.extend([
-            LabourTraceNodeV1(node_id=f"{process.process_id}.f08", formula_id="F08", source_refs=["R03", "POLICY_V1"], input_refs=["process.demand", "process.schedule", "process.route_distance"], output_name="manual_units_per_shift", output_value=_canonical(manual), unit=manual_unit, provenance_refs=manual_provenance),
-            LabourTraceNodeV1(node_id=f"{process.process_id}.f09", formula_id="F09", source_refs=["R03", "POLICY_V1"], input_refs=[f"{process.process_id}.f08", "process.schedule"], output_name="required_people", output_value=str(required), unit="person", rounding="CEIL", provenance_refs=["registry.labor.staffing.vacation-factor", f"registry.labor.nonproductive-loss.{str(request.object_kind).lower()}"]),
-        ])
+        trace_key = f"{process.process_id}.{item.role_id}" if process.process_id in multi_role_processes else process.process_id
+        if not zero_work:
+            trace.extend([
+                LabourTraceNodeV1(node_id=f"{trace_key}.f08", formula_id="F08", source_refs=["R03", "POLICY_V1"], input_refs=["process.demand", "process.schedule", "process.route_distance"], output_name="manual_units_per_shift", output_value=_canonical(manual), unit=manual_unit, provenance_refs=manual_provenance),
+                LabourTraceNodeV1(node_id=f"{trace_key}.f09", formula_id="F09", source_refs=["R03", "POLICY_V1"], input_refs=[f"{trace_key}.f08", "process.schedule"], output_name="required_people", output_value=str(required), unit="person", rounding="CEIL", provenance_refs=["registry.labor.staffing.vacation-factor", f"registry.labor.nonproductive-loss.{str(request.object_kind).lower()}"]),
+            ])
 
     allocations: list[AllocationResultV1] = []
-    allocation_by_process: dict[str, int] = {}
+    allocation_by_process: dict[tuple[str, str], int] = {}
     unallocated_by_role: dict[str, int] = {}
     for role_id, role in sorted(role_by_id.items()):
-        linked = sorted(process_id for process_id, work in process_work.items() if work["role_id"] == role_id)
+        linked = sorted(process_id for process_id, linked_role in process_work if linked_role == role_id)
         if not linked:
             continue
         headcount = _role_headcount(role)
         allocation, rows, unallocated = _allocate_role(
             role_id, headcount, linked,
-            {process_id: int(process_work[process_id]["person_shifts"]) for process_id in linked},
+            {process_id: int(process_work[(process_id, role_id)]["person_shifts"]) for process_id in linked},
             explicit_allocations.get(role_id),
         )
-        allocation_by_process.update(allocation)
+        allocation_by_process.update({(process_id, role_id): count for process_id, count in allocation.items()})
         allocations.extend(rows)
         unallocated_by_role[role_id] = unallocated
 
     replacement_limit = _d(request.replacement_limit)
     for result in process_results:
-        work = process_work.get(result.process_id)
+        work = process_work.get((result.process_id, result.role_id))
         if work is None:
             continue
-        allocated = allocation_by_process[result.process_id]
-        required = int(work["required"])
+        allocated = allocation_by_process[(result.process_id, result.role_id)]
+        required = allocated if work["zero_work"] else int(work["required"])
         coverage = work["coverage"]
         target = allocated if request.allow_surplus_replacement else min(required, allocated)
-        robot_people = _floor(Decimal(required) * coverage)
+        robot_people = 0 if work["zero_work"] else _floor(Decimal(required) * coverage)
         replaceable_capacity = _floor(Decimal(target) * coverage) if request.allow_surplus_replacement else robot_people
         replacement = min(replaceable_capacity, target)
         growth = min(max(0, robot_people - replacement), max(0, required - allocated))
         applied = _floor(Decimal(replacement) * replacement_limit)
-        if request.work_share is not None:
+        if work["item"].robotizable_fraction is not None:
+            applied = min(applied, _floor(Decimal(allocated) * coverage * _d(work["item"].robotizable_fraction)))
+        elif request.work_share is not None:
             applied = min(applied, _floor(Decimal(allocated) * coverage * _d(request.work_share.fraction)))
         result.status = "COMPLETE"
         result.operating_hours_per_day = _canonical(Decimal(int(work["shifts"])) * work["hours"])
-        result.manual_units_per_shift = _canonical(work["manual"])
-        result.manual_unit = str(work["manual_unit"])
+        result.manual_units_per_shift = None if work["zero_work"] else _canonical(work["manual"])
+        result.manual_unit = None if work["zero_work"] else str(work["manual_unit"])
         result.person_shifts = int(work["person_shifts"])
         result.rotation_factor = _canonical(work["rotation"])
         result.required_people = required
@@ -701,13 +739,18 @@ def calculate_role_labour(
         result.robot_replacement = replacement
         result.deficit_growth = growth
         result.applied = applied
+        if work["zero_work"]:
+            result.reason_codes.append("role-work-zero-assumption")
         result.transferred = 0
         result.released = applied
-        trace.append(LabourTraceNodeV1(node_id=f"{result.process_id}.f11", formula_id="F11", source_refs=["R03", "POLICY_V1", "POLICY_V2A"], input_refs=[f"{result.process_id}.f09", "capacity.coverage", "role.allocation"], output_name="robot_replacement", output_value=str(replacement), unit="person", rounding="FLOOR", provenance_refs=[work["item"].capacity.capacity_run_id]))
-        trace.append(LabourTraceNodeV1(node_id=f"{result.process_id}.f12", formula_id="F12", source_refs=["R03", "POLICY_V1"], input_refs=[f"{result.process_id}.f11", "replacement_limit"], output_name="applied", output_value=str(applied), unit="person", rounding="FLOOR", provenance_refs=["policy.k06.replacement-limit"]))
+        trace_key = f"{result.process_id}.{result.role_id}" if result.process_id in multi_role_processes else result.process_id
+        trace.append(LabourTraceNodeV1(node_id=f"{trace_key}.f11", formula_id="F11", source_refs=["R03", "POLICY_V1", "POLICY_V2A"], input_refs=["role.headcount", "role-work.fraction"] if work["zero_work"] else [f"{trace_key}.f09", "capacity.coverage", "role.allocation"], output_name="robot_replacement", output_value=str(replacement), unit="person", rounding="FLOOR", provenance_refs=[work["item"].work_provenance_ref] if work["zero_work"] else [work["item"].capacity.capacity_run_id]))
+        trace.append(LabourTraceNodeV1(node_id=f"{trace_key}.f12", formula_id="F12", source_refs=["R03", "POLICY_V1"], input_refs=[f"{trace_key}.f11", "replacement_limit"], output_name="applied", output_value=str(applied), unit="person", rounding="FLOOR", provenance_refs=[work["item"].work_provenance_ref] if work["item"].work_provenance_ref else ["policy.k06.replacement-limit"]))
 
     applied_total = sum(item.applied or 0 for item in process_results)
-    total_fleet = sum(item.capacity.selected_fleet or 0 for item in request.processes if item.capacity.capacity_status in ("COMPLETE", "WITH_ASSUMPTIONS"))
+    fleet_by_process = {item.process.process_id: item.capacity.selected_fleet or 0 for item in request.processes
+                        if item.capacity.capacity_status in ("COMPLETE", "WITH_ASSUMPTIONS")}
+    total_fleet = sum(fleet_by_process.values())
     simultaneous_shifts = max((int(work["shifts"]) for work in process_work.values()), default=0)
     supervision = _registry_value(registry, f"scenario.{request.uncertainty.lower()}.supervision-share")
     minimum_control = int(_registry_value(registry, "labor.control.minimum-per-shift"))
@@ -746,10 +789,12 @@ def calculate_role_labour(
                 raise ValueError("released qualified staff do not cover C14 technician requirement")
         technicians_billable = uncovered_tech if decision.technician_mode in {"HIRE", "CONTRACTOR"} else 0
     released_total = applied_total - control_transferred - technicians_transferred
-    transfer_distribution = _largest_remainder(control_transferred + technicians_transferred, {item.process_id: Decimal(item.applied or 0) for item in process_results if item.applied is not None})
+    transfer_distribution = _largest_remainder(control_transferred + technicians_transferred,
+        {(item.process_id, item.role_id): Decimal(item.applied or 0)
+         for item in process_results if item.applied is not None})
     for item in process_results:
         if item.applied is not None:
-            item.transferred = transfer_distribution.get(item.process_id, 0)
+            item.transferred = transfer_distribution.get((item.process_id, item.role_id), 0)
             item.released = item.applied - item.transferred
     trace.append(LabourTraceNodeV1(node_id="site.f13.control", formula_id="F13", source_refs=["R03", "POLICY_V1", "POLICY_V2A"], input_refs=["process.applied", "scenario.supervision-share", "schedule.simultaneous-shifts"], output_name="control_required", output_value=str(control_required), unit="person", rounding="FLOOR", provenance_refs=[f"registry.scenario.{request.uncertainty.lower()}.supervision-share", "registry.labor.control.minimum-per-shift"]))
 
@@ -877,7 +922,8 @@ def calculate_role_labour(
     )
     replay = LabourReplayV1(
         canonical_input_digest=_digest(request),
-        capacity_result_digests=[item.capacity.capacity_result_digest for item in sorted(request.processes, key=lambda row: row.process.process_id)],
+        capacity_result_digests=[item.capacity.capacity_result_digest for _, item in sorted(
+            {item.process.process_id: item for item in request.processes}.items())],
         trace_content_digest="sha256:" + "0" * 64,
     )
     result = LabourResultV1(

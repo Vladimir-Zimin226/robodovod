@@ -24,6 +24,7 @@ from economics_orchestrator import (
     UNCERTAINTIES,
     EconomicsExecutionContextV1,
     EconomicsExplicitInputsV1,
+    RoleWorkProfileV1,
     _allocation_projection,
     _financial_projection,
     _labour,
@@ -273,6 +274,17 @@ def execute_partial_economics_v2(
         raise ValueError("unsupported economics calculation depth")
     values, issues = _parse(raw)
     request = context.capacity_request
+    values["role_work_profiles"] = None
+    if "role_work_profiles" in raw:
+        try:
+            profiles = [RoleWorkProfileV1.model_validate(item) for item in raw["role_work_profiles"]]
+            role_ids = [item.role_id for item in profiles]
+            if len(role_ids) != len(set(role_ids)) or set(role_ids) != set(request.process.role_refs):
+                raise ValueError("Каждая роль процесса должна иметь ровно одну модель работы.")
+            values["role_work_profiles"] = profiles
+        except (TypeError, ValueError) as exc:
+            issues.append(_issue("role_work_profiles", "ROLE_WORK_INVALID", str(exc),
+                                 "Проверьте долю и ручную выработку каждой роли."))
     if raw.get("schema_version") in {INPUT_VERSION_V3, INPUT_VERSION_V4, INPUT_VERSION_V5, INPUT_VERSION_V6, INPUT_VERSION_V7} and request.process.process_code != "warehouse_receiving_shipping":
         for field, evidence in list(values["assumption_evidence"].items()):
             if evidence.get("template_id") == DEMO_SCENARIO["schema_version"]:
@@ -289,6 +301,13 @@ def execute_partial_economics_v2(
         issues.append(_issue("primary_role_id", "MISSING_INPUT", "Для процесса с несколькими ролями нужна основная роль.", "Выберите роль из C03."))
     elif len(role_refs) == 1 and values["primary_role_id"] is None:
         values["primary_role_id"] = role_refs[0]
+    if values["role_work_profiles"] is not None and values["primary_role_id"] in role_refs:
+        primary_profile = next(item for item in values["role_work_profiles"]
+                               if item.role_id == values["primary_role_id"])
+        if values.get("work_share") is not None and Decimal(primary_profile.robotizable_fraction) != Decimal(values["work_share"].fraction):
+            issues.append(_issue("role_work_profiles", "ROLE_WORK_MISMATCH",
+                                 "Доля основной роли отличается от общей доли работы.",
+                                 "Укажите одинаковую долю в обоих полях."))
     if request.process.scope != "CLEANING_AREA" and values["manual_units_per_shift"] is None:
         issues.append(_issue("manual_units_per_shift", "MISSING_INPUT", "Неизвестна ручная производительность.", "Укажите единиц за смену или оставьте экономику без расчёта."))
     if values["raas_contract_months"] is not None and values["horizon_years"] is not None and values["raas_contract_months"] < values["horizon_years"] * 12:
@@ -375,6 +394,9 @@ def execute_partial_economics_v2(
         labour_missing.append("primary_role_id")
     if values["primary_role_id"] is not None and values["primary_role_id"] not in role_refs:
         labour_missing.append("primary_role_id")
+    if "role_work_profiles" in raw and (values["role_work_profiles"] is None or
+            any(item["field"] == "role_work_profiles" for item in issues)):
+        labour_missing.append("role_work_profiles")
     purchase_missing = labour_missing + _missing(values, PURCHASE_FIELDS)
     if raw.get('schema_version') in {INPUT_VERSION_V6, INPUT_VERSION_V7}:
         labour_missing += _missing(values, ('staffing_policy', 'work_share'))
@@ -463,6 +485,8 @@ def execute_partial_economics_v2(
                 "roles": [{"role_id": role.role_id, "released": role.released,
                            "annual_direct": role.money.annual_direct if role.money else None}
                           for role in labour.roles],
+                "processes": [item.model_dump(mode="json") for item in labour.processes]
+                if values["role_work_profiles"] is not None else [],
             }
             if raw.get('schema_version') in {INPUT_VERSION_V6, INPUT_VERSION_V7}:
                 labour_projection['roles'] = [role.model_dump(mode='json') for role in labour.roles]
@@ -487,6 +511,11 @@ def execute_partial_economics_v2(
                         "procurement": _procurement_projection(artifact.procurement),
                         "financial": _financial_projection(artifact.financial),
                         "allocation": _allocation_projection(artifact.allocation),
+                        **({"role_labour": {
+                            "total_released": artifact.labour.total_released,
+                            "roles": [role.model_dump(mode="json") for role in artifact.labour.roles],
+                            "processes": [process.model_dump(mode="json") for process in artifact.labour.processes],
+                        }} if values["role_work_profiles"] is not None else {}),
                         "recommendation": {"status": "NOT_CALCULATED", "reason_code": "C05_AND_PROCUREMENT_UNVERIFIED"},
                     })
             except ValueError as exc:
@@ -510,6 +539,10 @@ def execute_partial_economics_v2(
         if full_engine is None:
             full_engine = execute_economics_v2
         executed = full_engine(full, snapshot, context)
+        if values["role_work_profiles"] is not None:
+            executed.result_snapshot["role_work_profiles"] = [item.model_dump(mode="json")
+                                                             for item in values["role_work_profiles"]]
+            executed.result_snapshot["role_labour"] = labour_projection
         if raw.get('schema_version') in {INPUT_VERSION_V6, INPUT_VERSION_V7}:
             result = executed.result_snapshot
             result['monetary_input_basis'] = {
@@ -572,6 +605,8 @@ def execute_partial_economics_v2(
         "input_provenance": values["field_sources"], "input_ranges": values["input_ranges"],
         "limitations": ["Частичный расчёт: отсутствующие показатели не заменены нулём.", "Сценарные допущения пользователя не являются подтверждением поставщика.", "C05 и закупочная готовность требуют отдельной проверки."],
     }
+    if values["role_work_profiles"] is not None:
+        result["role_work_profiles"] = [item.model_dump(mode="json") for item in values["role_work_profiles"]]
     if raw.get("schema_version") == INPUT_VERSION_V7:
         result["implementation_coverage"] = {
             "lines": values["implementation_lines"],

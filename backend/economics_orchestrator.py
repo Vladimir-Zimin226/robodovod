@@ -124,6 +124,29 @@ ACQUISITIONS = ("PURCHASE", "RAAS")
 from calculation.operating_policy import StaffingPolicyV2, WorkShareV1
 
 
+class RoleWorkProfileV1(StrictContractModel):
+    """Explicit, auditable work assumption for one C03 role in this process."""
+
+    role_id: StableId
+    robotizable_fraction: DecimalString
+    manual_units_per_shift: DecimalString | None = None
+    residual_operations: Annotated[str, Field(min_length=3, max_length=1000)]
+    source: Literal["USER", "ASSUMPTION"]
+    basis: Annotated[str, Field(min_length=3, max_length=1000)]
+    confirmed: bool
+
+    @model_validator(mode="after")
+    def valid_profile(self) -> "RoleWorkProfileV1":
+        fraction = Decimal(self.robotizable_fraction)
+        if not 0 <= fraction <= 1:
+            raise ValueError("role work fraction must be within 0..1")
+        if fraction > 0 and (self.manual_units_per_shift is None or Decimal(self.manual_units_per_shift) <= 0):
+            raise ValueError("robotizable role needs its own positive manual productivity")
+        if not self.confirmed:
+            raise ValueError("role work assumption must be confirmed")
+        return self
+
+
 class EconomicsExplicitInputsV1(StrictContractModel):
     """Inputs that cannot be inferred safely from C11 or the catalog."""
 
@@ -146,6 +169,7 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     staffing_raas: StaffingDecisionV1 | None = None
     staffing_policy: StaffingPolicyV2 | None = None
     work_share: WorkShareV1 | None = None
+    role_work_profiles: list[RoleWorkProfileV1] | None = None
     organizer_price_currency_rub_confirmed: bool
     purchase_price_override_gross: DecimalString | None = None
     purchase_price_source: Annotated[str, Field(min_length=3, max_length=240)] | None = None
@@ -170,7 +194,7 @@ class EconomicsExplicitInputsV1(StrictContractModel):
     @model_serializer(mode="wrap")
     def serialize_optional_staffing(self, handler):
         payload = handler(self)
-        for field in ("staffing_purchase", "staffing_raas", "staffing_policy", "work_share"):
+        for field in ("staffing_purchase", "staffing_raas", "staffing_policy", "work_share", "role_work_profiles"):
             if getattr(self, field) is None:
                 payload.pop(field, None)
         return payload
@@ -415,6 +439,39 @@ def _manual_productivity(
     )
 
 
+def _role_labour_inputs(
+    request: CapacityAnalysisRequest,
+    inputs: EconomicsExplicitInputsV1,
+    projection: CapacityLabourProjectionV1,
+) -> list[ProcessLabourInputV1]:
+    profiles = getattr(inputs, "role_work_profiles", None)
+    if profiles is None:
+        return [ProcessLabourInputV1(
+            process=request.process, capacity=projection,
+            role_id=_primary_role(request, inputs),
+            manual_units_per_shift=_manual_productivity(request, inputs),
+        )]
+    refs = set(request.process.role_refs)
+    by_role = {profile.role_id: profile for profile in profiles}
+    if len(by_role) != len(profiles) or set(by_role) != refs:
+        raise ValueError("role work profiles must cover each C03 role exactly once")
+    primary = _primary_role(request, inputs)
+    if primary is not None and (inputs.work_share is None or
+            Decimal(by_role[primary].robotizable_fraction) != Decimal(inputs.work_share.fraction)):
+        raise ValueError("primary role fraction must match the confirmed work share")
+    unit = f"{str(request.process.quantity_kind).lower()}/shift"
+    return [ProcessLabourInputV1(
+        process=request.process, capacity=projection, role_id=role_id,
+        robotizable_fraction=profile.robotizable_fraction,
+        work_provenance_ref=f"input.economics.role-work.{role_id}",
+        manual_units_per_shift=(ManualProductivityInputV1(
+            value=profile.manual_units_per_shift, unit=unit,
+            source=profile.source,
+            provenance_ref=f"input.economics.role-productivity.{role_id}",
+        ) if profile.manual_units_per_shift is not None else None),
+    ) for role_id, profile in sorted(by_role.items())]
+
+
 def _labour(
     context: EconomicsExecutionContextV1,
     inputs: EconomicsExplicitInputsV1,
@@ -449,14 +506,7 @@ def _labour(
         object_kind=request.process.object_kind,
         uncertainty=uncertainty,
         role_pool=pool,
-        processes=[
-            ProcessLabourInputV1(
-                process=request.process,
-                capacity=projection,
-                role_id=_primary_role(request, inputs),
-                manual_units_per_shift=_manual_productivity(request, inputs),
-            )
-        ],
+        processes=_role_labour_inputs(request, inputs, projection),
         salary_sources=[
             SalarySourceBindingV1(
                 role_id=item.role_id,
@@ -1403,6 +1453,11 @@ def _bundle(
                     },
                 ],
                 "source_refs": ["R03:F23-F32", item.financial.run_id],
+                **({"role_labour": {
+                    "total_released": item.labour.total_released,
+                    "roles": [role.model_dump(mode="json") for role in item.labour.roles],
+                    "processes": [process.model_dump(mode="json") for process in item.labour.processes],
+                }} if inputs.role_work_profiles is not None else {}),
             }
         )
     return {

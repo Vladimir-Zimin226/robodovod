@@ -25,6 +25,7 @@ export default function CommercialScenariosV2({ bundle, projectName, project, ru
 
   const edit = (field, value) => setSession((current) => applyCommercialInputEdit(current, field, value));
   const scenario = session.result?.scenarios.find((item) => item.key === scenarioKey) || null;
+  const scenarioLabour = bundle.scenarios?.find((item) => `${item.acquisition}:${item.uncertainty}` === scenarioKey)?.role_labour;
   const finalComparison = bundle.comparison || null;
 
   return (
@@ -44,6 +45,18 @@ export default function CommercialScenariosV2({ bundle, projectName, project, ru
       </header>
       <ProjectWhatIf project={project} run={run} onComplete={onComplete} onCreateVersion={onRecalculate} onPhysical={onRecalculate} />
       <ImplementationCoverage coverage={bundle.implementation_coverage} />
+      {!session.stale && (scenarioLabour || bundle.role_labour)?.roles?.length > 0 && <section className="commercial-inputs" aria-label="Трудовой эффект по ролям">
+        <h2>Трудовой эффект по ролям · {scenario?.label || scenarioKey}</h2>
+        <p>Доли и выработка сохранены как отдельные входы. Проектные допущения требуют проверки замером на объекте.</p>
+        <ul>{(scenarioLabour || bundle.role_labour).roles.map((role) => {
+          const profile = bundle.role_work_profiles?.find((item) => item.role_id === role.role_id);
+          return <li key={role.role_id}><strong>{roleLabel(role.role_code)}</strong>: штат {role.headcount} чел.,
+            высвобождение {role.released} чел., осталось {role.remaining} чел.;
+            доля заменяемой работы {profile ? formatPercent(profile.robotizable_fraction) : 'не указана'}
+            {profile?.source === 'ASSUMPTION' ? ' · проектное допущение' : ' · данные объекта'}.
+            {profile?.basis && <small> Основание: {profile.basis}</small>}</li>;
+        })}</ul>
+      </section>}
 
       <section className="commercial-inputs" aria-label="Коммерческие исходные данные">
         <div className="commercial-section-title"><div><span>01</span><h2>Исходные данные</h2></div><p>После изменения полей сохранённый результат нужно пересчитать.</p></div>

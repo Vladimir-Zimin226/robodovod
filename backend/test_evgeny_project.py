@@ -1,8 +1,16 @@
 from copy import deepcopy
 from decimal import Decimal
+import json
+from pathlib import Path
+import jsonschema
 import pytest
 from calculation.operating_policy import StaffingPolicyV2
 from calculation_contracts import OperatingAvailabilityV1
+from calculation_contracts import CapacityAnalysisRequest
+from calculation.service import analyze_capacity
+from economics_orchestrator import EconomicsExecutionContextV1
+from project_portfolio import calculate_project_portfolio
+from economics_final import execute_economics_v5
 from economics_partial import INPUT_VERSION_V6, execute_partial_economics_v2
 from test_economics_partial import _context, _staffing_input
 
@@ -22,6 +30,76 @@ def project_input():
                 'date':'2026-09-28','confirmed':True},
             'staffing_purchase':{'control_mode':'HIRE','technician_mode':'HIRE'},
             'staffing_raas':{'control_mode':'HIRE','technician_mode':'VENDOR'}}
+
+
+def test_multirole_economics_keeps_conservative_loader_assumption_visible():
+    snapshot, original = _context()
+    source = original.capacity_request.model_dump(mode='json')
+    source['process']['role_refs'].append('role.loader')
+    loader = deepcopy(source['role_pool']['roles'][0])
+    loader['role_id'] = 'role.loader'
+    loader['role_code'] = 'loader'
+    loader['headcount']['raw_value'] = loader['headcount']['normalized_value'] = '8'
+    loader['monthly_gross_salary']['raw_value'] = loader['monthly_gross_salary']['normalized_value'] = '70000'
+    source['role_pool']['roles'].append(loader)
+    capacity_request = CapacityAnalysisRequest.model_validate(source)
+    capacity = analyze_capacity(capacity_request, snapshot, 'run.capacity.multirole')
+    context = EconomicsExecutionContextV1(
+        run_id='run.economics.multirole', project_id=original.project_id,
+        tenant_id=original.tenant_id, capacity_request=capacity_request,
+        capacity_response=capacity.response,
+        constraint_report=capacity.constraints.model_dump(mode='json'),
+        executability=capacity.executability.model_dump(mode='json'))
+    raw = project_input()
+    raw['role_work_profiles'] = [
+        {'role_id': 'role.driver', 'robotizable_fraction': '0.5',
+         'manual_units_per_shift': '100', 'residual_operations': 'Manual inspection remains',
+         'source': 'ASSUMPTION', 'basis': 'Test scenario; site measurement needed', 'confirmed': True},
+        {'role_id': 'role.loader', 'robotizable_fraction': '0',
+         'manual_units_per_shift': None, 'residual_operations': 'Loading remains manual',
+         'source': 'ASSUMPTION', 'basis': 'Conservative zero savings without time study', 'confirmed': True},
+    ]
+    result = execute_partial_economics_v2(raw, snapshot, context, full_engine=execute_economics_v5).result_snapshot
+    assert result['scenarios']
+    contract = json.loads((Path(__file__).resolve().parents[1] /
+                           'contracts/commercial-scenarios-bundle-v3.schema.json').read_text(encoding='utf-8'))
+    jsonschema.Draft202012Validator(contract).validate(result)
+    assert {item['role_id'] for item in result['role_labour']['roles']} == {'role.driver', 'role.loader'}
+    loader_result = next(item for item in result['role_labour']['roles'] if item['role_id'] == 'role.loader')
+    assert loader_result['released'] == 0
+    assert loader_result['remaining'] == 8
+    assert result['role_work_profiles'][1]['source'] == 'ASSUMPTION'
+    portfolio = calculate_project_portfolio(
+        [(context, raw, result)], snapshot, project_id=context.project_id,
+        tenant_id=context.tenant_id, run_id='run.project.multirole')
+    effects = {item['role_id']: item for item in portfolio['role_effects']}
+    assert portfolio['status'] == 'CALCULATED'
+    assert effects['role.loader']['status'] == 'CALCULATED'
+    assert effects['role.loader']['released'] == 0
+    measured = deepcopy(raw)
+    measured['role_work_profiles'][1].update({
+        'robotizable_fraction': '0.5', 'manual_units_per_shift': '100',
+        'residual_operations': 'Inspection remains manual',
+        'basis': 'Illustrative role-specific productivity and task share'})
+    changed = execute_partial_economics_v2(measured, snapshot, context, full_engine=execute_economics_v5).result_snapshot
+    changed_loader = next(item for item in changed['role_labour']['roles']
+                          if item['role_id'] == 'role.loader')
+    assert changed_loader['released'] > 0
+    assert changed['role_labour']['total_released'] > result['role_labour']['total_released']
+    ledger = deepcopy(raw)
+    ledger.update(schema_version='economics-explicit-inputs-v7',
+                  implementation_cost_total_gross='0', implementation_lines={
+                      'DELIVERY': {'status': 'USER_ESTIMATE', 'amount': '150000', 'source_ref': 'Estimate 17.10.2026'},
+                      'COMMISSIONING': {'status': 'EXPLICIT_ZERO', 'amount': '0', 'explanation': 'Existing staff'},
+                      'INTEGRATION': {'status': 'POLICY_ASSUMPTION', 'amount': '220000',
+                                      'source_ref': 'Project assumption', 'explanation': 'Confirm with IT'},
+                  })
+    ledger_result = execute_partial_economics_v2(ledger, snapshot, context,
+                                                  full_engine=execute_economics_v5).result_snapshot
+    assert ledger_result['schema_version'] == 'commercial-scenarios-bundle-v3'
+    current_contract = json.loads((Path(__file__).resolve().parents[1] /
+                                   'contracts/commercial-scenarios-bundle-v3.schema.json').read_text(encoding='utf-8'))
+    jsonschema.Draft202012Validator(current_contract).validate(ledger_result)
 
 @pytest.mark.parametrize('fleet',[0,1,10,20,21])
 @pytest.mark.parametrize('shifts',[1,2,3])

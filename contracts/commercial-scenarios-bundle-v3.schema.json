@@ -74,6 +74,59 @@
     },
     "comparison": {
       "$ref": "#/$defs/finalComparison"
+    },
+    "monetary_input_basis": {
+      "type": "object"
+    },
+    "implementation_coverage": {
+      "type": "object"
+    },
+    "staffing_preview": {
+      "type": "object"
+    },
+    "work_share": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "staffing_policy": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "role_work_profiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/roleWorkProfile"
+      }
+    },
+    "role_labour": {
+      "type": "object",
+      "required": [
+        "total_released",
+        "roles",
+        "processes"
+      ],
+      "properties": {
+        "total_released": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "processes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -686,6 +739,12 @@
           "items": {
             "$ref": "#/$defs/reportCashflow"
           }
+        },
+        "project_simple_payback": {
+          "type": "object"
+        },
+        "project_discounted_payback": {
+          "type": "object"
         }
       }
     },
@@ -755,6 +814,17 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "staffing": {
+          "type": "object"
+        },
+        "role_labour": {
+          "type": "object",
+          "required": [
+            "total_released",
+            "roles",
+            "processes"
+          ]
         }
       }
     },
@@ -1088,6 +1158,51 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "roleWorkProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role_id",
+        "robotizable_fraction",
+        "residual_operations",
+        "source",
+        "basis",
+        "confirmed"
+      ],
+      "properties": {
+        "role_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "robotizable_fraction": {
+          "type": "string",
+          "pattern": "^(?:0(?:\\.[0-9]+)?|1(?:\\.0+)?)$"
+        },
+        "manual_units_per_shift": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "residual_operations": {
+          "type": "string",
+          "minLength": 3
+        },
+        "source": {
+          "enum": [
+            "USER",
+            "ASSUMPTION"
+          ]
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 3
+        },
+        "confirmed": {
+          "const": true
         }
       }
     }

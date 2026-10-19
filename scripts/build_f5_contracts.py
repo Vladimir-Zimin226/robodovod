@@ -61,6 +61,41 @@ def expected_outputs() -> dict[Path, bytes]:
             "limitations": {"type": "array", "items": {"type": "string"}},
         },
     }
+    # Additive fields of newer saved economic runs. Historical v3 snapshots
+    # remain valid because none of these properties is required.
+    old["properties"].update({
+        "monetary_input_basis": {"type": "object"},
+        "implementation_coverage": {"type": "object"},
+        "staffing_preview": {"type": "object"},
+        "work_share": {"type": ["object", "null"]},
+        "staffing_policy": {"type": ["object", "null"]},
+        "role_work_profiles": {"type": "array", "items": {"$ref": "#/$defs/roleWorkProfile"}},
+        "role_labour": {"type": "object", "required": ["total_released", "roles", "processes"],
+                        "properties": {"total_released": {"type": "integer", "minimum": 0},
+                                       "roles": {"type": "array", "items": {"type": "object"}},
+                                       "processes": {"type": "array", "items": {"type": "object"}}}},
+    })
+    old["$defs"]["roleWorkProfile"] = {
+        "type": "object", "additionalProperties": False,
+        "required": ["role_id", "robotizable_fraction", "residual_operations", "source", "basis", "confirmed"],
+        "properties": {
+            "role_id": {"type": "string", "minLength": 1},
+            "robotizable_fraction": {"type": "string", "pattern": r"^(?:0(?:\.[0-9]+)?|1(?:\.0+)?)$"},
+            "manual_units_per_shift": {"type": ["string", "null"]},
+            "residual_operations": {"type": "string", "minLength": 3},
+            "source": {"enum": ["USER", "ASSUMPTION"]},
+            "basis": {"type": "string", "minLength": 3},
+            "confirmed": {"const": True},
+        },
+    }
+    old["$defs"]["scenario"]["properties"].update({
+        "staffing": {"type": "object"},
+        "role_labour": {"type": "object", "required": ["total_released", "roles", "processes"]},
+    })
+    old["$defs"]["reportFacts"]["properties"].update({
+        "project_simple_payback": {"type": "object"},
+        "project_discounted_payback": {"type": "object"},
+    })
     manifest = EvidenceExportManifestV4.model_json_schema()
     manifest["$id"] = "https://robomera.local/contracts/calculation-evidence-export-manifest-v4.schema.json"
     return {
