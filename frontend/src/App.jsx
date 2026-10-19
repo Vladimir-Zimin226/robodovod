@@ -410,6 +410,8 @@ export default function App() {
               setIntakeInitialSources(null);
               setIntakePrompt('');
               setObjectType(t);
+              setResult(null);
+              setActiveRun(null);
               setAssistantImport(null);
               const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
               setPreset(savedInput?.object_type === t ? savedInput : null);
@@ -464,6 +466,10 @@ export default function App() {
               }) : project);
             }}
             onOpenObjects={() => showPhase('onboarding')}
+            roleReport={['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? result : null}
+            onRolePreview={(response) => { setResult(response); setActiveRun(null); setUserInput(null); setSaveState('preview'); }}
+            onRoleInvalidated={() => { if (['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)) setResult(null); }}
+            onRoleContinue={() => showPhase('robots')}
             onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; setIntakeSnapshots((current) => ({ ...current, [intakeDraftKey]: snapshot })); const p = snapshot.response?.normalized_processes?.find((p) => p.active); setCatalogContext(p ? { process_code: p.process_code, constraints: p.item_mass?.status === 'KNOWN' ? { max_payload_kg: p.item_mass.normalized_value } : {} } : null); }}
             onCapacityResult={(response, request, evidence) => {
               const previous = lastCapacity.current;
@@ -487,13 +493,12 @@ export default function App() {
               setActiveRun(null);
               setUserInput(null);
               setSaveState('saved');
-              showPhase('results');
             }}
           />
         ) : phase === 'robots' ? (
-          result?.schema_version === 'object-role-analysis-v2' ? <><ObjectRoleResult report={result} onEdit={() => openCalculation()} />
+          ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('money')}>К экономике объекта</button></div></>
-          : result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
+          : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('money')}>К экономике склада</button></div></>
           : <main className="journey-panel" aria-label="Какие роботы могут подойти?">
             <p className="eyebrow">Шаг 3 из 5</p><h1>Какие роботы могут подойти?</h1>
@@ -505,9 +510,9 @@ export default function App() {
               <button type="button" className="primary-action" onClick={() => showPhase('money')}>Продолжить к стоимости</button></div>
           </main>
         ) : phase === 'money' ? (
-          result?.schema_version === 'object-role-analysis-v2' ? <><ObjectRoleResult report={result} onEdit={() => openCalculation()} />
+          ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
-          : result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
+          : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
           : <main className="journey-panel" aria-label="Сколько это будет стоить?">
             <p className="eyebrow">Шаг 4 из 5</p><h1>Сколько это будет стоить?</h1>
@@ -568,9 +573,9 @@ export default function App() {
         ) : phase === 'adminCatalog' ? (
           user?.role === 'ADMIN' ? <AdminCatalogScreen user={user} />
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
-        ) : result?.schema_version === 'object-role-analysis-v2' ? (
+        ) : ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? (
           <ObjectRoleResult report={result} onEdit={() => openCalculation()} />
-        ) : result?.schema_version === 'warehouse-role-analysis-v1' ? (
+        ) : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? (
           <WarehouseRoleResult report={result} onEdit={() => openCalculation()} />
         ) : (
           <>

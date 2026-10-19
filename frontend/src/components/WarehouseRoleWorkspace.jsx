@@ -18,7 +18,6 @@ const ASSUMPTION_FIELDS = [
   ['robot_availability', 'Доступность робота, 0–1'],
   ['fleet_reserve_share', 'Резерв парка, 0–1'],
   ['realizable_labor_share', 'Какая часть высвобождённого времени реально уменьшит расходы на персонал? 0–1'],
-  ['raas_monthly_rub', 'Сценарный тариф аренды одного робота, ₽/мес.'],
   ['raas_setup_rub', 'Вложения заказчика при аренде на одного робота, ₽'],
   ['raas_customer_annual_rub', 'Дополнительные расходы заказчика при аренде, ₽/год на робота'],
   ['integration_share', 'Внедрение от цены парка, 0–2'],
@@ -61,7 +60,7 @@ function Field({ label, value, onChange, hint, min = '0', max, step = 'any' }) {
 }
 
 export default function WarehouseRoleWorkspace({ activeProject, user, authChecked, projectChoices = [], projectStatus,
-  onChooseProject, onOpenProjects, onOpenAccount, onSaved }) {
+  onChooseProject, onOpenProjects, onOpenAccount, onSaved, onPreview, onInvalidated, onContinue, initialReport }) {
   const [draft, setDraft] = useState(null);
   const [report, setReport] = useState(null);
   const [version, setVersion] = useState(0);
@@ -70,9 +69,14 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [dirty, setDirty] = useState(false);
+  const [unsavedPreview, setUnsavedPreview] = useState(false);
   const [expandedRoles, setExpandedRoles] = useState({});
   const sequence = useRef(0);
+  const initialReportRef = useRef(initialReport);
+  const onPreviewRef = useRef(onPreview);
+  useEffect(() => { initialReportRef.current = initialReport; onPreviewRef.current = onPreview; }, [initialReport, onPreview]);
   const projectId = activeProject?.id;
+  const draftKey = `${GUEST_DRAFT_KEY}:${projectId || 'guest'}`;
 
   useEffect(() => {
     let active = true;
@@ -83,38 +87,40 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
       .then(([template, saved]) => {
         if (!active) return;
         const savedInput = saved.latest?.input_snapshot;
-        let guestDraft = null;
-        if (!savedInput) {
-          try { guestDraft = JSON.parse(sessionStorage.getItem(GUEST_DRAFT_KEY) || 'null'); }
-          catch { guestDraft = null; }
-        }
-        const sourceInput = savedInput || guestDraft;
+        let sessionDraft = null;
+        try { sessionDraft = JSON.parse(sessionStorage.getItem(draftKey) || 'null'); }
+        catch { sessionDraft = null; }
+        const sourceInput = sessionDraft || savedInput;
         const byCode = Object.fromEntries((sourceInput?.roles || []).map((role) => [role.role_code, role]));
         setDraft({
           general: sourceInput?.general || template.general,
           roles: template.roles.map((row) => ({ ...row, ...(byCode[row.role_code] || {}),
-            selected: savedInput ? Boolean(byCode[row.role_code]) : Boolean(byCode[row.role_code]?.selected) })),
+            selected: sessionDraft ? Boolean(byCode[row.role_code]?.selected) : Boolean(byCode[row.role_code]) })),
           selected_positions: sourceInput?.selected_positions || {},
           overrides: sourceInput?.overrides || [],
         });
-        setReport(saved.latest?.result_snapshot || null);
+        setReport(initialReportRef.current || saved.latest?.result_snapshot || null);
         setVersion(saved.version);
-        setDirty(Boolean(guestDraft));
+        setDirty(Boolean(sessionDraft && !initialReportRef.current));
+        setUnsavedPreview(Boolean(sessionDraft && initialReportRef.current));
+        if (saved.latest?.result_snapshot && !sessionDraft && !initialReportRef.current) onPreviewRef.current?.(saved.latest.result_snapshot);
         setLoading(false);
       })
       .catch((reason) => { if (active) { setError(reason.message); setLoading(false); } });
     return () => { active = false; sequence.current += 1; };
-  }, [projectId]);
+  }, [projectId, draftKey]);
 
   useEffect(() => {
-    if (!projectId && draft && dirty) {
-      try { sessionStorage.setItem(GUEST_DRAFT_KEY, JSON.stringify(draft)); }
-      catch { /* The calculator still works when browser storage is unavailable. */ }
-    }
-  }, [draft, dirty, projectId]);
+    if (!draft) return;
+    try {
+      if (dirty || unsavedPreview) sessionStorage.setItem(draftKey, JSON.stringify(draft));
+      else sessionStorage.removeItem(draftKey);
+    } catch { /* The calculator still works when browser storage is unavailable. */ }
+  }, [draft, dirty, draftKey, unsavedPreview]);
 
   const change = (updater) => {
     sequence.current += 1;
+    onInvalidated?.();
     setDraft((current) => updater(current));
     setDirty(true);
     setNotice('');
@@ -157,6 +163,8 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
       } }));
       setReport(result);
       setDirty(false);
+      setUnsavedPreview(true);
+      onPreview?.(result);
       setNotice(`Проверены ${result.catalog_positions_checked} позиций активного каталога для каждой выбранной роли.`);
       document.getElementById('wr-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (reason) {
@@ -190,8 +198,9 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
       });
       setVersion(saved.version);
       setReport(saved.latest.result_snapshot);
+      setUnsavedPreview(false);
       if (currentSequence === sequence.current) {
-        try { sessionStorage.removeItem(GUEST_DRAFT_KEY); } catch { /* optional */ }
+        try { sessionStorage.removeItem(draftKey); } catch { /* optional */ }
         setNotice(`Расчёт сохранён в проекте, версия ${saved.version}.`);
         onSaved?.(saved.latest.result_snapshot);
       } else {
@@ -212,10 +221,8 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
       <div className="wr-hero-mark"><AppIcon name="warehouse" size={54} /><span>ВСЕ РОЛИ<br />ОДИН СКЛАД</span></div>
     </header>
 
-    <div className="wr-progress" aria-label="Этапы расчёта"><span className="active">01 · Склад</span><span className="active">02 · Роли</span>
-      <span className={report && !dirty ? 'active' : ''}>03 · Роботы</span><span className={report && !dirty ? 'active' : ''}>04 · Итог</span></div>
 
-    {!projectId && <section className="wr-project-note"><strong>Для сохранения расчёта нужен проект</strong>
+    {!projectId && <section className="wr-project-note"><strong>Для расчёта нужен проект</strong>
       {!authChecked ? <p>Проверяем вход…</p> : !user ? <button type="button" onClick={onOpenAccount}>Войти или зарегистрироваться</button>
         : projectStatus === 'loading' ? <p>Загружаем проекты…</p> : projectChoices.length ? <select defaultValue="" onChange={(event) => {
           const project = projectChoices.find((row) => row.id === event.target.value);
@@ -229,6 +236,10 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
         value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}</div>
       <details className="wr-assumptions"><summary>Допущения сценария и экономики</summary>
         <p>Например, 2 потенциальные ставки × 0,5 = экономия расходов на 1 ставку; остальные часы перераспределяются. 0 означает отсутствие экономии ФОТ, 1 — полный учёт потенциала. Парк роботов не меняется.</p>
+        <label className="wr-field">Тариф RaaS<select value={draft.general.raas_mode || 'FIXED'} onChange={(event) => changeGeneral('raas_mode', event.target.value)}><option value="PERCENT">% цены робота в месяц</option><option value="FIXED">₽/робот/месяц</option></select></label>
+        <div className="wr-fields">{draft.general.raas_mode === 'PERCENT'
+          ? <Field label="Сценарная аренда, % цены робота в месяц" value={draft.general.raas_percent_monthly} max="100" onChange={(value) => changeGeneral('raas_percent_monthly', value)} hint="2% от 3 млн ₽ = 60 тыс. ₽/робот/мес. Это тариф услуги, не ставка кредита." />
+          : <Field label="Сценарная аренда, ₽/робот/мес." value={draft.general.raas_monthly_rub} onChange={(value) => changeGeneral('raas_monthly_rub', value)} />}</div>
         <div className="wr-fields">{ASSUMPTION_FIELDS.map(([key, label]) => <Field key={key} label={label}
           value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}</div></details>
     </section>
@@ -267,6 +278,8 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
     {dirty && report && <p className="wr-message">Данные изменены. Нажмите «Подобрать и рассчитать роботов», чтобы обновить результат.</p>}
 
     {report && <section id="wr-results" className={`wr-results${dirty ? ' wr-results-stale' : ''}`} aria-label="Роботы и результат по ролям">
+      <div className="wr-actions"><strong>Предпросмотр готов: {report.portfolio.selected_robot_allocations} роботов по назначениям.</strong>
+        <button type="button" className="wr-primary" disabled={busy !== '' || dirty} onClick={onContinue}>Продолжить к роботам →</button></div>
       <div className="wr-section-heading"><span className="wr-section-number">03</span><div><h2>Роботы для каждой роли</h2>
         <p>Для каждой роли проверено {report.catalog_positions_checked} позиций активного каталога. Показанные варианты требуют проверки на вашем складе.</p></div></div>
       {report.roles.map((role) => {
@@ -285,17 +298,19 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
               onClick={() => chooseCandidate(role.role_code, candidate.position_id)}>
               <span className="wr-candidate-top"><strong>{candidate.name}</strong><span>{candidate.status === 'RESEARCH_ONLY' ? 'Разработка' : candidate.maturity_status === 'PILOTING' ? 'Пилот' : index === 0 ? 'Первый для проверки' : 'Вариант'}</span></span>
               <small>{candidate.manufacturer || 'Производитель не указан'}{candidate.source_row_number ? ` · строка каталога ${candidate.source_row_number}` : ''}</small>
-              <span className="wr-candidate-metrics"><span><b>{candidate.fleet}</b> роботов</span><span><b>{decimal(candidate.fte_equivalent)}</b> ставки*</span></span>
+              <span className="wr-candidate-metrics"><span><b>{candidate.fleet}</b> {candidate.rate_source === 'SCENARIO_ASSUMPTION' ? 'роботов по допущению' : 'роботов'}</span><span><b>{decimal(candidate.fte_equivalent)}</b> ставки*</span></span>
               <span className="wr-candidate-bottom"><span>{candidate.rate_source === 'SCENARIO_ASSUMPTION' ? 'Выработка: допущение' : candidate.rate_source === 'USER' ? 'Выработка: ваша' : 'Выработка: каталог'}</span>
                 <span>{candidate.price_rub == null ? 'Цена неизвестна' : `Цена ${money(candidate.price_rub)}`}</span></span>
             </button>)}</div>
               {role.candidates.length > 4 && <button type="button" className="wr-more" onClick={() => setExpandedRoles((current) => ({ ...current, [role.role_code]: !current[role.role_code] }))}>
                 {expandedRoles[role.role_code] ? 'Свернуть список' : `Показать все ${role.candidates.length} вариантов`}</button>}
               {selected && <div className="wr-selected-detail"><h4>Выбранный вариант: {selected.name}</h4>
-                <div className="wr-detail-metrics"><span>Парк <strong>{selected.fleet}</strong></span><span>До коэффициента <strong>{decimal(selected.potential_fte ?? selected.fte_equivalent)} ставки</strong></span><span>После коэффициента <strong>{decimal(selected.fte_equivalent)} ставки*</strong></span>
+                <div className="wr-detail-metrics"><span>{selected.rate_source === 'SCENARIO_ASSUMPTION' ? 'Сценарный парк' : 'Расчётный парк'} <strong>{selected.fleet}</strong></span><span>До коэффициента <strong>{decimal(selected.potential_fte ?? selected.fte_equivalent)} ставки</strong></span><span>После коэффициента <strong>{decimal(selected.fte_equivalent)} ставки*</strong></span>
                   <span>Годовой ФОТ эквивалент <strong>{money(selected.annual_labor_potential_rub)}</strong></span>
-                  <span>Покупка: CAPEX <strong>{money(selected.capex_rub)}</strong></span><span>Покупка: NPV <strong>{money(selected.npv_rub)}</strong></span><span>Покупка: ROI <strong>{selected.purchase_roi_percent == null ? 'Нужна цена' : `${decimal(selected.purchase_roi_percent)}%`}</strong></span><span>Аренда: NPV <strong>{money(selected.raas_npv_rub)}</strong></span></div>
+                  <span>Покупка: CAPEX <strong>{money(selected.capex_rub)}</strong></span><span>Покупка: NPV <strong>{money(selected.npv_rub)}</strong></span><span>Покупка: ROI за {report.general?.horizon_years || draft.general.horizon_years} лет <strong>{selected.purchase_roi_percent == null ? report.schema_version === 'warehouse-role-analysis-v1' ? 'Пересчитайте старую версию' : 'Нужна цена' : `${decimal(selected.purchase_roi_percent)}%`}</strong></span><span>Аренда: NPV <strong>{money(selected.raas_npv_rub)}</strong></span></div>
                 <p className="wr-disclaimer">Аренда: ROI на CAPEX {selected.raas_roi_percent == null && Number(selected.raas_capex_rub) === 0 ? 'N/A — вложения заказчика равны нулю' : `${decimal(selected.raas_roi_percent)}%`}. Чувствительность ФОТ при 0 / 0,5 / 1: {money(0)} / {money(Number(selected.potential_fte ?? 0) * Number(role.monthly_employer_cost_rub) * 6)} / {money(Number(selected.potential_fte ?? 0) * Number(role.monthly_employer_cost_rub) * 12)} в год; парк {selected.fleet} во всех трёх случаях.</p>
+                {selected.fleet_formula && <p className="wr-disclaimer">Сценарный парк {selected.fleet} = округление вверх ({decimal(selected.fleet_formula.target_units_per_day)} {UNIT[selected.unit]}/сутки ÷ ({decimal(selected.fleet_formula.robot_units_per_hour)} {UNIT[selected.unit]}/час × {decimal(selected.fleet_formula.hours_per_shift)} ч × {selected.fleet_formula.shifts_per_day} смен × {decimal(selected.fleet_formula.robot_availability)} доступности) × (1 + {decimal(selected.fleet_formula.fleet_reserve_share)} резерва)). Скорость: {selected.rate_source === 'SCENARIO_ASSUMPTION' ? 'сценарное допущение' : 'проверенный факт каталога'}.</p>}
+                {selected.demand_warning && <p role="alert" className="wr-message wr-message-error">{selected.demand_warning} Указано {decimal(role.daily_volume)} {UNIT[selected.unit]}/сутки при штатной выработке {decimal(selected.manual_capacity_units_per_day)} {UNIT[selected.unit]}/сутки.</p>}
                 {selected.labor_sensitivity?.map((point) => <p key={point.labor_share} className="wr-disclaimer">Коэффициент {decimal(point.labor_share)}: ФОТ {money(point.annual_labor_rub)}/год · NPV покупки {money(point.purchase_npv_rub)} · NPV аренды {money(point.raas_npv_rub)} · парк {selected.fleet}</p>)}
                 <p>Модель найдена по: {selected.match_basis === 'ROLE_NAME' ? 'названию модели'
                   : selected.match_basis === 'ROLE_DESCRIPTION' ? 'прямому описанию выполняемой работы'
@@ -303,7 +318,7 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
                   : selected.match_basis === 'ROLE_APPLICATION' ? 'заявленному применению или названию в каталоге'
                   : selected.match_basis === 'CATALOG_TEXT_HINT' ? 'описанию и применению в каталоге' : 'расчётному профилю каталога'}.
                   {selected.rate_basis && ` ${selected.rate_basis}`}</p>
-                {selected.work_scope === 'DELIVERY_TO_PICKING_STATION' && <p className="wr-disclaimer">Этот робот подвозит стеллажи к станции. Товар выбирает человек. Укажите долю времени комплектовщика, которую сэкономит именно подвоз; текущие 35% в шаблоне — допущение.</p>}
+                {selected.work_scope === 'DELIVERY_TO_PICKING_STATION' && <p className="wr-message">Робот подвозит стеллажи к станции; товар выбирает человек. Скорость в операциях отбора/час сейчас только эквивалент обслуживания станции, не паспортная скорость робота. Для подтверждения парка нужны рейсы/час и операций на один подвоз. Доля сэкономленного времени — отдельное допущение.</p>}
                 {selected.work_scope === 'PALLET_TRANSPORT_ONLY' && <p className="wr-disclaimer">Робот перемещает паллеты. Погрузка, разгрузка и крепление груза остаются за человеком; доля 25% в шаблоне относится только к перемещению и требует проверки.</p>}
                 {selected.maturity_status === 'PILOTING' && <p className="wr-disclaimer">Модель находится на стадии пилотирования. Перед закупкой проверьте доступность поставки и работу на вашем складе.</p>}
                 <div className="wr-fields"><Field label={`${selected.work_scope === 'DELIVERY_TO_PICKING_STATION' ? 'Объём отбора, обслуживаемый подвозом' : selected.work_scope === 'PALLET_TRANSPORT_ONLY' ? 'Перевозка паллет' : 'Выработка робота'}, ${UNIT[selected.unit]}/час`} value={override?.units_per_hour ?? ''}
@@ -312,9 +327,14 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
                   <Field label="Цена одного робота, ₽" value={override?.price_rub ?? ''}
                     hint={selected.price_rub == null ? 'Для NPV укажите цену.' : `Сейчас ${money(selected.price_rub)} (${selected.price_source === 'CATALOG' ? 'каталог' : selected.price_source === 'SCENARIO_ASSUMPTION' ? 'бюджетное допущение, не предложение поставщика' : 'вы указали'}).`}
                     onChange={(value) => changeOverride(role.role_code, selected.position_id, 'price_rub', value)} />
-                  <Field label="Тариф RaaS на одного робота, ₽/мес." value={override?.raas_monthly_rub ?? ''}
-                    hint={`Сейчас ${money(selected.raas_monthly_rub)} (${selected.raas_source === 'USER' ? 'ваша оценка' : 'сценарное допущение'}). Уточните состав услуги и ответственность за сервис.`}
-                    onChange={(value) => changeOverride(role.role_code, selected.position_id, 'raas_monthly_rub', value)} /></div>
+                  <label className="wr-field">Режим аренды<select value={override?.raas_mode || draft.general.raas_mode || 'FIXED'} onChange={(event) => changeOverride(role.role_code, selected.position_id, 'raas_mode', event.target.value)}><option value="PERCENT">% цены робота в месяц</option><option value="FIXED">₽/робот/месяц</option></select></label>
+                  {(override?.raas_mode || draft.general.raas_mode) === 'PERCENT'
+                    ? <Field label="Аренда, % цены робота в месяц" value={override?.raas_percent_monthly ?? ''} max="100"
+                      hint={`Принято ${decimal(selected.raas_percent_monthly ?? draft.general.raas_percent_monthly)}% от ${money(selected.raas_price_basis_rub)} = ${money(selected.raas_monthly_rub)}/робот/мес.`}
+                      onChange={(value) => changeOverride(role.role_code, selected.position_id, 'raas_percent_monthly', value)} />
+                    : <Field label="Тариф RaaS на одного робота, ₽/мес." value={override?.raas_monthly_rub ?? ''}
+                      hint={`Сейчас ${money(selected.raas_monthly_rub)} (${selected.raas_source === 'USER' ? 'ваша оценка' : 'сценарное допущение'}). Уточните состав услуги и ответственность за сервис.`}
+                      onChange={(value) => changeOverride(role.role_code, selected.position_id, 'raas_monthly_rub', value)} />}</div>
                 <label className="wr-source"><input type="checkbox" checked={Boolean(override?.omit_purchase_price)} onChange={(event) => changeOverride(role.role_code, selected.position_id, 'omit_purchase_price', event.target.checked)} /> Цена покупки неизвестна — оставить покупку частичной</label>
                 <label className="wr-source"><input type="checkbox" checked={Boolean(override?.omit_raas_tariff)} onChange={(event) => changeOverride(role.role_code, selected.position_id, 'omit_raas_tariff', event.target.checked)} /> Тариф аренды неизвестен — оставить аренду частичной</label>
                 {dirty && <button type="button" className="wr-recalculate" disabled={busy !== ''} onClick={() => preview()}>Пересчитать с новыми данными</button>}
@@ -332,15 +352,17 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
           <div><span>Капвложения</span><strong>{money(report.portfolio.capex_rub)}</strong></div>
           <div><span>Покупка: TCO / NPV</span><strong>{money(report.portfolio.purchase_tco_rub)} / {money(report.portfolio.npv_rub)}</strong></div>
           <div><span>Покупка: эффект после сервиса в год</span><strong>{money(report.portfolio.annual_net_rub)}</strong></div>
-          <div><span>Покупка: ROI</span><strong>{report.portfolio.purchase_roi_percent == null ? 'Нужна цена' : `${decimal(report.portfolio.purchase_roi_percent)}%`}</strong></div>
+          <div><span>Покупка: ROI за {report.general?.horizon_years || draft.general.horizon_years} лет</span><strong>{report.portfolio.purchase_roi_percent == null ? report.schema_version === 'warehouse-role-analysis-v1' ? 'Пересчитайте старую версию' : 'Нужна цена' : `${decimal(report.portfolio.purchase_roi_percent)}%`}</strong></div>
           <div><span>Аренда: TCO / NPV</span><strong>{money(report.portfolio.raas_tco_rub)} / {money(report.portfolio.raas_npv_rub)}</strong></div>
           <div><span>Аренда: эффект после тарифа в год</span><strong>{money(report.portfolio.raas_annual_net_rub)}</strong></div>
           <div><span>Аренда: ROI</span><strong>{report.portfolio.raas_roi_percent == null && Number(report.portfolio.raas_capex_rub) === 0 ? 'N/A: CAPEX = 0' : report.portfolio.raas_roi_percent == null ? 'Нужен тариф' : `${decimal(report.portfolio.raas_roi_percent)}%`}</strong></div></div>
-        <p className="wr-disclaimer">ROI покупки = (недисконтированный эффект за горизонт − CAPEX) / CAPEX × 100%. NPV учитывает дисконтирование. База без роботов: текущие расходы на труд; эффект приведён относительно неё.</p>
+        <p className="wr-disclaimer">ROI покупки за {report.general?.horizon_years || draft.general.horizon_years} лет = ({money(report.portfolio.annual_net_rub)} чистого эффекта в год × {report.general?.horizon_years || draft.general.horizon_years} − {money(report.portfolio.capex_rub)} CAPEX) / {money(report.portfolio.capex_rub)} × 100%. NPV учитывает дисконтирование.</p>
+        {report.schema_version === 'warehouse-role-analysis-v1' && <p className="wr-message">Это старый сохранённый снимок. Для ROI и процентной аренды нажмите «Пересчитать»; прежний результат не изменён.</p>}
         {report.portfolio.missing_purchase?.length > 0 && <p className="wr-message">Покупка: нужна цена для {report.portfolio.missing_purchase.join(', ')}.</p>}
         {report.portfolio.missing_raas?.length > 0 && <p className="wr-message">Аренда: нужен тариф для {report.portfolio.missing_raas.join(', ')}.</p>}
         <p className="wr-disclaimer">* Потенциал при допущенной доле реализации. Это не подтверждённое сокращение штата. Денежный итог остаётся частичным, если хотя бы у одного выбранного робота нет цены.</p>
         <button type="button" className="wr-primary" disabled={busy !== '' || dirty} onClick={save}>{busy === 'save' ? 'Сохраняем…' : 'Сохранить расчёт в проекте'}</button>
+        <button type="button" className="wr-primary" disabled={busy !== '' || dirty} onClick={onContinue}>Продолжить к роботам →</button>
         {version > 0 && <span className="wr-version">Текущая версия в проекте: {version}</span>}
       </section>
       <details className="wr-limitations"><summary>Основания и ограничения расчёта</summary><ul>{report.limitations.map((item) => <li key={item}>{item}</li>)}</ul>

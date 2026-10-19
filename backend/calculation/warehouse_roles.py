@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from catalog_repository import CatalogPositionDTO, CatalogSnapshotDTO
 
-SCHEMA = "warehouse-role-analysis-v1"
+SCHEMA = "warehouse-role-analysis-v2"
 ROLE_LABELS = {
     "forklift_driver": "Оператор погрузчика",
     "loader": "Грузчик",
@@ -75,13 +75,14 @@ def warehouse_template() -> dict[str, Any]:
             "salary_basis": row["salary_source_ref"],
             "source": "SCENARIO_ASSUMPTION",
         })
-    return {"schema_version": "warehouse-role-template-v1", "roles": roles,
+    return {"schema_version": "warehouse-role-template-v2", "roles": roles,
             "general": {"total_area_m2": "20000", "shifts_per_day": 2,
                         "hours_per_shift": "10", "days_per_year": 300,
                         "robot_availability": "0.75", "fleet_reserve_share": "0.1",
                         "realizable_labor_share": "0.5", "integration_share": "0.2",
                         "annual_service_share": "0.1", "discount_rate": "0.15",
-                        "horizon_years": 5, "raas_monthly_rub": "150000",
+                        "horizon_years": 5, "raas_mode": "PERCENT",
+                        "raas_percent_monthly": "2", "raas_monthly_rub": "150000",
                         "raas_setup_rub": "0", "raas_customer_annual_rub": "0"},
             "notice": "Значения ролей и коэффициенты являются редактируемыми сценарными допущениями, не замерами конкретного склада."}
 
@@ -100,6 +101,8 @@ class GeneralInput(BaseModel):
     discount_rate: Decimal = Field(ge=0, le=1)
     horizon_years: int = Field(ge=1, le=20)
     raas_monthly_rub: Decimal | None = Field(default=None, ge=0)
+    raas_mode: str = Field(default="FIXED", pattern="^(FIXED|PERCENT)$")
+    raas_percent_monthly: Decimal | None = Field(default=None, ge=0, le=100)
     raas_setup_rub: Decimal = Field(default=Decimal("0"), ge=0)
     raas_customer_annual_rub: Decimal = Field(default=Decimal("0"), ge=0)
     gross_to_employer_factor: Decimal = Field(default=Decimal("1.302"), gt=0, le=3)
@@ -131,6 +134,8 @@ class CandidateOverride(BaseModel):
     units_per_hour: Decimal | None = Field(default=None, gt=0)
     price_rub: Decimal | None = Field(default=None, gt=0)
     raas_monthly_rub: Decimal | None = Field(default=None, ge=0)
+    raas_mode: str | None = Field(default=None, pattern="^(FIXED|PERCENT)$")
+    raas_percent_monthly: Decimal | None = Field(default=None, ge=0, le=100)
     omit_purchase_price: bool = False
     omit_raas_tariff: bool = False
 
@@ -247,6 +252,8 @@ def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralIn
     target = role.daily_volume * role.robotizable_share
     daily_per_robot = rate * general.hours_per_shift * general.shifts_per_day * general.robot_availability
     fleet = math.ceil(target / daily_per_robot * (1 + general.fleet_reserve_share))
+    manual_capacity = role.headcount * role.manual_units_per_person_shift
+    demand_ratio = role.daily_volume / manual_capacity
     potential_fte = min(role.headcount, target / role.manual_units_per_person_shift)
     labor_share = role.realizable_labor_share if role.realizable_labor_share is not None else general.realizable_labor_share
     fte = potential_fte * labor_share
@@ -272,9 +279,16 @@ def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralIn
     horizon = general.horizon_years
     purchase_tco = capex + annual_service * horizon if capex is not None else None
     purchase_roi = (annual_net * horizon - capex) / capex * 100 if capex is not None and capex > 0 else None
+    rent_mode = override.raas_mode if override and override.raas_mode else general.raas_mode
+    rent_percent = (override.raas_percent_monthly if override and override.raas_percent_monthly is not None
+                    else general.raas_percent_monthly)
     rent = (None if override and override.omit_raas_tariff else
+            price * rent_percent / 100 if rent_mode == "PERCENT" and price is not None and rent_percent is not None else
+            None if rent_mode == "PERCENT" else
             override.raas_monthly_rub if override and override.raas_monthly_rub is not None else general.raas_monthly_rub)
-    rent_source = "USER" if override and override.raas_monthly_rub is not None else "SCENARIO_ASSUMPTION" if rent is not None else "UNKNOWN"
+    rent_source = ("UNKNOWN" if rent is None else "USER" if override and
+                   ((rent_mode == "PERCENT" and override.raas_percent_monthly is not None) or
+                    (rent_mode == "FIXED" and override.raas_monthly_rub is not None)) else "SCENARIO_ASSUMPTION")
     raas_capex = general.raas_setup_rub * fleet
     raas_annual_cost = rent * fleet * 12 + general.raas_customer_annual_rub * fleet if rent is not None else None
     raas_net = annual_labor - raas_annual_cost if raas_annual_cost is not None else None
@@ -299,6 +313,14 @@ def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralIn
         "calculation_profile": position.model.capacity_runtime.calculation_profile,
         "calculation_ready": position.model.capacity_runtime.calculation_ready,
         "unit": unit, "target_units_per_day": _number(target),
+        "manual_capacity_units_per_day": _number(manual_capacity),
+        "demand_to_manual_capacity_ratio": _number(demand_ratio),
+        "fleet_formula": {"target_units_per_day": _number(target), "robot_units_per_hour": _number(rate),
+                          "hours_per_shift": _number(general.hours_per_shift), "shifts_per_day": general.shifts_per_day,
+                          "robot_availability": _number(general.robot_availability),
+                          "fleet_reserve_share": _number(general.fleet_reserve_share)},
+        "demand_warning": ("Суточный объём выше выработки указанного штата за одну смену; проверьте объём, численность и смысл смен."
+                           if demand_ratio > Decimal("1.1") else None),
         "annual_robotized_units": _number(target * general.days_per_year),
         "robot_units_per_hour": _number(rate), "rate_source": rate_source,
         "rate_evidence_ref": rate_evidence if rate_source == "CATALOG_VERIFIED" else None,
@@ -323,6 +345,9 @@ def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralIn
         "purchase_tco_rub": _number(purchase_tco) if purchase_tco is not None else None,
         "purchase_roi_percent": _number(purchase_roi) if purchase_roi is not None else None,
         "raas_monthly_rub": _number(rent) if rent is not None else None,
+        "raas_mode": rent_mode,
+        "raas_percent_monthly": _number(rent_percent) if rent_mode == "PERCENT" and rent_percent is not None else None,
+        "raas_price_basis_rub": _number(price) if rent_mode == "PERCENT" and price is not None else None,
         "raas_source": rent_source, "raas_capex_rub": _number(raas_capex),
         "raas_annual_cost_rub": _number(raas_annual_cost) if raas_annual_cost is not None else None,
         "raas_tco_rub": _number(raas_capex + raas_annual_cost * horizon) if raas_annual_cost is not None else None,
@@ -405,7 +430,10 @@ def analyze_warehouse_roles(value: WarehouseRoleInput, catalog: CatalogSnapshotD
                  "raas_npv_rub": _number(sum(Decimal(row["raas_npv_rub"]) for row in selected_candidates)) if all_rented else None,
                  "raas_roi_percent": None if not all_rented or rent_capex == 0 else _number((rent_net * value.general.horizon_years - rent_capex) / rent_capex * 100),
                  "missing_purchase": [f"{row['role_code']}/{row['position_id']}.price_rub" for row in selected_candidates if row["capex_rub"] is None],
-                 "missing_raas": [f"{row['role_code']}/{row['position_id']}.raas_monthly_rub" for row in selected_candidates if row["raas_monthly_rub"] is None],
+                 "missing_raas": [f"{row['role_code']}/{row['position_id']}." +
+                                  ("price_rub" if row.get("raas_mode") == "PERCENT" and row["price_rub"] is None else
+                                   "raas_percent_monthly" if row.get("raas_mode") == "PERCENT" else "raas_monthly_rub")
+                                  for row in selected_candidates if row["raas_monthly_rub"] is None],
                  "status": "RESEARCH_SCENARIO" if any(row["status"] == "RESEARCH_ONLY" for row in selected_candidates)
                            else "SCENARIO_WITH_PRICE" if all_priced else "PARTIAL"}
     return {"schema_version": SCHEMA, "catalog_version": catalog.version.code,

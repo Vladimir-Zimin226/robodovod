@@ -84,6 +84,10 @@ def test_missing_purchase_price_does_not_block_rent_and_wrong_unit_rejected():
     value["roles"][0]["works"][0]["scenario_purchase_price_rub"] = None
     result = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())
     assert result["conditional_total"]["purchase"]["npv_rub"] is None
+    assert result["conditional_total"]["raas"]["npv_rub"] is None
+    assert result["conditional_total"]["raas"]["missing"] == ["baggage_handler/airport_baggage.scenario_purchase_price_rub"]
+    value["roles"][0]["works"][0]["raas_mode"] = "FIXED"
+    result = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())
     assert result["conditional_total"]["raas"]["npv_rub"] is not None
     assert result["conditional_total"]["purchase"]["missing"] == ["baggage_handler/airport_baggage.scenario_purchase_price_rub"]
     value["roles"][0]["works"][0]["scenario_purchase_price_rub"] = "3000000"
@@ -94,6 +98,22 @@ def test_missing_purchase_price_does_not_block_rent_and_wrong_unit_rejected():
     value["roles"][0]["works"][0]["unit"] = "kg"
     with pytest.raises(ValueError, match="physical unit"):
         ObjectRoleInput.model_validate(value)
+
+
+def test_percent_raas_has_visible_price_basis_and_fixed_tariff_works_without_price():
+    value = raw("AIRPORT")
+    value["roles"] = value["roles"][:1]
+    work = value["roles"][0]["works"][0]
+    percent = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())["roles"][0]["works"][0]["raas"]
+    assert percent["mode"] == "PERCENT"
+    assert percent["percent_monthly"] == "2.00"
+    assert percent["price_basis_rub"] == "3000000.00"
+    assert percent["monthly_per_robot_rub"] == "60000.00"
+    work["scenario_purchase_price_rub"] = None
+    work["raas_mode"] = "FIXED"
+    fixed = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())["roles"][0]["works"][0]["raas"]
+    assert fixed["monthly_per_robot_rub"] == "120000.00"
+    assert fixed["npv_rub"] is not None
 
 
 def test_safety_warning_cannot_be_removed_by_client_and_catalog_choice_must_match_function():
@@ -119,6 +139,23 @@ def test_gross_salary_is_converted_once_to_employer_cost():
     assert gross["roles"][0]["salary_basis"] == "GROSS"
     assert gross["conditional_total"]["annual_labor_rub"] == employer["conditional_total"]["annual_labor_rub"]
     assert gross["conditional_total"]["baseline_annual_labor_rub"] == employer["conditional_total"]["baseline_annual_labor_rub"]
+
+
+def test_purchase_roi_uses_entire_horizon_and_rent_uses_same_fleet():
+    value = raw("AIRPORT")
+    value["roles"] = value["roles"][:1]
+    value["roles"][0]["works"] = value["roles"][0]["works"][:1]
+    result = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())
+    work = result["roles"][0]["works"][0]
+    capex = Decimal(work["purchase"]["capex_rub"])
+    annual_net = Decimal(work["purchase"]["annual_net_rub"])
+    years = result["general"]["horizon_years"]
+    expected_roi = ((annual_net * years - capex) / capex * 100).quantize(Decimal("0.01"))
+    assert Decimal(work["purchase"]["roi_percent"]) == expected_roi
+    assert work["fleet"] == result["conditional_total"]["fleet"]
+    assert Decimal(work["raas"]["annual_cost_rub"]) == (
+        Decimal(work["raas"]["monthly_per_robot_rub"]) * 12
+        + Decimal(result["general"]["raas_customer_annual_rub"])) * work["fleet"]
 
 
 def test_reference_rows_have_explicit_subtasks_and_safety_rows_have_conditions():

@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from calculation.warehouse_roles import GeneralInput, ROLE_LABELS as WAREHOUSE_LABELS, _number
 
-SCHEMA = "object-role-analysis-v2"
+SCHEMA = "object-role-analysis-v3"
 KINDS = {"WAREHOUSE", "AIRPORT", "CLINIC"}
 LABELS = {**WAREHOUSE_LABELS,
     "baggage_handler": "Обработчик багажа", "trolley_operator": "Оператор тележек",
@@ -80,6 +80,7 @@ def object_template(kind: str) -> dict[str, Any]:
             "robotizable_share": row["robotizable_fraction"],
             "robot_units_per_hour": _number(Decimal(row["manual_units_per_person_shift"]) / Decimal(7 if kind != "WAREHOUSE" else 10)),
             "scenario_purchase_price_rub": row["scenario_purchase_price_rub"],
+            "raas_mode": "PERCENT", "raas_percent_monthly": "2",
             "scenario_raas_monthly_rub": row["scenario_raas_monthly_rub"],
             "rate_source": row["scenario_rate_source"], "price_source": "SCENARIO_ASSUMPTION",
             "raas_source": "SCENARIO_ASSUMPTION",
@@ -87,7 +88,7 @@ def object_template(kind: str) -> dict[str, Any]:
             "calculation_status": row["calculation_status"],
             "safety_conditions": row["safety_conditions"], "selected_position_id": "AUTO",
         })
-    return {"schema_version": "object-role-template-v2", "kind": kind,
+    return {"schema_version": "object-role-template-v3", "kind": kind,
             "general": {"total_area_m2": "20000", "shifts_per_day": 1 if kind != "WAREHOUSE" else 2,
                 "hours_per_shift": "7" if kind != "WAREHOUSE" else "10", "days_per_year": 300,
                 "robot_availability": "0.75", "fleet_reserve_share": "0.1",
@@ -112,6 +113,8 @@ class WorkInput(BaseModel):
     robot_units_per_hour: Decimal = Field(gt=0)
     scenario_purchase_price_rub: Decimal | None = Field(default=None, gt=0)
     scenario_raas_monthly_rub: Decimal | None = Field(default=None, ge=0)
+    raas_mode: str = Field(default="FIXED", pattern="^(FIXED|PERCENT)$")
+    raas_percent_monthly: Decimal | None = Field(default=None, ge=0, le=100)
     rate_source: str
     price_source: str
     raas_source: str = "SCENARIO_ASSUMPTION"
@@ -188,7 +191,10 @@ def _candidates(role_code: str, process_code: str, catalog: Any) -> list[dict[st
 
 def _economics(fleet: int, annual_labor: Decimal, potential_annual_labor: Decimal,
                work: WorkInput, general: GeneralInput) -> dict[str, Any]:
-    price, rent = work.scenario_purchase_price_rub, work.scenario_raas_monthly_rub
+    price = work.scenario_purchase_price_rub
+    rent = (price * work.raas_percent_monthly / 100
+            if work.raas_mode == "PERCENT" and price is not None and work.raas_percent_monthly is not None else
+            None if work.raas_mode == "PERCENT" else work.scenario_raas_monthly_rub)
     horizon, discount = general.horizon_years, general.discount_rate
     factor = sum(Decimal(1) / (1 + discount) ** year for year in range(1, horizon + 1))
     capex = price * fleet * (1 + general.integration_share) if price is not None else None
@@ -212,13 +218,19 @@ def _economics(fleet: int, annual_labor: Decimal, potential_annual_labor: Decima
         "payback_years": _number(capex / net) if capex is not None and net > 0 else None,
         "missing": [] if price is not None else ["scenario_purchase_price_rub"]},
         "raas": {"capex_rub": _number(rcapex) if rent is not None else None,
+        "mode": work.raas_mode,
+        "percent_monthly": _number(work.raas_percent_monthly) if work.raas_mode == "PERCENT" and work.raas_percent_monthly is not None else None,
+        "price_basis_rub": _number(price) if work.raas_mode == "PERCENT" and price is not None else None,
+        "monthly_per_robot_rub": _number(rent) if rent is not None else None,
         "annual_cost_rub": _number(rcost) if rcost is not None else None,
         "annual_net_rub": _number(rnet) if rnet is not None else None,
         "tco_rub": _number(rcapex + rcost * horizon) if rcost is not None else None,
         "npv_rub": _number(rnet * factor - rcapex) if rnet is not None else None,
         "roi_percent": None if rcapex == 0 or rnet is None else _number((rnet * horizon - rcapex) / rcapex * 100),
         "roi_status": "N/A: CAPEX заказчика равен нулю" if rcapex == 0 else "DEFINED",
-        "missing": [] if rent is not None else ["scenario_raas_monthly_rub"]}}
+        "missing": [] if rent is not None else
+        (["scenario_purchase_price_rub"] if price is None else ["raas_percent_monthly"])
+        if work.raas_mode == "PERCENT" else ["scenario_raas_monthly_rub"]}}
 
 
 def _portfolio(works: list[dict[str, Any]], general: GeneralInput) -> dict[str, Any]:
@@ -277,6 +289,8 @@ def analyze_object_roles(value: ObjectRoleInput, catalog: Any) -> dict[str, Any]
                 "raas_source": work.raas_source,
                 "scenario_purchase_price_rub": _number(work.scenario_purchase_price_rub) if work.scenario_purchase_price_rub is not None else None,
                 "scenario_raas_monthly_rub": _number(work.scenario_raas_monthly_rub) if work.scenario_raas_monthly_rub is not None else None,
+                "raas_mode": work.raas_mode,
+                "raas_percent_monthly": _number(work.raas_percent_monthly) if work.raas_percent_monthly is not None else None,
                 "allocation_fraction": _number(work.allocation_fraction), "fleet": fleet,
                 "potential_fte": _number(potential), "fte_equivalent": _number(fte),
                 "annual_labor_rub": _number(labor), "annual_reallocated_hours": _number(fte * value.general.hours_per_shift * value.general.days_per_year),

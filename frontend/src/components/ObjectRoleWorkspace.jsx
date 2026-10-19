@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import AppIcon from './AppIcon';
+import RoleFleetVisualization from './RoleFleetVisualization';
 import { readCsrfCookie } from '../persistenceApi';
 import './WarehouseRoleWorkspace.css';
 
@@ -33,7 +34,7 @@ function asInput(draft, kind) {
     })) };
 }
 
-function Summary({ title, total, warning }) {
+function Summary({ title, total, warning, horizon }) {
   return <section className="wr-portfolio"><h2>{title}</h2>{warning && <p role="alert" className="wr-message wr-message-error">{warning}</p>}
     <div className="wr-portfolio-grid">
       <div><span>Работ / парк</span><strong>{total.work_count} / {total.fleet}</strong></div>
@@ -42,13 +43,14 @@ function Summary({ title, total, warning }) {
       <div><span>После коэффициента / ФОТ в год</span><strong>{num(total.fte_equivalent)} / {money(total.annual_labor_rub)}</strong></div>
       <div><span>Покупка: CAPEX / TCO</span><strong>{money(total.purchase.capex_rub)} / {money(total.purchase.tco_rub)}</strong></div>
       <div><span>Покупка: эффект после сервиса в год</span><strong>{money(total.purchase.annual_net_rub)}</strong></div>
-      <div><span>Покупка: NPV / ROI</span><strong>{money(total.purchase.npv_rub)} / {total.purchase.roi_percent == null ? 'N/A' : `${num(total.purchase.roi_percent)}%`}</strong></div>
+      <div><span>Покупка: NPV / ROI за {horizon} лет</span><strong>{money(total.purchase.npv_rub)} / {total.purchase.roi_percent == null ? 'N/A' : `${num(total.purchase.roi_percent)}%`}</strong></div>
       <div><span>Аренда: CAPEX / TCO</span><strong>{money(total.raas.capex_rub)} / {money(total.raas.tco_rub)}</strong></div>
       <div><span>Аренда: эффект после тарифа в год</span><strong>{money(total.raas.annual_net_rub)}</strong></div>
       <div><span>Аренда: NPV / ROI на CAPEX</span><strong>{money(total.raas.npv_rub)} / {total.raas.roi_status === 'DEFINED' ? `${num(total.raas.roi_percent)}%` : total.raas.roi_status}</strong></div>
     </div>
     {total.purchase.missing.length > 0 && <p>Для покупки недостаёт: {total.purchase.missing.join(', ')}</p>}
     {total.raas.missing.length > 0 && <p>Для аренды недостаёт: {total.raas.missing.join(', ')}</p>}
+    <p className="wr-disclaimer">ROI покупки за {horizon} лет = ({money(total.purchase.annual_net_rub)} чистого эффекта в год × {horizon} − {money(total.purchase.capex_rub)} CAPEX) / {money(total.purchase.capex_rub)} × 100%.</p>
   </section>;
 }
 
@@ -65,46 +67,61 @@ function CandidateSelection({ role, work, report, onChange }) {
     </select><p>Подбор по функции в описании каталога; физическая пригодность и поставка требуют проверки.</p></div>;
 }
 
-export function ObjectRoleResult({ report, onEdit }) {
-  if (!report || report.schema_version !== 'object-role-analysis-v2') return null;
-  const works = report.roles.flatMap((role) => role.works.map((work) => ({ ...work, role_code: role.role_code, role_label: role.label })));
-  const maxFleet = Math.max(1, ...works.map((work) => work.fleet));
+function WorkEconomics({ report }) {
+  return <section className="wr-panel"><h2>Покупка и аренда по каждой работе</h2>
+    <p>Обе ветки используют один парк. Процентный тариф означает долю цены одного робота за месяц.</p>
+    <div className="wr-role-grid">{report.roles.flatMap((role) => role.works.map((work) => <details key={`${role.role_code}:${work.process_code}`} className="wr-role-card selected">
+      <summary className="wr-role-toggle"><span className="wr-role-icon"><AppIcon name={role.role_code} size={24} /></span><span className="wr-role-title"><strong>{role.label}: {work.technical_task}</strong><small>Парк {work.fleet} · {work.raas.mode === 'PERCENT' ? `${num(work.raas.percent_monthly)}% цены/мес.` : 'фиксированный тариф'}</small></span></summary>
+      <div className="wr-role-body"><p>Покупка: цена {money(work.scenario_purchase_price_rub)} за робота · CAPEX {money(work.purchase.capex_rub)} · сервис {money(work.purchase.annual_cost_rub)}/год · чистый эффект {money(work.purchase.annual_net_rub)}/год.</p>
+        <p>ROI за {report.general.horizon_years} лет = ({money(work.purchase.annual_net_rub)} × {report.general.horizon_years} − {money(work.purchase.capex_rub)}) / {money(work.purchase.capex_rub)} × 100% = {work.purchase.roi_percent == null ? 'N/A' : `${num(work.purchase.roi_percent)}%`}. NPV {money(work.purchase.npv_rub)}; окупаемость {work.purchase.payback_years == null ? 'не достигается' : `${num(work.purchase.payback_years)} лет`}.</p>
+        <p>Аренда: {work.raas.mode === 'PERCENT' ? `${money(work.raas.price_basis_rub)} × ${num(work.raas.percent_monthly)}% = ` : ''}{money(work.raas.monthly_per_robot_rub ?? work.scenario_raas_monthly_rub)} за робота в месяц × {work.fleet} = {(work.raas.monthly_per_robot_rub ?? work.scenario_raas_monthly_rub) == null ? 'не рассчитано' : money(Number(work.raas.monthly_per_robot_rub ?? work.scenario_raas_monthly_rub) * work.fleet)}/мес. за парк. Годовые затраты с расходами заказчика {money(work.raas.annual_cost_rub)}; NPV {money(work.raas.npv_rub)}.</p>
+        {work.safety_conditions && <p role="alert" className="wr-message wr-message-error">Условный расчёт: {work.safety_conditions}</p>}</div></details>))}</div>
+  </section>;
+}
+
+export function ObjectRoleResult({ report, onEdit, focus = 'all' }) {
+  if (!report || !['object-role-analysis-v2', 'object-role-analysis-v3'].includes(report.schema_version)) return null;
+  const showRobots = focus !== 'money';
+  const showMoney = focus !== 'robots';
   return <main className="wr-workspace" aria-label={`Результат расчёта ${NAMES[report.kind]} по ролям`}>
     <header className="wr-hero"><div><p className="wr-kicker">ОБЪЕКТ · РОЛИ · РОБОТЫ · ЭКОНОМИКА</p><h1>Результат для {NAMES[report.kind]}</h1>
       <p>Версия каталога {report.catalog_version}. Сценарные цены, тарифы и выработка требуют проверки.</p></div></header>
-    <Summary title="Базовый итог без неподтверждённых работ" total={report.base_total} />
-    <Summary title="Общий условный итог" total={report.conditional_total} warning={report.safety_warning} />
-    <section className="wr-panel"><h2>Парк и виды работы</h2><p>Длина полосы соответствует числу роботов по отдельному назначению; данные совпадают с расчётом выше.</p>
-      <div role="img" aria-label="Парк роботов по ролям и видам работы">
-        {works.map((work) => <div key={`${work.role_code}:${work.process_code}`} className="wr-fleet-row">
-          <span>{work.role_label}: {work.technical_task}</span><div className="wr-fleet-track"><div style={{ width: `${100 * work.fleet / maxFleet}%` }} /></div><strong>{work.fleet}</strong>
-        </div>)}
-      </div></section>
-    <section className="wr-panel"><h2>Назначения и ограничения</h2><div className="wr-role-grid">{report.roles.map((role) => <article key={role.role_code} className="wr-role-card selected">
-      <div className="wr-role-toggle"><span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{num(role.headcount)} человек; распределено {num(Number(role.allocated_fraction) * 100)}%</small></span></div>
+    {report.schema_version === 'object-role-analysis-v2' && <p className="wr-message">Это сохранённый расчёт предыдущей версии с фиксированной арендой. Для процентной аренды выполните новый расчёт; прежний снимок не изменён.</p>}
+    {showMoney && <><Summary title="Базовый итог без неподтверждённых работ" total={report.base_total} horizon={report.general.horizon_years} />
+      <Summary title="Общий условный итог" total={report.conditional_total} warning={report.safety_warning} horizon={report.general.horizon_years} />
+      <WorkEconomics report={report} /></>}
+    {showRobots && <RoleFleetVisualization report={report} />}
+    {showRobots && <section className="wr-panel"><h2>Назначения и ограничения</h2><div className="wr-role-grid">{report.roles.map((role) => <details key={role.role_code} className="wr-role-card selected">
+      <summary className="wr-role-toggle"><span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{num(role.headcount)} человек; распределено {num(Number(role.allocated_fraction) * 100)}% · {role.works.length} работ{role.works.some((work) => work.safety_conditions) ? ' · Есть неподтверждённый допуск' : ''}</small></span></summary>
       <div className="wr-role-body"><p>База оплаты: {role.salary_basis}; расходы работодателя {money(role.monthly_employer_cost_rub)}/мес. на человека. Штат: {role.headcount_source}. Ставка: {role.salary_source}.</p>{role.works.map((work) => <div key={work.process_code} className="wr-work-result"><strong>{work.technical_task}</strong>
         <p>{num(work.daily_volume)} {work.unit}/сутки → {num(work.target_units_per_day)} {work.unit}/сутки · парк {work.fleet} · до коэффициента {num(work.potential_fte)} ставки · после {num(work.fte_equivalent)}</p>
         <p>{work.selected_model_name || 'Сценарный тип без каталожной модели'} · {work.model_status} · {work.calculation_status === 'REFERENCE_ONLY' ? 'Техническая подзадача по допущению ASSUMPTION_V2; не паспортная формула C11.' : work.calculation_status}</p>
-        <p>Покупка: NPV {money(work.purchase.npv_rub)}, ROI {work.purchase.roi_percent == null ? 'N/A' : `${num(work.purchase.roi_percent)}%`}; аренда: NPV {money(work.raas.npv_rub)}, ROI {work.raas.roi_status}.</p>
+        <p>Покупка: NPV {money(work.purchase.npv_rub)}, ROI за {report.general.horizon_years} лет {work.purchase.roi_percent == null ? 'N/A' : `${num(work.purchase.roi_percent)}%`}; аренда: {work.raas.mode === 'PERCENT' ? `${num(work.raas.percent_monthly)}% цены/мес. = ${money(work.raas.monthly_per_robot_rub)}/робот/мес.` : `${money(work.raas.monthly_per_robot_rub ?? work.scenario_raas_monthly_rub)}/робот/мес.`}, NPV {money(work.raas.npv_rub)}, ROI {work.raas.roi_status}.</p>
         {work.safety_conditions && <p role="alert" className="wr-message wr-message-error">Условный расчёт: {work.safety_conditions}. Эксплуатация не разрешена этим расчётом.</p>}
         <details><summary>Источники и ручной остаток</summary><p>{work.basis}</p><p>Ручной остаток: {work.residual_operations}</p><p>Выработка: {work.rate_source}; цена: {work.price_source}; аренда: {work.raas_source}; строка {work.evidence_ref}.</p></details>
-      </div>)}</div></article>)}</div></section>
+      </div>)}</div></details>)}</div></section>}
     <p className="wr-disclaimer">ROI покупки = (недисконтированный эффект за горизонт − CAPEX) / CAPEX × 100%. NPV дисконтирован. При нулевом CAPEX аренды ROI на CAPEX не определён. Эффект ФОТ — сценарий расходов, а не обязательное сокращение сотрудников.</p>
     {onEdit && <button type="button" className="wr-primary" onClick={onEdit}>Изменить роли и пересчитать</button>}
   </main>;
 }
 
 export default function ObjectRoleWorkspace({ kind, activeProject, user, authChecked, projectChoices = [], projectStatus,
-  onChooseProject, onOpenProjects, onOpenAccount, onSaved }) {
+  onChooseProject, onOpenProjects, onOpenAccount, onSaved, onPreview, onInvalidated, onContinue, initialReport }) {
   const [draft, setDraft] = useState(null);
   const [report, setReport] = useState(null);
   const [version, setVersion] = useState(0);
   const [busy, setBusy] = useState('loading');
   const [dirty, setDirty] = useState(false);
+  const [unsavedPreview, setUnsavedPreview] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [expandedRoles, setExpandedRoles] = useState({});
   const sequence = useRef(0);
+  const initialReportRef = useRef(initialReport);
+  const onPreviewRef = useRef(onPreview);
+  useEffect(() => { initialReportRef.current = initialReport; onPreviewRef.current = onPreview; }, [initialReport, onPreview]);
   const projectId = activeProject?.id;
+  const draftKey = `robodovod:object-role-draft:${projectId || 'guest'}:${kind}`;
 
   useEffect(() => {
     let active = true;
@@ -114,24 +131,36 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
       : Promise.resolve({ version: 0, latest: null })]).then(([template, saved]) => {
       if (!active) return;
       const prior = saved.latest?.input_snapshot;
-      const priorRoles = Object.fromEntries((prior?.roles || []).map((role) => [role.role_code, role]));
-      setDraft({ general: prior?.general || template.general,
-        include_safety_in_conditional: prior?.include_safety_in_conditional ?? true,
+      let sessionDraft = null;
+      try { sessionDraft = JSON.parse(sessionStorage.getItem(draftKey) || 'null'); } catch { sessionDraft = null; }
+      const sourceInput = sessionDraft || prior;
+      const priorRoles = Object.fromEntries((sourceInput?.roles || []).map((role) => [role.role_code, role]));
+      setDraft({ general: sourceInput?.general || template.general,
+        include_safety_in_conditional: sourceInput?.include_safety_in_conditional ?? true,
         roles: template.roles.map((role) => {
           const old = priorRoles[role.role_code];
           const oldWorks = Object.fromEntries((old?.works || []).map((work) => [work.process_code, work]));
-          return { ...role, ...(old || {}), selected: prior ? Boolean(old) : true,
+          return { ...role, ...(old || {}), selected: sessionDraft ? Boolean(old?.selected) : prior ? Boolean(old) : false,
             works: role.works.map((work) => ({ ...work, ...(oldWorks[work.process_code] || {}),
-              selected: prior ? Boolean(oldWorks[work.process_code]) : true })) };
+              selected: sessionDraft ? Boolean(oldWorks[work.process_code]?.selected) : prior ? Boolean(oldWorks[work.process_code]) : true })) };
         }) });
-      setReport(saved.latest?.result_snapshot || null);
+      setReport(initialReportRef.current || (sessionDraft ? null : saved.latest?.result_snapshot) || null);
       setVersion(saved.version);
-      setBusy(''); setDirty(false); setError('');
+      setBusy(''); setDirty(Boolean(sessionDraft && !initialReportRef.current)); setUnsavedPreview(Boolean(sessionDraft && initialReportRef.current)); setError('');
+      if (saved.latest?.result_snapshot && !sessionDraft && !initialReportRef.current) onPreviewRef.current?.(saved.latest.result_snapshot);
     }).catch((reason) => { if (active) { setError(reason.message); setBusy(''); } });
     return () => { active = false; sequence.current += 1; };
-  }, [kind, projectId]);
+  }, [kind, projectId, draftKey]);
 
-  const update = (fn) => { sequence.current += 1; setDraft((current) => fn(current)); setDirty(true); setNotice(''); if (busy === 'preview') setBusy(''); };
+  useEffect(() => {
+    if (!draft) return;
+    try {
+      if (dirty || unsavedPreview) sessionStorage.setItem(draftKey, JSON.stringify(draft));
+      else sessionStorage.removeItem(draftKey);
+    } catch { /* In-memory editing remains available. */ }
+  }, [draft, dirty, unsavedPreview, draftKey]);
+
+  const update = (fn) => { sequence.current += 1; onInvalidated?.(); setDraft((current) => fn(current)); setDirty(true); setNotice(''); if (busy === 'preview') setBusy(''); };
   const changeGeneral = (key, value) => update((current) => ({ ...current, general: { ...current.general, [key]: value } }));
   const changeRole = (code, key, value) => update((current) => ({ ...current,
     roles: current.roles.map((role) => role.role_code === code ? { ...role, [key]: value,
@@ -141,7 +170,7 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
     roles: current.roles.map((role) => role.role_code === code ? { ...role,
       works: role.works.map((work) => work.process_code === process ? { ...work, [key]: value,
         ...(key === 'scenario_purchase_price_rub' ? { price_source: 'USER' } : {}),
-        ...(key === 'scenario_raas_monthly_rub' ? { raas_source: 'USER' } : {}),
+        ...(['scenario_raas_monthly_rub', 'raas_percent_monthly'].includes(key) ? { raas_source: 'USER' } : {}),
         ...(key === 'robot_units_per_hour' ? { rate_source: 'USER_ASSUMPTION' } : {}) } : work) } : role) }));
   const preview = async (inputDraft = draft) => {
     if (!projectId) { setError('Выберите или создайте проект для расчёта.'); return; }
@@ -153,7 +182,7 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
         body: JSON.stringify(asInput(inputDraft, kind)),
       });
       if (currentSequence !== sequence.current) return;
-      setReport(response); setDirty(false); setNotice('Расчёт выполнен. Проверьте назначения, допущения и оба итога.');
+      setReport(response); setDirty(false); setUnsavedPreview(true); onPreview?.(response); setNotice('Расчёт выполнен. Проверьте назначения, допущения и оба итога.');
       document.getElementById('object-role-results')?.scrollIntoView({ behavior: 'smooth' });
     } catch (reason) { if (currentSequence === sequence.current) setError(reason.message); }
     finally { if (currentSequence === sequence.current) setBusy(''); }
@@ -168,6 +197,7 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
         body: JSON.stringify({ expected_version: version, expected_catalog_version: report.catalog_version, input: asInput(draft, kind) }),
       });
       setVersion(saved.version);
+      setUnsavedPreview(false);
       if (currentSequence === sequence.current) {
         setReport(saved.latest.result_snapshot);
         setNotice(`Сохранено в проекте, версия ${saved.version}.`); onSaved?.(saved.latest.result_snapshot);
@@ -180,7 +210,6 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
     <header className="wr-hero"><div><p className="wr-kicker">ОБЪЕКТНЫЙ РАСЧЁТ · {kind}</p><h1>Роботы для каждой роли {NAMES[kind]}</h1>
       <p>Выберите сотрудников и настройте каждую работу. Типовые значения — редактируемые допущения, не замеры объекта.</p></div>
       <div className="wr-hero-mark"><AppIcon name={kind.toLowerCase()} size={52} /><span>РОЛИ<br />РАСЧЁТ</span></div></header>
-    <div className="wr-progress"><span className="active">01 · Объект</span><span className="active">02 · Роли</span><span>03 · Роботы</span><span>04 · Покупка и аренда</span><span>05 · Результат</span></div>
     {!projectId && <section className="wr-project-note"><strong>Для расчёта нужен проект</strong>
       {!authChecked ? <p>Проверяем вход…</p> : !user ? <button type="button" onClick={onOpenAccount}>Войти или зарегистрироваться</button>
         : projectStatus === 'loading' ? <p>Загружаем проекты…</p> : projectChoices.length ? <select defaultValue="" onChange={(event) => {
@@ -200,11 +229,12 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
       ].map(([key, label]) => <Field key={key} label={label} value={draft.general[key]} onChange={(value) => changeGeneral(key, value)} />)}
     </div><p>При аренде тариф задан по каждой работе; состав услуги и сервис необходимо проверить с поставщиком.</p></section>
     <section className="wr-panel"><h2>Роли и виды работы</h2><p>Коэффициент ФОТ: какая часть высвобождённого времени реально уменьшит расходы? Например, 2 потенциальные ставки × 0,5 = экономия расходов на 1 ставку. При 0 люди перераспределяются, при 1 учитывается весь потенциал. Парк не меняется.</p>
+      <div className="wr-actions"><button type="button" className="wr-more" onClick={() => update((current) => ({ ...current, roles: current.roles.map((role) => ({ ...role, selected: true })) }))}>Выбрать все типовые роли</button></div>
       <div className="wr-role-grid">{draft.roles.map((role) => <article key={role.role_code} className={`wr-role-card${role.selected ? ' selected' : ''}`}>
-        <button type="button" className="wr-role-toggle" aria-pressed={role.selected} onClick={() => changeRole(role.role_code, 'selected', !role.selected)}>
-          <span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{role.works.length} видов работы · {num(role.headcount)} человек</small></span>
-          <span className="wr-role-check">{role.selected ? '✓' : '+'}</span></button>
-        {role.selected && <div className="wr-role-body"><div className="wr-role-fields">
+        <div className="wr-role-toggle"><label className="wr-role-select"><input type="checkbox" checked={role.selected} onChange={(event) => changeRole(role.role_code, 'selected', event.target.checked)} aria-label={`Включить роль ${role.label}`} /></label><button type="button" className="wr-role-expand" aria-expanded={Boolean(expandedRoles[role.role_code])} onClick={() => setExpandedRoles((current) => ({ ...current, [role.role_code]: !current[role.role_code] }))}>
+          <span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{role.works.length} видов работы · {num(role.headcount)} человек{role.works.some((work) => work.safety_conditions) ? ' · Есть неподтверждённый допуск' : ''}</small></span>
+          <span className="wr-role-check">{expandedRoles[role.role_code] ? '−' : '+'}</span></button></div>
+        {expandedRoles[role.role_code] && <div className="wr-role-body"><div className="wr-role-fields">
           <Field label="Один штат роли, человек" value={role.headcount} onChange={(value) => changeRole(role.role_code, 'headcount', value)} />
           <Field label={role.salary_basis === 'GROSS' ? 'Начисленная gross зарплата на человека, ₽/мес.' : 'Расходы работодателя на человека, ₽/мес.'} value={role.monthly_employer_cost_rub} onChange={(value) => changeRole(role.role_code, 'monthly_employer_cost_rub', value)} />
           <Field label="Коэффициент ФОТ роли, 0–1" value={role.realizable_labor_share} max="1" onChange={(value) => changeRole(role.role_code, 'realizable_labor_share', value)} />
@@ -222,7 +252,10 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
               <Field label="Роботизируемая доля этой работы, 0–1" value={work.robotizable_share} max="1" onChange={(value) => changeWork(role.role_code, work.process_code, 'robotizable_share', value)} />
               <Field label={`Выработка робота по допущению, ${work.unit}/час`} value={work.robot_units_per_hour} onChange={(value) => changeWork(role.role_code, work.process_code, 'robot_units_per_hour', value)} />
               <Field label="Сценарная цена покупки, ₽/робот" value={work.scenario_purchase_price_rub} onChange={(value) => changeWork(role.role_code, work.process_code, 'scenario_purchase_price_rub', value)} />
-              <Field label="Сценарный тариф RaaS, ₽/мес. на робота" value={work.scenario_raas_monthly_rub} onChange={(value) => changeWork(role.role_code, work.process_code, 'scenario_raas_monthly_rub', value)} />
+              <label className="wr-field"><span>Тариф аренды</span><select value={work.raas_mode || 'FIXED'} onChange={(event) => changeWork(role.role_code, work.process_code, 'raas_mode', event.target.value)}><option value="PERCENT">% цены робота в месяц</option><option value="FIXED">₽/робот/месяц</option></select></label>
+              {work.raas_mode === 'PERCENT'
+                ? <Field label="Аренда, % цены робота в месяц" value={work.raas_percent_monthly} max="100" onChange={(value) => changeWork(role.role_code, work.process_code, 'raas_percent_monthly', value)} hint="Производный платёж покажет сервер после пересчёта; процент — тариф услуги, не ставка кредита." />
+                : <Field label="Сценарный тариф RaaS, ₽/мес. на робота" value={work.scenario_raas_monthly_rub} onChange={(value) => changeWork(role.role_code, work.process_code, 'scenario_raas_monthly_rub', value)} />}
             </div><label className="wr-field"><span>Техническая подзадача</span><input value={work.technical_task} onChange={(event) => changeWork(role.role_code, work.process_code, 'technical_task', event.target.value)} /></label>
             <details><summary>Основания и ручной остаток</summary><label className="wr-field"><span>Основание спроса и допущений</span><textarea value={work.basis} rows="3" onChange={(event) => changeWork(role.role_code, work.process_code, 'basis', event.target.value)} /></label>
               <label className="wr-field"><span>Что остаётся человеку</span><textarea value={work.residual_operations} rows="2" onChange={(event) => changeWork(role.role_code, work.process_code, 'residual_operations', event.target.value)} /></label>
@@ -236,9 +269,11 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
       <div className="wr-actions"><button type="button" className="wr-primary" disabled={busy !== '' || !projectId || !draft.roles.some((role) => role.selected && role.works.some((work) => work.selected))} onClick={() => preview()}>{busy === 'preview' ? 'Считаем…' : 'Подобрать и рассчитать все выбранные работы'}</button></div>
     </section>
     {error && <p role="alert" className="wr-message wr-message-error">{error}</p>}{notice && <p role="status" className="wr-message wr-message-ok">{notice}</p>}
-    {report && <div id="object-role-results" className={dirty ? 'wr-results-stale' : ''}><ObjectRoleResult report={report} />
+    {report && <div id="object-role-results" className={`wr-panel${dirty ? ' wr-results-stale' : ''}`}><h2>Предпросмотр готов</h2>
+      <p>{report.conditional_total.work_count} работ · парк {report.conditional_total.fleet} роботов. Дальше можно рассмотреть назначения, сравнить покупку и аренду и открыть визуализацию.</p>
       {dirty && <p role="status">Данные изменены. Пересчитайте перед сохранением.</p>}
       <button type="button" className="wr-primary" disabled={dirty || busy !== ''} onClick={save}>{busy === 'save' ? 'Сохраняем…' : 'Сохранить расчёт в проекте'}</button>
+      <button type="button" className="wr-primary" disabled={dirty || busy !== ''} onClick={onContinue}>Продолжить к роботам →</button>
       {version > 0 && <span className="wr-version">Версия {version}</span>}
     </div>}
   </main>;

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from copy import deepcopy
 from types import SimpleNamespace
 import uuid
 
@@ -28,7 +29,7 @@ def sample():
     roles = [{key: row[key] for key in ("role_code", "headcount", "monthly_employer_cost_rub",
               "daily_volume", "manual_units_per_person_shift", "robotizable_share", "source", "basis")}
              for row in template["roles"]]
-    return {"general": template["general"], "roles": roles}
+    return {"general": deepcopy(template["general"]), "roles": roles}
 
 
 def catalog():
@@ -75,10 +76,35 @@ def test_missing_price_in_modified_project_leaves_other_branch_numeric():
     raw = sample()
     raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "picker"]
     raw["selected_positions"] = {"picker": "picking"}
-    raw["overrides"] = [{"role_code": "picker", "position_id": "picking", "omit_purchase_price": True}]
+    raw["overrides"] = [{"role_code": "picker", "position_id": "picking", "omit_purchase_price": True,
+                          "raas_mode": "FIXED"}]
     result = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())
     assert result["portfolio"]["capex_rub"] is None
     assert result["portfolio"]["raas_npv_rub"] is not None
+    raw["overrides"][0]["raas_mode"] = "PERCENT"
+    percent = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())
+    assert percent["portfolio"]["raas_npv_rub"] is None
+    assert percent["portfolio"]["missing_raas"] == ["picker/picking.price_rub"]
+
+
+def test_percent_raas_and_59_picker_fleet_explain_their_inputs():
+    raw = sample()
+    raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "picker"]
+    raw["roles"][0].update(headcount="30", daily_volume="100000", manual_units_per_person_shift="1250", robotizable_share="0.5")
+    raw["general"]["shifts_per_day"] = 1
+    raw["selected_positions"] = {"picker": "picking"}
+    result = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())
+    chosen = result["roles"][0]["candidates"][0]
+    assert chosen["fleet"] == 59
+    assert chosen["manual_capacity_units_per_day"] == "37500.00"
+    assert chosen["demand_warning"]
+    assert chosen["fleet_formula"]["target_units_per_day"] == "50000.00"
+    assert chosen["raas_mode"] == "PERCENT"
+    assert chosen["raas_percent_monthly"] == "2.00"
+    assert Decimal(chosen["raas_monthly_rub"]) == Decimal(chosen["price_rub"]) * Decimal("0.02")
+    raw["general"]["shifts_per_day"] = 2
+    two_shifts = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())
+    assert two_shifts["roles"][0]["candidates"][0]["fleet"] == 30
 
 
 def test_duplicate_role_and_unrelated_selection_rejected():

@@ -1,0 +1,17 @@
+.role-visual { margin: 1.2rem auto; padding: 1.2rem; border: 1px solid #567044; border-radius: 1.2rem; background: #142721; color: var(--text-primary); }
+.role-visual-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.role-visual-heading h2 { margin: 0; font-size: 1.5rem; }
+.role-visual-heading > strong { color: var(--lime); }
+.role-visual > p { color: #bfd0c2; font-size: .84rem; }
+.role-visual-layout { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 1rem; }
+.role-visual-list { display: flex; flex-direction: column; gap: .4rem; max-height: 420px; overflow-y: auto; }
+.role-visual-list button { display: flex; justify-content: space-between; align-items: center; gap: .6rem; padding: .65rem .75rem; border: 1px solid #365249; border-radius: .65rem; background: #19332c; color: #ecf5eb; text-align: left; }
+.role-visual-list button.active { border-color: var(--lime); background: #2d4a34; }
+.role-visual-list button span { min-width: 0; font-size: .82rem; font-weight: 700; }
+.role-visual-list button small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #b3cdb9; font-size: .72rem; font-weight: 400; }
+.role-visual-list button strong { color: var(--lime); }
+.role-visual-scene { min-width: 0; border: 1px solid #39564b; border-radius: .8rem; overflow: hidden; background: #102428; }
+.role-visual-scene svg { display: block; width: 100%; height: auto; }
+.role-visual-facts { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding: .75rem; font-size: .8rem; }
+.role-visual-facts strong { flex-basis: 100%; }
+@media (max-width: 760px) { .role-visual-layout { grid-template-columns: 1fr; } .role-visual-list { max-height: 180px; } }

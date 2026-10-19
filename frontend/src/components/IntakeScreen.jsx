@@ -6,7 +6,7 @@ import ObjectRoleWorkspace from './ObjectRoleWorkspace';
 
 export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
-  onFileApplied, onIntakeV2Normalized, onCapacityResult, onWarehouseRoleSaved }) {
+  onFileApplied, onIntakeV2Normalized, onCapacityResult, onWarehouseRoleSaved, onRolePreview, onRoleInvalidated, onRoleContinue, roleReport }) {
   const [v2FileInput, setV2FileInput] = useState(() => activeProject?.profile?.file_intake_v2?.object_type === objectType
     ? { normalized: activeProject.profile.file_intake_v2, imported: { id: activeProject.profile.project_file_import_id } } : null);
   const [fileNotice, setFileNotice] = useState('');
@@ -27,10 +27,12 @@ export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', ini
   if (supported && !showLegacyWarehouse) return <>
     {objectType === 'retail' ? <WarehouseRoleWorkspace activeProject={activeProject} user={user} authChecked={authChecked}
       projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject}
-      onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved} />
+      onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved}
+      onPreview={onRolePreview} onInvalidated={onRoleInvalidated} onContinue={onRoleContinue} initialReport={roleReport} />
       : <ObjectRoleWorkspace kind={objectType.toUpperCase()} activeProject={activeProject} user={user} authChecked={authChecked}
         projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject}
-        onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved} />}
+        onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved}
+        onPreview={onRolePreview} onInvalidated={onRoleInvalidated} onContinue={onRoleContinue} initialReport={roleReport} />}
     <div className="mx-auto mb-6 max-w-6xl px-4"><button type="button" className="text-sm text-slate-400 underline"
       onClick={() => setShowLegacyWarehouse(true)}>Открыть прежний расчёт по зонам и операциям</button></div>
   </>;
