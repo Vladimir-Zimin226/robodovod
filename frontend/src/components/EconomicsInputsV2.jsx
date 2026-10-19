@@ -17,6 +17,7 @@ import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
 import { ECONOMICS_DEPTHS, depthIndex, valuesAtDepth } from '../economicsDepth';
 import { roleLabel as roleName } from '../roleLabels';
 import { buildRoleWorkProfiles, primaryWorkEvidence, PRIMARY_ROLE_BASIS, ZERO_ROLE_BASIS, ZERO_ROLE_RESIDUAL } from '../roleWorkProfiles';
+import { applyRoleWorkScenario } from '../roleWorkScenarioAssumptions';
 
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -294,12 +295,12 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
     </div>
     <section className="rounded-xl border border-lime-400 bg-teal-950 p-4 text-white text-sm" aria-label="Черновые допущения типового объекта">
       <button type="button" disabled={busy} className="rounded-xl bg-lime-400 px-5 py-3 font-semibold text-slate-950 disabled:opacity-50" onClick={() => {
-        const proposed = applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
+        const proposed = applyRoleWorkScenario(applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
           (process?.process_code?.startsWith('airport_') ? 'AIRPORT' : process?.process_code?.startsWith('clinic_') ? 'CLINIC' : 'WAREHOUSE'), manualEstimate, process?.process_code,
-          { catalogPriceAvailable: selectedPosition?.position?.purchase?.amount != null });
+          { catalogPriceAvailable: selectedPosition?.position?.purchase?.amount != null }), capacityRequest);
         const primaryRoleId = proposed.primaryRoleId || (capacityRequest?.process?.role_refs?.length === 1
           ? capacityRequest.process.role_refs[0] : null);
-        setValues(primaryRoleId ? { ...proposed, roleWorkProfiles: { ...proposed.roleWorkProfiles,
+        setValues(primaryRoleId && !proposed.roleWorkProfiles?.[primaryRoleId] ? { ...proposed, roleWorkProfiles: { ...proposed.roleWorkProfiles,
           [primaryRoleId]: { ...proposed.roleWorkProfiles?.[primaryRoleId], source: 'ASSUMPTION',
             basis: PRIMARY_ROLE_BASIS, confirmed: false } } } : proposed);
       }}>Подставить черновые допущения</button>

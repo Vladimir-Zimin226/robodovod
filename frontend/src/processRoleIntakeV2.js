@@ -1,3 +1,5 @@
+import { ROLE_WORK_SCENARIOS } from './roleWorkScenarioAssumptions.js';
+
 export const INTAKE_SCHEMA_VERSION = 'calculation-intake-v2';
 export const NORMALIZATION_SCHEMA_VERSION = 'calculation-intake-normalization-v2';
 
@@ -135,11 +137,12 @@ export function createWarehouseDemoDraft() {
     fieldConfirmations: { batch: false },
   });
   draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'forklift_driver', true);
+  const scenario = ROLE_WORK_SCENARIOS.warehouse_receiving_shipping.forklift_driver;
   return updateRole(draft, `${draft.objectId}.forklift_driver`, {
-    headcount: '25', headcountSource: 'ASSUMPTION',
+    headcount: scenario.headcount, headcountSource: 'ASSUMPTION',
     // Organizer salary is gross. The example converts it using the C14 1.302
     // employer-contribution assumption so the new employer-cost basis is honest.
-    salary: '156240', salarySource: 'ASSUMPTION', salaryConfirmed: false,
+    salary: scenario.monthlyEmployerCost, salarySource: 'ASSUMPTION', salaryConfirmed: false,
   });
 }
 
@@ -212,7 +215,15 @@ export function updateFacilityPlan(draft, facilityPlan) {
 // Organizer values: organizer-catalog-v4/object_profiles.json (XLSX sheets).
 // Process staffing allocation, batch and schedules below are scenario assumptions.
 export function createTypicalObjectDraft(objectType) {
-  if (objectType === 'retail') return createWarehouseDemoDraft();
+  if (objectType === 'retail') {
+    let draft = createWarehouseDemoDraft();
+    const loader = ROLE_WORK_SCENARIOS.warehouse_receiving_shipping.loader;
+    draft = setRoleActive(draft, 'warehouse_receiving_shipping', 'loader', true);
+    return updateRole(draft, `${draft.objectId}.loader`, {
+      headcount: loader.headcount, headcountSource: 'ASSUMPTION',
+      salary: loader.monthlyEmployerCost, salarySource: 'ASSUMPTION', salaryConfirmed: false,
+    });
+  }
   let draft = createDraft(objectType);
   const airport = objectType === 'airport';
   const code = airport ? 'airport_terminal_cleaning' : 'clinic_food';
@@ -229,9 +240,10 @@ export function createTypicalObjectDraft(objectType) {
     fieldConfirmations: { batch: false } });
   const role = airport ? 'terminal_cleaner' : 'catering_worker';
   draft = setRoleActive(draft, code, role, true);
+  const scenario = ROLE_WORK_SCENARIOS[code][role];
   return updateRole(draft, `${draft.objectId}.${role}`, {
-    headcount: airport ? '30' : '6', headcountSource: 'ASSUMPTION',
-    salary: airport ? '84630' : '67704', salarySource: 'ASSUMPTION', salaryConfirmed: false });
+    headcount: scenario.headcount, headcountSource: 'ASSUMPTION',
+    salary: scenario.monthlyEmployerCost, salarySource: 'ASSUMPTION', salaryConfirmed: false });
 }
 
 // The dedicated loader click accepts the displayed typical-object assumptions.

@@ -78,9 +78,9 @@ def test_multirole_economics_keeps_conservative_loader_assumption_visible():
     assert effects['role.loader']['released'] == 0
     measured = deepcopy(raw)
     measured['role_work_profiles'][1].update({
-        'robotizable_fraction': '0.5', 'manual_units_per_shift': '100',
-        'residual_operations': 'Inspection remains manual',
-        'basis': 'Illustrative role-specific productivity and task share'})
+        'robotizable_fraction': '0.25', 'manual_units_per_shift': '250',
+        'residual_operations': 'Loading, scanning and inspection remain manual',
+        'basis': 'RW-WH-LOADER-01: scenario estimate 150/600 minutes; not measured'})
     changed = execute_partial_economics_v2(measured, snapshot, context, full_engine=execute_economics_v5).result_snapshot
     changed_loader = next(item for item in changed['role_labour']['roles']
                           if item['role_id'] == 'role.loader')
