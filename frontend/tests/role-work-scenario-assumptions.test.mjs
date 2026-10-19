@@ -17,16 +17,17 @@ test('review table agrees with the scenario values used by the browser', async (
   for (const row of records) {
     assert.equal(row.work_data_source, 'ASSUMPTION');
     assert.equal(row.measurement_date, '');
-    assert.equal(row.confirmed, String(row.calculation_status === 'CALCULABLE'));
+    assert.equal(row.confirmed, String(['CALCULABLE', 'ALLOCATION_REQUIRED'].includes(row.calculation_status)));
     assert.equal(Number(row.robotizable_task_minutes_per_person_shift) / Number(row.paid_process_minutes_per_person_shift), Number(row.robotizable_fraction));
     const scenario = ROLE_WORK_SCENARIOS[row.process_code]?.[row.role_code];
-    if (row.calculation_status !== 'CALCULABLE') {
+    if (!['CALCULABLE', 'ALLOCATION_REQUIRED'].includes(row.calculation_status)) {
       assert.equal(scenario, undefined);
       continue;
     }
     assert.ok(scenario, `${row.process_code}/${row.role_code}`);
     assert.equal(row.evidence_ref, scenario.id);
-    assert.equal(Number(row.object_role_headcount) * Number(row.process_allocation_fraction), Number(scenario.headcount));
+    assert.equal(row.object_role_headcount, scenario.headcount);
+    assert.equal(row.process_allocation_fraction, scenario.allocationFraction);
     assert.equal(row.monthly_amount_rub_per_person, scenario.monthlyEmployerCost);
     assert.equal(row.manual_units_per_person_shift, scenario.manualUnitsPerShift);
     assert.equal(row.robotizable_fraction, scenario.robotizableFraction);
@@ -45,6 +46,20 @@ test('shared staff allocations close without reusing a person twice', () => {
   assert.equal(ROLE_WORK_SCENARIO_ROWS.filter((row) => row.calculation_status === 'ALLOCATION_REQUIRED').length, 7);
 });
 
+test('a shared-role preset sends object headcount and a process-specific fraction', () => {
+  const roleId = 'draft.airport.trolley_operator';
+  const values = applyRoleWorkScenario({ sources: {}, assumptions: {}, roleWorkProfiles: {} }, {
+    process: { process_code: 'airport_catering', role_refs: [roleId] },
+    role_pool: { roles: [{ role_id: roleId, role_code: 'trolley_operator',
+      headcount: { normalized_value: '80' }, process_ids: ['process.catering', 'process.logistics'] }] },
+  });
+  assert.equal(values.roleWorkProfiles[roleId].allocationFraction, '0.4');
+  assert.equal(values.roleWorkProfiles[roleId].confirmed, true);
+  assert.equal(buildRoleWorkProfiles(values, [roleId], roleId)[0].process_allocation_fraction, '0.4');
+  values.roleWorkProfiles[roleId].allocationFraction = '';
+  assert.equal(buildRoleWorkProfiles(values, [roleId], roleId)[0].process_allocation_fraction, '');
+});
+
 test('typical warehouse includes a paid loader and both role effects can be serialized', () => {
   const draft = loadConfirmedTypicalObjectDraft('retail');
   assert.equal(draft.roles.length, 2);
@@ -61,6 +76,7 @@ test('typical warehouse includes a paid loader and both role effects can be seri
   assert.equal(values.manualUnitsPerShift, '100');
   assert.equal(values.robotizableShare, '0.8');
   assert.equal(values.assumptions.manual_units_per_shift.confirmed, true);
+  assert.equal(values.assumptions.manual_units_per_shift.version, 'custom-v1');
   const profiles = buildRoleWorkProfiles(values, roleRefs, values.primaryRoleId);
   assert.equal(profiles[0].robotizable_fraction, '0.8');
   assert.equal(profiles[1].robotizable_fraction, '0.25');
@@ -75,7 +91,7 @@ test('typical warehouse includes a paid loader and both role effects can be seri
   assert.equal(applyRoleWorkScenario({ marker: true }, changed).primaryRoleId, undefined);
   changed.role_pool.roles[1].headcount.normalized_value = '8';
   changed.role_pool.roles[1].process_ids = ['receiving', 'other-process'];
-  assert.equal(applyRoleWorkScenario({ marker: true }, changed).primaryRoleId, undefined);
+  assert.equal(applyRoleWorkScenario({ marker: true }, changed).primaryRoleId, roleRefs[0]);
 });
 
 test('airport and clinic typical objects use documented role assumptions', () => {
@@ -112,5 +128,10 @@ test('other supported profiles fill empty work fields without replacing site dat
   assert.deepEqual(applyScenarioRolesToDraft(user, 'clinic_linen').roles, user.roles);
   let shared = updateProcess(createDraft('clinic'), 'clinic_medicines', { active: true });
   shared = setRoleActive(shared, 'clinic_medicines', 'sanitary', true);
-  assert.equal(applyScenarioRolesToDraft(shared, 'clinic_medicines'), shared);
+  const allocated = applyScenarioRolesToDraft(shared, 'clinic_medicines');
+  assert.equal(allocated.roles.find((role) => role.roleCode === 'sanitary').headcount, '40');
+  assert.equal(allocated.roles.find((role) => role.roleCode === 'porter').headcount, '25');
+  const withWaste = applyScenarioRolesToDraft(updateProcess(allocated, 'clinic_waste_a', { active: true }), 'clinic_waste_a');
+  assert.equal(withWaste.roles.length, 2);
+  assert.ok(withWaste.roles.every((role) => role.processIds.length === 2));
 });

@@ -1,15 +1,68 @@
 from dataclasses import replace
+from copy import deepcopy
 from decimal import Decimal
+import json
+from pathlib import Path
 
+import jsonschema
 import pytest
 
 from calculation.service import analyze_capacity
 from calculation_contracts import CapacityAnalysisRequest
 from economics_orchestrator import EconomicsExecutionContextV1
+from economics_final import execute_economics_v5
 from economics_partial import execute_partial_economics_v2
 from project_portfolio import calculate_project_portfolio
 from test_economics_partial import _context
 from test_evgeny_project import project_input
+
+
+def test_shared_role_uses_explicit_fractions_across_saved_processes():
+    snapshot, original = _context()
+    base = original.capacity_request.model_dump(mode="json")
+    process_ids = [base["process"]["process_id"], "process.second.shared"]
+    rows = []
+    for index, (process_id, fraction) in enumerate(zip(process_ids, ("0.4", "0.6"))):
+        payload = deepcopy(base)
+        payload["process"]["process_id"] = process_id
+        payload["role_pool"]["roles"][0]["process_ids"] = process_ids
+        request = CapacityAnalysisRequest.model_validate(payload)
+        calculated = analyze_capacity(request, snapshot, f"run.capacity.shared.{index}")
+        context = EconomicsExecutionContextV1(
+            run_id=f"run.economics.shared.{index}", project_id=original.project_id,
+            tenant_id=original.tenant_id, capacity_request=request,
+            capacity_response=calculated.response,
+            constraint_report=calculated.constraints.model_dump(mode="json"),
+            executability=calculated.executability.model_dump(mode="json"))
+        raw = project_input()
+        raw["role_work_profiles"] = [{
+            "role_id": "role.driver", "robotizable_fraction": "0.5",
+            "manual_units_per_shift": "100", "process_allocation_fraction": fraction,
+            "residual_operations": "Manual inspection remains", "source": "ASSUMPTION",
+            "basis": "Documented scenario allocation", "confirmed": True,
+        }]
+        result = execute_partial_economics_v2(raw, snapshot, context, full_engine=execute_economics_v5).result_snapshot
+        assert result["role_labour"]["roles"][0]["allocated_people"] == (8 if index == 0 else 12)
+        schema = json.loads((Path(__file__).resolve().parents[1] / "contracts" /
+                             f"{result['schema_version']}.schema.json").read_text(encoding="utf-8"))
+        errors = list(jsonschema.Draft202012Validator(schema).iter_errors(result))
+        assert not errors, [(error.message, list(error.path)) for error in errors[:3]]
+        rows.append((context, raw, result))
+    report = calculate_project_portfolio(
+        rows, snapshot, project_id=original.project_id,
+        tenant_id=original.tenant_id, run_id="run.project.shared")
+    assert report["status"] == "CALCULATED"
+    assert report["total_released_people"] <= 20
+    missing = deepcopy(rows[0][1])
+    del missing["role_work_profiles"][0]["process_allocation_fraction"]
+    partial = execute_partial_economics_v2(missing, snapshot, rows[0][0]).result_snapshot
+    assert partial["schema_version"] == "economics-partial-result-v1"
+    assert partial["branches"]["labour"]["status"] != "CALCULATED"
+    rows[1][1]["role_work_profiles"][0]["process_allocation_fraction"] = "0.7"
+    with pytest.raises(ValueError, match="allocation fractions exceed one"):
+        calculate_project_portfolio(
+            rows, snapshot, project_id=original.project_id,
+            tenant_id=original.tenant_id, run_id="run.project.shared.excess")
 
 
 def test_one_model_portfolio_replays_one_process_without_duplicate_site_cost():

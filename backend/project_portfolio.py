@@ -16,7 +16,7 @@ from calculation.economics.allocation import (
 )
 from calculation.labour import (
     CapacityLabourProjectionV1, LabourAnalysisRequestV1,
-    ProcessLabourInputV1, SalarySourceBindingV1,
+    ProcessLabourInputV1, RoleAllocationInputV1, SalarySourceBindingV1,
 )
 from calculation.service import analyze_multiprocess_allocation, analyze_role_labour
 from calculation_contracts import KnownQuantity, RoleEntry, RolePool, semantic_digest
@@ -90,6 +90,7 @@ def calculate_project_portfolio(
     cost_rows = []
     seen = set()
     primary_processes_by_role: dict[str, set[str]] = {}
+    allocation_shares: dict[str, dict[str, str]] = {}
     for context, inputs, raw in prepared:
         request = context.capacity_request
         response = context.capacity_response
@@ -124,6 +125,9 @@ def calculate_project_portfolio(
             if labour_input.role_id is not None:
                 primary_processes_by_role.setdefault(labour_input.role_id, set()).add(process.process_id)
             processes.append(labour_input)
+        for profile in getattr(inputs, "role_work_profiles", None) or []:
+            if profile.process_allocation_fraction is not None:
+                allocation_shares.setdefault(profile.role_id, {})[process.process_id] = profile.process_allocation_fraction
         artifact = _scenario_artifacts(context, inputs, snapshot, "PURCHASE", "BASE")
         config = artifact.allocation_request.configurations[0]
         configurations.append(config)
@@ -139,11 +143,22 @@ def calculate_project_portfolio(
                           "charger_power_kw": raw.get("charger_power_kw"),
                           "charging_simultaneity_fraction": raw.get("charging_simultaneity_fraction")})
     roles = list(merged_roles.values())
+    for role_id, shares in allocation_shares.items():
+        if set(shares) != primary_processes_by_role.get(role_id, set()):
+            raise ValueError(f"role {role_id} needs an allocation fraction in every included process")
+        if sum((Decimal(value) for value in shares.values()), Decimal("0")) > 1:
+            raise ValueError(f"role {role_id} allocation fractions exceed one object headcount")
+    explicit_allocations = [RoleAllocationInputV1(
+        role_id=role_id, shares=shares,
+        source="USER",
+        provenance_ref=f"input.project.role-allocation.{role_id}",
+    ) for role_id, shares in sorted(allocation_shares.items())]
     pool = RolePool(pool_id=f"pool.{run_id}", object_kind=object_kind, roles=roles)
     labour_request = LabourAnalysisRequestV1(
         run_id=f"{run_id}.labour", project_id=project_id, tenant_id=tenant_id,
         input_revision=revision, object_id=f"object.{project_id}", object_kind=object_kind,
         uncertainty="BASE", role_pool=pool, processes=processes,
+        allocations=explicit_allocations,
         salary_sources=[SalarySourceBindingV1(
             role_id=role.role_id, provenance_ref=role.monthly_gross_salary.provenance_ref,
             source="USER") for role in roles if isinstance(role.monthly_gross_salary, KnownQuantity)],

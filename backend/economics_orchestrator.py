@@ -51,6 +51,7 @@ from calculation.labour import (
     LabourResultV1,
     ManualProductivityInputV1,
     ProcessLabourInputV1,
+    RoleAllocationInputV1,
     SalarySourceBindingV1,
     StaffingDecisionV1,
 )
@@ -130,10 +131,18 @@ class RoleWorkProfileV1(StrictContractModel):
     role_id: StableId
     robotizable_fraction: DecimalString
     manual_units_per_shift: DecimalString | None = None
+    process_allocation_fraction: DecimalString | None = None
     residual_operations: Annotated[str, Field(min_length=3, max_length=1000)]
     source: Literal["USER", "ASSUMPTION"]
     basis: Annotated[str, Field(min_length=3, max_length=1000)]
     confirmed: bool
+
+    @model_serializer(mode="wrap")
+    def serialize_optional_allocation(self, handler):
+        payload = handler(self)
+        if self.process_allocation_fraction is None:
+            payload.pop("process_allocation_fraction", None)
+        return payload
 
     @model_validator(mode="after")
     def valid_profile(self) -> "RoleWorkProfileV1":
@@ -142,6 +151,8 @@ class RoleWorkProfileV1(StrictContractModel):
             raise ValueError("role work fraction must be within 0..1")
         if fraction > 0 and (self.manual_units_per_shift is None or Decimal(self.manual_units_per_shift) <= 0):
             raise ValueError("robotizable role needs its own positive manual productivity")
+        if self.process_allocation_fraction is not None and not 0 <= Decimal(self.process_allocation_fraction) <= 1:
+            raise ValueError("process allocation fraction must be within 0..1")
         if not self.confirmed:
             raise ValueError("role work assumption must be confirmed")
         return self
@@ -455,6 +466,10 @@ def _role_labour_inputs(
     by_role = {profile.role_id: profile for profile in profiles}
     if len(by_role) != len(profiles) or set(by_role) != refs:
         raise ValueError("role work profiles must cover each C03 role exactly once")
+    shared_roles = {role.role_id for role in (request.role_pool.roles if request.role_pool else [])
+                    if len(role.process_ids) > 1 and role.role_id in refs}
+    if any(by_role[role_id].process_allocation_fraction is None for role_id in shared_roles):
+        raise ValueError("a role shared by processes needs an explicit allocation fraction")
     primary = _primary_role(request, inputs)
     if primary is not None and (inputs.work_share is None or
             Decimal(by_role[primary].robotizable_fraction) != Decimal(inputs.work_share.fraction)):
@@ -507,6 +522,12 @@ def _labour(
         uncertainty=uncertainty,
         role_pool=pool,
         processes=_role_labour_inputs(request, inputs, projection),
+        allocations=[RoleAllocationInputV1(
+            role_id=profile.role_id, shares={request.process.process_id: profile.process_allocation_fraction},
+            source="USER",
+            provenance_ref=f"input.economics.role-allocation.{profile.role_id}",
+        ) for profile in (getattr(inputs, "role_work_profiles", None) or [])
+          if profile.process_allocation_fraction is not None],
         salary_sources=[
             SalarySourceBindingV1(
                 role_id=item.role_id,

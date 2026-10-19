@@ -117,7 +117,8 @@ def render():
                         str(int(Decimal(gross) * Decimal("1.302"))), "EMPLOYER_COST",
                         salary_detail,
                         str(manual), unit, str(minutes), str(paid), str(minutes / paid), residual,
-                        "ASSUMPTION", work_basis, "", evidence, str(status == "CALCULABLE").lower(), status])
+                        "ASSUMPTION", work_basis, "", evidence,
+                        str(status in {"CALCULABLE", "ALLOCATION_REQUIRED"}).lower(), status])
     assert len(records) == 35
     assert all(value == 1 for value in allocations.values()), allocations
     assert 25 + 8 + 8 + 80 + 20 + 20 + 6 + 8 <= 180

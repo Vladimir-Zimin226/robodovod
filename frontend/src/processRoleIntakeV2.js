@@ -252,8 +252,6 @@ export function applyScenarioRolesToDraft(draft, processCode) {
   const process = draft.processes.find((item) => item.code === processCode && item.active);
   const scenario = ROLE_WORK_SCENARIOS[processCode];
   if (!process || !scenario || !process.roles.every((code) => scenario[code])) return draft;
-  if (draft.roles.some((role) => scenario[role.roleCode]
-    && role.processIds.some((id) => id !== process.processId))) return draft;
   let next = draft;
   for (const [roleCode, row] of Object.entries(scenario)) {
     next = setRoleActive(next, process.processId, roleCode, true);

@@ -82,6 +82,7 @@ function restored(capacityRunId, input, project) {
   values.chargingSimultaneityFraction = String(input?.charging_simultaneity_fraction ?? '');
   values.roleWorkProfiles = Object.fromEntries((input?.role_work_profiles || []).map((profile) =>
     [profile.role_id, { fraction: String(profile.robotizable_fraction), manual: String(profile.manual_units_per_shift ?? ''),
+      ...(profile.process_allocation_fraction != null ? { allocationFraction: String(profile.process_allocation_fraction) } : {}),
       residual: profile.residual_operations, basis: profile.basis, source: profile.source, confirmed: profile.confirmed === true }]));
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
@@ -396,6 +397,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
           const profile = values.roleWorkProfiles?.[id] || {};
           return <div key={id} className="mt-3 rounded border border-amber-300 bg-white p-3 space-y-2">
             <strong>{roleName(role?.role_code) || id}</strong>
+            {(role?.process_ids?.length > 1 || Object.hasOwn(profile, 'allocationFraction')) && <label className="block">Доля штата этой роли в текущем процессе (0–1)<input type="number" min="0" max="1" step="any" value={profile.allocationFraction ?? ''} onChange={setRoleWork(id, 'allocationFraction')} className="block w-full border rounded p-2" /><small>Укажите часть общего штата роли; сумма долей по процессам объекта не должна превышать 1.</small></label>}
             <label className="block">Доля работы, заменяемой роботом (0–1)<input type="number" min="0" max="1" step="any" value={profile.fraction ?? '0'} onChange={setRoleWork(id, 'fraction')} className="block w-full border rounded p-2" /></label>
             <label className="block">Ручная выработка этой роли, ед./смену<input type="number" min="0" step="any" value={profile.manual ?? ''} onChange={setRoleWork(id, 'manual')} className="block w-full border rounded p-2" /></label>
             <small>Нужна, если доля больше нуля; берите замер или явно помечайте оценку.</small>
@@ -415,10 +417,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         <small>Если штат или сумма неверны, измените их на шаге «Работа» и сохраните новый технический расчёт. Доля и выработка ниже относятся только к выбранному процессу.</small>
         {selectedRoleId && <div className="mt-2 rounded border bg-white p-3 space-y-2">
           <strong>{roleName(selectedRole?.role_code) || selectedRoleId}: источник доли и выработки</strong>
+          {(selectedRole?.process_ids?.length > 1 || Object.hasOwn(values.roleWorkProfiles?.[selectedRoleId] || {}, 'allocationFraction')) && <label className="block">Доля штата этой роли в текущем процессе (0–1)<input type="number" min="0" max="1" step="any" value={values.roleWorkProfiles?.[selectedRoleId]?.allocationFraction ?? ''} onChange={setRoleWork(selectedRoleId, 'allocationFraction')} className="block w-full border rounded p-2" /><small>Укажите часть общего штата роли; сумма долей по процессам объекта не должна превышать 1.</small></label>}
           <label className="block">Тип данных<select value={values.roleWorkProfiles?.[selectedRoleId]?.source || 'ASSUMPTION'} onChange={setRoleWork(selectedRoleId, 'source')} className="block w-full border rounded p-2"><option value="ASSUMPTION">Проектное допущение</option><option value="USER">Замер или данные объекта</option></select></label>
           <small>Если хотя бы доля или выработка оценочная, оставьте «Проектное допущение». У выработки ниже есть отдельный источник числового значения.</small>
           <label className="block">Основание: документ, период замера или причина допущения<input value={values.roleWorkProfiles?.[selectedRoleId]?.basis ?? (values.roleWorkProfiles?.[selectedRoleId]?.source === 'USER' ? '' : PRIMARY_ROLE_BASIS)} onChange={setRoleWork(selectedRoleId, 'basis')} className="block w-full border rounded p-2" /></label>
-          <label className="flex gap-2"><input type="checkbox" checked={values.roleWorkProfiles?.[selectedRoleId]?.confirmed === true} onChange={setRoleWork(selectedRoleId, 'confirmed')} />Подтверждаю долю, выработку и основание этой роли для нового расчёта</label>
+          <label className="flex gap-2"><input type="checkbox" checked={values.roleWorkProfiles?.[selectedRoleId]?.confirmed === true} onChange={setRoleWork(selectedRoleId, 'confirmed')} />Подтверждаю распределение штата, долю работы, выработку и основание этой роли для нового расчёта</label>
         </div>}
       </div>}
       {group === 'Труд' && <div className="mt-3 rounded border border-teal-300 p-3 text-sm" aria-label="Оценка ручной выработки">

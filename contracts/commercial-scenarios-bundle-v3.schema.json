@@ -1187,6 +1187,10 @@
             "null"
           ]
         },
+        "process_allocation_fraction": {
+          "type": "string",
+          "pattern": "^(?:0(?:\\.[0-9]+)?|1(?:\\.0+)?)$"
+        },
         "residual_operations": {
           "type": "string",
           "minLength": 3

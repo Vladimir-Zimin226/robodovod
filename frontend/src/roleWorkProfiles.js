@@ -19,6 +19,8 @@ export function buildRoleWorkProfiles(values, roleRefs, primaryRoleId) {
       role_id: roleId,
       robotizable_fraction: values.robotizableShare,
       manual_units_per_shift: values.manualUnitsPerShift || null,
+      ...(Object.hasOwn(values.roleWorkProfiles?.[roleId] || {}, 'allocationFraction')
+        ? { process_allocation_fraction: values.roleWorkProfiles[roleId].allocationFraction } : {}),
       residual_operations: values.residualOperations,
       ...primaryWorkEvidence(values, roleId),
     };
@@ -29,6 +31,8 @@ export function buildRoleWorkProfiles(values, roleRefs, primaryRoleId) {
       role_id: roleId,
       robotizable_fraction: fraction,
       manual_units_per_shift: profile.manual || null,
+      ...(Object.hasOwn(profile, 'allocationFraction')
+        ? { process_allocation_fraction: profile.allocationFraction } : {}),
       residual_operations: profile.residual?.trim() || (zero ? ZERO_ROLE_RESIDUAL : ''),
       source: profile.source === 'USER' ? 'USER' : 'ASSUMPTION',
       basis: profile.basis?.trim() || (zero ? ZERO_ROLE_BASIS : ''),

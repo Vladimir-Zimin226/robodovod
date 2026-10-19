@@ -248,7 +248,7 @@
       "work_basis": "RW-AIRPORT-AIRPORT_CATERING-TROLLEY_OPERATOR: Аэропорт!C23 = 22000 порций/сутки, 32×700 = 22400. Доля 147/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_CATERING-TROLLEY_OPERATOR",
-      "confirmed": "false",
+      "confirmed": "true",
       "calculation_status": "ALLOCATION_REQUIRED"
     },
     {
@@ -298,7 +298,7 @@
       "work_basis": "RW-AIRPORT-AIRPORT_INTERNAL_LOGISTICS-TROLLEY_OPERATOR: Аэропорт!C26 = 420 рейсов тележек/сутки, 32×14 = 448. Доля 210/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_INTERNAL_LOGISTICS-TROLLEY_OPERATOR",
-      "confirmed": "false",
+      "confirmed": "true",
       "calculation_status": "ALLOCATION_REQUIRED"
     },
     {
@@ -373,7 +373,7 @@
       "work_basis": "RW-AIRPORT-AIRPORT_WASTE-TROLLEY_OPERATOR: Аэропорт!C29 = 85 контейнеров/сутки × условные 25 кг = 2125 кг, 16×140 = 2240. Доля 168/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-AIRPORT-AIRPORT_WASTE-TROLLEY_OPERATOR",
-      "confirmed": "false",
+      "confirmed": "true",
       "calculation_status": "ALLOCATION_REQUIRED"
     },
     {
@@ -598,7 +598,7 @@
       "work_basis": "RW-CLINIC-CLINIC_MEDICINES-SANITARY: Медучреждение!C32 = 340 заявок/сутки, 20×20 = 400. Доля 63/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_MEDICINES-SANITARY",
-      "confirmed": "false",
+      "confirmed": "true",
       "calculation_status": "ALLOCATION_REQUIRED"
     },
     {
@@ -623,7 +623,7 @@
       "work_basis": "RW-CLINIC-CLINIC_MEDICINES-PORTER: Медучреждение!C32 = 340 заявок/сутки, 15×25 = 375. Доля 210/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_MEDICINES-PORTER",
-      "confirmed": "false",
+      "confirmed": "true",
       "calculation_status": "ALLOCATION_REQUIRED"
     },
     {
@@ -723,7 +723,7 @@
       "work_basis": "RW-CLINIC-CLINIC_WASTE_A-SANITARY: Медучреждение!C44 = 850 кг/сутки, 12×75 = 900. Доля 63/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_WASTE_A-SANITARY",
-      "confirmed": "false",
+      "confirmed": "true",
       "calculation_status": "ALLOCATION_REQUIRED"
     },
     {
@@ -748,7 +748,7 @@
       "work_basis": "RW-CLINIC-CLINIC_WASTE_A-PORTER: Медучреждение!C44 = 850 кг/сутки, 8×110 = 880. Доля 189/420 — сценарное допущение, не замер",
       "measurement_date": "",
       "evidence_ref": "RW-CLINIC-CLINIC_WASTE_A-PORTER",
-      "confirmed": "false",
+      "confirmed": "true",
       "calculation_status": "ALLOCATION_REQUIRED"
     },
     {

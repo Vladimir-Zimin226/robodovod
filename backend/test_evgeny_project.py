@@ -32,6 +32,29 @@ def project_input():
             'staffing_raas':{'control_mode':'HIRE','technician_mode':'VENDOR'}}
 
 
+def test_confirmed_role_scenario_productivity_survives_partial_input_validation():
+    snapshot, context = _context()
+    raw = project_input()
+    raw['field_sources'] = {**raw.get('field_sources', {}), 'manual_units_per_shift': 'ASSUMPTION'}
+    raw['assumption_evidence'] = {**raw.get('assumption_evidence', {}), 'manual_units_per_shift': {
+        'schema_version': 'scenario-assumption-evidence-v1', 'template_id': None,
+        'version': 'custom-v1', 'source': 'USER',
+        'rationale': 'RW-WH-FORKLIFT-01: documented scenario productivity, not measured',
+        'published_on': '2026-10-19', 'confirmed_value': raw['manual_units_per_shift'],
+        'confirmed': True,
+    }}
+    raw['role_work_profiles'] = [{
+        'role_id': 'role.driver', 'robotizable_fraction': '0.5',
+        'manual_units_per_shift': raw['manual_units_per_shift'],
+        'process_allocation_fraction': '1',
+        'residual_operations': 'Manual inspection remains', 'source': 'ASSUMPTION',
+        'basis': 'RW-WH-FORKLIFT-01: documented scenario', 'confirmed': True,
+    }]
+    result = execute_partial_economics_v2(raw, snapshot, context).result_snapshot
+    assert result['schema_version'].startswith('commercial-scenarios-bundle-')
+    assert result['role_labour']['roles'][0]['allocated_people'] == 20
+
+
 def test_multirole_economics_keeps_conservative_loader_assumption_visible():
     snapshot, original = _context()
     source = original.capacity_request.model_dump(mode='json')
