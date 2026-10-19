@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import AppIcon from './AppIcon';
 import RoleFleetVisualization from './RoleFleetVisualization';
 import { readCsrfCookie } from '../persistenceApi';
+import { basisSourceLabel, calculationLabel, missingInputLabel, modelLabel, readableBasis, sourceLabel } from '../roleSourcePresentation';
 import './WarehouseRoleWorkspace.css';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -46,10 +47,10 @@ function Summary({ title, total, warning, horizon }) {
       <div><span>Покупка: NPV / ROI за {horizon} лет</span><strong>{money(total.purchase.npv_rub)} / {total.purchase.roi_percent == null ? 'N/A' : `${num(total.purchase.roi_percent)}%`}</strong></div>
       <div><span>Аренда: CAPEX / TCO</span><strong>{money(total.raas.capex_rub)} / {money(total.raas.tco_rub)}</strong></div>
       <div><span>Аренда: эффект после тарифа в год</span><strong>{money(total.raas.annual_net_rub)}</strong></div>
-      <div><span>Аренда: NPV / ROI на CAPEX</span><strong>{money(total.raas.npv_rub)} / {total.raas.roi_status === 'DEFINED' ? `${num(total.raas.roi_percent)}%` : total.raas.roi_status}</strong></div>
+      <div><span>Аренда: NPV / ROI на CAPEX</span><strong>{money(total.raas.npv_rub)} / {total.raas.roi_status === 'DEFINED' ? `${num(total.raas.roi_percent)}%` : total.raas.roi_status === 'NEEDS_INPUT' ? 'Нужны данные' : 'Не определён: вложения равны нулю'}</strong></div>
     </div>
-    {total.purchase.missing.length > 0 && <p>Для покупки недостаёт: {total.purchase.missing.join(', ')}</p>}
-    {total.raas.missing.length > 0 && <p>Для аренды недостаёт: {total.raas.missing.join(', ')}</p>}
+    {total.purchase.missing.length > 0 && <p>Для покупки недостаёт: {total.purchase.missing.map(missingInputLabel).join(', ')}</p>}
+    {total.raas.missing.length > 0 && <p>Для аренды недостаёт: {total.raas.missing.map(missingInputLabel).join(', ')}</p>}
     <p className="wr-disclaimer">ROI покупки за {horizon} лет = ({money(total.purchase.annual_net_rub)} чистого эффекта в год × {horizon} − {money(total.purchase.capex_rub)} CAPEX) / {money(total.purchase.capex_rub)} × 100%.</p>
   </section>;
 }
@@ -63,7 +64,7 @@ function CandidateSelection({ role, work, report, onChange }) {
     <select value={work.selected_position_id === 'AUTO' ? calculated.selected_position_id : work.selected_position_id}
       onChange={(event) => onChange(event.target.value)}>
       <option value="SCENARIO_TYPE">Сценарный тип без каталожной модели</option><option value="NONE">Без робота</option>
-      {calculated.candidates.map((candidate) => <option key={candidate.position_id} value={candidate.position_id}>{candidate.name} · {candidate.maturity_status}</option>)}
+      {calculated.candidates.map((candidate) => <option key={candidate.position_id} value={candidate.position_id}>{candidate.name}</option>)}
     </select><p>Подбор по функции в описании каталога; физическая пригодность и поставка требуют проверки.</p></div>;
 }
 
@@ -93,12 +94,12 @@ export function ObjectRoleResult({ report, onEdit, focus = 'all' }) {
     {showRobots && <RoleFleetVisualization report={report} />}
     {showRobots && <section className="wr-panel"><h2>Назначения и ограничения</h2><div className="wr-role-grid">{report.roles.map((role) => <details key={role.role_code} className="wr-role-card selected">
       <summary className="wr-role-toggle"><span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{num(role.headcount)} человек; распределено {num(Number(role.allocated_fraction) * 100)}% · {role.works.length} работ{role.works.some((work) => work.safety_conditions) ? ' · Есть неподтверждённый допуск' : ''}</small></span></summary>
-      <div className="wr-role-body"><p>База оплаты: {role.salary_basis}; расходы работодателя {money(role.monthly_employer_cost_rub)}/мес. на человека. Штат: {role.headcount_source}. Ставка: {role.salary_source}.</p>{role.works.map((work) => <div key={work.process_code} className="wr-work-result"><strong>{work.technical_task}</strong>
+      <div className="wr-role-body"><p>Расходы работодателя {money(role.monthly_employer_cost_rub)}/мес. на человека. Численность: {sourceLabel(role.headcount_source)}. Оплата: {sourceLabel(role.salary_source)}.</p>{role.works.map((work) => <div key={work.process_code} className="wr-work-result"><strong>{work.technical_task}</strong>
         <p>{num(work.daily_volume)} {work.unit}/сутки → {num(work.target_units_per_day)} {work.unit}/сутки · парк {work.fleet} · до коэффициента {num(work.potential_fte)} ставки · после {num(work.fte_equivalent)}</p>
-        <p>{work.selected_model_name || 'Сценарный тип без каталожной модели'} · {work.model_status} · {work.calculation_status === 'REFERENCE_ONLY' ? 'Техническая подзадача по допущению ASSUMPTION_V2; не паспортная формула C11.' : work.calculation_status}</p>
-        <p>Покупка: NPV {money(work.purchase.npv_rub)}, ROI за {report.general.horizon_years} лет {work.purchase.roi_percent == null ? 'N/A' : `${num(work.purchase.roi_percent)}%`}; аренда: {work.raas.mode === 'PERCENT' ? `${num(work.raas.percent_monthly)}% цены/мес. = ${money(work.raas.monthly_per_robot_rub)}/робот/мес.` : `${money(work.raas.monthly_per_robot_rub ?? work.scenario_raas_monthly_rub)}/робот/мес.`}, NPV {money(work.raas.npv_rub)}, ROI {work.raas.roi_status}.</p>
+        <p>{work.selected_model_name || 'Сценарный тип без каталожной модели'} · {modelLabel(work.model_status)}. {calculationLabel(work.calculation_status)}</p>
+        <p>Покупка: NPV {money(work.purchase.npv_rub)}, ROI за {report.general.horizon_years} лет {work.purchase.roi_percent == null ? 'Нужна цена' : `${num(work.purchase.roi_percent)}%`}; аренда: {work.raas.mode === 'PERCENT' ? `${num(work.raas.percent_monthly)}% цены/мес. = ${money(work.raas.monthly_per_robot_rub)}/робот/мес.` : `${money(work.raas.monthly_per_robot_rub ?? work.scenario_raas_monthly_rub)}/робот/мес.`}, NPV {money(work.raas.npv_rub)}, ROI {work.raas.roi_status === 'DEFINED' ? `${num(work.raas.roi_percent)}%` : 'не определён при нулевых вложениях'}.</p>
         {work.safety_conditions && <p role="alert" className="wr-message wr-message-error">Условный расчёт: {work.safety_conditions}. Эксплуатация не разрешена этим расчётом.</p>}
-        <details><summary>Источники и ручной остаток</summary><p>{work.basis}</p><p>Ручной остаток: {work.residual_operations}</p><p>Выработка: {work.rate_source}; цена: {work.price_source}; аренда: {work.raas_source}; строка {work.evidence_ref}.</p></details>
+        <details><summary>Источники и ручной остаток</summary><p>Основание объёма: {basisSourceLabel(work.basis)}. {readableBasis(work.basis)}</p><p>Ручной остаток: {work.residual_operations}</p><p>Выработка: {sourceLabel(work.rate_source)}; цена: {sourceLabel(work.price_source)}; аренда: {sourceLabel(work.raas_source)}. Парк рассчитан по объёму, скорости и резерву.</p></details>
       </div>)}</div></details>)}</div></section>}
     <p className="wr-disclaimer">ROI покупки = (недисконтированный эффект за горизонт − CAPEX) / CAPEX × 100%. NPV дисконтирован. При нулевом CAPEX аренды ROI на CAPEX не определён. Эффект ФОТ — сценарий расходов, а не обязательное сокращение сотрудников.</p>
     {onEdit && <button type="button" className="wr-primary" onClick={onEdit}>Изменить роли и пересчитать</button>}
@@ -166,6 +167,15 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
     roles: current.roles.map((role) => role.role_code === code ? { ...role, [key]: value,
       ...(key === 'headcount' ? { headcount_source: 'USER' } : {}),
       ...(key === 'monthly_employer_cost_rub' ? { salary_source: 'USER' } : {}) } : role) }));
+  const toggleRoleCard = (role) => {
+    const expanded = Boolean(expandedRoles[role.role_code]);
+    if (role.selected && !expanded) {
+      setExpandedRoles((current) => ({ ...current, [role.role_code]: true }));
+      return;
+    }
+    changeRole(role.role_code, 'selected', !role.selected);
+    setExpandedRoles((current) => ({ ...current, [role.role_code]: !role.selected }));
+  };
   const changeWork = (code, process, key, value) => update((current) => ({ ...current,
     roles: current.roles.map((role) => role.role_code === code ? { ...role,
       works: role.works.map((work) => work.process_code === process ? { ...work, [key]: value,
@@ -236,18 +246,18 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
       <details className="wr-assumptions"><summary>Как учитывается экономия ФОТ</summary><p>Потенциальные ставки × коэффициент ФОТ 0–1 × расходы работодателя. Например, 2 ставки × 0,5 = экономия расходов на 1 ставку. При 0 люди перераспределяются, при 1 учитывается весь потенциал. Парк роботов не меняется.</p></details>
       <div className="wr-actions"><button type="button" className="wr-more" onClick={() => update((current) => ({ ...current, roles: current.roles.map((role) => ({ ...role, selected: true })) }))}>Выбрать все типовые роли</button></div>
       <div className="wr-role-grid wr-object-role-grid">{draft.roles.map((role) => <article key={role.role_code} className={`wr-role-card${role.selected ? ' selected' : ''}`}>
-        <div className="wr-role-toggle"><label className="wr-role-select"><input type="checkbox" checked={role.selected} onChange={(event) => changeRole(role.role_code, 'selected', event.target.checked)} aria-label={`Включить роль ${role.label}`} /></label><button type="button" className="wr-role-expand" aria-expanded={Boolean(expandedRoles[role.role_code])} onClick={() => setExpandedRoles((current) => ({ ...current, [role.role_code]: !current[role.role_code] }))}>
-          <span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{role.works.length} видов работы · {num(role.headcount)} человек{role.works.some((work) => work.safety_conditions) ? ' · Есть неподтверждённый допуск' : ''}</small></span>
-          <span className="wr-role-check">{expandedRoles[role.role_code] ? '−' : '+'}</span></button></div>
+        <button type="button" className="wr-role-toggle" aria-pressed={role.selected} aria-expanded={Boolean(expandedRoles[role.role_code])} onClick={() => toggleRoleCard(role)}>
+          <span className="wr-role-icon"><AppIcon name={role.role_code} size={26} /></span><span className="wr-role-title"><strong>{role.label}</strong><small>{num(role.headcount)} человек · {role.works.length} {role.works.length === 1 ? 'работа' : role.works.length < 5 ? 'работы' : 'работ'}</small></span>
+          <span className="wr-role-check" aria-hidden="true">{role.selected ? '✓' : '+'}</span></button>
         {expandedRoles[role.role_code] && <div className="wr-role-body"><div className="wr-role-fields">
           <Field label="Один штат роли, человек" value={role.headcount} onChange={(value) => changeRole(role.role_code, 'headcount', value)} />
           <Field label={role.salary_basis === 'GROSS' ? 'Начисленная gross зарплата на человека, ₽/мес.' : 'Расходы работодателя на человека, ₽/мес.'} value={role.monthly_employer_cost_rub} onChange={(value) => changeRole(role.role_code, 'monthly_employer_cost_rub', value)} />
           <Field label="Коэффициент ФОТ роли, 0–1" value={role.realizable_labor_share} max="1" onChange={(value) => changeRole(role.role_code, 'realizable_labor_share', value)} />
           <label className="wr-field"><span>База оплаты</span><select value={role.salary_basis} onChange={(event) => changeRole(role.role_code, 'salary_basis', event.target.value)}><option value="EMPLOYER_COST">Полные расходы работодателя</option><option value="GROSS">Начисленная gross зарплата</option></select></label>
         </div><p>Доли работ: {role.works.map((work) => num(Number(work.allocation_fraction) * 100)).join(' + ')}% одного штата; сумма ≤ 100%.</p>
-          <p>Источник штата: {role.headcount_source}. Источник ставки: {role.salary_source}. При gross применяется общий сценарный коэффициент {draft.general.gross_to_employer_factor}.</p>
+          <p>Численность: {sourceLabel(role.headcount_source)}. Оплата: {sourceLabel(role.salary_source)}. При начисленной зарплате расходы работодателя рассчитываются умножением на {draft.general.gross_to_employer_factor}.</p>
           {role.works.map((work) => <section key={work.process_code} className="wr-work-editor"><label className="wr-source"><input type="checkbox" checked={work.selected} onChange={(event) => changeWork(role.role_code, work.process_code, 'selected', event.target.checked)} /> Включить этот вид работы в расчёт</label><h3>{work.technical_task}</h3>
-            <p>{work.process_code} · {work.calculation_status === 'REFERENCE_ONLY' ? 'Сценарная техническая подзадача ASSUMPTION_V2, не формула C11' : work.calculation_status}</p>
+            <p>{calculationLabel(work.calculation_status)}</p>
             {work.safety_conditions && <p role="alert" className="wr-message wr-message-error">Условный расчёт: {work.safety_conditions}. Эксплуатация не подтверждена.</p>}
             {work.selected && <>
             <div className="wr-role-fields">
@@ -262,7 +272,7 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
                 ? <Field label="Аренда, % цены робота в месяц" value={work.raas_percent_monthly} max="100" onChange={(value) => changeWork(role.role_code, work.process_code, 'raas_percent_monthly', value)} hint="Производный платёж покажет сервер после пересчёта; процент — тариф услуги, не ставка кредита." />
                 : <Field label="Сценарный тариф RaaS, ₽/мес. на робота" value={work.scenario_raas_monthly_rub} onChange={(value) => changeWork(role.role_code, work.process_code, 'scenario_raas_monthly_rub', value)} />}
             </div><label className="wr-field"><span>Техническая подзадача</span><input value={work.technical_task} onChange={(event) => changeWork(role.role_code, work.process_code, 'technical_task', event.target.value)} /></label>
-            <details><summary>Основания и ручной остаток</summary><label className="wr-field"><span>Основание спроса и допущений</span><textarea value={work.basis} rows="3" onChange={(event) => changeWork(role.role_code, work.process_code, 'basis', event.target.value)} /></label>
+            <details><summary>Основания и ручной остаток</summary><p>Объём и доля: {basisSourceLabel(work.basis)}. Выработка: {sourceLabel(work.rate_source)}. Цена: {sourceLabel(work.price_source)}. Аренда: {sourceLabel(work.raas_source)}.</p><label className="wr-field"><span>Основание спроса и допущений</span><textarea value={readableBasis(work.basis)} rows="3" onChange={(event) => changeWork(role.role_code, work.process_code, 'basis', event.target.value)} /></label>
               <label className="wr-field"><span>Что остаётся человеку</span><textarea value={work.residual_operations} rows="2" onChange={(event) => changeWork(role.role_code, work.process_code, 'residual_operations', event.target.value)} /></label>
               <p>Цена и тариф — бюджетные допущения, если не введены пользователем. Отдельное предложение поставщика не предоставлено.</p></details>
             {report && !dirty && <CandidateSelection role={role} work={work} report={report}

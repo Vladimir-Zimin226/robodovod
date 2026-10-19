@@ -29,10 +29,6 @@
 .wr-role-card:hover { border-color: #617963; transform: translateY(-2px); }
 .wr-role-card.selected { border-color: #7cb94a; background: #15251f; box-shadow: inset 0 0 0 1px #5e904344; }
 .wr-role-toggle { display: flex; align-items: center; width: 100%; gap: .8rem; padding: .9rem; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
-.wr-role-select { display: grid; place-items: center; flex: 0 0 1.5rem; }
-.wr-role-select input { width: 1.15rem; height: 1.15rem; accent-color: #9fdb53; }
-.wr-role-expand { display: flex; align-items: center; flex: 1; min-width: 0; gap: .8rem; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
-.wr-role-card.selected .wr-role-expand .wr-role-check { border-color: #506269; background: transparent; color: #aebfc2; }
 @media (max-width: 760px) { .wr-object-role-grid { grid-template-columns: 1fr; } }
 .wr-role-card summary.wr-role-toggle { list-style: none; }
 .wr-role-card summary.wr-role-toggle::-webkit-details-marker { display: none; }

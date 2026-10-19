@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import AppIcon from './AppIcon';
 import { readCsrfCookie } from '../persistenceApi';
+import { readableBasis, sourceLabel } from '../roleSourcePresentation';
 import './WarehouseRoleWorkspace.css';
 
 const API = import.meta.env.VITE_API_URL || '';
@@ -263,8 +264,8 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
           <Field label="Какая часть высвобождённого времени уменьшит расходы на персонал? 0–1" value={row.realizable_labor_share ?? ''} max="1"
             hint={`Пусто = общее значение ${draft.general.realizable_labor_share}. Это не обещание сокращения людей.`}
             onChange={(value) => changeRole(row.role_code, 'realizable_labor_share', value)} />
-        </div><details className="wr-basis"><summary>Откуда взяты числа</summary><p>{row.basis}</p><p>{row.salary_basis}</p>
-          <label>Основание для вашего расчёта<textarea value={row.basis} rows="3" onChange={(event) => changeRole(row.role_code, 'basis', event.target.value)} /></label>
+        </div><details className="wr-basis"><summary>Откуда взяты числа</summary><p>Численность и объём: {sourceLabel(row.source)}. {readableBasis(row.basis)}</p><p>Оплата: {row.source === 'USER' ? 'Ваши данные' : 'Допущение авторов'}. {readableBasis(row.salary_basis)}</p>
+          <label>Основание для вашего расчёта<textarea value={readableBasis(row.basis)} rows="3" onChange={(event) => changeRole(row.role_code, 'basis', event.target.value)} /></label>
           <label className="wr-source"><input type="checkbox" checked={row.source === 'USER'} onChange={(event) => changeRole(row.role_code, 'source', event.target.checked ? 'USER' : 'SCENARIO_ASSUMPTION')} />
             Эти значения проверены по данным моего склада</label></details></div>}
       </article>)}</div>
