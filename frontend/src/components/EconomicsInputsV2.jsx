@@ -16,6 +16,7 @@ import { workbookEconomics } from '../projectWorkbook';
 import { PROCESS_DEFINITIONS } from '../processRoleIntakeV2';
 import { ECONOMICS_DEPTHS, depthIndex, valuesAtDepth } from '../economicsDepth';
 import { roleLabel as roleName } from '../roleLabels';
+import { buildRoleWorkProfiles, primaryWorkEvidence, PRIMARY_ROLE_BASIS, ZERO_ROLE_BASIS, ZERO_ROLE_RESIDUAL } from '../roleWorkProfiles';
 
 const API = import.meta.env.VITE_API_URL || '';
 const today = () => new Date().toISOString().slice(0, 10);
@@ -80,7 +81,7 @@ function restored(capacityRunId, input, project) {
   values.chargingSimultaneityFraction = String(input?.charging_simultaneity_fraction ?? '');
   values.roleWorkProfiles = Object.fromEntries((input?.role_work_profiles || []).map((profile) =>
     [profile.role_id, { fraction: String(profile.robotizable_fraction), manual: String(profile.manual_units_per_shift ?? ''),
-      residual: profile.residual_operations, basis: profile.basis, source: profile.source }]));
+      residual: profile.residual_operations, basis: profile.basis, source: profile.source, confirmed: profile.confirmed === true }]));
   if (input) Object.assign(values, { evaluationDate: input.evaluation_date || '', primaryRoleId: input.primary_role_id || '',
     raasInfrastructureOwner: input.raas_infrastructure_owner || '', timezone: Object.hasOwn(input, 'timezone') ? input.timezone : modelTimezone(project),
     startSeconds: input.start_seconds_from_midnight == null ? String(MODEL_START_SECONDS) : String(input.start_seconds_from_midnight) });
@@ -152,10 +153,20 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
   }, [project?.id, capacityRunId, capacityRequest?.input_revision]);
   const scenario = project?.scenarios?.find((item) => item.slot === 'BASE');
   const issues = savedResult?.issues || [];
-  const set = (key) => (event) => setValues((current) => ({ ...current, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value }));
+  const unconfirmPrimary = (draft, current) => {
+    const roleId = current.primaryRoleId || (capacityRequest?.process?.role_refs?.length === 1 ? capacityRequest.process.role_refs[0] : null);
+    return roleId ? { ...draft, roleWorkProfiles: { ...draft.roleWorkProfiles,
+      [roleId]: { ...draft.roleWorkProfiles?.[roleId], confirmed: false } } } : draft;
+  };
+  const set = (key) => (event) => setValues((current) => {
+    const next = { ...current, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value };
+    return ['robotizableShare', 'manualUnitsPerShift', 'residualOperations'].includes(key)
+      ? unconfirmPrimary(next, current) : next;
+  });
   const setRoleWork = (roleId, field) => (event) => setValues((current) => ({ ...current,
     roleWorkProfiles: { ...current.roleWorkProfiles,
-      [roleId]: { ...current.roleWorkProfiles[roleId], [field]: event.target.value } } }));
+      [roleId]: { ...current.roleWorkProfiles[roleId], [field]: event.target.type === 'checkbox' ? event.target.checked : event.target.value,
+        ...(field === 'confirmed' ? {} : { confirmed: false }) } } }));
   const setImplementationLine = (category, key, value) => setValues((current) => ({ ...current,
     implementationLines: { ...current.implementationLines,
       [category]: { ...current.implementationLines[category], [key]: value,
@@ -215,21 +226,8 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
       const policyDate = today();
       const primaryRoleId = prepared.primaryRoleId || (capacityRequest?.process?.role_refs?.length === 1
         ? capacityRequest.process.role_refs[0] : null);
-      const roleWorkProfiles = prepared.robotizableShare !== '' && prepared.residualOperations && primaryRoleId
-        ? (capacityRequest?.process?.role_refs || []).map((roleId) => {
-          const secondary = prepared.roleWorkProfiles?.[roleId] || {};
-          const primary = roleId === primaryRoleId;
-          return {
-            role_id: roleId, robotizable_fraction: primary ? prepared.robotizableShare : (secondary.fraction ?? '0'),
-            manual_units_per_shift: primary ? (prepared.manualUnitsPerShift || null) : (secondary.manual || null),
-            residual_operations: primary ? prepared.residualOperations
-              : (secondary.residual || 'Работа этой роли сохраняется в сценарии; замещение роботом принято равным нулю.'),
-            source: primary ? 'ASSUMPTION' : (secondary.source || 'ASSUMPTION'),
-            basis: primary ? 'Проектное допущение пользователя о доле заменяемых задач; требуется замер на объекте.'
-              : (secondary.basis || 'Консервативное проектное допущение: без замера трудозатрат экономия роли равна нулю.'),
-            confirmed: true,
-          };
-        }) : null;
+      const roleWorkProfiles = buildRoleWorkProfiles(prepared, capacityRequest?.process?.role_refs || [], primaryRoleId);
+      const primaryEvidence = primaryWorkEvidence(prepared, primaryRoleId);
       const body = buildPartialEconomicsRunRequest({ values: { ...prepared, capacityRunId,
         roleWorkProfiles,
         staffingPolicy: prepared.robotsPerControlPost && prepared.robotsPerDayTechnician && prepared.rotationFactor ? {
@@ -240,8 +238,8 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         } : null,
         workShare: prepared.robotizableShare !== '' && prepared.residualOperations ? {
           schema_version: 'robotizable-work-share-v1', fraction: prepared.robotizableShare,
-          residual_operations: prepared.residualOperations, source: 'ASSUMPTION',
-          basis: 'Принято пользователем для проектного расчёта; проверить остаточные операции на объекте', date: policyDate, confirmed: true,
+          residual_operations: prepared.residualOperations, source: primaryEvidence.source,
+          basis: primaryEvidence.basis, date: policyDate, confirmed: primaryEvidence.confirmed,
         } : null }, capacityRequest, project, scenario, sourceRunId, projectPolicyMode: true });
       const response = await fetch(`${API}/api/v2/projects/${encodeURIComponent(project.id)}/economics-runs`, {
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() }, body: JSON.stringify(body),
@@ -299,7 +297,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         const proposed = applyTypicalObjectEconomics(values, FIELDS, capacityRequest?.process?.object_kind || capacityRequest?.object_kind ||
           (process?.process_code?.startsWith('airport_') ? 'AIRPORT' : process?.process_code?.startsWith('clinic_') ? 'CLINIC' : 'WAREHOUSE'), manualEstimate, process?.process_code,
           { catalogPriceAvailable: selectedPosition?.position?.purchase?.amount != null });
-        setValues(proposed);
+        const primaryRoleId = proposed.primaryRoleId || (capacityRequest?.process?.role_refs?.length === 1
+          ? capacityRequest.process.role_refs[0] : null);
+        setValues(primaryRoleId ? { ...proposed, roleWorkProfiles: { ...proposed.roleWorkProfiles,
+          [primaryRoleId]: { ...proposed.roleWorkProfiles?.[primaryRoleId], source: 'ASSUMPTION',
+            basis: PRIMARY_ROLE_BASIS, confirmed: false } } } : proposed);
       }}>Подставить черновые допущения</button>
       <p className="mt-2">Пример предложит часть расходов и условий как сценарные допущения. Доставку, пусконаладку и интеграцию подтвердите отдельно: без них покупка останется частичной. При доступной цене выбранной модели она сохранится как основа, иначе пример предложит условную цену; это не оферта поставщика.</p>
     </section>
@@ -387,7 +389,7 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
       </div>}
       {group === 'Труд' && roleRefs.length > 1 && <div className="block mt-3 rounded border border-amber-400 bg-amber-50 p-3 text-sm"><label>Основная роль операции
         <select id="economics-primary_role_id" value={values.primaryRoleId} onChange={(event) => setValues((current) => changeManualProductivityRole(current, event.target.value))} className="w-full border rounded p-2"><option value="">Не выбрано — труд и деньги останутся частичными</option>{roleRefs.map((id, index) => <option key={id} value={id}>{roleName(capacityRequest?.role_pool?.roles?.find((role) => role.role_id === id)?.role_code) || `Роль ${index + 1}`}</option>)}</select></label>
-        <small>Ниже задайте долю работы и ручную выработку каждой дополнительной роли. Нулевая доля — явное проектное допущение: эта роль остаётся в штате и экономия по ней равна нулю.</small>
+        <small>Ниже задайте долю работы и ручную выработку каждой дополнительной роли. Нулевая доля — проектное допущение, которое нужно подтвердить: эта роль остаётся в штате и экономия по ней равна нулю.</small>
         {roleRefs.filter((id) => id !== selectedRoleId).map((id) => {
           const role = capacityRequest?.role_pool?.roles?.find((item) => item.role_id === id);
           const profile = values.roleWorkProfiles?.[id] || {};
@@ -396,11 +398,28 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
             <label className="block">Доля работы, заменяемой роботом (0–1)<input type="number" min="0" max="1" step="any" value={profile.fraction ?? '0'} onChange={setRoleWork(id, 'fraction')} className="block w-full border rounded p-2" /></label>
             <label className="block">Ручная выработка этой роли, ед./смену<input type="number" min="0" step="any" value={profile.manual ?? ''} onChange={setRoleWork(id, 'manual')} className="block w-full border rounded p-2" /></label>
             <small>Нужна, если доля больше нуля; берите замер или явно помечайте оценку.</small>
-            <label className="block">Какая работа остаётся<input value={profile.residual ?? 'Работа этой роли сохраняется в сценарии; замещение роботом принято равным нулю.'} onChange={setRoleWork(id, 'residual')} className="block w-full border rounded p-2" /></label>
-            <label className="block">Основание доли и выработки<input value={profile.basis ?? 'Консервативное проектное допущение: без замера трудозатрат экономия роли равна нулю.'} onChange={setRoleWork(id, 'basis')} className="block w-full border rounded p-2" /></label>
+            <label className="block">Какая работа остаётся<input value={profile.residual ?? (Number(profile.fraction ?? '0') === 0 ? ZERO_ROLE_RESIDUAL : '')} onChange={setRoleWork(id, 'residual')} className="block w-full border rounded p-2" /></label>
+            <label className="block">Основание доли и выработки<input value={profile.basis ?? (Number(profile.fraction ?? '0') === 0 ? ZERO_ROLE_BASIS : '')} onChange={setRoleWork(id, 'basis')} className="block w-full border rounded p-2" /></label>
             <label className="block">Тип данных<select value={profile.source || 'ASSUMPTION'} onChange={setRoleWork(id, 'source')} className="block w-full border rounded p-2"><option value="ASSUMPTION">Проектное допущение</option><option value="USER">Замер или данные объекта</option></select></label>
+            <label className="flex gap-2"><input type="checkbox" checked={profile.confirmed === true} onChange={setRoleWork(id, 'confirmed')} />Подтверждаю данные и основание по этой роли для нового расчёта</label>
           </div>;
         })}</div>}
+      {group === 'Труд' && roleRefs.length > 0 && <div className="mt-3 rounded border border-teal-300 bg-teal-50 p-3 text-sm space-y-2" aria-label="Исходные данные и подтверждение ролей">
+        <strong>Штат и месячные суммы из сохранённого шага «Работа»</strong>
+        <ul>{roleRefs.map((id) => {
+          const role = capacityRequest?.role_pool?.roles?.find((item) => item.role_id === id);
+          return <li key={id}>{roleName(role?.role_code) || id}: {formatDecimal(role?.headcount?.normalized_value) ?? 'неизвестно'} чел.,
+            {formatDecimal(role?.monthly_gross_salary?.normalized_value) ?? 'сумма неизвестна'} ₽/чел./мес.</li>;
+        })}</ul>
+        <small>Если штат или сумма неверны, измените их на шаге «Работа» и сохраните новый технический расчёт. Доля и выработка ниже относятся только к выбранному процессу.</small>
+        {selectedRoleId && <div className="mt-2 rounded border bg-white p-3 space-y-2">
+          <strong>{roleName(selectedRole?.role_code) || selectedRoleId}: источник доли и выработки</strong>
+          <label className="block">Тип данных<select value={values.roleWorkProfiles?.[selectedRoleId]?.source || 'ASSUMPTION'} onChange={setRoleWork(selectedRoleId, 'source')} className="block w-full border rounded p-2"><option value="ASSUMPTION">Проектное допущение</option><option value="USER">Замер или данные объекта</option></select></label>
+          <small>Если хотя бы доля или выработка оценочная, оставьте «Проектное допущение». У выработки ниже есть отдельный источник числового значения.</small>
+          <label className="block">Основание: документ, период замера или причина допущения<input value={values.roleWorkProfiles?.[selectedRoleId]?.basis ?? (values.roleWorkProfiles?.[selectedRoleId]?.source === 'USER' ? '' : PRIMARY_ROLE_BASIS)} onChange={setRoleWork(selectedRoleId, 'basis')} className="block w-full border rounded p-2" /></label>
+          <label className="flex gap-2"><input type="checkbox" checked={values.roleWorkProfiles?.[selectedRoleId]?.confirmed === true} onChange={setRoleWork(selectedRoleId, 'confirmed')} />Подтверждаю долю, выработку и основание этой роли для нового расчёта</label>
+        </div>}
+      </div>}
       {group === 'Труд' && <div className="mt-3 rounded border border-teal-300 p-3 text-sm" aria-label="Оценка ручной выработки">
         <strong>Выработка одного сотрудника {roleLabel} в процессе «{processLabel}»</strong>
         <p>Объём: {presentationValue('', process?.demand?.normalized_value, process?.demand?.unit)}; смен: {formatDecimal(process?.schedule?.shifts_per_day?.normalized_value) ?? 'неизвестно'}; показатель определяет потребность в персонале и экономию оплаты труда только выбранной роли.</p>
@@ -416,7 +435,11 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
               <div><dt>Груз за рейс</dt><dd>{formatDecimal(manualEstimate.inputs.units_per_trip) ?? 'неизвестно'} ед.</dd></div>
             </>}
           </dl><small>Источник: допущения типового процесса. Полная методика сохранена в архиве.</small></div>}
-        {manualEstimate?.status === 'ESTIMATE' && selectedRoleId && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => applyManualProductivityEstimate(current, manualEstimate))}>Взять оценку как допущение для выбранной роли</button>}
+        {manualEstimate?.status === 'ESTIMATE' && selectedRoleId && <button type="button" className="secondary-action mt-2" onClick={() => setValues((current) => {
+          const next = applyManualProductivityEstimate(current, manualEstimate);
+          return { ...next, roleWorkProfiles: { ...next.roleWorkProfiles,
+            [selectedRoleId]: { ...next.roleWorkProfiles?.[selectedRoleId], source: 'ASSUMPTION', confirmed: false } } };
+        })}>Взять оценку как допущение для выбранной роли</button>}
         {manualEstimate?.status === 'UNSUPPORTED' && <p className="mt-2 text-amber-800">Для этого процесса нет утверждённой оценки ручной выработки. Введите измеренную норму; расчёт без неё останется частичным.</p>}
         {process?.scope === 'CLEANING_AREA' && <p className="mt-2">Для уборки укажите ручную выработку за смену; оценка реестра доступна как предварительное допущение.</p>}
       </div>}
@@ -433,10 +456,16 @@ export default function EconomicsInputsV2({ capacityRequest, capacityResult, cap
         return <div key={key} className="block rounded border border-slate-500/40 p-3 text-sm">
           <label htmlFor={`economics-${server}`} className="block"><strong>{displayLabel}</strong> · {unit}</label>
 
-          <input id={`economics-${server}`} type="text" inputMode="decimal" aria-label={displayLabel} value={values[key]} onChange={(event) => setValues((current) => editEconomicsField(current, key, server, event.target.value, { enableTemplate: demoEligible }))} className="w-full border rounded p-2 mt-2" placeholder="Неизвестно — оставьте пустым" aria-invalid={fieldIssues.some((item) => !['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code))} />
+          <input id={`economics-${server}`} type="text" inputMode="decimal" aria-label={displayLabel} value={values[key]} onChange={(event) => setValues((current) => {
+            const next = editEconomicsField(current, key, server, event.target.value, { enableTemplate: demoEligible });
+            return key === 'manualUnitsPerShift' ? unconfirmPrimary(next, current) : next;
+          })} className="w-full border rounded p-2 mt-2" placeholder="Неизвестно — оставьте пустым" aria-invalid={fieldIssues.some((item) => !['MISSING_INPUT', 'RANGE_ONLY'].includes(item.code))} />
           <details className="mt-2"><summary className="text-xs cursor-pointer">Источник и допущения</summary><small className="block mt-1">{why} Возможный источник: {source}. {['Покупка', 'RaaS'].includes(group) ? 'Коммерческое условие требует отдельной проверки.' : ''}</small>
-          {!staffingField && <select value={values.sources[server] || 'USER'} onChange={(event) => setValues((current) => event.target.value === 'USER'
-            ? chooseUserField(current, key, server) : proposeDemoField(current, key, server, { enableTemplate: demoEligible }))} aria-label={`Тип источника: ${label}`} className="w-full border rounded p-2 mt-1">
+          {!staffingField && <select value={values.sources[server] || 'USER'} onChange={(event) => setValues((current) => {
+            const next = event.target.value === 'USER' ? chooseUserField(current, key, server)
+              : proposeDemoField(current, key, server, { enableTemplate: demoEligible });
+            return key === 'manualUnitsPerShift' ? unconfirmPrimary(next, current) : next;
+          })} aria-label={`Тип источника: ${label}`} className="w-full border rounded p-2 mt-1">
             <option value="USER">Данные пользователя</option><option value="ASSUMPTION">Допущение для сценария</option>
           </select>}
           {values.sources[server] === 'ASSUMPTION' && <div className="mt-2 rounded bg-amber-50 p-2 text-xs">

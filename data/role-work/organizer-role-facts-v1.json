@@ -1,0 +1,55 @@
+{
+  "schema_version": "organizer-role-facts-v1",
+  "source_file": "Датасеты_хакатон.xlsx",
+  "source_sha256": "6649c501464135e6c0b43809e4461b4a74b63d2b211f5b6aaf3a33ced0fed2a0",
+  "use_in_calculation": false,
+  "note": "Справочные значения типового объекта. Ни одна строка не подтверждает численность в конкретном процессе, долю заменяемой работы или высвобождение на объекте заказчика.",
+  "records": [
+    {
+      "object_kind": "WAREHOUSE", "dataset_group": "Комплектовщики", "candidate_process_code": "warehouse_picking", "candidate_role_code": "picker",
+      "headcount": {"value": 100, "cell": "Склад!C27"}, "monthly_gross_salary_rub": {"value": 100000, "cell": "Склад!C30"},
+      "manual_rate": {"value": 150, "unit": "order_line/person/hour", "cell": "Склад!C33"},
+      "gap": "В C03 единица PICK не подтверждена как строка заказа; нужна привязка к процессу и смене. Доля задач для робота отсутствует."
+    },
+    {
+      "object_kind": "WAREHOUSE", "dataset_group": "Операторы погрузчиков", "candidate_process_code": "warehouse_receiving_shipping", "candidate_role_code": "forklift_driver",
+      "headcount": {"value": 25, "cell": "Склад!C28"}, "monthly_gross_salary_rub": {"value": 120000, "cell": "Склад!C31"}, "manual_rate": null,
+      "gap": "Неизвестно, сколько из 25 заняты в выбранном паллетном процессе, сколько паллет выполняют за смену и какую долю работы убирает робот."
+    },
+    {
+      "object_kind": "WAREHOUSE", "dataset_group": "Операторы упаковочных линий", "candidate_process_code": "warehouse_palletizing", "candidate_role_code": "packer",
+      "headcount": {"value": 20, "cell": "Склад!C29"}, "monthly_gross_salary_rub": null, "manual_rate": null,
+      "gap": "Нет отдельной зарплаты, выработки, распределения по процессу и доли заменяемой работы."
+    },
+    {
+      "object_kind": "AIRPORT", "dataset_group": "Наземное обслуживание", "candidate_process_code": "airport_ground_service", "candidate_role_code": null,
+      "headcount": {"value": 320, "cell": "Аэропорт!C31"}, "monthly_gross_salary_rub": {"value": 100000, "cell": "Аэропорт!C33"}, "manual_rate": null,
+      "gap": "Штат наземного обслуживания не разделён на baggage_handler, ramp_worker и другие функции. Нельзя относить все 320 человек к багажу."
+    },
+    {
+      "object_kind": "AIRPORT", "dataset_group": "Логистика и уборка терминала", "candidate_process_code": null, "candidate_role_code": null,
+      "headcount": {"value": 180, "cell": "Аэропорт!C32"}, "monthly_gross_salary_rub": null, "manual_rate": null,
+      "gap": "Совокупный штат без разделения на уборщиков, курьеров и грузчиков."
+    },
+    {
+      "object_kind": "AIRPORT", "dataset_group": "Уборщики терминала", "candidate_process_code": "airport_terminal_cleaning", "candidate_role_code": "terminal_cleaner",
+      "headcount": null, "monthly_gross_salary_rub": {"value": 65000, "cell": "Аэропорт!C34"}, "manual_rate": null,
+      "gap": "Есть только ставка: численность уборщиков внутри общего штата 180 и доля работы для робота неизвестны."
+    },
+    {
+      "object_kind": "CLINIC", "dataset_group": "Санитары и транспортировщики", "candidate_process_code": null, "candidate_role_code": null,
+      "headcount": {"value": 65, "cell": "Медучреждение!C49"}, "monthly_gross_salary_rub": {"value": 55000, "cell": "Медучреждение!C52"}, "manual_rate": null,
+      "gap": "Совокупная группа без разделения санитаров и транспортировщиков и без распределения между процессами."
+    },
+    {
+      "object_kind": "CLINIC", "dataset_group": "Сотрудники пищеблока", "candidate_process_code": "clinic_food", "candidate_role_code": "catering_worker",
+      "headcount": {"value": 28, "cell": "Медучреждение!C50"}, "monthly_gross_salary_rub": {"value": 52000, "cell": "Медучреждение!C53"}, "manual_rate": null,
+      "gap": "28 человек заняты раздачей в целом; транспортную функцию и заменяемую долю нужно измерить отдельно."
+    },
+    {
+      "object_kind": "CLINIC", "dataset_group": "Транспорт белья", "candidate_process_code": "clinic_linen", "candidate_role_code": "laundry_worker",
+      "headcount": {"value": 18, "cell": "Медучреждение!C51"}, "monthly_gross_salary_rub": null, "manual_rate": null,
+      "gap": "Нет отдельной зарплаты, выработки в кг за смену и доли заменяемой работы."
+    }
+  ]
+}
