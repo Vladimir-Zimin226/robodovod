@@ -12,6 +12,7 @@ import main
 import pytest
 from jsonschema import Draft202012Validator
 from fastapi.testclient import TestClient
+from openpyxl import load_workbook
 from pypdf import PdfReader
 from catalog_repository import ActivatedCatalogRepository
 from test_production_economics_integration import activated_actual_catalog  # noqa: F401
@@ -83,6 +84,7 @@ def test_preview_save_reopen_exports_history_and_independent_cashflow_matrix(act
         created = client.post(endpoint, headers=headers, json={'scenario_id':scenario['id'],'capacity_run_id':capacity['run_id'],'input':inputs})
         assert created.status_code == 201, created.text
         source = created.json(); before = deepcopy(source)
+        assert source['versions']['application'] == 'production-economics-orchestrator-v6'
         matrix = [
             ('price', {'purchase_price_override_gross':'3300000'}),
             ('zero-service', {'annual_service_per_robot_gross':'0'}),
@@ -109,6 +111,13 @@ def test_preview_save_reopen_exports_history_and_independent_cashflow_matrix(act
             assert saved.status_code == 201, (profile,name,saved.text)
             run = saved.json()
             assert values(run['result_snapshot']) == values(data['result'])
+            if run['result_snapshot'].get('comparison'):
+                assert run['versions']['application'] == 'production-economics-orchestrator-v6'
+                for item in run['result_snapshot']['comparison']['scenarios']:
+                    metrics = item['metrics']
+                    annual_costs = [-Decimal(row['scenario']) for row in item['annual_cashflows']]
+                    assert Decimal(metrics['opex_year_1']['value']) == annual_costs[0]
+                    assert Decimal(metrics['tco']['value']) == Decimal(metrics['capex']['value']) + sum(annual_costs)
             if name == 'zero-price':
                 result = run['result_snapshot']
                 assert result['schema_version'] == 'commercial-scenarios-bundle-v4'
@@ -116,13 +125,17 @@ def test_preview_save_reopen_exports_history_and_independent_cashflow_matrix(act
                 Draft202012Validator.check_schema(schema)
                 Draft202012Validator(schema).validate(result)
             if run['result_snapshot'].get('comparison'):
-                target=Path(__file__).resolve().parents[1]/'.test-product-chain-implementation/session/money-client.json'
+                target=tmp_path/'money-client.json'
                 target.write_text(json.dumps(run['result_snapshot']),encoding='utf-8')
-                checked=subprocess.run(['node','--preserve-symlinks','--preserve-symlinks-main','frontend/tests/support/backend-money-client.mjs',str(target)],cwd=target.parents[2],capture_output=True,text=True)
+                checked=subprocess.run(['node','--preserve-symlinks','--preserve-symlinks-main','frontend/tests/support/backend-money-client.mjs',str(target)],cwd=Path(__file__).resolve().parents[1],capture_output=True,text=True)
                 assert checked.returncode==0,checked.stdout+checked.stderr
             assert run['parent_run_id']==source['id'] and run['input_snapshot']['capacity_run_id']==capacity['run_id']
             reopened = client.get(f"/api/projects/{project['id']}/analysis-runs/{run['id']}").json()
             assert reopened['checksums']==run['checksums'] and reopened['result_snapshot']==run['result_snapshot']
+            if name == 'price':
+                replay = client.post(f"{endpoint}/{run['id']}/replay", headers=headers)
+                assert replay.status_code == 200 and replay.json()['status'] == 'MATCH', replay.text
+                assert replay.json()['result_sha256'] == run['checksums']['result']
             for s in (run['result_snapshot'].get('comparison') or {}).get('scenarios',[]):
                 capex = Decimal(s['metrics']['capex']['value']); rate=Decimal(raw['discount_rate'])
                 expected = -capex + sum(Decimal(f['effect'])/(1+rate)**f['year'] for f in s['annual_cashflows'])
@@ -131,9 +144,17 @@ def test_preview_save_reopen_exports_history_and_independent_cashflow_matrix(act
             pdf = client.get(base+'investor-report.pdf'); assert pdf.status_code==200
             assert pdf.headers['x-report-source-digest']=='sha256:'+run['checksums']['result']
             assert all(p.extract_text() for p in PdfReader(io.BytesIO(pdf.content)).pages)
-            for filename in ['result.xlsx','comparison.csv']:
-                assert client.get(base+filename).status_code==200
-            output=Path(__file__).resolve().parents[1]/'.test-product-chain-implementation/session/money-pdfs'
+            workbook_response = client.get(base+'result.xlsx')
+            csv_response = client.get(base+'comparison.csv')
+            assert workbook_response.status_code == csv_response.status_code == 200
+            if run['result_snapshot'].get('comparison'):
+                purchase = next(item for item in run['result_snapshot']['comparison']['scenarios']
+                                if item['scenario_id'] == 'scenario.purchase.base')
+                saved_tco = purchase['metrics']['tco']['value']
+                assert saved_tco in csv_response.content.decode('utf-8-sig')
+                workbook = load_workbook(io.BytesIO(workbook_response.content), read_only=True, data_only=True)
+                assert any(saved_tco in row for row in workbook['Итог'].values)
+            output=tmp_path/'money-pdfs'
             output.mkdir(exist_ok=True)
             (output/f'{profile}-{name}.pdf').write_bytes(pdf.content)
         unchanged = client.get(f"/api/projects/{project['id']}/analysis-runs/{source['id']}").json()

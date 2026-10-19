@@ -592,7 +592,7 @@ def test_preliminary_capacity_run_requires_csrf_and_reopens_with_c05_unknowns(mo
 
 
 def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
-    monkeypatch,
+    monkeypatch, tmp_path,
 ):
     catalog = economics_snapshot()
 
@@ -709,7 +709,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         batch_text = ''.join(page.extract_text() for page in PdfReader(io.BytesIO(batch_pdf.content)).pages)
         assert 'Приёмка с условиями' in batch_text and 'Отгрузка' in batch_text
         assert batch_text.count('warehouse_receiving_shipping') >= 2
-        evidence_dir = Path(__file__).resolve().parents[1] / '.test-product-remediation'
+        evidence_dir = tmp_path / 'product-remediation'
         evidence_dir.mkdir(exist_ok=True)
         (evidence_dir / 'operation-batch-saved.json').write_text(json.dumps(batch, ensure_ascii=False, indent=2), encoding='utf-8')
         (evidence_dir / 'operation-batch-saved.pdf').write_bytes(batch_pdf.content)
@@ -738,15 +738,21 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         economics_payload = {
             "scenario_id": scenario["id"],
             "capacity_run_id": capacity["run_id"],
-            "input": economics_inputs(),
+            "input": {**economics_inputs(),
+                      "staffing_purchase": {"control_mode": "HIRE", "technician_mode": "HIRE"},
+                      "staffing_raas": {"control_mode": "HIRE", "technician_mode": "VENDOR"}},
         }
         assert owner.post(endpoint, json=economics_payload).status_code == 403
+        without_staffing = owner.post(endpoint, headers=headers, json={**economics_payload, "input": economics_inputs()})
+        assert without_staffing.status_code == 422
+        assert "staffing decisions" in without_staffing.json()["detail"]
         created_response = owner.post(
             endpoint, headers=headers, json=economics_payload
         )
         assert created_response.status_code == 201, created_response.text
         created = created_response.json()
         assert created["status"] == "SUCCEEDED"
+        assert created["versions"]["application"] == "production-economics-orchestrator-v6"
         assert created["parent_run_id"] == capacity["run_id"]
         assert created["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v3"
         assert len(created["result_snapshot"]["scenarios"]) == 6
@@ -849,7 +855,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert rerun["input_snapshot"]["economics"] == created["input_snapshot"]["economics"]
 
         assumption = DEMO_SCENARIO["fields"]["implementation_cost_total_gross"]
-        versioned = {**economics_inputs(), "schema_version": "economics-explicit-inputs-v3",
+        versioned = {**economics_payload["input"], "schema_version": "economics-explicit-inputs-v5",
                      "field_sources": {"implementation_cost_total_gross": "ASSUMPTION"},
                      "assumption_evidence": {"implementation_cost_total_gross": {
                          "schema_version": "scenario-assumption-evidence-v1",
@@ -863,7 +869,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         })
         assert versioned_response.status_code == 201, versioned_response.text
         versioned_run = versioned_response.json()
-        assert versioned_run["input_snapshot"]["schema_version"] == "economics-run-input-v4"
+        assert versioned_run["input_snapshot"]["schema_version"] == "economics-run-input-v6"
         assert versioned_run["result_snapshot"]["schema_version"] == "commercial-scenarios-bundle-v3"
         assert owner.post(f"{endpoint}/{versioned_run['id']}/replay", headers=headers).json()["status"] == "MATCH"
         changed = json.loads(json.dumps(versioned))
@@ -884,7 +890,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         assert owner.get(f"/api/projects/{project['id']}/analysis-runs/{versioned_run['id']}").json()["checksums"] == versioned_run["checksums"]
         assert owner.post(f"{endpoint}/{changed_run['id']}/replay", headers=headers).json()["status"] == "MATCH"
 
-        _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity, endpoint)
+        _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity, endpoint, tmp_path)
 
         history = owner.get(f"/api/projects/{project['id']}/analysis-runs")
         assert history.status_code == 200, history.text
@@ -942,7 +948,7 @@ def test_production_c11_to_c21_run_replay_rerun_export_and_tenant_isolation(
         ).status_code == 404
 
 
-def _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity, endpoint):
+def _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity, endpoint, tmp_path):
     from copy import deepcopy
     from pypdf import PdfReader
     from test_evgeny_project import project_input
@@ -998,7 +1004,7 @@ def _assert_what_if_preview_save_pdf(owner, headers, project, scenario, capacity
     compact_text = ''.join(text.split()).replace(',', '.')
     for row in run['result_snapshot']['comparison']['scenarios']:
         assert row['metrics']['npv']['value'] in compact_text
-    output = Path(__file__).resolve().parents[1] / '.test-product-remediation'
+    output = tmp_path / 'what-if'
     output.mkdir(exist_ok=True)
     (output / 'scenario-saved.pdf').write_bytes(report.content)
     (output / 'scenario-save-evidence.json').write_text(json.dumps({'source': before, 'preview': data, 'saved': run}, ensure_ascii=False, indent=2), encoding='utf-8')
