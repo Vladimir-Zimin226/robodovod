@@ -31,6 +31,9 @@ export function AppShell({ phase, user, activeProject, objectType, journeyMode, 
   const [menuOpen, setMenuOpen] = useState(false);
   const isResult = phase === 'results';
   const isJourney = Object.hasOwn(GUIDE, phase);
+  const guide = phase === 'intake' && objectType === 'retail'
+    ? ['Сначала все роли', 'Отметьте сотрудников склада и уточните численность, оплату и объём их работы.', 'После расчёта роботы появятся для каждой выбранной роли.']
+    : GUIDE[phase];
   const activeNav = phase === 'onboarding' ? 'home' : phase === 'guestDemo' ? 'demo' : phase === 'intake' ? 'calculation' : phase === 'catalog' ? 'library' : phase === 'reports' ? 'report' : phase === 'economicsMethodology' ? 'economics' : phase;
   const initials = (user?.name || user?.email || 'Г')
     .split(/[\s@]+/)
@@ -112,7 +115,7 @@ export function AppShell({ phase, user, activeProject, objectType, journeyMode, 
           {isJourney && <aside className="journey-guide" aria-label="Подсказка по текущему шагу">
             <p className="journey-guide-label">ВАШ ЦИФРОВОЙ ИНЖЕНЕР</p>
             <div className="journey-guide-card"><span className="journey-guide-icon"><AppIcon name="assistant" size={25} /></span>
-              <h2>{GUIDE[phase][0]}</h2><p>{GUIDE[phase][1]}</p><small>{GUIDE[phase][2]}</small>
+              <h2>{guide[0]}</h2><p>{guide[1]}</p><small>{guide[2]}</small>
               <button type="button" onClick={() => window.dispatchEvent(new Event('robodovod:open-help'))}>Задать вопрос <AppIcon name="arrow" size={16} /></button>
             </div>
             <div className="journey-guide-status"><h3>Состояние оценки</h3>

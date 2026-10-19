@@ -961,6 +961,7 @@ from picking_project_api import router as picking_project_router  # noqa: E402
 from evidence_export_api import create_evidence_export_router  # noqa: E402
 from brain_api import create_brain_router  # noqa: E402
 from warehouse_chain_api import create_warehouse_chain_router  # noqa: E402
+from warehouse_roles_api import create_warehouse_roles_router  # noqa: E402
 from facility_layout_api import create_facility_layout_router  # noqa: E402
 from candidate_comparison_api import create_comparison_router  # noqa: E402
 from roboexpert_api import create_roboexpert_router  # noqa: E402
@@ -993,6 +994,7 @@ from admin_catalog_api import public_router as catalog_defaults_router, router a
 app.include_router(admin_catalog_router)
 app.include_router(catalog_defaults_router)
 app.include_router(create_warehouse_chain_router(_discovery_snapshot))
+app.include_router(create_warehouse_roles_router(_discovery_snapshot))
 app.include_router(create_facility_layout_router())
 app.include_router(create_comparison_router(_capacity_snapshot))
 app.include_router(create_roboexpert_router(_discovery_snapshot))

@@ -9,6 +9,7 @@ Backend — FastAPI. Точные типы запросов и ответов б
 | Проекты | `GET/POST /api/projects`; `GET/PATCH/DELETE /api/projects/{project_id}`; файлы через `/files/preview` и `/files`. |
 | Ввод и каталог | `POST /api/v2/calculation-intake/normalize`; `GET /api/catalog/models` и `/positions/{position_id}`. |
 | Физический расчёт | `POST /api/v2/capacity-analyses`; `GET /api/v2/capacity-analyses/{run_id}`. |
+| Склад по ролям | `GET /api/v2/warehouse-roles/template`; `GET /api/v2/projects/{project_id}/warehouse-roles`; `POST .../warehouse-roles/preview`; `POST .../warehouse-roles` — предварительный и сохранённый сценарий для всех выбранных ролей склада. |
 | Денежный расчёт | `POST /api/v2/projects/{project_id}/economics-runs`; `POST .../economics-runs/preview`; `POST .../economics-runs/{run_id}/replay`. |
 | РД-помощник | `POST /api/assistant/service` — свободный диалог через Yandex Cloud с поиском по справке, методике и активному каталогу. |
 | История и экспорт | `GET /api/projects/{project_id}/analysis-runs` и `/{run_id}`; `GET .../{run_id}/exports/investor-report.pdf`, `/investor-report-preview.pdf`, `/evidence.zip`. |

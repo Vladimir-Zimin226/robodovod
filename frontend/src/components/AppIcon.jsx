@@ -17,6 +17,14 @@ const paths = {
   airport: <><path d="M3 20h18M5 20V9h14v11M8 9V6h8v3M10 6V4h4v2M8 13h2m4 0h2m-8 3h2m4 0h2"/><path d="m3 8 3-2m15 2-3-2"/></>,
   clinic: <><path d="M4 20V5h16v15M3 20h18M9 20v-5h6v5M10 8h4m-2-2v4M7 12h2m6 0h2"/></>,
   assistant: <><path d="M5 5.5A3.5 3.5 0 0 1 8.5 2h7A3.5 3.5 0 0 1 19 5.5v10a3.5 3.5 0 0 1-3.5 3.5H9l-4 3v-6.5z"/><path d="M9 10h.01M15 10h.01M9.5 14c1.5 1.2 3.5 1.2 5 0"/></>,
+  forklift_driver: <><path d="M3 5v14h12M3 14h7l2 4M10 10h4v6h-2M17 4v13h5M17 17h5M5 19a2 2 0 1 0 4 0M13 19a2 2 0 1 0 4 0"/></>,
+  loader: <><path d="M4 8 12 4l8 4v9l-8 4-8-4zM4 8l8 4 8-4M12 12v9M7 6.5l8 4"/></>,
+  storekeeper: <><path d="M3 20V5h18v15M3 10h18M3 15h18M8 10V6m8 4V6M6 20v-5m6 5v-5m6 5v-5"/></>,
+  picker: <><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM14 16l2 2 4-5"/></>,
+  sorter: <><path d="M3 5h18M12 5v5M12 10l-6 5m6-5 6 5M3 15h6v5H3zM15 15h6v5h-6z"/></>,
+  packer: <><path d="M3 7 12 3l9 4v11l-9 4-9-4zM3 7l9 4 9-4M12 11v11M8 5l9 4"/></>,
+  cleaner: <><path d="M6 21 14 4M12 8l5 2M4 21h9M17 17l1-2 1 2 2 1-2 1-1 2-1-2-2-1z"/></>,
+  inventory_worker: <><path d="M5 3h14v18H5zM8 3v3h8V3M8 11h3m-3 4h3m3-4h3m-3 4h3M8 19h8"/></>,
 };
 
 export default function AppIcon({ name, size = 20, className = '' }) {

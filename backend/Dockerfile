@@ -14,6 +14,7 @@ COPY docs/USER_GUIDE.md docs/CALCULATIONS.md docs/API.md docs/ADMIN_CATALOG.md d
 COPY data/calculation/ /data/calculation/
 COPY data/scenarios/warehouse-economics-demo-v1.json /data/scenarios/warehouse-economics-demo-v1.json
 COPY data/review/process-profile-coverage-v1.json /data/review/process-profile-coverage-v1.json
+COPY frontend/src/roleWorkScenarioData.json /data/role-work/roleWorkScenarioData.json
 
 EXPOSE 8000
 

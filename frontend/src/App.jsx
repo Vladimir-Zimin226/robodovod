@@ -25,6 +25,7 @@ import EconomicsGlossaryScreen from './components/EconomicsGlossaryScreen';
 import EconomicsMethodologyScreen from './components/EconomicsMethodologyScreen';
 import ReportsScreen from './components/ReportsScreen';
 import ProjectTemplatesScreen from './components/ProjectTemplatesScreen';
+import WarehouseRoleResult from './components/WarehouseRoleResult';
 import AdminCatalogScreen from './components/AdminCatalogScreen';
 import {
   forgetProjectId, readRememberedProjectId, rememberProjectId, selectRestorableProject,
@@ -480,9 +481,18 @@ export default function App() {
               setSaveState('saved');
               showPhase('robots');
             }}
+            onWarehouseRoleSaved={(response) => {
+              setResult(response);
+              setActiveRun(null);
+              setUserInput(null);
+              setSaveState('saved');
+              showPhase('results');
+            }}
           />
         ) : phase === 'robots' ? (
-          <main className="journey-panel" aria-label="Какие роботы могут подойти?">
+          result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
+            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('money')}>К экономике склада</button></div></>
+          : <main className="journey-panel" aria-label="Какие роботы могут подойти?">
             <p className="eyebrow">Шаг 3 из 5</p><h1>Какие роботы могут подойти?</h1>
             <p>Сначала посмотрите расчёт парка и ограничения выбранной модели. Сравнение использует тот же сохранённый расчёт и каталог.</p>
             {isCapacityAnalysisResponse(result) ? <CapacityResultsTrace response={result} zoneContext={userInput?.zone_context} compact />
@@ -492,7 +502,9 @@ export default function App() {
               <button type="button" className="primary-action" onClick={() => showPhase('money')}>Продолжить к стоимости</button></div>
           </main>
         ) : phase === 'money' ? (
-          <main className="journey-panel" aria-label="Сколько это будет стоить?">
+          result?.schema_version === 'warehouse-role-analysis-v1' ? <><WarehouseRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
+            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
+          : <main className="journey-panel" aria-label="Сколько это будет стоить?">
             <p className="eyebrow">Шаг 4 из 5</p><h1>Сколько это будет стоить?</h1>
             <p>Оборудование, внедрение и эксплуатация считаются отдельно. Неизвестные условия останутся видимыми в результате.</p>
             {isCapacityAnalysisResponse(result) ? <EconomicsInputsV2
@@ -551,6 +563,8 @@ export default function App() {
         ) : phase === 'adminCatalog' ? (
           user?.role === 'ADMIN' ? <AdminCatalogScreen user={user} />
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
+        ) : result?.schema_version === 'warehouse-role-analysis-v1' ? (
+          <WarehouseRoleResult report={result} onEdit={() => openCalculation()} />
         ) : (
           <>
             {resultNeedsRecalculation && <div className="mx-auto max-w-6xl px-4 pt-4" role="status"><div className="rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">Ввод изменён после этого расчёта. Показан сохранённый результат прежней версии. <button type="button" className="underline font-semibold" onClick={() => openCalculation(true)}>Вернуться к изменённым полям и пересчитать</button></div></div>}
