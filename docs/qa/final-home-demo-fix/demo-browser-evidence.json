@@ -1,0 +1,577 @@
+[
+  {
+    "kind": "retail",
+    "width": 1440,
+    "pose_before": "11.68,34.00",
+    "pose_after": "18.00,34.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.38659"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.38660"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.38693"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/report.pdf",
+        "status": 200,
+        "request_id": "19856.38710"
+      }
+    ]
+  },
+  {
+    "kind": "airport",
+    "width": 1440,
+    "pose_before": "17.00,23.06",
+    "pose_after": "19.55,29.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.38659"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.38660"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.38693"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/report.pdf",
+        "status": 200,
+        "request_id": "19856.38710"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.38883"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.38882"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.38910"
+      }
+    ]
+  },
+  {
+    "kind": "clinic",
+    "width": 1440,
+    "pose_before": "7.03,14.00",
+    "pose_after": "15.52,14.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.38693"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/report.pdf",
+        "status": 200,
+        "request_id": "19856.38710"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.38883"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.38882"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.38910"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39096"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39097"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.39124"
+      }
+    ]
+  },
+  {
+    "kind": "retail",
+    "width": 768,
+    "pose_before": "11.60,34.00",
+    "pose_after": "17.84,34.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.38882"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.38910"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39096"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39097"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.39124"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39311"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39310"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.39344"
+      }
+    ]
+  },
+  {
+    "kind": "airport",
+    "width": 768,
+    "pose_before": "17.00,23.18",
+    "pose_after": "17.00,27.15",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39097"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.39124"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39311"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39310"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.39344"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.39534"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.39533"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.39561"
+      }
+    ]
+  },
+  {
+    "kind": "clinic",
+    "width": 768,
+    "pose_before": "7.64,14.00",
+    "pose_after": "16.37,14.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39310"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.39344"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.39534"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.39533"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.39561"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39748"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39747"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.39775"
+      }
+    ]
+  },
+  {
+    "kind": "retail",
+    "width": 390,
+    "pose_before": "11.51,34.00",
+    "pose_after": "20.15,34.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.39533"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.39561"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39748"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39747"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.39775"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39961"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39962"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.39995"
+      }
+    ]
+  },
+  {
+    "kind": "airport",
+    "width": 390,
+    "pose_before": "17.00,23.53",
+    "pose_after": "20.65,29.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.39747"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.39775"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39961"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39962"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.39995"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40184"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40185"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.40212"
+      }
+    ]
+  },
+  {
+    "kind": "clinic",
+    "width": 390,
+    "pose_before": "7.40,14.00",
+    "pose_after": "15.45,14.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.39962"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.39995"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40184"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40185"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.40212"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.40398"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.40399"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.40426"
+      }
+    ]
+  },
+  {
+    "kind": "retail",
+    "width": 360,
+    "pose_before": "11.01,34.00",
+    "pose_after": "19.44,34.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40185"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.40212"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.40398"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.40399"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.40426"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.40612"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.40613"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.40646"
+      }
+    ]
+  },
+  {
+    "kind": "airport",
+    "width": 360,
+    "pose_before": "17.00,23.50",
+    "pose_after": "20.71,29.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.40399"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.40426"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.40612"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.40613"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.40646"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40835"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40836"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.40863"
+      }
+    ]
+  },
+  {
+    "kind": "clinic",
+    "width": 360,
+    "pose_before": "7.44,14.00",
+    "pose_after": "12.79,14.00",
+    "glb_status": null,
+    "pdf_http": 200,
+    "network": [
+      {
+        "url": "object-roles/WAREHOUSE/preview",
+        "status": 200,
+        "request_id": "19856.40613"
+      },
+      {
+        "url": "object-roles/WAREHOUSE/route-preview",
+        "status": 200,
+        "request_id": "19856.40646"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40835"
+      },
+      {
+        "url": "object-roles/AIRPORT/preview",
+        "status": 200,
+        "request_id": "19856.40836"
+      },
+      {
+        "url": "object-roles/AIRPORT/route-preview",
+        "status": 200,
+        "request_id": "19856.40863"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.41049"
+      },
+      {
+        "url": "object-roles/CLINIC/preview",
+        "status": 200,
+        "request_id": "19856.41050"
+      },
+      {
+        "url": "object-roles/CLINIC/route-preview",
+        "status": 200,
+        "request_id": "19856.41077"
+      }
+    ]
+  }
+]

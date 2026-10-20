@@ -11,7 +11,6 @@ import { isCapacityAnalysisResponse } from './capacityResultsModel';
 import { isCommercialScenariosBundle } from './commercialScenariosModel';
 import Simulation2DReport from './components/Simulation2DReport';
 import SceneModelPreview from './components/SceneModelPreview';
-import { captureSceneImages } from './sceneCapture';
 import SceneSimulationControls from './components/SceneSimulationControls';
 import WhatIfPanel from './components/WhatIfPanel';
 import InvestmentReport from './components/InvestmentReport';
@@ -78,7 +77,6 @@ export default function App() {
   const [sceneOverlay, setSceneOverlay] = useState(null);
   const [simulationPose, setSimulationPose] = useState(null);
   const onSimulationPlayback = useCallback((pose) => setSimulationPose(pose), []);
-  const [sceneCaptures, setSceneCaptures] = useState(null);
   const [pdfError, setPdfError] = useState('');
   const [layoutEvidence, setLayoutEvidence] = useState(null);
   const [capacityComparison, setCapacityComparison] = useState(null);
@@ -110,10 +108,9 @@ export default function App() {
   const craftIframe = useRef(null);
 
   const activeWhatIf = whatIfBranch?.baseReport === result ? whatIfBranch : null;
-  const activeSceneCaptures = sceneCaptures?.baseReport === result ? sceneCaptures.images : null;
 
   const showPhase = (nextPhase) => {
-    if ((simulationDirty || simulationScenarioOnly) && ['money', 'results'].includes(nextPhase)) return;
+    if ((simulationDirty || (simulationScenarioOnly && !demoKind)) && ['money', 'results'].includes(nextPhase)) return;
     if (phase !== nextPhase) {
       const url = new URL(window.location.href);
       url.hash = phaseHash(nextPhase);
@@ -169,12 +166,12 @@ export default function App() {
   }, [phase, result]);
 
   useEffect(() => {
-    if (phase !== 'results' || !result || !authChecked || user || guestPromptSeen.current) return;
+    if (phase !== 'results' || !result || !authChecked || user || demoKind || guestPromptSeen.current) return;
     guestPromptSeen.current = true;
     sessionStore()?.setItem('robodovod:guest-save-prompt-seen', '1');
     const timer = window.setTimeout(() => setShowGuestSavePrompt(true), 0);
     return () => window.clearTimeout(timer);
-  }, [phase, result, user, authChecked]);
+  }, [phase, result, user, authChecked, demoKind]);
 
   useEffect(() => {
     fetch(`${API}/api/auth/me`, { credentials: 'include' })
@@ -314,7 +311,7 @@ export default function App() {
       const response = await fetch(`${API}${path}`, { method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ expected_catalog_version: result.catalog_version, input: roleInput,
-          what_if_input: activeWhatIf?.input || null, scene_snapshots: activeSceneCaptures }) });
+          what_if_input: activeWhatIf?.input || null }) });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         throw new Error(typeof body.detail === 'string' ? body.detail : `PDF: ошибка ${response.status}`);
@@ -604,9 +601,9 @@ export default function App() {
             }}
           />
         ) : phase === 'robots' ? (
-          ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
+          ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="robots" onEdit={demoKind ? undefined : () => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('simulation')}>К симуляции</button></div></>
-          : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
+          : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="robots" onEdit={demoKind ? undefined : () => openCalculation()} />
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('simulation')}>К симуляции</button></div></>
           : <main className="journey-panel" aria-label="Какие роботы могут подойти?">
             <p className="eyebrow">Шаг 3 из 5</p><h1>Какие роботы могут подойти?</h1>
@@ -621,26 +618,22 @@ export default function App() {
           <main className="journey-panel" aria-label="Симуляция"><p className="eyebrow">ШАГ 3 ИЗ 5 · СИМУЛЯЦИЯ</p><h1>Симуляция</h1>
             <SceneModelPreview kind={objectType} overlay={simulationDirty ? null : sceneOverlay} pose={simulationDirty ? null : simulationPose} />
             {roleInput && ['warehouse-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)
-              ? <SceneSimulationControls kind={objectType} roleInput={roleInput} report={result}
+              ? <SceneSimulationControls kind={objectType} roleInput={roleInput} report={result} demoLocked={Boolean(demoKind)}
                 onChanged={() => { setSimulationDirty(true); setSimulationPose(null); }}
                 onPlayback={onSimulationPlayback}
                 onScenario={(overlay) => { setSceneOverlay(overlay); setSimulationDirty(false); setSimulationScenarioOnly(true); }}
                 onSimulated={(response, input, overlay) => { setResult(response); setRoleInput(input); setSceneOverlay(overlay); setSimulationDirty(false); setSimulationScenarioOnly(!overlay.result.selected_robot_ids?.length); setSaveState('preview'); }} />
               : <p role="status">Инженерная симуляция маршрутов ещё не выполнена. Показанный парк рассчитан по сценарной выработке без проверки геометрии и очередей.</p>}
             {simulationDirty && <p role="alert">Ввод маршрута изменён. Пересчитайте его перед переходом к деньгам.</p>}
-            {simulationScenarioOnly && <p role="alert">Показан сценарный маршрут без подтверждённого робота. Для перехода к экономике выберите пригодную модель в каталоге.</p>}
-            <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => showPhase('robots')}>Назад к роботам</button><button type="button" className="primary-action" disabled={simulationDirty || simulationScenarioOnly} onClick={async () => {
-              const images = await captureSceneImages();
-              setSceneCaptures({ baseReport: result, images });
-              showPhase('money');
-            }}>К экономике с этим ограничением</button></div>
+            {simulationScenarioOnly && <p role="alert">Показан учебный маршрут без подтверждённой модели. Экономические показатели основаны на сценарных допущениях и не являются рекомендацией к закупке.</p>}
+            <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => showPhase('robots')}>Назад к роботам</button><button type="button" className="primary-action" disabled={simulationDirty || (simulationScenarioOnly && !demoKind)} onClick={() => showPhase('money')}>К экономике с этим ограничением</button></div>
           </main>
         ) : phase === 'money' ? (
-          ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
-            {roleInput && <WhatIfPanel input={roleInput} report={result} onBranch={(branch) => setWhatIfBranch(branch ? { ...branch, baseReport: result } : null)} />}
+          ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="money" onEdit={demoKind ? undefined : () => openCalculation()} />
+            {roleInput && !demoKind && <WhatIfPanel input={roleInput} report={result} onBranch={(branch) => setWhatIfBranch(branch ? { ...branch, baseReport: result } : null)} onOpenResult={() => showPhase('results')} />}
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
-          : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
-            {roleInput && <WhatIfPanel input={roleInput} report={result} onBranch={(branch) => setWhatIfBranch(branch ? { ...branch, baseReport: result } : null)} />}
+          : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="money" onEdit={demoKind ? undefined : () => openCalculation()} />
+            {roleInput && !demoKind && <WhatIfPanel input={roleInput} report={result} onBranch={(branch) => setWhatIfBranch(branch ? { ...branch, baseReport: result } : null)} onOpenResult={() => showPhase('results')} />}
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
           : <main className="journey-panel" aria-label="Сколько это будет стоить?">
             <p className="eyebrow">Шаг 4 из 5</p><h1>Сколько это будет стоить?</h1>
@@ -702,9 +695,9 @@ export default function App() {
           user?.role === 'ADMIN' ? <AdminCatalogScreen user={user} />
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
         ) : ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? (
-          <><InvestmentReport view={result.report_view} comparison={activeWhatIf?.report?.report_view} /><ObjectRoleResult report={result} focus={result.report_view ? 'robots' : 'all'} onEdit={() => openCalculation()} /><div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" disabled={!roleInput} onClick={downloadRolePdf}>Скачать инвестиционный PDF</button><button type="button" onClick={restart}>На главную</button>{pdfError && <p role="alert">{pdfError}</p>}</div></>
+          <><InvestmentReport view={result.report_view} comparison={activeWhatIf?.report?.report_view} /><ObjectRoleResult report={result} focus={result.report_view ? 'robots' : 'all'} onEdit={demoKind ? undefined : () => openCalculation()} /><div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" disabled={!roleInput} onClick={downloadRolePdf}>Скачать инвестиционный PDF</button><button type="button" onClick={restart}>На главную</button>{pdfError && <p role="alert">{pdfError}</p>}</div></>
         ) : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? (
-          <><InvestmentReport view={result.report_view} comparison={activeWhatIf?.report?.report_view} /><WarehouseRoleResult report={result} focus={result.report_view ? 'robots' : 'all'} onEdit={() => openCalculation()} /><div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" disabled={!roleInput} onClick={downloadRolePdf}>Скачать инвестиционный PDF</button><button type="button" onClick={restart}>На главную</button>{pdfError && <p role="alert">{pdfError}</p>}</div></>
+          <><InvestmentReport view={result.report_view} comparison={activeWhatIf?.report?.report_view} /><WarehouseRoleResult report={result} focus={result.report_view ? 'robots' : 'all'} onEdit={demoKind ? undefined : () => openCalculation()} /><div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" disabled={!roleInput} onClick={downloadRolePdf}>Скачать инвестиционный PDF</button><button type="button" onClick={restart}>На главную</button>{pdfError && <p role="alert">{pdfError}</p>}</div></>
         ) : (
           <>
             {resultNeedsRecalculation && <div className="mx-auto max-w-6xl px-4 pt-4" role="status"><div className="rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">Ввод изменён после этого расчёта. Показан сохранённый результат прежней версии. <button type="button" className="underline font-semibold" onClick={() => openCalculation(true)}>Вернуться к изменённым полям и пересчитать</button></div></div>}

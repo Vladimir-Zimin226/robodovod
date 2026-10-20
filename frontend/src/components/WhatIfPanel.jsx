@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { buildWhatIfInput, DEFAULT_WHAT_IF, whatIfChanged, whatIfSummary } from '../whatIfModel.js';
+import { simulationStatusLabel } from '../presentation.js';
 
 const API = import.meta.env.VITE_API_URL || '';
 const number = (value, digits = 0) => value == null ? 'Нужны данные'
@@ -34,17 +35,18 @@ function Metrics({ title, summary, horizon, baseline }) {
     <dl>{cells.map(([label, value, difference]) => <div key={label}><dt>{label}</dt><dd>{value}
       {difference && <small>Δ {difference}</small>}</dd></div>)}</dl>
     {summary.simulations.length > 0 && <p>Маршрут: {summary.simulations.map((sim) =>
-      `${sim.status}, цикл ${sim.cycle_s ?? '—'} с, парк ${sim.fleet_required ?? '—'}`).join('; ')}.</p>}
+      `${simulationStatusLabel(sim.status)}, цикл ${sim.cycle_s ?? '—'} с, парк ${sim.fleet_required ?? '—'}`).join('; ')}.</p>}
   </section>;
 }
 
-export default function WhatIfPanel({ input, report, onBranch }) {
+export default function WhatIfPanel({ input, report, onBranch, onOpenResult }) {
   const [controls, setControls] = useState({ ...DEFAULT_WHAT_IF });
   const [branch, setBranch] = useState(null);
   const [failure, setFailure] = useState(null);
   const revision = useRef(0);
   const onBranchRef = useRef(onBranch);
   useEffect(() => { onBranchRef.current = onBranch; }, [onBranch]);
+  useEffect(() => { onBranchRef.current?.(null); }, []);
   const changed = whatIfChanged(controls);
   const key = JSON.stringify(controls);
   const current = changed && branch?.key === key ? branch.report : null;
@@ -79,7 +81,7 @@ export default function WhatIfPanel({ input, report, onBranch }) {
   const base = whatIfSummary(report);
   const comparison = current ? whatIfSummary(current) : null;
   return <section className="what-if-panel" aria-label="Что если?">
-    <h2>Что если?</h2><p>Временная ветка пересчитывается на сервере. Базовый отчёт, каталог и PDF остаются исходными; изменение объёма или скорости повторно запускает расчёт парка и маршрута.</p>
+    <h2>Что если?</h2><p>Измените один параметр, чтобы увидеть, насколько итог от него зависит. Слева — исходный расчёт; справа — новый расчёт и разница. Базовый сценарий сохраняется.</p>
     <div className="what-if-fields">
       <Slider label="Цена робота" value={controls.pricePercent} onChange={(v) => patch('pricePercent', v)} unit="%" />
       <Slider label="ФОТ" value={controls.laborPercent} onChange={(v) => patch('laborPercent', v)} unit="%" />
@@ -111,5 +113,7 @@ export default function WhatIfPanel({ input, report, onBranch }) {
       {comparison ? <Metrics title="Что если?" summary={comparison} horizon={current.general.horizon_years} baseline={base} />
         : <section className="what-if-column" aria-live="polite"><h3>Что если?</h3>
           <p>{!changed ? 'Выберите изменение, чтобы сравнить сценарии.' : error || 'Пересчитывается на сервере…'}</p></section>}</div>
+    <div className="what-if-action-row"><button type="button" className="what-if-result-action" onClick={onOpenResult}
+      disabled={changed && !comparison}>{comparison ? 'Показать итог сравнения →' : 'Перейти к результату →'}</button></div>
   </section>;
 }

@@ -2,9 +2,9 @@ import AppIcon from './components/AppIcon';
 import TrailerPlayer from './components/TrailerPlayer';
 
 const OBJECTS = [
-  { id: 'retail', icon: 'warehouse', title: 'Склад', detail: 'Перевозка паллет, уборка, комплектовка', note: 'Рассчитать склад по ролям · 8 видов работы' },
-  { id: 'airport', icon: 'airport', title: 'Аэропорт', detail: 'Терминал, багаж и сервисные зоны', note: 'Рассчитать аэропорт по ролям · 13 видов работы' },
-  { id: 'clinic', icon: 'clinic', title: 'Клиника', detail: 'Внутренняя доставка и уборка', note: 'Рассчитать клинику по ролям · 14 видов работы' },
+  { id: 'retail', icon: 'warehouse', image: '/images/object_warehouse.webp', title: 'Склад', detail: 'Перевозка паллет, уборка, комплектовка', note: 'Рассчитать склад по ролям · 8 видов работы' },
+  { id: 'airport', icon: 'airport', image: '/images/object_airport.webp', title: 'Аэропорт', detail: 'Терминал, багаж и сервисные зоны', note: 'Рассчитать аэропорт по ролям · 13 видов работы' },
+  { id: 'clinic', icon: 'clinic', image: '/images/object_clinic.webp', title: 'Клиника', detail: 'Внутренняя доставка и уборка', note: 'Рассчитать клинику по ролям · 14 видов работы' },
 ];
 
 export default function OnboardingScreen({ onChoose, onExample }) {
@@ -24,7 +24,10 @@ export default function OnboardingScreen({ onChoose, onExample }) {
     </section>
     <section className="simple-journey-section" aria-label="Смотреть готовые примеры">
       <h2>Смотреть готовые примеры</h2><p>Типовые входные данные, допущения и ограничения открываются в той же форме оценки.</p>
-      <div className="simple-object-grid">{OBJECTS.map((item) => <button type="button" key={item.id} onClick={() => onExample(item.id)}><AppIcon name={item.icon} size={30} /><strong>{item.title}</strong><span>Открыть пример</span></button>)}</div>
+      <div className="simple-object-grid simple-demo-grid">{OBJECTS.map((item) => <button type="button" key={item.id} onClick={() => onExample(item.id)}>
+        <img src={item.image} alt="" loading="lazy" /><strong>{item.title}</strong>
+        <span>Типовой сценарий с открытыми допущениями</span><b>Открыть пример <AppIcon name="arrow" size={17} /></b>
+      </button>)}</div>
     </section>
     <TrailerPlayer />
   </main>;

@@ -79,6 +79,32 @@ def test_missing_price_stays_unknown_in_warehouse_report_and_pdf():
     assert view["economics"]["raas"]["npv_rub"] is None
 
 
+def test_raas_year_zero_is_upfront_and_year_one_contains_twelve_months():
+    value = raw("CLINIC")
+    value["roles"] = [role for role in value["roles"] if role["role_code"] == "porter"]
+    role = value["roles"][0]
+    role["works"] = [work for work in role["works"] if work["process_code"] == "clinic_medicines"]
+    work = role["works"][0]
+    work["daily_volume"] = "5"
+    work["robot_units_per_hour"] = "1000"
+    work["raas_mode"] = "FIXED"
+    work["scenario_raas_monthly_rub"] = "100000"
+    report = analyze_object_roles(ObjectRoleInput.model_validate(value), object_catalog())
+    rent = report["report_view"]["economics"]["raas"]
+    assert report["base_total"]["fleet"] == 1
+    assert rent["capex_rub"] == "0.00"
+    assert rent["annual_operating_cost_rub"] == "1200000.00"
+    assert rent["cashflows"][0] == {"year": 0, "net_rub": "0.00", "cumulative_rub": "0.00"}
+    assert rent["cashflows"][1]["net_rub"] == rent["annual_net_rub"]
+    assert rent["cashflows"][2]["net_rub"] == rent["annual_net_rub"]
+    assert "расходы первого года 1 200 000" in pdf_text(role_report_pdf(report))
+
+    work["scenario_raas_monthly_rub"] = None
+    unknown = analyze_object_roles(ObjectRoleInput.model_validate(value), object_catalog())
+    assert unknown["report_view"]["economics"]["raas"]["annual_operating_cost_rub"] is None
+    assert unknown["report_view"]["economics"]["raas"]["cashflows"] == []
+
+
 @pytest.mark.parametrize("kind", ["WAREHOUSE", "AIRPORT", "CLINIC"])
 def test_guest_pdf_recalculates_same_report_view_as_preview(kind):
     app = FastAPI()

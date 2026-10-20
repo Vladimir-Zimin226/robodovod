@@ -3,6 +3,7 @@ import ProjectFileIntake from './ProjectFileIntake';
 import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 import WarehouseRoleWorkspace from './WarehouseRoleWorkspace';
 import ObjectRoleWorkspace from './ObjectRoleWorkspace';
+import DemoRoleWorkspace from './DemoRoleWorkspace';
 
 export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked, demo = false,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
@@ -24,8 +25,9 @@ export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', ini
   };
 
   if (supported) return <>
-    <div className="mx-auto max-w-6xl px-4 pt-4"><p className="simple-step-eyebrow">ШАГ 1 ИЗ 5 · РАБОТЫ</p><h1>Работы</h1>{demo && <p>Готовый пример · сценарные допущения можно изменить.</p>}</div>
-    {objectType === 'retail' ? <WarehouseRoleWorkspace activeProject={activeProject} user={user} authChecked={authChecked}
+    <div className="mx-auto max-w-6xl px-4 pt-4"><p className="simple-step-eyebrow">ШАГ 1 ИЗ 5 · РАБОТЫ</p><h1>Работы</h1>{demo && <p>Готовый пример · значения зафиксированы.</p>}</div>
+    {demo ? <DemoRoleWorkspace objectType={objectType} onPreview={onRolePreview} onContinue={onRoleContinue} />
+      : objectType === 'retail' ? <WarehouseRoleWorkspace activeProject={activeProject} user={user} authChecked={authChecked}
       demo={demo}
       projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject}
       onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved}

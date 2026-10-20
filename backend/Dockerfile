@@ -12,6 +12,7 @@ COPY backend/ .
 COPY contracts/ /contracts/
 COPY docs/USER_GUIDE.md docs/CALCULATIONS.md docs/API.md docs/ADMIN_CATALOG.md docs/GETTING_STARTED.md docs/ASSISTANT_KNOWLEDGE.md /docs/
 COPY data/calculation/ /data/calculation/
+COPY data/scenes/*.scene.json /data/scenes/
 COPY data/scenarios/warehouse-economics-demo-v1.json /data/scenarios/warehouse-economics-demo-v1.json
 COPY data/review/process-profile-coverage-v1.json /data/review/process-profile-coverage-v1.json
 COPY frontend/src/roleWorkScenarioData.json /data/role-work/roleWorkScenarioData.json

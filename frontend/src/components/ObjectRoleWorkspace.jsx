@@ -9,6 +9,8 @@ const API = import.meta.env.VITE_API_URL || '';
 const NAMES = { WAREHOUSE: 'склада', AIRPORT: 'аэропорта', CLINIC: 'клиники' };
 const num = (value) => new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(Number(value || 0));
 const money = (value) => value == null ? 'Нужны данные' : `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(Number(value))} ₽`;
+const fitLabel = (value) => ({ PASS: 'подходит по указанной массе', FAIL: 'масса выше подтверждённой грузоподъёмности',
+  UNKNOWN: 'грузоподъёмность не подтверждена' })[value] || 'требует проверки';
 
 async function request(path, options) {
   const response = await fetch(`${API}${path}`, { credentials: 'include', ...options });
@@ -45,7 +47,7 @@ function Summary({ title, total, warning, horizon }) {
       <div><span>Покупка: CAPEX / TCO</span><strong>{money(total.purchase.capex_rub)} / {money(total.purchase.tco_rub)}</strong></div>
       <div><span>Покупка: эффект после сервиса в год</span><strong>{money(total.purchase.annual_net_rub)}</strong></div>
       <div><span>Покупка: NPV / ROI за {horizon} лет</span><strong>{money(total.purchase.npv_rub)} / {total.purchase.roi_percent == null ? 'N/A' : `${num(total.purchase.roi_percent)}%`}</strong></div>
-      <div><span>Аренда: CAPEX / TCO</span><strong>{money(total.raas.capex_rub)} / {money(total.raas.tco_rub)}</strong></div>
+      <div><span>Аренда: разовые вложения до старта / TCO</span><strong>{money(total.raas.capex_rub)} / {money(total.raas.tco_rub)}</strong></div>
       <div><span>Аренда: эффект после тарифа в год</span><strong>{money(total.raas.annual_net_rub)}</strong></div>
       <div><span>Аренда: NPV / ROI на CAPEX</span><strong>{money(total.raas.npv_rub)} / {total.raas.roi_status === 'DEFINED' ? `${num(total.raas.roi_percent)}%` : total.raas.roi_status === 'NEEDS_INPUT' ? 'Нужны данные' : 'Не определён: вложения равны нулю'}</strong></div>
     </div>
@@ -64,8 +66,8 @@ function CandidateSelection({ role, work, report, onChange }) {
     <select value={work.selected_position_id === 'AUTO' ? calculated.selected_position_id : work.selected_position_id}
       onChange={(event) => onChange(event.target.value)}>
       <option value="SCENARIO_TYPE">Сценарный тип без каталожной модели</option><option value="NONE">Без робота</option>
-      {calculated.candidates.map((candidate) => <option key={candidate.position_id} value={candidate.position_id} disabled={candidate.physical_fit === 'FAIL'}>{candidate.name} · ТТХ {candidate.physical_fit}{candidate.physical_fit === 'FAIL' ? ' · грузоподъёмность ниже задачи' : candidate.physical_fit === 'UNKNOWN' ? ' · требуется проверка' : ''}</option>)}
-    </select><p>PASS — подтверждённая грузоподъёмность достаточна; FAIL — ниже массы задачи; UNKNOWN — данных недостаточно. Другие условия эксплуатации и поставка требуют проверки.</p></div>;
+      {calculated.candidates.map((candidate) => <option key={candidate.position_id} value={candidate.position_id} disabled={candidate.physical_fit === 'FAIL'}>{candidate.name} · {fitLabel(candidate.physical_fit)}</option>)}
+    </select><p>Пригодность по грузоподъёмности проверяется отдельно от условий эксплуатации, безопасности и поставки.</p></div>;
 }
 
 function WorkEconomics({ report }) {
@@ -266,7 +268,7 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
             {work.selected && <>
             <div className="wr-role-fields">
               <Field label={`Объём, ${work.unit}/сутки`} value={work.daily_volume} onChange={(value) => changeWork(role.role_code, work.process_code, 'daily_volume', value)} />
-              {work.unit !== 'm2' && <Field label="Максимальная масса одной перевозимой единицы с тарой, кг" value={work.task_payload_kg} onChange={(value) => changeWork(role.role_code, work.process_code, 'task_payload_kg', value)} hint="Без массы пригодность модели по грузоподъёмности остаётся UNKNOWN." />}
+              {work.unit !== 'm2' && <Field label="Максимальная масса одной перевозимой единицы с тарой, кг" value={work.task_payload_kg} onChange={(value) => changeWork(role.role_code, work.process_code, 'task_payload_kg', value)} hint="Без массы пригодность модели по грузоподъёмности остаётся неподтверждённой." />}
               <Field label={`Выработка человека, ${work.unit}/смена`} value={work.manual_units_per_person_shift} onChange={(value) => changeWork(role.role_code, work.process_code, 'manual_units_per_person_shift', value)} />
               <Field label="Доля времени роли на работу, 0–1" value={work.allocation_fraction} max="1" onChange={(value) => changeWork(role.role_code, work.process_code, 'allocation_fraction', value)} />
               <Field label="Роботизируемая доля этой работы, 0–1" value={work.robotizable_share} max="1" onChange={(value) => changeWork(role.role_code, work.process_code, 'robotizable_share', value)} />

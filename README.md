@@ -1,5 +1,17 @@
 # РОБОДОВОД
 
+**Больше, чем роботы. Доводы для инвестиций.**
+
+Текущий интерфейс показывает три неизменяемых готовых примера (склад, аэропорт, клиника), пятишаговый расчёт, маршрут робота в 2D/3D с воспроизведением 1×/2×/4×/8×, покупку и аренду, чувствительность «Что если?», PDF и RobCraft. Скорость воспроизведения влияет только на показ, а не на физическую скорость и экономику. Учебные цены и неподтверждённые модели прямо обозначены как сценарные условия.
+
+![Главная на desktop](docs/qa/final-home-demo-fix/evidence/home-1440.png)
+
+[Склад](docs/qa/final-home-demo-fix/evidence/retail-1440-simulation.png) · [Аэропорт](docs/qa/final-home-demo-fix/evidence/airport-1440-simulation.png) · [Клиника](docs/qa/final-home-demo-fix/evidence/clinic-1440-simulation.png)
+
+Актуальные документы: [API и OpenAPI](docs/api/README.md), [поток расчёта](docs/architecture/OVERVIEW.md), [QA](docs/qa/final-home-demo-fix/FINAL_REPORT.md), [журнал изменений](docs/CHANGELOG.md), [инвентаризация и уборка](docs/audit/CODEBASE_INVENTORY.md), [лицензии ассетов](docs/audit/ASSET_LICENSES.md), [команды самостоятельного развёртывания](docs/qa/final-home-demo-fix/DEPLOY_COMMANDS.md).
+
+Для разработки: Python-зависимости backend указаны в `backend/requirements.txt`, frontend собирается из `frontend/` командами `npm ci`, `npm test`, `npm run build`. Профильные backend-тесты: `python -m pytest backend/test_showcase_presets.py backend/test_warehouse_roles.py backend/test_role_report_view.py -q`. Переменные окружения и назначение приведены в [шаблоне](.env.example); реальные секреты храните только вне Git. Сцены лежат в `data/scenes`, общая расчётная логика — в `backend/calculation`, каталог — в `data/import/organizer-catalog-v4`. Локальный каталог не подтверждает состояние production.
+
 РОБОДОВОД помогает предварительно оценить роботизацию конкретной операции: описать объект и нагрузку, посмотреть решения каталога, рассчитать потребный парк, сравнить покупку с арендой и сохранить результат с допущениями, 2D/3D-сценой и экспортом. Основной демонстрационный процесс — перевозка **подготовленных** паллет; отбор и упаковка считаются отдельно. Проект команды **ZMNCRAFT** для ЛЦТ‑2026.
 
 ## Состояние и границы

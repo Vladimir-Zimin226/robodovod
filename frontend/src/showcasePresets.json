@@ -1,0 +1,254 @@
+{
+  "retail": {
+    "id": "warehouse_showcase_v1",
+    "revision": 1,
+    "mode": "DEMO_LOCKED",
+    "catalog_version_at_authoring": "organizer-catalog-v4",
+    "provenance": "TEMPLATE_SCENARIO_ASSUMPTION",
+    "input_sha256": "961228985b92017520e921f52fdb7f122894c25f346d3540a3c56a47a74facb6",
+    "input": {
+      "kind": "WAREHOUSE",
+      "general": {
+        "total_area_m2": "20000",
+        "shifts_per_day": 2,
+        "hours_per_shift": "10",
+        "days_per_year": 300,
+        "robot_availability": "0.75",
+        "fleet_reserve_share": "0.1",
+        "realizable_labor_share": "0.5",
+        "integration_share": "0.2",
+        "annual_service_share": "0.1",
+        "discount_rate": "0.15",
+        "horizon_years": 5,
+        "raas_monthly_rub": null,
+        "raas_setup_rub": "0",
+        "raas_customer_annual_rub": "0",
+        "gross_to_employer_factor": "1.302"
+      },
+      "include_safety_in_conditional": false,
+      "roles": [
+        {
+          "role_code": "forklift_driver",
+          "headcount": "25",
+          "monthly_employer_cost_rub": "156240",
+          "salary_basis": "EMPLOYER_COST",
+          "headcount_source": "Склад!C28, все 25 условно назначены на процесс",
+          "salary_source": "Склад!C31 120000 gross × 1.302",
+          "realizable_labor_share": "0.5",
+          "works": [
+            {
+              "process_code": "warehouse_receiving_shipping",
+              "evidence_ref": "RW-WH-FORKLIFT-01",
+              "technical_task": "Перевозка паллет между точками, погрузка проверяется отдельно",
+              "daily_volume": "2500.00",
+              "manual_units_per_person_shift": "100",
+              "unit": "pallet",
+              "allocation_fraction": "1",
+              "robotizable_share": "0.8",
+              "robot_units_per_hour": "10.00",
+              "scenario_purchase_price_rub": "3000000",
+              "raas_mode": "PERCENT",
+              "raas_percent_monthly": "2",
+              "scenario_raas_monthly_rub": "120000",
+              "rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed",
+              "price_source": "SCENARIO_ASSUMPTION",
+              "raas_source": "SCENARIO_ASSUMPTION",
+              "basis": "RW-WH-FORKLIFT-01: Склад!C18+C19 = 2000 паллет/сутки, 25×100 = 2500 с резервом. Доля 480/600 — сценарное допущение, не замер",
+              "residual_operations": "Приёмка, проверка и нестандартные паллеты",
+              "calculation_status": "CALCULABLE",
+              "safety_conditions": "",
+              "selected_position_id": "SCENARIO_TYPE",
+              "task_payload_kg": "700",
+              "simulation": {
+                "scene_revision": 1,
+                "pickup_xy_m": [
+                  11.0,
+                  34.0
+                ],
+                "dropoff_xy_m": [
+                  54.0,
+                  34.0
+                ],
+                "speed_loaded_mps": 0.8,
+                "speed_empty_mps": 1,
+                "pickup_service_s": 25,
+                "dropoff_service_s": 20,
+                "turn_delay_s": 8,
+                "units_per_cycle": 1,
+                "arrival_burst_size": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "airport": {
+    "id": "airport_showcase_v1",
+    "revision": 1,
+    "mode": "DEMO_LOCKED",
+    "catalog_version_at_authoring": "organizer-catalog-v4",
+    "provenance": "TEMPLATE_SCENARIO_ASSUMPTION",
+    "input_sha256": "bd57ce091a88deb4f0d47a68e6acd362878693513ec68b55aac36de6f03e2b88",
+    "input": {
+      "kind": "AIRPORT",
+      "general": {
+        "total_area_m2": "20000",
+        "shifts_per_day": 1,
+        "hours_per_shift": "7",
+        "days_per_year": 300,
+        "robot_availability": "0.75",
+        "fleet_reserve_share": "0.1",
+        "realizable_labor_share": "0.5",
+        "integration_share": "0.2",
+        "annual_service_share": "0.1",
+        "discount_rate": "0.15",
+        "horizon_years": 5,
+        "raas_monthly_rub": null,
+        "raas_setup_rub": "0",
+        "raas_customer_annual_rub": "0",
+        "gross_to_employer_factor": "1.302"
+      },
+      "include_safety_in_conditional": false,
+      "roles": [
+        {
+          "role_code": "baggage_handler",
+          "headcount": "100",
+          "monthly_employer_cost_rub": "130200",
+          "salary_basis": "EMPLOYER_COST",
+          "headcount_source": "Аэропорт!C31, условно 100 из 320",
+          "salary_source": "Аэропорт!C33 100000 gross × 1.302",
+          "realizable_labor_share": "0.5",
+          "works": [
+            {
+              "process_code": "airport_baggage",
+              "evidence_ref": "RW-AIRPORT-AIRPORT_BAGGAGE-BAGGAGE_HANDLER",
+              "technical_task": "Перевозка стандартного багажа между узлами",
+              "daily_volume": "200",
+              "manual_units_per_person_shift": "350",
+              "unit": "item",
+              "allocation_fraction": "1",
+              "robotizable_share": "0.35",
+              "robot_units_per_hour": "50.00",
+              "scenario_purchase_price_rub": "3000000",
+              "raas_mode": "PERCENT",
+              "raas_percent_monthly": "2",
+              "scenario_raas_monthly_rub": "120000",
+              "rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed",
+              "price_source": "SCENARIO_ASSUMPTION",
+              "raas_source": "SCENARIO_ASSUMPTION",
+              "basis": "RW-AIRPORT-AIRPORT_BAGGAGE-BAGGAGE_HANDLER: Аэропорт!C20 = 35000 мест багажа/сутки, 100×350 = 35000. Доля 147/420 — сценарное допущение, не замер ??? ???????? ???????? ???? ???????????? ????? 200 item/?????; ??? ?? ????????? ???????.",
+              "residual_operations": "Идентификация, сканирование и погрузка нестандартного багажа",
+              "calculation_status": "CALCULABLE",
+              "safety_conditions": "",
+              "selected_position_id": "SCENARIO_TYPE",
+              "task_payload_kg": "25",
+              "simulation": {
+                "scene_revision": 1,
+                "pickup_xy_m": [
+                  17.0,
+                  23.0
+                ],
+                "dropoff_xy_m": [
+                  67.0,
+                  29.0
+                ],
+                "speed_loaded_mps": 0.8,
+                "speed_empty_mps": 1,
+                "pickup_service_s": 25,
+                "dropoff_service_s": 20,
+                "turn_delay_s": 8,
+                "units_per_cycle": 1,
+                "arrival_burst_size": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "clinic": {
+    "id": "clinic_showcase_v1",
+    "revision": 1,
+    "mode": "DEMO_LOCKED",
+    "catalog_version_at_authoring": "organizer-catalog-v4",
+    "provenance": "TEMPLATE_SCENARIO_ASSUMPTION",
+    "input_sha256": "81e267d1812b1cb3e1963844b679558c53712af812adee627b9692c247fe848d",
+    "input": {
+      "kind": "CLINIC",
+      "general": {
+        "total_area_m2": "20000",
+        "shifts_per_day": 1,
+        "hours_per_shift": "7",
+        "days_per_year": 300,
+        "robot_availability": "0.75",
+        "fleet_reserve_share": "0.1",
+        "realizable_labor_share": "0.5",
+        "integration_share": "0.2",
+        "annual_service_share": "0.1",
+        "discount_rate": "0.15",
+        "horizon_years": 5,
+        "raas_monthly_rub": null,
+        "raas_setup_rub": "0",
+        "raas_customer_annual_rub": "0",
+        "gross_to_employer_factor": "1.302"
+      },
+      "include_safety_in_conditional": false,
+      "roles": [
+        {
+          "role_code": "porter",
+          "headcount": "25",
+          "monthly_employer_cost_rub": "71610",
+          "salary_basis": "EMPLOYER_COST",
+          "headcount_source": "Медучреждение!C49, условно 25 из 65",
+          "salary_source": "Медучреждение!C52 55000 gross × 1.302",
+          "realizable_labor_share": "0.5",
+          "works": [
+            {
+              "process_code": "clinic_medicines",
+              "evidence_ref": "RW-CLINIC-CLINIC_MEDICINES-PORTER",
+              "technical_task": "Перевозка закрытого контейнера по выделенному маршруту",
+              "daily_volume": "180",
+              "manual_units_per_person_shift": "25",
+              "unit": "delivery",
+              "allocation_fraction": "0.6",
+              "robotizable_share": "0.5",
+              "robot_units_per_hour": "3.57",
+              "scenario_purchase_price_rub": "3000000",
+              "raas_mode": "PERCENT",
+              "raas_percent_monthly": "2",
+              "scenario_raas_monthly_rub": "120000",
+              "rate_source": "ASSUMPTION: manual units per shift / hours per shift, supplier rate and price unconfirmed",
+              "price_source": "SCENARIO_ASSUMPTION",
+              "raas_source": "SCENARIO_ASSUMPTION",
+              "basis": "RW-CLINIC-CLINIC_MEDICINES-PORTER: Медучреждение!C32 = 340 заявок/сутки, 15×25 = 375. Доля 210/420 — сценарное допущение, не замер ??? ???????? ???????? ???? ???????????? ????? 180 delivery/?????; ??? ?? ????????? ???????.",
+              "residual_operations": "Передача, проверка получателя и срочные заявки",
+              "calculation_status": "ALLOCATION_REQUIRED",
+              "safety_conditions": "",
+              "selected_position_id": "SCENARIO_TYPE",
+              "task_payload_kg": "8",
+              "simulation": {
+                "scene_revision": 1,
+                "pickup_xy_m": [
+                  7.0,
+                  14.0
+                ],
+                "dropoff_xy_m": [
+                  39.0,
+                  14.0
+                ],
+                "speed_loaded_mps": 0.8,
+                "speed_empty_mps": 1,
+                "pickup_service_s": 25,
+                "dropoff_service_s": 20,
+                "turn_delay_s": 8,
+                "units_per_cycle": 1,
+                "arrival_burst_size": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

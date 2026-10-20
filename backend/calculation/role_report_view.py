@@ -116,6 +116,10 @@ def build_role_report_view(result: dict[str, Any]) -> dict[str, Any]:
         total.get("raas_npv_rub") if warehouse else total["raas"]["npv_rub"],
         total.get("raas_roi_percent") if warehouse else total["raas"]["roi_percent"],
         None, discount, years)
+    rent_costs = [row.get("raas_annual_cost_rub") if warehouse else row["raas"].get("annual_cost_rub")
+                  for row in financial_rows]
+    rent["annual_operating_cost_rub"] = (_amount(sum((_decimal(cost) for cost in rent_costs), Decimal(0)))
+                                          if rent_costs and all(cost is not None for cost in rent_costs) else None)
     fleet = total["selected_robot_allocations"] if warehouse else total["fleet"]
     labor = _decimal(total.get("annual_labor_potential_rub") if warehouse else total.get("annual_labor_rub"))
     purchase_cost = labor - _decimal(purchase["annual_net_rub"]) if labor is not None and purchase["annual_net_rub"] is not None else None
@@ -141,7 +145,12 @@ def build_role_report_view(result: dict[str, Any]) -> dict[str, Any]:
         sensitivity.append({"labor_share": share,
             "purchase_npv_rub": _amount(sum((_decimal(item["purchase_npv_rub"]) for item in parts), Decimal(0))) if complete_purchase else None,
             "raas_npv_rub": _amount(sum((_decimal(item["raas_npv_rub"]) for item in parts), Decimal(0))) if complete_rent else None})
-    risks = [*result.get("limitations", []), *safety]
+    risks = [
+        "Типовой сценарий не подтверждает инженерную пригодность или паспорт робота."
+        if item == "Типовой сценарий не является утверждённой формулой C11 или паспортом робота."
+        else item
+        for item in [*result.get("limitations", []), *safety]
+    ]
     if any(item["physical_fit"] in ("UNKNOWN", "FAIL") for item in works):
         risks.append("Физическая пригодность части назначений не подтверждена.")
     if any(sim["status"] != "MODELED" for sim in simulations):

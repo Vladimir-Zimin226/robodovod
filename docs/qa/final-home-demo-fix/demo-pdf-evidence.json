@@ -1,0 +1,29 @@
+[
+  {
+    "kind": "WAREHOUSE",
+    "catalog_version": "organizer-catalog-v4",
+    "npv_purchase_rub": "30609359.80",
+    "raas_year1_expense_rub": "5040000.00",
+    "pdf_pages": 4,
+    "pdf_bytes": 409804,
+    "render_source": "current source renderer + active local catalog preview"
+  },
+  {
+    "kind": "AIRPORT",
+    "catalog_version": "organizer-catalog-v4",
+    "npv_purchase_rub": "-4081905.82",
+    "raas_year1_expense_rub": "720000.00",
+    "pdf_pages": 4,
+    "pdf_bytes": 409798,
+    "render_source": "current source renderer + active local catalog preview"
+  },
+  {
+    "kind": "CLINIC",
+    "catalog_version": "organizer-catalog-v4",
+    "npv_purchase_rub": "579386.52",
+    "raas_year1_expense_rub": "720000.00",
+    "pdf_pages": 4,
+    "pdf_bytes": 409544,
+    "render_source": "current source renderer + active local catalog preview"
+  }
+]

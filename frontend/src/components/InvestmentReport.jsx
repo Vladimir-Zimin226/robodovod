@@ -1,3 +1,5 @@
+import { simulationFlagLabel, simulationStatusLabel } from '../presentation.js';
+
 const ru = (value, digits = 2) => value == null ? 'Нужны данные'
   : new Intl.NumberFormat('ru-RU', { maximumFractionDigits: digits }).format(Number(value));
 const rub = (value) => value == null ? 'Нужны данные' : `${ru(value)} ₽`;
@@ -8,7 +10,7 @@ function Cashflow({ name, rows }) {
   const bound = Math.max(1, ...rows.map((row) => Math.abs(Number(row.cumulative_rub))));
   return <div className="investment-chart"><h4>{name}</h4><div role="img" aria-label={`Накопленный денежный поток: ${name}`}>
     {rows.map((row) => <div key={row.year} className="investment-chart-row">
-      <span>{row.year}</span><div className="investment-chart-track"><i style={{ width: `${Math.abs(Number(row.cumulative_rub)) / bound * 100}%`,
+      <span>Год {row.year}</span><div className="investment-chart-track"><i style={{ width: `${Math.abs(Number(row.cumulative_rub)) / bound * 100}%`,
         background: Number(row.cumulative_rub) < 0 ? '#aa534c' : '#3a9d69' }} /></div>
       <strong>{rub(row.cumulative_rub)}</strong>
     </div>)}
@@ -63,10 +65,10 @@ export default function InvestmentReport({ view, comparison }) {
     </tr>)}</tbody></table></div></section>
     <section><h2>Симуляция и ограничения маршрута</h2>
       {view.simulations.length ? view.simulations.map((sim, index) => <p key={`${sim.role}-${index}`}>
-        {sim.role}: маршрут {sim.status}; цикл {ru(sim.cycle_s)} с; загруженный ход {ru(sim.distance_loaded_m)} м;
+        {sim.role}: маршрут {simulationStatusLabel(sim.status)}; цикл {ru(sim.cycle_s)} с; загруженный ход {ru(sim.distance_loaded_m)} м;
         ожидание {ru(sim.time_wait_s)} с; парк после симуляции {sim.fleet_required ?? 'не рассчитан'}.
         {sim.shared_lane && ` Узкий участок: ожидание ${ru(sim.shared_lane.mean_wait_s)} с.`}
-        {sim.flags.length > 0 && ` Флаги: ${sim.flags.join(', ')}.`}</p>)
+        {sim.flags.length > 0 && ` Ограничения: ${sim.flags.map(simulationFlagLabel).join('; ')}.`}</p>)
         : <p>Маршрутная симуляция не включена; выработка остаётся сценарной.</p>}</section>
     <section><h2>Покупка и аренда</h2><div className="investment-table-scroll"><table><thead><tr>
       <th>Вариант</th><th>CAPEX</th><th>Чистый эффект/год</th><th>NPV</th><th>ROI</th><th>Окупаемость</th>
@@ -75,7 +77,9 @@ export default function InvestmentReport({ view, comparison }) {
       return <tr key={key}><th>{label}</th><td>{rub(money.capex_rub)}</td><td>{rub(money.annual_net_rub)}</td>
         <td>{rub(money.npv_rub)}</td><td>{percent(money.roi_percent)}</td>
         <td>{key === 'purchase' ? money.payback_years == null ? 'Не достигается или нужны данные' : `${ru(money.payback_years)} лет` : 'Не применяется'}</td></tr>;
-    })}</tbody></table></div><h3>Горизонты 5 и 10 лет</h3><div className="investment-table-scroll"><table><thead><tr>
+    })}</tbody></table></div>
+      <p>При аренде разовые вложения до старта: {rub(view.economics.raas.capex_rub)}. Аренда и сопутствующие расходы за первый год: {rub(view.economics.raas.annual_operating_cost_rub)}. Год 0 на графике — до начала эксплуатации; платежи года 1 учтены в чистом годовом эффекте.</p>
+      <h3>Горизонты 5 и 10 лет</h3><div className="investment-table-scroll"><table><thead><tr>
       <th>Вариант</th><th>Горизонт</th><th>NPV</th><th>ROI</th>
     </tr></thead><tbody>{[['purchase', 'Покупка'], ['raas', 'Аренда']].flatMap(([key, label]) =>
       view.economics[key].horizons.map((row) => <tr key={`${key}-${row.years}`}><th>{label}</th><td>{row.years} лет</td>

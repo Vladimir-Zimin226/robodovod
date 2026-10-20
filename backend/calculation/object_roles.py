@@ -350,7 +350,7 @@ def analyze_object_roles(value: ObjectRoleInput, catalog: Any) -> dict[str, Any]
         "roles": roles_out, "base_total": _portfolio(base, value.general),
         "conditional_total": _portfolio(conditional, value.general),
         "safety_warning": "Условный расчёт; безопасность и допуск не подтверждены" if len(conditional) > len(base) else None,
-        "limitations": ["Типовой сценарий не является утверждённой формулой C11 или паспортом робота.",
+        "limitations": ["Типовой сценарий не подтверждает инженерную пригодность или паспорт робота.",
             "Парк по работам суммируется без повторного использования между назначениями.",
             "Штат каждой роли учитывается один раз; доли её работ суммарно не больше 1.",
             "Цены покупки и тарифы аренды — бюджетные допущения, не предложения поставщиков."]}

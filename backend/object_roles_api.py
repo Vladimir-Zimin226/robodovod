@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+import logging
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -22,6 +23,12 @@ from persistence_api import _audit, _canonical_sha256, _owned_project
 from persistence_models import Project
 
 MAX_VERSIONS = 100
+logger = logging.getLogger(__name__)
+
+
+def _scene_unavailable(exc: FileNotFoundError) -> HTTPException:
+    logger.exception("Required simulation scene is missing: %s", exc)
+    return HTTPException(503, "Сцена симуляции временно недоступна. Сообщите об ошибке администратору.")
 
 
 class SaveObjectRoles(BaseModel):
@@ -85,6 +92,8 @@ def create_object_roles_router(discovery_loader: Callable[[], CatalogSnapshotDTO
         })
         try:
             result = simulate_scene(load_scene(kind.lower()), scenario)
+        except FileNotFoundError as exc:
+            raise _scene_unavailable(exc) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         result["flags"].append("SCENARIO_ROBOT_ONLY")
@@ -104,6 +113,8 @@ def create_object_roles_router(discovery_loader: Callable[[], CatalogSnapshotDTO
             raise HTTPException(422, "object kind mismatch")
         try:
             return analyze_object_roles(payload, discovery_loader())
+        except FileNotFoundError as exc:
+            raise _scene_unavailable(exc) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
 
@@ -121,6 +132,8 @@ def create_object_roles_router(discovery_loader: Callable[[], CatalogSnapshotDTO
             result = analyze_object_roles(payload.input, catalog)
             comparison = analyze_object_roles(payload.what_if_input, catalog) if payload.what_if_input else None
             pdf = role_report_pdf(result, comparison, payload.scene_snapshots)
+        except FileNotFoundError as exc:
+            raise _scene_unavailable(exc) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         return Response(pdf, media_type="application/pdf",

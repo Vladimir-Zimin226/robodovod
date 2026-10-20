@@ -1155,7 +1155,7 @@ button:disabled { cursor: not-allowed; }
 .scene-preview-fallback { margin-top: .5rem; }
 .scene-preview-3d--expanded { position: fixed; inset: 4vh 4vw; z-index: 1200; padding: 1rem; border-radius: 16px; background: #e9f0ef; box-shadow: 0 12px 60px #071b27a8; }
 .scene-preview-3d--expanded .scene-preview-canvas { width: 100%; height: calc(100% - 3rem); aspect-ratio: auto; }
-.what-if-panel { max-width: 1200px; margin: 1.5rem auto; padding: 1.25rem; border: 1px solid #d0e1df; border-radius: 18px; background: #f8fbfa; color: #1e3a46; }
+.what-if-panel { display: block; max-width: 1200px; margin: 1.5rem auto; padding: 1.25rem; border: 1px solid #d0e1df; border-radius: 18px; background: #f8fbfa; color: #1e3a46; }
 .what-if-panel h2 { margin: 0 0 .5rem; }
 .what-if-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
 .what-if-field { display: grid; gap: .35rem; font-size: .9rem; }
@@ -1183,6 +1183,9 @@ button:disabled { cursor: not-allowed; }
 .scene-playback-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .7rem; margin-top: 1rem; }
 .scene-playback-controls button { min-height: 44px; padding: .5rem .9rem; border: 1px solid #8ba6a5; border-radius: 9px; background: #fff; color: #163545; cursor: pointer; }
 .scene-playback-controls span { font-variant-numeric: tabular-nums; }
+.scene-playback-rates { display: flex; flex-wrap: wrap; gap: .25rem; }
+.scene-playback-rates button { min-width: 44px; padding-inline: .5rem; }
+.scene-playback-rates button[aria-pressed="true"] { background: #31528b; border-color: #31528b; color: #fff; }
 @media (max-width: 760px) { .scene-sim-fields { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .scene-sim-fields { grid-template-columns: 1fr; } }
 .investment-report { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; color: #17333d; }
@@ -1242,7 +1245,7 @@ button:disabled { cursor: not-allowed; }
 }
 :where(button, a, input, select, textarea, summary):focus-visible { outline: 2px solid var(--rd-primary-hover); outline-offset: 2px; }
 .simple-journey-page { max-width: 1440px; padding-top: 24px; }
-.simple-journey-head { min-height: clamp(240px, 25vw, 350px); display: flex; flex-direction: column; justify-content: center; padding: clamp(24px, 4vw, 48px); border: 1px solid var(--rd-stroke); border-radius: 22px; background: linear-gradient(90deg, #081119f5 0%, #081119d9 42%, #08111925 100%), url('/demo/scenes/warehouse.png') center/cover; }
+.simple-journey-head { min-height: clamp(300px, 31vw, 420px); display: flex; flex-direction: column; justify-content: center; padding: clamp(24px, 4vw, 48px); border: 1px solid var(--rd-stroke); border-radius: 22px; background: linear-gradient(90deg, #081119f5 0%, #081119d9 42%, #08111925 100%), url('/images/hero_banner.webp') center/cover; }
 .simple-journey-head h1 { max-width: 700px; font-size: clamp(31px, 3.6vw, 54px); }
 .simple-journey-head h1 em { color: var(--rd-primary-hover); font-style: normal; }
 .simple-journey-head p { max-width: 480px; }
@@ -1251,9 +1254,24 @@ button:disabled { cursor: not-allowed; }
 .simple-object-grid button { min-height: 215px; justify-content: flex-end; border-color: var(--rd-stroke); border-radius: var(--rd-radius-lg); box-shadow: inset 0 -100px 80px #081119ed; transition: border-color .16s, transform .16s; }
 .simple-object-grid button:hover { border-color: var(--rd-primary-hover); }
 .simple-journey-section[aria-label="Тип объекта"] .simple-object-grid button { background-position: center; background-size: cover; }
-.simple-object-retail { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/scenes/warehouse.png') !important; }
-.simple-object-airport { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/scenes/airport.png') !important; }
-.simple-object-clinic { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/scenes/clinic.png') !important; }
+.simple-object-retail { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/images/object_warehouse.webp') !important; }
+.simple-object-airport { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/images/object_airport.webp') !important; }
+.simple-object-clinic { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/images/object_clinic.webp') !important; }
+.simple-demo-grid button { min-height: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; box-shadow: none; }
+.simple-demo-grid img { width: 100%; height: 170px; object-fit: cover; display: block; }
+.simple-demo-grid strong,.simple-demo-grid span,.simple-demo-grid b { margin-left: 18px; margin-right: 18px; }
+.simple-demo-grid b { margin-bottom: 18px; }
+.demo-role-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.demo-role-facts > div { padding: 12px; border: 1px solid var(--rd-stroke); border-radius: 10px; }
+.demo-role-facts dt { color: var(--rd-text-muted); font-size: 12px; }
+.demo-role-facts dd { margin: 4px 0 0; font-weight: 700; }
+@media (max-width: 580px) { .demo-role-facts { grid-template-columns: 1fr; } }
+.what-if-action-row { display: flex; justify-content: flex-end; margin-top: 1rem; }
+.what-if-result-action { min-height: 48px; border: 1px solid #a189ff; border-radius: 12px; padding: .75rem 1.2rem; background: linear-gradient(145deg, #9f7bff, #7551d8); box-shadow: 0 5px 0 #49318f, 0 12px 22px #39266b55; color: #fff; font-weight: 800; cursor: pointer; }
+.what-if-result-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #49318f, 0 15px 24px #39266b66; }
+.what-if-result-action:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 #49318f; }
+.what-if-result-action:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 580px) { .what-if-result-action { width: 100%; } }
 .simple-object-icon { background: #172534bd; color: var(--rd-primary-hover); border-color: var(--rd-primary); }
 .simple-object-grid b { color: var(--rd-primary-hover); }
 .simple-object-grid small { color: var(--rd-text-muted); }

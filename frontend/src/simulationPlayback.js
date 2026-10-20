@@ -21,3 +21,8 @@ export function playbackPose(samples, elapsedSeconds) {
 export function playbackDuration(samples) {
   return Array.isArray(samples) && samples.length ? samples[samples.length - 1].t_s : 0;
 }
+
+export function advancePlaybackTime(elapsed, wallSeconds, rate, duration) {
+  if (![1, 2, 4, 8].includes(rate)) throw new RangeError('unsupported playback rate');
+  return Math.min(duration, elapsed + Math.max(0, wallSeconds) * rate);
+}

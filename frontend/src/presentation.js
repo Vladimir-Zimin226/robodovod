@@ -5,6 +5,18 @@ import { formatDecimal, formatPercent } from './displayNumber.js';
 export const PRESENTATION_VERSION = glossary.version;
 export const subsystemLabel = (code) => glossary.subsystems[code] || 'раздел расчёта';
 export const statusLabel = (code) => current.statuses[code] || glossary.statuses[code] || 'требуется уточнение';
+export const simulationStatusLabel = (code) => ({ MODELED: 'маршрут рассчитан',
+  CAPACITY_SHORTFALL: 'парк не справляется с потоком', NEEDS_INPUT: 'нужны данные',
+  NO_ROUTE: 'маршрут перекрыт' })[code] || statusLabel(code);
+export const simulationFlagLabel = (code) => ({ CHARGING_NOT_MODELED: 'зарядка не учтена',
+  SAFETY_NOT_VERIFIED: 'безопасность не подтверждена',
+  ROBOT_TTH_NOT_VERIFIED: 'характеристики модели не подтверждены',
+  SHARED_EDGE_QUEUE_NOT_MODELED: 'очереди на общих участках не рассчитаны',
+  OTHER_SHARED_EDGES_NOT_MODELED: 'другие общие участки не рассчитаны',
+  QUEUE_UNSTABLE: 'поток создаёт растущую очередь',
+  DEMAND_SAMPLED_FOR_GEOMETRY: 'поток уменьшен только для показа маршрута',
+  SCENARIO_ROBOT_ONLY: 'условный робот без подтверждённой модели',
+  CAPACITY_SHORTFALL: 'мощности парка недостаточно' })[code] || humanizePresentation(code);
 export const sectionLabel = (code) => glossary.sections[code] || 'Раздел данных';
 export const unitLabel = (unit) => current.units[unit] || (/^[а-яА-ЯёЁ₽%²/ .0-9]+$/.test(unit || '') ? unit : '');
 export const reasonLabel = (code) => current.reasons[code] || 'Требуется проверить исходные условия и пригодность';

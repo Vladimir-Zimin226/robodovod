@@ -43,3 +43,9 @@
 Визуальный harness: `frontend/qa/recovery/index.html`, `main.jsx`, `paths.json`, `docs/recovery-v2/capture_visual.py`. Его API подмена явно показана на странице и не является приёмкой каталога.
 
 Текущий `git diff --check`: PASS. Общий `npm run lint` заходит в закрытый локальный профиль `frontend/.tmp-p5`; целевой lint изменённых файлов прошёл. Временный лимит автоматической проверки разрешений в предыдущем сеансе снят; новая локальная визуальная проверка выполнена. Она по-прежнему использует синтетический API ответ и не подтверждает production.
+
+## FINAL FIX V2 — 21.10.2026
+
+Готов локальный patch: три immutable DEMO прошли 12 browser E2E (3 объекта × 1440/768/390/360) на локальном FastAPI с активированным каталогом; три editable сценария проходили ранее. Backend/PDF tests 43/43 PASS. Три PDF по 4 страницы пересозданы и осмотрены; исправлено наложение аренды. OpenAPI создан из 129 путей. Реализованы COPY data/scenes в Docker image, управляемый 503 вместо 500, 1×/2×/4×/8× playback, What-if, RaaS год 1, новые изображения и immutable presets. Подробности: docs/qa/final-home-demo-fix/FINAL_REPORT.md.
+
+Patch не закоммичен и не развёрнут: Node build после последнего изменения блокируется EPERM песочницы, повышенный запуск отклонён auto-review из-за лимита; git add не может создать .git/index.lock. Старый bundle не содержит FINAL FIX V2. Пользовательские незакоммиченные файлы сохранены. Следующий шаг указан в NEXT_SESSION.md.

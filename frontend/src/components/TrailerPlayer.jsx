@@ -72,8 +72,8 @@ export default function TrailerPlayer() {
         preload="metadata" poster={`${ROOT}/robodovod-trailer-poster.jpg`}
         onError={() => setFailed(true)} aria-label="Немое короткое видео сцен">
         <source src={`${ROOT}/robodovod-trailer-preview-720p.mp4`} type="video/mp4" /></video>
-        <button type="button" onClick={openTrailer}>Смотреть ролик со звуком</button>
-        <span>Текущие 2D/3D сцены · полный ролик запускается по нажатию</span></div>}
+        <button type="button" onClick={openTrailer}>Открыть полный трейлер</button>
+        <span>Короткий немой предпросмотр · полный трейлер открывается по нажатию</span></div>}
     {open && !failed && <div className="trailer-dialog-backdrop" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) close();
     }}><div className="trailer-dialog" role="dialog" aria-modal="true" aria-label="Полный трейлер сцен">

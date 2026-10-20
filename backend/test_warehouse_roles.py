@@ -1,6 +1,7 @@
 from decimal import Decimal
 from io import BytesIO
 from copy import deepcopy
+from unittest.mock import patch
 from types import SimpleNamespace
 import uuid
 
@@ -189,7 +190,24 @@ def test_warehouse_guest_route_preview_and_pdf_share_simulation_values():
     assert pdf.status_code == 200
     pdf_text = "\n".join(page.extract_text() for page in PdfReader(BytesIO(pdf.content)).pages)
     assert result["portfolio"]["npv_rub"] in pdf_text
-    assert "Маршрут: MODELED" in pdf_text
+    assert "Маршрут: маршрут рассчитан" in pdf_text
+
+
+def test_warehouse_preview_missing_scene_returns_safe_503():
+    raw = sample()
+    raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "forklift_driver"]
+    raw["roles"][0]["simulation"] = {
+        "scene_revision": 1, "speed_loaded_mps": 1, "speed_empty_mps": 1,
+        "pickup_service_s": 30, "dropoff_service_s": 30,
+        "turn_delay_s": 5, "units_per_cycle": 1,
+    }
+    app = FastAPI()
+    app.include_router(create_warehouse_roles_router(catalog))
+    with patch("calculation.warehouse_roles.load_scene", side_effect=FileNotFoundError("/private/path")):
+        response = TestClient(app).post("/api/v2/warehouse-roles/preview", json=raw)
+    assert response.status_code == 503
+    assert "/private/path" not in response.text
+    assert "Сцена симуляции" in response.json()["detail"]
 
 
 def test_portfolio_uses_selected_positions_and_marks_scenario_price():

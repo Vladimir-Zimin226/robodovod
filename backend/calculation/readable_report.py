@@ -236,6 +236,9 @@ def _pdf(lines: list[tuple[Any, str]]) -> bytes:
     cover = True
     table_header: tuple[Any, ...] | None = None
     for value, kind in lines:
+        if kind == "spacer":
+            y -= float(value)
+            continue
         if kind == "keep":
             if y < float(value):
                 new_page()

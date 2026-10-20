@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+import logging
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -22,6 +23,12 @@ from sqlalchemy.orm import Session
 
 KEY = "warehouse_role_scenarios_v1"
 MAX_VERSIONS = 100
+logger = logging.getLogger(__name__)
+
+
+def _scene_unavailable(exc: FileNotFoundError) -> HTTPException:
+    logger.exception("Required simulation scene is missing: %s", exc)
+    return HTTPException(503, "Сцена симуляции временно недоступна. Сообщите об ошибке администратору.")
 
 
 class SaveWarehouseRoles(BaseModel):
@@ -56,6 +63,8 @@ def create_warehouse_roles_router(discovery_loader: Callable[[], CatalogSnapshot
     def guest_preview(payload: WarehouseRoleInput):
         try:
             return analyze_warehouse_roles(payload, discovery_loader())
+        except FileNotFoundError as exc:
+            raise _scene_unavailable(exc) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
 
@@ -76,6 +85,8 @@ def create_warehouse_roles_router(discovery_loader: Callable[[], CatalogSnapshot
         })
         try:
             result = simulate_scene(load_scene("warehouse"), scenario)
+        except FileNotFoundError as exc:
+            raise _scene_unavailable(exc) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         result["flags"].append("SCENARIO_ROBOT_ONLY")
@@ -91,6 +102,8 @@ def create_warehouse_roles_router(discovery_loader: Callable[[], CatalogSnapshot
             result = analyze_warehouse_roles(payload.input, catalog)
             comparison = analyze_warehouse_roles(payload.what_if_input, catalog) if payload.what_if_input else None
             pdf = role_report_pdf(result, comparison, payload.scene_snapshots)
+        except FileNotFoundError as exc:
+            raise _scene_unavailable(exc) from exc
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         return Response(pdf, media_type="application/pdf",

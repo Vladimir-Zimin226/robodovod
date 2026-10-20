@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { sceneForKind } from '../sceneModel.js';
-import { playbackDuration, playbackPose } from '../simulationPlayback.js';
+import { advancePlaybackTime, playbackDuration, playbackPose } from '../simulationPlayback.js';
 import { simulationOptions } from '../simulationRouteOptions.js';
+import { simulationFlagLabel } from '../presentation.js';
 
 const API = import.meta.env.VITE_API_URL || '';
 const DEMO_DEFAULTS = { speedLoaded: '0.8', speedEmpty: '1', pickupService: '25',
@@ -18,7 +19,7 @@ function NumericField({ label, value, onChange, min = '0', step = 'any' }) {
     value={value} onChange={(event) => onChange(event.target.value)} /></label>;
 }
 
-export default function SceneSimulationControls({ kind, roleInput, report, onSimulated, onScenario, onChanged, onPlayback }) {
+export default function SceneSimulationControls({ kind, roleInput, report, onSimulated, onScenario, onChanged, onPlayback, demoLocked = false }) {
   const scene = sceneForKind(kind);
   const options = simulationOptions(roleInput, report);
   const [selection, setSelection] = useState(options[0]?.key || '');
@@ -36,14 +37,15 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
   const [playState, setPlayState] = useState('READY');
   const [elapsed, setElapsed] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current?.abort(); }; }, []);
   useEffect(() => {
     if (playState !== 'RUNNING') return undefined;
     let frame;
     const tick = (now) => {
       const state = playback.current;
-      if (state.lastFrame !== null) state.elapsed = Math.min(playbackDuration(state.samples),
-        state.elapsed + Math.min((now - state.lastFrame) / 1000, 0.1));
+      if (state.lastFrame !== null) state.elapsed = advancePlaybackTime(state.elapsed,
+        (now - state.lastFrame) / 1000, playbackRate, playbackDuration(state.samples));
       state.lastFrame = now;
       setElapsed(state.elapsed);
       onPlayback(playbackPose(state.samples, state.elapsed));
@@ -52,11 +54,11 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
     };
     frame = requestAnimationFrame(tick);
     return () => { cancelAnimationFrame(frame); playback.current.lastFrame = null; };
-  }, [playState, onPlayback]);
+  }, [playState, onPlayback, playbackRate]);
   const selected = options.find((item) => item.key === selection) || options[0];
   const invalidate = () => { editRevision.current += 1; request.current?.abort();
     playback.current = { samples: [], elapsed: 0, lastFrame: null };
-    setPlayState('READY'); setElapsed(0); setDuration(0); onPlayback(null); setChanged(true); setSummary(null); onChanged(); };
+    setPlayState('READY'); setElapsed(0); setDuration(0); setPlaybackRate(1); onPlayback(null); setChanged(true); setSummary(null); onChanged(); };
   const patch = (key, value) => { invalidate(); setValues((current) => ({ ...current, [key]: value })); };
   if (!scene || !options.length) return <p>В выбранных работах маршрут между зонами пока не моделируется. Выберите перевозку багажа, материалов клиники или груза склада.</p>;
   const zones = Object.fromEntries(scene.zones.map((zone) => [zone.zone_id, zone]));
@@ -68,7 +70,7 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
     request.current?.abort();
     request.current = new AbortController();
     playback.current = { samples: [], elapsed: 0, lastFrame: null };
-    setPlayState('READY'); setElapsed(0); setDuration(0); onPlayback(null); onChanged();
+    setPlayState('READY'); setElapsed(0); setDuration(0); setPlaybackRate(1); onPlayback(null); onChanged();
     setBusy(true); setError(''); setSummary(null);
     try {
       const next = structuredClone(roleInput);
@@ -157,10 +159,11 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
     <h2>Запустить симуляцию маршрута</h2>
     <p>Сценарные допущения: с грузом 0,8 м/с, без груза 1 м/с, погрузка 25 с, разгрузка 20 с, повороты 8 с, 1 единица за рейс. Их можно изменить ниже. Спрос и доступность берутся из шага «Работа». Зарядка не моделируется.</p>
     <form onSubmit={submit}>
-      <label className="scene-sim-field"><span>Работа</span><select value={selected.key}
+      {!demoLocked && <label className="scene-sim-field"><span>Работа</span><select value={selected.key}
         onChange={(event) => { invalidate(); setSelection(event.target.value); }}>
-        {options.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>
-      <details><summary>Изменить сценарные параметры</summary><div className="scene-sim-fields">
+        {options.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>}
+      {demoLocked && <p>Готовый пример — параметры маршрута зафиксированы. Можно запустить движение и менять скорость просмотра.</p>}
+      {!demoLocked && <details><summary>Изменить сценарные параметры</summary><div className="scene-sim-fields">
         <NumericField label="Скорость с грузом, м/с" value={values.speedLoaded} onChange={(v) => patch('speedLoaded', v)} min="0.01" />
         <NumericField label="Скорость без груза, м/с" value={values.speedEmpty} onChange={(v) => patch('speedEmpty', v)} min="0.01" />
         <NumericField label="Единиц за рейс" value={values.unitsPerCycle} onChange={(v) => patch('unitsPerCycle', v)} min="0.01" />
@@ -168,8 +171,8 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
         <NumericField label="Разгрузка, с" value={values.dropoffService} onChange={(v) => patch('dropoffService', v)} />
         <NumericField label="Задержка на поворотах, с" value={values.turnDelay} onChange={(v) => patch('turnDelay', v)} />
         <NumericField label="Заявок одновременно (1 = ровный поток)" value={values.arrivalBurst} onChange={(v) => patch('arrivalBurst', v)} min="1" step="1" />
-      </div></details>
-      <details><summary>Изменить точки и добавить препятствие</summary>
+      </div></details>}
+      {!demoLocked && <details><summary>Изменить точки и добавить препятствие</summary>
         <div className="scene-sim-fields">
           <NumericField label={`Отбор X, м (обычно ${zones.pickup.center_xy_m[0]})`} value={values.pickupX} onChange={(v) => patch('pickupX', v)} />
           <NumericField label={`Отбор Y, м (обычно ${zones.pickup.center_xy_m[1]})`} value={values.pickupY} onChange={(v) => patch('pickupY', v)} />
@@ -179,15 +182,15 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
           <NumericField label="Препятствие: центр Y, м" value={values.obstacleY} onChange={(v) => patch('obstacleY', v)} />
           <NumericField label="Препятствие: ширина, м" value={values.obstacleWidth} onChange={(v) => patch('obstacleWidth', v)} />
           <NumericField label="Препятствие: длина, м" value={values.obstacleHeight} onChange={(v) => patch('obstacleHeight', v)} />
-        </div></details>
-      <details><summary>Добавить общий узкий участок (один робот одновременно)</summary>
+        </div></details>}
+      {!demoLocked && <details><summary>Добавить общий узкий участок (один робот одновременно)</summary>
         <p>Прямоугольник должен пересекать маршрут с грузом и обратный маршрут один раз. Координаты задаются в метрах той же сцены.</p>
         <div className="scene-sim-fields">
           <NumericField label="Участок: центр X, м" value={values.laneX} onChange={(v) => patch('laneX', v)} />
           <NumericField label="Участок: центр Y, м" value={values.laneY} onChange={(v) => patch('laneY', v)} />
           <NumericField label="Участок: ширина, м" value={values.laneWidth} onChange={(v) => patch('laneWidth', v)} min="0.01" />
           <NumericField label="Участок: длина, м" value={values.laneHeight} onChange={(v) => patch('laneHeight', v)} min="0.01" />
-        </div></details>
+        </div></details>}
       <button type="submit" className="primary-action" disabled={busy}>{busy ? 'Считаю…' : 'Запустить симуляцию'}</button>
     </form>
     {duration > 0 && <div className="scene-playback-controls" role="group" aria-label="Управление движением">
@@ -195,6 +198,11 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
         {playState === 'RUNNING' ? 'Пауза' : 'Продолжить'}</button>
       <button type="button" onClick={() => { playback.current.elapsed = 0; playback.current.lastFrame = null;
         setElapsed(0); onPlayback(playbackPose(playback.current.samples, 0)); setPlayState('RUNNING'); }}>Сначала</button>
+      <div className="scene-playback-rates" role="group" aria-label="Скорость воспроизведения — не скорость робота">
+        {[1, 2, 4, 8].map((rate) => <button type="button" key={rate} title="Ускорение просмотра не меняет скорость робота и экономику"
+          aria-label={`Скорость воспроизведения ${rate}×`} aria-pressed={playbackRate === rate}
+          onClick={() => setPlaybackRate(rate)}>{rate}×</button>)}
+      </div>
       <span role="status">{Math.floor(elapsed)} / {Math.ceil(duration)} с · {playState === 'RUNNING' ? 'Движется' : playState === 'PAUSED' ? 'Пауза' : 'Завершено'}</span>
     </div>}
     {error && <p role="alert">{error}</p>}
@@ -206,7 +214,7 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
       {summary.scenarioOnly && <p role="alert">Это движение условного робота: каталог не подтвердил модель. Сценарный парк не является рекомендацией к закупке, денежный результат не пересчитан.</p>}
       {summary.sampledDemand < summary.requestedDemand && <p role="alert">Поток {summary.requestedDemand.toLocaleString('ru-RU')} ед./ч превышает предел серверного прогона. Для показа маршрута использован поток {summary.sampledDemand.toLocaleString('ru-RU')} ед./ч; парк и пропускная способность по исходному потоку не рассчитаны.</p>}
       <p>Пригодность робота, безопасность и зарядка требуют отдельной проверки.</p>
-      <details><summary>Детали проверки</summary><p>Флаги расчёта: {summary.simulation.flags.join(', ')}.</p></details>
+      <details><summary>Детали проверки</summary><p>Ограничения расчёта: {summary.simulation.flags.map(simulationFlagLabel).join('; ')}.</p></details>
     </div>}
   </section>;
 }

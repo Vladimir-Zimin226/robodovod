@@ -150,19 +150,27 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
     if scene_snapshots:
         lines.append(("Снимки текущей 2D/3D демонстрационной сцены помещены в конце PDF.", "note"))
     else:
-        lines.append(("Снимки текущей сцены не получены в этом сеансе.", "note"))
+        lines.append(("Интерактивная сцена доступна в приложении; условная геометрия не включена в инвестиционный PDF.", "note"))
     lines.append(("Экономика: покупка и аренда", "section"))
     lines.append((("Вариант", "CAPEX, ₽", "NPV, ₽", "ROI, %"), "tablehead"))
     for mode, label in (("purchase", "Покупка"), ("raas", "Аренда")):
+        if mode == "raas":
+            lines.append((14, "spacer"))
         money = view["economics"][mode]
+        roi_text = "не применяется" if mode == "raas" and money["roi_percent"] is None else _known(money["roi_percent"])
         lines.extend([
             ((label, _known(money["capex_rub"]), _known(money["npv_rub"]),
-              _known(money["roi_percent"])), "tablerow"),
-            (f"{label}: CAPEX {_known(money['capex_rub'])} руб.; чистый годовой эффект {_known(money['annual_net_rub'])} руб.; NPV {_known(money['npv_rub'])} руб.; ROI {_known(money['roi_percent'], '%')}.", "body"),
+              roi_text), "tablerow"),
+            (f"{label}: CAPEX {_known(money['capex_rub'])} руб.; чистый годовой эффект {_known(money['annual_net_rub'])} руб.; NPV {_known(money['npv_rub'])} руб.; ROI {roi_text}{'%' if money['roi_percent'] is not None else ''}.", "body"),
             (f"{label}: окупаемость {_known(money['payback_years'], ' лет') if mode == 'purchase' else 'не применяется'}.", "body"),
         ])
         for horizon in money["horizons"]:
-            lines.append((f"{label}, {horizon['years']} лет: NPV {_known(horizon['npv_rub'])} руб.; ROI {_known(horizon['roi_percent'], '%')}.", "body"))
+            horizon_roi = ("не применяется" if mode == "raas" and horizon["roi_percent"] is None
+                           else _known(horizon["roi_percent"], "%"))
+            lines.append((f"{label}, {horizon['years']} лет: NPV {_known(horizon['npv_rub'])} руб.; ROI {horizon_roi}.", "body"))
+    lines.append((f"Аренда: разовые вложения до старта {_known(view['economics']['raas']['capex_rub'])} руб.; "
+                  f"аренда и сопутствующие расходы первого года {_known(view['economics']['raas']['annual_operating_cost_rub'])} руб. "
+                  "Год 0 — до начала эксплуатации; платежи первого года входят в год 1.", "note"))
     lines.append(("Разложение дисконтированного NPV покупки", "section"))
     waterfall = view["waterfall"]
     if not waterfall:
@@ -178,11 +186,13 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
     for row in view["sensitivity"]:
         lines.append(((f"{float(row['labor_share']) * 100:.0f}%", _known(row["purchase_npv_rub"]),
                        _known(row["raas_npv_rub"]), f"{view['active_horizon_years']} лет"), "tablerow"))
-    purchase_flows = view["economics"]["purchase"]["cashflows"]
+    chart_years = {0, 1, 2, 3, 5, 10}
+    purchase_flows = [row for row in view["economics"]["purchase"]["cashflows"] if row["year"] in chart_years]
     lines.extend([(95 + 36 * len(purchase_flows), "keep"),
-                  ("Денежный поток: накопленный эффект, ₽", "section")])
+                  ("Денежный поток: накопленный эффект, ₽", "section"),
+                  ("На графике показаны годы 0, 1, 2, 3, 5 и 10; полный ряд доступен в интерфейсе.", "note")])
     for mode, label in (("purchase", "Покупка"), ("raas", "Аренда")):
-        cashflows = view["economics"][mode]["cashflows"]
+        cashflows = [row for row in view["economics"][mode]["cashflows"] if row["year"] in chart_years]
         if mode == "raas":
             lines.append((65 + 36 * len(cashflows), "keep"))
             lines.append(("Денежный поток: продолжение", "section"))
