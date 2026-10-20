@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from auth import AuthContext, require_auth_context, require_csrf
 from calculation.object_roles import ObjectRoleInput, analyze_object_roles, object_template
+from calculation.scene_simulation import HORIZON_H, MAX_JOBS, load_scene, simulate_scene
 from calculation.role_report import role_report_pdf
 from catalog_repository import CatalogSnapshotDTO
 from database import database_session
@@ -38,6 +39,13 @@ class ObjectRolePdfRequest(BaseModel):
     scene_snapshots: dict[str, str | None] | None = None
 
 
+class ObjectRoutePreview(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    input: ObjectRoleInput
+    role_index: int
+    work_index: int
+
+
 def _key(kind: str) -> str:
     if kind not in {"WAREHOUSE", "AIRPORT", "CLINIC"}:
         raise HTTPException(404, "unknown object kind")
@@ -51,6 +59,43 @@ def create_object_roles_router(discovery_loader: Callable[[], CatalogSnapshotDTO
     def template(kind: str):
         _key(kind)
         return object_template(kind)
+
+    @router.post("/object-roles/{kind}/route-preview")
+    def guest_route_preview(kind: str, payload: ObjectRoutePreview):
+        _key(kind)
+        if payload.input.kind != kind or not 0 <= payload.role_index < len(payload.input.roles):
+            raise HTTPException(422, "unknown role or object kind")
+        role = payload.input.roles[payload.role_index]
+        if not 0 <= payload.work_index < len(role.works):
+            raise HTTPException(422, "unknown work index")
+        work = role.works[payload.work_index]
+        transport_process = {"WAREHOUSE": "warehouse_receiving_shipping",
+                             "AIRPORT": "airport_baggage", "CLINIC": "clinic_medicines"}
+        if work.simulation is None or work.process_code != transport_process[kind]:
+            raise HTTPException(422, "transport simulation required")
+        general = payload.input.general
+        target = work.daily_volume * work.robotizable_share
+        requested_demand = float(target / general.hours_per_shift / general.shifts_per_day)
+        sampled_demand = min(requested_demand, MAX_JOBS / HORIZON_H * (work.simulation.units_per_cycle or 1))
+        scenario = work.simulation.model_copy(update={
+            "demand_units_per_hour": sampled_demand,
+            "robot_availability": float(general.robot_availability),
+            "fleet_reserve_share": float(general.fleet_reserve_share),
+            "selected_robot_ids": [],
+        })
+        try:
+            result = simulate_scene(load_scene(kind.lower()), scenario)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        result["flags"].append("SCENARIO_ROBOT_ONLY")
+        if sampled_demand < requested_demand:
+            result["flags"].append("DEMAND_SAMPLED_FOR_GEOMETRY")
+            result["fleet_required"] = None
+            result["throughput_per_hour"] = None
+        return {"schema_version": "scenario-route-preview-v1", "simulation": result,
+                "catalog_robot_confirmed": False, "economics_confirmed": False,
+                "requested_demand_units_per_hour": requested_demand,
+                "simulated_demand_units_per_hour": sampled_demand}
 
     @router.post("/object-roles/{kind}/preview")
     def guest_preview(kind: str, payload: ObjectRoleInput):

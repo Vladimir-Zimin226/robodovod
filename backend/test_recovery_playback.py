@@ -6,7 +6,9 @@ from fastapi.testclient import TestClient
 
 from backend.calculation.scene_simulation import SceneSimulationInput, load_scene, simulate_scene
 from backend.calculation.warehouse_roles import warehouse_template
+from backend.calculation.object_roles import ObjectRole, WorkInput, object_template
 from backend.warehouse_roles_api import create_warehouse_roles_router
+from backend.object_roles_api import create_object_roles_router
 
 
 @pytest.mark.parametrize("kind", ["warehouse", "airport", "clinic"])
@@ -67,5 +69,49 @@ def test_guest_scenario_route_works_without_catalog_and_cannot_confirm_money():
     payload["input"]["roles"][0]["simulation"]["extra_obstacles"] = [
         {"x": 11, "y": 34, "width": 3, "height": 3}]
     blocked = client.post("/api/v2/warehouse-roles/route-preview", json=payload)
+    assert blocked.status_code == 200
+    assert blocked.json()["simulation"]["status"] == "NO_ROUTE"
+
+
+@pytest.mark.parametrize("kind", ["AIRPORT", "CLINIC"])
+def test_object_guest_route_works_without_catalog_and_cannot_confirm_money(kind):
+    template = object_template(kind)
+    process = "airport_baggage" if kind == "AIRPORT" else "clinic_medicines"
+    source_role = next(row for row in template["roles"]
+                       if any(work["process_code"] == process for work in row["works"]))
+    source_work = next(work for work in source_role["works"] if work["process_code"] == process)
+    role = {key: value for key, value in source_role.items() if key in ObjectRole.model_fields}
+    role["works"] = [{key: value for key, value in source_work.items()
+                      if key in WorkInput.model_fields}]
+    role["works"][0]["selected_position_id"] = "SCENARIO_TYPE"
+    role["works"][0]["simulation"] = {
+        "scene_revision": load_scene(kind.lower())["revision"],
+        "speed_loaded_mps": .8, "speed_empty_mps": 1, "pickup_service_s": 25,
+        "dropoff_service_s": 20, "turn_delay_s": 8, "units_per_cycle": 1,
+    }
+    app = FastAPI()
+    app.include_router(create_object_roles_router(lambda: (_ for _ in ()).throw(AssertionError("catalog queried"))))
+    client = TestClient(app)
+    payload = {"input": {"kind": kind, "general": template["general"], "roles": [role]},
+               "role_index": 0, "work_index": 0}
+    response = client.post(f"/api/v2/object-roles/{kind}/route-preview", json=payload)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["simulation"]["status"] in {"MODELED", "CAPACITY_SHORTFALL"}
+    assert len(body["simulation"]["timestep_pose_samples"]) > 2
+    assert body["simulation"]["selected_robot_ids"] == []
+    assert "SCENARIO_ROBOT_ONLY" in body["simulation"]["flags"]
+    assert body["catalog_robot_confirmed"] is False
+    assert body["economics_confirmed"] is False
+    assert "npv_rub" not in body
+    if kind == "AIRPORT":
+        assert body["requested_demand_units_per_hour"] > body["simulated_demand_units_per_hour"]
+        assert "DEMAND_SAMPLED_FOR_GEOMETRY" in body["simulation"]["flags"]
+        assert body["simulation"]["fleet_required"] is None
+    pickup = next(zone["center_xy_m"] for zone in load_scene(kind.lower())["zones"]
+                  if zone["zone_id"] == "pickup")
+    payload["input"]["roles"][0]["works"][0]["simulation"]["extra_obstacles"] = [
+        {"x": pickup[0], "y": pickup[1], "width": 3, "height": 3}]
+    blocked = client.post(f"/api/v2/object-roles/{kind}/route-preview", json=payload)
     assert blocked.status_code == 200
     assert blocked.json()["simulation"]["status"] == "NO_ROUTE"

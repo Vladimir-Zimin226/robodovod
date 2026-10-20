@@ -94,12 +94,17 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
           width: Number(values.obstacleWidth), height: Number(values.obstacleHeight) }] : [] };
       if (report.kind) next.roles[selected.roleIndex].works[selected.workIndex].simulation = simulation;
       else next.roles[selected.roleIndex].simulation = simulation;
-      const scenarioOnly = !report.kind && !report.roles[selected.roleIndex]?.selected_position_id;
+      const scenarioOnly = report.kind
+        ? ['SCENARIO_TYPE', ''].includes(next.roles[selected.roleIndex].works[selected.workIndex].selected_position_id || '')
+        : !report.roles[selected.roleIndex]?.selected_position_id;
       if (scenarioOnly) {
-        const routeResponse = await fetch(`${API}/api/v2/warehouse-roles/route-preview`, {
+        const routePath = report.kind ? `/api/v2/object-roles/${report.kind}/route-preview`
+          : '/api/v2/warehouse-roles/route-preview';
+        const routeResponse = await fetch(`${API}${routePath}`, {
           method: 'POST', credentials: 'include', signal: request.current.signal,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: next, role_index: selected.roleIndex }),
+          body: JSON.stringify({ input: next, role_index: selected.roleIndex,
+            ...(report.kind ? { work_index: selected.workIndex } : {}) }),
         });
         if (!routeResponse.ok) {
           const body = await routeResponse.json().catch(() => ({}));
@@ -109,7 +114,9 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
         if (!mounted.current || submittedRevision !== editRevision.current) return;
         const result = route.simulation;
         onScenario({ request: simulation, result });
-        setSummary({ simulation: result, fleet: null, npv: null, scenarioOnly: true });
+        setSummary({ simulation: result, fleet: null, npv: null, scenarioOnly: true,
+          sampledDemand: route.simulated_demand_units_per_hour,
+          requestedDemand: route.requested_demand_units_per_hour });
         setChanged(false);
         const samples = result.timestep_pose_samples || [];
         if (samples.length > 1 && ['MODELED', 'CAPACITY_SHORTFALL'].includes(result.status)) {
@@ -196,6 +203,7 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
       {summary.simulation.shared_lane && <p>Узкий участок: среднее ожидание {summary.simulation.shared_lane.mean_wait_s} с; проездов {summary.simulation.shared_lane.events}; пропускная способность {summary.simulation.shared_lane.capacity_per_hour} рейсов/ч.</p>}
       <p>{summary.scenarioOnly ? 'Сценарная потребность' : 'Парк'}: {summary.simulation.fleet_required ?? 'не рассчитан'}; NPV покупки этой работы: {summary.npv == null ? 'не рассчитан' : `${Number(summary.npv).toLocaleString('ru-RU')} ₽`}.</p>
       {summary.scenarioOnly && <p role="alert">Это движение условного робота: каталог не подтвердил модель. Сценарный парк не является рекомендацией к закупке, денежный результат не пересчитан.</p>}
+      {summary.sampledDemand < summary.requestedDemand && <p role="alert">Поток {summary.requestedDemand.toLocaleString('ru-RU')} ед./ч превышает предел серверного прогона. Для показа маршрута использован поток {summary.sampledDemand.toLocaleString('ru-RU')} ед./ч; парк и пропускная способность по исходному потоку не рассчитаны.</p>}
       <p>Пригодность робота, безопасность и зарядка требуют отдельной проверки.</p>
       <details><summary>Детали проверки</summary><p>Флаги расчёта: {summary.simulation.flags.join(', ')}.</p></details>
     </div>}

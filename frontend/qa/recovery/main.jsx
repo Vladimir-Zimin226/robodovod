@@ -6,7 +6,7 @@ import paths from './paths.json';
 import '../../src/index.css';
 
 const kind = new URLSearchParams(location.search).get('kind') || 'warehouse';
-const realApi = kind === 'warehouse' && new URLSearchParams(location.search).get('api') === 'real';
+const realApi = new URLSearchParams(location.search).get('api') === 'real';
 const fixture = paths[kind];
 const object = kind !== 'warehouse';
 const work = { technical_task: 'Перевозка между зонами', unit: 'item',
@@ -32,19 +32,41 @@ export function VisualCheck() {
   const [realError, setRealError] = useState('');
   useEffect(() => {
     if (!realApi) return;
-    fetch('/api/v2/warehouse-roles/template').then((response) => {
+    const path = object ? `/api/v2/object-roles/${kind.toUpperCase()}/template`
+      : '/api/v2/warehouse-roles/template';
+    fetch(path).then((response) => {
       if (!response.ok) throw new Error(`Шаблон работы: HTTP ${response.status}`);
       return response.json();
     }).then((template) => {
-      const role = template.roles.find((item) => item.role_code === 'forklift_driver');
-      const keys = ['role_code', 'headcount', 'monthly_employer_cost_rub', 'daily_volume',
-        'manual_units_per_person_shift', 'robotizable_share', 'source', 'basis'];
-      setRealInput({ general: template.general, roles: [Object.fromEntries(keys.map((key) => [key, role[key]]))] });
+      if (object) {
+        const process = kind === 'airport' ? 'airport_baggage' : 'clinic_medicines';
+        const role = template.roles.find((item) => item.works.some((work) => work.process_code === process));
+        const selectedWork = role.works.find((work) => work.process_code === process);
+        const roleKeys = ['role_code', 'headcount', 'monthly_employer_cost_rub', 'salary_basis',
+          'headcount_source', 'salary_source', 'realizable_labor_share'];
+        const workKeys = ['process_code', 'evidence_ref', 'technical_task', 'daily_volume',
+          'manual_units_per_person_shift', 'unit', 'allocation_fraction', 'robotizable_share',
+          'robot_units_per_hour', 'scenario_purchase_price_rub', 'scenario_raas_monthly_rub',
+          'raas_mode', 'raas_percent_monthly', 'rate_source', 'price_source', 'raas_source',
+          'basis', 'residual_operations', 'calculation_status', 'safety_conditions', 'task_payload_kg'];
+        const selectedRole = Object.fromEntries(roleKeys.map((key) => [key, role[key]]));
+        selectedRole.works = [{ ...Object.fromEntries(workKeys.map((key) => [key, selectedWork[key]])),
+          selected_position_id: 'SCENARIO_TYPE' }];
+        setRealInput({ kind: kind.toUpperCase(), general: template.general, roles: [selectedRole] });
+      } else {
+        const role = template.roles.find((item) => item.role_code === 'forklift_driver');
+        const keys = ['role_code', 'headcount', 'monthly_employer_cost_rub', 'daily_volume',
+          'manual_units_per_person_shift', 'robotizable_share', 'source', 'basis'];
+        setRealInput({ general: template.general, roles: [Object.fromEntries(keys.map((key) => [key, role[key]]))] });
+      }
     }).catch((error) => setRealError(error.message));
   }, []);
   const onPlayback = useCallback((next) => setPose(next), []);
   if (!fixture) return <p>Unknown scene</p>;
-  const realReport = { roles: [{ label: 'Водитель погрузчика', selected_position_id: null, candidates: [] }] };
+  const realReport = object
+    ? { kind: kind.toUpperCase(), roles: [{ label: kind === 'airport' ? 'Багаж' : 'Доставка',
+      works: [{ selected_position_id: 'SCENARIO_TYPE' }] }] }
+    : { roles: [{ label: 'Водитель погрузчика', selected_position_id: null, candidates: [] }] };
   return <main style={{ maxWidth: 1440, margin: 'auto' }}>
     <h1>Визуальная проверка playback · {kind}</h1>
     <p>{realApi ? 'Ответ получен от локального FastAPI route-preview. Каталожная модель и экономика этим маршрутом не подтверждаются; опубликованный каталог и гостевая воронка здесь не проверяются.'
