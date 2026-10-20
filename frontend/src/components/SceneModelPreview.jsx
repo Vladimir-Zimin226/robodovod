@@ -147,6 +147,12 @@ export default function SceneModelPreview({ kind, overlay, pose }) {
   const scene = useMemo(() => source ? sceneWithSimulation(source, overlay?.request, overlay?.result) : null,
     [source, overlay?.request, overlay?.result]);
   const views = useMemo(() => scene ? buildSceneViews(scene) : null, [scene]);
+  const routeStatus = {
+    MODELED: 'Маршрут рассчитан.',
+    CAPACITY_SHORTFALL: 'Маршрут показан, но мощности сценария недостаточно.',
+    NO_ROUTE: 'Проезд между зонами невозможен.',
+    NEEDS_INPUT: 'Для проверки маршрута нужны параметры.',
+  }[overlay?.result?.status] || 'Маршрут требует дополнительной проверки.';
   if (!scene) return <p>Для этого типа объекта демосцена отсутствует.</p>;
   return <section className="scene-preview" aria-label="Единая геометрия сцены">
     <p><strong>Условный шаблон «{SCENE_NAMES[scene.scene_id]}»</strong> · {scene.bounds.width_m} × {scene.bounds.length_m} м · {scene.objects.length} объектов · {scene.zones.length} зоны</p>
@@ -155,10 +161,10 @@ export default function SceneModelPreview({ kind, overlay, pose }) {
       <button type="button" aria-pressed={mobileView === '2d'} onClick={() => setMobileView('2d')}>2D-план</button>
     </div>
     <div className="scene-preview-grid" data-mobile-view={mobileView}>
-      <figure className="scene-preview-hero"><ThreeView scene={scene} view={views.iso} pose={pose} /><figcaption>3D · модели текущей демонстрационной сцены</figcaption></figure>
-      <figure className="scene-preview-plan"><TopView scene={scene} view={views.top} pose={pose} /><figcaption>2D · те же объекты и маршрут</figcaption></figure>
+      <figure className="scene-preview-hero"><ThreeView scene={scene} view={views.iso} pose={pose} /><figcaption>Интерактивная 3D-сцена</figcaption></figure>
+      <figure className="scene-preview-plan"><TopView scene={scene} view={views.top} pose={pose} /><figcaption>План объекта и маршрут</figcaption></figure>
     </div>
-    <p className="scene-preview-evidence">Демонстрационный план · требуется проверка реального объекта. 2D и 3D читают один SceneModel. {overlay ? `Серверный статус маршрута: ${overlay.result.status}. Локальные правки не сохранены.` : 'Исходный маршрут ещё не проверен на коллизии.'}</p>
+    <p className="scene-preview-evidence">План и препятствия требуют сверки на объекте. {overlay ? `${routeStatus} Изменения маршрута пока не сохранены.` : 'Исходный маршрут ещё не проверен на коллизии.'}</p>
     <p className="scene-preview-legend"><span style={{ color: COLORS.CHARGE }}>● Зарядка</span><span style={{ color: COLORS.PICKUP }}>● Отбор</span><span style={{ color: COLORS.DROPOFF }}>● Доставка</span><span style={{ color: COLORS.SHARED_LANE }}>▭ Узкий участок</span><span style={{ color: '#176fb3' }}>┄ Условный маршрут</span></p>
   </section>;
 }

@@ -86,6 +86,8 @@ class Browser:
 
 def run_case(browser, width, kind, role, name, *, example=False, mobile_scene=False):
     prefix = f"local-catalog-{width}-{name}" + ("-example" if example else "-mobile-art" if mobile_scene else "")
+    if "--rc-mobile-360" in sys.argv:
+        prefix += "-rc"
     browser.call("Page.navigate", {"url": URL})
     browser.until(f"Boolean(document.querySelector('.simple-object-{kind}'))", "home")
     browser.js("window.confirm=()=>true")
@@ -144,9 +146,12 @@ def run_case(browser, width, kind, role, name, *, example=False, mobile_scene=Fa
     browser.capture(f"{prefix}-simulation.png")
     sim_text = browser.js("document.querySelector('.scene-sim-controls')?.innerText.slice(-950)")
     if mobile_scene:
+        caption = browser.js("document.querySelector('.scene-preview-evidence')?.innerText")
+        if any(raw in caption for raw in ("SceneModel", "CAPACITY_SHORTFALL", "MODELED", "NO_ROUTE")):
+            raise RuntimeError(f"{prefix}: raw scene status: {caption}")
         return {"width": width, "scene": name, "pose_first": first,
                 "pose_second": second, "simulation_summary": sim_text,
-                "mobile_2d_and_3d_motion": True}
+                "mobile_2d_and_3d_motion": True, "scene_caption": caption}
     if example and browser.js("[...document.querySelectorAll('button')].find(x=>x.textContent.includes('К экономике с этим ограничением')).disabled"):
         return {"width": width, "scene": name, "ready_example": True,
                 "pose_first": first, "pose_second": second, "simulation_summary": sim_text,
@@ -197,8 +202,8 @@ def main():
     results = []
     try:
         examples = "--examples" in sys.argv
-        mobile_scene = "--mobile-scene" in sys.argv
-        widths = (360, 390, 768) if mobile_scene else (1440,) if "--pdf-only" in sys.argv or examples else (1440, 360, 390, 768)
+        mobile_scene = "--mobile-scene" in sys.argv or "--rc-mobile-360" in sys.argv
+        widths = (360,) if "--rc-mobile-360" in sys.argv else (360, 390, 768) if mobile_scene else (1440,) if "--pdf-only" in sys.argv or examples else (1440, 360, 390, 768)
         for width in widths:
             browser.call("Emulation.setDeviceMetricsOverride", {"width": width,
                          "height": 900 if width == 1440 else 800,
@@ -212,7 +217,7 @@ def main():
         browser.ws.close()
     if not examples and not mobile_scene:
         assert all(item["catalog_in_result"] for item in results)
-    result_file = "local-catalog-mobile-art.json" if mobile_scene else "local-catalog-examples.json" if examples else "local-catalog-pdf-capture.json" if "--pdf-only" in sys.argv else "local-catalog-journey.json"
+    result_file = "local-catalog-mobile-rc-360.json" if "--rc-mobile-360" in sys.argv else "local-catalog-mobile-art.json" if mobile_scene else "local-catalog-examples.json" if examples else "local-catalog-pdf-capture.json" if "--pdf-only" in sys.argv else "local-catalog-journey.json"
     (OUT / result_file).write_text(
         json.dumps({"source": "LOCAL_POSTGRESQL_17_PUBLISHED_BUNDLE",
                     "production_verified": False, "cases": results,
