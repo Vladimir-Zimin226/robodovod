@@ -1,5 +1,5 @@
 {
-  "status": "LOCAL_WEBGL_PLAYBACK_SYNTHETIC_API",
+  "status": "LOCAL_FASTAPI_ROUTE_PREVIEW_NO_CATALOG",
   "audio": "NONE_SILENT",
   "duration_s": 36,
   "fps_capture": 10,
@@ -39,41 +39,91 @@
   "master": "robodovod-trailer-master-1080p.mp4",
   "web": "robodovod-trailer-web-720p.mp4",
   "preview": "robodovod-trailer-preview-720p.mp4",
+  "api_responses": [
+    {
+      "path": "warehouse-roles/template",
+      "status": 200
+    },
+    {
+      "path": "warehouse-roles/route-preview",
+      "status": 200
+    },
+    {
+      "path": "warehouse-roles/template",
+      "status": 200
+    },
+    {
+      "path": "warehouse-roles/route-preview",
+      "status": 200
+    },
+    {
+      "path": "object-roles/AIRPORT/template",
+      "status": 200
+    },
+    {
+      "path": "object-roles/AIRPORT/route-preview",
+      "status": 200
+    },
+    {
+      "path": "object-roles/AIRPORT/template",
+      "status": 200
+    },
+    {
+      "path": "object-roles/AIRPORT/route-preview",
+      "status": 200
+    },
+    {
+      "path": "object-roles/CLINIC/template",
+      "status": 200
+    },
+    {
+      "path": "object-roles/CLINIC/route-preview",
+      "status": 200
+    },
+    {
+      "path": "object-roles/CLINIC/template",
+      "status": 200
+    },
+    {
+      "path": "object-roles/CLINIC/route-preview",
+      "status": 200
+    }
+  ],
   "poses": {
     "warehouse-3d": {
-      "first": "11.27, 34.00, 0.00",
-      "last": "43.76, 34.00, 3.14",
+      "first": "11.25, 34.00, 0.00",
+      "last": "53.98, 34.00, 0.00",
       "distinct": 60
     },
     "warehouse-2d": {
-      "first": "11.24, 34.00, 0.00",
-      "last": "53.91, 34.00, 0.00",
+      "first": "11.31, 34.00, 0.00",
+      "last": "53.36, 34.00, 3.14",
       "distinct": 60
     },
     "airport-3d": {
-      "first": "17.00, 23.30, 1.57",
-      "last": "58.95, 29.00, 0.00",
+      "first": "17.00, 23.26, 1.57",
+      "last": "61.98, 29.00, 3.14",
       "distinct": 60
     },
     "airport-2d": {
-      "first": "17.00, 23.37, 1.57",
-      "last": "54.93, 29.00, 0.00",
+      "first": "17.00, 23.21, 1.57",
+      "last": "64.49, 29.00, 3.14",
       "distinct": 60
     },
     "clinic-3d": {
-      "first": "7.32, 14.00, 0.00",
-      "last": "19.16, 12.50, 3.14",
+      "first": "7.24, 14.00, 0.00",
+      "last": "16.67, 12.50, 3.14",
       "distinct": 60
     },
     "clinic-2d": {
-      "first": "7.37, 14.00, 0.00",
-      "last": "19.29, 12.50, 3.14",
+      "first": "7.22, 14.00, 0.00",
+      "last": "19.70, 12.50, 3.14",
       "distinct": 60
     }
   },
   "sha256": {
-    "robodovod-trailer-master-1080p.mp4": "a2c464c1c244637ec8ad8af25b068059476dfbdba4b6fd424dc911a62694b3e8",
-    "robodovod-trailer-web-720p.mp4": "2108715f20f27ff5d6dac2cccfda45a9c0e6d463301aa808f5b10185617890a8",
-    "robodovod-trailer-preview-720p.mp4": "9ce75bd09b16791c1f1fec5adac139f42cf8dc418259d51708d8c6763f7df13d"
+    "robodovod-trailer-master-1080p.mp4": "a3dfd0a17408077f9341fb39c9bd86c136ef66b6ab0e0c3df2fdee5c9c926452",
+    "robodovod-trailer-web-720p.mp4": "1092bf8ac90af3a4193a1f9f3017443748842ec4aec058cea6f0178d8be40de1",
+    "robodovod-trailer-preview-720p.mp4": "3a3807b77558f6331e0f2fd57b6e48e90cf0db2e8be303a524ae2a09d211cd98"
   }
 }

@@ -85,7 +85,7 @@ export default function TrailerPlayer() {
         <span>{formatTime(time)} / {formatTime(duration)}</span></div>
       <nav aria-label="Главы трейлера">{CHAPTERS.map((chapter, index) =>
         <button type="button" key={chapter} onClick={() => seek(index * CHAPTER_SECONDS)}>{chapter}</button>)}</nav>
-      <p className="trailer-credit">Кадры захвачены из локальных SceneModel/WebGL рендеров с синтетическим ответом API. Production каталог не проверен. Музыкальная дорожка отсутствует.</p>
+      <p className="trailer-credit">Кадры захвачены из локальных SceneModel/WebGL рендеров с маршрутом FastAPI. Каталожная модель, экономика и production PostgreSQL не проверены. Музыкальная дорожка отсутствует.</p>
     </div></div>}
   </section>;
 }

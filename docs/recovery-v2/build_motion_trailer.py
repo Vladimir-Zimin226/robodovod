@@ -1,7 +1,6 @@
-"""Record genuine WebGL/2D playback frames from the local recovery browser harness.
+"""Record WebGL/2D playback from local FastAPI route-preview without a mocked POST.
 
-The harness substitutes a synthetic server route. The resulting video explicitly says so;
-it is visual evidence of playback, never production catalog acceptance.
+Route-only endpoints verify geometry, not an activated catalog robot or economics.
 """
 
 from __future__ import annotations
@@ -41,6 +40,8 @@ class Browser:
         self.ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=15,
                                               suppress_origin=True)
         self.sequence = 0
+        self.responses = []
+        self.call("Network.enable")
         self.call("Emulation.setDeviceMetricsOverride", {"width": 1440, "height": 900,
                   "deviceScaleFactor": 1, "mobile": False})
 
@@ -50,6 +51,11 @@ class Browser:
         self.ws.send(json.dumps({"id": request_id, "method": method, "params": params or {}}))
         while True:
             response = json.loads(self.ws.recv())
+            if response.get("method") == "Network.responseReceived":
+                event = response["params"]["response"]
+                if "/api/v2/" in event["url"]:
+                    self.responses.append({"path": event["url"].split("/api/v2/", 1)[1],
+                                           "status": event["status"]})
             if response.get("id") == request_id:
                 if "error" in response:
                     raise RuntimeError(response["error"])
@@ -90,7 +96,7 @@ def compose(image, geometry, title, subtitle, view, pose, frame_no):
               font=ImageFont.truetype(FONT, 17), fill="#b1d9e6")
     draw.text((970, 405), subtitle, font=ImageFont.truetype(FONT, 17), fill="#e3f3f2")
     draw.text((970, 460), f"Поза: {pose or 'ожидание'}", font=ImageFont.truetype(FONT, 15), fill="#8fdad5")
-    draw.text((49, 661), "Локальная демо-сцена · маршрут API синтетический · каталог production не проверен",
+    draw.text((49, 661), "Локальная демо-сцена · маршрут FastAPI · каталожная модель и деньги не подтверждены",
               font=ImageFont.truetype(FONT, 15), fill="#a9c4cd")
     draw.rectangle((49, 642, 49 + round(1170*(frame_no+1)/(FPS*DURATION*len(CHAPTERS))), 645), fill="#53d4c1")
     return canvas
@@ -108,11 +114,13 @@ def main():
             count = 0
             for chapter_index, (kind, title, subtitle, view) in enumerate(CHAPTERS, 1):
                 browser.call("Page.navigate", {"url":
-                             f"http://127.0.0.1:4175/qa/recovery/index.html?kind={kind}"})
+                             f"http://127.0.0.1:4175/qa/recovery/index.html?kind={kind}&api=real"})
                 deadline = time.monotonic()+30
                 while time.monotonic() < deadline:
                     if browser.evaluate("document.querySelector('[data-glb-status]')?.dataset.glbStatus") == "READY" \
-                            and browser.evaluate("new URLSearchParams(location.search).get('kind')") == kind:
+                            and browser.evaluate("document.querySelector('[data-floor-texture-status]')?.dataset.floorTextureStatus") == "READY" \
+                            and browser.evaluate("new URLSearchParams(location.search).get('kind')") == kind \
+                            and browser.evaluate("Boolean(document.querySelector('.scene-sim-controls button[type=submit]'))"):
                         break
                     time.sleep(.2)
                 else:
@@ -125,6 +133,11 @@ def main():
                     time.sleep(.1)
                 else:
                     raise RuntimeError(f"{kind}: playback did not start")
+                expected_path = ("warehouse-roles/route-preview" if kind == "warehouse"
+                                 else f"object-roles/{kind.upper()}/route-preview")
+                if not any(row["path"] == expected_path and row["status"] == 200
+                           for row in browser.responses):
+                    raise RuntimeError(f"{kind}: no successful local FastAPI route-preview")
                 browser.evaluate("document.querySelector('.scene-preview')?.scrollIntoView({block:'center'})")
                 time.sleep(.25)
                 geometry = browser.evaluate("JSON.stringify(Object.fromEntries([['stage','.scene-preview-canvas'],['plan','.scene-preview-plan .scene-preview-svg']].map(([name, selector]) => {const r=document.querySelector(selector).getBoundingClientRect();return [name,[r.x,r.y,r.width,r.height]]})))")
@@ -168,14 +181,15 @@ def main():
     for index, (_, title, subtitle, view) in enumerate(CHAPTERS):
         start, end = index*DURATION, (index+1)*DURATION
         vtt += [f"00:00:{start:02d}.000 --> 00:00:{end:02d}.000",
-                f"{title}, {view}. {subtitle}. Синтетический результат API в локальной демонстрации.", ""]
+                f"{title}, {view}. {subtitle}. Маршрут рассчитан локальным FastAPI без подтверждения каталожной модели.", ""]
     (OUTPUT / "robodovod-trailer.ru.vtt").write_text("\n".join(vtt), encoding="utf-8")
-    manifest = {"status": "LOCAL_WEBGL_PLAYBACK_SYNTHETIC_API", "audio": "NONE_SILENT",
+    manifest = {"status": "LOCAL_FASTAPI_ROUTE_PREVIEW_NO_CATALOG", "audio": "NONE_SILENT",
                 "duration_s": DURATION*len(CHAPTERS), "fps_capture": FPS,
                 "chapters": [{"scene": kind, "view": view, "start_s": index*DURATION}
                              for index, (kind, _, _, view) in enumerate(CHAPTERS)],
                 "scene_asset_manifest": "scene-assets/recovery-manifest.json",
                 "master": master.name, "web": web.name, "preview": preview.name,
+                "api_responses": browser.responses,
                 "poses": poses,
                 "sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                            for p in (master, web, preview)}}
