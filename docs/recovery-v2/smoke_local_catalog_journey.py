@@ -123,8 +123,12 @@ def run_case(browser, width, kind, role, name, *, example=False):
         browser.js("[...document.querySelectorAll('.scene-preview-mobile-switch button')].find(x=>x.textContent.includes('2D-план')).click()")
         browser.until("document.querySelector('.scene-preview-grid')?.dataset.mobileView === '2d'", "2D view")
         plan_first = browser.js("document.querySelector('.scene-preview-plan [data-robot-pose]')?.getAttribute('data-robot-pose')")
-        time.sleep(.45)
-        plan_second = browser.js("document.querySelector('.scene-preview-plan [data-robot-pose]')?.getAttribute('data-robot-pose')")
+        plan_second = plan_first
+        for _ in range(24):
+            time.sleep(.5)
+            plan_second = browser.js("document.querySelector('.scene-preview-plan [data-robot-pose]')?.getAttribute('data-robot-pose')")
+            if plan_second != plan_first:
+                break
         if not plan_first or plan_first == plan_second:
             raise RuntimeError(f"{prefix}: 2D robot did not move: {plan_first} -> {plan_second}")
         browser.capture(f"{prefix}-2d-motion.png")

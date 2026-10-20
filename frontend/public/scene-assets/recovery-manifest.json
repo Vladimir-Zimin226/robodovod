@@ -8,92 +8,92 @@
       "asset_id": "hero_warehouse_rack",
       "replaces_or_extends": "pallet_rack",
       "file": "hero_warehouse_rack.glb",
-      "bytes": 554948,
-      "sha256": "d610182ca08da95263dba25c37a3150cbbc1b037698549731f7d509ce571ff5a"
+      "bytes": 660504,
+      "sha256": "5f5b42202980990e9ca665825e1eedf278ffd2bf680aff4ef471021013b5d00f"
     },
     {
       "asset_id": "hero_pallet_amr",
       "replaces_or_extends": "pallet_amr",
       "file": "hero_pallet_amr.glb",
       "bytes": 118600,
-      "sha256": "95977b30d71739f2322511b283dc6ff53a651afe330fb545b8f26d6c435362d9"
+      "sha256": "fe84e7b1c69ba8273a53180e30e425629bbc5cd7dee52e1a8db419859e9bed7b"
     },
     {
       "asset_id": "hero_robot_forklift",
       "replaces_or_extends": "forklift_robot",
       "file": "hero_robot_forklift.glb",
       "bytes": 200460,
-      "sha256": "a6a005889576725bf9d5fa7cbf40312e61e4dfcfa2a486e5b8bddfd8052c75d4"
+      "sha256": "10e68027a528171871fa3066a57c3a3ac2502fd1a6cb1bfae7bccb692723867b"
     },
     {
       "asset_id": "hero_airport_tug",
       "replaces_or_extends": "airport_tug",
       "file": "hero_airport_tug.glb",
       "bytes": 154712,
-      "sha256": "8d43241ec496feef7ae88fe42686e757887d98cee7bf450bbdc582062bfe87bb"
+      "sha256": "69f5076662bdad597d0c05589aed2c2543fc6c25bc7f7f7fbb14fc3da509b5f6"
     },
     {
       "asset_id": "hero_clinic_delivery",
       "replaces_or_extends": "indoor_delivery_robot",
       "file": "hero_clinic_delivery.glb",
       "bytes": 155496,
-      "sha256": "46e9e684218fa5ff7d4d89648329bb963706232eabb74faf467a76abc62da73d"
+      "sha256": "4ea0cf098cd3336c5ef03df9fa40905798eeff620ce5d0891a65102026222767"
     },
     {
       "asset_id": "hero_warehouse_shell",
       "replaces_or_extends": "warehouse environment",
       "file": "hero_warehouse_shell.glb",
-      "bytes": 1081292,
-      "sha256": "8e6ef5a36e75ea47754bb090f1089c0c1edc8d827c3eddc1e36a546daab88829"
+      "bytes": 1740700,
+      "sha256": "78f6c5dc1ce55ea9b71b166c66cdb939dd45f8684141f25445e43d947780bebf"
     },
     {
       "asset_id": "hero_airport_shell",
       "replaces_or_extends": "airport environment",
       "file": "hero_airport_shell.glb",
-      "bytes": 1505756,
-      "sha256": "7f786c9d50313b1e7cebb0ec1387f084c9b51129115b377df2b874396740c6a3"
+      "bytes": 2478988,
+      "sha256": "90fcc5b9f9e566453832370402dbaf326066d13b0fa5bb9529371b05c133b16e"
     },
     {
       "asset_id": "hero_clinic_shell",
       "replaces_or_extends": "clinic environment",
       "file": "hero_clinic_shell.glb",
-      "bytes": 1520460,
-      "sha256": "4725f34027ce6e155cdb35dc0e818164b704f702b74b77f5282d4a395233f8b2"
+      "bytes": 1531204,
+      "sha256": "3cfe3ad04953ab7a2ed9de3f5603b8d14c91f1058015cd9dc2f5bfb86993755c"
     },
     {
       "asset_id": "hero_conveyor",
       "replaces_or_extends": "conveyor",
       "file": "hero_conveyor.glb",
       "bytes": 137320,
-      "sha256": "40cbe4637b3a18e770f1bf7ead3ed2e8c0280838dd79a0aa7b06f052dcac0dce"
+      "sha256": "c001f8968e7fe6bca73a6d6b14e24ffcb440ab3f0fcf5483b868271b8ab3f8d4"
     },
     {
       "asset_id": "hero_baggage_cart",
       "replaces_or_extends": "baggage_cart",
       "file": "hero_baggage_cart.glb",
       "bytes": 172984,
-      "sha256": "5d23161e7c5d9c45e5110dcac0938a9ff8c45c7972f1f5c73f14b569540e4795"
+      "sha256": "fb38539fd5d2332d987f350af8196f211c257a2c2db9d66190972e143f8d93e3"
     },
     {
       "asset_id": "hero_hospital_bed",
       "replaces_or_extends": "hospital_bed",
       "file": "hero_hospital_bed.glb",
       "bytes": 137556,
-      "sha256": "0eaa6fd7ab361ac836e078454357c023be8a98e07cb53c8970af395fc6d773fc"
+      "sha256": "daa8a61a6d5707adc331ad7662618cd144b9bb7fec8a437ac45fe0edc45f516f"
     },
     {
       "asset_id": "hero_nurse_desk",
       "replaces_or_extends": "nurse_desk",
       "file": "hero_nurse_desk.glb",
       "bytes": 86072,
-      "sha256": "491125ab0db68b15cf35eef176e4c028da02f6cc13aaf183f8cb066407e3a60d"
+      "sha256": "202a8380b27b6814382c104a8b085a1f0e4254da326e89eb89d47e7f6ccc1d1e"
     },
     {
       "asset_id": "hero_hospital_cart",
       "replaces_or_extends": "hospital_cart",
       "file": "hero_hospital_cart.glb",
       "bytes": 144488,
-      "sha256": "bd8155ff93100ae1fa6d31019555635d7ed06873c8bb41fa95e0d2bd2e2aedeb"
+      "sha256": "769ba13be82fdeb49598a09af1b8cacf9a48972971022c1711bec7fee7466928"
     }
   ]
 }

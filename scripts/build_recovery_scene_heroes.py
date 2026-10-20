@@ -94,6 +94,9 @@ white = material('Medical ivory polymer', (.79, .87, .85), .07, .39)
 blue = material('Medical teal polymer', (.035, .43, .47), .16, .32)
 timber = material('Pallet timber warm', (.52, .31, .13), .0, .84)
 cardboard = material('Corrugated cardboard', (.55, .38, .22), .0, .91)
+cardboard_light = material('Kraft carton pale', (.69, .53, .34), .0, .9)
+label_paper = material('Parcel shipping label', (.88, .85, .73), .0, .82)
+lane_white = material('Traffic white paint', (.79, .80, .73), .0, .88)
 warning = material('Signal lamp amber', (1.0, .48, .025), .0, .25, 1.4)
 red = material('Stop lamp red', (.78, .025, .02), .0, .26, 1.2)
 
@@ -120,8 +123,15 @@ for tier, z in enumerate((1.08, 2.08, 3.08)):
             cube('Pallet bearer', (x, plank, z-.075), (.98, .085, .065), timber, .006)
         if not (tier == 2 and bay == 1):
             height = (.46, .67, .37)[(tier+bay)%3]
-            cube('Wrapped carton load', (x, 0, z+.09+height/2), (.86, .68, height), cardboard, .035)
+            cube('Wrapped carton load', (x, 0, z+.09+height/2), (.86, .68, height),
+                 cardboard if (tier + bay) % 2 else cardboard_light, .035)
             cube('Carton seam', (x, 0, z+.09+height), (.86, .045, .008), timber)
+            cube('Carton paper label', (x-.18, -.347, z+.09+height*.56), (.28, .007, .15), label_paper, .003)
+            for stripe in range(5):
+                cube('Parcel barcode', (x-.29+stripe*.038, -.352, z+.09+height*.56),
+                     (.014 if stripe % 2 else .009, .004, .09), rubber)
+            for strap_y in (-.23, .23):
+                cube('Pallet load strap', (x, strap_y, z+.09+height+.007), (.88, .024, .012), white)
 for x in (-1.22, 1.22):
     cube('Safety end protector', (x, -.58, .23), (.20, .19, .46), yellow, .025)
 export('hero_warehouse_rack')
@@ -238,7 +248,25 @@ def shell(width, length, height, wall, trim, bay, title):
         cube('Wall lateral inset', (.56, y, 4.1), (.06, bay*.68, 4.1), trim, .025)
     cube('Roof edge beam rear', (width/2, length-.58, height-.05), (width, .56, .28), steel, .02)
     cube('Roof edge beam side', (.58, length/2, height-.05), (.56, length, .28), steel, .02)
+    if title != 'hero_clinic_shell':
+        # Exposed roof services and high-bay luminaires give the open cutaway a ceiling scale.
+        for y in range(7, int(length)-3, 9):
+            cube('Suspended roof truss', (width/2, y, height-.32), (width-1.1, .15, .23), steel, .018)
+            cube('Fire suppression main', (width/2, y+.56, height-.48), (width-1.6, .075, .075), red)
+            for x in range(6, int(width)-3, 10):
+                cube('High bay luminaire reflector', (x, y, height-1.13), (2.20, .56, .10), steel_light, .025)
+                cube('High bay lit diffuser', (x, y, height-1.20), (1.96, .43, .035), light_strip, .008)
+                for dx in (-.77, .77):
+                    cube('Luminaire suspension', (x+dx, y, height-.78), (.023, .023, .68), steel)
     if title == 'hero_warehouse_shell':
+        # Painted traffic lanes and pedestrian crossings are flush with the floor.
+        for x in range(4, 58, 3):
+            for y in (30.6, 37.4):
+                cube('Warehouse safety lane dash', (x, y, .013), (1.45, .085, .014), yellow)
+        for y in range(31, 38):
+            cube('Forklift crossing white bar', (29.5, y, .015), (1.28, .36, .014), lane_white)
+        for x in range(5, 58, 8):
+            cube('Dock staging boundary', (x, length-4.65, .012), (5.8, .075, .012), yellow)
         # Dock bays, loading shutters and practical safety hardware on the rear wall.
         for dock, x in enumerate((8, 23, 38, 53), 1):
             cube('Dock shutter recessed frame', (x, length-.72, 2.65), (6.7, .14, 5.10), steel, .035)
@@ -254,6 +282,12 @@ def shell(width, length, height, wall, trim, bay, title):
         for x in range(5, 59, 10):
             cyl('Overhead fire sprinkler head', (x, length*.65, height-.54), .11, .12, red, 12)
     elif title == 'hero_airport_shell':
+        for x in range(7, 73, 3):
+            for y in (19.8, 33.0):
+                cube('Baggage lane paint', (x, y, .012), (1.65, .095, .012), yellow)
+        for x in (16, 38, 60):
+            for y in range(20, 34):
+                cube('Baggage crossing', (x, y, .013), (.54, .32, .012), lane_white)
         # Distinct baggage hall: blue airline bays, roller reclaim, columns and signs.
         for bay_number, x in enumerate((9, 28, 47, 66), 1):
             cube('Baggage bay portal', (x, length-.83, 2.50), (10.2, .13, 4.72), steel_light, .07)
@@ -275,6 +309,10 @@ def shell(width, length, height, wall, trim, bay, title):
             for dx in (-1.8, 1.8):
                 cube('Wayfinding hanger', (x+dx, length*.68, height-.53), (.04, .04, .70), steel_light)
     elif title == 'hero_clinic_shell':
+        for y in (11.6, 16.4):
+            cube('Clinical corridor guidance strip', (width/2, y, .011), (width-3.0, .18, .012), blue)
+        for x in range(5, 43, 8):
+            cube('Ward doorway floor threshold', (x, length-3.5, .012), (1.85, .11, .012), blue)
         # Corridor furniture and recognisable treatment-room doors remain outside the route.
         for room, x in enumerate((5, 12, 19, 26, 33, 40), 1):
             cube('Treatment room frame', (x, length-.67, 1.55), (2.2, .13, 3.1), door_silver, .035)

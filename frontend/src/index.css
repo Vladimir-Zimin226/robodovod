@@ -1265,13 +1265,13 @@ button:disabled { cursor: not-allowed; }
 }
 .scene-preview { max-width: 1440px; padding: clamp(14px, 2vw, 28px); }
 .scene-preview > p:first-child { color: var(--rd-text-muted); font-size: 13px; }
-.scene-preview-grid { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: stretch; }
+.scene-preview-grid { position: relative; display: block; }
 .scene-preview-grid figure { background: var(--rd-surface-inset); border: 1px solid var(--rd-stroke); border-radius: 14px; padding: 10px; }
-.scene-preview-hero { grid-column: 1; grid-row: 1; }
-.scene-preview-plan { grid-column: 2; grid-row: 1; align-self: start; }
-.scene-preview-canvas { min-height: 480px; aspect-ratio: auto; background: #101b25; }
+.scene-preview-plan { position: absolute; right: 20px; bottom: 45px; width: min(29%, 265px); box-shadow: 0 14px 36px #07131dcc; }
+.scene-preview-canvas { height: 550px; min-height: 0; aspect-ratio: auto; background: #101b25; }
 .scene-preview-svg { border-radius: 8px; }
 .scene-preview-grid figcaption, .scene-preview-evidence { color: var(--rd-text-muted); }
+.scene-robot-badge { background: #122635ed; color: #f4f8f6; border: 1px solid #a8d5b8; font-size: 11px; }
 .scene-preview-camera button, .scene-preview-mobile-switch button { min-height: 44px; padding: 8px 12px; color: var(--rd-text); background: var(--rd-surface-raised); border: 1px solid var(--rd-stroke); border-radius: 10px; }
 .scene-preview-camera button[aria-pressed="true"], .scene-preview-mobile-switch button[aria-pressed="true"] { background: var(--rd-primary); border-color: var(--rd-primary); color: #fff; }
 .scene-preview-3d--expanded { background: var(--rd-surface); }
@@ -1303,14 +1303,15 @@ button:disabled { cursor: not-allowed; }
 .rd-help-dialog form button { background: var(--rd-primary); color: #fff; }
 .stepper-shell { scrollbar-width: thin; }
 @media (max-width: 900px) {
-  .scene-preview-grid { grid-template-columns: minmax(0, 1fr) minmax(200px, .65fr); }
-  .scene-preview-canvas { min-height: 350px; }
+  .scene-preview-plan { width: min(32%, 220px); }
+  .scene-preview-canvas { height: 440px; }
   .investment-report > section.investment-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
   .simple-journey-head { min-height: 230px; }
   .simple-object-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .scene-preview-grid { display: block; }
+  .scene-preview-plan { position: static; width: auto; box-shadow: none; }
   .scene-preview-mobile-switch { display: flex; gap: 8px; margin: 12px 0; }
   .scene-preview-mobile-switch button { flex: 1; }
   .scene-preview-grid[data-mobile-view="2d"] .scene-preview-hero, .scene-preview-grid[data-mobile-view="3d"] .scene-preview-plan { display: none; }

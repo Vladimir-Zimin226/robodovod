@@ -301,7 +301,7 @@ export class SceneRenderer3D {
       this.canvas.width = width; this.canvas.height = height;
     }
     gl.viewport(0, 0, width, height);
-    gl.clearColor(.055, .095, .135, 1);
+    gl.clearColor(...(scene.scene_id === 'clinic' ? [.52, .63, .65, 1] : [.055, .095, .135, 1]));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     const { width_m: w, length_m: l } = scene.bounds;
     const center = worldToGltf([w / 2, l / 2, 0]);
@@ -341,7 +341,7 @@ export class SceneRenderer3D {
       }
       const mesh = this.upload(plane(triangles));
       gl.depthMask(false);
-      this.draw(mesh, identity, COLOR[zone.kind] || [.3, .5, .5], 0, .9, .12, .50);
+      this.draw(mesh, identity, COLOR[zone.kind] || [.3, .5, .5], 0, .9, .12, .16);
       gl.depthMask(true);
       gl.deleteBuffer(mesh.buffer);
       this.buffers.pop();
