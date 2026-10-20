@@ -1,0 +1,37 @@
+{
+  "cases": [
+    {
+      "width": 360,
+      "menu": "PASS",
+      "chat": "PASS",
+      "dialog_bounds": {
+        "left": 16,
+        "right": 348,
+        "top": 596,
+        "bottom": 720
+      }
+    },
+    {
+      "width": 390,
+      "menu": "PASS",
+      "chat": "PASS",
+      "dialog_bounds": {
+        "left": 16,
+        "right": 378,
+        "top": 596,
+        "bottom": 720
+      }
+    },
+    {
+      "width": 768,
+      "menu": "PASS",
+      "chat": "PASS",
+      "dialog_bounds": {
+        "left": 354,
+        "right": 744,
+        "top": 576,
+        "bottom": 700
+      }
+    }
+  ]
+}

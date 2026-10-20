@@ -83,8 +83,8 @@ class Browser:
             raise RuntimeError(f"{label}: horizontal overflow {size}")
 
 
-def run_case(browser, width, kind, role, name, *, example=False):
-    prefix = f"local-catalog-{width}-{name}" + ("-example" if example else "")
+def run_case(browser, width, kind, role, name, *, example=False, mobile_scene=False):
+    prefix = f"local-catalog-{width}-{name}" + ("-example" if example else "-mobile-art" if mobile_scene else "")
     browser.call("Page.navigate", {"url": URL})
     browser.until(f"Boolean(document.querySelector('.simple-object-{kind}'))", "home")
     browser.js("window.confirm=()=>true")
@@ -119,7 +119,7 @@ def run_case(browser, width, kind, role, name, *, example=False):
     second = browser.js("document.querySelector('[data-robot-pose]')?.getAttribute('data-robot-pose')")
     if not first or first == second:
         raise RuntimeError(f"{prefix}: robot did not move: {first} -> {second}")
-    if example:
+    if example or mobile_scene:
         browser.js("[...document.querySelectorAll('.scene-preview-mobile-switch button')].find(x=>x.textContent.includes('2D-план')).click()")
         browser.until("document.querySelector('.scene-preview-grid')?.dataset.mobileView === '2d'", "2D view")
         plan_first = browser.js("document.querySelector('.scene-preview-plan [data-robot-pose]')?.getAttribute('data-robot-pose')")
@@ -142,6 +142,10 @@ def run_case(browser, width, kind, role, name, *, example=False):
     browser.overflow(f"{prefix} simulation")
     browser.capture(f"{prefix}-simulation.png")
     sim_text = browser.js("document.querySelector('.scene-sim-controls')?.innerText.slice(-950)")
+    if mobile_scene:
+        return {"width": width, "scene": name, "pose_first": first,
+                "pose_second": second, "simulation_summary": sim_text,
+                "mobile_2d_and_3d_motion": True}
     if example and browser.js("[...document.querySelectorAll('button')].find(x=>x.textContent.includes('К экономике с этим ограничением')).disabled"):
         return {"width": width, "scene": name, "ready_example": True,
                 "pose_first": first, "pose_second": second, "simulation_summary": sim_text,
@@ -192,21 +196,22 @@ def main():
     results = []
     try:
         examples = "--examples" in sys.argv
-        widths = (1440,) if "--pdf-only" in sys.argv or examples else (1440, 360, 390, 768)
+        mobile_scene = "--mobile-scene" in sys.argv
+        widths = (360, 390, 768) if mobile_scene else (1440,) if "--pdf-only" in sys.argv or examples else (1440, 360, 390, 768)
         for width in widths:
             browser.call("Emulation.setDeviceMetricsOverride", {"width": width,
                          "height": 900 if width == 1440 else 800,
                          "deviceScaleFactor": 1, "mobile": width != 1440})
             for kind, role, name in CASES:
-                result = run_case(browser, width, kind, role, name, example=examples)
+                result = run_case(browser, width, kind, role, name, example=examples, mobile_scene=mobile_scene)
                 results.append(result)
                 print(width, name, result["pose_first"], "->", result["pose_second"], flush=True)
     finally:
         browser.call("Emulation.clearDeviceMetricsOverride")
         browser.ws.close()
-    if not examples:
+    if not examples and not mobile_scene:
         assert all(item["catalog_in_result"] for item in results)
-    result_file = "local-catalog-examples.json" if "--examples" in sys.argv else "local-catalog-pdf-capture.json" if "--pdf-only" in sys.argv else "local-catalog-journey.json"
+    result_file = "local-catalog-mobile-art.json" if mobile_scene else "local-catalog-examples.json" if examples else "local-catalog-pdf-capture.json" if "--pdf-only" in sys.argv else "local-catalog-journey.json"
     (OUT / result_file).write_text(
         json.dumps({"source": "LOCAL_POSTGRESQL_17_PUBLISHED_BUNDLE",
                     "production_verified": False, "cases": results,
