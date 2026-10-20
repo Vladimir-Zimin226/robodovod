@@ -7,10 +7,16 @@ attribute vec3 aPosition;
 attribute vec3 aNormal;
 uniform mat4 uModel;
 uniform mat4 uViewProjection;
+uniform float uShadow;
 varying vec3 vPosition;
 varying vec3 vNormal;
 void main() {
   vec4 world = uModel * vec4(aPosition, 1.0);
+  if (uShadow > .5) {
+    world.x += world.y * .34;
+    world.z -= world.y * .26;
+    world.y = .026;
+  }
   vPosition = world.xyz;
   vNormal = normalize(mat3(uModel) * aNormal);
   gl_Position = uViewProjection * world;
@@ -27,13 +33,21 @@ uniform float uRoughness;
 uniform float uEmission;
 uniform float uAlpha;
 uniform float uFloor;
+uniform float uShadow;
 const float PI = 3.14159265;
 void main() {
+  if (uShadow > .5) {
+    gl_FragColor = vec4(.015, .025, .031, uAlpha);
+    return;
+  }
   vec3 base = uColor;
   if (uFloor > .5) {
     float tile = max(step(.985, fract(abs(vPosition.x) / 5.0)), step(.985, fract(abs(vPosition.z) / 5.0)));
     float aggregate = fract(sin(dot(floor(vPosition.xz * 2.0), vec2(127.1, 311.7))) * 43758.5453);
     base *= (1.0 - .10 * tile) * (.95 + .08 * aggregate);
+  } else {
+    float grain = fract(sin(dot(floor(vPosition * 17.0), vec3(127.1, 311.7, 74.7))) * 43758.5453);
+    base *= .955 + .09 * grain;
   }
   vec3 n = normalize(vNormal);
   vec3 v = normalize(uCamera - vPosition);
@@ -52,7 +66,9 @@ void main() {
   vec3 f = f0 + (1.0 - f0) * pow(1.0 - vdh, 5.0);
   vec3 diffuse = (1.0 - f) * (1.0 - uMetallic) * base / PI;
   vec3 specular = d * g * f / max(4.0 * ndl * ndv, .001);
-  vec3 color = base * .38 + (diffuse + specular) * ndl * 2.4 + base * uEmission;
+  float fill = max(dot(n, normalize(vec3(.55, .65, -.50))), 0.0);
+  vec3 color = base * .33 + (diffuse + specular) * ndl * 2.55
+    + diffuse * fill * .54 + base * uEmission;
   color = color / (color + vec3(1.0));
   color = pow(color, vec3(1.0 / 2.2));
   gl_FragColor = vec4(color, uAlpha);
@@ -165,7 +181,7 @@ export class SceneRenderer3D {
     this.program = program;
     gl.useProgram(program);
     this.loc = Object.fromEntries(['aPosition', 'aNormal', 'uModel', 'uViewProjection', 'uColor',
-      'uCamera', 'uMetallic', 'uRoughness', 'uEmission', 'uAlpha', 'uFloor'].map((name) =>
+      'uCamera', 'uMetallic', 'uRoughness', 'uEmission', 'uAlpha', 'uFloor', 'uShadow'].map((name) =>
       [name, name.startsWith('a') ? gl.getAttribLocation(program, name) : gl.getUniformLocation(program, name)]));
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
@@ -191,7 +207,7 @@ export class SceneRenderer3D {
     }]));
   }
 
-  draw(mesh, model, color, metallic = 0, roughness = .85, emission = 0, alpha = 1, floor = 0, mode = this.gl.TRIANGLES) {
+  draw(mesh, model, color, metallic = 0, roughness = .85, emission = 0, alpha = 1, floor = 0, mode = this.gl.TRIANGLES, shadow = 0) {
     const gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
     gl.enableVertexAttribArray(this.loc.aPosition);
@@ -205,6 +221,7 @@ export class SceneRenderer3D {
     gl.uniform1f(this.loc.uEmission, emission);
     gl.uniform1f(this.loc.uAlpha, alpha);
     gl.uniform1f(this.loc.uFloor, floor);
+    gl.uniform1f(this.loc.uShadow, shadow);
     gl.drawArrays(mode, 0, mesh.count);
   }
 
@@ -265,6 +282,22 @@ export class SceneRenderer3D {
     gl.depthMask(true);
     gl.deleteBuffer(shadow.buffer);
     this.buffers.pop();
+    // Project the visible GLB silhouettes onto the floor. The robot's shadow follows its live pose.
+    gl.depthMask(false);
+    for (const object of scene.objects) {
+      if (['painted_floor_marker', 'warehouse_column', 'clinic_wall_module',
+        'door_frame', 'clinic_door'].includes(object.asset_id)) continue;
+      const assetId = object.asset_id === 'user_barrier' ? 'safety_barrier' : object.asset_id;
+      const asset = this.meshes?.[HD_VARIANTS[assetId]] || this.meshes?.[assetId];
+      if (!asset) continue;
+      const moving = pose && object.asset_id === MOVING_ROBOT_ASSET[scene.scene_id];
+      const position = moving ? worldToGltf([pose[0], pose[1], 0]) : worldToGltf(object.position_m);
+      const angle = moving && Number.isFinite(pose[2]) ? pose[2] : object.rotation_yaw_rad || 0;
+      const model = mat4Model(position, objectMeshScale(object, asset.bounds), angle);
+      for (const group of asset.groups) this.draw(group, model, [0, 0, 0], 0, 1, 0, .10,
+        0, gl.TRIANGLES, 1);
+    }
+    gl.depthMask(true);
     for (const object of scene.objects) {
       if (pose && object.asset_id === MOVING_ROBOT_ASSET[scene.scene_id]) continue;
       const assetId = object.asset_id === 'user_barrier' ? 'safety_barrier' : object.asset_id;

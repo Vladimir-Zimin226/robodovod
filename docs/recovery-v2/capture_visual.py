@@ -12,8 +12,9 @@ import websocket
 ROOT = Path(__file__).resolve().parent / "evidence"
 ROOT.mkdir(exist_ok=True)
 pages = requests.get("http://127.0.0.1:9225/json/list", timeout=5).json()
-page = next(item for item in pages if item.get("type") == "page"
-            and "/qa/recovery/index.html" in item.get("url", ""))
+page = next((item for item in pages if item.get("type") == "page"
+             and "/qa/recovery/index.html" in item.get("url", "")),
+            next(item for item in pages if item.get("type") == "page"))
 ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=15,
                                   suppress_origin=True)
 sequence = 0
