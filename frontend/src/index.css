@@ -477,6 +477,16 @@ button:disabled { cursor: not-allowed; }
 .stepper-link:disabled { cursor: default; opacity: .5; }
 .stepper-shell { overflow-x: auto; }
 .stepper-shell > div { min-width: 680px; }
+@media (max-width: 540px) {
+  .stepper-shell { overflow: visible; padding: 9px 8px; }
+  .stepper-shell > div { min-width: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+  .stepper-shell > div > div { min-width: 0; display: block; }
+  .stepper-shell > div > div > div:first-child { width: 100%; }
+  .stepper-shell > div > div > div:nth-child(2) { display: none; }
+  .stepper-link { width: 100%; flex-direction: column; gap: 4px; white-space: normal; text-align: center;
+    font-size: 10px; line-height: 1.15; }
+  .stepper-link span { width: 24px; height: 24px; flex: none; }
+}
 .journey-panel { max-width: 1160px; margin: 0 auto; padding: 28px 22px 70px; display: grid; gap: 18px; }
 .journey-panel > h1 { font-size: clamp(28px, 3vw, 42px); line-height: 1.14; font-weight: 750; }
 .journey-panel > p { max-width: 760px; color: var(--text-secondary); }

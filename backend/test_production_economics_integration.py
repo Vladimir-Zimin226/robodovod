@@ -189,7 +189,11 @@ def test_actual_catalog_http_api_c11_c21_reopen_replay_and_export(
             json={
                 "scenario_id": scenario["id"],
                 "capacity_run_id": capacity["run_id"],
-                "input": _inputs(),
+                "input": {
+                    **_inputs(),
+                    "staffing_purchase": {"control_mode": "HIRE", "technician_mode": "HIRE"},
+                    "staffing_raas": {"control_mode": "HIRE", "technician_mode": "VENDOR"},
+                },
             },
         )
         assert economics_response.status_code == 201, economics_response.text

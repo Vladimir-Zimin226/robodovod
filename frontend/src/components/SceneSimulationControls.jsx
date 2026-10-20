@@ -141,8 +141,9 @@ export default function SceneSimulationControls({ kind, roleInput, report, onSim
         ? 'Симуляция не найдена в ответе сервера. Проверьте пригодность выбранной модели.'
         : 'Для этой работы каталог не подобрал робота. Маршрут и экономику подтвердить нельзя; выберите другую работу или модель.');
       onSimulated(result, next, { request: simulation, result: row.simulation });
+      const modeledFleet = row.simulation.fleet_required;
       setSummary({ simulation: row.simulation, fleet: row.fleet,
-        npv: report.kind ? row.purchase?.npv_rub : row.npv_rub });
+        npv: modeledFleet == null ? null : report.kind ? row.purchase?.npv_rub : row.npv_rub });
       setChanged(false);
       const samples = row.simulation.timestep_pose_samples || [];
       if (samples.length > 1 && ['MODELED', 'CAPACITY_SHORTFALL'].includes(row.simulation.status)) {

@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 SCENES = Path(__file__).resolve().parents[2] / "data/scenes"
 CELL_M = 0.5
 HORIZON_H = 4
-MAX_JOBS = 4000
+MAX_JOBS = 10000
 MAX_FLEET = 100
 
 

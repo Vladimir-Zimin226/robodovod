@@ -105,9 +105,17 @@ def test_object_guest_route_works_without_catalog_and_cannot_confirm_money(kind)
     assert body["economics_confirmed"] is False
     assert "npv_rub" not in body
     if kind == "AIRPORT":
-        assert body["requested_demand_units_per_hour"] > body["simulated_demand_units_per_hour"]
-        assert "DEMAND_SAMPLED_FOR_GEOMETRY" in body["simulation"]["flags"]
-        assert body["simulation"]["fleet_required"] is None
+        assert body["requested_demand_units_per_hour"] == body["simulated_demand_units_per_hour"]
+        assert "DEMAND_SAMPLED_FOR_GEOMETRY" not in body["simulation"]["flags"]
+        original_volume = payload["input"]["roles"][0]["works"][0]["daily_volume"]
+        payload["input"]["roles"][0]["works"][0]["daily_volume"] = str(float(original_volume) * 10)
+        sampled = client.post(f"/api/v2/object-roles/{kind}/route-preview", json=payload)
+        assert sampled.status_code == 200, sampled.text
+        sampled_body = sampled.json()
+        assert sampled_body["requested_demand_units_per_hour"] > sampled_body["simulated_demand_units_per_hour"]
+        assert "DEMAND_SAMPLED_FOR_GEOMETRY" in sampled_body["simulation"]["flags"]
+        assert sampled_body["simulation"]["fleet_required"] is None
+        payload["input"]["roles"][0]["works"][0]["daily_volume"] = original_volume
     pickup = next(zone["center_xy_m"] for zone in load_scene(kind.lower())["zones"]
                   if zone["zone_id"] == "pickup")
     payload["input"]["roles"][0]["works"][0]["simulation"]["extra_obstacles"] = [
