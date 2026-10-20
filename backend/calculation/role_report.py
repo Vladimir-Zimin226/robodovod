@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from io import BytesIO
 from typing import Any
 
@@ -15,6 +16,35 @@ from calculation.role_report_view import build_role_report_view
 
 def _known(value: Any, suffix: str = "") -> str:
     return "Нужны данные" if value is None else f"{value}{suffix}"
+
+
+def _cover_money(value: Any) -> str:
+    if value is None:
+        return "Нужны данные"
+    try:
+        amount = Decimal(str(value))
+    except InvalidOperation:
+        return "Нужны данные"
+    if abs(amount) >= 1_000_000:
+        shown = (amount / Decimal(1_000_000)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+        return f"{shown:,.1f}".replace(",", " ").replace(".", ",") + " млн ₽"
+    return f"{amount:,.0f}".replace(",", " ") + " ₽"
+
+
+def _source_text(value: Any, fallback: str) -> str:
+    if not value:
+        return fallback
+    text = str(value)
+    for raw, readable in (
+        ("SCENARIO_ASSUMPTION", "сценарное допущение"),
+        ("SCENARIO_TYPE", "сценарный тип"),
+        ("ASSUMPTION", "допущение"),
+        ("manual units per shift / hours per shift, supplier rate and price unconfirmed",
+         "ручная выработка и часы смены; ставка и цена не подтверждены"),
+        ("rate and price unconfirmed", "ставка и цена не подтверждены"),
+    ):
+        text = text.replace(raw, readable)
+    return text
 
 
 def _snapshot_page(data_url: str, caption: str) -> bytes:
@@ -47,6 +77,7 @@ def _snapshot_page(data_url: str, caption: str) -> bytes:
 def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = None,
                     scene_snapshots: dict[str, str | None] | None = None) -> bytes:
     view = result.get("report_view") or build_role_report_view(result)
+    purchase = view["economics"]["purchase"]
     lines: list[tuple[Any, str]] = [
         ("РОБОДОВОД", "brand"),
         ("Инвестиционная оценка", "title"),
@@ -55,6 +86,13 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
         (view["evidence_status"], "cover"),
         (f"Дата UTC: {view['date_utc']}. Каталог: {view['catalog_version']}.", "cover"),
         (f"Версия расчёта: {view['calculation_version']}. Версия отчёта: {view['schema_version']}.", "cover"),
+        ("Ключевые показатели сценария", "subtitle"),
+        (f"Парк: {view['fleet']} · эквивалент ставок: {view['fte_equivalent']}", "metric"),
+        (f"CAPEX покупки: {_cover_money(purchase['capex_rub'])}", "metric"),
+        (f"Годовой чистый эффект: {_cover_money(purchase['annual_net_rub'])}", "metric"),
+        (f"NPV за {view['active_horizon_years']} лет: {_cover_money(purchase['npv_rub'])}", "metric"),
+        ("Существенные ограничения", "subtitle"),
+        *((risk, "cover") for risk in view["risks"][:2]),
         ("Управленческий вывод", "page"),
         (view["executive_conclusion"], "metric"),
         (f"Горизонт: {view['active_horizon_years']} лет. Ставка дисконтирования: {view['discount_rate']}.", "body"),
@@ -65,8 +103,9 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
     for work in view["works"]:
         lines.extend([
             ((work["role"], work["headcount"], f"{work['volume_per_day']} {work['unit']}", work["fleet"]), "tablerow"),
-            (f"Задача: {work['task']}. Модель: {work['model'] or 'сценарный тип / не выбрана'}.", "body"),
-            (f"ФОТ работодателя: {work['salary_rub_month']} руб./мес.; физическая проверка: {work['physical_fit'] or 'не подтверждена'}.", "note"),
+            (f"Задача: {work['task']}; модель: {work['model'] or 'сценарный тип / не выбрана'}; "
+             f"ФОТ работодателя: {work['salary_rub_month']} ₽/мес.; "
+             f"физическая проверка: {_source_text(work['physical_fit'], 'не подтверждена')}.", "detail"),
         ])
         if work["safety_conditions"]:
             lines.append((f"Допуск не подтверждён: {work['safety_conditions']}", "note"))
@@ -143,9 +182,11 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
     lines.extend((risk, "body") for risk in view["risks"])
     lines.append(("Источники и происхождение чисел", "section"))
     for source in view["sources"]:
-        lines.append((f"{source['role']}: выработка {source['rate'] or 'неизвестна'}; цена {source['price'] or 'неизвестна'}; основание {source['evidence'] or 'сценарное допущение'}.", "note"))
-        lines.append((f"Позиция {source['position_id'] or 'не выбрана'}; груз {source['payload_evidence_id'] or 'нет подтверждения'}; выработка {source['rate_evidence_ref'] or 'сценарная'}; цена {source['price_evidence_ref'] or 'сценарная'}.", "note"))
-    lines.append((f"Каталог {view['catalog_version']}; расчёт {view['calculation_version']}; PDF из {view['schema_version']}.", "note"))
+        lines.append((f"{source['role']} · поз. {_source_text(source['position_id'], 'не выбрана')}: "
+            f"выработка {_source_text(source['rate'], 'неизвестна')} [{_source_text(source['rate_evidence_ref'], 'сценарная')}]; "
+            f"цена {_source_text(source['price'], 'неизвестна')} [{_source_text(source['price_evidence_ref'], 'сценарная')}]; "
+            f"груз {_source_text(source['payload_evidence_id'], 'нет подтверждения')}; "
+            f"основание {_source_text(source['evidence'], 'сценарное допущение')}.", "source"))
     document = _pdf(lines)
     if not scene_snapshots:
         return document

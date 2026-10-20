@@ -1232,7 +1232,7 @@ button:disabled { cursor: not-allowed; }
 }
 :where(button, a, input, select, textarea, summary):focus-visible { outline: 2px solid var(--rd-primary-hover); outline-offset: 2px; }
 .simple-journey-page { max-width: 1440px; padding-top: 24px; }
-.simple-journey-head { min-height: clamp(240px, 25vw, 350px); display: flex; flex-direction: column; justify-content: center; padding: clamp(24px, 4vw, 48px); border: 1px solid var(--rd-stroke); border-radius: 22px; background: linear-gradient(90deg, #081119f5 0%, #081119d9 42%, #08111925 100%), url('/demo/trailer/robodovod-trailer-poster.jpg') center/cover; }
+.simple-journey-head { min-height: clamp(240px, 25vw, 350px); display: flex; flex-direction: column; justify-content: center; padding: clamp(24px, 4vw, 48px); border: 1px solid var(--rd-stroke); border-radius: 22px; background: linear-gradient(90deg, #081119f5 0%, #081119d9 42%, #08111925 100%), url('/demo/scenes/warehouse.png') center/cover; }
 .simple-journey-head h1 { max-width: 700px; font-size: clamp(31px, 3.6vw, 54px); }
 .simple-journey-head h1 em { color: var(--rd-primary-hover); font-style: normal; }
 .simple-journey-head p { max-width: 480px; }
@@ -1241,9 +1241,9 @@ button:disabled { cursor: not-allowed; }
 .simple-object-grid button { min-height: 215px; justify-content: flex-end; border-color: var(--rd-stroke); border-radius: var(--rd-radius-lg); box-shadow: inset 0 -100px 80px #081119ed; transition: border-color .16s, transform .16s; }
 .simple-object-grid button:hover { border-color: var(--rd-primary-hover); }
 .simple-journey-section[aria-label="Тип объекта"] .simple-object-grid button { background-position: center; background-size: cover; }
-.simple-object-retail { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/trailer/frames/chapter-1.jpg') !important; }
-.simple-object-airport { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/trailer/frames/chapter-3.jpg') !important; }
-.simple-object-clinic { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/trailer/frames/chapter-5.jpg') !important; }
+.simple-object-retail { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/scenes/warehouse.png') !important; }
+.simple-object-airport { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/scenes/airport.png') !important; }
+.simple-object-clinic { background-image: linear-gradient(0deg, #081119ed, #08111922), url('/demo/scenes/clinic.png') !important; }
 .simple-object-icon { background: #172534bd; color: var(--rd-primary-hover); border-color: var(--rd-primary); }
 .simple-object-grid b { color: var(--rd-primary-hover); }
 .simple-object-grid small { color: var(--rd-text-muted); }

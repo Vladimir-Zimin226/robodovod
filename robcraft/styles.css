@@ -152,6 +152,14 @@ body:not(.embedded) .controls-hint { bottom: 14px; }
   .start-choices button { min-height: 68px; }
   body:not(.embedded) .editor-panel { left: 8px; right: 8px; width: auto; }
   body:not(.embedded) .editor-toggle { bottom: 76px; }
+  body.touch-mode.editor-active .editor-toggle { min-height: 44px; }
+  body.touch-mode.editor-active .craft-toolbar button { min-height: 44px; }
+  body.touch-mode.editor-active #inventory-toggle { min-width: 44px; font-size: 15px; }
+  body.touch-mode .craft-hotbar { left: 8px; bottom: 8px; width: calc(100vw - 16px); max-width: none;
+    transform: none; grid-template-columns: repeat(9, 44px); justify-content: start;
+    overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  body.touch-mode .craft-hotbar button { width: 44px; min-width: 44px; height: 48px; min-height: 44px; }
+  body.touch-mode .map-controls button, body.touch-mode .touch-actions button { min-height: 44px; }
 }
 
 /* Visual polish for the live editor; geometry and controls remain driven by ScenePatch. */

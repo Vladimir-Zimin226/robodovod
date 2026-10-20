@@ -321,6 +321,8 @@ def _pdf(lines: list[tuple[Any, str]]) -> bytes:
             "subtitle": (13, 23, 8), "cover": (11, 22, 12),
             "section": (15, 24, 16), "metric": (11, 20, 5),
             "body": (9.3, 15, 2), "note": (8.6, 14, 5),
+            "detail": (8.5, 12.5, 3),
+            "source": (7.8, 11, 2),
         }.get(kind, (9.3, 15, 2))
         y -= before
         color = ("0.96 0.98 0.96" if cover else
@@ -328,7 +330,7 @@ def _pdf(lines: list[tuple[Any, str]]) -> bytes:
                  "0.21 0.27 0.27")
         if kind == "brand":
             color = "0.51 0.88 0.64"
-        if kind == "note" and not cover:
+        if kind in {"note", "detail", "source"} and not cover:
             color = "0.35 0.42 0.41"
         for row in _wrap(value, size, 500):
             if y < 60:

@@ -221,7 +221,8 @@ export class SceneRenderer3D {
     const camera = preset === 'top' ? [center[0], span * 1.05, center[2] + .01]
       : preset === 'overview' ? [center[0] + span * .39, span * .51, center[2] + span * .81]
         : [center[0] + span * .60, span * .60, center[2] + span * .67];
-    const projection = mat4Perspective(Math.PI / 4.2, width / height, .1, span * 5);
+    const projection = mat4Perspective(width / height < 1.2 ? Math.PI / 3.1 : Math.PI / 4.2,
+      width / height, .1, span * 5);
     this.viewProjection = mat4Multiply(projection, mat4LookAt(camera, center));
     gl.uniformMatrix4fv(this.loc.uViewProjection, false, this.viewProjection);
     gl.uniform3fv(this.loc.uCamera, camera);
