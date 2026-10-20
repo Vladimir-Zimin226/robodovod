@@ -1,0 +1,416 @@
+{
+  "warehouse": {
+    "request": {
+      "scene_revision": 1,
+      "pickup_xy_m": [
+        11.0,
+        34.0
+      ],
+      "dropoff_xy_m": [
+        54.0,
+        34.0
+      ],
+      "speed_loaded_mps": 0.8,
+      "speed_empty_mps": 1,
+      "pickup_service_s": 25,
+      "dropoff_service_s": 20,
+      "turn_delay_s": 8,
+      "units_per_cycle": 1,
+      "demand_units_per_hour": 20,
+      "robot_availability": 0.75
+    },
+    "result": {
+      "schema_version": "scene-simulation-v1",
+      "scene_id": "warehouse",
+      "scene_revision": 1,
+      "selected_robot_ids": [],
+      "quality_status": "PRELIMINARY_DEMO_SCENARIO",
+      "source_assumptions": [
+        "SceneModel demo geometry",
+        "Grid A* 0.5 m; clearance is user/scenario input",
+        "Pickup and dropoff are single-server event resources; arrival burst size 1",
+        "Battery/charging are not modeled",
+        "Shared-edge traffic is not modeled without a lane scenario"
+      ],
+      "routes": [
+        {
+          "kind": "LOADED",
+          "points_xy_m": [
+            [
+              11.0,
+              34.0
+            ],
+            [
+              54.0,
+              34.0
+            ]
+          ]
+        },
+        {
+          "kind": "EMPTY",
+          "points_xy_m": [
+            [
+              54.0,
+              34.0
+            ],
+            [
+              11.0,
+              34.0
+            ]
+          ]
+        }
+      ],
+      "distance_loaded_m": 43.0,
+      "distance_empty_m": 43.0,
+      "time_travel_s": 96.75,
+      "time_wait_s": 0.0,
+      "time_service_s": 53.0,
+      "utilization": 0.416,
+      "throughput_per_hour": 36.06,
+      "fleet_required": 2,
+      "bottlenecks": [],
+      "flags": [
+        "SHARED_EDGE_QUEUE_NOT_MODELED",
+        "CHARGING_NOT_MODELED",
+        "SAFETY_NOT_VERIFIED"
+      ],
+      "timestep_pose_samples": [
+        {
+          "t_s": 0.0,
+          "x_m": 11.0,
+          "y_m": 34.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 53.75,
+          "x_m": 54.0,
+          "y_m": 34.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 53.75,
+          "x_m": 54.0,
+          "y_m": 34.0,
+          "stage": "EMPTY"
+        },
+        {
+          "t_s": 96.75,
+          "x_m": 11.0,
+          "y_m": 34.0,
+          "stage": "EMPTY"
+        }
+      ],
+      "status": "MODELED",
+      "cycle_s": 149.75,
+      "max_wait_s": 0.0,
+      "simulated_jobs": 80,
+      "shared_lane": null
+    }
+  },
+  "airport": {
+    "request": {
+      "scene_revision": 1,
+      "pickup_xy_m": [
+        17.0,
+        23.0
+      ],
+      "dropoff_xy_m": [
+        67.0,
+        29.0
+      ],
+      "speed_loaded_mps": 0.8,
+      "speed_empty_mps": 1,
+      "pickup_service_s": 25,
+      "dropoff_service_s": 20,
+      "turn_delay_s": 8,
+      "units_per_cycle": 1,
+      "demand_units_per_hour": 20,
+      "robot_availability": 0.75
+    },
+    "result": {
+      "schema_version": "scene-simulation-v1",
+      "scene_id": "airport",
+      "scene_revision": 1,
+      "selected_robot_ids": [],
+      "quality_status": "PRELIMINARY_DEMO_SCENARIO",
+      "source_assumptions": [
+        "SceneModel demo geometry",
+        "Grid A* 0.5 m; clearance is user/scenario input",
+        "Pickup and dropoff are single-server event resources; arrival burst size 1",
+        "Battery/charging are not modeled",
+        "Shared-edge traffic is not modeled without a lane scenario"
+      ],
+      "routes": [
+        {
+          "kind": "LOADED",
+          "points_xy_m": [
+            [
+              17.0,
+              23.0
+            ],
+            [
+              17.0,
+              29.0
+            ],
+            [
+              67.0,
+              29.0
+            ]
+          ]
+        },
+        {
+          "kind": "EMPTY",
+          "points_xy_m": [
+            [
+              67.0,
+              29.0
+            ],
+            [
+              17.0,
+              29.0
+            ],
+            [
+              17.0,
+              23.0
+            ]
+          ]
+        }
+      ],
+      "distance_loaded_m": 56.0,
+      "distance_empty_m": 56.0,
+      "time_travel_s": 126.0,
+      "time_wait_s": 0.0,
+      "time_service_s": 53.0,
+      "utilization": 0.4972,
+      "throughput_per_hour": 30.168,
+      "fleet_required": 2,
+      "bottlenecks": [],
+      "flags": [
+        "SHARED_EDGE_QUEUE_NOT_MODELED",
+        "CHARGING_NOT_MODELED",
+        "SAFETY_NOT_VERIFIED"
+      ],
+      "timestep_pose_samples": [
+        {
+          "t_s": 0.0,
+          "x_m": 17.0,
+          "y_m": 23.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 7.5,
+          "x_m": 17.0,
+          "y_m": 29.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 70.0,
+          "x_m": 67.0,
+          "y_m": 29.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 70.0,
+          "x_m": 67.0,
+          "y_m": 29.0,
+          "stage": "EMPTY"
+        },
+        {
+          "t_s": 120.0,
+          "x_m": 17.0,
+          "y_m": 29.0,
+          "stage": "EMPTY"
+        },
+        {
+          "t_s": 126.0,
+          "x_m": 17.0,
+          "y_m": 23.0,
+          "stage": "EMPTY"
+        }
+      ],
+      "status": "MODELED",
+      "cycle_s": 179.0,
+      "max_wait_s": 0.0,
+      "simulated_jobs": 80,
+      "shared_lane": null
+    }
+  },
+  "clinic": {
+    "request": {
+      "scene_revision": 1,
+      "pickup_xy_m": [
+        7.0,
+        14.0
+      ],
+      "dropoff_xy_m": [
+        39.0,
+        14.0
+      ],
+      "speed_loaded_mps": 0.8,
+      "speed_empty_mps": 1,
+      "pickup_service_s": 25,
+      "dropoff_service_s": 20,
+      "turn_delay_s": 8,
+      "units_per_cycle": 1,
+      "demand_units_per_hour": 20,
+      "robot_availability": 0.75
+    },
+    "result": {
+      "schema_version": "scene-simulation-v1",
+      "scene_id": "clinic",
+      "scene_revision": 1,
+      "selected_robot_ids": [],
+      "quality_status": "PRELIMINARY_DEMO_SCENARIO",
+      "source_assumptions": [
+        "SceneModel demo geometry",
+        "Grid A* 0.5 m; clearance is user/scenario input",
+        "Pickup and dropoff are single-server event resources; arrival burst size 1",
+        "Battery/charging are not modeled",
+        "Shared-edge traffic is not modeled without a lane scenario"
+      ],
+      "routes": [
+        {
+          "kind": "LOADED",
+          "points_xy_m": [
+            [
+              7.0,
+              14.0
+            ],
+            [
+              19.5,
+              14.0
+            ],
+            [
+              19.5,
+              12.5
+            ],
+            [
+              24.5,
+              12.5
+            ],
+            [
+              24.5,
+              14.0
+            ],
+            [
+              39.0,
+              14.0
+            ]
+          ]
+        },
+        {
+          "kind": "EMPTY",
+          "points_xy_m": [
+            [
+              39.0,
+              14.0
+            ],
+            [
+              24.5,
+              14.0
+            ],
+            [
+              24.5,
+              12.5
+            ],
+            [
+              7.0,
+              12.5
+            ],
+            [
+              7.0,
+              14.0
+            ]
+          ]
+        }
+      ],
+      "distance_loaded_m": 35.0,
+      "distance_empty_m": 35.0,
+      "time_travel_s": 78.75,
+      "time_wait_s": 0.0,
+      "time_service_s": 53.0,
+      "utilization": 0.7319,
+      "throughput_per_hour": 20.493,
+      "fleet_required": 1,
+      "bottlenecks": [],
+      "flags": [
+        "SHARED_EDGE_QUEUE_NOT_MODELED",
+        "CHARGING_NOT_MODELED",
+        "SAFETY_NOT_VERIFIED"
+      ],
+      "timestep_pose_samples": [
+        {
+          "t_s": 0.0,
+          "x_m": 7.0,
+          "y_m": 14.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 15.625,
+          "x_m": 19.5,
+          "y_m": 14.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 17.5,
+          "x_m": 19.5,
+          "y_m": 12.5,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 23.75,
+          "x_m": 24.5,
+          "y_m": 12.5,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 25.625,
+          "x_m": 24.5,
+          "y_m": 14.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 43.75,
+          "x_m": 39.0,
+          "y_m": 14.0,
+          "stage": "LOADED"
+        },
+        {
+          "t_s": 43.75,
+          "x_m": 39.0,
+          "y_m": 14.0,
+          "stage": "EMPTY"
+        },
+        {
+          "t_s": 58.25,
+          "x_m": 24.5,
+          "y_m": 14.0,
+          "stage": "EMPTY"
+        },
+        {
+          "t_s": 59.75,
+          "x_m": 24.5,
+          "y_m": 12.5,
+          "stage": "EMPTY"
+        },
+        {
+          "t_s": 77.25,
+          "x_m": 7.0,
+          "y_m": 12.5,
+          "stage": "EMPTY"
+        },
+        {
+          "t_s": 78.75,
+          "x_m": 7.0,
+          "y_m": 14.0,
+          "stage": "EMPTY"
+        }
+      ],
+      "status": "MODELED",
+      "cycle_s": 131.75,
+      "max_wait_s": 0.0,
+      "simulated_jobs": 80,
+      "shared_lane": null
+    }
+  }
+}

@@ -74,7 +74,10 @@ export default function App() {
   const [roleInput, setRoleInput] = useState(null);
   const [whatIfBranch, setWhatIfBranch] = useState(null);
   const [simulationDirty, setSimulationDirty] = useState(false);
+  const [simulationScenarioOnly, setSimulationScenarioOnly] = useState(false);
   const [sceneOverlay, setSceneOverlay] = useState(null);
+  const [simulationPose, setSimulationPose] = useState(null);
+  const onSimulationPlayback = useCallback((pose) => setSimulationPose(pose), []);
   const [sceneCaptures, setSceneCaptures] = useState(null);
   const [pdfError, setPdfError] = useState('');
   const [layoutEvidence, setLayoutEvidence] = useState(null);
@@ -110,7 +113,7 @@ export default function App() {
   const activeSceneCaptures = sceneCaptures?.baseReport === result ? sceneCaptures.images : null;
 
   const showPhase = (nextPhase) => {
-    if (simulationDirty && ['money', 'results'].includes(nextPhase)) return;
+    if ((simulationDirty || simulationScenarioOnly) && ['money', 'results'].includes(nextPhase)) return;
     if (phase !== nextPhase) {
       const url = new URL(window.location.href);
       url.hash = phaseHash(nextPhase);
@@ -231,7 +234,9 @@ export default function App() {
     setResult(null);
     setRoleInput(null);
     setSimulationDirty(false);
+    setSimulationScenarioOnly(false);
     setSceneOverlay(null);
+    setSimulationPose(null);
     setUserInput(null);
     rememberProjectId(sessionStore(), user?.id, project.id);
   }, [phase, user?.id, activeProject?.id, objectType]);
@@ -269,7 +274,9 @@ export default function App() {
     setResult(null);
     setRoleInput(null);
     setSimulationDirty(false);
+    setSimulationScenarioOnly(false);
     setSceneOverlay(null);
+    setSimulationPose(null);
     setDemoKind(null);
     setActiveRun(null);
     setSaveState('');
@@ -289,7 +296,9 @@ export default function App() {
     setResult(null);
     setRoleInput(null);
     setSimulationDirty(false);
+    setSimulationScenarioOnly(false);
     setSceneOverlay(null);
+    setSimulationPose(null);
     setActiveRun(null);
     setUserInput(null);
     setIntakePrompt('');
@@ -566,8 +575,8 @@ export default function App() {
             }}
             onOpenObjects={() => showPhase('onboarding')}
             roleReport={['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? result : null}
-            onRolePreview={(response, input) => { setResult(response); setRoleInput(input); setSimulationDirty(false); setSceneOverlay(null); setActiveRun(null); setUserInput(null); setSaveState('preview'); }}
-            onRoleInvalidated={() => { if (['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)) { setResult(null); setRoleInput(null); setSimulationDirty(false); setSceneOverlay(null); } }}
+            onRolePreview={(response, input) => { setResult(response); setRoleInput(input); setSimulationDirty(false); setSimulationScenarioOnly(false); setSceneOverlay(null); setSimulationPose(null); setActiveRun(null); setUserInput(null); setSaveState('preview'); }}
+            onRoleInvalidated={() => { if (['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)) { setResult(null); setRoleInput(null); setSimulationDirty(false); setSimulationScenarioOnly(false); setSceneOverlay(null); setSimulationPose(null); } }}
             onRoleContinue={() => showPhase('robots')}
             onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; setIntakeSnapshots((current) => ({ ...current, [intakeDraftKey]: snapshot })); const p = snapshot.response?.normalized_processes?.find((p) => p.active); setCatalogContext(p ? { process_code: p.process_code, constraints: p.item_mass?.status === 'KNOWN' ? { max_payload_kg: p.item_mass.normalized_value } : {} } : null); }}
             onCapacityResult={(response, request, evidence) => {
@@ -610,14 +619,17 @@ export default function App() {
           </main>
         ) : phase === 'simulation' ? (
           <main className="journey-panel" aria-label="Симуляция"><p className="eyebrow">ШАГ 3 ИЗ 5 · СИМУЛЯЦИЯ</p><h1>Симуляция</h1>
-            <SceneModelPreview kind={objectType} overlay={simulationDirty ? null : sceneOverlay} />
+            <SceneModelPreview kind={objectType} overlay={simulationDirty ? null : sceneOverlay} pose={simulationDirty ? null : simulationPose} />
             {roleInput && ['warehouse-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)
               ? <SceneSimulationControls kind={objectType} roleInput={roleInput} report={result}
-                onChanged={() => setSimulationDirty(true)}
-                onSimulated={(response, input, overlay) => { setResult(response); setRoleInput(input); setSceneOverlay(overlay); setSimulationDirty(false); setSaveState('preview'); }} />
+                onChanged={() => { setSimulationDirty(true); setSimulationPose(null); }}
+                onPlayback={onSimulationPlayback}
+                onScenario={(overlay) => { setSceneOverlay(overlay); setSimulationDirty(false); setSimulationScenarioOnly(true); }}
+                onSimulated={(response, input, overlay) => { setResult(response); setRoleInput(input); setSceneOverlay(overlay); setSimulationDirty(false); setSimulationScenarioOnly(!overlay.result.selected_robot_ids?.length); setSaveState('preview'); }} />
               : <p role="status">Инженерная симуляция маршрутов ещё не выполнена. Показанный парк рассчитан по сценарной выработке без проверки геометрии и очередей.</p>}
             {simulationDirty && <p role="alert">Ввод маршрута изменён. Пересчитайте его перед переходом к деньгам.</p>}
-            <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => showPhase('robots')}>Назад к роботам</button><button type="button" className="primary-action" disabled={simulationDirty} onClick={async () => {
+            {simulationScenarioOnly && <p role="alert">Показан сценарный маршрут без подтверждённого робота. Для перехода к экономике выберите пригодную модель в каталоге.</p>}
+            <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => showPhase('robots')}>Назад к роботам</button><button type="button" className="primary-action" disabled={simulationDirty || simulationScenarioOnly} onClick={async () => {
               const images = await captureSceneImages();
               setSceneCaptures({ baseReport: result, images });
               showPhase('money');

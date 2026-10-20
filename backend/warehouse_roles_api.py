@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 from auth import AuthContext, require_auth_context, require_csrf
 from calculation.warehouse_roles import WarehouseRoleInput, analyze_warehouse_roles, warehouse_template
+from calculation.scene_simulation import load_scene, simulate_scene
 from calculation.role_report import role_report_pdf
 from catalog_repository import CatalogSnapshotDTO
 from database import database_session
@@ -38,6 +39,12 @@ class WarehouseRolePdfRequest(BaseModel):
     scene_snapshots: dict[str, str | None] | None = None
 
 
+class WarehouseRoutePreview(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    input: WarehouseRoleInput
+    role_index: int
+
+
 def create_warehouse_roles_router(discovery_loader: Callable[[], CatalogSnapshotDTO]) -> APIRouter:
     router = APIRouter(prefix="/api/v2")
 
@@ -51,6 +58,29 @@ def create_warehouse_roles_router(discovery_loader: Callable[[], CatalogSnapshot
             return analyze_warehouse_roles(payload, discovery_loader())
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
+
+    @router.post("/warehouse-roles/route-preview")
+    def guest_route_preview(payload: WarehouseRoutePreview):
+        if payload.role_index < 0 or payload.role_index >= len(payload.input.roles):
+            raise HTTPException(422, "unknown role index")
+        role = payload.input.roles[payload.role_index]
+        if role.role_code not in {"forklift_driver", "loader", "picker", "storekeeper"} or role.simulation is None:
+            raise HTTPException(422, "transport simulation required")
+        general = payload.input.general
+        target = role.daily_volume * role.robotizable_share
+        scenario = role.simulation.model_copy(update={
+            "demand_units_per_hour": float(target / general.hours_per_shift / general.shifts_per_day),
+            "robot_availability": float(general.robot_availability),
+            "fleet_reserve_share": float(general.fleet_reserve_share),
+            "selected_robot_ids": [],
+        })
+        try:
+            result = simulate_scene(load_scene("warehouse"), scenario)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        result["flags"].append("SCENARIO_ROBOT_ONLY")
+        return {"schema_version": "scenario-route-preview-v1", "simulation": result,
+                "catalog_robot_confirmed": False, "economics_confirmed": False}
 
     @router.post("/warehouse-roles/report.pdf")
     def guest_report(payload: WarehouseRolePdfRequest):

@@ -127,6 +127,7 @@ function box() {
 
 const COLOR = { CHARGE: [.08, .72, .46], PICKUP: [.98, .63, .10],
   DROPOFF: [.90, .21, .26], SHARED_LANE: [.48, .31, .75] };
+const MOVING_ROBOT_ASSET = { warehouse: 'pallet_amr', airport: 'airport_tug', clinic: 'indoor_delivery_robot' };
 
 export class SceneRenderer3D {
   constructor(canvas) {
@@ -185,7 +186,7 @@ export class SceneRenderer3D {
     gl.drawArrays(mode, 0, mesh.count);
   }
 
-  render(scene, preset = 'isometric') {
+  render(scene, preset = 'isometric', pose = null) {
     const gl = this.gl;
     const width = Math.max(1, Math.round(this.canvas.clientWidth * Math.min(devicePixelRatio || 1, 1.5)));
     const height = Math.max(1, Math.round(this.canvas.clientHeight * Math.min(devicePixelRatio || 1, 1.5)));
@@ -202,7 +203,8 @@ export class SceneRenderer3D {
       : preset === 'overview' ? [center[0] + span * .39, span * .51, center[2] + span * .81]
         : [center[0] + span * .60, span * .60, center[2] + span * .67];
     const projection = mat4Perspective(Math.PI / 3.1, width / height, .1, span * 5);
-    gl.uniformMatrix4fv(this.loc.uViewProjection, false, mat4Multiply(projection, mat4LookAt(camera, center)));
+    this.viewProjection = mat4Multiply(projection, mat4LookAt(camera, center));
+    gl.uniformMatrix4fv(this.loc.uViewProjection, false, this.viewProjection);
     gl.uniform3fv(this.loc.uCamera, camera);
     const identity = mat4Model([0, 0, 0], [1, 1, 1]);
     const floor = this.upload(plane([[0, -.025, 0], [w, -.025, 0], [w, -.025, -l],
@@ -227,6 +229,7 @@ export class SceneRenderer3D {
       this.buffers.pop();
     }
     for (const object of scene.objects) {
+      if (pose && object.asset_id === MOVING_ROBOT_ASSET[scene.scene_id]) continue;
       const asset = this.meshes?.[object.asset_id === 'user_barrier' ? 'safety_barrier' : object.asset_id];
       if (!asset) continue;
       const scale = objectMeshScale(object, asset.bounds);
@@ -263,6 +266,35 @@ export class SceneRenderer3D {
       gl.deleteBuffer(mesh.buffer);
       this.buffers.pop();
     }
+    if (pose) {
+      const object = scene.objects.find((item) => item.asset_id === MOVING_ROBOT_ASSET[scene.scene_id]);
+      const asset = object && this.meshes?.[object.asset_id];
+      if (asset) {
+        const model = mat4Model(worldToGltf([pose[0], pose[1], 0]),
+          objectMeshScale(object, asset.bounds), object.rotation_yaw_rad || 0);
+        for (const group of asset.groups) this.draw(group, model, group.color,
+          group.metallic, group.roughness, group.emission);
+      }
+      // A bright locator belongs to the UI, while the moving geometry stays at its real footprint.
+      const locator = this.upload(box());
+      const height = object?.visual_height_m || 1;
+      const marker = mat4Model(worldToGltf([pose[0], pose[1], height + .5]), [.45, .45, .45]);
+      this.draw(locator, marker, [1, .7, .08], 0, .3, .7);
+      gl.deleteBuffer(locator.buffer);
+      this.buffers.pop();
+    }
+    return pose ? this.projectPose(pose) : null;
+  }
+
+  projectPose(pose) {
+    const [x, y, z] = worldToGltf([pose[0], pose[1], 2]);
+    const m = this.viewProjection;
+    const w = m[3] * x + m[7] * y + m[11] * z + m[15];
+    if (w <= 0) return null;
+    const clipX = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
+    const clipY = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
+    return [(clipX + 1) * this.canvas.clientWidth / 2,
+      (1 - clipY) * this.canvas.clientHeight / 2];
   }
 
   dispose() {

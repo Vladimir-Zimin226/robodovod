@@ -64,3 +64,6 @@ htmlcov/
 # Local Deep Research workspace and generated upload copies
 /Исследования/
 /data/research/catalog-runtime-eligibility-v1/upload/
+/frontend/qa/recovery/chrome-profile/
+/frontend/qa/recovery/chrome-profile-2/
+/frontend/qa/recovery/edge-profile/

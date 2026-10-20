@@ -13,7 +13,7 @@ function points(values, project, z = 0) {
   return values.map((point) => project([point[0], point[1], point[2] ?? z]).map((n) => n.toFixed(2)).join(',')).join(' ');
 }
 
-function TopView({ scene, view }) {
+function TopView({ scene, view, pose }) {
   const projection = topProjection(scene);
   return <svg className="scene-preview-svg" viewBox={`0 0 ${projection.width} ${projection.height}`}
     role="img" aria-label={`План сверху: ${scene.scene_id}`}>
@@ -38,6 +38,10 @@ function TopView({ scene, view }) {
         fill={COLORS[zone.kind]} fillOpacity="0.14" stroke={COLORS[zone.kind]} strokeWidth="2" />
         <text x={x + 8} y={zone.kind === 'PICKUP' ? y + 17 : y - 7} fontSize="11" fill="#203b48" paintOrder="stroke" stroke="#e9f0ef" strokeWidth="3">{zone.name}</text></g>;
     })}
+    {pose && <g data-robot-pose={`${pose[0].toFixed(2)},${pose[1].toFixed(2)}`}>
+      <circle cx={projection.point(pose)[0]} cy={projection.point(pose)[1]} r="9" fill="#f1d36b" stroke="#172a38" strokeWidth="3" />
+      <circle cx={projection.point(pose)[0]} cy={projection.point(pose)[1]} r="3" fill="#172a38" />
+    </g>}
     <line x1="20" y1={projection.height - 14} x2={20 + projection.scale * 5} y2={projection.height - 14} stroke="#183d51" strokeWidth="2" />
     <text x="20" y={projection.height - 20} fontSize="10" fill="#183d51">5 м</text>
   </svg>;
@@ -74,8 +78,9 @@ function IsoView({ scene, view }) {
   </svg>;
 }
 
-function ThreeView({ scene, view }) {
+function ThreeView({ scene, view, pose }) {
   const canvas = useRef(null);
+  const poseBadge = useRef(null);
   const renderer = useRef(null);
   const [preset, setPreset] = useState('isometric');
   const [expanded, setExpanded] = useState(false);
@@ -97,8 +102,14 @@ function ThreeView({ scene, view }) {
     return () => { active = false; renderer.current?.dispose(); renderer.current = null; };
   }, [scene]);
   useEffect(() => {
-    if (ready && !fallback) renderer.current?.render(scene, preset);
-  }, [scene, preset, ready, fallback, expanded]);
+    if (ready && !fallback) {
+      const point = renderer.current?.render(scene, preset, pose);
+      if (poseBadge.current && point) {
+        poseBadge.current.style.left = `${canvas.current.offsetLeft + point[0]}px`;
+        poseBadge.current.style.top = `${canvas.current.offsetTop + point[1]}px`;
+      }
+    }
+  }, [scene, preset, ready, fallback, expanded, pose]);
   useEffect(() => {
     if (!expanded) return undefined;
     const close = (event) => { if (event.key === 'Escape') setExpanded(false); };
@@ -121,13 +132,14 @@ function ThreeView({ scene, view }) {
       data-zone-ids={ids(scene.zones, 'zone_id')}
       data-route-ids={ids(scene.routes, 'route_id')}
       data-glb-status={fallback ? 'FALLBACK' : ready ? 'READY' : 'LOADING'} />
+    {pose && ready && <span ref={poseBadge} className="scene-robot-badge" aria-label="Положение движущегося робота в 3D">Робот</span>}
     {fallback && <div className="scene-preview-fallback"><p>3D недоступно: {fallback}. Схема ниже сохраняет те же координаты.</p>
       <IsoView scene={scene} view={view} /></div>}
     {!fallback && !ready && <p role="status">Загружаются локальные GLB-модели…</p>}
   </div>;
 }
 
-export default function SceneModelPreview({ kind, overlay }) {
+export default function SceneModelPreview({ kind, overlay, pose }) {
   const [mobileView, setMobileView] = useState('3d');
   const source = sceneForKind(kind);
   const scene = useMemo(() => source ? sceneWithSimulation(source, overlay?.request, overlay?.result) : null,
@@ -141,8 +153,8 @@ export default function SceneModelPreview({ kind, overlay }) {
       <button type="button" aria-pressed={mobileView === '2d'} onClick={() => setMobileView('2d')}>2D-план</button>
     </div>
     <div className="scene-preview-grid" data-mobile-view={mobileView}>
-      <figure className="scene-preview-hero"><ThreeView scene={scene} view={views.iso} /><figcaption>3D · модели текущей демонстрационной сцены</figcaption></figure>
-      <figure className="scene-preview-plan"><TopView scene={scene} view={views.top} /><figcaption>2D · те же объекты и маршрут</figcaption></figure>
+      <figure className="scene-preview-hero"><ThreeView scene={scene} view={views.iso} pose={pose} /><figcaption>3D · модели текущей демонстрационной сцены</figcaption></figure>
+      <figure className="scene-preview-plan"><TopView scene={scene} view={views.top} pose={pose} /><figcaption>2D · те же объекты и маршрут</figcaption></figure>
     </div>
     <p className="scene-preview-evidence">Демонстрационный план · требуется проверка реального объекта. 2D и 3D читают один SceneModel. {overlay ? `Серверный статус маршрута: ${overlay.result.status}. Локальные правки не сохранены.` : 'Исходный маршрут ещё не проверен на коллизии.'}</p>
     <p className="scene-preview-legend"><span style={{ color: COLORS.CHARGE }}>● Зарядка</span><span style={{ color: COLORS.PICKUP }}>● Отбор</span><span style={{ color: COLORS.DROPOFF }}>● Доставка</span><span style={{ color: COLORS.SHARED_LANE }}>▭ Узкий участок</span><span style={{ color: '#176fb3' }}>┄ Условный маршрут</span></p>

@@ -1137,6 +1137,8 @@ button:disabled { cursor: not-allowed; }
 .scene-preview-grid figure { min-width: 0; margin: 0; padding: .65rem; border: 1px solid #d6e4e3; border-radius: 12px; background: #e9f0ef; }
 .scene-preview-svg { display: block; width: 100%; height: auto; }
 .scene-preview-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1.35; border-radius: 8px; background: #cadadd; }
+.scene-preview-3d { position: relative; }
+.scene-robot-badge { position: absolute; z-index: 2; padding: 3px 7px; border-radius: 6px; background: #f7cb48; color: #17252c; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px #101b2570; transform: translate(-50%, -120%); pointer-events: none; }
 .scene-preview-camera { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .5rem; }
 .scene-preview-camera button { border: 1px solid #b7cfca; border-radius: 7px; padding: .3rem .55rem; background: white; color: #24404c; cursor: pointer; }
 .scene-preview-camera button[aria-pressed="true"] { background: #244f60; color: white; }
@@ -1168,6 +1170,9 @@ button:disabled { cursor: not-allowed; }
 .scene-sim-field { display: grid; gap: .3rem; min-width: 0; font-size: .88rem; }
 .scene-sim-field input, .scene-sim-field select { width: 100%; min-width: 0; padding: .6rem; border: 1px solid #a9c5c4; border-radius: 8px; background: white; color: #163545; }
 .scene-sim-controls .primary-action { justify-self: start; }
+.scene-playback-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .7rem; margin-top: 1rem; }
+.scene-playback-controls button { min-height: 44px; padding: .5rem .9rem; border: 1px solid #8ba6a5; border-radius: 9px; background: #fff; color: #163545; cursor: pointer; }
+.scene-playback-controls span { font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) { .scene-sim-fields { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .scene-sim-fields { grid-template-columns: 1fr; } }
 .investment-report { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; color: #17333d; }
