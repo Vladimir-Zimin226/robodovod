@@ -21,7 +21,9 @@ const serverResult = object
   : { roles: [{ label: 'Водитель погрузчика', selected_position_id: 'SCENARIO_ROBOT', candidates: [row] }] };
 const originalFetch = window.fetch.bind(window);
 if (!realApi) window.fetch = (url, options) => String(url).includes('/api/v2/') && options?.method === 'POST'
-  ? Promise.resolve(new Response(JSON.stringify(serverResult), { status: 200,
+  ? Promise.resolve(new Response(JSON.stringify(String(url).includes('/route-preview')
+    ? { simulation: fixture.result, catalog_robot_confirmed: false,
+      economics_confirmed: false } : serverResult), { status: 200,
     headers: { 'Content-Type': 'application/json' } }))
   : originalFetch(url, options);
 

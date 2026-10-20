@@ -83,7 +83,8 @@ export function decodeGlb(buffer) {
         });
       }
       byMaterial.set(key, vertices);
-      groupMaterials.set(key, { color, emission: material.emissiveFactor?.some(Boolean) ? .4 : 0,
+      groupMaterials.set(key, { color, materialName: material.name || '',
+        emission: material.emissiveFactor?.some(Boolean) ? .4 : 0,
         metallic: material.pbrMetallicRoughness?.metallicFactor || 0,
         roughness: material.pbrMetallicRoughness?.roughnessFactor ?? 1 });
     }

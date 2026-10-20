@@ -34,20 +34,48 @@ uniform float uEmission;
 uniform float uAlpha;
 uniform float uFloor;
 uniform float uShadow;
+uniform float uSurface;
 const float PI = 3.14159265;
+float stipple(vec2 point) {
+  return fract(sin(dot(floor(point), vec2(127.1, 311.7))) * 43758.5453);
+}
 void main() {
   if (uShadow > .5) {
     gl_FragColor = vec4(.015, .025, .031, uAlpha);
     return;
   }
   vec3 base = uColor;
+  float surfaceRoughness = uRoughness;
   if (uFloor > .5) {
     float tile = max(step(.985, fract(abs(vPosition.x) / 5.0)), step(.985, fract(abs(vPosition.z) / 5.0)));
-    float aggregate = fract(sin(dot(floor(vPosition.xz * 2.0), vec2(127.1, 311.7))) * 43758.5453);
-    base *= (1.0 - .10 * tile) * (.95 + .08 * aggregate);
+    float aggregate = stipple(vPosition.xz * 2.0);
+    float micro = stipple(vPosition.xz * 14.0);
+    base *= (1.0 - .10 * tile) * (.91 + .13 * aggregate + .06 * micro);
   } else {
-    float grain = fract(sin(dot(floor(vPosition * 17.0), vec3(127.1, 311.7, 74.7))) * 43758.5453);
+    float grain = stipple(vPosition.xz * 17.0 + vPosition.y * 3.0);
     base *= .955 + .09 * grain;
+    if (uSurface > .5 && uSurface < 1.5) {
+      float pulp = stipple(vPosition.xz * 8.0 + vPosition.y * 2.0);
+      float flute = sin(vPosition.x * 43.0 + vPosition.z * 4.0);
+      base *= .78 + .22 * pulp + .045 * flute;
+      surfaceRoughness = .91;
+    } else if (uSurface > 1.5 && uSurface < 2.5) {
+      float knots = stipple(vPosition.xz * 1.9);
+      float rings = sin(vPosition.x * 29.0 + vPosition.z * 8.0 + knots * 4.0);
+      base *= .82 + .15 * rings + .15 * knots;
+      surfaceRoughness = .82;
+    } else if (uSurface > 2.5 && uSurface < 3.5) {
+      float abrasion = stipple(vec2(vPosition.x * 3.0, vPosition.z * 45.0));
+      base *= .91 + .13 * abrasion;
+      surfaceRoughness = max(.25, uRoughness + (abrasion - .5) * .08);
+    } else if (uSurface > 3.5 && uSurface < 4.5) {
+      float mottling = stipple(vPosition.xz * 1.4 + vPosition.y * .2);
+      base *= .88 + .20 * mottling;
+      surfaceRoughness = .88;
+    } else if (uSurface > 4.5 && uSurface < 5.5) {
+      base *= .98 + .03 * stipple(vPosition.xz * 9.0);
+      surfaceRoughness = max(.36, uRoughness);
+    }
   }
   vec3 n = normalize(vNormal);
   vec3 v = normalize(uCamera - vPosition);
@@ -57,10 +85,10 @@ void main() {
   float ndv = max(dot(n, v), 0.001);
   float ndh = max(dot(n, h), 0.0);
   float vdh = max(dot(v, h), 0.0);
-  float a = max(.06, uRoughness * uRoughness);
+  float a = max(.06, surfaceRoughness * surfaceRoughness);
   float a2 = a * a;
   float d = a2 / max(PI * pow(ndh * ndh * (a2 - 1.0) + 1.0, 2.0), .001);
-  float k = pow(uRoughness + 1.0, 2.0) / 8.0;
+  float k = pow(surfaceRoughness + 1.0, 2.0) / 8.0;
   float g = ndv / (ndv * (1.0 - k) + k) * ndl / (ndl * (1.0 - k) + k);
   vec3 f0 = mix(vec3(.04), base, uMetallic);
   vec3 f = f0 + (1.0 - f0) * pow(1.0 - vdh, 5.0);
@@ -158,6 +186,15 @@ function box() {
 const COLOR = { CHARGE: [.08, .72, .46], PICKUP: [.98, .63, .10],
   DROPOFF: [.90, .21, .26], SHARED_LANE: [.48, .31, .75] };
 const MOVING_ROBOT_ASSET = { warehouse: 'pallet_amr', airport: 'airport_tug', clinic: 'indoor_delivery_robot' };
+function surfaceKind(name = '') {
+  const label = name.toLowerCase();
+  if (label.includes('cardboard') || label.includes('corrugated')) return 1;
+  if (label.includes('timber') || label.includes('wood')) return 2;
+  if (label.includes('steel') || label.includes('aluminium') || label.includes('metal')) return 3;
+  if (label.includes('concrete')) return 4;
+  if (label.includes('medical') || label.includes('clinic clean')) return 5;
+  return 0;
+}
 export const HD_VARIANTS = Object.freeze({
   pallet_rack: 'hero_warehouse_rack', pallet_amr: 'hero_pallet_amr',
   forklift_robot: 'hero_robot_forklift', airport_tug: 'hero_airport_tug',
@@ -181,7 +218,7 @@ export class SceneRenderer3D {
     this.program = program;
     gl.useProgram(program);
     this.loc = Object.fromEntries(['aPosition', 'aNormal', 'uModel', 'uViewProjection', 'uColor',
-      'uCamera', 'uMetallic', 'uRoughness', 'uEmission', 'uAlpha', 'uFloor', 'uShadow'].map((name) =>
+      'uCamera', 'uMetallic', 'uRoughness', 'uEmission', 'uAlpha', 'uFloor', 'uShadow', 'uSurface'].map((name) =>
       [name, name.startsWith('a') ? gl.getAttribLocation(program, name) : gl.getUniformLocation(program, name)]));
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
@@ -203,11 +240,12 @@ export class SceneRenderer3D {
     this.buffers.forEach((buffer) => gl.deleteBuffer(buffer));
     this.buffers = [];
     this.meshes = Object.fromEntries(Object.entries(meshes).map(([id, mesh]) => [id, {
-      bounds: mesh.bounds, groups: mesh.groups.map((group) => ({ ...group, ...this.upload(group.vertices) })),
+      bounds: mesh.bounds, groups: mesh.groups.map((group) => ({ ...group,
+        surface: surfaceKind(group.materialName), ...this.upload(group.vertices) })),
     }]));
   }
 
-  draw(mesh, model, color, metallic = 0, roughness = .85, emission = 0, alpha = 1, floor = 0, mode = this.gl.TRIANGLES, shadow = 0) {
+  draw(mesh, model, color, metallic = 0, roughness = .85, emission = 0, alpha = 1, floor = 0, mode = this.gl.TRIANGLES, shadow = 0, surface = 0) {
     const gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
     gl.enableVertexAttribArray(this.loc.aPosition);
@@ -222,6 +260,7 @@ export class SceneRenderer3D {
     gl.uniform1f(this.loc.uAlpha, alpha);
     gl.uniform1f(this.loc.uFloor, floor);
     gl.uniform1f(this.loc.uShadow, shadow);
+    gl.uniform1f(this.loc.uSurface, surface);
     gl.drawArrays(mode, 0, mesh.count);
   }
 
@@ -259,7 +298,7 @@ export class SceneRenderer3D {
     this.buffers.pop();
     const shell = this.meshes?.[`hero_${scene.scene_id}_shell`];
     if (shell) for (const group of shell.groups) this.draw(group, identity, group.color,
-      group.metallic, group.roughness, group.emission);
+      group.metallic, group.roughness, group.emission, 1, 0, gl.TRIANGLES, 0, group.surface);
     for (const zone of scene.zones) {
       const polygon = zone.polygon_xy_m;
       if (polygon.length < 3) continue;
@@ -311,7 +350,7 @@ export class SceneRenderer3D {
       const position = worldToGltf(object.position_m);
       const model = mat4Model(position, scale, object.rotation_yaw_rad || 0);
       for (const group of asset.groups) this.draw(group, model, group.color,
-        group.metallic, group.roughness, group.emission);
+        group.metallic, group.roughness, group.emission, 1, 0, gl.TRIANGLES, 0, group.surface);
     }
     const stock = this.upload(box());
     for (const object of scene.objects) {
@@ -348,7 +387,7 @@ export class SceneRenderer3D {
         const model = mat4Model(worldToGltf([pose[0], pose[1], 0]),
           objectMeshScale(object, asset.bounds), Number.isFinite(pose[2]) ? pose[2] : object.rotation_yaw_rad || 0);
         for (const group of asset.groups) this.draw(group, model, group.color,
-          group.metallic, group.roughness, group.emission);
+          group.metallic, group.roughness, group.emission, 1, 0, gl.TRIANGLES, 0, group.surface);
       }
       // A bright locator belongs to the UI, while the moving geometry stays at its real footprint.
       const locator = this.upload(box());

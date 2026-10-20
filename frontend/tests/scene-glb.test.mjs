@@ -38,6 +38,8 @@ test('thirteen original Blender assets decode, retain detail and match their pro
     const groups = decodeGlb(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const mesh = convertBundledMesh(groups);
     assert(mesh.groups.length >= 4, `${id}: material variety`);
+    assert(mesh.groups.every((group) => typeof group.materialName === 'string' && group.materialName.length > 0),
+      `${id}: Blender material names are needed for live surface shading`);
     assert(mesh.groups.reduce((count, group) => count + group.vertices.length / 18, 0) > 100, `${id}: triangle detail`);
     assert(mesh.bounds.size.every((size) => size > 0), `${id}: metric bounds`);
   }
