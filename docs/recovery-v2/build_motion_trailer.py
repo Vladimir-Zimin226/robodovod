@@ -29,6 +29,8 @@ DURATION = 6
 SCENES = (("warehouse", "СКЛАД", "Внутренняя логистика"),
           ("airport", "АЭРОПОРТ", "Багаж и наземная логистика"),
           ("clinic", "КЛИНИКА", "Внутрибольничная доставка"))
+CHAPTERS = tuple((kind, title, subtitle, view) for kind, title, subtitle in SCENES
+                 for view in ("3D", "2D"))
 
 
 class Browser:
@@ -39,6 +41,8 @@ class Browser:
         self.ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=15,
                                               suppress_origin=True)
         self.sequence = 0
+        self.call("Emulation.setDeviceMetricsOverride", {"width": 1440, "height": 900,
+                  "deviceScaleFactor": 1, "mobile": False})
 
     def call(self, method, params=None):
         self.sequence += 1
@@ -66,24 +70,29 @@ def crop(image, box):
     return image.crop((round(x), round(y), round(x+w), round(y+h)))
 
 
-def compose(image, geometry, kind, title, subtitle, pose, frame_no):
+def compose(image, geometry, title, subtitle, view, pose, frame_no):
     stage = crop(image, geometry["stage"])
     plan = crop(image, geometry["plan"])
+    main, inset = (stage, plan) if view == "3D" else (plan, stage)
     canvas = Image.new("RGB", (1280, 720), "#07131e")
     draw = ImageDraw.Draw(canvas)
     draw.rounded_rectangle((26, 22, 1254, 698), radius=24, fill="#102231", outline="#2d5366", width=2)
-    stage.thumbnail((900, 545), Image.Resampling.LANCZOS)
-    canvas.paste(stage, (47+(900-stage.width)//2, 100+(545-stage.height)//2))
+    main_scale = min(900 / main.width, 545 / main.height)
+    main = main.resize((round(main.width * main_scale), round(main.height * main_scale)),
+                       Image.Resampling.LANCZOS)
+    canvas.paste(main, (47+(900-main.width)//2, 100+(545-main.height)//2))
     draw.rounded_rectangle((967, 104, 1229, 330), radius=12, fill="#dfebec")
-    plan.thumbnail((252, 210), Image.Resampling.LANCZOS)
-    canvas.paste(plan, (972+(252-plan.width)//2, 111+(210-plan.height)//2))
-    draw.text((49, 36), "РОБОДОВОД  /  " + title, font=ImageFont.truetype(FONT, 31), fill="#f3fbfa")
-    draw.text((970, 348), "2D · тот же маршрут", font=ImageFont.truetype(FONT, 17), fill="#b1d9e6")
+    inset.thumbnail((252, 210), Image.Resampling.LANCZOS)
+    canvas.paste(inset, (972+(252-inset.width)//2, 111+(210-inset.height)//2))
+    draw.text((49, 36), f"РОБОДОВОД  /  {title}  /  {view}",
+              font=ImageFont.truetype(FONT, 31), fill="#f3fbfa")
+    draw.text((970, 348), f"{'2D-план' if view == '3D' else '3D-сцена'} · тот же маршрут",
+              font=ImageFont.truetype(FONT, 17), fill="#b1d9e6")
     draw.text((970, 405), subtitle, font=ImageFont.truetype(FONT, 17), fill="#e3f3f2")
     draw.text((970, 460), f"Поза: {pose or 'ожидание'}", font=ImageFont.truetype(FONT, 15), fill="#8fdad5")
     draw.text((49, 661), "Локальная демо-сцена · маршрут API синтетический · каталог production не проверен",
               font=ImageFont.truetype(FONT, 15), fill="#a9c4cd")
-    draw.rectangle((49, 642, 49 + round(1170*(frame_no+1)/(FPS*DURATION*len(SCENES))), 645), fill="#53d4c1")
+    draw.rectangle((49, 642, 49 + round(1170*(frame_no+1)/(FPS*DURATION*len(CHAPTERS))), 645), fill="#53d4c1")
     return canvas
 
 
@@ -97,7 +106,7 @@ def main():
         with tempfile.TemporaryDirectory(prefix="robodovod-motion-") as tmp:
             frames = Path(tmp)
             count = 0
-            for scene_index, (kind, title, subtitle) in enumerate(SCENES, 1):
+            for chapter_index, (kind, title, subtitle, view) in enumerate(CHAPTERS, 1):
                 browser.call("Page.navigate", {"url":
                              f"http://127.0.0.1:4175/qa/recovery/index.html?kind={kind}"})
                 deadline = time.monotonic()+30
@@ -116,28 +125,30 @@ def main():
                     time.sleep(.1)
                 else:
                     raise RuntimeError(f"{kind}: playback did not start")
-                geometry = browser.evaluate("JSON.stringify(Object.fromEntries([['stage','.scene-preview-3d'],['plan','.scene-preview-plan']].map(([name, selector]) => {const r=document.querySelector(selector).getBoundingClientRect();return [name,[r.x,r.y,r.width,r.height]]})))")
+                browser.evaluate("document.querySelector('.scene-preview')?.scrollIntoView({block:'center'})")
+                time.sleep(.25)
+                geometry = browser.evaluate("JSON.stringify(Object.fromEntries([['stage','.scene-preview-canvas'],['plan','.scene-preview-plan .scene-preview-svg']].map(([name, selector]) => {const r=document.querySelector(selector).getBoundingClientRect();return [name,[r.x,r.y,r.width,r.height]]})))")
                 geometry = json.loads(geometry)
                 scene_poses = []
                 next_frame = time.monotonic()
                 for scene_frame in range(FPS*DURATION):
                     pose = browser.evaluate("document.querySelector('#recovery-pose')?.textContent")
                     scene_poses.append(pose)
-                    frame = compose(browser.screenshot(), geometry, kind, title, subtitle, pose, count)
+                    frame = compose(browser.screenshot(), geometry, title, subtitle, view, pose, count)
                     frame.save(frames / f"frame-{count:04d}.png", optimize=False)
                     if scene_frame == FPS:
-                        frame.save(OUTPUT / "frames" / f"chapter-{scene_index}.jpg", quality=85)
+                        frame.save(OUTPUT / "frames" / f"chapter-{chapter_index}.jpg", quality=85)
                     if count == 12:
                         frame.save(OUTPUT / "robodovod-trailer-poster.jpg", quality=88)
                     count += 1
                     next_frame += 1/FPS
                     if next_frame > time.monotonic():
                         time.sleep(next_frame-time.monotonic())
-                poses[kind] = {"first": scene_poses[0], "last": scene_poses[-1],
-                               "distinct": len(set(scene_poses))}
-                if poses[kind]["distinct"] < 3:
-                    raise RuntimeError(f"{kind}: robot did not visibly move")
-                print(f"{kind}: {poses[kind]}", flush=True)
+                poses[f"{kind}-{view.lower()}"] = {"first": scene_poses[0], "last": scene_poses[-1],
+                                                   "distinct": len(set(scene_poses))}
+                if poses[f"{kind}-{view.lower()}"]["distinct"] < 3:
+                    raise RuntimeError(f"{kind} {view}: robot did not visibly move")
+                print(f"{kind} {view}: {poses[f'{kind}-{view.lower()}']}", flush=True)
             master = OUTPUT / "robodovod-trailer-master-1080p.mp4"
             web = OUTPUT / "robodovod-trailer-web-720p.mp4"
             preview = OUTPUT / "robodovod-trailer-preview-720p.mp4"
@@ -154,13 +165,15 @@ def main():
     finally:
         browser.ws.close()
     vtt = ["WEBVTT", ""]
-    for index, (_, title, subtitle) in enumerate(SCENES):
+    for index, (_, title, subtitle, view) in enumerate(CHAPTERS):
         start, end = index*DURATION, (index+1)*DURATION
         vtt += [f"00:00:{start:02d}.000 --> 00:00:{end:02d}.000",
-                f"{title}. {subtitle}. Синтетический результат API в локальной демонстрации.", ""]
+                f"{title}, {view}. {subtitle}. Синтетический результат API в локальной демонстрации.", ""]
     (OUTPUT / "robodovod-trailer.ru.vtt").write_text("\n".join(vtt), encoding="utf-8")
     manifest = {"status": "LOCAL_WEBGL_PLAYBACK_SYNTHETIC_API", "audio": "NONE_SILENT",
-                "duration_s": DURATION*len(SCENES), "fps_capture": FPS,
+                "duration_s": DURATION*len(CHAPTERS), "fps_capture": FPS,
+                "chapters": [{"scene": kind, "view": view, "start_s": index*DURATION}
+                             for index, (kind, _, _, view) in enumerate(CHAPTERS)],
                 "scene_asset_manifest": "scene-assets/recovery-manifest.json",
                 "master": master.name, "web": web.name, "preview": preview.name,
                 "poses": poses,

@@ -1,32 +1,79 @@
 {
   "status": "LOCAL_WEBGL_PLAYBACK_SYNTHETIC_API",
   "audio": "NONE_SILENT",
-  "duration_s": 18,
+  "duration_s": 36,
   "fps_capture": 10,
+  "chapters": [
+    {
+      "scene": "warehouse",
+      "view": "3D",
+      "start_s": 0
+    },
+    {
+      "scene": "warehouse",
+      "view": "2D",
+      "start_s": 6
+    },
+    {
+      "scene": "airport",
+      "view": "3D",
+      "start_s": 12
+    },
+    {
+      "scene": "airport",
+      "view": "2D",
+      "start_s": 18
+    },
+    {
+      "scene": "clinic",
+      "view": "3D",
+      "start_s": 24
+    },
+    {
+      "scene": "clinic",
+      "view": "2D",
+      "start_s": 30
+    }
+  ],
   "scene_asset_manifest": "scene-assets/recovery-manifest.json",
   "master": "robodovod-trailer-master-1080p.mp4",
   "web": "robodovod-trailer-web-720p.mp4",
   "preview": "robodovod-trailer-preview-720p.mp4",
   "poses": {
-    "warehouse": {
-      "first": "11.16, 34.00, 0.00",
-      "last": "49.65, 34.00, 0.00",
+    "warehouse-3d": {
+      "first": "11.27, 34.00, 0.00",
+      "last": "43.76, 34.00, 3.14",
       "distinct": 60
     },
-    "airport": {
-      "first": "17.00, 23.06, 1.57",
-      "last": "39.89, 29.00, 0.00",
+    "warehouse-2d": {
+      "first": "11.24, 34.00, 0.00",
+      "last": "53.91, 34.00, 0.00",
       "distinct": 60
     },
-    "clinic": {
-      "first": "7.02, 14.00, 0.00",
-      "last": "34.77, 14.00, 0.00",
+    "airport-3d": {
+      "first": "17.00, 23.30, 1.57",
+      "last": "58.95, 29.00, 0.00",
+      "distinct": 60
+    },
+    "airport-2d": {
+      "first": "17.00, 23.37, 1.57",
+      "last": "54.93, 29.00, 0.00",
+      "distinct": 60
+    },
+    "clinic-3d": {
+      "first": "7.32, 14.00, 0.00",
+      "last": "19.16, 12.50, 3.14",
+      "distinct": 60
+    },
+    "clinic-2d": {
+      "first": "7.37, 14.00, 0.00",
+      "last": "19.29, 12.50, 3.14",
       "distinct": 60
     }
   },
   "sha256": {
-    "robodovod-trailer-master-1080p.mp4": "566a91da0e1dd4308dc373ee2baa5f29c68a186c599a07bc38b2569a3fd48b0c",
-    "robodovod-trailer-web-720p.mp4": "a57d3b116504f40e31936399cc195f057dc1b2da09cd7da498d92c89e102a658",
-    "robodovod-trailer-preview-720p.mp4": "a57d3b116504f40e31936399cc195f057dc1b2da09cd7da498d92c89e102a658"
+    "robodovod-trailer-master-1080p.mp4": "a2c464c1c244637ec8ad8af25b068059476dfbdba4b6fd424dc911a62694b3e8",
+    "robodovod-trailer-web-720p.mp4": "2108715f20f27ff5d6dac2cccfda45a9c0e6d463301aa808f5b10185617890a8",
+    "robodovod-trailer-preview-720p.mp4": "9ce75bd09b16791c1f1fec5adac139f42cf8dc418259d51708d8c6763f7df13d"
   }
 }

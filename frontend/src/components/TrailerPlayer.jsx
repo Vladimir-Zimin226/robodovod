@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const ROOT = '/demo/trailer';
-const CHAPTERS = ['Склад', 'Аэропорт', 'Клиника'];
+const CHAPTERS = ['Склад · 3D', 'Склад · 2D', 'Аэропорт · 3D', 'Аэропорт · 2D', 'Клиника · 3D', 'Клиника · 2D'];
 const CHAPTER_SECONDS = 6;
 const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
 
@@ -13,7 +13,7 @@ export default function TrailerPlayer() {
   const [playing, setPlaying] = useState(false);
   const [captions, setCaptions] = useState(false);
   const [time, setTime] = useState(0);
-  const [duration, setDuration] = useState(18);
+  const [duration, setDuration] = useState(36);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false);
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -52,7 +52,7 @@ export default function TrailerPlayer() {
   return <section className="trailer-section" aria-label="Трейлер сцен">
     <div className="trailer-heading"><div><h2>Как выглядит оценка</h2>
       <p>Движение робота на складе, в аэропорту и клинике. Интерактивные 3D и 2D сцены.</p></div>
-      <span>18 секунд · без музыки</span></div>
+      <span>36 секунд · без музыки</span></div>
     {failed ? <div className="trailer-fallback"><h3>Галерея кадров</h3><p>Видео недоступно. Ниже — кадры из runtime сцен.</p>
       <div>{CHAPTERS.map((chapter, index) => <figure key={chapter}><img
         src={`${ROOT}/frames/chapter-${index + 1}.jpg`} alt={`${chapter}; демонстрационная сцена`} loading="lazy" />
@@ -72,15 +72,15 @@ export default function TrailerPlayer() {
         onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
         onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)}
-        onError={() => { setFailed(true); close(); }} aria-label="Полный трейлер из трёх сцен">
+        onError={() => { setFailed(true); close(); }} aria-label="Полный трейлер: склад, аэропорт и клиника в 3D и 2D">
         <source src={`${ROOT}/robodovod-trailer-web-720p.mp4`} type="video/mp4" />
         <track kind="captions" src={`${ROOT}/robodovod-trailer.ru.vtt`} srcLang="ru" label="Русские субтитры" />
       </video>
-      <p aria-live="polite">{CHAPTERS[Math.min(2, Math.floor(time / CHAPTER_SECONDS))]} · демонстрационная сцена, не обмер объекта</p>
+      <p aria-live="polite">{CHAPTERS[Math.min(CHAPTERS.length - 1, Math.floor(time / CHAPTER_SECONDS))]} · демонстрационная сцена, не обмер объекта</p>
       <div className="trailer-controls"><button type="button" onClick={toggle}>{playing ? 'Пауза' : 'Воспроизвести'}</button>
         <button type="button" onClick={stop}>Стоп</button>
         <button type="button" onClick={toggleCaptions} aria-pressed={captions}>{captions ? 'Скрыть субтитры' : 'Субтитры'}</button>
-        <label>Перемотка <input type="range" min="0" max={duration || 18} step="0.1" value={time}
+        <label>Перемотка <input type="range" min="0" max={duration || 36} step="0.1" value={time}
           onChange={(event) => seek(Number(event.target.value))} /></label>
         <span>{formatTime(time)} / {formatTime(duration)}</span></div>
       <nav aria-label="Главы трейлера">{CHAPTERS.map((chapter, index) =>
