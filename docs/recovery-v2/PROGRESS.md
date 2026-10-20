@@ -53,3 +53,7 @@ Patch не закоммичен и не развёрнут: Node build посл�
 ## 21.10.2026 — устранение локального npm EPERM и чистое дерево
 
 Источник ошибки npm ci: оставленный Vite PID 13444 слушал 4177 и удерживал rolldown-binding.win32-x64-msvc.node. После остановки только этого dev-процесса npm ci прошёл дважды. Frontend tests 219/219, targeted ESLint PASS, production build PASS; npm audit после совместимых patch-обновлений трёх транзитивных пакетов — 0 уязвимостей. Backend/PDF профильные тесты ранее 43/43. Тематические коммиты: 97e62a1 (FINAL FIX V2), c056f79 (новая презентация PDF/PPTX по 9 страниц/слайдов), 5b35165 (сохранение ранее изменённых QA доказательств). 221 старый неотслеживаемый файл перенесён без удаления в Разобрать/local-worktree-archive-2026-10-21 с manifest.json и SHA-256; локальные временные профили/изолированная PostgreSQL оставлены на месте и игнорируются Git. Деплой не выполнялся; новый bundle создать после финального handoff-коммита.
+
+## 21.10.2026 — production deploy попытка заказчика
+
+Заказчик перенёс новый bundle, `git bundle verify` PASS, server checkout переключён с 59b36d3 на ветку `rc/final-fix-v2` с HEAD 86311b5, Compose config PASS. Первый `docker compose build` остановился до сборки: `deploy` не имеет доступа к `/var/run/docker.sock`. Исправлены DEPLOY_COMMANDS.md и SELF_DEPLOY_RC.md: на действующем сервере использовать `sudo docker compose`. Результат повторного build/up и production smoke ещё не получен; не объявлять production PASS.

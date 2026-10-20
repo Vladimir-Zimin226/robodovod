@@ -32,15 +32,16 @@ git bundle verify /tmp/robodovod-final-fix-v2.bundle
 git fetch /tmp/robodovod-final-fix-v2.bundle HEAD:refs/heads/rc/final-fix-v2
 git log -1 --format='%H %s' rc/final-fix-v2
 git switch rc/final-fix-v2
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml config --quiet
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml build backend frontend migrate
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml up -d backend frontend caddy
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml ps
+sudo -v
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml config --quiet
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml build backend frontend migrate
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml up -d backend frontend caddy
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml ps
 curl -fsS https://robodovod.ru/health
 curl -fsS https://robodovod.ru/ready
 curl -fI https://robodovod.ru/demo/trailer/robodovod-trailer-web-720p.mp4
 ```
 
-Перед `git switch` рабочее дерево сервера должно быть чистым и SHA целевой ветки — проверенным. Compose фактически публикует через **Caddy** (не Nginx). Не запускать `down -v`, import/activation каталога или непроверенные миграции. Если Compose/каталог/миграции на сервере отличаются от [runbook](../../recovery-v2/SELF_DEPLOY_RC.md), остановитесь и разберите расхождение.
+Перед `git switch` рабочее дерево сервера должно быть чистым и SHA целевой ветки — проверенным. На текущем сервере пользователь `deploy` не имеет прямого доступа к `/var/run/docker.sock`: все команды Docker Compose выполняйте через `sudo`. `sudo -v` может запросить пароль. Compose фактически публикует через **Caddy** (не Nginx). Не запускать `down -v`, import/activation каталога или непроверенные миграции. Если Compose/каталог/миграции на сервере отличаются от [runbook](../../recovery-v2/SELF_DEPLOY_RC.md), остановитесь и разберите расхождение.
 
 После обновления в настоящем браузере проверьте главную, три DEMO без ввода, один editable расчёт, 2D/3D движение и паузу, ×1/×2/×4/×8, деньги/«Что если?», PDF, RobCraft/save, регистрацию/вход/выход, мобильный 390 px и консоль/серверные журналы. `/ready` не подтверждает эти сценарии.

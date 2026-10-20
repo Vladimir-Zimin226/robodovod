@@ -4,7 +4,7 @@
 
 ## 1. Остановиться до изменений, если состояние отличается
 
-На сервере проверьте, что checkout находится в ожидаемом каталоге (в runbook — `/opt/robodovod`), рабочее дерево чистое, `.env.production` существует и имеет права `600`. Не выводите файл или его переменные в логи/чат. Сохраните текущий commit, идентификаторы работающих образов и результат `docker compose ps` в приватном операционном журнале. Сравните текущую Alembic revision, активные `capacity`/`discovery`/`runtime` и economics route с ожидаемой конфигурацией. Никаких команд import/activate каталога ради этого релиза автоматически не требуется.
+На сервере проверьте, что checkout находится в ожидаемом каталоге (в runbook — `/opt/robodovod`), рабочее дерево чистое, `.env.production` существует и имеет права `600`. Не выводите файл или его переменные в логи/чат. Пользователь `deploy` на действующем сервере не имеет прямого доступа к Docker socket, поэтому Docker Compose запускается через `sudo`; пароль может запрашиваться. Сохраните текущий commit, идентификаторы работающих образов и результат `sudo docker compose ps` в приватном операционном журнале. Сравните текущую Alembic revision, активные `capacity`/`discovery`/`runtime` и economics route с ожидаемой конфигурацией. Никаких команд import/activate каталога ради этого релиза автоматически не требуется.
 
 ```sh
 cd /opt/robodovod
@@ -12,7 +12,7 @@ git status --short
 git rev-parse HEAD
 test -f .env.production && test "$(stat -c %a .env.production)" = 600
 docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml config --quiet
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml ps
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml ps
 ```
 
 Если дерево грязное, commit неизвестен, Compose не совпадает с текущей инфраструктурой или схема БД неясна — не переключайте трафик. В текущем Compose нет независимого preview slot.
@@ -30,9 +30,10 @@ docker compose --env-file .env.production -f compose.yaml -f compose.production.
 После backup/drill и проверки совместимости снимка БД соберите `backend`, `frontend`, `migrate`. Применяйте только просмотренные Alembic миграции. Существующий Compose запускает `migrate` перед backend; не запускайте вторую миграцию параллельно. Затем обновите сервисы и дождитесь `healthy`.
 
 ```sh
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml build backend frontend migrate
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml up -d backend frontend caddy
-docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml ps
+sudo -v
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml build backend frontend migrate
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml up -d backend frontend caddy
+sudo docker compose --env-file .env.production -f compose.yaml -f compose.production.yaml ps
 ```
 
 Если фактическая инфраструктура не использует именно эти Compose-файлы, выполните её существующий workflow с теми же воротами backup, проверки миграции и smoke. Не удаляйте volume БД/файлов и не повторяйте bootstrap/import/activation на существующей БД.
