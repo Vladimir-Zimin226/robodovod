@@ -9,6 +9,7 @@ import base64
 import hashlib
 import io
 import json
+import re
 import subprocess
 import tempfile
 import time
@@ -24,7 +25,8 @@ OUTPUT = ROOT / "frontend/public/demo/trailer"
 EVIDENCE = ROOT / "docs/recovery-v2/evidence"
 FONT = ROOT / "backend/calculation/assets/DejaVuSans.ttf"
 FPS = 10
-DURATION = 6
+DURATION = 10
+PREVIEW_SECONDS_PER_CHAPTER = 3
 SCENES = (("warehouse", "СКЛАД", "Внутренняя логистика"),
           ("airport", "АЭРОПОРТ", "Багаж и наземная логистика"),
           ("clinic", "КЛИНИКА", "Внутрибольничная доставка"))
@@ -35,8 +37,9 @@ CHAPTERS = tuple((kind, title, subtitle, view) for kind, title, subtitle in SCEN
 class Browser:
     def __init__(self):
         pages = requests.get("http://127.0.0.1:9225/json/list", timeout=5).json()
-        page = next(p for p in pages if p.get("type") == "page"
-                    and "/qa/recovery/index.html" in p.get("url", ""))
+        page = next((p for p in pages if p.get("type") == "page"
+                     and "/qa/recovery/index.html" in p.get("url", "")),
+                    next(p for p in pages if p.get("type") == "page" and ":4175/" in p.get("url", "")))
         self.ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=15,
                                               suppress_origin=True)
         self.sequence = 0
@@ -66,7 +69,7 @@ class Browser:
         return result["result"].get("value")
 
     def screenshot(self):
-        encoded = self.call("Page.captureScreenshot", {"format": "png",
+        encoded = self.call("Page.captureScreenshot", {"format": "jpeg", "quality": 88,
                             "captureBeyondViewport": False})["data"]
         return Image.open(io.BytesIO(base64.b64decode(encoded))).convert("RGB")
 
@@ -76,8 +79,11 @@ def crop(image, box):
     return image.crop((round(x), round(y), round(x+w), round(y+h)))
 
 
-def compose(image, geometry, title, subtitle, view, pose, frame_no):
-    stage = crop(image, geometry["stage"])
+def compose(image, geometry, title, subtitle, view, pose, metric, frame_no):
+    # The live application shows an inset plan over the far right of the 3D canvas.
+    # Crop that overlap here because the film has its own separate 2D panel.
+    sx, sy, sw, sh = geometry["stage"]
+    stage = crop(image, (sx, sy, sw*.71, sh))
     plan = crop(image, geometry["plan"])
     main, inset = (stage, plan) if view == "3D" else (plan, stage)
     canvas = Image.new("RGB", (1280, 720), "#07131e")
@@ -95,7 +101,8 @@ def compose(image, geometry, title, subtitle, view, pose, frame_no):
     draw.text((970, 348), f"{'2D-план' if view == '3D' else '3D-сцена'} · тот же маршрут",
               font=ImageFont.truetype(FONT, 17), fill="#b1d9e6")
     draw.text((970, 405), subtitle, font=ImageFont.truetype(FONT, 17), fill="#e3f3f2")
-    draw.text((970, 460), f"Поза: {pose or 'ожидание'}", font=ImageFont.truetype(FONT, 15), fill="#8fdad5")
+    draw.text((970, 454), metric, font=ImageFont.truetype(FONT, 17), fill="#8fdad5")
+    draw.text((970, 494), f"Поза: {pose or 'ожидание'}", font=ImageFont.truetype(FONT, 15), fill="#b4cbd4")
     draw.text((49, 661), "Локальная демо-сцена · маршрут FastAPI · каталожная модель и деньги не подтверждены",
               font=ImageFont.truetype(FONT, 15), fill="#a9c4cd")
     draw.rectangle((49, 642, 49 + round(1170*(frame_no+1)/(FPS*DURATION*len(CHAPTERS))), 645), fill="#53d4c1")
@@ -108,6 +115,7 @@ def main():
     (OUTPUT / "frames").mkdir(exist_ok=True)
     browser = Browser()
     poses = {}
+    metrics = {}
     try:
         with tempfile.TemporaryDirectory(prefix="robodovod-motion-") as tmp:
             frames = Path(tmp)
@@ -138,6 +146,12 @@ def main():
                 if not any(row["path"] == expected_path and row["status"] == 200
                            for row in browser.responses):
                     raise RuntimeError(f"{kind}: no successful local FastAPI route-preview")
+                summary = browser.evaluate("document.querySelector('.scene-sim-controls')?.innerText || ''")
+                match = re.search(r"Маршрут с грузом:\s*([^;\n]+)", summary)
+                if not match:
+                    raise RuntimeError(f"{kind}: local route distance missing")
+                metric = f"Маршрут с грузом: {match.group(1).strip()}"
+                metrics[kind] = metric
                 browser.evaluate("document.querySelector('.scene-preview')?.scrollIntoView({block:'center'})")
                 time.sleep(.25)
                 geometry = browser.evaluate("JSON.stringify(Object.fromEntries([['stage','.scene-preview-canvas'],['plan','.scene-preview-plan .scene-preview-svg']].map(([name, selector]) => {const r=document.querySelector(selector).getBoundingClientRect();return [name,[r.x,r.y,r.width,r.height]]})))")
@@ -147,8 +161,8 @@ def main():
                 for scene_frame in range(FPS*DURATION):
                     pose = browser.evaluate("document.querySelector('#recovery-pose')?.textContent")
                     scene_poses.append(pose)
-                    frame = compose(browser.screenshot(), geometry, title, subtitle, view, pose, count)
-                    frame.save(frames / f"frame-{count:04d}.png", optimize=False)
+                    frame = compose(browser.screenshot(), geometry, title, subtitle, view, pose, metric, count)
+                    frame.save(frames / f"frame-{count:04d}.jpg", quality=88)
                     if scene_frame == FPS:
                         frame.save(OUTPUT / "frames" / f"chapter-{chapter_index}.jpg", quality=85)
                     if count == 12:
@@ -166,31 +180,35 @@ def main():
             web = OUTPUT / "robodovod-trailer-web-720p.mp4"
             preview = OUTPUT / "robodovod-trailer-preview-720p.mp4"
             base = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                    "-framerate", str(FPS), "-i", str(frames / "frame-%04d.png")]
+                    "-framerate", str(FPS), "-i", str(frames / "frame-%04d.jpg")]
             subprocess.run([*base, "-vf", "scale=1920:1080:flags=lanczos,fps=30", "-c:v", "libx264",
                             "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
                             "-movflags", "+faststart", "-an", str(master)], check=True)
             subprocess.run([*base, "-vf", "fps=30", "-c:v", "libx264", "-preset", "veryfast",
                             "-crf", "25", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
                             "-an", str(web)], check=True)
-            subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(web),
-                            "-c", "copy", str(preview)], check=True)
+            teaser = (f"select='lt(mod(n\\,{FPS*DURATION})\\,{FPS*PREVIEW_SECONDS_PER_CHAPTER})',"
+                      f"setpts=N/({FPS}*TB),fps=30")
+            subprocess.run([*base, "-vf", teaser, "-c:v", "libx264", "-preset", "veryfast",
+                            "-crf", "25", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+                            "-an", str(preview)], check=True)
     finally:
         browser.ws.close()
     vtt = ["WEBVTT", ""]
     for index, (_, title, subtitle, view) in enumerate(CHAPTERS):
         start, end = index*DURATION, (index+1)*DURATION
-        vtt += [f"00:00:{start:02d}.000 --> 00:00:{end:02d}.000",
+        vtt += [f"00:{start//60:02d}:{start%60:02d}.000 --> 00:{end//60:02d}:{end%60:02d}.000",
                 f"{title}, {view}. {subtitle}. Маршрут рассчитан локальным FastAPI без подтверждения каталожной модели.", ""]
     (OUTPUT / "robodovod-trailer.ru.vtt").write_text("\n".join(vtt), encoding="utf-8")
     manifest = {"status": "LOCAL_FASTAPI_ROUTE_PREVIEW_NO_CATALOG", "audio": "NONE_SILENT",
-                "duration_s": DURATION*len(CHAPTERS), "fps_capture": FPS,
+                "duration_s": DURATION*len(CHAPTERS), "preview_duration_s": PREVIEW_SECONDS_PER_CHAPTER*len(CHAPTERS),
+                "fps_capture": FPS,
                 "chapters": [{"scene": kind, "view": view, "start_s": index*DURATION}
                              for index, (kind, _, _, view) in enumerate(CHAPTERS)],
                 "scene_asset_manifest": "scene-assets/recovery-manifest.json",
                 "master": master.name, "web": web.name, "preview": preview.name,
                 "api_responses": browser.responses,
-                "poses": poses,
+                "poses": poses, "route_metrics": metrics,
                 "sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
                            for p in (master, web, preview)}}
     (OUTPUT / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")

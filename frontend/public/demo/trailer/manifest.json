@@ -1,7 +1,8 @@
 {
   "status": "LOCAL_FASTAPI_ROUTE_PREVIEW_NO_CATALOG",
-  "audio": "NONE_SILENT",
-  "duration_s": 36,
+  "audio": "CUSTOMER_SUPPLIED_WAV_AAC_IN_FULL_TRAILER; SILENT_PREVIEW",
+  "duration_s": 60,
+  "preview_duration_s": 18,
   "fps_capture": 10,
   "chapters": [
     {
@@ -12,27 +13,27 @@
     {
       "scene": "warehouse",
       "view": "2D",
-      "start_s": 6
+      "start_s": 10
     },
     {
       "scene": "airport",
       "view": "3D",
-      "start_s": 12
+      "start_s": 20
     },
     {
       "scene": "airport",
-      "view": "2D",
-      "start_s": 18
-    },
-    {
-      "scene": "clinic",
-      "view": "3D",
-      "start_s": 24
-    },
-    {
-      "scene": "clinic",
       "view": "2D",
       "start_s": 30
+    },
+    {
+      "scene": "clinic",
+      "view": "3D",
+      "start_s": 40
+    },
+    {
+      "scene": "clinic",
+      "view": "2D",
+      "start_s": 50
     }
   ],
   "scene_asset_manifest": "scene-assets/recovery-manifest.json",
@@ -91,39 +92,47 @@
   ],
   "poses": {
     "warehouse-3d": {
-      "first": "11.25, 34.00, 0.00",
-      "last": "53.98, 34.00, 0.00",
-      "distinct": 60
+      "first": "11.23, 34.00, 0.00",
+      "last": "47.54, 34.00, 3.14",
+      "distinct": 100
     },
     "warehouse-2d": {
-      "first": "11.31, 34.00, 0.00",
-      "last": "53.36, 34.00, 3.14",
-      "distinct": 60
+      "first": "11.37, 34.00, 0.00",
+      "last": "46.09, 34.00, 3.14",
+      "distinct": 100
     },
     "airport-3d": {
-      "first": "17.00, 23.26, 1.57",
-      "last": "61.98, 29.00, 3.14",
-      "distinct": 60
+      "first": "17.00, 23.32, 1.57",
+      "last": "64.76, 29.00, 0.00",
+      "distinct": 100
     },
     "airport-2d": {
-      "first": "17.00, 23.21, 1.57",
-      "last": "64.49, 29.00, 3.14",
-      "distinct": 60
+      "first": "17.00, 23.31, 1.57",
+      "last": "65.68, 29.00, 0.00",
+      "distinct": 100
     },
     "clinic-3d": {
-      "first": "7.24, 14.00, 0.00",
-      "last": "16.67, 12.50, 3.14",
-      "distinct": 60
+      "first": "7.14, 14.00, 0.00",
+      "last": "7.00, 13.58, 1.57",
+      "distinct": 100
     },
     "clinic-2d": {
-      "first": "7.22, 14.00, 0.00",
-      "last": "19.70, 12.50, 3.14",
-      "distinct": 60
+      "first": "7.29, 14.00, 0.00",
+      "last": "13.99, 12.50, 3.14",
+      "distinct": 100
     }
   },
+  "route_metrics": {
+    "warehouse": "Маршрут с грузом: 43 м",
+    "airport": "Маршрут с грузом: 56 м",
+    "clinic": "Маршрут с грузом: 35 м"
+  },
   "sha256": {
-    "robodovod-trailer-master-1080p.mp4": "a3dfd0a17408077f9341fb39c9bd86c136ef66b6ab0e0c3df2fdee5c9c926452",
-    "robodovod-trailer-web-720p.mp4": "1092bf8ac90af3a4193a1f9f3017443748842ec4aec058cea6f0178d8be40de1",
-    "robodovod-trailer-preview-720p.mp4": "3a3807b77558f6331e0f2fd57b6e48e90cf0db2e8be303a524ae2a09d211cd98"
-  }
+    "robodovod-trailer-master-1080p.mp4": "fb90c88af1847ccb1dd83ffe7f9f80e09a3a5e21cf6e2d9f2b1560c27766618a",
+    "robodovod-trailer-web-720p.mp4": "9b6b699947548f2a738f4b976bfa26c8978a4f42e52e589b97d8cfe197bc7cc7",
+    "robodovod-trailer-preview-720p.mp4": "96b5ed238ac5aba882a0705529bf7d3a6ddd3dec3d42364561574c4537df374f"
+  },
+  "music_source_sha256": "52ef3a28767a32de56eea26c6354513aff55f0dcad2c2a926cbddf33eebdf370",
+  "music_source_duration_s": 121,
+  "music_used_duration_s": 60
 }
