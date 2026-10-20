@@ -48,6 +48,12 @@ Desktop.ini
 *.log
 *.tmp
 *.bak
+# Local test profiles and the isolated PostgreSQL data directory stay on disk.
+# They are not release source files or Git handoff artifacts.
+/.tmp-*/
+/.pytest-*/
+/.chrome-*/
+/frontend/.tmp-*/
 coverage/
 htmlcov/
 .test-*/
