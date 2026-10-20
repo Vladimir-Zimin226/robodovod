@@ -37,6 +37,17 @@ def evaluate(expression):
     return call("Runtime.evaluate", {"expression": expression, "returnByValue": True})["result"].get("value")
 
 
+call("Emulation.setDeviceMetricsOverride", {"width": 1440, "height": 900,
+                                             "deviceScaleFactor": 1, "mobile": False})
+
+
+def capture(name):
+    evaluate("document.querySelector('.scene-preview')?.scrollIntoView({block: 'center'})")
+    time.sleep(.25)
+    image = call("Page.captureScreenshot", {"format": "png", "captureBeyondViewport": False})["data"]
+    (ROOT / name).write_bytes(base64.b64decode(image))
+
+
 for kind in ("warehouse", "airport", "clinic"):
     call("Page.navigate", {"url": f"http://127.0.0.1:4175/qa/recovery/index.html?kind={kind}"})
     deadline = time.monotonic() + 30
@@ -59,8 +70,7 @@ for kind in ("warehouse", "airport", "clinic"):
     evaluate("document.querySelector('.scene-playback-controls button').click()")  # Pause.
     time.sleep(.15)
     start = evaluate("document.querySelector('#recovery-pose')?.textContent")
-    data = call("Page.captureScreenshot", {"format": "png", "captureBeyondViewport": False})["data"]
-    (ROOT / f"sim-{kind}-start.png").write_bytes(base64.b64decode(data))
+    capture(f"sim-{kind}-start.png")
     time.sleep(.5)
     paused = evaluate("document.querySelector('#recovery-pose')?.textContent")
     if paused != start:
@@ -69,8 +79,7 @@ for kind in ("warehouse", "airport", "clinic"):
     time.sleep(4)
     evaluate("document.querySelector('.scene-playback-controls button').click()")
     end = evaluate("document.querySelector('#recovery-pose')?.textContent")
-    data = call("Page.captureScreenshot", {"format": "png", "captureBeyondViewport": False})["data"]
-    (ROOT / f"sim-{kind}-after-4s.png").write_bytes(base64.b64decode(data))
+    capture(f"sim-{kind}-after-4s.png")
     print(f"{kind}: {start} -> {end}")
     if not end or start == end:
         raise RuntimeError(f"{kind}: pose did not move")

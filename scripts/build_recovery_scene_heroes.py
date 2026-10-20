@@ -196,6 +196,10 @@ wall_blue = material('Airport panel blue', (.18, .27, .36), .28, .55)
 wall_clinic = material('Clinic clean wall', (.72, .82, .81), .0, .63)
 dark_trim = material('Architectural dark trim', (.045, .08, .11), .52, .39)
 light_strip = material('Linear luminaire diffuser', (.80, .91, .91), .0, .26, .8)
+clinic_floor = material('Clean hospital linoleum blue gray', (.43, .58, .61), 0, .49)
+airport_belt = material('Airport luggage belt graphite', (.055, .071, .085), .08, .71)
+poster_blue = material('Wayfinding cobalt', (.025, .23, .52), .05, .46)
+door_silver = material('Anodised door leaf', (.54, .65, .67), .58, .34)
 
 
 def shell(width, length, height, wall, trim, bay, title):
@@ -220,6 +224,58 @@ def shell(width, length, height, wall, trim, bay, title):
         cube('Wall lateral inset', (.56, y, 4.1), (.06, bay*.68, 4.1), trim, .025)
     cube('Roof edge beam rear', (width/2, length-.58, height-.05), (width, .56, .28), steel, .02)
     cube('Roof edge beam side', (.58, length/2, height-.05), (.56, length, .28), steel, .02)
+    if title == 'hero_warehouse_shell':
+        # Dock bays, loading shutters and practical safety hardware on the rear wall.
+        for x in (8, 23, 38, 53):
+            cube('Dock shutter recessed frame', (x, length-.72, 2.65), (6.7, .14, 5.10), steel, .035)
+            cube('Dock shutter steel face', (x, length-.80, 2.64), (6.17, .05, 4.68), steel_light, .015)
+            for z in (1.12, 1.84, 2.56, 3.28, 4.00):
+                cube('Shutter corrugated rib', (x, length-.85, z), (6.10, .055, .045), concrete, .008)
+            for dx in (-3.55, 3.55):
+                cube('Dock black rubber bumper', (x+dx, length-.92, .75), (.27, .25, 1.48), rubber, .025)
+                cube('Dock hazard marker', (x+dx, length-1.08, 1.52), (.22, .02, .16), yellow, .005)
+            cube('Dock number lightbox', (x, length-.97, 5.48), (1.2, .12, .42), yellow, .035)
+            cube('Dock platform lip', (x, length-1.12, .19), (6.5, .85, .37), concrete, .035)
+        for x in range(5, 59, 10):
+            cyl('Overhead fire sprinkler head', (x, length*.65, height-.54), .11, .12, red, 12)
+    elif title == 'hero_airport_shell':
+        # Distinct baggage hall: blue airline bays, roller reclaim, columns and signs.
+        for x in (9, 28, 47, 66):
+            cube('Baggage bay portal', (x, length-.83, 2.50), (10.2, .13, 4.72), steel_light, .07)
+            cube('Baggage bay opening', (x, length-.92, 2.38), (9.42, .04, 4.13), airport_belt, .035)
+            cube('Baggage gate header', (x, length-1.06, 4.62), (9.3, .18, .58), poster_blue, .035)
+            cube('Baggage bay rubber curtain', (x, length-1.12, 2.11), (8.9, .06, .14), rubber)
+            for dx in (-4, -2, 0, 2, 4):
+                cube('Hanging gate slat', (x+dx, length-1.15, 3.35), (.045, .07, 1.50), rubber)
+            cube('Baggage belt upper', (x, length-2.85, .91), (9.0, 2.65, .19), airport_belt, .08)
+            for y in (length-4.0, length-1.7):
+                cube('Belt stainless side', (x, y, .98), (9.1, .13, .31), steel_light, .025)
+                for dx in (-3.8, 3.8):
+                    cube('Belt braced support', (x+dx, y, .42), (.19, .13, .77), steel, .012)
+            for dx in (-2.85, -.9, .9, 2.85):
+                cube('Belt segment seam', (x+dx, length-2.85, 1.012), (.045, 2.17, .005), steel, .002)
+        for x in range(6, 76, 12):
+            cube('Suspended wayfinding sign', (x, length*.68, height-1.25), (4.1, .16, .82), poster_blue, .035)
+            for dx in (-1.8, 1.8):
+                cube('Wayfinding hanger', (x+dx, length*.68, height-.53), (.04, .04, .70), steel_light)
+    elif title == 'hero_clinic_shell':
+        # Corridor furniture and recognisable treatment-room doors remain outside the route.
+        for x in (5, 12, 19, 26, 33, 40):
+            cube('Treatment room frame', (x, length-.67, 1.55), (2.2, .13, 3.1), door_silver, .035)
+            cube('Treatment room blue door', (x, length-.76, 1.49), (1.89, .07, 2.88), blue, .035)
+            cube('Door observation window', (x+.45, length-.81, 1.96), (.43, .025, .58), glass, .014)
+            cube('Door pull plate', (x-.60, length-.84, 1.35), (.08, .035, .31), steel_light, .011)
+            cube('Room number plaque', (x, length-.86, 3.47), (1.20, .07, .30), poster_blue, .015)
+            cube('Wall mounted sanitizer', (x+1.49, length-.72, 1.37), (.19, .20, .34), white, .045)
+        for y in (4, 11, 18, 25):
+            cube('Wall protection rail', (.71, y, .83), (.16, 5.5, .16), door_silver, .028)
+            cube('Ward directional panel', (.72, y, 2.18), (.08, 2.15, .56), poster_blue, .025)
+            cube('Linen cabinet body', (.92, y+1.8, 1.05), (.75, .87, 2.08), white, .055)
+            for z in (.47, 1.1, 1.73):
+                cube('Cabinet drawer handle', (1.32, y+1.8, z), (.025, .40, .035), door_silver, .01)
+        for x in range(4, 44, 6):
+            cube('Recessed corridor luminaire', (x, length*.52, height-.34), (2.5, .76, .08), light_strip, .035)
+            cube('Ceiling supply vent', (x, length*.73, height-.28), (1.04, .61, .09), door_silver, .01)
     export(title)
 
 

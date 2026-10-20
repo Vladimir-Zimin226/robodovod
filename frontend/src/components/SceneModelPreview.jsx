@@ -82,7 +82,7 @@ function ThreeView({ scene, view, pose }) {
   const canvas = useRef(null);
   const poseBadge = useRef(null);
   const renderer = useRef(null);
-  const [preset, setPreset] = useState('isometric');
+  const [preset, setPreset] = useState('detail');
   const [expanded, setExpanded] = useState(false);
   const [load, setLoad] = useState({ scene: null, ready: false, error: '' });
   const ready = load.scene === scene && load.ready;
@@ -119,7 +119,7 @@ function ThreeView({ scene, view, pose }) {
   const ids = (entries, key) => entries.map((item) => item[key]).sort().join(',');
   return <div className={`scene-preview-3d${expanded ? ' scene-preview-3d--expanded' : ''}`}>
     <div className="scene-preview-camera" aria-label="Камера 3D">
-      {[['overview', 'Обзор'], ['isometric', 'Изометрия'], ['top', 'Сверху']].map(([key, label]) =>
+      {[['detail', 'Вблизи'], ['overview', 'Обзор'], ['isometric', 'Изометрия'], ['top', 'Сверху']].map(([key, label]) =>
         <button key={key} type="button" aria-pressed={preset === key} onClick={() => setPreset(key)}>{label}</button>)}
       <button type="button" onClick={() => setExpanded((value) => !value)}
         aria-label={expanded ? 'Закрыть полноэкранную 3D-сцену' : 'Развернуть 3D-сцену'}>

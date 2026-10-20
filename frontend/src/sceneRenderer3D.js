@@ -238,12 +238,16 @@ export class SceneRenderer3D {
     const { width_m: w, length_m: l } = scene.bounds;
     const center = worldToGltf([w / 2, l / 2, 0]);
     const span = Math.max(w, l);
-    const camera = preset === 'top' ? [center[0], span * 1.05, center[2] + .01]
+    const focalPoint = preset === 'detail'
+      ? worldToGltf(pose ? [pose[0], pose[1], 1.2] : [w * .34, l * .48, 1.2]) : center;
+    const camera = preset === 'detail'
+      ? [focalPoint[0] + Math.min(13, w * .27), 8.5, focalPoint[2] + Math.min(14, l * .38)]
+      : preset === 'top' ? [center[0], span * 1.05, center[2] + .01]
       : preset === 'overview' ? [center[0] + span * .39, span * .51, center[2] + span * .81]
         : [center[0] + span * .60, span * .60, center[2] + span * .67];
     const projection = mat4Perspective(width / height < 1.2 ? Math.PI / 3.1 : Math.PI / 4.2,
       width / height, .1, span * 5);
-    this.viewProjection = mat4Multiply(projection, mat4LookAt(camera, center));
+    this.viewProjection = mat4Multiply(projection, mat4LookAt(camera, focalPoint));
     gl.uniformMatrix4fv(this.loc.uViewProjection, false, this.viewProjection);
     gl.uniform3fv(this.loc.uCamera, camera);
     const identity = mat4Model([0, 0, 0], [1, 1, 1]);
