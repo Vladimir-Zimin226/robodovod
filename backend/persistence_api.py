@@ -127,12 +127,12 @@ class RegisterRequest(Credentials):
             raise ValueError("Имя должно содержать от 1 до 200 символов") from exc
 
 
-PRIVACY_POLICY_VERSION = "privacy-draft-2026-10-20"
+PRIVACY_POLICY_VERSION = "robodovod-privacy-v1-2026-10-20"
 
 
 class PublicRegisterRequest(RegisterRequest):
     privacy_consent: Literal[True]
-    privacy_policy_version: Literal["privacy-draft-2026-10-20"]
+    privacy_policy_version: Literal["robodovod-privacy-v1-2026-10-20"]
 
 
 class AdminCreateUserRequest(RegisterRequest):

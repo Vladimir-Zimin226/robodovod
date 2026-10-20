@@ -69,7 +69,7 @@ def test_preview_save_reopen_exports_history_and_independent_cashflow_matrix(act
     snapshot = ActivatedCatalogRepository(activated_actual_catalog, 'capacity').load()
     with TestClient(main.app) as client:
         # Each parametrized path owns a new local user; the production API is never opened.
-        registration = client.post('/api/auth/register', json={'email':f'chain-{profile}-{uuid.uuid4()}@example.com','password':'local acceptance passphrase','name':'Acceptance','privacy_consent':True,'privacy_policy_version':'privacy-draft-2026-10-20'})
+        registration = client.post('/api/auth/register', json={'email':f'chain-{profile}-{uuid.uuid4()}@example.com','password':'local acceptance passphrase','name':'Acceptance','privacy_consent':True,'privacy_policy_version':'robodovod-privacy-v1-2026-10-20'})
         assert registration.status_code == 201
         headers = {'X-CSRF-Token':registration.json()['csrf_token']}
         project = client.post('/api/projects', headers=headers, json={'name':f'Acceptance {profile}'}).json()

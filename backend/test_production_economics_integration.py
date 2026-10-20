@@ -110,7 +110,7 @@ def _register(client: TestClient) -> tuple[dict, dict[str, str]]:
         json={
             "email": "actual-catalog-acceptance@example.com",
             "password": PASSWORD,
-            "name": "Production acceptance", "privacy_consent": True, "privacy_policy_version": "privacy-draft-2026-10-20",
+            "name": "Production acceptance", "privacy_consent": True, "privacy_policy_version": "robodovod-privacy-v1-2026-10-20",
         },
     )
     assert response.status_code == 201, response.text

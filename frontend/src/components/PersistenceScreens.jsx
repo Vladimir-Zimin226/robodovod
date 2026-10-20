@@ -22,7 +22,7 @@ export function AuthScreen({ user, initialMode = 'login', onAuthenticated, onLog
         body: JSON.stringify(mode === 'login'
           ? { email: form.email, password: form.password }
           : { email: form.email, password: form.password, ...(form.name.trim() ? { name: form.name.trim() } : {}),
-              privacy_consent: privacyConsent, privacy_policy_version: 'privacy-draft-2026-10-20' }),
+              privacy_consent: privacyConsent, privacy_policy_version: 'robodovod-privacy-v1-2026-10-20' }),
       });
       onAuthenticated(payload.user, payload.csrf_token);
     } catch (err) {

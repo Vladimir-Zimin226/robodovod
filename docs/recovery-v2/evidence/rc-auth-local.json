@@ -1,0 +1,10 @@
+{
+  "source": "LOCAL_FASTAPI_PUBLISHED_BUNDLE_POSTGRESQL",
+  "production_verified": false,
+  "old_policy_status": 422,
+  "missing_consent_status": 422,
+  "registration_status": 201,
+  "consent_version": "robodovod-privacy-v1-2026-10-20",
+  "logout_status": 204,
+  "login_status": 200
+}
