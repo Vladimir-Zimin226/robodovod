@@ -1,0 +1,174 @@
+"""Record genuine WebGL/2D playback frames from the local recovery browser harness.
+
+The harness substitutes a synthetic server route. The resulting video explicitly says so;
+it is visual evidence of playback, never production catalog acceptance.
+"""
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import io
+import json
+import subprocess
+import tempfile
+import time
+from pathlib import Path
+
+import requests
+import websocket
+from PIL import Image, ImageDraw, ImageFont
+
+
+ROOT = Path(__file__).resolve().parents[2]
+OUTPUT = ROOT / "frontend/public/demo/trailer"
+EVIDENCE = ROOT / "docs/recovery-v2/evidence"
+FONT = ROOT / "backend/calculation/assets/DejaVuSans.ttf"
+FPS = 10
+DURATION = 6
+SCENES = (("warehouse", "СКЛАД", "Внутренняя логистика"),
+          ("airport", "АЭРОПОРТ", "Багаж и наземная логистика"),
+          ("clinic", "КЛИНИКА", "Внутрибольничная доставка"))
+
+
+class Browser:
+    def __init__(self):
+        pages = requests.get("http://127.0.0.1:9225/json/list", timeout=5).json()
+        page = next(p for p in pages if p.get("type") == "page"
+                    and "/qa/recovery/index.html" in p.get("url", ""))
+        self.ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=15,
+                                              suppress_origin=True)
+        self.sequence = 0
+
+    def call(self, method, params=None):
+        self.sequence += 1
+        request_id = self.sequence
+        self.ws.send(json.dumps({"id": request_id, "method": method, "params": params or {}}))
+        while True:
+            response = json.loads(self.ws.recv())
+            if response.get("id") == request_id:
+                if "error" in response:
+                    raise RuntimeError(response["error"])
+                return response.get("result", {})
+
+    def evaluate(self, expression):
+        result = self.call("Runtime.evaluate", {"expression": expression, "returnByValue": True})
+        return result["result"].get("value")
+
+    def screenshot(self):
+        encoded = self.call("Page.captureScreenshot", {"format": "png",
+                            "captureBeyondViewport": False})["data"]
+        return Image.open(io.BytesIO(base64.b64decode(encoded))).convert("RGB")
+
+
+def crop(image, box):
+    x, y, w, h = box
+    return image.crop((round(x), round(y), round(x+w), round(y+h)))
+
+
+def compose(image, geometry, kind, title, subtitle, pose, frame_no):
+    stage = crop(image, geometry["stage"])
+    plan = crop(image, geometry["plan"])
+    canvas = Image.new("RGB", (1280, 720), "#07131e")
+    draw = ImageDraw.Draw(canvas)
+    draw.rounded_rectangle((26, 22, 1254, 698), radius=24, fill="#102231", outline="#2d5366", width=2)
+    stage.thumbnail((900, 545), Image.Resampling.LANCZOS)
+    canvas.paste(stage, (47+(900-stage.width)//2, 100+(545-stage.height)//2))
+    draw.rounded_rectangle((967, 104, 1229, 330), radius=12, fill="#dfebec")
+    plan.thumbnail((252, 210), Image.Resampling.LANCZOS)
+    canvas.paste(plan, (972+(252-plan.width)//2, 111+(210-plan.height)//2))
+    draw.text((49, 36), "РОБОДОВОД  /  " + title, font=ImageFont.truetype(FONT, 31), fill="#f3fbfa")
+    draw.text((970, 348), "2D · тот же маршрут", font=ImageFont.truetype(FONT, 17), fill="#b1d9e6")
+    draw.text((970, 405), subtitle, font=ImageFont.truetype(FONT, 17), fill="#e3f3f2")
+    draw.text((970, 460), f"Поза: {pose or 'ожидание'}", font=ImageFont.truetype(FONT, 15), fill="#8fdad5")
+    draw.text((49, 661), "Локальная демо-сцена · маршрут API синтетический · каталог production не проверен",
+              font=ImageFont.truetype(FONT, 15), fill="#a9c4cd")
+    draw.rectangle((49, 642, 49 + round(1170*(frame_no+1)/(FPS*DURATION*len(SCENES))), 645), fill="#53d4c1")
+    return canvas
+
+
+def main():
+    OUTPUT.mkdir(parents=True, exist_ok=True)
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    (OUTPUT / "frames").mkdir(exist_ok=True)
+    browser = Browser()
+    poses = {}
+    try:
+        with tempfile.TemporaryDirectory(prefix="robodovod-motion-") as tmp:
+            frames = Path(tmp)
+            count = 0
+            for scene_index, (kind, title, subtitle) in enumerate(SCENES, 1):
+                browser.call("Page.navigate", {"url":
+                             f"http://127.0.0.1:4175/qa/recovery/index.html?kind={kind}"})
+                deadline = time.monotonic()+30
+                while time.monotonic() < deadline:
+                    if browser.evaluate("document.querySelector('[data-glb-status]')?.dataset.glbStatus") == "READY" \
+                            and browser.evaluate("new URLSearchParams(location.search).get('kind')") == kind:
+                        break
+                    time.sleep(.2)
+                else:
+                    raise RuntimeError(f"{kind}: 3D assets did not load")
+                browser.evaluate("document.querySelector('.scene-sim-controls button[type=submit]').click()")
+                deadline = time.monotonic()+10
+                while time.monotonic() < deadline:
+                    if browser.evaluate("Boolean(document.querySelector('.scene-playback-controls'))"):
+                        break
+                    time.sleep(.1)
+                else:
+                    raise RuntimeError(f"{kind}: playback did not start")
+                geometry = browser.evaluate("JSON.stringify(Object.fromEntries([['stage','.scene-preview-3d'],['plan','.scene-preview-plan']].map(([name, selector]) => {const r=document.querySelector(selector).getBoundingClientRect();return [name,[r.x,r.y,r.width,r.height]]})))")
+                geometry = json.loads(geometry)
+                scene_poses = []
+                next_frame = time.monotonic()
+                for scene_frame in range(FPS*DURATION):
+                    pose = browser.evaluate("document.querySelector('#recovery-pose')?.textContent")
+                    scene_poses.append(pose)
+                    frame = compose(browser.screenshot(), geometry, kind, title, subtitle, pose, count)
+                    frame.save(frames / f"frame-{count:04d}.png", optimize=False)
+                    if scene_frame == FPS:
+                        frame.save(OUTPUT / "frames" / f"chapter-{scene_index}.jpg", quality=85)
+                    if count == 12:
+                        frame.save(OUTPUT / "robodovod-trailer-poster.jpg", quality=88)
+                    count += 1
+                    next_frame += 1/FPS
+                    if next_frame > time.monotonic():
+                        time.sleep(next_frame-time.monotonic())
+                poses[kind] = {"first": scene_poses[0], "last": scene_poses[-1],
+                               "distinct": len(set(scene_poses))}
+                if poses[kind]["distinct"] < 3:
+                    raise RuntimeError(f"{kind}: robot did not visibly move")
+                print(f"{kind}: {poses[kind]}", flush=True)
+            master = OUTPUT / "robodovod-trailer-master-1080p.mp4"
+            web = OUTPUT / "robodovod-trailer-web-720p.mp4"
+            preview = OUTPUT / "robodovod-trailer-preview-720p.mp4"
+            base = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-framerate", str(FPS), "-i", str(frames / "frame-%04d.png")]
+            subprocess.run([*base, "-vf", "scale=1920:1080:flags=lanczos,fps=30", "-c:v", "libx264",
+                            "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
+                            "-movflags", "+faststart", "-an", str(master)], check=True)
+            subprocess.run([*base, "-vf", "fps=30", "-c:v", "libx264", "-preset", "veryfast",
+                            "-crf", "25", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+                            "-an", str(web)], check=True)
+            subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(web),
+                            "-c", "copy", str(preview)], check=True)
+    finally:
+        browser.ws.close()
+    vtt = ["WEBVTT", ""]
+    for index, (_, title, subtitle) in enumerate(SCENES):
+        start, end = index*DURATION, (index+1)*DURATION
+        vtt += [f"00:00:{start:02d}.000 --> 00:00:{end:02d}.000",
+                f"{title}. {subtitle}. Синтетический результат API в локальной демонстрации.", ""]
+    (OUTPUT / "robodovod-trailer.ru.vtt").write_text("\n".join(vtt), encoding="utf-8")
+    manifest = {"status": "LOCAL_WEBGL_PLAYBACK_SYNTHETIC_API", "audio": "NONE_SILENT",
+                "duration_s": DURATION*len(SCENES), "fps_capture": FPS,
+                "scene_asset_manifest": "scene-assets/recovery-manifest.json",
+                "master": master.name, "web": web.name, "preview": preview.name,
+                "poses": poses,
+                "sha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                           for p in (master, web, preview)}}
+    (OUTPUT / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Motion trailer: {master.stat().st_size} bytes master, {web.stat().st_size} bytes web")
+
+
+if __name__ == "__main__":
+    main()

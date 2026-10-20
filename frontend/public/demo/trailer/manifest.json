@@ -1,64 +1,32 @@
 {
-  "status": "RUNTIME_CAPTURE_EDIT",
+  "status": "LOCAL_WEBGL_PLAYBACK_SYNTHETIC_API",
   "audio": "NONE_SILENT",
-  "duration_s": 180,
+  "duration_s": 18,
+  "fps_capture": 10,
+  "scene_asset_manifest": "scene-assets/recovery-manifest.json",
   "master": "robodovod-trailer-master-1080p.mp4",
   "web": "robodovod-trailer-web-720p.mp4",
   "preview": "robodovod-trailer-preview-720p.mp4",
-  "sections": [
-    {
-      "chapter": 1,
-      "kind": "warehouse",
-      "view": "3d",
-      "start_s": 0,
-      "duration_s": 30,
-      "runtime_capture": "docs/planning/assets/trailer-frames/warehouse-3d.png",
-      "sha256": "9ceab3303011f05c2a981cbbca5c656a00ed79c3fea40553e201784b1e9bd092"
+  "poses": {
+    "warehouse": {
+      "first": "11.16, 34.00, 0.00",
+      "last": "49.65, 34.00, 0.00",
+      "distinct": 60
     },
-    {
-      "chapter": 2,
-      "kind": "warehouse",
-      "view": "2d",
-      "start_s": 30,
-      "duration_s": 30,
-      "runtime_capture": "docs/planning/assets/trailer-frames/warehouse-2d.png",
-      "sha256": "8b8dddb6631b8fe395133aace0b0ebce743ac4cbe0a68e4252641afb6534aff4"
+    "airport": {
+      "first": "17.00, 23.06, 1.57",
+      "last": "39.89, 29.00, 0.00",
+      "distinct": 60
     },
-    {
-      "chapter": 3,
-      "kind": "airport",
-      "view": "3d",
-      "start_s": 60,
-      "duration_s": 30,
-      "runtime_capture": "docs/planning/assets/trailer-frames/airport-3d.png",
-      "sha256": "b663d3a1948070f2c6364e650f82b9707f8c01f2d42c9e6b97f6779b546858f3"
-    },
-    {
-      "chapter": 4,
-      "kind": "airport",
-      "view": "2d",
-      "start_s": 90,
-      "duration_s": 30,
-      "runtime_capture": "docs/planning/assets/trailer-frames/airport-2d.png",
-      "sha256": "a0c0f8088f3f2ebf414c03cffa29b68c5a8109bd22a2a483178ad690d4722f84"
-    },
-    {
-      "chapter": 5,
-      "kind": "clinic",
-      "view": "3d",
-      "start_s": 120,
-      "duration_s": 30,
-      "runtime_capture": "docs/planning/assets/trailer-frames/clinic-3d.png",
-      "sha256": "0d6251027191538e02ed9c56df1785790a01b4eaf61fddad5186a4013e72813c"
-    },
-    {
-      "chapter": 6,
-      "kind": "clinic",
-      "view": "2d",
-      "start_s": 150,
-      "duration_s": 30,
-      "runtime_capture": "docs/planning/assets/trailer-frames/clinic-2d.png",
-      "sha256": "1a60caac71f4719c7767af1918451ad383a3d913a16b852b9819882e577d2c14"
+    "clinic": {
+      "first": "7.02, 14.00, 0.00",
+      "last": "34.77, 14.00, 0.00",
+      "distinct": 60
     }
-  ]
+  },
+  "sha256": {
+    "robodovod-trailer-master-1080p.mp4": "566a91da0e1dd4308dc373ee2baa5f29c68a186c599a07bc38b2569a3fd48b0c",
+    "robodovod-trailer-web-720p.mp4": "a57d3b116504f40e31936399cc195f057dc1b2da09cd7da498d92c89e102a658",
+    "robodovod-trailer-preview-720p.mp4": "a57d3b116504f40e31936399cc195f057dc1b2da09cd7da498d92c89e102a658"
+  }
 }
