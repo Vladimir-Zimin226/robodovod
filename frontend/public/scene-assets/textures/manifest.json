@@ -1,0 +1,22 @@
+{
+  "schema_version": "recovery-scene-textures-v1",
+  "source": "OpenAI built-in imagegen, generated for ROBODOVOD on 2026-10-20",
+  "usage": "Albedo textures for the live WebGL floor only; scene geometry, collision, robot pose and economics remain calculated separately.",
+  "mapping": "World-space mirrored repeat, 7 m tile; no UV or normal map is claimed.",
+  "assets": [
+    {
+      "file": "concrete-v1.png",
+      "scene_ids": ["warehouse", "airport"],
+      "bytes": 3915571,
+      "sha256": "647d56c8e526764e9850b59f106fb1c7c10e1d0bb5469c4217c440a62467d8af",
+      "prompt": "Photographic seamless square PBR albedo texture, orthographic top-down polished warehouse concrete floor, subtle fine mineral aggregate and wear, even diffuse light, no shadows, no objects, no text, four edges tile seamlessly."
+    },
+    {
+      "file": "clinic-terrazzo-v1.png",
+      "scene_ids": ["clinic"],
+      "bytes": 2920264,
+      "sha256": "b5443cc04728ff548e040e268495e0a1aa4f8313631e9fda00a4a76f331acc0b",
+      "prompt": "Perfectly top-down square photograph of clean light warm-gray hospital terrazzo/medical linoleum with extremely fine pale mineral specks and subtle polished wear; seamless tile on all edges; neutral flat diffuse light, orthographic, no reflections or shadows, no objects, no lines, no text."
+    }
+  ]
+}

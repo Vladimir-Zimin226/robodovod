@@ -45,6 +45,19 @@ test('thirteen original Blender assets decode, retain detail and match their pro
   }
 });
 
+test('three scene floor textures are present and match the generated asset manifest', async () => {
+  const root = new URL('../public/scene-assets/textures/', import.meta.url);
+  const manifest = JSON.parse(await readFile(new URL('manifest.json', root), 'utf8'));
+  assert.equal(manifest.assets.length, 2);
+  assert.deepEqual(new Set(manifest.assets.flatMap((asset) => asset.scene_ids)),
+    new Set(['warehouse', 'airport', 'clinic']));
+  for (const asset of manifest.assets) {
+    const bytes = await readFile(new URL(asset.file, root));
+    assert.equal(bytes.length, asset.bytes);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), asset.sha256);
+  }
+});
+
 test('3D mesh axes use the same one-time world-to-glTF conversion as scene coordinates', () => {
   const triangle = [{ vertices: new Float32Array([
     1, 2, 3, 0, 0, 1, 2, 2, 3, 0, 0, 1, 1, 3, 3, 0, 0, 1,

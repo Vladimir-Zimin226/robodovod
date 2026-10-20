@@ -35,6 +35,8 @@ uniform float uAlpha;
 uniform float uFloor;
 uniform float uShadow;
 uniform float uSurface;
+uniform sampler2D uFloorMap;
+uniform float uFloorMapActive;
 const float PI = 3.14159265;
 float stipple(vec2 point) {
   return fract(sin(dot(floor(point), vec2(127.1, 311.7))) * 43758.5453);
@@ -47,6 +49,10 @@ void main() {
   vec3 base = uColor;
   float surfaceRoughness = uRoughness;
   if (uFloor > .5) {
+    if (uFloorMapActive > .5) {
+      vec2 tileUV = 1.0 - abs(fract(vPosition.xz / 7.0) * 2.0 - 1.0);
+      base = mix(base, texture2D(uFloorMap, tileUV).rgb, .68);
+    }
     float tile = max(step(.985, fract(abs(vPosition.x) / 5.0)), step(.985, fract(abs(vPosition.z) / 5.0)));
     float aggregate = stipple(vPosition.xz * 2.0);
     float micro = stipple(vPosition.xz * 14.0);
@@ -155,6 +161,13 @@ export async function loadSceneMeshes(scene, fetcher = fetch) {
   return Object.fromEntries(entries);
 }
 
+export async function loadSceneFloorTexture(scene, fetcher = fetch) {
+  const file = scene.scene_id === 'clinic' ? 'clinic-terrazzo-v1.png' : 'concrete-v1.png';
+  const response = await fetcher(`/scene-assets/textures/${file}`);
+  if (!response.ok) throw new Error(`Floor texture ${file}: HTTP ${response.status}`);
+  return createImageBitmap(await response.blob());
+}
+
 function plane(vertices, normal = [0, 1, 0]) {
   const result = [];
   for (const point of vertices) result.push(...point, ...normal);
@@ -218,7 +231,8 @@ export class SceneRenderer3D {
     this.program = program;
     gl.useProgram(program);
     this.loc = Object.fromEntries(['aPosition', 'aNormal', 'uModel', 'uViewProjection', 'uColor',
-      'uCamera', 'uMetallic', 'uRoughness', 'uEmission', 'uAlpha', 'uFloor', 'uShadow', 'uSurface'].map((name) =>
+      'uCamera', 'uMetallic', 'uRoughness', 'uEmission', 'uAlpha', 'uFloor', 'uShadow',
+      'uSurface', 'uFloorMap', 'uFloorMapActive'].map((name) =>
       [name, name.startsWith('a') ? gl.getAttribLocation(program, name) : gl.getUniformLocation(program, name)]));
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
@@ -245,6 +259,20 @@ export class SceneRenderer3D {
     }]));
   }
 
+  setFloorTexture(bitmap) {
+    const gl = this.gl;
+    if (this.floorTexture) gl.deleteTexture(this.floorTexture);
+    this.floorTexture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.floorTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bitmap);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    bitmap.close?.();
+  }
+
   draw(mesh, model, color, metallic = 0, roughness = .85, emission = 0, alpha = 1, floor = 0, mode = this.gl.TRIANGLES, shadow = 0, surface = 0) {
     const gl = this.gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
@@ -261,6 +289,7 @@ export class SceneRenderer3D {
     gl.uniform1f(this.loc.uFloor, floor);
     gl.uniform1f(this.loc.uShadow, shadow);
     gl.uniform1f(this.loc.uSurface, surface);
+    gl.uniform1f(this.loc.uFloorMapActive, floor && this.floorTexture ? 1 : 0);
     gl.drawArrays(mode, 0, mesh.count);
   }
 
@@ -289,6 +318,9 @@ export class SceneRenderer3D {
     this.viewProjection = mat4Multiply(projection, mat4LookAt(camera, focalPoint));
     gl.uniformMatrix4fv(this.loc.uViewProjection, false, this.viewProjection);
     gl.uniform3fv(this.loc.uCamera, camera);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.floorTexture || null);
+    gl.uniform1i(this.loc.uFloorMap, 0);
     const identity = mat4Model([0, 0, 0], [1, 1, 1]);
     const floor = this.upload(plane([[0, -.025, 0], [w, -.025, 0], [w, -.025, -l],
       [0, -.025, 0], [w, -.025, -l], [0, -.025, -l]]));
@@ -413,6 +445,7 @@ export class SceneRenderer3D {
 
   dispose() {
     this.buffers.forEach((buffer) => this.gl.deleteBuffer(buffer));
+    if (this.floorTexture) this.gl.deleteTexture(this.floorTexture);
     this.gl.deleteProgram(this.program);
   }
 }

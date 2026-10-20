@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildSceneViews, isoProjection, sceneForKind, sceneWithSimulation, topProjection } from '../sceneModel.js';
-import { loadSceneMeshes, SceneRenderer3D } from '../sceneRenderer3D.js';
+import { loadSceneFloorTexture, loadSceneMeshes, SceneRenderer3D } from '../sceneRenderer3D.js';
 
 const COLORS = { CHARGE: '#17a579', PICKUP: '#e8a52c', DROPOFF: '#d65b65', SHARED_LANE: '#8257bd' };
 const SCENE_NAMES = { warehouse: 'Склад', airport: 'Аэропорт', clinic: 'Клиника' };
@@ -84,20 +84,21 @@ function ThreeView({ scene, view, pose }) {
   const renderer = useRef(null);
   const [preset, setPreset] = useState('detail');
   const [expanded, setExpanded] = useState(false);
-  const [load, setLoad] = useState({ scene: null, ready: false, error: '' });
+  const [load, setLoad] = useState({ scene: null, ready: false, floor: false, error: '' });
   const ready = load.scene === scene && load.ready;
   const fallback = load.scene === scene ? load.error : '';
   useEffect(() => {
     let active = true;
     try {
       renderer.current = new SceneRenderer3D(canvas.current);
-      loadSceneMeshes(scene).then((meshes) => {
+      Promise.all([loadSceneMeshes(scene), loadSceneFloorTexture(scene).catch(() => null)]).then(([meshes, floor]) => {
         if (!active) return;
         renderer.current.setMeshes(meshes);
-        setLoad({ scene, ready: true, error: '' });
-      }).catch((error) => { if (active) setLoad({ scene, ready: false, error: error.message }); });
+        if (floor) renderer.current.setFloorTexture(floor);
+        setLoad({ scene, ready: true, floor: Boolean(floor), error: '' });
+      }).catch((error) => { if (active) setLoad({ scene, ready: false, floor: false, error: error.message }); });
     } catch (error) {
-      queueMicrotask(() => { if (active) setLoad({ scene, ready: false, error: error.message }); });
+      queueMicrotask(() => { if (active) setLoad({ scene, ready: false, floor: false, error: error.message }); });
     }
     return () => { active = false; renderer.current?.dispose(); renderer.current = null; };
   }, [scene]);
@@ -131,7 +132,8 @@ function ThreeView({ scene, view, pose }) {
       data-instance-ids={ids(scene.objects, 'instance_id')}
       data-zone-ids={ids(scene.zones, 'zone_id')}
       data-route-ids={ids(scene.routes, 'route_id')}
-      data-glb-status={fallback ? 'FALLBACK' : ready ? 'READY' : 'LOADING'} />
+      data-glb-status={fallback ? 'FALLBACK' : ready ? 'READY' : 'LOADING'}
+      data-floor-texture-status={ready ? load.floor ? 'READY' : 'FALLBACK' : 'LOADING'} />
     {pose && ready && <span ref={poseBadge} className="scene-robot-badge" aria-label="Положение движущегося робота в 3D">Робот</span>}
     {fallback && <div className="scene-preview-fallback"><p>3D недоступно: {fallback}. Схема ниже сохраняет те же координаты.</p>
       <IsoView scene={scene} view={view} /></div>}

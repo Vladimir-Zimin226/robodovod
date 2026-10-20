@@ -54,11 +54,12 @@ for kind in ("warehouse", "airport", "clinic"):
     while time.monotonic() < deadline:
         ready = evaluate("document.querySelector('[data-glb-status]')?.dataset.glbStatus")
         current_kind = evaluate("new URLSearchParams(location.search).get('kind')")
-        if ready == "READY" and current_kind == kind:
+        floor = evaluate("document.querySelector('[data-floor-texture-status]')?.dataset.floorTextureStatus")
+        if ready == "READY" and floor == "READY" and current_kind == kind:
             break
         time.sleep(.25)
     else:
-        raise RuntimeError(f"{kind}: GLB did not load")
+        raise RuntimeError(f"{kind}: GLB or floor texture did not load")
     evaluate("document.querySelector('.scene-sim-controls button[type=submit]').click()")
     deadline = time.monotonic() + 10
     while time.monotonic() < deadline:

@@ -57,6 +57,20 @@ def cyl(name, center, radius, depth, mat, vertices=20, rotation=(0, 0, 0)):
     return ob
 
 
+def sign(text, center, size, mat):
+    bpy.ops.object.text_add(location=center, rotation=(pi/2, 0, 0))
+    ob = bpy.context.object
+    ob.name = f'Sign {text}'
+    ob.data.body = text
+    ob.data.size = size
+    ob.data.align_x = 'CENTER'
+    ob.data.align_y = 'CENTER'
+    ob.data.extrude = .002
+    ob.data.materials.append(mat)
+    bpy.ops.object.convert(target='MESH')
+    return bpy.context.object
+
+
 def export(name):
     bpy.ops.object.select_all(action='SELECT')
     for ob in bpy.context.selected_objects:
@@ -226,7 +240,7 @@ def shell(width, length, height, wall, trim, bay, title):
     cube('Roof edge beam side', (.58, length/2, height-.05), (.56, length, .28), steel, .02)
     if title == 'hero_warehouse_shell':
         # Dock bays, loading shutters and practical safety hardware on the rear wall.
-        for x in (8, 23, 38, 53):
+        for dock, x in enumerate((8, 23, 38, 53), 1):
             cube('Dock shutter recessed frame', (x, length-.72, 2.65), (6.7, .14, 5.10), steel, .035)
             cube('Dock shutter steel face', (x, length-.80, 2.64), (6.17, .05, 4.68), steel_light, .015)
             for z in (1.12, 1.84, 2.56, 3.28, 4.00):
@@ -235,15 +249,17 @@ def shell(width, length, height, wall, trim, bay, title):
                 cube('Dock black rubber bumper', (x+dx, length-.92, .75), (.27, .25, 1.48), rubber, .025)
                 cube('Dock hazard marker', (x+dx, length-1.08, 1.52), (.22, .02, .16), yellow, .005)
             cube('Dock number lightbox', (x, length-.97, 5.48), (1.2, .12, .42), yellow, .035)
+            sign(f'{dock:02d}', (x, length-1.055, 5.48), .26, dark_trim)
             cube('Dock platform lip', (x, length-1.12, .19), (6.5, .85, .37), concrete, .035)
         for x in range(5, 59, 10):
             cyl('Overhead fire sprinkler head', (x, length*.65, height-.54), .11, .12, red, 12)
     elif title == 'hero_airport_shell':
         # Distinct baggage hall: blue airline bays, roller reclaim, columns and signs.
-        for x in (9, 28, 47, 66):
+        for bay_number, x in enumerate((9, 28, 47, 66), 1):
             cube('Baggage bay portal', (x, length-.83, 2.50), (10.2, .13, 4.72), steel_light, .07)
             cube('Baggage bay opening', (x, length-.92, 2.38), (9.42, .04, 4.13), airport_belt, .035)
             cube('Baggage gate header', (x, length-1.06, 4.62), (9.3, .18, .58), poster_blue, .035)
+            sign(f'BAGGAGE {bay_number:02d}', (x, length-1.18, 4.62), .29, white)
             cube('Baggage bay rubber curtain', (x, length-1.12, 2.11), (8.9, .06, .14), rubber)
             for dx in (-4, -2, 0, 2, 4):
                 cube('Hanging gate slat', (x+dx, length-1.15, 3.35), (.045, .07, 1.50), rubber)
@@ -260,12 +276,13 @@ def shell(width, length, height, wall, trim, bay, title):
                 cube('Wayfinding hanger', (x+dx, length*.68, height-.53), (.04, .04, .70), steel_light)
     elif title == 'hero_clinic_shell':
         # Corridor furniture and recognisable treatment-room doors remain outside the route.
-        for x in (5, 12, 19, 26, 33, 40):
+        for room, x in enumerate((5, 12, 19, 26, 33, 40), 1):
             cube('Treatment room frame', (x, length-.67, 1.55), (2.2, .13, 3.1), door_silver, .035)
             cube('Treatment room blue door', (x, length-.76, 1.49), (1.89, .07, 2.88), blue, .035)
             cube('Door observation window', (x+.45, length-.81, 1.96), (.43, .025, .58), glass, .014)
             cube('Door pull plate', (x-.60, length-.84, 1.35), (.08, .035, .31), steel_light, .011)
             cube('Room number plaque', (x, length-.86, 3.47), (1.20, .07, .30), poster_blue, .015)
+            sign(f'WARD {room:02d}', (x, length-.92, 3.47), .18, white)
             cube('Wall mounted sanitizer', (x+1.49, length-.72, 1.37), (.19, .20, .34), white, .045)
         for y in (4, 11, 18, 25):
             cube('Wall protection rail', (.71, y, .83), (.16, 5.5, .16), door_silver, .028)
