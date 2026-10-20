@@ -1,6 +1,7 @@
 """Investment report contract shared by preview and guest PDF."""
 
 from copy import deepcopy
+from decimal import Decimal
 from io import BytesIO
 import re
 import base64
@@ -24,6 +25,11 @@ def pdf_text(data):
     return re.sub(r"\s+", " ", " ".join(page.extract_text() for page in PdfReader(BytesIO(data)).pages))
 
 
+def has_displayed_number(text, value):
+    numbers = re.findall(r"-?\d(?:[\d ]*\d)?(?:[.,]\d+)?", text)
+    return Decimal(str(value)) in {Decimal(item.replace(" ", "").replace(",", ".")) for item in numbers}
+
+
 @pytest.mark.parametrize("kind", ["WAREHOUSE", "AIRPORT", "CLINIC"])
 def test_object_report_view_pdf_has_same_numbers_a4_tables_charts_and_sources(kind):
     value = raw(kind)
@@ -43,17 +49,19 @@ def test_object_report_view_pdf_has_same_numbers_a4_tables_charts_and_sources(ki
     assert view["executive_conclusion"] in extracted
     assert view["catalog_version"] in extracted
     assert "Работа" in extracted and "Доля ФОТ" in extracted
-    assert "Год 10" in extracted and "Waterfall" in extracted
+    assert "Год 10" in extracted and "Разложение дисконтированного NPV" in extracted
     assert "Демонстрационная геометрия" in extracted
+    assert "SHARED_EDGE_QUEUE_NOT_MODELED" not in extracted
     for mode in ("purchase", "raas"):
         money = view["economics"][mode]
-        assert money["npv_rub"] in extracted
-        assert money["capex_rub"] in extracted
-        assert money["horizons"][0]["npv_rub"] in extracted
-        assert money["horizons"][1]["npv_rub"] in extracted
+        assert has_displayed_number(extracted, money["npv_rub"])
+        assert has_displayed_number(extracted, money["capex_rub"])
+        assert has_displayed_number(extracted, money["horizons"][0]["npv_rub"])
+        assert has_displayed_number(extracted, money["horizons"][1]["npv_rub"])
     assert len(view["works"]) == sum(len(role["works"]) for role in report["roles"])
     assert len(view["sources"]) == len(view["works"])
-    assert "ИСТОЧНИКИ · ПРОДОЛЖЕНИЕ" in pdf.pages[-1].extract_text()
+    assert "Источники и происхождение чисел" in extracted
+    assert all(page.extract_text().strip() for page in pdf.pages)
 
 
 def test_missing_price_stays_unknown_in_warehouse_report_and_pdf():
@@ -86,7 +94,7 @@ def test_guest_pdf_recalculates_same_report_view_as_preview(kind):
     assert response.status_code == 200
     text = pdf_text(response.content)
     assert view["executive_conclusion"] in text
-    assert view["economics"]["purchase"]["npv_rub"] in text
+    assert has_displayed_number(text, view["economics"]["purchase"]["npv_rub"])
     assert value == original
 
 
@@ -103,7 +111,7 @@ def test_warehouse_guest_pdf_matches_preview_report_view():
     assert response.status_code == 200
     text = pdf_text(response.content)
     assert view["executive_conclusion"] in text
-    assert view["economics"]["purchase"]["npv_rub"] in text
+    assert has_displayed_number(text, view["economics"]["purchase"]["npv_rub"])
 
 
 def test_guest_pdf_includes_recomputed_what_if_without_changing_base():
@@ -124,8 +132,8 @@ def test_guest_pdf_includes_recomputed_what_if_without_changing_base():
     assert response.status_code == 200
     extracted = pdf_text(response.content)
     assert "Временная ветка" in extracted
-    assert base_view["economics"]["purchase"]["npv_rub"] in extracted
-    assert branch_view["economics"]["purchase"]["npv_rub"] in extracted
+    assert has_displayed_number(extracted, base_view["economics"]["purchase"]["npv_rub"])
+    assert has_displayed_number(extracted, branch_view["economics"]["purchase"]["npv_rub"])
     assert value == original
 
 

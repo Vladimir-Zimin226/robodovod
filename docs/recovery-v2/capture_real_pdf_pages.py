@@ -12,7 +12,7 @@ from pypdf import PdfReader
 
 OUT = Path(__file__).resolve().parent / "evidence"
 page = next(item for item in requests.get("http://127.0.0.1:9225/json/list", timeout=5).json()
-            if item.get("type") == "page" and ":4177/" in item.get("url", ""))
+            if item.get("type") == "page" and any(port in item.get("url", "") for port in (":4177/", ":4176/")))
 ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=20, suppress_origin=True)
 seq = 0
 
@@ -37,7 +37,7 @@ try:
         pdf = OUT / f"local-catalog-{kind}.pdf"
         count = len(PdfReader(pdf).pages)
         call("Page.navigate", {"url": f"http://127.0.0.1:4176/docs/recovery-v2/evidence/{pdf.name}"})
-        time.sleep(1.3)
+        time.sleep(2.0)
         thumbs = []
         for number in range(1, count + 1):
             call("Input.dispatchMouseEvent", {"type": "mousePressed", "x": 633, "y": 20,
@@ -49,7 +49,7 @@ try:
             call("Input.insertText", {"text": str(number)})
             call("Input.dispatchKeyEvent", {"type": "keyDown", "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13})
             call("Input.dispatchKeyEvent", {"type": "keyUp", "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13})
-            time.sleep(.4)
+            time.sleep(.8)
             target = OUT / f"local-catalog-{kind}-page{number}.png"
             target.write_bytes(base64.b64decode(call("Page.captureScreenshot", {"format": "png"})["data"]))
             thumb = Image.open(target).convert("RGB")

@@ -26,7 +26,8 @@ CASES = (("retail", "Оператор погрузчика", "warehouse"),
 class Browser:
     def __init__(self):
         pages = requests.get("http://127.0.0.1:9225/json/list", timeout=5).json()
-        page = next(p for p in pages if p.get("type") == "page" and ":4177/" in p.get("url", ""))
+        page = next(p for p in pages if p.get("type") == "page"
+                    and any(port in p.get("url", "") for port in (":4177/", ":4176/")))
         self.ws = websocket.create_connection(page["webSocketDebuggerUrl"], timeout=30,
                                               suppress_origin=True)
         self.seq = 0

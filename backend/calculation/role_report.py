@@ -15,7 +15,34 @@ from calculation.role_report_view import build_role_report_view
 
 
 def _known(value: Any, suffix: str = "") -> str:
-    return "Нужны данные" if value is None else f"{value}{suffix}"
+    if value is None:
+        return "Нужны данные"
+    try:
+        number = Decimal(str(value))
+    except InvalidOperation:
+        return f"{value}{suffix}"
+    if not number.is_finite():
+        return "Нужны данные"
+    pattern = ",.0f" if number == number.to_integral_value() else ",.2f"
+    return f"{format(number, pattern).replace(',', ' ').replace('.', ',')}{suffix}"
+
+
+FIT_LABELS = {"PASS": "пригодность по известным данным", "UNKNOWN": "паспортные данные не подтверждены",
+              "FAIL": "не подходит по известным ограничениям"}
+SIM_STATUS_LABELS = {"MODELED": "маршрут рассчитан", "CAPACITY_SHORTFALL": "мощности сценария недостаточно",
+                     "NO_ROUTE": "проезд между зонами невозможен", "NEEDS_INPUT": "нужны параметры"}
+SIM_FLAG_LABELS = {
+    "SHARED_EDGE_QUEUE_NOT_MODELED": "очереди на общих участках не рассчитаны",
+    "OTHER_SHARED_EDGES_NOT_MODELED": "прочие общие участки не рассчитаны",
+    "CHARGING_NOT_MODELED": "зарядка не моделируется",
+    "SAFETY_NOT_VERIFIED": "безопасность требует проверки",
+    "ROBOT_TTH_NOT_VERIFIED": "характеристики робота не подтверждены",
+    "SCENARIO_ROBOT_ONLY": "робот в маршруте сценарный",
+    "DEMAND_SAMPLED_FOR_GEOMETRY": "поток ограничен только для показа маршрута",
+    "CAPACITY_SHORTFALL": "производительности недостаточно",
+    "QUEUE_UNSTABLE": "очередь растёт в течение расчётного периода",
+    "NO_ROUTE": "проезд отсутствует",
+}
 
 
 def _cover_money(value: Any) -> str:
@@ -104,8 +131,8 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
         lines.extend([
             ((work["role"], work["headcount"], f"{work['volume_per_day']} {work['unit']}", work["fleet"]), "tablerow"),
             (f"Задача: {work['task']}; модель: {work['model'] or 'сценарный тип / не выбрана'}; "
-             f"ФОТ работодателя: {work['salary_rub_month']} ₽/мес.; "
-             f"физическая проверка: {_source_text(work['physical_fit'], 'не подтверждена')}.", "detail"),
+             f"ФОТ работодателя: {_known(work['salary_rub_month'])} ₽/мес.; "
+             f"физическая проверка: {FIT_LABELS.get(work['physical_fit'], 'не подтверждена')}.", "detail"),
         ])
         if work["safety_conditions"]:
             lines.append((f"Допуск не подтверждён: {work['safety_conditions']}", "note"))
@@ -114,8 +141,9 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
     if not view["simulations"]:
         lines.append(("Маршрутная симуляция не включена; выработка остаётся сценарной.", "body"))
     for sim in view["simulations"]:
-        lines.append((f"{sim['role']}. Маршрут: {sim['status']}; с грузом {_known(sim['distance_loaded_m'], ' м')}; пустой ход {_known(sim['distance_empty_m'], ' м')}; ожидание {_known(sim['time_wait_s'], ' с')}.", "body"))
-        lines.append((f"Цикл: {_known(sim['cycle_s'], ' с')}; парк после симуляции: {_known(sim['fleet_required'])}; флаги: {', '.join(sim['flags']) or 'нет'}.", "note"))
+        lines.append((f"{sim['role']}. Маршрут: {SIM_STATUS_LABELS.get(sim['status'], 'требует проверки')}; с грузом {_known(sim['distance_loaded_m'], ' м')}; пустой ход {_known(sim['distance_empty_m'], ' м')}; ожидание {_known(sim['time_wait_s'], ' с')}.", "body"))
+        limits = list(dict.fromkeys(SIM_FLAG_LABELS.get(flag, "требуется дополнительная проверка") for flag in sim["flags"]))
+        lines.append((f"Цикл: {_known(sim['cycle_s'], ' с')}; парк после симуляции: {_known(sim['fleet_required'])}; ограничения: {', '.join(limits) or 'не выявлены'}.", "note"))
         if sim["shared_lane"]:
             lane = sim["shared_lane"]
             lines.append((f"Узкий участок: ожидание {lane['mean_wait_s']} с; проездов {lane['events']}; пропускная способность {lane['capacity_per_hour']} рейсов/ч.", "note"))
@@ -135,10 +163,10 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
         ])
         for horizon in money["horizons"]:
             lines.append((f"{label}, {horizon['years']} лет: NPV {_known(horizon['npv_rub'])} руб.; ROI {_known(horizon['roi_percent'], '%')}.", "body"))
-    lines.append(("Waterfall: дисконтированные ступени NPV покупки", "section"))
+    lines.append(("Разложение дисконтированного NPV покупки", "section"))
     waterfall = view["waterfall"]
     if not waterfall:
-        lines.append(("Waterfall недоступен: нужны цена и ФОТ.", "note"))
+        lines.append(("Диаграмма недоступна: нужны цена и ФОТ.", "note"))
     else:
         extrema = [float(value) for row in waterfall for value in (row["start_rub"], row["end_rub"])]
         minimum, maximum = min(0, *extrema), max(0, *extrema)
@@ -150,9 +178,14 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
     for row in view["sensitivity"]:
         lines.append(((f"{float(row['labor_share']) * 100:.0f}%", _known(row["purchase_npv_rub"]),
                        _known(row["raas_npv_rub"]), f"{view['active_horizon_years']} лет"), "tablerow"))
-    lines.append(("Денежный поток: накопленный эффект, ₽", "section"))
+    purchase_flows = view["economics"]["purchase"]["cashflows"]
+    lines.extend([(95 + 36 * len(purchase_flows), "keep"),
+                  ("Денежный поток: накопленный эффект, ₽", "section")])
     for mode, label in (("purchase", "Покупка"), ("raas", "Аренда")):
         cashflows = view["economics"][mode]["cashflows"]
+        if mode == "raas":
+            lines.append((65 + 36 * len(cashflows), "keep"))
+            lines.append(("Денежный поток: продолжение", "section"))
         if not cashflows:
             lines.append((f"{label}: график недоступен, нужны цена или тариф.", "note"))
             continue

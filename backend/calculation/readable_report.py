@@ -236,6 +236,12 @@ def _pdf(lines: list[tuple[Any, str]]) -> bytes:
     cover = True
     table_header: tuple[Any, ...] | None = None
     for value, kind in lines:
+        if kind == "keep":
+            if y < float(value):
+                new_page()
+                cover = False
+                table_header = None
+            continue
         if kind == "page":
             new_page()
             cover = False
