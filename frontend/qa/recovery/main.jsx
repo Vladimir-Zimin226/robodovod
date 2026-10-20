@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import SceneModelPreview from '../../src/components/SceneModelPreview.jsx';
 import SceneSimulationControls from '../../src/components/SceneSimulationControls.jsx';
@@ -6,6 +6,7 @@ import paths from './paths.json';
 import '../../src/index.css';
 
 const kind = new URLSearchParams(location.search).get('kind') || 'warehouse';
+const realApi = kind === 'warehouse' && new URLSearchParams(location.search).get('api') === 'real';
 const fixture = paths[kind];
 const object = kind !== 'warehouse';
 const work = { technical_task: 'Перевозка между зонами', unit: 'item',
@@ -19,7 +20,7 @@ const serverResult = object
   ? { kind: kind.toUpperCase(), roles: [{ label: 'Перевозка', works: [row] }] }
   : { roles: [{ label: 'Водитель погрузчика', selected_position_id: 'SCENARIO_ROBOT', candidates: [row] }] };
 const originalFetch = window.fetch.bind(window);
-window.fetch = (url, options) => String(url).includes('/api/v2/') && options?.method === 'POST'
+if (!realApi) window.fetch = (url, options) => String(url).includes('/api/v2/') && options?.method === 'POST'
   ? Promise.resolve(new Response(JSON.stringify(serverResult), { status: 200,
     headers: { 'Content-Type': 'application/json' } }))
   : originalFetch(url, options);
@@ -27,17 +28,36 @@ window.fetch = (url, options) => String(url).includes('/api/v2/') && options?.me
 export function VisualCheck() {
   const [overlay, setOverlay] = useState(null);
   const [pose, setPose] = useState(null);
+  const [realInput, setRealInput] = useState(null);
+  const [realError, setRealError] = useState('');
+  useEffect(() => {
+    if (!realApi) return;
+    fetch('/api/v2/warehouse-roles/template').then((response) => {
+      if (!response.ok) throw new Error(`Шаблон работы: HTTP ${response.status}`);
+      return response.json();
+    }).then((template) => {
+      const role = template.roles.find((item) => item.role_code === 'forklift_driver');
+      const keys = ['role_code', 'headcount', 'monthly_employer_cost_rub', 'daily_volume',
+        'manual_units_per_person_shift', 'robotizable_share', 'source', 'basis'];
+      setRealInput({ general: template.general, roles: [Object.fromEntries(keys.map((key) => [key, role[key]]))] });
+    }).catch((error) => setRealError(error.message));
+  }, []);
   const onPlayback = useCallback((next) => setPose(next), []);
   if (!fixture) return <p>Unknown scene</p>;
+  const realReport = { roles: [{ label: 'Водитель погрузчика', selected_position_id: null, candidates: [] }] };
   return <main style={{ maxWidth: 1440, margin: 'auto' }}>
     <h1>Визуальная проверка playback · {kind}</h1>
-    <p>Ответ API подменён синтетическим результатом серверного A*. Опубликованный каталог и гостевая воронка здесь не проверяются.</p>
+    <p>{realApi ? 'Ответ получен от локального FastAPI route-preview. Каталожная модель и экономика этим маршрутом не подтверждаются; опубликованный каталог и гостевая воронка здесь не проверяются.'
+      : 'Ответ API подменён синтетическим результатом серверного A*. Опубликованный каталог и гостевая воронка здесь не проверяются.'}</p>
     <output id="recovery-pose" data-x={pose?.[0]} data-y={pose?.[1]}>{pose ? pose.map((v) => v.toFixed(2)).join(', ') : 'Не запущено'}</output>
     <SceneModelPreview kind={kind} overlay={overlay} pose={pose} />
-    <SceneSimulationControls kind={kind} roleInput={input} report={serverResult}
+    {realError && <p role="alert">{realError}</p>}
+    {(!realApi || realInput) && <SceneSimulationControls kind={kind} roleInput={realApi ? realInput : input}
+      report={realApi ? realReport : serverResult}
       onChanged={() => { setOverlay(null); setPose(null); }}
       onPlayback={onPlayback}
-      onSimulated={(_, __, next) => setOverlay(next)} />
+      onScenario={setOverlay}
+      onSimulated={(_, __, next) => setOverlay(next)} />}
   </main>;
 }
 createRoot(document.getElementById('root')).render(<VisualCheck />);

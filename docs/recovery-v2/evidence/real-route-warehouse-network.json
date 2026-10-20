@@ -1,0 +1,14 @@
+[
+  {
+    "path": "warehouse-roles/template",
+    "status": 200
+  },
+  {
+    "path": "warehouse-roles/route-preview",
+    "status": 200
+  },
+  {
+    "path": "warehouse-roles/route-preview",
+    "status": 200
+  }
+]
