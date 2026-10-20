@@ -19,6 +19,11 @@ def _amount(value: Decimal | None) -> str | None:
     return None if value is None else f"{value.quantize(Decimal('0.01')):.2f}"
 
 
+def _money_text(value: str) -> str:
+    """Format narrative rubles without changing the numeric report fields."""
+    return f"{Decimal(value):,.2f}".replace(",", " ").replace(".", ",")
+
+
 def _finance(capex: Any, annual_net: Any, npv: Any, roi: Any, payback: Any,
              discount: Decimal, active_horizon: int) -> dict[str, Any]:
     initial, yearly = _decimal(capex), _decimal(annual_net)
@@ -144,9 +149,9 @@ def build_role_report_view(result: dict[str, Any]) -> dict[str, Any]:
     status = "Демонстрационная геометрия; сценарные допущения требуют проверки на объекте"
     object_name = {"WAREHOUSE": "склада", "AIRPORT": "аэропорта", "CLINIC": "клиники"}[kind]
     conclusion = (f"Для {object_name} расчётный парк — {fleet}. "
-        + (f"NPV покупки за {years} лет: {purchase['npv_rub']} ₽. " if purchase["npv_rub"] is not None
+        + (f"NPV покупки за {years} лет: {_money_text(purchase['npv_rub'])} ₽. " if purchase["npv_rub"] is not None
            else "NPV покупки не рассчитан: нужны цены. ")
-        + (f"NPV аренды: {rent['npv_rub']} ₽." if rent["npv_rub"] is not None
+        + (f"NPV аренды: {_money_text(rent['npv_rub'])} ₽." if rent["npv_rub"] is not None
            else "NPV аренды не рассчитан: нужен тариф."))
     return {"schema_version": "role-report-view-v1", "object": name,
         "date_utc": datetime.now(timezone.utc).date().isoformat(),

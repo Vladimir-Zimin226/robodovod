@@ -357,6 +357,10 @@ def _pdf(lines: list[tuple[Any, str]]) -> bytes:
                 color = "0.035 0.082 0.100" if kind in {"section", "metric"} else "0.21 0.27 0.27"
             write(row, size, 45, y, color)
             y -= leading
+        if kind == "detail":
+            # The next table row is drawn at y + 10; leave room after the
+            # final detail baseline so its background cannot cover the text.
+            y -= 15
 
     for index in range(len(pages)):
         original = pages[-1]
