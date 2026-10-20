@@ -127,6 +127,33 @@ body.touch-mode.editor-active .craft-toolbar { right: 8px; top: 68px; }
 .catalog-tabs button { flex: 0 0 auto; }
 .catalog-items { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
 
+/* A compact construction entry point. Detailed controls remain available on demand. */
+.world-form { align-content: start; gap: 14px; }
+.start-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.start-choices button { min-height: 76px; padding: 12px; border: 1px solid #345b54; border-radius: 12px; color: #ecfff6; background: #0c211c; text-align: left; font-size: 13px; font-weight: 800; cursor: pointer; }
+.start-choices button small { display: block; margin-top: 5px; color: #91afa5; font-size: 10px; font-weight: 500; }
+.start-choices button[aria-pressed="true"] { border-color: #58e4a9; background: #153d31; box-shadow: inset 0 0 0 1px #58e4a9; }
+.launcher-advanced { border-top: 1px solid #31524a; padding-top: 10px; }
+.launcher-advanced summary, #editor-advanced summary, #editor-project-tools summary, #operational-section summary { color: #9edbc3; cursor: pointer; font-size: 11px; font-weight: 700; }
+.launcher-advanced > label { margin-top: 12px; }
+.launcher-advanced .parse-result { margin-top: 10px; }
+.editor-panel { top: 106px; left: auto; right: 24px; width: min(290px, calc(100vw - 48px)); max-height: calc(100vh - 195px); }
+.editor-panel > details { margin: 12px 0; border-top: 1px solid #34504a; padding-top: 10px; }
+#editor-advanced > .editor-section { margin-top: 13px; }
+#operational-section { margin-top: 14px; border-top: 1px solid #34504a; padding-top: 12px; }
+#operational-section > details { margin-top: 8px; }
+body:not(.embedded) .metrics, body:not(.embedded) .camera-mode, body:not(.embedded) .manual-toggle, body:not(.embedded) .quality-control, body:not(.embedded) .speed-control, body:not(.embedded) .scenario-control, body:not(.embedded) .analytics-toggle, body:not(.embedded) .report-toggle, body:not(.embedded) .sound-toggle, body:not(.embedded) .director-caption, body:not(.embedded) .editor-status { display: none !important; }
+body:not(.embedded) .editor-toggle { right: 24px; bottom: 90px; }
+body:not(.embedded) .craft-toolbar { top: 24px; right: 24px; }
+body:not(.embedded) .controls-hint { bottom: 14px; }
+@media (max-width: 760px) {
+  .launcher { gap: 24px; padding: 18px; }
+  .world-form { max-height: none; padding: 18px; }
+  .start-choices button { min-height: 68px; }
+  body:not(.embedded) .editor-panel { left: 8px; right: 8px; width: auto; }
+  body:not(.embedded) .editor-toggle { bottom: 76px; }
+}
+
 /* Visual polish for the live editor; geometry and controls remain driven by ScenePatch. */
 .editor-panel, .report-panel, .analytics-panel { border-color: #52617c; border-left-color: #805cf6; border-radius: 16px; background: rgba(12, 23, 34, .96); }
 .editor-panel { width: min(326px, calc(100vw - 48px)); }

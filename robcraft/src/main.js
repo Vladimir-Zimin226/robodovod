@@ -97,6 +97,7 @@ let editorPreviousFlight = false;
 let editorAxis = 'xz';
 let cameraState = 'AUTOPILOT';
 let editorPreviousCameraState = 'AUTOPILOT';
+let startChoice = 'empty';
 let inventory = new EditorInventory();
 let editorView = '3d';
 let buildYaw = 0;
@@ -425,10 +426,10 @@ function startWorld(config, capturePointer = true, imported = null, forceNew = f
   simulation = createSimulation(scene);
   simulation.descriptionSpec = descriptionSpec;
   player.reset(scene.spawn);
-  player.enabled = false;
+  player.enabled = !embeddedMode;
   player.editorEnabled = false;
   cameraDirector.reset(scene, simulation, scene.spawn);
-  cameraState = 'AUTOPILOT';
+  cameraState = embeddedMode ? 'AUTOPILOT' : 'MANUAL_FIRST_PERSON';
   editorMode = false;
   editorTool = 'select';
   buildKind = null;
@@ -460,9 +461,8 @@ function startWorld(config, capturePointer = true, imported = null, forceNew = f
   document.querySelector('#hud-seed').textContent = config.seed;
   document.querySelector('#hud-robots').textContent = config.robotCount;
   document.querySelector('#hud-mode').textContent = `${config.template.toUpperCase()} // LIVE`;
-  cameraMode.textContent = '◉ РЕЖИМ: АВТОПОКАЗ';
-  cameraMode.classList.add('flying');
-  directorCaption.classList.remove('hidden');
+  updateCameraUi();
+  directorCaption.classList.toggle('hidden', !embeddedMode);
   if (capturePointer) {
     audioEngine.start();
     audioEngine.setScene(config.template);
@@ -554,9 +554,24 @@ function loadLocalScene(config) {
     return { patch: imported.patch, inventory: imported.inventory, view: ['2d', '3d'].includes(data.view) ? data.view : null };
   } catch { return null; }
 }
+function latestLocalScene(template) {
+  if (embeddedMode) return null;
+  try {
+    const prefix = `robcraft:scene:v1:${template}:`;
+    const saved = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key?.startsWith(prefix)) continue;
+      const data = JSON.parse(localStorage.getItem(key) || 'null');
+      const imported = importSceneDocument(data.document);
+      saved.push({ ...imported, view: data.view, savedAt: Number(data.savedAt) || 0 });
+    }
+    return saved.sort((a, b) => b.savedAt - a.savedAt)[0] || null;
+  } catch { return null; }
+}
 function saveLocalScene() {
   if (embeddedMode || !sceneEditor) return;
-  try { localStorage.setItem(localSceneKey(), JSON.stringify({ document: JSON.parse(exportSceneDocument(sceneEditor.history.present, inventory.toJSON())), view: editorView })); }
+  try { localStorage.setItem(localSceneKey(), JSON.stringify({ document: JSON.parse(exportSceneDocument(sceneEditor.history.present, inventory.toJSON())), view: editorView, savedAt: Date.now() })); }
   catch { editorMessage.textContent = 'Не удалось сохранить сцену в браузере. Экспортируйте JSON.'; }
   if (projectStore && projectReady) {
     projectDirty = true;
@@ -636,8 +651,8 @@ function toggleEditor(force) {
   document.querySelector('#zone-select').disabled = enabled;
   document.body.classList.toggle('editor-active', enabled);
   document.querySelector('#editor-toggle').classList.toggle('active', enabled);
-  editorPanel.classList.toggle('hidden', !enabled);
-  if (touchMode) document.body.classList.toggle('touch-panel-open', enabled && editorView === '2d');
+  editorPanel.classList.add('hidden');
+  document.body.classList.remove('touch-panel-open');
   toolbar.classList.toggle('hidden', !enabled);
   hotbar.classList.toggle('hidden', !enabled);
   updateEditorView();
@@ -668,7 +683,7 @@ function toggleEditor(force) {
   } else {
     if (!editorPreviousFlight && player.flying) player.toggleFlight();
     setEditorTool('select'); editorHovered = null;
-    if (embeddedMode || editorPreviousCameraState === 'AUTOPILOT') {
+    if (embeddedMode) {
       cameraState = 'MANUAL_FIRST_PERSON';
       enterAutopilot(embeddedMode ? 'EDITOR_CLOSED' : 'STATE_CHANGED');
     } else {
@@ -1117,6 +1132,8 @@ try {
     populateForm(initial);
     const initialStart = new URLSearchParams(location.search).get('editorStart');
     document.querySelector('#scene-start').value = ['ready', 'cad'].includes(initialStart) ? initialStart : 'empty';
+    startChoice = document.querySelector('#scene-start').value;
+    syncStartChoices();
     document.querySelector('#cad-options').classList.toggle('hidden', initialStart !== 'cad');
     scene = generateWorld(initial);
     simulation = createSimulation(scene);
@@ -1134,12 +1151,35 @@ try {
   }
 }
 
+function syncStartChoices() {
+  const status = document.querySelector('#saved-scene-status');
+  document.querySelector('#scene-start').value = startChoice === 'mine' ? 'empty' : startChoice;
+  document.querySelector('#cad-options').classList.toggle('hidden', startChoice !== 'cad');
+  document.querySelectorAll('[data-start]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.start === startChoice)));
+  const saved = startChoice === 'mine' ? latestLocalScene(fields.template.value) : null;
+  status.classList.toggle('hidden', startChoice !== 'mine');
+  if (startChoice === 'mine') status.textContent = saved ? `Найдена сохранённая сцена: ${saved.baseConfig.seed}` : 'Сохранённой сцены для этого объекта пока нет.';
+}
+document.querySelectorAll('[data-start]').forEach(button => button.addEventListener('click', () => {
+  startChoice = button.dataset.start;
+  syncStartChoices();
+}));
 document.querySelector('#scene-start').addEventListener('change', event => {
-  document.querySelector('#cad-options').classList.toggle('hidden', event.target.value !== 'cad');
+  startChoice = event.target.value;
+  syncStartChoices();
 });
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!renderer) return;
+  if (startChoice === 'mine') {
+    const saved = latestLocalScene(fields.template.value);
+    if (!saved) { syncStartChoices(); return; }
+    populateForm(saved.baseConfig);
+    document.querySelector('#scene-start').value = saved.baseConfig.editorStart || 'ready';
+    startWorld(saved.baseConfig, true, saved);
+    toggleEditor(true);
+    return;
+  }
   let cad = null;
   if (document.querySelector('#scene-start').value === 'cad') {
     const file = document.querySelector('#cad-file').files[0];
@@ -1162,7 +1202,7 @@ form.addEventListener('submit', async event => {
   }
   const description = descriptionField.value.trim();
   if (description && descriptionSpec?.source !== description) parseDescription();
-  startWorld(readForm(), true, null, Boolean(cad));
+  startWorld(readForm(), true, null, true);
   if (cad) {
     try { const count = sceneEditor.importDxfObjects(cad.objects, { file_name: document.querySelector('#cad-file').files[0].name,
       unit_meters: cad.unitMeters, wall_height_m: cad.wallHeightM, wall_layers: cad.wallLayers,
@@ -1178,7 +1218,7 @@ document.querySelectorAll('[data-quality]').forEach(button => button.addEventLis
 }));
 
 fields.occupancy.addEventListener('input', () => { document.querySelector('#occupancy-value').value = `${fields.occupancy.value}%`; });
-fields.template.addEventListener('change', updateTemplateLabels);
+fields.template.addEventListener('change', () => { updateTemplateLabels(); syncStartChoices(); });
 document.querySelector('#random-seed').addEventListener('click', () => {
   fields.seed.value = `WH-${Math.floor(100000 + Math.random() * 900000)}`;
 });
@@ -1188,7 +1228,7 @@ descriptionField.addEventListener('keydown', event => {
 });
 
 document.addEventListener('pointerlockchange', () => {
-  if (active && !editorMode && cameraState === 'MANUAL_FIRST_PERSON' && document.pointerLockElement !== canvas) enterAutopilot('POINTER_LOCK_RELEASED');
+  if (embeddedMode && active && !editorMode && cameraState === 'MANUAL_FIRST_PERSON' && document.pointerLockElement !== canvas) enterAutopilot('POINTER_LOCK_RELEASED');
   pauseNote.classList.toggle('hidden', !active || editorMode || cameraState === 'AUTOPILOT' || document.pointerLockElement === canvas);
 });
 
@@ -1196,6 +1236,13 @@ document.addEventListener('keydown', event => {
   if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
   if (active && !embeddedMode && event.code === 'KeyB' && !event.repeat) {
     toggleEditor();
+    return;
+  }
+  if (active && !embeddedMode && event.code === 'KeyI' && !event.repeat) {
+    if (!editorMode) toggleEditor(true);
+    editorPanel.classList.remove('hidden');
+    if (touchMode) document.body.classList.add('touch-panel-open');
+    document.querySelector('#catalog-section').scrollIntoView({ block: 'nearest' });
     return;
   }
   if (active && !editorMode && event.code === 'KeyG') {
@@ -1373,8 +1420,9 @@ canvas.addEventListener('contextmenu', event => { if (!editorMode) return; event
 
 hotbar.addEventListener('wheel', event => { event.preventDefault(); inventory.cycle(Math.sign(event.deltaY)); syncHeldItem(); }, { passive: false });
 inventoryToggle.addEventListener('click', () => {
-  if (touchMode) { document.body.classList.toggle('touch-panel-open'); updateEditorView(); }
-  else document.querySelector('.editor-section').classList.toggle('hidden');
+  const open = editorPanel.classList.contains('hidden');
+  editorPanel.classList.toggle('hidden', !open);
+  if (touchMode) document.body.classList.toggle('touch-panel-open', open);
 });
 emptyHand.addEventListener('click', () => { inventory.select(null); syncHeldItem(); });
 viewToggle.addEventListener('click', () => {
