@@ -57,3 +57,7 @@ Patch не закоммичен и не развёрнут: Node build посл�
 ## 21.10.2026 — production deploy попытка заказчика
 
 Заказчик перенёс новый bundle, `git bundle verify` PASS, server checkout переключён с 59b36d3 на ветку `rc/final-fix-v2` с HEAD 86311b5, Compose config PASS. Первый `docker compose build` остановился до сборки: `deploy` не имеет доступа к `/var/run/docker.sock`. Исправлены DEPLOY_COMMANDS.md и SELF_DEPLOY_RC.md: на действующем сервере использовать `sudo docker compose`. Результат повторного build/up и production smoke ещё не получен; не объявлять production PASS.
+
+## 21.10.2026 — сервер поднят; GitHub приведён к одной ветке
+
+По второму журналу заказчика `sudo docker compose build backend frontend migrate` PASS; `up -d backend frontend caddy` PASS; PostgreSQL, backend и frontend `healthy`; публичные `/health` и `/ready` отвечают. Полный production browser smoke, состояние каталога и миграции журналом не подтверждены. GitHub `main` обновлён fast-forward до `edfd0d9`, в нём код развёрнутого `86311b5`, музыка, презентации и документация; четыре старые удалённые ветки удалены. Локально осталась только `main`; рабочее дерево чистое на момент объединения веток. Коммит `edfd0d9` содержит только поправку документации и отсутствует в уже развёрнутом bundle.
