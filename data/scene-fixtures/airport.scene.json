@@ -1,0 +1,143 @@
+{
+  "scene_id": "airport",
+  "schema_version": "scene-fixture-1",
+  "units": "meters",
+  "coordinate_system": "x-east_y-north_z-up",
+  "source_kind": "DEMO_ASSUMPTION_NOT_REAL_OBJECT",
+  "origin": [
+    0,
+    0,
+    0
+  ],
+  "size_m": [
+    76,
+    48
+  ],
+  "obstacles": [
+    {
+      "asset_id": "conveyor",
+      "x": 14,
+      "y": 10,
+      "width": 5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "conveyor",
+      "x": 14,
+      "y": 19,
+      "width": 5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "conveyor",
+      "x": 25,
+      "y": 10,
+      "width": 5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "conveyor",
+      "x": 25,
+      "y": 19,
+      "width": 5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "conveyor",
+      "x": 36,
+      "y": 10,
+      "width": 5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "conveyor",
+      "x": 36,
+      "y": 19,
+      "width": 5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "baggage_cart",
+      "x": 12,
+      "y": 35,
+      "width": 2.5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "baggage_cart",
+      "x": 17,
+      "y": 35,
+      "width": 2.5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "baggage_cart",
+      "x": 22,
+      "y": 35,
+      "width": 2.5,
+      "height": 1.5
+    },
+    {
+      "asset_id": "aircraft_marker",
+      "x": 64,
+      "y": 36,
+      "width": 9,
+      "height": 9
+    }
+  ],
+  "zones": [
+    {
+      "id": "charging",
+      "name": "Зарядка",
+      "x": 6,
+      "y": 40,
+      "r": 2
+    },
+    {
+      "id": "pickup",
+      "name": "Багаж",
+      "x": 17,
+      "y": 23,
+      "r": 3
+    },
+    {
+      "id": "delivery",
+      "name": "Выдача",
+      "x": 67,
+      "y": 29,
+      "r": 3
+    }
+  ],
+  "routes": [
+    [
+      [
+        6,
+        40
+      ],
+      [
+        6,
+        25
+      ],
+      [
+        17,
+        25
+      ],
+      [
+        17,
+        23
+      ],
+      [
+        17,
+        28
+      ],
+      [
+        56,
+        28
+      ],
+      [
+        67,
+        29
+      ]
+    ]
+  ]
+}

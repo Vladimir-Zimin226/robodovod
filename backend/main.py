@@ -998,6 +998,8 @@ app.include_router(create_warehouse_chain_router(_discovery_snapshot))
 app.include_router(create_warehouse_roles_router(_discovery_snapshot))
 app.include_router(create_object_roles_router(_discovery_snapshot))
 app.include_router(create_facility_layout_router())
+from robcraft_scene_api import create_robcraft_scene_router  # noqa: E402
+app.include_router(create_robcraft_scene_router())
 app.include_router(create_comparison_router(_capacity_snapshot))
 app.include_router(create_roboexpert_router(_discovery_snapshot))
 app.include_router(create_evidence_export_router())

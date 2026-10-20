@@ -127,6 +127,14 @@ class RegisterRequest(Credentials):
             raise ValueError("Имя должно содержать от 1 до 200 символов") from exc
 
 
+PRIVACY_POLICY_VERSION = "privacy-draft-2026-10-20"
+
+
+class PublicRegisterRequest(RegisterRequest):
+    privacy_consent: Literal[True]
+    privacy_policy_version: Literal["privacy-draft-2026-10-20"]
+
+
 class AdminCreateUserRequest(RegisterRequest):
     role: Literal["USER", "ADMIN"] = "USER"
 
@@ -716,7 +724,7 @@ def create_persistence_router(
 
     @router.post("/auth/register", status_code=status.HTTP_201_CREATED)
     def register(
-        payload: RegisterRequest,
+        payload: PublicRegisterRequest,
         response: Response,
         db: Session = Depends(database_session),
     ):
@@ -736,6 +744,9 @@ def create_persistence_router(
             raise HTTPException(status_code=409, detail="account already exists") from None
         _, token, csrf = create_session(db, user)
         _audit(db, "USER_REGISTERED", actor_id=user.id, subject_user_id=user.id)
+        _audit(db, "PRIVACY_CONSENT_GRANTED", actor_id=user.id, subject_user_id=user.id,
+               aggregate={"policy_version": payload.privacy_policy_version, "consent": True,
+                          "recorded_at": utcnow().isoformat()})
         db.commit()
         set_session_cookies(response, token, csrf)
         return {"user": _user_dict(user), "csrf_token": csrf}
@@ -767,6 +778,13 @@ def create_persistence_router(
     @router.get("/auth/me")
     def me(context: AuthContext = Depends(require_auth_context)):
         return {"user": _user_dict(context.user)}
+
+    @router.get("/auth/privacy-consent")
+    def privacy_consent(context: AuthContext = Depends(require_auth_context), db: Session = Depends(database_session)):
+        entry = db.scalar(select(AuditEntry).where(AuditEntry.subject_user_id == context.user.id,
+            AuditEntry.event_type == "PRIVACY_CONSENT_GRANTED").order_by(AuditEntry.created_at.desc()).limit(1))
+        return {"policy_version": entry.aggregate.get("policy_version") if entry else None,
+                "recorded_at": entry.aggregate.get("recorded_at") if entry else None}
 
     @router.post("/auth/logout", status_code=status.HTTP_204_NO_CONTENT)
     def logout(

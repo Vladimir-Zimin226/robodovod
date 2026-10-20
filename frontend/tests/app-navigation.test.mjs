@@ -14,20 +14,23 @@ test('service assistant, calculation and catalog have distinct browser routes', 
   assert.equal(phaseHash('reports'), '#reports');
   assert.equal(phaseHash('templates'), '#templates');
   assert.equal(phaseHash('adminCatalog'), '#admin-catalog');
-  assert.equal(phaseFromHash('#assistant'), 'process');
-  assert.equal(phaseFromHash('#process'), 'process');
+  assert.equal(phaseFromHash('#assistant'), 'onboarding');
+  assert.equal(phaseFromHash('#process'), 'onboarding');
   assert.equal(phaseFromHash('#calculation'), 'intake');
   assert.equal(phaseFromHash('#catalog'), 'catalog');
-  assert.equal(phaseFromHash('#model'), 'model');
-  assert.equal(phaseFromHash('#roboexpert'), 'expert');
+  assert.equal(phaseFromHash('#model'), 'onboarding');
+  assert.equal(phaseFromHash('#roboexpert'), 'onboarding');
   assert.equal(phaseFromHash('#economics'), 'economics');
   assert.equal(phaseFromHash('#economics-methodology'), 'economicsMethodology');
   assert.equal(phaseFromHash('#reports'), 'reports');
-  assert.equal(phaseFromHash('#templates'), 'templates');
+  assert.equal(phaseFromHash('#templates'), 'onboarding');
   assert.equal(phaseFromHash('#admin-catalog'), 'adminCatalog');
   assert.equal(phaseFromHash('#report'), 'reports');
-  assert.equal(phaseFromHash('#variants'), 'expert');
-  assert.equal(phaseFromHash('#scenarios'), 'expert');
+  assert.equal(phaseFromHash('#variants'), 'onboarding');
+  assert.equal(phaseFromHash('#scenarios'), 'onboarding');
+  assert.equal(phaseFromHash('#demo-warehouse'), 'onboarding');
+  assert.equal(phaseFromHash('#simulation'), 'onboarding');
+  assert.equal(phaseFromHash('#simulation', true), 'simulation');
 });
 
 test('a result link restores only with an in-memory result', () => {

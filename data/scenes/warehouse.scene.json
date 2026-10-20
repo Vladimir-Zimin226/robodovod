@@ -1,0 +1,867 @@
+{
+  "schema_version": "scene-model-v1",
+  "scene_id": "warehouse",
+  "revision": 1,
+  "units": "m",
+  "coordinate_system": "x-east_y-north_z-up",
+  "bounds": {
+    "width_m": 60,
+    "length_m": 40,
+    "height_m": 9
+  },
+  "fidelity": "DEMO_ASSUMPTION",
+  "source_fixture": "warehouse.scene.json",
+  "objects": [
+    {
+      "instance_id": "pallet_rack-001",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        11.0,
+        8.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-002",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        11.0,
+        17.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-003",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        11.0,
+        26.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-004",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        22.0,
+        8.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-005",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        22.0,
+        17.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-006",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        22.0,
+        26.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-007",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        33.0,
+        8.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-008",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        33.0,
+        17.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-009",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        33.0,
+        26.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-010",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        44.0,
+        8.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-011",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        44.0,
+        17.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "pallet_rack-012",
+      "asset_id": "pallet_rack",
+      "position_m": [
+        44.0,
+        26.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.2,
+        1.5
+      ],
+      "visual_height_m": 5.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "conveyor-013",
+      "asset_id": "conveyor",
+      "position_m": [
+        52.0,
+        31.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        4.5,
+        1.5
+      ],
+      "visual_height_m": 1.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-pallet_stack-001",
+      "asset_id": "pallet_stack",
+      "position_m": [
+        54,
+        6,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        1.8,
+        1.2
+      ],
+      "visual_height_m": 1.2,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-pallet_amr-002",
+      "asset_id": "pallet_amr",
+      "position_m": [
+        6,
+        34,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        1.9,
+        1.3
+      ],
+      "visual_height_m": 0.55,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-forklift_robot-003",
+      "asset_id": "forklift_robot",
+      "position_m": [
+        52,
+        8,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.2,
+        1.3
+      ],
+      "visual_height_m": 2.4,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-charging_dock-004",
+      "asset_id": "charging_dock",
+      "position_m": [
+        5,
+        5,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        1.8,
+        1.2
+      ],
+      "visual_height_m": 1.5,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-worker-005",
+      "asset_id": "worker",
+      "position_m": [
+        5,
+        26,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        0.7,
+        0.5
+      ],
+      "visual_height_m": 1.8,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-warehouse_column-006",
+      "asset_id": "warehouse_column",
+      "position_m": [
+        57,
+        20,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        0.5,
+        0.5
+      ],
+      "visual_height_m": 4,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-door_frame-007",
+      "asset_id": "door_frame",
+      "position_m": [
+        56,
+        38,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2,
+        0.2
+      ],
+      "visual_height_m": 2.5,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-painted_floor_marker-008",
+      "asset_id": "painted_floor_marker",
+      "position_m": [
+        30,
+        36,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        3,
+        0.12
+      ],
+      "visual_height_m": 0.02,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "charging",
+      "name": "Зарядка",
+      "kind": "CHARGE",
+      "center_xy_m": [
+        5.0,
+        5.0
+      ],
+      "radius_m": 2.3,
+      "polygon_xy_m": [
+        [
+          7.3,
+          5.0
+        ],
+        [
+          7.221629,
+          5.595284
+        ],
+        [
+          6.991858,
+          6.15
+        ],
+        [
+          6.626346,
+          6.626346
+        ],
+        [
+          6.15,
+          6.991858
+        ],
+        [
+          5.595284,
+          7.221629
+        ],
+        [
+          5.0,
+          7.3
+        ],
+        [
+          4.404716,
+          7.221629
+        ],
+        [
+          3.85,
+          6.991858
+        ],
+        [
+          3.373654,
+          6.626346
+        ],
+        [
+          3.008142,
+          6.15
+        ],
+        [
+          2.778371,
+          5.595284
+        ],
+        [
+          2.7,
+          5.0
+        ],
+        [
+          2.778371,
+          4.404716
+        ],
+        [
+          3.008142,
+          3.85
+        ],
+        [
+          3.373654,
+          3.373654
+        ],
+        [
+          3.85,
+          3.008142
+        ],
+        [
+          4.404716,
+          2.778371
+        ],
+        [
+          5.0,
+          2.7
+        ],
+        [
+          5.595284,
+          2.778371
+        ],
+        [
+          6.15,
+          3.008142
+        ],
+        [
+          6.626346,
+          3.373654
+        ],
+        [
+          6.991858,
+          3.85
+        ],
+        [
+          7.221629,
+          4.404716
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "zone_id": "pickup",
+      "name": "Отбор паллет",
+      "kind": "PICKUP",
+      "center_xy_m": [
+        11.0,
+        34.0
+      ],
+      "radius_m": 2.4,
+      "polygon_xy_m": [
+        [
+          13.4,
+          34.0
+        ],
+        [
+          13.318222,
+          34.621166
+        ],
+        [
+          13.078461,
+          35.2
+        ],
+        [
+          12.697056,
+          35.697056
+        ],
+        [
+          12.2,
+          36.078461
+        ],
+        [
+          11.621166,
+          36.318222
+        ],
+        [
+          11.0,
+          36.4
+        ],
+        [
+          10.378834,
+          36.318222
+        ],
+        [
+          9.8,
+          36.078461
+        ],
+        [
+          9.302944,
+          35.697056
+        ],
+        [
+          8.921539,
+          35.2
+        ],
+        [
+          8.681778,
+          34.621166
+        ],
+        [
+          8.6,
+          34.0
+        ],
+        [
+          8.681778,
+          33.378834
+        ],
+        [
+          8.921539,
+          32.8
+        ],
+        [
+          9.302944,
+          32.302944
+        ],
+        [
+          9.8,
+          31.921539
+        ],
+        [
+          10.378834,
+          31.681778
+        ],
+        [
+          11.0,
+          31.6
+        ],
+        [
+          11.621166,
+          31.681778
+        ],
+        [
+          12.2,
+          31.921539
+        ],
+        [
+          12.697056,
+          32.302944
+        ],
+        [
+          13.078461,
+          32.8
+        ],
+        [
+          13.318222,
+          33.378834
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "zone_id": "delivery",
+      "name": "Экспедиция",
+      "kind": "DROPOFF",
+      "center_xy_m": [
+        54.0,
+        34.0
+      ],
+      "radius_m": 2.6,
+      "polygon_xy_m": [
+        [
+          56.6,
+          34.0
+        ],
+        [
+          56.511407,
+          34.67293
+        ],
+        [
+          56.251666,
+          35.3
+        ],
+        [
+          55.838478,
+          35.838478
+        ],
+        [
+          55.3,
+          36.251666
+        ],
+        [
+          54.67293,
+          36.511407
+        ],
+        [
+          54.0,
+          36.6
+        ],
+        [
+          53.32707,
+          36.511407
+        ],
+        [
+          52.7,
+          36.251666
+        ],
+        [
+          52.161522,
+          35.838478
+        ],
+        [
+          51.748334,
+          35.3
+        ],
+        [
+          51.488593,
+          34.67293
+        ],
+        [
+          51.4,
+          34.0
+        ],
+        [
+          51.488593,
+          33.32707
+        ],
+        [
+          51.748334,
+          32.7
+        ],
+        [
+          52.161522,
+          32.161522
+        ],
+        [
+          52.7,
+          31.748334
+        ],
+        [
+          53.32707,
+          31.488593
+        ],
+        [
+          54.0,
+          31.4
+        ],
+        [
+          54.67293,
+          31.488593
+        ],
+        [
+          55.3,
+          31.748334
+        ],
+        [
+          55.838478,
+          32.161522
+        ],
+        [
+          56.251666,
+          32.7
+        ],
+        [
+          56.511407,
+          33.32707
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    }
+  ],
+  "routes": [
+    {
+      "route_id": "demo-1",
+      "points_xy_m": [
+        [
+          5.0,
+          5.0
+        ],
+        [
+          5.0,
+          35.0
+        ],
+        [
+          11.0,
+          35.0
+        ],
+        [
+          11.0,
+          34.0
+        ],
+        [
+          11.0,
+          35.0
+        ],
+        [
+          49.0,
+          35.0
+        ],
+        [
+          54.0,
+          34.0
+        ]
+      ],
+      "source": "DEMO_ASSUMPTION",
+      "status": "UNVALIDATED_GEOMETRY"
+    }
+  ],
+  "agents": [],
+  "tasks": [],
+  "nav": {
+    "no_go_polygons_xy_m": [],
+    "one_way_edges": [],
+    "min_clearance_m": null,
+    "status": "NOT_EVALUATED"
+  },
+  "links": {
+    "catalog_version": null,
+    "assessment_revision": null
+  }
+}

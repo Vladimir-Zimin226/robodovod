@@ -10,6 +10,11 @@ import { AdminUsersScreen, AuthScreen, ProjectsScreen } from './components/Persi
 import { isCapacityAnalysisResponse } from './capacityResultsModel';
 import { isCommercialScenariosBundle } from './commercialScenariosModel';
 import Simulation2DReport from './components/Simulation2DReport';
+import SceneModelPreview from './components/SceneModelPreview';
+import { captureSceneImages } from './sceneCapture';
+import SceneSimulationControls from './components/SceneSimulationControls';
+import WhatIfPanel from './components/WhatIfPanel';
+import InvestmentReport from './components/InvestmentReport';
 import EvidenceExportPanel from './components/EvidenceExportPanel';
 import EconomicsInputsV2 from './components/EconomicsInputsV2';
 import PartialEconomicsResult from './components/PartialEconomicsResult';
@@ -35,9 +40,9 @@ import { phaseFromHash, phaseHash } from './appNavigation';
 import { humanizePresentation } from './presentation';
 
 const STEPS = [
-  { id: 'object', label: 'Объект' },
   { id: 'intake', label: 'Работа' },
   { id: 'robots', label: 'Роботы' },
+  { id: 'simulation', label: 'Симуляция' },
   { id: 'money', label: 'Деньги' },
   { id: 'results', label: 'Результат' },
 ];
@@ -55,7 +60,10 @@ const copyIntakeEntry = (setter, source, target) => {
 
 export default function App() {
   const [phase, setPhase] = useState(() => visiblePhase(phaseFromHash(window.location.hash)));
-  const [journeyMode, setJourneyMode] = useState(() => sessionStore()?.getItem('robodovod-journey-mode') || 'ADVANCED');
+  const [journeyMode] = useState(() => sessionStore()?.getItem('robodovod-journey-mode') || 'ADVANCED');
+  const [demoKind, setDemoKind] = useState(null);
+  const [showGuestSavePrompt, setShowGuestSavePrompt] = useState(false);
+  const [guestAssessmentActive, setGuestAssessmentActive] = useState(false);
   const [objectType, setObjectType] = useState(() => window.location.hash === '#calculation' ? 'retail' : null);
   const [preset, setPreset] = useState(null);
   const [intakeDrafts, setIntakeDrafts] = useState({});
@@ -63,6 +71,12 @@ export default function App() {
   const [intakeFocus, setIntakeFocus] = useState(null);
   const [userInput, setUserInput] = useState(null);
   const [result, setResult] = useState(null);
+  const [roleInput, setRoleInput] = useState(null);
+  const [whatIfBranch, setWhatIfBranch] = useState(null);
+  const [simulationDirty, setSimulationDirty] = useState(false);
+  const [sceneOverlay, setSceneOverlay] = useState(null);
+  const [sceneCaptures, setSceneCaptures] = useState(null);
+  const [pdfError, setPdfError] = useState('');
   const [layoutEvidence, setLayoutEvidence] = useState(null);
   const [capacityComparison, setCapacityComparison] = useState(null);
   const lastCapacity = useRef(null);
@@ -88,9 +102,15 @@ export default function App() {
   const catalogReturnPhase = useRef('onboarding');
   const pendingResultTarget = useRef(null);
   const previousPhase = useRef(phase);
+  const guestPromptSeen = useRef(Boolean(sessionStore()?.getItem('robodovod:guest-save-prompt-seen')));
   const pendingIntakeReturn = useRef(false);
+  const craftIframe = useRef(null);
+
+  const activeWhatIf = whatIfBranch?.baseReport === result ? whatIfBranch : null;
+  const activeSceneCaptures = sceneCaptures?.baseReport === result ? sceneCaptures.images : null;
 
   const showPhase = (nextPhase) => {
+    if (simulationDirty && ['money', 'results'].includes(nextPhase)) return;
     if (phase !== nextPhase) {
       const url = new URL(window.location.href);
       url.hash = phaseHash(nextPhase);
@@ -146,6 +166,14 @@ export default function App() {
   }, [phase, result]);
 
   useEffect(() => {
+    if (phase !== 'results' || !result || !authChecked || user || guestPromptSeen.current) return;
+    guestPromptSeen.current = true;
+    sessionStore()?.setItem('robodovod:guest-save-prompt-seen', '1');
+    const timer = window.setTimeout(() => setShowGuestSavePrompt(true), 0);
+    return () => window.clearTimeout(timer);
+  }, [phase, result, user, authChecked]);
+
+  useEffect(() => {
     fetch(`${API}/api/auth/me`, { credentials: 'include' })
       .then((response) => response.ok ? response.json() : null)
       .then((payload) => payload && setUser(payload.user))
@@ -186,7 +214,7 @@ export default function App() {
     setResumeIntake(false);
   }, [user?.id, activeProject?.id, objectType]);
 
-  const selectActiveProject = (project) => {
+  const selectActiveProject = useCallback((project) => {
     if (phase === 'intake' || pendingIntakeReturn.current) {
       const source = `${user?.id || 'guest'}:${activeProject?.id || 'none'}:${objectType || 'none'}`;
       const target = `${user?.id || 'guest'}:${project.id}:${objectType || 'none'}`;
@@ -198,11 +226,32 @@ export default function App() {
     setCatalogContext(null);
     setEditableCapacityRunId(null);
     setActiveProject(project);
+    setDemoKind(null);
     setActiveRun(null);
     setResult(null);
+    setRoleInput(null);
+    setSimulationDirty(false);
+    setSceneOverlay(null);
     setUserInput(null);
     rememberProjectId(sessionStore(), user?.id, project.id);
-  };
+  }, [phase, user?.id, activeProject?.id, objectType]);
+
+  useEffect(() => {
+    const onCraftProjectCreated = async (event) => {
+      if (event.origin !== window.location.origin || event.source !== craftIframe.current?.contentWindow
+          || event.data?.type !== 'ROBCRAFT_PROJECT_CREATED' || !user?.id
+          || !/^[0-9a-f-]{36}$/i.test(event.data.project_id || '')) return;
+      try {
+        const response = await fetch(`${API}/api/projects/${event.data.project_id}`, { credentials: 'include' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const project = await response.json();
+        setProjectChoices((items) => [project, ...items.filter((item) => item.id !== project.id)]);
+        selectActiveProject(project);
+      } catch { setProjectStatus('error'); }
+    };
+    window.addEventListener('message', onCraftProjectCreated);
+    return () => window.removeEventListener('message', onCraftProjectCreated);
+  }, [user?.id, selectActiveProject]);
 
   const restart = () => {
     pendingIntakeReturn.current = false;
@@ -218,12 +267,61 @@ export default function App() {
     setAssistantImport(null);
     setIntakeInitialSources(null);
     setResult(null);
+    setRoleInput(null);
+    setSimulationDirty(false);
+    setSceneOverlay(null);
+    setDemoKind(null);
     setActiveRun(null);
     setSaveState('');
     intakeV2Snapshot.current = null;
   };
 
-  const currentStep = ({ onboarding: 0, intake: 1, robots: 2, money: 3, results: 4 })[phase] ?? 0;
+  const startObjectAssessment = (kind, demo) => {
+    if (!user && guestAssessmentActive && !window.confirm('Текущий гостевой расчёт будет заменён. Продолжить?')) return;
+    if (!user) setGuestAssessmentActive(true);
+    if (!activeProject || demo) {
+      const key = kind === 'retail' ? 'robodovod:warehouse-role-guest-draft-v1:guest'
+        : `robodovod:object-role-draft:guest:${kind.toUpperCase()}`;
+      sessionStore()?.removeItem(key);
+    }
+    setDemoKind(demo ? kind : null);
+    setObjectType(kind);
+    setResult(null);
+    setRoleInput(null);
+    setSimulationDirty(false);
+    setSceneOverlay(null);
+    setActiveRun(null);
+    setUserInput(null);
+    setIntakePrompt('');
+    showPhase('intake');
+  };
+
+  const downloadRolePdf = async () => {
+    if (!roleInput || !result?.catalog_version) return;
+    setPdfError('');
+    const kind = result.kind;
+    const path = kind ? `/api/v2/object-roles/${kind}/report.pdf` : '/api/v2/warehouse-roles/report.pdf';
+    try {
+      const response = await fetch(`${API}${path}`, { method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expected_catalog_version: result.catalog_version, input: roleInput,
+          what_if_input: activeWhatIf?.input || null, scene_snapshots: activeSceneCaptures }) });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(typeof body.detail === 'string' ? body.detail : `PDF: ошибка ${response.status}`);
+      }
+      const url = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `robodovod-${(kind || 'warehouse').toLowerCase()}-scenario.pdf`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) { setPdfError(error.message); }
+  };
+
+  const currentStep = ({ intake: 0, robots: 1, simulation: 2, money: 3, results: 4 })[phase] ?? 0;
   const intakeDraftKey = `${user?.id || 'guest'}:${activeProject?.id || 'none'}:${objectType || 'none'}`;
   const currentDraft = intakeDrafts[intakeDraftKey];
   const hasEditableDraft = Boolean(currentDraft?.objectKind);
@@ -301,6 +399,7 @@ export default function App() {
     if (id === 'demo') { showPhase('guestDemo'); return; }
     if (id === 'results') { showPhase(result ? 'results' : 'guestDemo'); return; }
     if (id === 'robots') { showPhase(result ? 'robots' : 'intake'); return; }
+    if (id === 'simulation') { showPhase(result ? 'simulation' : 'intake'); return; }
     if (id === 'money') { showPhase(result ? 'money' : 'intake'); return; }
     if (id === 'process') { window.dispatchEvent(new Event('robodovod:open-help')); return; }
     if (id === 'model' || id === 'expert' || id === 'variants') { showPhase(result ? 'robots' : 'intake'); return; }
@@ -312,6 +411,7 @@ export default function App() {
       showPhase('reports');
       return;
     }
+    if (id === 'craft') { showPhase(user ? 'craft' : 'account'); return; }
     if (id === 'calculation') {
       openCalculation();
       return;
@@ -377,15 +477,15 @@ export default function App() {
   return (
     <AppShell phase={phase} user={user} activeProject={activeProject} objectType={objectType} journeyMode={journeyMode} result={result}
       onNavigate={navigate} command={command} setCommand={setCommand} onCommand={submitCommand}>
-      {['onboarding', 'intake', 'robots', 'money', 'results'].includes(phase) && <Stepper current={currentStep}
+      {['intake', 'robots', 'simulation', 'money', 'results'].includes(phase) && <Stepper current={currentStep}
         canOpenIntake={Boolean(objectType || activeProject)} canOpenResults={Boolean(result)}
         onSelect={(id) => {
-          if (id === 'object') showPhase('onboarding');
-          else if (id === 'intake') {
+          if (id === 'intake') {
             if (phase === 'results' && !canEditResultDraft && activeRun?.input_snapshot?.economics) editCalculatedInputs();
             else openCalculation(phase === 'results' && canEditResultDraft);
           }
           else if (id === 'robots' && result) showPhase('robots');
+          else if (id === 'simulation' && result) showPhase('simulation');
           else if (id === 'money' && result) showPhase('money');
           else if (id === 'results' && result) showPhase('results');
         }} />}
@@ -401,22 +501,10 @@ export default function App() {
           <GuestWarehouseDemo onContinue={() => { setIntakePrompt(''); setObjectType('retail'); showPhase('intake'); }} onBack={restart} />
         ) : phase === 'onboarding' ? (
           <OnboardingScreen
-            mode={journeyMode}
-            onModeChange={(value) => { setJourneyMode(value); sessionStore()?.setItem('robodovod-journey-mode', value); }}
-            onGuestDemo={() => showPhase('guestDemo')}
+            onExample={(t) => startObjectAssessment(t, true)}
             onOwnProcess={openCalculation}
             onOpenCatalog={() => { setCatalogFocusId(null); catalogReturnPhase.current = 'onboarding'; showPhase('catalog'); }}
-            onChoose={(t) => {
-              setIntakeInitialSources(null);
-              setIntakePrompt('');
-              setObjectType(t);
-              setResult(null);
-              setActiveRun(null);
-              setAssistantImport(null);
-              const savedInput = activeProject?.scenarios?.find((item) => item.slot === 'BASE')?.inputs;
-              setPreset(savedInput?.object_type === t ? savedInput : null);
-              showPhase('intake');
-            }}
+            onChoose={(t) => startObjectAssessment(t, false)}
           />
         ) : phase === 'economics' ? (
           <EconomicsGlossaryScreen onOpenCalculation={openCalculation} onOpenDemo={() => showPhase('guestDemo')}
@@ -425,16 +513,27 @@ export default function App() {
           <EconomicsMethodologyScreen onBack={() => showPhase('economics')} onOpenCalculation={openCalculation} />
         ) : phase === 'reports' ? (
           <ReportsScreen user={user} onOpenAccount={() => showPhase('account')} onOpenRun={openSavedRun} />
+        ) : phase === 'craft' ? (
+          user ? <main className="journey-panel"><h1>Конструктор объекта</h1>
+            <p>Постройте сцену в 2D или 3D и сохраните её в проекте. Изменения сцены сами по себе не пересчитывают экономику.</p>
+            {projectChoices.length ? <label>Проект для сцены <select value={activeProject?.id || ''} onChange={(event) => {
+              const selected = projectChoices.find((item) => item.id === event.target.value);
+              if (selected) selectActiveProject(selected);
+            }}><option value="" disabled>Выберите проект</option>{projectChoices.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+              : <button type="button" onClick={() => showPhase('projects')}>Создать проект</button>}
+            {activeProject?.id && <iframe ref={craftIframe} key={activeProject.id} title="RobCraft" src={`/robcraft/?project_id=${encodeURIComponent(activeProject.id)}`} style={{ width: '100%', minHeight: '75vh', border: 0 }} />}
+          </main> : <main className="journey-panel"><h1>Конструктор объекта</h1><p>Для доступа войдите в аккаунт.</p></main>
         ) : phase === 'intake' ? (
           <IntakeScreen
-            key={`${activeProject?.id || 'guest'}:${objectType}`}
+            key={`${demoKind ? 'guest' : activeProject?.id || 'guest'}:${objectType}:${demoKind || 'custom'}`}
             objectType={objectType}
+            demo={demoKind === objectType}
             journeyMode={journeyMode}
             initialCollected={preset}
             initialSources={intakeInitialSources}
             initialPrompt={intakePrompt}
             importedAssistant={assistantImport}
-            activeProject={activeProject}
+            activeProject={demoKind ? null : activeProject}
             initialFacilityContext={userInput?.facility_context || activeRun?.input_snapshot?.facility_context}
             initialDraft={intakeDrafts[intakeDraftKey] || (resumeIntake && intakeDrafts[`${user?.id || 'guest'}:none:${objectType || 'none'}`])}
             initialNormalized={intakeSnapshots[intakeDraftKey] || (resumeIntake && intakeSnapshots[`${user?.id || 'guest'}:none:${objectType || 'none'}`])}
@@ -467,8 +566,8 @@ export default function App() {
             }}
             onOpenObjects={() => showPhase('onboarding')}
             roleReport={['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? result : null}
-            onRolePreview={(response) => { setResult(response); setActiveRun(null); setUserInput(null); setSaveState('preview'); }}
-            onRoleInvalidated={() => { if (['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)) setResult(null); }}
+            onRolePreview={(response, input) => { setResult(response); setRoleInput(input); setSimulationDirty(false); setSceneOverlay(null); setActiveRun(null); setUserInput(null); setSaveState('preview'); }}
+            onRoleInvalidated={() => { if (['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2', 'object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)) { setResult(null); setRoleInput(null); setSimulationDirty(false); setSceneOverlay(null); } }}
             onRoleContinue={() => showPhase('robots')}
             onIntakeV2Normalized={(snapshot) => { intakeV2Snapshot.current = snapshot; setIntakeSnapshots((current) => ({ ...current, [intakeDraftKey]: snapshot })); const p = snapshot.response?.normalized_processes?.find((p) => p.active); setCatalogContext(p ? { process_code: p.process_code, constraints: p.item_mass?.status === 'KNOWN' ? { max_payload_kg: p.item_mass.normalized_value } : {} } : null); }}
             onCapacityResult={(response, request, evidence) => {
@@ -497,9 +596,9 @@ export default function App() {
           />
         ) : phase === 'robots' ? (
           ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
-            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('money')}>К экономике объекта</button></div></>
+            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('simulation')}>К симуляции</button></div></>
           : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="robots" onEdit={() => openCalculation()} />
-            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('money')}>К экономике склада</button></div></>
+            <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('simulation')}>К симуляции</button></div></>
           : <main className="journey-panel" aria-label="Какие роботы могут подойти?">
             <p className="eyebrow">Шаг 3 из 5</p><h1>Какие роботы могут подойти?</h1>
             <p>Сначала посмотрите расчёт парка и ограничения выбранной модели. Сравнение использует тот же сохранённый расчёт и каталог.</p>
@@ -507,12 +606,29 @@ export default function App() {
               : <p>{result ? 'Открыт сохранённый денежный результат. Его модель и ограничения указаны в итоговом отчёте.' : 'Сначала опишите работу и сохраните расчёт потребного парка.'}</p>}
             {activeProject && evidenceRunId && <details className="simple-robot-comparison"><summary>Сравнить модели и посмотреть источники</summary><CandidateComparisonPanel project={activeProject} capacityRunId={activeRun?.input_snapshot?.capacity_run_id || evidenceRunId} /></details>}
             <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => openCalculation()}>Назад к работе</button>
-              <button type="button" className="primary-action" onClick={() => showPhase('money')}>Продолжить к стоимости</button></div>
+              <button type="button" className="primary-action" onClick={() => showPhase('simulation')}>К симуляции</button></div>
+          </main>
+        ) : phase === 'simulation' ? (
+          <main className="journey-panel" aria-label="Симуляция"><p className="eyebrow">ШАГ 3 ИЗ 5 · СИМУЛЯЦИЯ</p><h1>Симуляция</h1>
+            <SceneModelPreview kind={objectType} overlay={simulationDirty ? null : sceneOverlay} />
+            {roleInput && ['warehouse-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version)
+              ? <SceneSimulationControls kind={objectType} roleInput={roleInput} report={result}
+                onChanged={() => setSimulationDirty(true)}
+                onSimulated={(response, input, overlay) => { setResult(response); setRoleInput(input); setSceneOverlay(overlay); setSimulationDirty(false); setSaveState('preview'); }} />
+              : <p role="status">Инженерная симуляция маршрутов ещё не выполнена. Показанный парк рассчитан по сценарной выработке без проверки геометрии и очередей.</p>}
+            {simulationDirty && <p role="alert">Ввод маршрута изменён. Пересчитайте его перед переходом к деньгам.</p>}
+            <div className="journey-actions"><button type="button" className="secondary-action" onClick={() => showPhase('robots')}>Назад к роботам</button><button type="button" className="primary-action" disabled={simulationDirty} onClick={async () => {
+              const images = await captureSceneImages();
+              setSceneCaptures({ baseReport: result, images });
+              showPhase('money');
+            }}>К экономике с этим ограничением</button></div>
           </main>
         ) : phase === 'money' ? (
           ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? <><ObjectRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
+            {roleInput && <WhatIfPanel input={roleInput} report={result} onBranch={(branch) => setWhatIfBranch(branch ? { ...branch, baseReport: result } : null)} />}
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
           : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? <><WarehouseRoleResult report={result} focus="money" onEdit={() => openCalculation()} />
+            {roleInput && <WhatIfPanel input={roleInput} report={result} onBranch={(branch) => setWhatIfBranch(branch ? { ...branch, baseReport: result } : null)} />}
             <div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" className="primary-action" onClick={() => showPhase('results')}>К общему результату</button></div></>
           : <main className="journey-panel" aria-label="Сколько это будет стоить?">
             <p className="eyebrow">Шаг 4 из 5</p><h1>Сколько это будет стоить?</h1>
@@ -563,10 +679,10 @@ export default function App() {
             onNavigate={showPhase}
           />
         ) : phase === 'projects' ? (
-          <ProjectsScreen
+          user ? <ProjectsScreen
             onOpenProject={(project) => { const returnToIntake = pendingIntakeReturn.current; selectActiveProject(project); showPhase(returnToIntake ? 'intake' : 'onboarding'); }}
             onOpenRun={openSavedRun}
-          />
+          /> : <main className="journey-panel"><h1>Проекты</h1><p>Для сохранённых проектов войдите или зарегистрируйтесь.</p><button type="button" onClick={() => showPhase('account')}>Войти</button></main>
         ) : phase === 'admin' ? (
           user?.role === 'ADMIN' ? <><div className="persistence-screen"><button className="secondary-action" onClick={() => showPhase('adminCatalog')}>Каталог и источники</button></div><AdminUsersScreen /></>
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
@@ -574,9 +690,9 @@ export default function App() {
           user?.role === 'ADMIN' ? <AdminCatalogScreen user={user} />
             : <div className="persistence-screen"><p>{authChecked ? 'Требуется учётная запись администратора.' : 'Проверяем учётную запись…'}</p><button className="secondary-action" onClick={() => showPhase('account')}>Учётная запись</button></div>
         ) : ['object-role-analysis-v2', 'object-role-analysis-v3'].includes(result?.schema_version) ? (
-          <ObjectRoleResult report={result} onEdit={() => openCalculation()} />
+          <><InvestmentReport view={result.report_view} comparison={activeWhatIf?.report?.report_view} /><ObjectRoleResult report={result} focus={result.report_view ? 'robots' : 'all'} onEdit={() => openCalculation()} /><div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" disabled={!roleInput} onClick={downloadRolePdf}>Скачать инвестиционный PDF</button><button type="button" onClick={restart}>На главную</button>{pdfError && <p role="alert">{pdfError}</p>}</div></>
         ) : ['warehouse-role-analysis-v1', 'warehouse-role-analysis-v2'].includes(result?.schema_version) ? (
-          <WarehouseRoleResult report={result} onEdit={() => openCalculation()} />
+          <><InvestmentReport view={result.report_view} comparison={activeWhatIf?.report?.report_view} /><WarehouseRoleResult report={result} focus={result.report_view ? 'robots' : 'all'} onEdit={() => openCalculation()} /><div className="journey-actions mx-auto max-w-6xl pb-6"><button type="button" disabled={!roleInput} onClick={downloadRolePdf}>Скачать инвестиционный PDF</button><button type="button" onClick={restart}>На главную</button>{pdfError && <p role="alert">{pdfError}</p>}</div></>
         ) : (
           <>
             {resultNeedsRecalculation && <div className="mx-auto max-w-6xl px-4 pt-4" role="status"><div className="rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">Ввод изменён после этого расчёта. Показан сохранённый результат прежней версии. <button type="button" className="underline font-semibold" onClick={() => openCalculation(true)}>Вернуться к изменённым полям и пересчитать</button></div></div>}
@@ -654,6 +770,11 @@ export default function App() {
           </>
         )}
       </div>
+      {showGuestSavePrompt && <div className="save-run-bar" role="dialog" aria-label="Сохранить результат">
+        <p>Хотите сохранить результат? После регистрации доступны проекты, конструктор и ИИ-помощник.</p>
+        <button type="button" onClick={() => { setShowGuestSavePrompt(false); setAuthMode('register'); showPhase('account'); }}>Зарегистрироваться</button>
+        <button type="button" onClick={() => setShowGuestSavePrompt(false)}>Позже</button>
+      </div>}
     </AppShell>
   );
 }
@@ -669,7 +790,7 @@ function Stepper({ current, canOpenIntake, canOpenResults, onSelect }) {
           return (
             <div key={step.id} className="flex items-center flex-1">
               <div className="flex items-center gap-2">
-                <button type="button" disabled={step.id === 'intake' ? !canOpenIntake : ['robots', 'money', 'results'].includes(step.id) ? !canOpenResults : false}
+                <button type="button" disabled={step.id === 'intake' ? !canOpenIntake : ['robots', 'simulation', 'money', 'results'].includes(step.id) ? !canOpenResults : false}
                   aria-current={isActive ? 'step' : undefined} onClick={() => onSelect(step.id)}
                   className={`stepper-link flex items-center gap-2 text-sm font-medium ${isDone ? 'text-green-600' : isActive ? 'text-blue-600' : 'text-slate-400'}`}>
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${

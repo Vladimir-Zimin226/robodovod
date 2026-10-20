@@ -1,5 +1,6 @@
 import { mat4LookAt, mat4Model, mat4Multiply, mat4Perspective } from './math.js';
-import { loadRobotModels, loadEnvironmentModels } from './glb-model.js';
+import { loadRobotModels, loadEnvironmentModels, loadSceneAssets } from './glb-model.js';
+import { triangulateRoom } from '../editor/room-polygon.js';
 
 const VERTEX_SHADER = `
 attribute vec3 aPosition;
@@ -143,6 +144,7 @@ export class Renderer {
     };
     const buffer = gl.createBuffer();
     this.cubeBuffer = buffer;
+    this.roomFloorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, CUBE_VERTICES, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(this.locations.position);
@@ -160,20 +162,30 @@ export class Renderer {
     this.heatmapCache = new WeakMap();
     this.quality = 'AUTO';
     this.models = {};
+    this.modelBounds = {};
     this.modelStatus = 'LOADING';
     const installModels = models => {
-      for (const [name, groups] of Object.entries(models)) this.models[name] = groups.map(group => {
+      for (const [name, groups] of Object.entries(models)) {
+        const minimum = [Infinity, Infinity, Infinity], maximum = [-Infinity, -Infinity, -Infinity];
+        for (const group of groups) for (let index = 0; index < group.vertices.length; index += 6) for (let axis = 0; axis < 3; axis += 1) {
+          minimum[axis] = Math.min(minimum[axis], group.vertices[index + axis]);
+          maximum[axis] = Math.max(maximum[axis], group.vertices[index + axis]);
+        }
+        this.modelBounds[name] = { center: minimum.map((v, axis) => (v + maximum[axis]) / 2), size: minimum.map((v, axis) => Math.max(.001, maximum[axis] - v)) };
+        this.models[name] = groups.map(group => {
         const meshBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, meshBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, group.vertices, gl.STATIC_DRAW);
         return { ...group, buffer: meshBuffer, count: group.vertices.length / 6 };
-      });
+        });
+      }
       gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeBuffer);
       this.bindVertices();
     };
     loadRobotModels().then(models => { installModels(models); this.modelStatus = 'READY'; })
       .catch(error => { this.modelStatus = `FALLBACK: ${error.message}`; });
     loadEnvironmentModels().then(installModels).catch(() => { /* Existing primitives remain available. */ });
+    loadSceneAssets().then(installModels).catch(() => { /* Scene assets retain primitive fallback. */ });
   }
 
   bindVertices() {
@@ -261,13 +273,36 @@ export class Renderer {
     return true;
   }
 
+  roomFloor(room) {
+    const triangles = triangulateRoom(room.points);
+    if (!triangles) return;
+    const vertices = [];
+    for (const triangle of triangles) for (const index of triangle) {
+      const [x, z] = room.points[index];
+      vertices.push(x, .095, z, 0, 1, 0);
+    }
+    const gl = this.gl;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.roomFloorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+    this.bindVertices();
+    gl.uniformMatrix4fv(this.locations.model, false, mat4Model([0, 0, 0], [1, 1, 1], 0));
+    gl.uniform3fv(this.locations.color, [.54, .46, .31]);
+    gl.uniform1f(this.locations.material, 0);
+    gl.uniform1f(this.locations.emission, 0);
+    gl.uniform1f(this.locations.alpha, 1);
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.cubeBuffer);
+    this.bindVertices();
+  }
+
   render(scene, simulation, camera, editorState = null) {
     this.begin(camera, scene.safePlaybackPlan);
     const surfaces = scene.staticObjects.filter(object => ['ground', 'asphalt', 'floor'].includes(object.type));
     const roof = scene.staticObjects.filter(object => object.type === 'roof');
-    const opaque = scene.staticObjects.filter(object => !['ground', 'asphalt', 'floor', 'roof', 'glass'].includes(object.type));
+    const opaque = scene.staticObjects.filter(object => !object.runtimeHidden && !['ground', 'asphalt', 'floor', 'roof', 'glass'].includes(object.type));
     const glass = scene.staticObjects.filter(object => object.type === 'glass');
     surfaces.forEach(object => this.staticObject(object));
+    (scene.editorRooms || []).forEach(room => this.roomFloor(room));
     if (scene.safePlaybackPlan) this.contactShadows(opaque.filter(object => ['rack', 'bed', 'seat', 'checkin'].includes(object.type)));
     else this.contactShadows(opaque);
     opaque.forEach(object => this.staticObject(object));
@@ -304,6 +339,18 @@ export class Renderer {
       ? Math.hypot(object.position[0] - this.cameraPosition[0], object.position[2] - this.cameraPosition[2]) : Infinity;
     const near = this.quality === 'HIGH' ? distance < 28 : distance < 14;
     const [width, height, depth] = object.scale;
+    if (userBuilt && object.editorKind === 'door_frame') {
+      const postWidth = .08;
+      for (const side of [-1, 1]) this.detailPart(object, [side * (width / 2 - postWidth / 2), 0, 0], [postWidth, height, depth], object.color, 2);
+      this.detailPart(object, [0, height / 2 + .3, 0], [width + .08, .6, depth], object.color, 2);
+      return;
+    }
+    const asset = object.editorKind && this.modelBounds[object.editorKind];
+    if (alpha === 1 && userBuilt && asset) {
+      const size = object.scale.map((value, axis) => value / asset.size[axis]);
+      const origin = object.position.map((value, axis) => value - asset.center[axis] * size[axis]);
+      if (this.model(object.editorKind, origin, size, object.yaw || 0)) return;
+    }
     const origin = [object.position[0], object.position[1] - height / 2, object.position[2]];
     if (alpha === 1 && near && (userBuilt || object.meta?.detailed) && object.type === 'rack'
         && this.model('rack-module', origin, [width / 1.2, height / 2.6, depth], object.yaw || 0)) return;

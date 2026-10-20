@@ -1,0 +1,882 @@
+{
+  "schema_version": "scene-model-v1",
+  "scene_id": "clinic",
+  "revision": 1,
+  "units": "m",
+  "coordinate_system": "x-east_y-north_z-up",
+  "bounds": {
+    "width_m": 45,
+    "length_m": 28,
+    "height_m": 9
+  },
+  "fidelity": "DEMO_ASSUMPTION",
+  "source_fixture": "clinic.scene.json",
+  "objects": [
+    {
+      "instance_id": "hospital_bed-001",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        9.0,
+        5.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-002",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        9.0,
+        9.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-003",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        9.0,
+        19.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-004",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        9.0,
+        23.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-005",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        17.0,
+        5.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-006",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        17.0,
+        9.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-007",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        17.0,
+        19.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-008",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        17.0,
+        23.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-009",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        25.0,
+        5.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-010",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        25.0,
+        9.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-011",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        25.0,
+        19.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-012",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        25.0,
+        23.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-013",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        33.0,
+        5.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-014",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        33.0,
+        9.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-015",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        33.0,
+        19.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "hospital_bed-016",
+      "asset_id": "hospital_bed",
+      "position_m": [
+        33.0,
+        23.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.4,
+        1.15
+      ],
+      "visual_height_m": 1.7,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "nurse_desk-017",
+      "asset_id": "nurse_desk",
+      "position_m": [
+        22.0,
+        14.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        3.6,
+        1.2
+      ],
+      "visual_height_m": 1.1,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-hospital_cart-001",
+      "asset_id": "hospital_cart",
+      "position_m": [
+        39,
+        5,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        0.9,
+        0.7
+      ],
+      "visual_height_m": 1.4,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-indoor_delivery_robot-002",
+      "asset_id": "indoor_delivery_robot",
+      "position_m": [
+        4,
+        14,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        0.7,
+        0.7
+      ],
+      "visual_height_m": 1.2,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-clinic_wall_module-003",
+      "asset_id": "clinic_wall_module",
+      "position_m": [
+        41,
+        23,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        3,
+        0.2
+      ],
+      "visual_height_m": 2.5,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-clinic_door-004",
+      "asset_id": "clinic_door",
+      "position_m": [
+        41,
+        19,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        1,
+        0.2
+      ],
+      "visual_height_m": 2.3,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-worker-005",
+      "asset_id": "worker",
+      "position_m": [
+        37,
+        23,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        0.7,
+        0.5
+      ],
+      "visual_height_m": 1.8,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "charging",
+      "name": "Зарядка",
+      "kind": "CHARGE",
+      "center_xy_m": [
+        4.0,
+        14.0
+      ],
+      "radius_m": 1.5,
+      "polygon_xy_m": [
+        [
+          5.5,
+          14.0
+        ],
+        [
+          5.448889,
+          14.388229
+        ],
+        [
+          5.299038,
+          14.75
+        ],
+        [
+          5.06066,
+          15.06066
+        ],
+        [
+          4.75,
+          15.299038
+        ],
+        [
+          4.388229,
+          15.448889
+        ],
+        [
+          4.0,
+          15.5
+        ],
+        [
+          3.611771,
+          15.448889
+        ],
+        [
+          3.25,
+          15.299038
+        ],
+        [
+          2.93934,
+          15.06066
+        ],
+        [
+          2.700962,
+          14.75
+        ],
+        [
+          2.551111,
+          14.388229
+        ],
+        [
+          2.5,
+          14.0
+        ],
+        [
+          2.551111,
+          13.611771
+        ],
+        [
+          2.700962,
+          13.25
+        ],
+        [
+          2.93934,
+          12.93934
+        ],
+        [
+          3.25,
+          12.700962
+        ],
+        [
+          3.611771,
+          12.551111
+        ],
+        [
+          4.0,
+          12.5
+        ],
+        [
+          4.388229,
+          12.551111
+        ],
+        [
+          4.75,
+          12.700962
+        ],
+        [
+          5.06066,
+          12.93934
+        ],
+        [
+          5.299038,
+          13.25
+        ],
+        [
+          5.448889,
+          13.611771
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "zone_id": "pickup",
+      "name": "Аптека / расходники",
+      "kind": "PICKUP",
+      "center_xy_m": [
+        7.0,
+        14.0
+      ],
+      "radius_m": 1.6,
+      "polygon_xy_m": [
+        [
+          8.6,
+          14.0
+        ],
+        [
+          8.545481,
+          14.41411
+        ],
+        [
+          8.385641,
+          14.8
+        ],
+        [
+          8.131371,
+          15.131371
+        ],
+        [
+          7.8,
+          15.385641
+        ],
+        [
+          7.41411,
+          15.545481
+        ],
+        [
+          7.0,
+          15.6
+        ],
+        [
+          6.58589,
+          15.545481
+        ],
+        [
+          6.2,
+          15.385641
+        ],
+        [
+          5.868629,
+          15.131371
+        ],
+        [
+          5.614359,
+          14.8
+        ],
+        [
+          5.454519,
+          14.41411
+        ],
+        [
+          5.4,
+          14.0
+        ],
+        [
+          5.454519,
+          13.58589
+        ],
+        [
+          5.614359,
+          13.2
+        ],
+        [
+          5.868629,
+          12.868629
+        ],
+        [
+          6.2,
+          12.614359
+        ],
+        [
+          6.58589,
+          12.454519
+        ],
+        [
+          7.0,
+          12.4
+        ],
+        [
+          7.41411,
+          12.454519
+        ],
+        [
+          7.8,
+          12.614359
+        ],
+        [
+          8.131371,
+          12.868629
+        ],
+        [
+          8.385641,
+          13.2
+        ],
+        [
+          8.545481,
+          13.58589
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "zone_id": "delivery",
+      "name": "Палаты",
+      "kind": "DROPOFF",
+      "center_xy_m": [
+        39.0,
+        14.0
+      ],
+      "radius_m": 1.8,
+      "polygon_xy_m": [
+        [
+          40.8,
+          14.0
+        ],
+        [
+          40.738666,
+          14.465874
+        ],
+        [
+          40.558846,
+          14.9
+        ],
+        [
+          40.272792,
+          15.272792
+        ],
+        [
+          39.9,
+          15.558846
+        ],
+        [
+          39.465874,
+          15.738666
+        ],
+        [
+          39.0,
+          15.8
+        ],
+        [
+          38.534126,
+          15.738666
+        ],
+        [
+          38.1,
+          15.558846
+        ],
+        [
+          37.727208,
+          15.272792
+        ],
+        [
+          37.441154,
+          14.9
+        ],
+        [
+          37.261334,
+          14.465874
+        ],
+        [
+          37.2,
+          14.0
+        ],
+        [
+          37.261334,
+          13.534126
+        ],
+        [
+          37.441154,
+          13.1
+        ],
+        [
+          37.727208,
+          12.727208
+        ],
+        [
+          38.1,
+          12.441154
+        ],
+        [
+          38.534126,
+          12.261334
+        ],
+        [
+          39.0,
+          12.2
+        ],
+        [
+          39.465874,
+          12.261334
+        ],
+        [
+          39.9,
+          12.441154
+        ],
+        [
+          40.272792,
+          12.727208
+        ],
+        [
+          40.558846,
+          13.1
+        ],
+        [
+          40.738666,
+          13.534126
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    }
+  ],
+  "routes": [
+    {
+      "route_id": "demo-1",
+      "points_xy_m": [
+        [
+          4.0,
+          14.0
+        ],
+        [
+          7.0,
+          14.0
+        ],
+        [
+          12.0,
+          14.0
+        ],
+        [
+          12.0,
+          11.0
+        ],
+        [
+          37.0,
+          11.0
+        ],
+        [
+          39.0,
+          14.0
+        ]
+      ],
+      "source": "DEMO_ASSUMPTION",
+      "status": "UNVALIDATED_GEOMETRY"
+    }
+  ],
+  "agents": [],
+  "tasks": [],
+  "nav": {
+    "no_go_polygons_xy_m": [],
+    "one_way_edges": [],
+    "min_clearance_m": null,
+    "status": "NOT_EVALUATED"
+  },
+  "links": {
+    "catalog_version": null,
+    "assessment_revision": null
+  }
+}

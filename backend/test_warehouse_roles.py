@@ -1,9 +1,11 @@
 from decimal import Decimal
+from io import BytesIO
 from copy import deepcopy
 from types import SimpleNamespace
 import uuid
 
 import pytest
+from pypdf import PdfReader
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -52,6 +54,144 @@ def test_every_warehouse_role_is_evaluated_with_a_numeric_fleet():
     assert result["portfolio"]["selected_roles"] == 8
 
 
+def test_payload_fail_cannot_be_selected_for_warehouse_transport():
+    raw = sample()
+    raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "forklift_driver"]
+    raw["roles"][0]["task_payload_kg"] = "2500"
+    robot = position("transport", "Паллетный AMR", "TRANSPORT_CYCLE_V1", Decimal("3000000"))
+    robot.model.facts = (SimpleNamespace(code="payload_kg", value="500", canonical_unit="kg",
+        resolution_status="VERIFIED_OFFICIAL", evidence_id="source-1"),)
+    scoped_catalog = SimpleNamespace(version=SimpleNamespace(status="PUBLISHED", code="test-v1"), positions=[robot])
+    result = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), scoped_catalog)
+    assert result["roles"][0]["candidates"][0]["physical_fit"] == "FAIL"
+    assert result["roles"][0]["candidates"][0]["fleet"] == 0
+    assert Decimal(result["roles"][0]["candidates"][0]["npv_rub"]) == 0
+    assert result["roles"][0]["selected_position_id"] is None
+    assert result["portfolio"]["selected_roles"] == 0
+    raw["selected_positions"] = {"forklift_driver": "transport"}
+    with pytest.raises(ValueError, match="payload is below"):
+        analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), scoped_catalog)
+    raw["roles"][0]["task_payload_kg"] = "250"
+    assert analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), scoped_catalog)["roles"][0]["candidates"][0]["physical_fit"] == "PASS"
+
+
+def test_verified_payload_precedes_unknown_without_rejecting_extra_capacity():
+    raw = sample()
+    raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "forklift_driver"]
+    raw["roles"][0]["task_payload_kg"] = "500"
+    unknown = position("unknown", "Паллетный AMR неизвестной грузоподъёмности", "TRANSPORT_CYCLE_V1", Decimal("1000000"))
+    unknown.model.facts = ()
+    verified = position("verified", "Паллетный AMR 2500", "TRANSPORT_CYCLE_V1", Decimal("3000000"))
+    verified.model.facts = (SimpleNamespace(code="payload_kg", value="2500", canonical_unit="kg",
+        resolution_status="VERIFIED_OFFICIAL", evidence_id="passport-2500"),)
+    scoped_catalog = SimpleNamespace(version=SimpleNamespace(status="PUBLISHED", code="test-v1"), positions=[unknown, verified])
+    result = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), scoped_catalog)
+    candidates = result["roles"][0]["candidates"]
+    assert [candidate["position_id"] for candidate in candidates] == ["verified", "unknown"]
+    assert candidates[0]["match_status"] == "PHYSICAL_CHECK_PASSED"
+    assert candidates[1]["match_status"] == "NEEDS_VERIFICATION"
+    assert result["roles"][0]["selected_position_id"] == "verified"
+
+
+def test_scene_route_changes_warehouse_fleet_and_money():
+    raw = sample()
+    raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "forklift_driver"]
+    raw["roles"][0]["daily_volume"] = "700"
+    raw["roles"][0]["robotizable_share"] = "1"
+    raw["general"]["fleet_reserve_share"] = "0"
+    simulation = {"scene_revision": 1, "speed_loaded_mps": 1, "speed_empty_mps": 1,
+                  "pickup_service_s": 30, "dropoff_service_s": 30, "turn_delay_s": 5,
+                  "units_per_cycle": 1}
+    raw["roles"][0]["simulation"] = simulation
+    base = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())["roles"][0]["candidates"][0]
+    raw["roles"][0]["simulation"] = {**simulation, "extra_obstacles": [{"x": 25, "y": 34, "width": 2, "height": 2}]}
+    detour = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())["roles"][0]["candidates"][0]
+    assert base["fleet"] < detour["fleet"]
+    assert Decimal(base["npv_rub"]) > Decimal(detour["npv_rub"])
+    raw["roles"][0]["simulation"] = {**simulation, "extra_obstacles": [{"x": 30, "y": 20, "width": 1, "height": 40}]}
+    blocked = analyze_warehouse_roles(WarehouseRoleInput.model_validate(raw), catalog())
+    selected = blocked["roles"][0]["candidates"][0]
+    assert selected["simulation"]["status"] == "NO_ROUTE"
+    assert selected["fleet"] == 0 and selected["fte_equivalent"] == "0.00"
+    assert Decimal(blocked["portfolio"]["npv_rub"]) == 0
+
+
+def test_what_if_volume_and_speed_recompute_warehouse_cycle_and_fleet():
+    value = sample()
+    value["roles"] = [role for role in value["roles"] if role["role_code"] == "forklift_driver"]
+    value["roles"][0]["daily_volume"] = "700"
+    value["roles"][0]["robotizable_share"] = "1"
+    value["general"]["fleet_reserve_share"] = "0"
+    value["roles"][0]["simulation"] = {
+        "scene_revision": 1, "speed_loaded_mps": 1, "speed_empty_mps": 1,
+        "pickup_service_s": 30, "dropoff_service_s": 30, "turn_delay_s": 5,
+        "units_per_cycle": 1,
+    }
+    original = deepcopy(value)
+    base = analyze_warehouse_roles(WarehouseRoleInput.model_validate(value), catalog())
+    branch_input = deepcopy(value)
+    branch_input["roles"][0]["daily_volume"] = "980"
+    branch_input["roles"][0]["simulation"]["speed_loaded_mps"] = "0.8"
+    branch_input["roles"][0]["simulation"]["speed_empty_mps"] = "0.8"
+    branch = analyze_warehouse_roles(WarehouseRoleInput.model_validate(branch_input), catalog())
+    before = base["roles"][0]["candidates"][0]
+    after = branch["roles"][0]["candidates"][0]
+    assert value == original
+    assert before["simulation"]["status"] == after["simulation"]["status"] == "MODELED"
+    assert after["simulation"]["cycle_s"] > before["simulation"]["cycle_s"]
+    assert after["fleet"] > before["fleet"]
+    assert branch["portfolio"]["npv_rub"] != base["portfolio"]["npv_rub"]
+
+
+def test_what_if_horizon_uses_same_warehouse_cashflows_for_purchase_and_rent():
+    value = sample()
+    value["roles"] = [role for role in value["roles"] if role["role_code"] == "forklift_driver"]
+    value["selected_positions"] = {"forklift_driver": "transport"}
+    results = {}
+    for years in (5, 10):
+        branch = deepcopy(value)
+        branch["general"]["horizon_years"] = years
+        results[years] = analyze_warehouse_roles(WarehouseRoleInput.model_validate(branch), catalog())
+    assert value["general"]["horizon_years"] == 5
+    assert results[5]["portfolio"]["selected_robot_allocations"] == results[10]["portfolio"]["selected_robot_allocations"]
+    for years, report in results.items():
+        discount = Decimal(str(report["general"]["discount_rate"]))
+        factor = sum((Decimal(1) / (1 + discount) ** year for year in range(1, years + 1)), Decimal(0))
+        money = report["portfolio"]
+        for capex_key, net_key, npv_key in (
+            ("capex_rub", "annual_net_rub", "npv_rub"),
+            ("raas_capex_rub", "raas_annual_net_rub", "raas_npv_rub"),
+        ):
+            expected = (Decimal(money[net_key]) * factor - Decimal(money[capex_key])).quantize(Decimal("0.01"))
+            assert Decimal(money[npv_key]) == expected
+
+
+def test_warehouse_guest_route_preview_and_pdf_share_simulation_values():
+    raw = sample()
+    raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "forklift_driver"]
+    raw["roles"][0]["daily_volume"] = "700"
+    raw["roles"][0]["robotizable_share"] = "1"
+    raw["roles"][0]["simulation"] = {
+        "scene_revision": 1, "speed_loaded_mps": 1, "speed_empty_mps": 1,
+        "pickup_service_s": 30, "dropoff_service_s": 30, "turn_delay_s": 5,
+        "units_per_cycle": 1,
+    }
+    app = FastAPI()
+    app.include_router(create_warehouse_roles_router(catalog))
+    client = TestClient(app)
+    preview = client.post("/api/v2/warehouse-roles/preview", json=raw)
+    assert preview.status_code == 200
+    result = preview.json()
+    candidate = result["roles"][0]["candidates"][0]
+    assert candidate["simulation"]["status"] == "MODELED"
+    pdf = client.post("/api/v2/warehouse-roles/report.pdf", json={
+        "expected_catalog_version": "test-v1", "input": raw})
+    assert pdf.status_code == 200
+    pdf_text = "\n".join(page.extract_text() for page in PdfReader(BytesIO(pdf.content)).pages)
+    assert result["portfolio"]["npv_rub"] in pdf_text
+    assert "Маршрут: MODELED" in pdf_text
+
+
 def test_portfolio_uses_selected_positions_and_marks_scenario_price():
     raw = sample()
     raw["roles"] = [role for role in raw["roles"] if role["role_code"] in {"picker", "forklift_driver"}]
@@ -60,6 +200,8 @@ def test_portfolio_uses_selected_positions_and_marks_scenario_price():
     result = analyze_warehouse_roles(value, catalog())
     assert result["portfolio"]["selected_roles"] == 2
     assert result["portfolio"]["capex_rub"] is not None
+    assert Decimal(result["portfolio"]["purchase_payback_years"]) == (
+        Decimal(result["portfolio"]["capex_rub"]) / Decimal(result["portfolio"]["annual_net_rub"])).quantize(Decimal("0.01"))
     picker = next(role for role in result["roles"] if role["role_code"] == "picker")
     assert picker["candidates"][0]["price_source"] == "SCENARIO_ASSUMPTION"
     raw["overrides"] = [{"role_code": "picker", "position_id": "picking",
@@ -209,6 +351,9 @@ def test_owner_bound_preview_save_and_reopen_use_the_same_scenario():
     raw["roles"] = [role for role in raw["roles"] if role["role_code"] == "picker"]
     preview = client.post(f"/api/v2/projects/{project_id}/warehouse-roles/preview", json=raw)
     assert preview.status_code == 200
+    guest = client.post("/api/v2/warehouse-roles/preview", json=raw)
+    assert guest.status_code == 200
+    assert guest.json() == preview.json()
     assert preview.json()["portfolio"]["selected_roles"] == 1
     saved = client.post(f"/api/v2/projects/{project_id}/warehouse-roles", json={
         "expected_version": 0, "expected_catalog_version": "test-v1", "input": raw,
@@ -218,3 +363,19 @@ def test_owner_bound_preview_save_and_reopen_use_the_same_scenario():
     reopened = client.get(f"/api/v2/projects/{project_id}/warehouse-roles")
     assert reopened.status_code == 200
     assert reopened.json()["latest"]["result_snapshot"] == preview.json()
+
+
+def test_guest_warehouse_preview_requires_no_project_or_auth():
+    app = FastAPI()
+    app.include_router(create_warehouse_roles_router(catalog))
+    raw = sample()
+    raw["roles"] = raw["roles"][:1]
+    result = TestClient(app).post("/api/v2/warehouse-roles/preview", json=raw)
+    assert result.status_code == 200
+    assert result.json()["schema_version"] == "warehouse-role-analysis-v2"
+    report = TestClient(app).post("/api/v2/warehouse-roles/report.pdf", json={
+        "expected_catalog_version": "test-v1", "input": raw})
+    assert report.status_code == 200
+    pdf_text = "\n".join(page.extract_text() for page in PdfReader(BytesIO(report.content)).pages)
+    assert "Сценарная оценка роботизации" in pdf_text
+    assert result.json()["portfolio"]["npv_rub"] in pdf_text

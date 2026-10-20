@@ -4,13 +4,12 @@ import ProcessRoleIntakeV2 from './ProcessRoleIntakeV2';
 import WarehouseRoleWorkspace from './WarehouseRoleWorkspace';
 import ObjectRoleWorkspace from './ObjectRoleWorkspace';
 
-export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked,
+export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', initialPrompt = '', importedAssistant, activeProject, initialFacilityContext, initialDraft, initialNormalized, initialCapacityRequest, focusTarget, onDraftChange, user, authChecked, demo = false,
   projectChoices, projectStatus, onChooseProject, onOpenProjects, onOpenAccount, onOpenObjects,
   onFileApplied, onIntakeV2Normalized, onCapacityResult, onWarehouseRoleSaved, onRolePreview, onRoleInvalidated, onRoleContinue, roleReport }) {
   const [v2FileInput, setV2FileInput] = useState(() => activeProject?.profile?.file_intake_v2?.object_type === objectType
     ? { normalized: activeProject.profile.file_intake_v2, imported: { id: activeProject.profile.project_file_import_id } } : null);
   const [fileNotice, setFileNotice] = useState('');
-  const [showLegacyWarehouse, setShowLegacyWarehouse] = useState(false);
   const supported = ['retail', 'airport', 'clinic'].includes(objectType);
 
   const applyFile = (normalized, _provenance, imported) => {
@@ -24,21 +23,21 @@ export default function IntakeScreen({ objectType, journeyMode = 'ADVANCED', ini
     onFileApplied?.(normalized, imported);
   };
 
-  if (supported && !showLegacyWarehouse) return <>
+  if (supported) return <>
+    <div className="mx-auto max-w-6xl px-4 pt-4"><p className="simple-step-eyebrow">ШАГ 1 ИЗ 5 · РАБОТЫ</p><h1>Работы</h1>{demo && <p>Готовый пример · сценарные допущения можно изменить.</p>}</div>
     {objectType === 'retail' ? <WarehouseRoleWorkspace activeProject={activeProject} user={user} authChecked={authChecked}
+      demo={demo}
       projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject}
       onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved}
       onPreview={onRolePreview} onInvalidated={onRoleInvalidated} onContinue={onRoleContinue} initialReport={roleReport} />
       : <ObjectRoleWorkspace kind={objectType.toUpperCase()} activeProject={activeProject} user={user} authChecked={authChecked}
+        demo={demo}
         projectChoices={projectChoices} projectStatus={projectStatus} onChooseProject={onChooseProject}
         onOpenProjects={onOpenProjects} onOpenAccount={onOpenAccount} onSaved={onWarehouseRoleSaved}
         onPreview={onRolePreview} onInvalidated={onRoleInvalidated} onContinue={onRoleContinue} initialReport={roleReport} />}
-    <div className="mx-auto mb-6 max-w-6xl px-4"><button type="button" className="text-sm text-slate-400 underline"
-      onClick={() => setShowLegacyWarehouse(true)}>Открыть прежний расчёт по зонам и операциям</button></div>
   </>;
 
   return <main className="intake-screen simple-intake min-h-full w-full max-w-[1440px] mx-auto p-4 md:p-6 space-y-4" aria-label="Описание работы">
-    {supported && <button type="button" className="text-sm text-lime-300 underline" onClick={() => setShowLegacyWarehouse(false)}>Вернуться к расчёту по всем ролям</button>}
     <div className="space-y-3">
       <header>
         <span className="simple-step-eyebrow">ШАГ 2 ИЗ 5 · РАБОТА</span>

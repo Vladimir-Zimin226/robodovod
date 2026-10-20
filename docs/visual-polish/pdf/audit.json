@@ -1,0 +1,46 @@
+[
+  {
+    "object": "WAREHOUSE",
+    "pages": 6,
+    "text_characters_by_page": [
+      265,
+      1870,
+      1223,
+      452,
+      1740,
+      1329
+    ],
+    "catalog": "test-v2",
+    "pdf": "docs\\visual-polish\\pdf\\warehouse-local.pdf"
+  },
+  {
+    "object": "AIRPORT",
+    "pages": 7,
+    "text_characters_by_page": [
+      268,
+      1888,
+      1764,
+      946,
+      430,
+      2687,
+      1934
+    ],
+    "catalog": "test-v2",
+    "pdf": "docs\\visual-polish\\pdf\\airport-local.pdf"
+  },
+  {
+    "object": "CLINIC",
+    "pages": 7,
+    "text_characters_by_page": [
+      267,
+      1766,
+      1873,
+      1051,
+      430,
+      1928,
+      3049
+    ],
+    "catalog": "test-v2",
+    "pdf": "docs\\visual-polish\\pdf\\clinic-local.pdf"
+  }
+]

@@ -17,6 +17,8 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from catalog_repository import CatalogPositionDTO, CatalogSnapshotDTO
+from calculation.physical_fit import check_payload
+from calculation.scene_simulation import SceneSimulationInput, load_scene, simulate_scene
 
 SCHEMA = "warehouse-role-analysis-v2"
 ROLE_LABELS = {
@@ -70,6 +72,7 @@ def warehouse_template() -> dict[str, Any]:
             "manual_units_per_person_shift": str(manual),
             "robotizable_share": row["robotizable_fraction"],
             "unit": row["manual_unit"].split("/")[0],
+            "task_payload_kg": None,
             "basis": row["work_basis"], "evidence_ref": row["evidence_ref"],
             "scenario_purchase_price_rub": row["scenario_purchase_price_rub"],
             "salary_basis": row["salary_source_ref"],
@@ -119,6 +122,8 @@ class RoleInput(BaseModel):
     source: str = Field(pattern="^(USER|SCENARIO_ASSUMPTION)$")
     basis: str = Field(min_length=3, max_length=1500)
     realizable_labor_share: Decimal | None = Field(default=None, ge=0, le=1)
+    task_payload_kg: Decimal | None = Field(default=None, gt=0)
+    simulation: SceneSimulationInput | None = None
 
     @model_validator(mode="after")
     def known_role(self):
@@ -242,6 +247,8 @@ def _verified_rate(position: CatalogPositionDTO, unit: str) -> tuple[Decimal | N
 
 def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralInput,
                override: CandidateOverride | None, match_basis: str) -> dict[str, Any]:
+    fit = check_payload(role.task_payload_kg, position.model.facts,
+        applicable=role.role_code in {"forklift_driver", "loader", "picker", "storekeeper"})
     unit = warehouse_template_unit(role.role_code)
     verified_rate, rate_evidence = _verified_rate(position, unit)
     rate = (override.units_per_hour if override and override.units_per_hour is not None
@@ -250,11 +257,29 @@ def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralIn
     rate_source = ("USER" if override and override.units_per_hour is not None else
                    "CATALOG_VERIFIED" if verified_rate is not None else "SCENARIO_ASSUMPTION")
     target = role.daily_volume * role.robotizable_share
+    simulation = None
+    if role.simulation is not None and fit["physical_fit"] != "FAIL":
+        if role.role_code not in {"forklift_driver", "loader", "picker", "storekeeper"}:
+            raise ValueError("route simulation does not apply to this warehouse role")
+        scenario = role.simulation.model_copy(update={
+            "demand_units_per_hour": float(target / general.hours_per_shift / general.shifts_per_day),
+            "robot_availability": float(general.robot_availability),
+            "fleet_reserve_share": float(general.fleet_reserve_share),
+            "selected_robot_ids": [position.id],
+        })
+        simulation = simulate_scene(load_scene("warehouse"), scenario)
+        if fit["physical_fit"] == "UNKNOWN":
+            simulation["flags"].append("ROBOT_TTH_NOT_VERIFIED")
+        if simulation["status"] == "MODELED":
+            rate = Decimal(str(3600 * scenario.units_per_cycle / simulation["cycle_s"]))
+            rate_source = "SCENE_SIMULATION"
+    simulation_ready = (simulation is None or simulation["status"] == "MODELED") and fit["physical_fit"] != "FAIL"
     daily_per_robot = rate * general.hours_per_shift * general.shifts_per_day * general.robot_availability
-    fleet = math.ceil(target / daily_per_robot * (1 + general.fleet_reserve_share))
+    fleet = (simulation["fleet_required"] if simulation is not None and simulation_ready else
+             math.ceil(target / daily_per_robot * (1 + general.fleet_reserve_share)) if simulation_ready else 0)
     manual_capacity = role.headcount * role.manual_units_per_person_shift
     demand_ratio = role.daily_volume / manual_capacity
-    potential_fte = min(role.headcount, target / role.manual_units_per_person_shift)
+    potential_fte = min(role.headcount, target / role.manual_units_per_person_shift) if simulation_ready else Decimal(0)
     labor_share = role.realizable_labor_share if role.realizable_labor_share is not None else general.realizable_labor_share
     fte = potential_fte * labor_share
     annual_reallocated_hours = fte * general.hours_per_shift * general.days_per_year
@@ -307,7 +332,12 @@ def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralIn
         "source_row_number": getattr(position, "source_row_number", None),
         "manufacturer": position.model.manufacturer,
         "maturity_status": position.model.maturity_status,
-        "match_basis": match_basis, "match_status": "NEEDS_PHYSICAL_CHECK",
+        "match_basis": match_basis,
+        "match_status": ("PHYSICAL_MISMATCH" if fit["physical_fit"] == "FAIL" else
+                         "NEEDS_VERIFICATION" if fit["physical_fit"] == "UNKNOWN" else
+                         "PHYSICAL_CHECK_PASSED" if fit["physical_fit"] == "PASS" else
+                         "NOT_APPLICABLE"),
+        **fit,
         "work_scope": ("DELIVERY_TO_PICKING_STATION" if picking_supply_only else
                        "PALLET_TRANSPORT_ONLY" if role.role_code == "loader" else "DIRECT_ROLE_WORK"),
         "calculation_profile": position.model.capacity_runtime.calculation_profile,
@@ -331,6 +361,7 @@ def _candidate(role: RoleInput, position: CatalogPositionDTO, general: GeneralIn
                         "Условно один робот за смену выполняет объём работы одного сотрудника; это не паспортная производительность.")
                        if rate_source == "SCENARIO_ASSUMPTION" else None),
         "fleet": fleet, "potential_fte": _number(potential_fte),
+        "simulation": simulation,
         "realizable_labor_share": _number(labor_share), "fte_equivalent": _number(fte),
         "annual_reallocated_hours": _number(annual_reallocated_hours),
         "annual_labor_potential_rub": _number(annual_labor),
@@ -381,18 +412,22 @@ def analyze_warehouse_roles(value: WarehouseRoleInput, catalog: CatalogSnapshotD
                       "PALLETIZING_PROFILE": 0, "ROLE_DESCRIPTION": 1,
                       "ROLE_APPLICATION": 2, "CATALOG_TEXT_HINT": 3,
                       "GENERAL_MANIPULATOR_HINT": 4}
-        candidates.sort(key=lambda row: (row["status"] == "RESEARCH_ONLY",
+        candidates.sort(key=lambda row: (row["physical_fit"] == "FAIL",
+                                         row["physical_fit"] == "UNKNOWN",
+                                         row["status"] == "RESEARCH_ONLY",
                                          basis_rank.get(row["match_basis"], 4),
                                          not row["calculation_ready"], row["price_rub"] is None,
                                          row["fleet"], row["name"], row["position_id"]))
         selected_id = value.selected_positions.get(role.role_code)
         if selected_id is None:
-            selected_id = next((row["position_id"] for row in candidates if row["status"] != "RESEARCH_ONLY"), None)
+            selected_id = next((row["position_id"] for row in candidates if row["status"] != "RESEARCH_ONLY" and row["physical_fit"] != "FAIL"), None)
         if selected_id == "NONE":
             selected_id = None
         if selected_id and selected_id not in {row["position_id"] for row in candidates}:
             raise ValueError(f"selected position is not a candidate for {role.role_code}")
         selected = next((row for row in candidates if row["position_id"] == selected_id), None)
+        if selected and selected["physical_fit"] == "FAIL":
+            raise ValueError(f"selected position payload is below task payload for {role.role_code}")
         if selected is not None:
             selected_candidates.append({"role_code": role.role_code, **selected})
         role_results.append({
@@ -424,6 +459,7 @@ def analyze_warehouse_roles(value: WarehouseRoleInput, catalog: CatalogSnapshotD
                  "npv_rub": _number(sum(Decimal(row["npv_rub"]) for row in selected_candidates)) if all_priced else None,
                  "purchase_tco_rub": _number(sum(Decimal(row["purchase_tco_rub"]) for row in selected_candidates)) if all_priced else None,
                  "purchase_roi_percent": _number((total_net * value.general.horizon_years - total_capex) / total_capex * 100) if all_priced and total_capex > 0 else None,
+                 "purchase_payback_years": _number(total_capex / total_net) if all_priced and total_net > 0 else None,
                  "raas_capex_rub": _number(rent_capex) if all_rented else None,
                  "raas_tco_rub": _number(sum(Decimal(row["raas_tco_rub"]) for row in selected_candidates)) if all_rented else None,
                  "raas_annual_net_rub": _number(rent_net) if all_rented else None,
@@ -436,7 +472,7 @@ def analyze_warehouse_roles(value: WarehouseRoleInput, catalog: CatalogSnapshotD
                                   for row in selected_candidates if row["raas_monthly_rub"] is None],
                  "status": "RESEARCH_SCENARIO" if any(row["status"] == "RESEARCH_ONLY" for row in selected_candidates)
                            else "SCENARIO_WITH_PRICE" if all_priced else "PARTIAL"}
-    return {"schema_version": SCHEMA, "catalog_version": catalog.version.code,
+    result = {"schema_version": SCHEMA, "catalog_version": catalog.version.code,
             "catalog_positions_checked": len(catalog.positions),
             "general": value.general.model_dump(mode="json"), "roles": role_results,
             "portfolio": portfolio,
@@ -448,3 +484,6 @@ def analyze_warehouse_roles(value: WarehouseRoleInput, catalog: CatalogSnapshotD
                 "Если одна модель выбрана для нескольких ролей, парк считается отдельными назначениями; общая загрузка роботов между ролями не доказана.",
                 "Интеграция, сервис и ставка дисконтирования заданы общими допущениями; налоги, расходники и финансирование не детализированы.",
             ]}
+    from calculation.role_report_view import build_role_report_view
+    result["report_view"] = build_role_report_view(result)
+    return result

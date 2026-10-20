@@ -64,8 +64,8 @@ function CandidateSelection({ role, work, report, onChange }) {
     <select value={work.selected_position_id === 'AUTO' ? calculated.selected_position_id : work.selected_position_id}
       onChange={(event) => onChange(event.target.value)}>
       <option value="SCENARIO_TYPE">Сценарный тип без каталожной модели</option><option value="NONE">Без робота</option>
-      {calculated.candidates.map((candidate) => <option key={candidate.position_id} value={candidate.position_id}>{candidate.name}</option>)}
-    </select><p>Подбор по функции в описании каталога; физическая пригодность и поставка требуют проверки.</p></div>;
+      {calculated.candidates.map((candidate) => <option key={candidate.position_id} value={candidate.position_id} disabled={candidate.physical_fit === 'FAIL'}>{candidate.name} · ТТХ {candidate.physical_fit}{candidate.physical_fit === 'FAIL' ? ' · грузоподъёмность ниже задачи' : candidate.physical_fit === 'UNKNOWN' ? ' · требуется проверка' : ''}</option>)}
+    </select><p>PASS — подтверждённая грузоподъёмность достаточна; FAIL — ниже массы задачи; UNKNOWN — данных недостаточно. Другие условия эксплуатации и поставка требуют проверки.</p></div>;
 }
 
 function WorkEconomics({ report }) {
@@ -107,7 +107,7 @@ export function ObjectRoleResult({ report, onEdit, focus = 'all' }) {
 }
 
 export default function ObjectRoleWorkspace({ kind, activeProject, user, authChecked, projectChoices = [], projectStatus,
-  onChooseProject, onOpenProjects, onOpenAccount, onSaved, onPreview, onInvalidated, onContinue, initialReport }) {
+  onChooseProject, onOpenProjects, onOpenAccount, onSaved, onPreview, onInvalidated, onContinue, initialReport, demo = false }) {
   const [draft, setDraft] = useState(null);
   const [report, setReport] = useState(null);
   const [version, setVersion] = useState(0);
@@ -134,24 +134,28 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
       const prior = saved.latest?.input_snapshot;
       let sessionDraft = null;
       try { sessionDraft = JSON.parse(sessionStorage.getItem(draftKey) || 'null'); } catch { sessionDraft = null; }
-      const sourceInput = sessionDraft || prior;
+      let guestDraft = null;
+      if (projectId && !prior && !sessionDraft) {
+        try { guestDraft = JSON.parse(sessionStorage.getItem(`robodovod:object-role-draft:guest:${kind}`) || 'null'); } catch { guestDraft = null; }
+      }
+      const sourceInput = sessionDraft || prior || guestDraft;
       const priorRoles = Object.fromEntries((sourceInput?.roles || []).map((role) => [role.role_code, role]));
       setDraft({ general: sourceInput?.general || template.general,
         include_safety_in_conditional: sourceInput?.include_safety_in_conditional ?? true,
         roles: template.roles.map((role) => {
           const old = priorRoles[role.role_code];
           const oldWorks = Object.fromEntries((old?.works || []).map((work) => [work.process_code, work]));
-          return { ...role, ...(old || {}), selected: sessionDraft ? Boolean(old?.selected) : prior ? Boolean(old) : false,
+          return { ...role, ...(old || {}), selected: sessionDraft || guestDraft ? Boolean(old?.selected) : prior ? Boolean(old) : demo,
             works: role.works.map((work) => ({ ...work, ...(oldWorks[work.process_code] || {}),
               selected: sessionDraft ? Boolean(oldWorks[work.process_code]?.selected) : prior ? Boolean(oldWorks[work.process_code]) : true })) };
         }) });
       setReport(initialReportRef.current || (sessionDraft ? null : saved.latest?.result_snapshot) || null);
       setVersion(saved.version);
-      setBusy(''); setDirty(Boolean(sessionDraft && !initialReportRef.current)); setUnsavedPreview(Boolean(sessionDraft && initialReportRef.current)); setError('');
-      if (saved.latest?.result_snapshot && !sessionDraft && !initialReportRef.current) onPreviewRef.current?.(saved.latest.result_snapshot);
+      setBusy(''); setDirty(Boolean((sessionDraft || guestDraft) && !initialReportRef.current)); setUnsavedPreview(Boolean((sessionDraft || guestDraft) && initialReportRef.current)); setError('');
+      if (saved.latest?.result_snapshot && !sessionDraft && !initialReportRef.current) onPreviewRef.current?.(saved.latest.result_snapshot, saved.latest.input_snapshot);
     }).catch((reason) => { if (active) { setError(reason.message); setBusy(''); } });
     return () => { active = false; sequence.current += 1; };
-  }, [kind, projectId, draftKey]);
+  }, [kind, projectId, draftKey, demo]);
 
   useEffect(() => {
     if (!draft) return;
@@ -179,20 +183,20 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
   const changeWork = (code, process, key, value) => update((current) => ({ ...current,
     roles: current.roles.map((role) => role.role_code === code ? { ...role,
       works: role.works.map((work) => work.process_code === process ? { ...work, [key]: value,
+        ...(key === 'task_payload_kg' ? { selected_position_id: 'AUTO' } : {}),
         ...(key === 'scenario_purchase_price_rub' ? { price_source: 'USER' } : {}),
         ...(['scenario_raas_monthly_rub', 'raas_percent_monthly'].includes(key) ? { raas_source: 'USER' } : {}),
         ...(key === 'robot_units_per_hour' ? { rate_source: 'USER_ASSUMPTION' } : {}) } : work) } : role) }));
   const preview = async (inputDraft = draft) => {
-    if (!projectId) { setError('Выберите или создайте проект для расчёта.'); return; }
     const currentSequence = ++sequence.current;
     setBusy('preview'); setError('');
     try {
-      const response = await request(`/api/v2/projects/${encodeURIComponent(projectId)}/object-roles/${kind}/preview`, {
+      const response = await request(projectId ? `/api/v2/projects/${encodeURIComponent(projectId)}/object-roles/${kind}/preview` : `/api/v2/object-roles/${kind}/preview`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
         body: JSON.stringify(asInput(inputDraft, kind)),
       });
       if (currentSequence !== sequence.current) return;
-      setReport(response); setDirty(false); setUnsavedPreview(true); onPreview?.(response); setNotice('Расчёт выполнен. Проверьте назначения, допущения и оба итога.');
+      setReport(response); setDirty(false); setUnsavedPreview(true); onPreview?.(response, asInput(inputDraft, kind)); setNotice('Расчёт выполнен. Проверьте назначения, допущения и оба итога.');
       document.getElementById('object-role-results')?.scrollIntoView({ behavior: 'smooth' });
     } catch (reason) { if (currentSequence === sequence.current) setError(reason.message); }
     finally { if (currentSequence === sequence.current) setBusy(''); }
@@ -220,7 +224,7 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
     <header className="wr-hero"><div><p className="wr-kicker">ОБЪЕКТНЫЙ РАСЧЁТ · {kind}</p><h1>Роботы для каждой роли {NAMES[kind]}</h1>
       <p>Выберите сотрудников и настройте каждую работу. Типовые значения — редактируемые допущения, не замеры объекта.</p></div>
       <div className="wr-hero-mark"><AppIcon name={kind.toLowerCase()} size={52} /><span>РОЛИ<br />РАСЧЁТ</span></div></header>
-    {!projectId && <section className="wr-project-note"><strong>Для расчёта нужен проект</strong>
+    {!projectId && <section className="wr-project-note"><strong>Гостевой расчёт доступен без проекта. Для сохранения результата нужен аккаунт и проект.</strong>
       {!authChecked ? <p>Проверяем вход…</p> : !user ? <button type="button" onClick={onOpenAccount}>Войти или зарегистрироваться</button>
         : projectStatus === 'loading' ? <p>Загружаем проекты…</p> : projectChoices.length ? <select defaultValue="" onChange={(event) => {
           const project = projectChoices.find((row) => row.id === event.target.value); if (project) onChooseProject(project);
@@ -262,6 +266,7 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
             {work.selected && <>
             <div className="wr-role-fields">
               <Field label={`Объём, ${work.unit}/сутки`} value={work.daily_volume} onChange={(value) => changeWork(role.role_code, work.process_code, 'daily_volume', value)} />
+              {work.unit !== 'm2' && <Field label="Максимальная масса одной перевозимой единицы с тарой, кг" value={work.task_payload_kg} onChange={(value) => changeWork(role.role_code, work.process_code, 'task_payload_kg', value)} hint="Без массы пригодность модели по грузоподъёмности остаётся UNKNOWN." />}
               <Field label={`Выработка человека, ${work.unit}/смена`} value={work.manual_units_per_person_shift} onChange={(value) => changeWork(role.role_code, work.process_code, 'manual_units_per_person_shift', value)} />
               <Field label="Доля времени роли на работу, 0–1" value={work.allocation_fraction} max="1" onChange={(value) => changeWork(role.role_code, work.process_code, 'allocation_fraction', value)} />
               <Field label="Роботизируемая доля этой работы, 0–1" value={work.robotizable_share} max="1" onChange={(value) => changeWork(role.role_code, work.process_code, 'robotizable_share', value)} />
@@ -281,13 +286,13 @@ export default function ObjectRoleWorkspace({ kind, activeProject, user, authChe
           </section>)}
         </div>}</article>)}</div>
       <label className="wr-source"><input type="checkbox" checked={draft.include_safety_in_conditional} onChange={(event) => update((current) => ({ ...current, include_safety_in_conditional: event.target.checked }))} /> Включать неподтверждённые safety-работы в общий условный итог</label>
-      <div className="wr-actions"><button type="button" className="wr-primary" disabled={busy !== '' || !projectId || !draft.roles.some((role) => role.selected && role.works.some((work) => work.selected))} onClick={() => preview()}>{busy === 'preview' ? 'Считаем…' : 'Подобрать и рассчитать все выбранные работы'}</button></div>
+      <div className="wr-actions"><button type="button" className="wr-primary" disabled={busy !== '' || !draft.roles.some((role) => role.selected && role.works.some((work) => work.selected))} onClick={() => preview()}>{busy === 'preview' ? 'Считаем…' : 'Подобрать и рассчитать все выбранные работы'}</button></div>
     </section>
     {error && <p role="alert" className="wr-message wr-message-error">{error}</p>}{notice && <p role="status" className="wr-message wr-message-ok">{notice}</p>}
     {report && <div id="object-role-results" className={`wr-panel${dirty ? ' wr-results-stale' : ''}`}><h2>Предпросмотр готов</h2>
       <p>{report.conditional_total.work_count} работ · парк {report.conditional_total.fleet} роботов. Дальше можно рассмотреть назначения, сравнить покупку и аренду и открыть визуализацию.</p>
       {dirty && <p role="status">Данные изменены. Пересчитайте перед сохранением.</p>}
-      <button type="button" className="wr-primary" disabled={dirty || busy !== ''} onClick={save}>{busy === 'save' ? 'Сохраняем…' : 'Сохранить расчёт в проекте'}</button>
+      {projectId && <button type="button" className="wr-primary" disabled={dirty || busy !== ''} onClick={save}>{busy === 'save' ? 'Сохраняем…' : 'Сохранить расчёт в проекте'}</button>}
       <button type="button" className="wr-primary" disabled={dirty || busy !== ''} onClick={onContinue}>Продолжить к роботам →</button>
       {version > 0 && <span className="wr-version">Версия {version}</span>}
     </div>}

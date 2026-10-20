@@ -36,6 +36,7 @@ function makeInput(draft) {
       daily_volume: row.daily_volume,
       manual_units_per_person_shift: row.manual_units_per_person_shift,
       robotizable_share: row.robotizable_share,
+      task_payload_kg: row.task_payload_kg || null,
       source: row.source, basis: row.basis, realizable_labor_share: row.realizable_labor_share || null,
     })),
     selected_positions: Object.fromEntries(Object.entries(draft.selected_positions)
@@ -61,7 +62,7 @@ function Field({ label, value, onChange, hint, min = '0', max, step = 'any' }) {
 }
 
 export default function WarehouseRoleWorkspace({ activeProject, user, authChecked, projectChoices = [], projectStatus,
-  onChooseProject, onOpenProjects, onOpenAccount, onSaved, onPreview, onInvalidated, onContinue, initialReport }) {
+  onChooseProject, onOpenProjects, onOpenAccount, onSaved, onPreview, onInvalidated, onContinue, initialReport, demo = false }) {
   const [draft, setDraft] = useState(null);
   const [report, setReport] = useState(null);
   const [version, setVersion] = useState(0);
@@ -91,25 +92,29 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
         let sessionDraft = null;
         try { sessionDraft = JSON.parse(sessionStorage.getItem(draftKey) || 'null'); }
         catch { sessionDraft = null; }
-        const sourceInput = sessionDraft || savedInput;
+        let guestDraft = null;
+        if (projectId && !savedInput && !sessionDraft) {
+          try { guestDraft = JSON.parse(sessionStorage.getItem(`${GUEST_DRAFT_KEY}:guest`) || 'null'); } catch { guestDraft = null; }
+        }
+        const sourceInput = sessionDraft || savedInput || guestDraft;
         const byCode = Object.fromEntries((sourceInput?.roles || []).map((role) => [role.role_code, role]));
         setDraft({
           general: sourceInput?.general || template.general,
           roles: template.roles.map((row) => ({ ...row, ...(byCode[row.role_code] || {}),
-            selected: sessionDraft ? Boolean(byCode[row.role_code]?.selected) : Boolean(byCode[row.role_code]) })),
+            selected: sessionDraft ? Boolean(byCode[row.role_code]?.selected) : demo || Boolean(byCode[row.role_code]) })),
           selected_positions: sourceInput?.selected_positions || {},
           overrides: sourceInput?.overrides || [],
         });
         setReport(initialReportRef.current || saved.latest?.result_snapshot || null);
         setVersion(saved.version);
-        setDirty(Boolean(sessionDraft && !initialReportRef.current));
+        setDirty(Boolean((sessionDraft || guestDraft) && !initialReportRef.current));
         setUnsavedPreview(Boolean(sessionDraft && initialReportRef.current));
-        if (saved.latest?.result_snapshot && !sessionDraft && !initialReportRef.current) onPreviewRef.current?.(saved.latest.result_snapshot);
+        if (saved.latest?.result_snapshot && !sessionDraft && !initialReportRef.current) onPreviewRef.current?.(saved.latest.result_snapshot, saved.latest.input_snapshot);
         setLoading(false);
       })
       .catch((reason) => { if (active) { setError(reason.message); setLoading(false); } });
     return () => { active = false; sequence.current += 1; };
-  }, [projectId, draftKey]);
+  }, [projectId, draftKey, demo]);
 
   useEffect(() => {
     if (!draft) return;
@@ -130,7 +135,10 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
   const changeGeneral = (field, value) => change((current) => ({ ...current,
     general: { ...current.general, [field]: value } }));
   const changeRole = (code, field, value) => change((current) => ({ ...current,
-    roles: current.roles.map((row) => row.role_code === code ? { ...row, [field]: value } : row) }));
+    roles: current.roles.map((row) => row.role_code === code ? { ...row, [field]: value } : row),
+    selected_positions: field === 'task_payload_kg'
+      ? Object.fromEntries(Object.entries(current.selected_positions).filter(([key]) => key !== code))
+      : current.selected_positions }));
   const toggleRole = (code) => change((current) => ({ ...current,
     roles: current.roles.map((row) => row.role_code === code ? { ...row, selected: !row.selected } : row),
     selected_positions: Object.fromEntries(Object.entries(current.selected_positions).filter(([key]) => key !== code)),
@@ -146,12 +154,11 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
   });
 
   const preview = async (nextDraft = draft) => {
-    if (!projectId) { setError('Выберите проект, чтобы рассчитать и сохранить склад.'); return; }
     if (!nextDraft.roles.some((row) => row.selected)) { setError('Отметьте хотя бы одну роль склада.'); return; }
     const currentSequence = ++sequence.current;
     setBusy('preview'); setError(''); setNotice('');
     try {
-      const result = await request(`/api/v2/projects/${encodeURIComponent(projectId)}/warehouse-roles/preview`, {
+      const result = await request(projectId ? `/api/v2/projects/${encodeURIComponent(projectId)}/warehouse-roles/preview` : '/api/v2/warehouse-roles/preview', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': readCsrfCookie() },
         body: JSON.stringify(makeInput(nextDraft)),
       });
@@ -165,7 +172,7 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
       setReport(result);
       setDirty(false);
       setUnsavedPreview(true);
-      onPreview?.(result);
+      onPreview?.(result, makeInput(nextDraft));
       setNotice(`Проверены ${result.catalog_positions_checked} позиций активного каталога для каждой выбранной роли.`);
       document.getElementById('wr-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (reason) {
@@ -223,7 +230,7 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
     </header>
 
 
-    {!projectId && <section className="wr-project-note"><strong>Для расчёта нужен проект</strong>
+    {!projectId && <section className="wr-project-note"><strong>Гостевой расчёт доступен без проекта. Для сохранения результата нужен аккаунт и проект.</strong>
       {!authChecked ? <p>Проверяем вход…</p> : !user ? <button type="button" onClick={onOpenAccount}>Войти или зарегистрироваться</button>
         : projectStatus === 'loading' ? <p>Загружаем проекты…</p> : projectChoices.length ? <select defaultValue="" onChange={(event) => {
           const project = projectChoices.find((row) => row.id === event.target.value);
@@ -261,6 +268,9 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
             onChange={(value) => changeRole(row.role_code, 'manual_units_per_person_shift', value)} />
           <Field label="Доля работы для роботизации, 0–1" value={row.robotizable_share} max="1"
             onChange={(value) => changeRole(row.role_code, 'robotizable_share', value)} />
+          {['forklift_driver', 'loader', 'picker', 'storekeeper'].includes(row.role_code) && <Field label="Максимальная масса одной перевозимой единицы с тарой, кг" value={row.task_payload_kg ?? ''}
+            hint="Если масса неизвестна, проверка грузоподъёмности остаётся UNKNOWN."
+            onChange={(value) => changeRole(row.role_code, 'task_payload_kg', value)} />}
           <Field label="Какая часть высвобождённого времени уменьшит расходы на персонал? 0–1" value={row.realizable_labor_share ?? ''} max="1"
             hint={`Пусто = общее значение ${draft.general.realizable_labor_share}. Это не обещание сокращения людей.`}
             onChange={(value) => changeRole(row.role_code, 'realizable_labor_share', value)} />
@@ -269,7 +279,7 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
           <label className="wr-source"><input type="checkbox" checked={row.source === 'USER'} onChange={(event) => changeRole(row.role_code, 'source', event.target.checked ? 'USER' : 'SCENARIO_ASSUMPTION')} />
             Эти значения проверены по данным моего склада</label></details></div>}
       </article>)}</div>
-      <div className="wr-actions"><button type="button" className="wr-primary" disabled={busy !== '' || !selectedCount || !projectId}
+      <div className="wr-actions"><button type="button" className="wr-primary" disabled={busy !== '' || !selectedCount}
         onClick={() => preview()}>{busy === 'preview' ? 'Считаем все роли…' : 'Подобрать и рассчитать роботов'}</button>
         <span>Каждая выбранная роль получит отдельный результат. Каталог просматривается полностью.</span></div>
     </section>
@@ -296,9 +306,11 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
           {!role.candidates.length ? <p className="wr-empty">В текущем каталоге не нашлось позиции с признаком работы этой роли. Роль сохранена в результате; неподходящий робот не подставляется.</p>
             : <><div className="wr-candidate-grid">{visible.map((candidate, index) => <button type="button" key={candidate.position_id}
               className={`wr-candidate${candidate.position_id === role.selected_position_id ? ' chosen' : ''}`}
+              disabled={candidate.physical_fit === 'FAIL'}
               onClick={() => chooseCandidate(role.role_code, candidate.position_id)}>
               <span className="wr-candidate-top"><strong>{candidate.name}</strong><span>{candidate.status === 'RESEARCH_ONLY' ? 'Разработка' : candidate.maturity_status === 'PILOTING' ? 'Пилот' : index === 0 ? 'Первый для проверки' : 'Вариант'}</span></span>
               <small>{candidate.manufacturer || 'Производитель не указан'}{candidate.source_row_number ? ` · строка каталога ${candidate.source_row_number}` : ''}</small>
+              <small>ТТХ: {candidate.physical_fit}{candidate.physical_fit === 'FAIL' ? ` · грузоподъёмность ${candidate.verified_payload_kg} кг ниже задачи ${candidate.task_payload_kg} кг` : candidate.physical_fit === 'UNKNOWN' ? ' · требуется проверка грузоподъёмности' : ''}</small>
               <span className="wr-candidate-metrics"><span><b>{candidate.fleet}</b> {candidate.rate_source === 'SCENARIO_ASSUMPTION' ? 'роботов по допущению' : 'роботов'}</span><span><b>{decimal(candidate.fte_equivalent)}</b> ставки*</span></span>
               <span className="wr-candidate-bottom"><span>{candidate.rate_source === 'SCENARIO_ASSUMPTION' ? 'Выработка: допущение' : candidate.rate_source === 'USER' ? 'Выработка: ваша' : 'Выработка: каталог'}</span>
                 <span>{candidate.price_rub == null ? 'Цена неизвестна' : `Цена ${money(candidate.price_rub)}`}</span></span>
@@ -362,7 +374,7 @@ export default function WarehouseRoleWorkspace({ activeProject, user, authChecke
         {report.portfolio.missing_purchase?.length > 0 && <p className="wr-message">Покупка: нужна цена для {report.portfolio.missing_purchase.join(', ')}.</p>}
         {report.portfolio.missing_raas?.length > 0 && <p className="wr-message">Аренда: нужен тариф для {report.portfolio.missing_raas.join(', ')}.</p>}
         <p className="wr-disclaimer">* Потенциал при допущенной доле реализации. Это не подтверждённое сокращение штата. Денежный итог остаётся частичным, если хотя бы у одного выбранного робота нет цены.</p>
-        <button type="button" className="wr-primary" disabled={busy !== '' || dirty} onClick={save}>{busy === 'save' ? 'Сохраняем…' : 'Сохранить расчёт в проекте'}</button>
+        {projectId && <button type="button" className="wr-primary" disabled={busy !== '' || dirty} onClick={save}>{busy === 'save' ? 'Сохраняем…' : 'Сохранить расчёт в проекте'}</button>}
         <button type="button" className="wr-primary" disabled={busy !== '' || dirty} onClick={onContinue}>Продолжить к роботам →</button>
         {version > 0 && <span className="wr-version">Текущая версия в проекте: {version}</span>}
       </section>

@@ -3,7 +3,7 @@ import AppIcon from './AppIcon';
 
 const API = import.meta.env.VITE_API_URL || '';
 
-export default function RDAssistantWidget() {
+export default function RDAssistantWidget({ user }) {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [turns, setTurns] = useState([]);
@@ -29,7 +29,7 @@ export default function RDAssistantWidget() {
   const send = async (event) => {
     event?.preventDefault();
     const question = message.trim();
-    if (busy || question.length < 2) return;
+    if (!user || busy || question.length < 2) return;
     setBusy(true); setError('');
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 55000);
@@ -50,16 +50,16 @@ export default function RDAssistantWidget() {
   };
 
   return <div className="rd-help">
-    <button ref={launcher} type="button" className="rd-help-launcher" aria-label={open ? 'Закрыть РД-помощника' : 'Открыть РД-помощника'}
+    <button ref={launcher} type="button" className="rd-help-launcher" aria-label={open ? 'Закрыть ИИ-помощника' : 'Открыть ИИ-помощника'}
       aria-expanded={open} aria-controls="rd-help-dialog" title="Открыть помощника" onClick={() => setOpen((value) => !value)}><AppIcon name="assistant" size={30} /></button>
-    {open && <section id="rd-help-dialog" className="rd-help-dialog" role="dialog" aria-modal="false" aria-label="РД-помощник"
+    {open && <section id="rd-help-dialog" className="rd-help-dialog" role="dialog" aria-modal="false" aria-label="ИИ-помощник"
       onKeyDown={(event) => { if (event.key === 'Escape') setOpen(false); }}>
-      <header><div><strong>РД-помощник</strong><small>Сервис · роботы · экономика</small></div>
+      <header><div><strong>ИИ-помощник</strong><small>Сервис · роботы · экономика</small></div>
         <button type="button" aria-label="Закрыть чат" onClick={() => setOpen(false)}>×</button></header>
-      <div className="rd-help-turns" role="log" aria-live="polite">
+      {!user ? <p>Для доступа к ИИ-помощнику зарегистрируйтесь или войдите в аккаунт.</p> : <><div className="rd-help-turns" role="log" aria-live="polite">
         {!turns.length && <p>Здравствуйте! Я помогу разобраться в сервисе, роботах и экономике. Задайте любой вопрос.</p>}
         {turns.map((turn, index) => <article key={`${index}-${turn.role}`} className={turn.role}>
-          <small>{turn.role === 'user' ? 'Вы' : 'РД-помощник'}</small><p>{turn.text}</p>
+          <small>{turn.role === 'user' ? 'Вы' : 'ИИ-помощник'}</small><p>{turn.text}</p>
           {!!turn.sources?.length && <details className="rd-help-sources"><summary>Материалы по теме</summary><ul>{turn.sources.map((source, sourceIndex) =>
             <li key={`${source.title}-${sourceIndex}`}>{source.url ? <a href={source.url}>{source.title}</a> : source.title}</li>)}</ul></details>}
         </article>)}
@@ -72,7 +72,7 @@ export default function RDAssistantWidget() {
           placeholder="Напишите вопрос…" />
         <button type="submit" disabled={busy || message.trim().length < 2}>{busy ? '…' : 'Отправить'}</button></form>
       {error && <p className="rd-help-error" role="alert">{error}</p>}
-      <small className="rd-help-note">Помощник использует Yandex Cloud. Не отправляйте личные или закрытые данные. Расчёты он не меняет.</small>
+      <small className="rd-help-note">Помощник использует Yandex Cloud. Не отправляйте личные или закрытые данные. Расчёты он не меняет.</small></>}
     </section>}
   </div>;
 }

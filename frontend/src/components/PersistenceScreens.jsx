@@ -8,6 +8,7 @@ import { reopenCapacityRun } from '../reopenCapacityRun';
 export function AuthScreen({ user, initialMode = 'login', onAuthenticated, onLoggedOut, onNavigate }) {
   const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({ email: '', password: '', name: '' });
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -20,7 +21,8 @@ export function AuthScreen({ user, initialMode = 'login', onAuthenticated, onLog
         method: 'POST',
         body: JSON.stringify(mode === 'login'
           ? { email: form.email, password: form.password }
-          : { email: form.email, password: form.password, ...(form.name.trim() ? { name: form.name.trim() } : {}) }),
+          : { email: form.email, password: form.password, ...(form.name.trim() ? { name: form.name.trim() } : {}),
+              privacy_consent: privacyConsent, privacy_policy_version: 'privacy-draft-2026-10-20' }),
       });
       onAuthenticated(payload.user, payload.csrf_token);
     } catch (err) {
@@ -55,6 +57,7 @@ export function AuthScreen({ user, initialMode = 'login', onAuthenticated, onLog
           <p>{user.email} · {user.role === 'ADMIN' ? 'Администратор' : 'Пользователь'}</p>
         </div>
         <div className="account-actions">
+          <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer">Политика обработки персональных данных</a>
           <button className="primary-action" onClick={() => onNavigate('projects')}>Мои проекты</button>
           {user.role === 'ADMIN' && (
             <button className="secondary-action" onClick={() => onNavigate('admin')}>Пользователи</button>
@@ -85,6 +88,7 @@ export function AuthScreen({ user, initialMode = 'login', onAuthenticated, onLog
         <label>Email<input type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
         <label>Пароль<input type="password" required minLength="12" maxLength="128" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></label>
         <small>Минимум 12 символов.</small>
+        {mode === 'register' && <label><input type="checkbox" required checked={privacyConsent} onChange={(event) => setPrivacyConsent(event.target.checked)} /> Я ознакомился с <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer">политикой обработки персональных данных</a> и даю согласие на обработку данных для создания учётной записи.</label>}
         {error && <p className="form-error">{error}</p>}
         <button className="primary-action" disabled={busy} type="submit">{busy ? 'Подождите…' : mode === 'login' ? 'Войти' : 'Создать аккаунт'}</button>
       </form>

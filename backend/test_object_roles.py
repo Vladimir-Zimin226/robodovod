@@ -1,16 +1,20 @@
 import csv
+from copy import deepcopy
+from io import BytesIO
 from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
 import uuid
 
 import pytest
+from pypdf import PdfReader
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from auth import require_auth_context, require_csrf
 from calculation.object_roles import ObjectRoleInput, analyze_object_roles, object_template
 from calculation.warehouse_roles import WarehouseRoleInput, analyze_warehouse_roles, warehouse_template
+from calculation.role_report import role_report_pdf
 from database import database_session
 from object_roles_api import create_object_roles_router
 from test_warehouse_roles import catalog as warehouse_catalog
@@ -129,6 +133,157 @@ def test_safety_warning_cannot_be_removed_by_client_and_catalog_choice_must_matc
         analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())
 
 
+def test_verified_payload_blocks_under_capacity_model_and_auto_selection():
+    value = raw("AIRPORT")
+    value["roles"] = [role for role in value["roles"] if role["role_code"] == "baggage_handler"]
+    value["roles"][0]["works"][0]["task_payload_kg"] = "2500"
+    position = SimpleNamespace(id="baggage-500", model=SimpleNamespace(
+        name="Робот для багажа", description="Перевозит багаж", manufacturer="Example",
+        maturity_status="SERIAL", facts=(SimpleNamespace(code="payload_kg", value="500",
+            canonical_unit="kg", resolution_status="VERIFIED_OFFICIAL", evidence_id="source-1"),)))
+    scoped_catalog = SimpleNamespace(version=SimpleNamespace(status="PUBLISHED", code="test-v2"), positions=[position])
+    result = analyze_object_roles(ObjectRoleInput.model_validate(value), scoped_catalog)
+    work = result["roles"][0]["works"][0]
+    assert work["candidates"][0]["physical_fit"] == "FAIL"
+    assert work["selected_position_id"] == "SCENARIO_TYPE"
+    value["roles"][0]["works"][0]["selected_position_id"] = "baggage-500"
+    with pytest.raises(ValueError, match="payload is below"):
+        analyze_object_roles(ObjectRoleInput.model_validate(value), scoped_catalog)
+    value["roles"][0]["works"][0]["task_payload_kg"] = "250"
+    result = analyze_object_roles(ObjectRoleInput.model_validate(value), scoped_catalog)
+    assert result["roles"][0]["works"][0]["candidates"][0]["physical_fit"] == "PASS"
+
+
+def test_cleaning_candidate_does_not_require_cargo_mass():
+    value = raw("AIRPORT")
+    value["roles"] = [role for role in value["roles"] if role["role_code"] == "terminal_cleaner"]
+    position = SimpleNamespace(id="cleaner", model=SimpleNamespace(
+        name="Робот для уборки", description="Уборка терминала", manufacturer="Example",
+        maturity_status="SERIAL", facts=()))
+    scoped_catalog = SimpleNamespace(version=SimpleNamespace(status="PUBLISHED", code="test-v2"), positions=[position])
+    result = analyze_object_roles(ObjectRoleInput.model_validate(value), scoped_catalog)
+    assert result["roles"][0]["works"][0]["candidates"][0]["physical_fit"] == "NOT_APPLICABLE"
+
+
+def test_scene_route_changes_object_fleet_and_money_and_no_route_zeroes_effect():
+    value = raw("WAREHOUSE")
+    value["roles"] = value["roles"][:1]
+    value["roles"][0]["works"] = value["roles"][0]["works"][:1]
+    work = value["roles"][0]["works"][0]
+    work["daily_volume"] = "875"
+    value["general"]["fleet_reserve_share"] = "0"
+    simulation = {"scene_revision": 1, "speed_loaded_mps": 1, "speed_empty_mps": 1,
+                  "pickup_service_s": 30, "dropoff_service_s": 30, "turn_delay_s": 5,
+                  "units_per_cycle": 1}
+    work["simulation"] = simulation
+    baseline = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())["roles"][0]["works"][0]
+    work["simulation"] = {**simulation, "extra_obstacles": [{"x": 25, "y": 34, "width": 2, "height": 2}]}
+    detour = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())["roles"][0]["works"][0]
+    assert baseline["simulation"]["status"] == detour["simulation"]["status"] == "MODELED"
+    assert "ROBOT_TTH_NOT_VERIFIED" in baseline["simulation"]["flags"]
+    assert baseline["fleet"] < detour["fleet"]
+    assert Decimal(baseline["purchase"]["npv_rub"]) > Decimal(detour["purchase"]["npv_rub"])
+    work["simulation"] = {**simulation, "arrival_burst_size": 4}
+    queued = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())["roles"][0]["works"][0]
+    assert queued["simulation"]["time_wait_s"] > 0
+    assert queued["fleet"] > baseline["fleet"]
+    assert Decimal(queued["purchase"]["npv_rub"]) < Decimal(baseline["purchase"]["npv_rub"])
+    work["simulation"] = {**simulation, "shared_lane": {"x": 30, "y": 34, "width": 30, "height": 2}}
+    lane = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())["roles"][0]["works"][0]
+    assert lane["simulation"]["shared_lane"]["mean_wait_s"] > 0
+    assert lane["fleet"] > baseline["fleet"]
+    assert Decimal(lane["purchase"]["npv_rub"]) < Decimal(baseline["purchase"]["npv_rub"])
+    lane_result = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())
+    lane_pdf = "\n".join(page.extract_text() for page in PdfReader(BytesIO(role_report_pdf(lane_result))).pages)
+    assert "Узкий участок" in lane_pdf
+    assert str(lane["simulation"]["shared_lane"]["mean_wait_s"]) in lane_pdf
+    work["simulation"] = {**simulation, "extra_obstacles": [{"x": 30, "y": 20, "width": 1, "height": 40}]}
+    no_route = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())["roles"][0]["works"][0]
+    assert no_route["simulation"]["status"] == "NO_ROUTE"
+    assert no_route["fleet"] == 0 and no_route["annual_labor_rub"] == "0.00"
+    assert Decimal(no_route["purchase"]["npv_rub"]) == 0
+    full_result = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())
+    pdf_text = "\n".join(page.extract_text() for page in PdfReader(BytesIO(role_report_pdf(full_result))).pages)
+    assert "NO_ROUTE" in pdf_text
+    assert full_result["base_total"]["purchase"]["npv_rub"] in pdf_text
+
+
+def test_what_if_volume_and_speed_recompute_object_cycle_fleet_and_money():
+    value = raw("WAREHOUSE")
+    value["roles"] = value["roles"][:1]
+    value["roles"][0]["works"] = value["roles"][0]["works"][:1]
+    work = value["roles"][0]["works"][0]
+    work["daily_volume"] = "875"
+    value["general"]["fleet_reserve_share"] = "0"
+    work["simulation"] = {
+        "scene_revision": 1, "speed_loaded_mps": 1, "speed_empty_mps": 1,
+        "pickup_service_s": 30, "dropoff_service_s": 30, "turn_delay_s": 5,
+        "units_per_cycle": 1,
+    }
+    original = deepcopy(value)
+    base = analyze_object_roles(ObjectRoleInput.model_validate(value), catalog())
+    branch_input = deepcopy(value)
+    branch_work = branch_input["roles"][0]["works"][0]
+    branch_work["daily_volume"] = "1225"
+    branch_work["simulation"]["speed_loaded_mps"] = "0.8"
+    branch_work["simulation"]["speed_empty_mps"] = "0.8"
+    branch = analyze_object_roles(ObjectRoleInput.model_validate(branch_input), catalog())
+    before = base["roles"][0]["works"][0]
+    after = branch["roles"][0]["works"][0]
+    assert value == original
+    assert before["simulation"]["status"] == after["simulation"]["status"] == "MODELED"
+    assert after["simulation"]["cycle_s"] > before["simulation"]["cycle_s"]
+    assert after["fleet"] > before["fleet"]
+    assert branch["base_total"]["purchase"]["npv_rub"] != base["base_total"]["purchase"]["npv_rub"]
+
+
+def test_what_if_horizon_uses_same_object_cashflows_for_purchase_and_rent():
+    value = raw("AIRPORT")
+    value["roles"] = value["roles"][:1]
+    value["roles"][0]["works"] = value["roles"][0]["works"][:1]
+    results = {}
+    for years in (5, 10):
+        branch = deepcopy(value)
+        branch["general"]["horizon_years"] = years
+        results[years] = analyze_object_roles(ObjectRoleInput.model_validate(branch), catalog())
+    assert value["general"]["horizon_years"] == 5
+    assert results[5]["base_total"]["fleet"] == results[10]["base_total"]["fleet"]
+    for years, report in results.items():
+        discount = Decimal(str(report["general"]["discount_rate"]))
+        factor = sum((Decimal(1) / (1 + discount) ** year for year in range(1, years + 1)), Decimal(0))
+        for mode in ("purchase", "raas"):
+            money = report["base_total"][mode]
+            expected = (Decimal(money["annual_net_rub"]) * factor - Decimal(money["capex_rub"])).quantize(Decimal("0.01"))
+            assert Decimal(money["npv_rub"]) == expected
+
+
+def test_guest_route_preview_and_pdf_recompute_the_same_simulated_result():
+    value = raw("WAREHOUSE")
+    value["roles"] = value["roles"][:1]
+    value["roles"][0]["works"] = value["roles"][0]["works"][:1]
+    value["roles"][0]["works"][0]["daily_volume"] = "875"
+    value["roles"][0]["works"][0]["simulation"] = {
+        "scene_revision": 1, "speed_loaded_mps": 1, "speed_empty_mps": 1,
+        "pickup_service_s": 30, "dropoff_service_s": 30, "turn_delay_s": 5,
+        "units_per_cycle": 1,
+    }
+    app = FastAPI()
+    app.include_router(create_object_roles_router(catalog))
+    client = TestClient(app)
+    preview = client.post("/api/v2/object-roles/WAREHOUSE/preview", json=value)
+    assert preview.status_code == 200
+    result = preview.json()
+    assert result["roles"][0]["works"][0]["simulation"]["status"] == "MODELED"
+    pdf = client.post("/api/v2/object-roles/WAREHOUSE/report.pdf", json={
+        "expected_catalog_version": "test-v2", "input": value})
+    assert pdf.status_code == 200
+    pdf_text = "\n".join(page.extract_text() for page in PdfReader(BytesIO(pdf.content)).pages)
+    assert result["base_total"]["purchase"]["npv_rub"] in pdf_text
+    assert "Маршрут: MODELED" in pdf_text
+    value["roles"][0]["works"][0]["simulation"]["scene_revision"] = 2
+    assert client.post("/api/v2/object-roles/WAREHOUSE/preview", json=value).status_code == 422
+
+
 def test_gross_salary_is_converted_once_to_employer_cost():
     value = raw("CLINIC")
     value["roles"] = value["roles"][:1]
@@ -152,6 +307,8 @@ def test_purchase_roi_uses_entire_horizon_and_rent_uses_same_fleet():
     years = result["general"]["horizon_years"]
     expected_roi = ((annual_net * years - capex) / capex * 100).quantize(Decimal("0.01"))
     assert Decimal(work["purchase"]["roi_percent"]) == expected_roi
+    assert Decimal(result["conditional_total"]["purchase"]["payback_years"]) == (
+        capex / annual_net).quantize(Decimal("0.01"))
     assert work["fleet"] == result["conditional_total"]["fleet"]
     assert Decimal(work["raas"]["annual_cost_rub"]) == (
         Decimal(work["raas"]["monthly_per_robot_rub"]) * 12
@@ -227,6 +384,9 @@ def test_owner_bound_save_reopen_and_optimistic_conflict():
     payload = raw("CLINIC")
     preview = client.post(f"/api/v2/projects/{project_id}/object-roles/CLINIC/preview", json=payload)
     assert preview.status_code == 200
+    guest = client.post("/api/v2/object-roles/CLINIC/preview", json=payload)
+    assert guest.status_code == 200
+    assert guest.json() == preview.json()
     saved = client.post(f"/api/v2/projects/{project_id}/object-roles/CLINIC", json={
         "expected_version": 0, "expected_catalog_version": "test-v2", "input": payload})
     assert saved.status_code == 200
@@ -235,3 +395,25 @@ def test_owner_bound_save_reopen_and_optimistic_conflict():
     conflict = client.post(f"/api/v2/projects/{project_id}/object-roles/CLINIC", json={
         "expected_version": 0, "expected_catalog_version": "test-v2", "input": payload})
     assert conflict.status_code == 409
+
+
+@pytest.mark.parametrize("kind", ["WAREHOUSE", "AIRPORT", "CLINIC"])
+def test_guest_preview_has_no_project_and_rejects_kind_mismatch(kind):
+    app = FastAPI()
+    app.include_router(create_object_roles_router(catalog))
+    app.dependency_overrides[database_session] = lambda: None
+    client = TestClient(app)
+    result = client.post(f"/api/v2/object-roles/{kind}/preview", json=raw(kind))
+    assert result.status_code == 200
+    assert result.json()["kind"] == kind
+    report = client.post(f"/api/v2/object-roles/{kind}/report.pdf", json={
+        "expected_catalog_version": "test-v2", "input": raw(kind)})
+    assert report.status_code == 200
+    assert report.content.startswith(b"%PDF-")
+    pdf_text = "\n".join(page.extract_text() for page in PdfReader(BytesIO(report.content)).pages)
+    assert "Сценарная оценка роботизации" in pdf_text
+    assert result.json()["base_total"]["purchase"]["npv_rub"] in pdf_text
+    assert client.post(f"/api/v2/object-roles/{kind}/report.pdf", json={
+        "expected_catalog_version": "old", "input": raw(kind)}).status_code == 409
+    assert client.post("/api/v2/object-roles/CLINIC/preview", json=raw(kind if kind != "CLINIC" else "AIRPORT")).status_code == 422
+    assert client.post(f"/api/v2/projects/{uuid.uuid4()}/object-roles/{kind}", json={}).status_code in (401, 403)

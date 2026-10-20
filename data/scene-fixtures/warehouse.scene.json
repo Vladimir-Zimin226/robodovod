@@ -1,0 +1,164 @@
+{
+  "scene_id": "warehouse",
+  "schema_version": "scene-fixture-1",
+  "units": "meters",
+  "coordinate_system": "x-east_y-north_z-up",
+  "source_kind": "DEMO_ASSUMPTION_NOT_REAL_OBJECT",
+  "origin": [
+    0,
+    0,
+    0
+  ],
+  "size_m": [
+    60,
+    40
+  ],
+  "obstacles": [
+    {
+      "asset_id": "pallet_rack",
+      "x": 11,
+      "y": 8,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 11,
+      "y": 17,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 11,
+      "y": 26,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 22,
+      "y": 8,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 22,
+      "y": 17,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 22,
+      "y": 26,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 33,
+      "y": 8,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 33,
+      "y": 17,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 33,
+      "y": 26,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 44,
+      "y": 8,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 44,
+      "y": 17,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "pallet_rack",
+      "x": 44,
+      "y": 26,
+      "width": 4.2,
+      "height": 1.5
+    },
+    {
+      "asset_id": "conveyor",
+      "x": 52,
+      "y": 31,
+      "width": 4.5,
+      "height": 1.5
+    }
+  ],
+  "zones": [
+    {
+      "id": "charging",
+      "name": "Зарядка",
+      "x": 5,
+      "y": 5,
+      "r": 2.3
+    },
+    {
+      "id": "pickup",
+      "name": "Отбор паллет",
+      "x": 11,
+      "y": 34,
+      "r": 2.4
+    },
+    {
+      "id": "delivery",
+      "name": "Экспедиция",
+      "x": 54,
+      "y": 34,
+      "r": 2.6
+    }
+  ],
+  "routes": [
+    [
+      [
+        5,
+        5
+      ],
+      [
+        5,
+        35
+      ],
+      [
+        11,
+        35
+      ],
+      [
+        11,
+        34
+      ],
+      [
+        11,
+        35
+      ],
+      [
+        49,
+        35
+      ],
+      [
+        54,
+        34
+      ]
+    ]
+  ]
+}

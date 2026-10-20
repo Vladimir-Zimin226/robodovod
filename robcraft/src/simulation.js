@@ -658,10 +658,11 @@ export function buildRendererReport(simulation, authoritativeReport = null) {
 }
 
 function generateTaskDemand(simulation) {
-  if (!simulation.robots.length || simulation.elapsed < simulation.nextTaskAt) return;
+  const available = simulation.robots.filter(robot => robot.mode !== 'blocked');
+  if (!available.length || simulation.elapsed < simulation.nextTaskAt) return;
   while (simulation.elapsed >= simulation.nextTaskAt) {
     if (simulation.taskQueue.length < simulation.maxQueueTasks) {
-      const route = simulation.robots[simulation.taskCursor % simulation.robots.length].route;
+      const route = available[simulation.taskCursor % available.length].route;
       simulation.taskQueue.push(makeTask(simulation, route, simulation.nextTaskAt));
       simulation.taskCursor += 1;
       simulation.generatedTasks += 1;
@@ -1075,6 +1076,52 @@ export function createSimulation(scene) {
   return simulation;
 }
 
+export function preserveOperationalRobotPositions(previous, next, scene) {
+  if (!previous) return;
+  for (const old of previous.robots.filter(robot => robot.route.assignmentRobotId)) {
+    const assetId = old.route.assignmentRobotId;
+    if (!scene.scenePatch?.assignments?.some(item => item.robot_id === assetId)) continue;
+    const replacement = next.robots.find(robot => robot.route.assignmentRobotId === assetId);
+    const marker = scene.staticObjects.find(item => item.id === assetId);
+    const position = [old.position[0], old.position[2]];
+    let reachable = false;
+    if (replacement && !scene.solids.some(solid => circleIntersectsSolid(position[0], position[1], old.radius, solid))) {
+      const charge = replacement.route.points[0];
+      const bounds = { minX: -scene.config.width / 2 + old.radius, maxX: scene.config.width / 2 - old.radius,
+        minZ: -scene.config.depth / 2 + old.radius, maxZ: scene.config.depth / 2 - old.radius };
+      const connector = Math.hypot(position[0] - charge[0], position[1] - charge[1]) < .1 ? []
+        : planGridPath(position, charge, { solids: scene.solids, radius: old.radius, bounds });
+      if (connector !== null) {
+        if (connector.length) {
+          const route = replacement.route;
+          route.points = [position, ...connector, ...route.points.slice(1)];
+          route.chargeWaypoint = connector.length;
+          route.pickupWaypoint += connector.length;
+          route.dropWaypoint += connector.length;
+          route.metrics = routeLengths(route.points);
+          replacement.distance = 0;
+          replacement.position = [...old.position];
+          replacement.yaw = old.yaw;
+        }
+        replacement.battery = old.battery;
+        replacement.trips = old.trips;
+        reachable = true;
+      }
+    }
+    if (reachable) continue;
+    if (replacement) next.robots = next.robots.filter(robot => robot !== replacement);
+    next.taskQueue = next.taskQueue.filter(task => task.routeId !== replacement?.route.id);
+    next.robots.push({ ...old, id: -1000 - next.robots.length, activeTask: null, mode: 'blocked',
+      currentSpeed: 0, carrying: false, cargoStage: 'waiting', state: 'ОСТАНОВЛЕН · МАРШРУТ НЕДОСТУПЕН' });
+    if (marker) {
+      marker.runtimeHidden = true;
+      scene.solids = scene.solids.filter(solid => solid.editorId !== assetId);
+    }
+    const assignment = scene.editorAssignments?.find(item => item.robot_id === assetId);
+    if (assignment && assignment.ok) { assignment.ok = false; assignment.reason = 'Нет пути от текущей позиции до нового маршрута.'; }
+  }
+}
+
 export function updateSimulation(simulation, delta, solids = []) {
   const simDelta = delta * simulation.speedMultiplier;
   simulation.elapsed += simDelta;
@@ -1082,6 +1129,7 @@ export function updateSimulation(simulation, delta, solids = []) {
   generateTaskDemand(simulation);
   updateTrafficReservations(simulation);
   simulation.robots.forEach(robot => {
+    if (robot.mode === 'blocked') { robot.currentSpeed = 0; robot.state = 'ОСТАНОВЛЕН · МАРШРУТ НЕДОСТУПЕН'; return; }
     if (robot.mode === 'fault') {
       robot.currentSpeed = 0;
       robot.blockedByHuman = false;

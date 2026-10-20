@@ -7,13 +7,14 @@ from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from auth import AuthContext, require_auth_context, require_csrf
 from calculation.object_roles import ObjectRoleInput, analyze_object_roles, object_template
+from calculation.role_report import role_report_pdf
 from catalog_repository import CatalogSnapshotDTO
 from database import database_session
 from persistence_api import _audit, _canonical_sha256, _owned_project
@@ -29,6 +30,14 @@ class SaveObjectRoles(BaseModel):
     input: ObjectRoleInput
 
 
+class ObjectRolePdfRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    expected_catalog_version: str
+    input: ObjectRoleInput
+    what_if_input: ObjectRoleInput | None = None
+    scene_snapshots: dict[str, str | None] | None = None
+
+
 def _key(kind: str) -> str:
     if kind not in {"WAREHOUSE", "AIRPORT", "CLINIC"}:
         raise HTTPException(404, "unknown object kind")
@@ -42,6 +51,35 @@ def create_object_roles_router(discovery_loader: Callable[[], CatalogSnapshotDTO
     def template(kind: str):
         _key(kind)
         return object_template(kind)
+
+    @router.post("/object-roles/{kind}/preview")
+    def guest_preview(kind: str, payload: ObjectRoleInput):
+        _key(kind)
+        if payload.kind != kind:
+            raise HTTPException(422, "object kind mismatch")
+        try:
+            return analyze_object_roles(payload, discovery_loader())
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+
+    @router.post("/object-roles/{kind}/report.pdf")
+    def guest_report(kind: str, payload: ObjectRolePdfRequest):
+        _key(kind)
+        if payload.input.kind != kind:
+            raise HTTPException(422, "object kind mismatch")
+        if payload.what_if_input is not None and payload.what_if_input.kind != kind:
+            raise HTTPException(422, "what-if object kind mismatch")
+        catalog = discovery_loader()
+        if payload.expected_catalog_version != catalog.version.code:
+            raise HTTPException(409, "active catalog changed; preview again")
+        try:
+            result = analyze_object_roles(payload.input, catalog)
+            comparison = analyze_object_roles(payload.what_if_input, catalog) if payload.what_if_input else None
+            pdf = role_report_pdf(result, comparison, payload.scene_snapshots)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return Response(pdf, media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="robodovod-{kind.lower()}-scenario.pdf"'})
 
     @router.get("/projects/{project_id}/object-roles/{kind}")
     def latest(project_id: uuid.UUID, kind: str,
@@ -61,12 +99,7 @@ def create_object_roles_router(discovery_loader: Callable[[], CatalogSnapshotDTO
                 db: Session = Depends(database_session)):
         _key(kind)
         _owned_project(db, project_id, context.user.id)
-        if payload.kind != kind:
-            raise HTTPException(422, "object kind mismatch")
-        try:
-            return analyze_object_roles(payload, discovery_loader())
-        except ValueError as exc:
-            raise HTTPException(422, str(exc)) from exc
+        return guest_preview(kind, payload)
 
     @router.post("/projects/{project_id}/object-roles/{kind}")
     def save(project_id: uuid.UUID, kind: str, payload: SaveObjectRoles,

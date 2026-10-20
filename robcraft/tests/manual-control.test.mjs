@@ -52,3 +52,31 @@ test('manual WASD movement respects scene solids', () => {
     globalThis.document = previousDocument;
   }
 });
+
+test('touch joystick moves without pointer lock and touch look respects pitch bounds', () => {
+  const previousDocument = globalThis.document;
+  const environment = controls();
+  environment.document.pointerLockElement = null;
+  globalThis.document = environment.document;
+  try {
+    const player = new Player(environment.canvas);
+    player.enabled = true;
+    player.touchEnabled = true;
+    player.setTouchMove(1, 0);
+    player.update(.2, []);
+    assert.ok(player.position[2] < 0);
+    player.lookTouch(100, 10000);
+    assert.equal(player.pitch, -1.35);
+    assert.ok(player.yaw > 0);
+    player.setTouchMove(0, 0);
+    player.update(.2, []);
+    assert.equal(player.moving, false);
+    player.touchEnabled = false;
+    player.setTouchMove(1, 0);
+    const stopped = [...player.position];
+    player.update(.2, []);
+    assert.deepEqual(player.position, stopped);
+  } finally {
+    globalThis.document = previousDocument;
+  }
+});

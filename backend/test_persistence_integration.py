@@ -148,7 +148,7 @@ def clean_persistence(migrated_database, tmp_path, monkeypatch):
 def _register(client: TestClient, email: str, password: str = PASSWORD_A):
     response = client.post(
         "/api/auth/register",
-        json={"email": email, "password": password, "name": "Тест Пользователь"},
+        json={"email": email, "password": password, "name": "Тест Пользователь", "privacy_consent": True, "privacy_policy_version": "privacy-draft-2026-10-20"},
     )
     assert response.status_code == 201, response.text
     return response.json(), {"X-CSRF-Token": response.json()["csrf_token"]}
@@ -239,6 +239,10 @@ def test_registration_session_csrf_and_three_scenarios():
         auth, headers = _register(client, " Owner@Example.COM ")
         assert auth["user"]["email"] == "owner@example.com"
         assert auth["user"]["role"] == "USER"
+        consent = client.get('/api/auth/privacy-consent')
+        assert consent.status_code == 200
+        assert consent.json()['policy_version'] == 'privacy-draft-2026-10-20'
+        assert consent.json()['recorded_at']
         assert SESSION_COOKIE in client.cookies
         assert client.post("/api/projects", json={"name": "No CSRF"}).status_code == 403
         project = _create_project(client, headers)

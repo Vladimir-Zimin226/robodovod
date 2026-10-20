@@ -19,7 +19,10 @@ createServer(async (req, res) => {
   try {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     const relative = normalize(pathname).replace(/^(\.\.(\/|\\|$))+/, '').replace(/^[/\\]+/, '');
-    let target = join(root, relative || 'index.html');
+    const portable = relative.replace(/\\/g, '/');
+    let target = /^scene-assets\/[a-z0-9_]+\.glb$/.test(portable)
+      ? join(root, '..', 'frontend', 'public', portable)
+      : join(root, relative || 'index.html');
     if ((await stat(target)).isDirectory()) target = join(target, 'index.html');
     const body = await readFile(target);
     res.writeHead(200, {

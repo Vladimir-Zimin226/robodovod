@@ -9,6 +9,7 @@ COPY frontend/ .
 COPY robcraft/ /robcraft/
 COPY contracts/ /contracts/
 COPY data/scenarios/warehouse-economics-demo-v1.json /data/scenarios/warehouse-economics-demo-v1.json
+COPY data/scenes/ /data/scenes/
 RUN npm run build
 
 FROM nginx:1.27-alpine

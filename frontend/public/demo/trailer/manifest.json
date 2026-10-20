@@ -1,0 +1,64 @@
+{
+  "status": "RUNTIME_CAPTURE_EDIT",
+  "audio": "NONE_SILENT",
+  "duration_s": 180,
+  "master": "robodovod-trailer-master-1080p.mp4",
+  "web": "robodovod-trailer-web-720p.mp4",
+  "preview": "robodovod-trailer-preview-720p.mp4",
+  "sections": [
+    {
+      "chapter": 1,
+      "kind": "warehouse",
+      "view": "3d",
+      "start_s": 0,
+      "duration_s": 30,
+      "runtime_capture": "docs/planning/assets/trailer-frames/warehouse-3d.png",
+      "sha256": "9ceab3303011f05c2a981cbbca5c656a00ed79c3fea40553e201784b1e9bd092"
+    },
+    {
+      "chapter": 2,
+      "kind": "warehouse",
+      "view": "2d",
+      "start_s": 30,
+      "duration_s": 30,
+      "runtime_capture": "docs/planning/assets/trailer-frames/warehouse-2d.png",
+      "sha256": "8b8dddb6631b8fe395133aace0b0ebce743ac4cbe0a68e4252641afb6534aff4"
+    },
+    {
+      "chapter": 3,
+      "kind": "airport",
+      "view": "3d",
+      "start_s": 60,
+      "duration_s": 30,
+      "runtime_capture": "docs/planning/assets/trailer-frames/airport-3d.png",
+      "sha256": "b663d3a1948070f2c6364e650f82b9707f8c01f2d42c9e6b97f6779b546858f3"
+    },
+    {
+      "chapter": 4,
+      "kind": "airport",
+      "view": "2d",
+      "start_s": 90,
+      "duration_s": 30,
+      "runtime_capture": "docs/planning/assets/trailer-frames/airport-2d.png",
+      "sha256": "a0c0f8088f3f2ebf414c03cffa29b68c5a8109bd22a2a483178ad690d4722f84"
+    },
+    {
+      "chapter": 5,
+      "kind": "clinic",
+      "view": "3d",
+      "start_s": 120,
+      "duration_s": 30,
+      "runtime_capture": "docs/planning/assets/trailer-frames/clinic-3d.png",
+      "sha256": "0d6251027191538e02ed9c56df1785790a01b4eaf61fddad5186a4013e72813c"
+    },
+    {
+      "chapter": 6,
+      "kind": "clinic",
+      "view": "2d",
+      "start_s": 150,
+      "duration_s": 30,
+      "runtime_capture": "docs/planning/assets/trailer-frames/clinic-2d.png",
+      "sha256": "1a60caac71f4719c7767af1918451ad383a3d913a16b852b9819882e577d2c14"
+    }
+  ]
+}

@@ -12,6 +12,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from calculation.physical_fit import check_payload
+from calculation.scene_simulation import SceneSimulationInput, load_scene, simulate_scene
 from calculation.warehouse_roles import GeneralInput, ROLE_LABELS as WAREHOUSE_LABELS, _number
 
 SCHEMA = "object-role-analysis-v3"
@@ -87,6 +89,7 @@ def object_template(kind: str) -> dict[str, Any]:
             "basis": row["work_basis"], "residual_operations": row["residual_operations"],
             "calculation_status": row["calculation_status"],
             "safety_conditions": row["safety_conditions"], "selected_position_id": "AUTO",
+            "task_payload_kg": None,
         })
     return {"schema_version": "object-role-template-v3", "kind": kind,
             "general": {"total_area_m2": "20000", "shifts_per_day": 1 if kind != "WAREHOUSE" else 2,
@@ -123,6 +126,8 @@ class WorkInput(BaseModel):
     calculation_status: str
     safety_conditions: str = ""
     selected_position_id: str = "AUTO"
+    task_payload_kg: Decimal | None = Field(default=None, gt=0)
+    simulation: SceneSimulationInput | None = None
 
 
 class ObjectRole(BaseModel):
@@ -170,7 +175,7 @@ class ObjectRoleInput(BaseModel):
         return self
 
 
-def _candidates(role_code: str, process_code: str, catalog: Any) -> list[dict[str, Any]]:
+def _candidates(role_code: str, process_code: str, catalog: Any, task_payload_kg: Decimal | None, unit: str) -> list[dict[str, Any]]:
     pattern = FUNCTIONS.get(role_code, r"a^")
     if process_code == "clinic_waste_b":
         pattern = r"класс[а ]*б|biohazard|infectious waste|медицинск.*отход"
@@ -183,10 +188,13 @@ def _candidates(role_code: str, process_code: str, catalog: Any) -> list[dict[st
         text = f"{model.name} {model.description or ''}".casefold()
         if not re.search(pattern, text):
             continue
+        fit = check_payload(task_payload_kg, model.facts, applicable=unit != "m2")
         result.append({"position_id": position.id, "name": model.name,
             "manufacturer": model.manufacturer, "maturity_status": model.maturity_status,
-            "match_basis": "CATALOG_FUNCTION_TEXT", "physical_fit": "UNCONFIRMED"})
-    return sorted(result, key=lambda x: (x["maturity_status"] == "RND", x["name"]))
+            "match_basis": "CATALOG_FUNCTION_TEXT", **fit})
+    return sorted(result, key=lambda x: (
+        x["physical_fit"] == "FAIL", x["physical_fit"] == "UNKNOWN",
+        x["maturity_status"] == "RND", x["name"]))
 
 
 def _economics(fleet: int, annual_labor: Decimal, potential_annual_labor: Decimal,
@@ -253,6 +261,7 @@ def _portfolio(works: list[dict[str, Any]], general: GeneralInput) -> dict[str, 
             "tco_rub": _number(sum(Decimal(w[branch]["tco_rub"]) for w in works)) if complete else None,
             "npv_rub": _number(sum(Decimal(w[branch]["npv_rub"]) for w in works)) if complete else None,
             "roi_percent": _number((net * general.horizon_years - capex) / capex * 100) if complete and capex > 0 else None,
+            "payback_years": _number(capex / net) if complete and branch == "purchase" and net > 0 else None,
             "roi_status": "N/A: CAPEX заказчика равен нулю" if complete and capex == 0 else "DEFINED" if complete else "NEEDS_INPUT",
             "missing": missing}
     return result
@@ -265,16 +274,37 @@ def analyze_object_roles(value: ObjectRoleInput, catalog: Any) -> dict[str, Any]
     for role in value.roles:
         work_out = []
         for work in role.works:
-            candidates = _candidates(role.role_code, work.process_code, catalog)
+            candidates = _candidates(role.role_code, work.process_code, catalog, work.task_payload_kg, work.unit)
             selected = work.selected_position_id
             if selected == "AUTO":
-                selected = next((c["position_id"] for c in candidates if c["maturity_status"] != "RND"), "SCENARIO_TYPE")
+                selected = next((c["position_id"] for c in candidates if c["maturity_status"] != "RND" and c["physical_fit"] != "FAIL"), "SCENARIO_TYPE")
             if selected not in {"SCENARIO_TYPE", "NONE"} and selected not in {c["position_id"] for c in candidates}:
                 raise ValueError(f"selected position is not a functional candidate for {role.role_code}")
+            if next((c for c in candidates if c["position_id"] == selected and c["physical_fit"] == "FAIL"), None):
+                raise ValueError(f"selected position payload is below task payload for {role.role_code}")
             target = work.daily_volume * work.robotizable_share
-            capacity = work.robot_units_per_hour * value.general.hours_per_shift * value.general.shifts_per_day * value.general.robot_availability
-            fleet = math.ceil(target / capacity * (1 + value.general.fleet_reserve_share)) if selected != "NONE" else 0
-            potential = min(role.headcount * work.allocation_fraction, target / work.manual_units_per_person_shift) if selected != "NONE" else Decimal(0)
+            simulation = None
+            effective_rate = work.robot_units_per_hour
+            if work.simulation is not None and selected != "NONE":
+                if work.unit == "m2":
+                    raise ValueError("route simulation does not apply to area cleaning")
+                scenario = work.simulation.model_copy(update={
+                    "demand_units_per_hour": float(target / value.general.hours_per_shift / value.general.shifts_per_day),
+                    "robot_availability": float(value.general.robot_availability),
+                    "fleet_reserve_share": float(value.general.fleet_reserve_share),
+                    "selected_robot_ids": [] if selected == "SCENARIO_TYPE" else [selected],
+                })
+                simulation = simulate_scene(load_scene(value.kind.lower()), scenario)
+                selected_candidate = next((candidate for candidate in candidates if candidate["position_id"] == selected), None)
+                if selected_candidate is None or selected_candidate["physical_fit"] == "UNKNOWN":
+                    simulation["flags"].append("ROBOT_TTH_NOT_VERIFIED")
+                if simulation["status"] == "MODELED":
+                    effective_rate = Decimal(str(3600 * scenario.units_per_cycle / simulation["cycle_s"]))
+            simulation_ready = simulation is None or simulation["status"] == "MODELED"
+            capacity = effective_rate * value.general.hours_per_shift * value.general.shifts_per_day * value.general.robot_availability
+            fleet = (simulation["fleet_required"] if simulation is not None and simulation_ready else
+                     math.ceil(target / capacity * (1 + value.general.fleet_reserve_share)) if simulation_ready and selected != "NONE" else 0)
+            potential = min(role.headcount * work.allocation_fraction, target / work.manual_units_per_person_shift) if selected != "NONE" and simulation_ready else Decimal(0)
             fte = potential * role.realizable_labor_share
             monthly_employer = role.monthly_employer_cost_rub * (value.general.gross_to_employer_factor if role.salary_basis == "GROSS" else 1)
             labor = fte * monthly_employer * 12
@@ -284,14 +314,16 @@ def analyze_object_roles(value: ObjectRoleInput, catalog: Any) -> dict[str, Any]
                 "process_code": work.process_code, "evidence_ref": work.evidence_ref,
                 "technical_task": work.technical_task, "unit": work.unit,
                 "daily_volume": _number(work.daily_volume), "robotizable_share": _number(work.robotizable_share),
-                "target_units_per_day": _number(target), "robot_units_per_hour": _number(work.robot_units_per_hour),
-                "rate_source": work.rate_source, "price_source": work.price_source,
+                "task_payload_kg": _number(work.task_payload_kg) if work.task_payload_kg is not None else None,
+                "target_units_per_day": _number(target), "robot_units_per_hour": _number(effective_rate),
+                "rate_source": "SCENE_SIMULATION" if simulation is not None and simulation_ready else work.rate_source, "price_source": work.price_source,
                 "raas_source": work.raas_source,
                 "scenario_purchase_price_rub": _number(work.scenario_purchase_price_rub) if work.scenario_purchase_price_rub is not None else None,
                 "scenario_raas_monthly_rub": _number(work.scenario_raas_monthly_rub) if work.scenario_raas_monthly_rub is not None else None,
                 "raas_mode": work.raas_mode,
                 "raas_percent_monthly": _number(work.raas_percent_monthly) if work.raas_percent_monthly is not None else None,
                 "allocation_fraction": _number(work.allocation_fraction), "fleet": fleet,
+                "simulation": simulation,
                 "potential_fte": _number(potential), "fte_equivalent": _number(fte),
                 "annual_labor_rub": _number(labor), "annual_reallocated_hours": _number(fte * value.general.hours_per_shift * value.general.days_per_year),
                 "calculation_status": work.calculation_status,
@@ -313,7 +345,7 @@ def analyze_object_roles(value: ObjectRoleInput, catalog: Any) -> dict[str, Any]
             "works": work_out})
     base = [w for w in all_works if not w["safety_conditions"]]
     conditional = all_works if value.include_safety_in_conditional else base
-    return {"schema_version": SCHEMA, "catalog_version": catalog.version.code,
+    result = {"schema_version": SCHEMA, "catalog_version": catalog.version.code,
         "kind": value.kind, "general": value.general.model_dump(mode="json"),
         "roles": roles_out, "base_total": _portfolio(base, value.general),
         "conditional_total": _portfolio(conditional, value.general),
@@ -322,3 +354,6 @@ def analyze_object_roles(value: ObjectRoleInput, catalog: Any) -> dict[str, Any]
             "Парк по работам суммируется без повторного использования между назначениями.",
             "Штат каждой роли учитывается один раз; доли её работ суммарно не больше 1.",
             "Цены покупки и тарифы аренды — бюджетные допущения, не предложения поставщиков."]}
+    from calculation.role_report_view import build_role_report_view
+    result["report_view"] = build_role_report_view(result)
+    return result

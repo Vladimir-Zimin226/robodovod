@@ -22,7 +22,7 @@ def test_v7_cost_lines_survive_api_save_reopen_and_pdf(activated_actual_catalog)
     with TestClient(main.app) as client:
         registration = client.post('/api/auth/register', json={
             'email': f'ledger-{uuid.uuid4()}@example.com', 'password': 'local acceptance passphrase',
-            'name': 'Ledger acceptance'})
+            'name': 'Ledger acceptance', 'privacy_consent': True, 'privacy_policy_version': 'privacy-draft-2026-10-20'})
         assert registration.status_code == 201, registration.text
         headers = {'X-CSRF-Token': registration.json()['csrf_token']}
         project_response = client.post('/api/projects', headers=headers, json={'name': 'Ledger acceptance'})

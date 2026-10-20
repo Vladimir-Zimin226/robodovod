@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "license": "Original procedural geometry; generated for this project",
+  "assets": [
+    {
+      "asset_id": "pallet_rack",
+      "file": "pallet_rack.glb",
+      "sha256": "c46ba52539294c598175c5265c545a3d8e4b2e424f12f2b9aa9997a1c1058918",
+      "bytes": 7324,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "pallet_stack",
+      "file": "pallet_stack.glb",
+      "sha256": "23c4f9017781872d983f32df0b8e9de6b342284b401b96bee1b77cd301d86807",
+      "bytes": 5076,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "pallet_amr",
+      "file": "pallet_amr.glb",
+      "sha256": "dfbcdaa0b587e649526dda25440dfed4e485c6d7d13ca68a35ef8c856569a7da",
+      "bytes": 8288,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "forklift_robot",
+      "file": "forklift_robot.glb",
+      "sha256": "15a86287de3529380c68852f736cd88324ed90dde54f253a012a41420f8e34b4",
+      "bytes": 8804,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "charging_dock",
+      "file": "charging_dock.glb",
+      "sha256": "3ebfa2920934b18c7bb441340d606086335c205f8f367e05264b53c68a530167",
+      "bytes": 2752,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "worker",
+      "file": "worker.glb",
+      "sha256": "8d125910785cd6a29fa9564bab7128e6799eee4508b90fe2b1eb97edb2fdb402",
+      "bytes": 5424,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "conveyor",
+      "file": "conveyor.glb",
+      "sha256": "470e2489fd91bf12c8c740ae4ef9fe4ef4344048c8b656f09dd92f0594598848",
+      "bytes": 12756,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "baggage_cart",
+      "file": "baggage_cart.glb",
+      "sha256": "75e570d72767b0669182d8397c69a2ac5219125e09373f1bccbac60cac48d22b",
+      "bytes": 8992,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "airport_tug",
+      "file": "airport_tug.glb",
+      "sha256": "b171ec02bd65244bdea243987c7d76d49e01d7b32de289c43b5f171c320e7fb9",
+      "bytes": 7432,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "safety_barrier",
+      "file": "safety_barrier.glb",
+      "sha256": "ed009be55ed9da3e65eeac3260872e80e35529ceb24621b1532466ca9ad157b3",
+      "bytes": 2840,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "aircraft_marker",
+      "file": "aircraft_marker.glb",
+      "sha256": "b5c548d9e0f8be4d776805a6b28e8c51371c920ae381d18cbe43274616fd418d",
+      "bytes": 6884,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "hospital_bed",
+      "file": "hospital_bed.glb",
+      "sha256": "5a124cb8f198ff4d532314f207cf12a98eff0c75aa3fa535f8c509868872a5f6",
+      "bytes": 7404,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "hospital_cart",
+      "file": "hospital_cart.glb",
+      "sha256": "6a36a8c79b625ca71af56c1f5731fb5a27617152edb086c6af5cc036509ef24a",
+      "bytes": 7780,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "nurse_desk",
+      "file": "nurse_desk.glb",
+      "sha256": "6870f531082251c6711a9175ef6cd4b63c64aa7339b58f4bdef2d70ce19d5e75",
+      "bytes": 3300,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "indoor_delivery_robot",
+      "file": "indoor_delivery_robot.glb",
+      "sha256": "49370f4768a4539c46f87cd8188fff4e81e36748b88d1a0d8de8c882a36101da",
+      "bytes": 8628,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "clinic_wall_module",
+      "file": "clinic_wall_module.glb",
+      "sha256": "18072e6c06ac61ac9e18913cd8fb1946367f9736cf874b7cbc2a1d3f4742e423",
+      "bytes": 1980,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "warehouse_column",
+      "file": "warehouse_column.glb",
+      "sha256": "a99e25a87e1d199356d55d72f3a096c634b9f8f125ca815831ab086d88894452",
+      "bytes": 1984,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "door_frame",
+      "file": "door_frame.glb",
+      "sha256": "0a7cd01ec9e244009d6a415d03dd2c4872908aca32cb2b085ba1015e34180f31",
+      "bytes": 2516,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "painted_floor_marker",
+      "file": "painted_floor_marker.glb",
+      "sha256": "93e113137a47d17ea85510c49a98bfa34c5bfcee4274883158696dd771d146ae",
+      "bytes": 1260,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "traffic_cone",
+      "file": "traffic_cone.glb",
+      "sha256": "d7f1f34e4fc20d6fbad1ee1a43e932b6db21f1eb8799d4926b9644bd289d6694",
+      "bytes": 5068,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    },
+    {
+      "asset_id": "clinic_door",
+      "file": "clinic_door.glb",
+      "sha256": "0101cd03a643a5633d4f772d6b06c661bcf6c3a37d03b55479c4715dd4e455de",
+      "bytes": 2804,
+      "quality": "functional starter mesh, needs PBR/detail pass for realism"
+    }
+  ]
+}

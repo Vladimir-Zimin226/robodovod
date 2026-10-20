@@ -20,11 +20,20 @@ export function circleIntersectsSolid(x, z, radius, solid) {
 }
 
 export function solidsOverlap(a, b, clearance = .02) {
-  const ea = solidExtents(a);
-  const eb = solidExtents(b);
   const vertical = Math.abs(a.position[1] - b.position[1]) * 2 < a.scale[1] + b.scale[1] - clearance;
-  return vertical && Math.abs(a.position[0] - b.position[0]) < ea.x + eb.x - clearance &&
-    Math.abs(a.position[2] - b.position[2]) < ea.z + eb.z - clearance;
+  if (!vertical) return false;
+  const axes = solid => {
+    const yaw = solid.yaw || 0;
+    return [[Math.cos(yaw), -Math.sin(yaw)], [Math.sin(yaw), Math.cos(yaw)]];
+  };
+  const aAxes = axes(a), bAxes = axes(b);
+  const offset = [b.position[0] - a.position[0], b.position[2] - a.position[2]];
+  const dot = (u, v) => u[0] * v[0] + u[1] * v[1];
+  const radius = (solid, localAxes, axis) =>
+    solid.scale[0] / 2 * Math.abs(dot(localAxes[0], axis)) +
+    solid.scale[2] / 2 * Math.abs(dot(localAxes[1], axis));
+  return [...aAxes, ...bAxes].every(axis =>
+    Math.abs(dot(offset, axis)) < radius(a, aAxes, axis) + radius(b, bAxes, axis) - clearance);
 }
 
 export function canPlaceSolid(candidate, solids, ignoredEditorId = null) {

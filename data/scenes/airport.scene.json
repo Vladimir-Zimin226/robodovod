@@ -1,0 +1,732 @@
+{
+  "schema_version": "scene-model-v1",
+  "scene_id": "airport",
+  "revision": 1,
+  "units": "m",
+  "coordinate_system": "x-east_y-north_z-up",
+  "bounds": {
+    "width_m": 76,
+    "length_m": 48,
+    "height_m": 9
+  },
+  "fidelity": "DEMO_ASSUMPTION",
+  "source_fixture": "airport.scene.json",
+  "objects": [
+    {
+      "instance_id": "conveyor-001",
+      "asset_id": "conveyor",
+      "position_m": [
+        14.0,
+        10.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        5.0,
+        1.5
+      ],
+      "visual_height_m": 1.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "conveyor-002",
+      "asset_id": "conveyor",
+      "position_m": [
+        14.0,
+        19.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        5.0,
+        1.5
+      ],
+      "visual_height_m": 1.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "conveyor-003",
+      "asset_id": "conveyor",
+      "position_m": [
+        25.0,
+        10.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        5.0,
+        1.5
+      ],
+      "visual_height_m": 1.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "conveyor-004",
+      "asset_id": "conveyor",
+      "position_m": [
+        25.0,
+        19.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        5.0,
+        1.5
+      ],
+      "visual_height_m": 1.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "conveyor-005",
+      "asset_id": "conveyor",
+      "position_m": [
+        36.0,
+        10.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        5.0,
+        1.5
+      ],
+      "visual_height_m": 1.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "conveyor-006",
+      "asset_id": "conveyor",
+      "position_m": [
+        36.0,
+        19.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        5.0,
+        1.5
+      ],
+      "visual_height_m": 1.0,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "baggage_cart-007",
+      "asset_id": "baggage_cart",
+      "position_m": [
+        12.0,
+        35.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.5,
+        1.5
+      ],
+      "visual_height_m": 1.2,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "baggage_cart-008",
+      "asset_id": "baggage_cart",
+      "position_m": [
+        17.0,
+        35.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.5,
+        1.5
+      ],
+      "visual_height_m": 1.2,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "baggage_cart-009",
+      "asset_id": "baggage_cart",
+      "position_m": [
+        22.0,
+        35.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.5,
+        1.5
+      ],
+      "visual_height_m": 1.2,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "aircraft_marker-010",
+      "asset_id": "aircraft_marker",
+      "position_m": [
+        64.0,
+        36.0,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        9.0,
+        9.0
+      ],
+      "visual_height_m": 2.05,
+      "blocks_navigation": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-airport_tug-001",
+      "asset_id": "airport_tug",
+      "position_m": [
+        43,
+        39,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.3,
+        1.2
+      ],
+      "visual_height_m": 1.5,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-safety_barrier-002",
+      "asset_id": "safety_barrier",
+      "position_m": [
+        37,
+        42,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        2.3,
+        0.2
+      ],
+      "visual_height_m": 1.1,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-traffic_cone-003",
+      "asset_id": "traffic_cone",
+      "position_m": [
+        33,
+        41,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        0.5,
+        0.5
+      ],
+      "visual_height_m": 0.8,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-worker-004",
+      "asset_id": "worker",
+      "position_m": [
+        27,
+        38,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        0.7,
+        0.5
+      ],
+      "visual_height_m": 1.8,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "instance_id": "visual-painted_floor_marker-005",
+      "asset_id": "painted_floor_marker",
+      "position_m": [
+        50,
+        43,
+        0
+      ],
+      "rotation_yaw_rad": 0,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "footprint_m": [
+        3,
+        0.12
+      ],
+      "visual_height_m": 0.02,
+      "blocks_navigation": false,
+      "visual_only": true,
+      "source": "DEMO_ASSUMPTION"
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "charging",
+      "name": "Зарядка",
+      "kind": "CHARGE",
+      "center_xy_m": [
+        6.0,
+        40.0
+      ],
+      "radius_m": 2.0,
+      "polygon_xy_m": [
+        [
+          8.0,
+          40.0
+        ],
+        [
+          7.931852,
+          40.517638
+        ],
+        [
+          7.732051,
+          41.0
+        ],
+        [
+          7.414214,
+          41.414214
+        ],
+        [
+          7.0,
+          41.732051
+        ],
+        [
+          6.517638,
+          41.931852
+        ],
+        [
+          6.0,
+          42.0
+        ],
+        [
+          5.482362,
+          41.931852
+        ],
+        [
+          5.0,
+          41.732051
+        ],
+        [
+          4.585786,
+          41.414214
+        ],
+        [
+          4.267949,
+          41.0
+        ],
+        [
+          4.068148,
+          40.517638
+        ],
+        [
+          4.0,
+          40.0
+        ],
+        [
+          4.068148,
+          39.482362
+        ],
+        [
+          4.267949,
+          39.0
+        ],
+        [
+          4.585786,
+          38.585786
+        ],
+        [
+          5.0,
+          38.267949
+        ],
+        [
+          5.482362,
+          38.068148
+        ],
+        [
+          6.0,
+          38.0
+        ],
+        [
+          6.517638,
+          38.068148
+        ],
+        [
+          7.0,
+          38.267949
+        ],
+        [
+          7.414214,
+          38.585786
+        ],
+        [
+          7.732051,
+          39.0
+        ],
+        [
+          7.931852,
+          39.482362
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "zone_id": "pickup",
+      "name": "Багаж",
+      "kind": "PICKUP",
+      "center_xy_m": [
+        17.0,
+        23.0
+      ],
+      "radius_m": 3.0,
+      "polygon_xy_m": [
+        [
+          20.0,
+          23.0
+        ],
+        [
+          19.897777,
+          23.776457
+        ],
+        [
+          19.598076,
+          24.5
+        ],
+        [
+          19.12132,
+          25.12132
+        ],
+        [
+          18.5,
+          25.598076
+        ],
+        [
+          17.776457,
+          25.897777
+        ],
+        [
+          17.0,
+          26.0
+        ],
+        [
+          16.223543,
+          25.897777
+        ],
+        [
+          15.5,
+          25.598076
+        ],
+        [
+          14.87868,
+          25.12132
+        ],
+        [
+          14.401924,
+          24.5
+        ],
+        [
+          14.102223,
+          23.776457
+        ],
+        [
+          14.0,
+          23.0
+        ],
+        [
+          14.102223,
+          22.223543
+        ],
+        [
+          14.401924,
+          21.5
+        ],
+        [
+          14.87868,
+          20.87868
+        ],
+        [
+          15.5,
+          20.401924
+        ],
+        [
+          16.223543,
+          20.102223
+        ],
+        [
+          17.0,
+          20.0
+        ],
+        [
+          17.776457,
+          20.102223
+        ],
+        [
+          18.5,
+          20.401924
+        ],
+        [
+          19.12132,
+          20.87868
+        ],
+        [
+          19.598076,
+          21.5
+        ],
+        [
+          19.897777,
+          22.223543
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    },
+    {
+      "zone_id": "delivery",
+      "name": "Выдача",
+      "kind": "DROPOFF",
+      "center_xy_m": [
+        67.0,
+        29.0
+      ],
+      "radius_m": 3.0,
+      "polygon_xy_m": [
+        [
+          70.0,
+          29.0
+        ],
+        [
+          69.897777,
+          29.776457
+        ],
+        [
+          69.598076,
+          30.5
+        ],
+        [
+          69.12132,
+          31.12132
+        ],
+        [
+          68.5,
+          31.598076
+        ],
+        [
+          67.776457,
+          31.897777
+        ],
+        [
+          67.0,
+          32.0
+        ],
+        [
+          66.223543,
+          31.897777
+        ],
+        [
+          65.5,
+          31.598076
+        ],
+        [
+          64.87868,
+          31.12132
+        ],
+        [
+          64.401924,
+          30.5
+        ],
+        [
+          64.102223,
+          29.776457
+        ],
+        [
+          64.0,
+          29.0
+        ],
+        [
+          64.102223,
+          28.223543
+        ],
+        [
+          64.401924,
+          27.5
+        ],
+        [
+          64.87868,
+          26.87868
+        ],
+        [
+          65.5,
+          26.401924
+        ],
+        [
+          66.223543,
+          26.102223
+        ],
+        [
+          67.0,
+          26.0
+        ],
+        [
+          67.776457,
+          26.102223
+        ],
+        [
+          68.5,
+          26.401924
+        ],
+        [
+          69.12132,
+          26.87868
+        ],
+        [
+          69.598076,
+          27.5
+        ],
+        [
+          69.897777,
+          28.223543
+        ]
+      ],
+      "capacity": 1,
+      "source": "DEMO_ASSUMPTION"
+    }
+  ],
+  "routes": [
+    {
+      "route_id": "demo-1",
+      "points_xy_m": [
+        [
+          6.0,
+          40.0
+        ],
+        [
+          6.0,
+          25.0
+        ],
+        [
+          17.0,
+          25.0
+        ],
+        [
+          17.0,
+          23.0
+        ],
+        [
+          17.0,
+          28.0
+        ],
+        [
+          56.0,
+          28.0
+        ],
+        [
+          67.0,
+          29.0
+        ]
+      ],
+      "source": "DEMO_ASSUMPTION",
+      "status": "UNVALIDATED_GEOMETRY"
+    }
+  ],
+  "agents": [],
+  "tasks": [],
+  "nav": {
+    "no_go_polygons_xy_m": [],
+    "one_way_edges": [],
+    "min_clearance_m": null,
+    "status": "NOT_EVALUATED"
+  },
+  "links": {
+    "catalog_version": null,
+    "assessment_revision": null
+  }
+}

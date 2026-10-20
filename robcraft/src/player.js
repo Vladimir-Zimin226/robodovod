@@ -18,6 +18,8 @@ export class Player {
     this.moving = false;
     this.sprinting = false;
     this.editorEnabled = false;
+    this.touchEnabled = false;
+    this.touchMove = { forward: 0, side: 0 };
     document.addEventListener('keydown', event => this.keys.add(event.code));
     document.addEventListener('keyup', event => this.keys.delete(event.code));
     document.addEventListener('mousemove', event => {
@@ -35,6 +37,7 @@ export class Player {
     this.yaw = 0;
     this.pitch = -.03;
     this.flying = false;
+    this.setTouchMove(0, 0);
   }
 
   toggleFlight() {
@@ -43,8 +46,18 @@ export class Player {
     return this.flying;
   }
 
+  lookTouch(dx, dy) {
+    if (!this.touchEnabled) return;
+    this.yaw += dx * .004;
+    this.pitch = clamp(this.pitch - dy * .0035, -1.35, 1.35);
+  }
+
+  setTouchMove(forward, side) {
+    this.touchMove = { forward: clamp(forward, -1, 1), side: clamp(side, -1, 1) };
+  }
+
   update(delta, solids, collisionInFlight = false) {
-    if (!this.enabled || document.pointerLockElement !== this.canvas) {
+    if (!this.enabled || (document.pointerLockElement !== this.canvas && !this.touchEnabled)) {
       this.moving = false;
       this.sprinting = false;
       return;
@@ -55,6 +68,8 @@ export class Player {
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) forward -= 1;
     if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) side += 1;
     if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) side -= 1;
+    forward = clamp(forward + this.touchMove.forward, -1, 1);
+    side = clamp(side + this.touchMove.side, -1, 1);
     const magnitude = Math.hypot(forward, side) || 1;
     const sprinting = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
     this.moving = forward !== 0 || side !== 0;

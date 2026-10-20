@@ -203,7 +203,7 @@ def _wrap(value: str, size: float, width: float = 505) -> list[str]:
     return rows
 
 
-def _pdf(lines: list[tuple[str, str]]) -> bytes:
+def _pdf(lines: list[tuple[Any, str]]) -> bytes:
     pages: list[list[str]] = [[]]
     used: dict[int, int] = {}
     y = 760.0
@@ -234,10 +234,67 @@ def _pdf(lines: list[tuple[str, str]]) -> bytes:
 
     new_page(cover=True)
     cover = True
+    table_header: tuple[Any, ...] | None = None
     for value, kind in lines:
         if kind == "page":
             new_page()
             cover = False
+            table_header = None
+            continue
+        if kind in {"tablerow", "tablehead"}:
+            cells = [str(cell) for cell in value]
+            columns = [(52, 175), (237, 95), (340, 95), (445, 98)]
+            wrapped = [_wrap(cell, 8, width) for cell, (_, width) in zip(cells, columns)]
+            height = max(24, 8 + 11 * max(map(len, wrapped), default=1))
+            if y - height < 65:
+                new_page()
+                cover = False
+                if table_header and kind == "tablerow":
+                    header_rows = [_wrap(str(cell), 8, width) for cell, (_, width) in zip(table_header, columns)]
+                    header_height = max(24, 8 + 11 * max(map(len, header_rows), default=1))
+                    pages[-1].append(f"0.86 0.90 0.94 rg 45 {y + 18 - header_height:.1f} 505 {header_height:.1f} re f")
+                    for rows, (x, _) in zip(header_rows, columns):
+                        for row_index, row in enumerate(rows):
+                            write(row, 8, x, y + 10 - row_index * 11, "0.035 0.082 0.100")
+                    y -= header_height + 6
+            if kind == "tablehead":
+                table_header = tuple(value)
+            fill = "0.86 0.90 0.94" if kind == "tablehead" else "0.94 0.96 0.95"
+            pages[-1].append(f"{fill} rg 45 {y + 18 - height:.1f} 505 {height:.1f} re f")
+            for rows, (x, _) in zip(wrapped, columns):
+                for row_index, row in enumerate(rows):
+                    write(row, 8, x, y + 10 - row_index * 11, "0.035 0.082 0.100")
+            y -= height + 6
+            continue
+        if kind == "chartbar":
+            if y < 100:
+                new_page()
+                cover = False
+            label, amount, ratio = value
+            label = str(label)
+            amount = str(amount)
+            ratio = max(0.0, min(1.0, float(ratio)))
+            write(label, 8.5, 48, y, "0.035 0.082 0.100")
+            write(amount, 8.5, 410, y, "0.035 0.082 0.100")
+            pages[-1].append(f"0.88 0.92 0.89 rg 48 {y - 17:.1f} 347 9 re f")
+            pages[-1].append(f"0.09 0.41 0.31 rg 48 {y - 17:.1f} {347 * ratio:.1f} 9 re f")
+            y -= 36
+            continue
+        if kind == "waterfall":
+            if y < 100:
+                new_page()
+                cover = False
+            label, amount, start, end, minimum, maximum = value
+            span = max(float(maximum) - float(minimum), 1.0)
+            left = 160 + (min(float(start), float(end)) - float(minimum)) / span * 235
+            width = max(2, abs(float(end) - float(start)) / span * 235)
+            zero = 160 + (0 - float(minimum)) / span * 235
+            write(str(label), 8.3, 48, y, "0.035 0.082 0.100")
+            write(str(amount), 8.3, 407, y, "0.035 0.082 0.100")
+            pages[-1].append(f"0.55 0.64 0.61 RG 0.5 w {zero:.1f} {y - 17:.1f} m {zero:.1f} {y + 5:.1f} l S")
+            color = "0.09 0.52 0.35" if float(end) >= float(start) else "0.66 0.30 0.27"
+            pages[-1].append(f"{color} rg {left:.1f} {y - 17:.1f} {width:.1f} 9 re f")
+            y -= 32
             continue
         if kind == "diagram":
             if y < 310:
