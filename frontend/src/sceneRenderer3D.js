@@ -146,6 +146,9 @@ export const HD_VARIANTS = Object.freeze({
   pallet_rack: 'hero_warehouse_rack', pallet_amr: 'hero_pallet_amr',
   forklift_robot: 'hero_robot_forklift', airport_tug: 'hero_airport_tug',
   indoor_delivery_robot: 'hero_clinic_delivery',
+  conveyor: 'hero_conveyor', baggage_cart: 'hero_baggage_cart',
+  hospital_bed: 'hero_hospital_bed', nurse_desk: 'hero_nurse_desk',
+  hospital_cart: 'hero_hospital_cart',
 });
 
 export class SceneRenderer3D {

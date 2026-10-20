@@ -25,11 +25,11 @@ test('21 bundled GLB meshes decode with colors, normals and metre bounds', async
   }
 });
 
-test('eight original Blender assets decode, retain detail and match their provenance manifest', async () => {
+test('thirteen original Blender assets decode, retain detail and match their provenance manifest', async () => {
   const root = new URL('../public/scene-assets/', import.meta.url);
   const manifest = JSON.parse(await readFile(new URL('recovery-manifest.json', root), 'utf8'));
-  assert.equal(manifest.assets.length, 8);
-  assert.equal(Object.keys(HD_VARIANTS).length, 5);
+  assert.equal(manifest.assets.length, 13);
+  assert.equal(Object.keys(HD_VARIANTS).length, 10);
   for (const id of [...Object.values(HD_VARIANTS), 'hero_warehouse_shell', 'hero_airport_shell', 'hero_clinic_shell']) {
     const bytes = await readFile(new URL(`${id}.glb`, root));
     const record = manifest.assets.find((asset) => asset.asset_id === id);

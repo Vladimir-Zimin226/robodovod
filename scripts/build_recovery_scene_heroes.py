@@ -227,6 +227,78 @@ shell(60, 40, 8.5, concrete, dark_trim, 10, 'hero_warehouse_shell')
 shell(76, 48, 8.2, wall_blue, dark_trim, 12, 'hero_airport_shell')
 shell(45, 28, 6.2, wall_clinic, blue, 7, 'hero_clinic_shell')
 
+
+# Operational scenery used repeatedly in airport and clinic layouts.
+reset()
+cube('Conveyor rubber belt', (0, 0, .83), (3.5, 1.05, .11), rubber, .025)
+for y in (-.57, .57):
+    cube('Conveyor guide rail', (0, y, .94), (3.55, .075, .20), steel_light, .017)
+    for x in (-1.52, 1.52):
+        cube('Conveyor vertical support', (x, y, .43), (.10, .10, .79), steel, .01)
+for x in (-1.62, -1.27, -.92, -.57, -.22, .13, .48, .83, 1.18, 1.53):
+    cyl('Steel idler roller', (x, 0, .91), .074, .96, steel_light, 16, (pi/2, 0, 0))
+for x in (-1.2, 1.2):
+    cube('Guard warning stripe', (x, -.61, .97), (.16, .02, .12), yellow, .004)
+cube('Conveyor motor housing', (1.37, .25, .39), (.40, .38, .33), steel, .05)
+export('hero_conveyor')
+
+reset()
+cube('Baggage cart deck', (0, 0, .48), (2.14, 1.16, .17), steel_light, .045)
+cube('Cart tread', (0, 0, .59), (2.02, 1.04, .045), rubber, .012)
+for x in (-.94, .94):
+    for y in (-.50, .50):
+        cyl('Cart tire', (x, y, .24), .20, .12, rubber, 24, (pi/2, 0, 0))
+        cube('Cart rail post', (x, y, .95), (.07, .07, .76), steel_light, .008)
+for y in (-.53, .53):
+    cube('Cart safety side rail', (0, y, 1.28), (2.08, .07, .08), steel_light, .008)
+cube('Tow drawbar', (-1.31, 0, .45), (.56, .16, .10), steel_light, .02)
+for x, y, z, size, color in [(-.51, 0, .81, (.62, .43, .42), blue),
+                            (.29, .05, .79, (.58, .42, .37), orange),
+                            (.12, -.05, 1.18, (.39, .32, .28), steel)]:
+    cube('Checked suitcase shell', (x, y, z), size, color, .065)
+    cube('Suitcase handle', (x, y, z+size[2]/2+.055), (.17, .04, .08), dark_trim, .015)
+export('hero_baggage_cart')
+
+reset()
+cube('Medical bed frame', (0, 0, .53), (2.09, 1.02, .15), steel_light, .045)
+cube('Sanitary mattress', (0, 0, .68), (1.98, .95, .18), white, .10)
+cube('Pillow', (-.73, 0, .80), (.42, .67, .11), wall_clinic, .055)
+for x in (-.93, .93):
+    cube('Bed end panel', (x, 0, .91), (.08, 1.04, .70), blue, .035)
+    for y in (-.40, .40):
+        cube('Bed leg', (x, y, .30), (.07, .07, .44), steel_light, .01)
+        cyl('Bed caster', (x, y, .10), .10, .06, rubber, 16, (pi/2, 0, 0))
+for y in (-.49, .49):
+    cube('Fold-down bed safety rail', (0, y, .94), (1.34, .04, .08), steel_light, .012)
+    for x in (-.55, .55):
+        cube('Rail bracket', (x, y, .83), (.035, .04, .18), steel_light)
+export('hero_hospital_bed')
+
+reset()
+cube('Nurse desk plinth', (0, 0, .49), (2.35, .93, .93), white, .09)
+cube('Nurse desk worktop', (0, 0, .99), (2.48, 1.09, .085), blue, .035)
+cube('Front reception panel', (0, -.49, .68), (2.22, .045, .47), wall_clinic, .025)
+cube('Monitor panel', (-.39, .15, 1.35), (.51, .09, .44), glass, .035)
+cube('Monitor pedestal', (-.39, .15, 1.08), (.08, .10, .18), steel_light, .01)
+cube('Keyboard', (-.40, -.22, 1.06), (.59, .19, .025), dark_trim, .01)
+cube('Nurse desk task terminal', (.65, .09, 1.23), (.22, .28, .36), white, .03)
+cube('Wayfinding illuminated strip', (0, -.52, .82), (1.72, .025, .055), blue, .009)
+export('hero_nurse_desk')
+
+reset()
+for z in (.37, .83, 1.29):
+    cube('Clinical cart tray', (0, 0, z), (1.02, .68, .08), steel_light, .035)
+    cube('Clinical tray front lip', (0, -.33, z+.07), (1.01, .045, .10), blue, .009)
+for x in (-.46, .46):
+    for y in (-.28, .28):
+        cube('Cart tube frame', (x, y, .76), (.043, .043, 1.37), steel_light, .008)
+        cyl('Cart swivel caster', (x, y, .12), .10, .07, rubber, 16, (pi/2, 0, 0))
+cube('Cart push handle', (0, .39, 1.27), (.80, .07, .07), blue, .02)
+for x in (-.24, .02, .28):
+    cyl('Sealed supply canister', (x, 0, .99), .078, .22, white, 16)
+    cyl('Canister cap', (x, 0, 1.11), .079, .035, blue, 16)
+export('hero_hospital_cart')
+
 ASSETS = {
     'hero_warehouse_rack': 'pallet_rack', 'hero_pallet_amr': 'pallet_amr',
     'hero_robot_forklift': 'forklift_robot', 'hero_airport_tug': 'airport_tug',
@@ -234,6 +306,9 @@ ASSETS = {
     'hero_warehouse_shell': 'warehouse environment',
     'hero_airport_shell': 'airport environment',
     'hero_clinic_shell': 'clinic environment',
+    'hero_conveyor': 'conveyor', 'hero_baggage_cart': 'baggage_cart',
+    'hero_hospital_bed': 'hospital_bed', 'hero_nurse_desk': 'nurse_desk',
+    'hero_hospital_cart': 'hospital_cart',
 }
 manifest = {
     'schema_version': 'recovery-scene-assets-v1',
