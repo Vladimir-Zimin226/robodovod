@@ -32,7 +32,8 @@ void main() {
   vec3 base = uColor;
   if (uFloor > .5) {
     float tile = max(step(.985, fract(abs(vPosition.x) / 5.0)), step(.985, fract(abs(vPosition.z) / 5.0)));
-    base *= 1.0 - .10 * tile;
+    float aggregate = fract(sin(dot(floor(vPosition.xz * 2.0), vec2(127.1, 311.7))) * 43758.5453);
+    base *= (1.0 - .10 * tile) * (.95 + .08 * aggregate);
   }
   vec3 n = normalize(vNormal);
   vec3 v = normalize(uCamera - vPosition);
@@ -100,7 +101,9 @@ export function sceneAssetIds(scene) {
 }
 
 export async function loadSceneMeshes(scene, fetcher = fetch) {
-  const entries = await Promise.all(sceneAssetIds(scene).map(async (id) => {
+  const baseIds = sceneAssetIds(scene);
+  const shellId = `hero_${scene.scene_id}_shell`;
+  const entries = await Promise.all([...new Set([...baseIds, ...baseIds.map((id) => HD_VARIANTS[id]).filter(Boolean), shellId])].map(async (id) => {
     const response = await fetcher(`/scene-assets/${id}.glb`);
     if (!response.ok) throw new Error(`GLB ${id}: HTTP ${response.status}`);
     return [id, convertBundledMesh(decodeGlb(await response.arrayBuffer()))];
@@ -112,6 +115,17 @@ function plane(vertices, normal = [0, 1, 0]) {
   const result = [];
   for (const point of vertices) result.push(...point, ...normal);
   return new Float32Array(result);
+}
+
+function contactDisc(segments = 20) {
+  const vertices = [];
+  for (let index = 0; index < segments; index += 1) {
+    const a = index * Math.PI * 2 / segments;
+    const b = (index + 1) * Math.PI * 2 / segments;
+    vertices.push([0, 0, 0], [Math.cos(a) * .5, 0, Math.sin(a) * .5],
+      [Math.cos(b) * .5, 0, Math.sin(b) * .5]);
+  }
+  return plane(vertices);
 }
 
 // Visual-only stock on the authored rack footprint. It never enters SceneModel collision or economics.
@@ -128,6 +142,11 @@ function box() {
 const COLOR = { CHARGE: [.08, .72, .46], PICKUP: [.98, .63, .10],
   DROPOFF: [.90, .21, .26], SHARED_LANE: [.48, .31, .75] };
 const MOVING_ROBOT_ASSET = { warehouse: 'pallet_amr', airport: 'airport_tug', clinic: 'indoor_delivery_robot' };
+export const HD_VARIANTS = Object.freeze({
+  pallet_rack: 'hero_warehouse_rack', pallet_amr: 'hero_pallet_amr',
+  forklift_robot: 'hero_robot_forklift', airport_tug: 'hero_airport_tug',
+  indoor_delivery_robot: 'hero_clinic_delivery',
+});
 
 export class SceneRenderer3D {
   constructor(canvas) {
@@ -202,7 +221,7 @@ export class SceneRenderer3D {
     const camera = preset === 'top' ? [center[0], span * 1.05, center[2] + .01]
       : preset === 'overview' ? [center[0] + span * .39, span * .51, center[2] + span * .81]
         : [center[0] + span * .60, span * .60, center[2] + span * .67];
-    const projection = mat4Perspective(Math.PI / 3.1, width / height, .1, span * 5);
+    const projection = mat4Perspective(Math.PI / 4.2, width / height, .1, span * 5);
     this.viewProjection = mat4Multiply(projection, mat4LookAt(camera, center));
     gl.uniformMatrix4fv(this.loc.uViewProjection, false, this.viewProjection);
     gl.uniform3fv(this.loc.uCamera, camera);
@@ -213,6 +232,9 @@ export class SceneRenderer3D {
       : scene.scene_id === 'airport' ? [.21, .32, .38] : [.23, .32, .36], 0, .98, 0, 1, 1);
     gl.deleteBuffer(floor.buffer);
     this.buffers.pop();
+    const shell = this.meshes?.[`hero_${scene.scene_id}_shell`];
+    if (shell) for (const group of shell.groups) this.draw(group, identity, group.color,
+      group.metallic, group.roughness, group.emission);
     for (const zone of scene.zones) {
       const polygon = zone.polygon_xy_m;
       if (polygon.length < 3) continue;
@@ -228,9 +250,21 @@ export class SceneRenderer3D {
       gl.deleteBuffer(mesh.buffer);
       this.buffers.pop();
     }
+    const shadow = this.upload(contactDisc());
+    gl.depthMask(false);
+    for (const object of scene.objects) {
+      if (object.asset_id === 'painted_floor_marker') continue;
+      const model = mat4Model(worldToGltf([object.position_m[0], object.position_m[1], .035]),
+        [object.footprint_m[0] * 1.18, 1, object.footprint_m[1] * 1.18], object.rotation_yaw_rad || 0);
+      this.draw(shadow, model, [.015, .027, .033], 0, 1, 0, .23);
+    }
+    gl.depthMask(true);
+    gl.deleteBuffer(shadow.buffer);
+    this.buffers.pop();
     for (const object of scene.objects) {
       if (pose && object.asset_id === MOVING_ROBOT_ASSET[scene.scene_id]) continue;
-      const asset = this.meshes?.[object.asset_id === 'user_barrier' ? 'safety_barrier' : object.asset_id];
+      const assetId = object.asset_id === 'user_barrier' ? 'safety_barrier' : object.asset_id;
+      const asset = this.meshes?.[HD_VARIANTS[assetId]] || this.meshes?.[assetId];
       if (!asset) continue;
       const scale = objectMeshScale(object, asset.bounds);
       const position = worldToGltf(object.position_m);
@@ -240,7 +274,7 @@ export class SceneRenderer3D {
     }
     const stock = this.upload(box());
     for (const object of scene.objects) {
-      if (object.asset_id !== 'pallet_rack') continue;
+      if (object.asset_id !== 'pallet_rack' || this.meshes?.hero_warehouse_rack) continue;
       const [x, y] = object.position_m;
       const [width, depth] = object.footprint_m;
       const height = object.visual_height_m;
@@ -268,10 +302,10 @@ export class SceneRenderer3D {
     }
     if (pose) {
       const object = scene.objects.find((item) => item.asset_id === MOVING_ROBOT_ASSET[scene.scene_id]);
-      const asset = object && this.meshes?.[object.asset_id];
+      const asset = object && (this.meshes?.[HD_VARIANTS[object.asset_id]] || this.meshes?.[object.asset_id]);
       if (asset) {
         const model = mat4Model(worldToGltf([pose[0], pose[1], 0]),
-          objectMeshScale(object, asset.bounds), object.rotation_yaw_rad || 0);
+          objectMeshScale(object, asset.bounds), Number.isFinite(pose[2]) ? pose[2] : object.rotation_yaw_rad || 0);
         for (const group of asset.groups) this.draw(group, model, group.color,
           group.metallic, group.roughness, group.emission);
       }

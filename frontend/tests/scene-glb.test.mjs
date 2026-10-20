@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { decodeGlb } from '../../robcraft/src/core/glb-model.js';
-import { convertBundledMesh, objectMeshScale, sceneAssetIds } from '../src/sceneRenderer3D.js';
+import { convertBundledMesh, HD_VARIANTS, objectMeshScale, sceneAssetIds } from '../src/sceneRenderer3D.js';
 import { sceneForKind, worldToGltf } from '../src/sceneModel.js';
 
 test('21 bundled GLB meshes decode with colors, normals and metre bounds', async () => {
@@ -21,6 +22,24 @@ test('21 bundled GLB meshes decode with colors, normals and metre bounds', async
       && group.vertices.every(Number.isFinite)
       && group.color.every((value) => value >= 0 && value <= 1)), asset.asset_id);
     assert(mesh.bounds.size.every((value) => value > 0), asset.asset_id);
+  }
+});
+
+test('eight original Blender assets decode, retain detail and match their provenance manifest', async () => {
+  const root = new URL('../public/scene-assets/', import.meta.url);
+  const manifest = JSON.parse(await readFile(new URL('recovery-manifest.json', root), 'utf8'));
+  assert.equal(manifest.assets.length, 8);
+  assert.equal(Object.keys(HD_VARIANTS).length, 5);
+  for (const id of [...Object.values(HD_VARIANTS), 'hero_warehouse_shell', 'hero_airport_shell', 'hero_clinic_shell']) {
+    const bytes = await readFile(new URL(`${id}.glb`, root));
+    const record = manifest.assets.find((asset) => asset.asset_id === id);
+    assert.equal(record?.bytes, bytes.length);
+    assert.equal(record.sha256, createHash('sha256').update(bytes).digest('hex'));
+    const groups = decodeGlb(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+    const mesh = convertBundledMesh(groups);
+    assert(mesh.groups.length >= 4, `${id}: material variety`);
+    assert(mesh.groups.reduce((count, group) => count + group.vertices.length / 18, 0) > 100, `${id}: triangle detail`);
+    assert(mesh.bounds.size.every((size) => size > 0), `${id}: metric bounds`);
   }
 });
 

@@ -1,0 +1,64 @@
+{
+  "schema_version": "recovery-scene-assets-v1",
+  "author": "OpenAI Codex for ROBODOVOD",
+  "license": "Original procedural geometry made for this project",
+  "source": "scripts/build_recovery_scene_heroes.py",
+  "assets": [
+    {
+      "asset_id": "hero_warehouse_rack",
+      "replaces_or_extends": "pallet_rack",
+      "file": "hero_warehouse_rack.glb",
+      "bytes": 554884,
+      "sha256": "a0f5a700170e8a01b75ee9fd2f3ed5434b5e16acc569539eeeeb3c0c823b8d9f"
+    },
+    {
+      "asset_id": "hero_pallet_amr",
+      "replaces_or_extends": "pallet_amr",
+      "file": "hero_pallet_amr.glb",
+      "bytes": 118592,
+      "sha256": "86e0670b22b9adfdf3df306382d3064d614edb5f0510bcfbe8ffb02017004639"
+    },
+    {
+      "asset_id": "hero_robot_forklift",
+      "replaces_or_extends": "forklift_robot",
+      "file": "hero_robot_forklift.glb",
+      "bytes": 200440,
+      "sha256": "bc2a55c4b38f3079f8a3bcfd6047d8ab335edabd0776b89a21647de2d0e5fe6d"
+    },
+    {
+      "asset_id": "hero_airport_tug",
+      "replaces_or_extends": "airport_tug",
+      "file": "hero_airport_tug.glb",
+      "bytes": 154700,
+      "sha256": "b898edb131ad6d0dace3e61fa9adae9abb9e7029a71bcd9f098df4eabdc0ebd2"
+    },
+    {
+      "asset_id": "hero_clinic_delivery",
+      "replaces_or_extends": "indoor_delivery_robot",
+      "file": "hero_clinic_delivery.glb",
+      "bytes": 155484,
+      "sha256": "e338c429611a27276515d99c6006f3e9d5f46e048728fc766abe1b91de7bb884"
+    },
+    {
+      "asset_id": "hero_warehouse_shell",
+      "replaces_or_extends": "warehouse environment",
+      "file": "hero_warehouse_shell.glb",
+      "bytes": 452988,
+      "sha256": "aa31bab116717bcd804883ab45050dd8da281f4e4d30870d6827f75b9931f404"
+    },
+    {
+      "asset_id": "hero_airport_shell",
+      "replaces_or_extends": "airport environment",
+      "file": "hero_airport_shell.glb",
+      "bytes": 475020,
+      "sha256": "2e9f6bd2ef7c12743b1b0234d93395e4a1d1d63926ab2a34e0e65313aae9cafe"
+    },
+    {
+      "asset_id": "hero_clinic_shell",
+      "replaces_or_extends": "clinic environment",
+      "file": "hero_clinic_shell.glb",
+      "bytes": 483292,
+      "sha256": "be4d9dcb5337653ff19dae0ffe34c9f5c583f33e52eeda55c6756d4c8ad58f37"
+    }
+  ]
+}
