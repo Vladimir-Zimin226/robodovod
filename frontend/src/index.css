@@ -1305,7 +1305,7 @@ button:disabled { cursor: not-allowed; }
   .scene-preview-mobile-switch button { flex: 1; }
   .scene-preview-grid[data-mobile-view="2d"] .scene-preview-hero, .scene-preview-grid[data-mobile-view="3d"] .scene-preview-plan { display: none; }
   .scene-preview-canvas { height: clamp(290px, 70vw, 420px); min-height: 0; }
-  .scene-preview-camera { overflow-x: auto; flex-wrap: nowrap; }
+  .scene-preview-camera { flex-wrap: wrap; }
   .scene-preview-camera button { white-space: nowrap; }
   .scene-sim-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .investment-chart-row { grid-template-columns: 1.4rem minmax(0, 1fr) minmax(4rem, 6rem); }

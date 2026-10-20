@@ -9,8 +9,10 @@ import requests
 import websocket
 
 OUT = Path(__file__).resolve().parent / 'evidence'
-page = next(item for item in requests.get('http://127.0.0.1:9225/json/list', timeout=5).json()
-            if item.get('type') == 'page')
+pages = requests.get('http://127.0.0.1:9225/json/list', timeout=5).json()
+page = next((item for item in pages if item.get('type') == 'page'
+             and '/qa/recovery/index.html' in item.get('url', '')),
+            next(item for item in pages if item.get('type') == 'page'))
 ws = websocket.create_connection(page['webSocketDebuggerUrl'], timeout=20, suppress_origin=True)
 index = 0
 
@@ -68,10 +70,29 @@ try:
         call('Page.navigate', {'url': 'http://127.0.0.1:4175/qa/recovery/index.html?kind=warehouse'})
         ready("document.querySelector('[data-glb-status]')?.dataset.glbStatus==='READY'", 'scene preview')
         no_page_overflow(f'scene {width}')
+        evaluate("document.querySelector('.scene-preview')?.scrollIntoView({block:'start'})")
+        time.sleep(.2)
         save(f'mobile-{width}-scene-3d.png')
         evaluate("document.querySelector('.scene-preview-mobile-switch button:last-child').click()")
         ready("document.querySelector('.scene-preview-grid')?.dataset.mobileView==='2d'", 'scene 2D switch')
         save(f'mobile-{width}-scene-2d.png')
+        evaluate("document.querySelector('.scene-sim-controls button[type=submit]').click()")
+        ready("Boolean(document.querySelector('.scene-playback-controls'))", 'scene playback')
+        start_pose = evaluate("document.querySelector('#recovery-pose')?.textContent")
+        time.sleep(1)
+        end_pose = evaluate("document.querySelector('#recovery-pose')?.textContent")
+        if not start_pose or start_pose == end_pose:
+            raise RuntimeError(f'scene playback {width}: robot did not move')
+        no_page_overflow(f'scene playback {width}')
+        save(f'mobile-{width}-scene-playback.png')
+        evaluate("document.querySelector('.scene-playback-controls')?.scrollIntoView({block:'center'})")
+        time.sleep(.2)
+        save(f'mobile-{width}-scene-controls.png')
+        evaluate("document.querySelector('.scene-playback-controls button').click()")
+        paused_pose = evaluate("document.querySelector('#recovery-pose')?.textContent")
+        time.sleep(.4)
+        if evaluate("document.querySelector('#recovery-pose')?.textContent") != paused_pose:
+            raise RuntimeError(f'scene playback {width}: pause did not hold pose')
         call('Page.navigate', {'url': 'http://127.0.0.1:4175/'})
         ready("Boolean(document.querySelector('#root h1'))", 'main application')
         no_page_overflow(f'main {width}')
