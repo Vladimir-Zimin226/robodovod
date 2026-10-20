@@ -53,6 +53,7 @@ def test_object_report_view_pdf_has_same_numbers_a4_tables_charts_and_sources(ki
         assert money["horizons"][1]["npv_rub"] in extracted
     assert len(view["works"]) == sum(len(role["works"]) for role in report["roles"])
     assert len(view["sources"]) == len(view["works"])
+    assert "ИСТОЧНИКИ · ПРОДОЛЖЕНИЕ" in pdf.pages[-1].extract_text()
 
 
 def test_missing_price_stays_unknown_in_warehouse_report_and_pdf():

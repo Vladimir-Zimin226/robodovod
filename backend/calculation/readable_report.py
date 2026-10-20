@@ -241,6 +241,24 @@ def _pdf(lines: list[tuple[Any, str]]) -> bytes:
             cover = False
             table_header = None
             continue
+        if kind == "sourceentry":
+            heading, detail = value
+            headings = _wrap(heading, 9.3, 500)
+            details = _wrap(detail, 8.5, 500)
+            height = 9 + len(headings) * 16 + len(details) * 13
+            if y - height < 65:
+                new_page()
+                cover = False
+                write("ИСТОЧНИКИ · ПРОДОЛЖЕНИЕ", 10, 45, y, "0.09 0.41 0.31")
+                y -= 31
+            for row in headings:
+                write(row, 9.3, 45, y, "0.035 0.082 0.100")
+                y -= 16
+            for row in details:
+                write(row, 8.5, 45, y, "0.35 0.42 0.41")
+                y -= 13
+            y -= 9
+            continue
         if kind in {"tablerow", "tablehead"}:
             cells = [str(cell) for cell in value]
             columns = [(52, 175), (237, 95), (340, 95), (445, 98)]
@@ -322,7 +340,7 @@ def _pdf(lines: list[tuple[Any, str]]) -> bytes:
             "section": (15, 24, 16), "metric": (11, 20, 5),
             "body": (9.3, 15, 2), "note": (8.6, 14, 5),
             "detail": (8.5, 12.5, 3),
-            "source": (7.8, 11, 2),
+            "source": (8.5, 13, 3),
         }.get(kind, (9.3, 15, 2))
         y -= before
         color = ("0.96 0.98 0.96" if cover else

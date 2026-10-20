@@ -180,13 +180,15 @@ def role_report_pdf(result: dict[str, Any], comparison: dict[str, Any] | None = 
         lines.append((f"Горизонт базы: {view['active_horizon_years']} лет; горизонт ветки: {changed['active_horizon_years']} лет.", "body"))
     lines.append(("Риски и проверки перед закупкой", "section"))
     lines.extend((risk, "body") for risk in view["risks"])
-    lines.append(("Источники и происхождение чисел", "section"))
+    lines.extend([("Источники и происхождение чисел", "section"),
+                  ("Ниже приведены сохранённые основания для выработки, цены и допустимого груза каждой выбранной работы. Сценарные допущения требуют подтверждения до закупки.", "note")])
     for source in view["sources"]:
-        lines.append((f"{source['role']} · поз. {_source_text(source['position_id'], 'не выбрана')}: "
-            f"выработка {_source_text(source['rate'], 'неизвестна')} [{_source_text(source['rate_evidence_ref'], 'сценарная')}]; "
+        heading = f"{source['role']} · позиция {_source_text(source['position_id'], 'не выбрана')}"
+        detail = (f"Выработка {_source_text(source['rate'], 'неизвестна')} [{_source_text(source['rate_evidence_ref'], 'сценарная')}]; "
             f"цена {_source_text(source['price'], 'неизвестна')} [{_source_text(source['price_evidence_ref'], 'сценарная')}]; "
             f"груз {_source_text(source['payload_evidence_id'], 'нет подтверждения')}; "
-            f"основание {_source_text(source['evidence'], 'сценарное допущение')}.", "source"))
+            f"основание {_source_text(source['evidence'], 'сценарное допущение')}.")
+        lines.append(((heading, detail), "sourceentry"))
     document = _pdf(lines)
     if not scene_snapshots:
         return document
