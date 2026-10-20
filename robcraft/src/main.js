@@ -3,10 +3,9 @@ import { Player } from './player.js';
 import { CameraDirector } from './camera-director.js';
 import { generateWorld, generateWorldsFromScenarioSpec } from './world/generator.js';
 import { configFromUrl, configToQuery, normalizeConfig } from './world/config.js';
-import { parseWorldDescription } from './world/prompt-parser.js';
 import { buildRendererReport, createSimulation, getSimulationReport, preserveOperationalRobotPositions, triggerSimulationEvent, updateSimulation } from './simulation.js';
 import { AudioEngine } from './audio.js';
-import { BUILD_CATALOG, pickEntity, rayGroundPoint, SceneEditorModel } from './editor/editor.js';
+import { BUILD_CATALOG, pickEntity, rayGroundPoint, SceneEditorModel } from './editor/editor.js?v=recovery-v2-r2-final';
 import { EditorInventory } from './editor/inventory.js';
 import { drawMap, mapEntityAt, mapPoint, mapScale, mapZoomAt, validZonePolygon } from './editor/map-view.js';
 import { RobCraftProjectStore, SceneSaveConflict } from './editor/project-store.js';
@@ -32,8 +31,6 @@ const worldLabels = document.querySelector('#world-labels');
 const analyticsPanel = document.querySelector('#analytics-panel');
 const reportPanel = document.querySelector('#report-panel');
 const errorBox = document.querySelector('#error');
-const descriptionField = document.querySelector('#world-description');
-const parseResult = document.querySelector('#parse-result');
 const editorPanel = document.querySelector('#editor-panel');
 const editorSelection = document.querySelector('#editor-selection');
 const editorMessage = document.querySelector('#editor-message');
@@ -379,33 +376,6 @@ function readForm() {
   return normalizeConfig(Object.fromEntries(Object.entries(fields).map(([key, field]) => [key, field.value])));
 }
 
-function parseDescription() {
-  descriptionSpec = parseWorldDescription(descriptionField.value, readForm());
-  if (!descriptionSpec.source) {
-    parseResult.textContent = 'Сначала опишите объект хотя бы одним предложением.';
-    parseResult.classList.remove('hidden');
-    return false;
-  }
-  populateForm(descriptionSpec.config);
-  const confidence = Math.round(descriptionSpec.confidence * 100);
-  const recognized = descriptionSpec.recognized.length ? descriptionSpec.recognized.join(' · ') : 'явные параметры не найдены';
-  const assumptions = descriptionSpec.assumptions.length ? descriptionSpec.assumptions.join(' · ') : 'нет';
-  parseResult.replaceChildren();
-  const title = document.createElement('strong');
-  title.textContent = 'Распознано';
-  const score = document.createElement('span');
-  score.className = 'confidence';
-  score.textContent = `уверенность ${confidence}%`;
-  const recognizedLine = document.createElement('div');
-  recognizedLine.textContent = recognized;
-  const assumptionLine = document.createElement('div');
-  assumptionLine.className = 'assumption';
-  assumptionLine.textContent = `Предположения: ${assumptions}`;
-  parseResult.append(title, score, recognizedLine, assumptionLine);
-  parseResult.classList.remove('hidden');
-  return true;
-}
-
 function startWorld(config, capturePointer = true, imported = null, forceNew = false) {
   zoneDraft = null;
   wallDraft = null;
@@ -654,6 +624,7 @@ function toggleEditor(force) {
   editorPanel.classList.add('hidden');
   document.body.classList.remove('touch-panel-open');
   toolbar.classList.toggle('hidden', !enabled);
+  document.querySelector('#craft-economics-summary').classList.toggle('hidden', !enabled);
   hotbar.classList.toggle('hidden', !enabled);
   updateEditorView();
   document.querySelector('#editor-status').classList.toggle('hidden', !enabled);
@@ -1200,8 +1171,6 @@ form.addEventListener('submit', async event => {
       status.textContent = `${cad.objects.length} сегментов · пропущено сущностей: ${cad.unsupported + cad.malformed} · другие слои: ${cad.skippedLayers.join(', ') || 'нет'}`;
     } catch (error) { status.textContent = `DXF не импортирован: ${error.message}`; return; }
   }
-  const description = descriptionField.value.trim();
-  if (description && descriptionSpec?.source !== description) parseDescription();
   startWorld(readForm(), true, null, true);
   if (cad) {
     try { const count = sceneEditor.importDxfObjects(cad.objects, { file_name: document.querySelector('#cad-file').files[0].name,
@@ -1221,10 +1190,6 @@ fields.occupancy.addEventListener('input', () => { document.querySelector('#occu
 fields.template.addEventListener('change', () => { updateTemplateLabels(); syncStartChoices(); });
 document.querySelector('#random-seed').addEventListener('click', () => {
   fields.seed.value = `WH-${Math.floor(100000 + Math.random() * 900000)}`;
-});
-document.querySelector('#parse-description').addEventListener('click', parseDescription);
-descriptionField.addEventListener('keydown', event => {
-  if ((event.ctrlKey || event.metaKey) && event.code === 'Enter') parseDescription();
 });
 
 document.addEventListener('pointerlockchange', () => {
@@ -1499,6 +1464,9 @@ function renderLiveEconomics() {
   for (const input of holder.querySelectorAll('input')) if (document.activeElement !== input) input.value = inputs[input.dataset.economicsField] ?? '';
   const result = calculateLiveEconomics(scene, inputs);
   const format = value => value === null ? 'нужны вводные' : Math.round(value).toLocaleString('ru-RU');
+  const money = value => value === null ? 'нужны вводные' : `${format(value)} ₽`;
+  document.querySelector('#craft-economics-summary').textContent =
+    `Роботы: ${result.active_robots}/${result.placed_robots} работают · CAPEX: ${money(result.capex)} · NPV 5 лет: ${money(result.npv_5)}`;
   document.querySelector('#economics-result').textContent = `Статус: ${result.status} · роботы ${result.placed_robots}, работают ${result.active_robots}, заблокированы ${result.blocked_robots}. ` +
     `Базовый ФОТ ${format(result.baseline_payroll_year)} ₽/год; CAPEX ${format(result.capex)} ₽; OPEX ${format(result.opex_year)} ₽/год. ` +
     `Потенциально ${format(result.potential_released_hours)} ч/год, реализуемо ${format(result.realized_released_hours)} ч/год, ${result.released_fte === null ? 'нужны вводные' : result.released_fte.toFixed(2)} FTE. ` +
@@ -1522,9 +1490,54 @@ function syncOperationalPlaybackUi() {
   const toggle = document.querySelector('#operational-toggle');
   toggle.textContent = operationalPlayback ? 'Ⅱ Пауза' : '▶ Старт';
   toggle.setAttribute('aria-pressed', String(operationalPlayback));
+  const quickPlay = document.querySelector('#craft-play');
+  quickPlay.textContent = operationalPlayback ? 'Ⅱ Пауза' : '▶ Запустить робота';
+  quickPlay.setAttribute('aria-pressed', String(operationalPlayback));
   document.querySelector('#operational-follow').setAttribute('aria-pressed', String(operationalFollow));
   document.querySelectorAll('[data-operational-speed]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.operationalSpeed) === operationalSpeed)));
 }
+
+document.querySelector('#craft-play').addEventListener('click', () => {
+  if (operationalPlayback) {
+    operationalPlayback = false;
+    syncOperationalPlaybackUi();
+    return;
+  }
+  if (!scene.editorAssignments?.some(item => item.ok)) {
+    const robot = scene.staticObjects.find(item => ASSIGNABLE_ROBOTS[item.kind]);
+    const anchors = operationalAnchors(scene);
+    const charge = anchors.find(item => item.role === 'CHARGE');
+    const work = anchors.find(item => item.role === 'WORK');
+    const dropoff = anchors.find(item => item.role === 'DROPOFF');
+    if (!robot || !charge || !work) {
+      editorPanel.classList.remove('hidden');
+      editorMessage.textContent = 'Поставьте робота, зарядную станцию и рабочую точку. Затем нажмите «Запустить робота».';
+      return;
+    }
+    operationalSelection = { chargeId: charge.id, workId: work.id, dropoffId: dropoff?.id || '' };
+    routePreviewRequested = true;
+    operationalPath = planOperationalPath(scene, operationalSelection);
+    const result = sceneEditor.assignRobot(robot.id, operationalSelection,
+      Number(document.querySelector('#operational-payload').value),
+      Number(document.querySelector('#operational-speed').value));
+    if (!result.ok) {
+      editorPanel.classList.remove('hidden');
+      editorMessage.textContent = `Маршрут не запущен: ${result.reason}`;
+      return;
+    }
+    rebuildEditedScene('Робот назначен и готов к движению.');
+  }
+  operationalPlayback = true;
+  syncOperationalPlaybackUi();
+});
+
+document.querySelector('#craft-economics-summary').addEventListener('click', () => {
+  editorPanel.classList.remove('hidden');
+  if (touchMode) document.body.classList.add('touch-panel-open');
+  document.querySelector('#editor-project-tools').open = true;
+  document.querySelector('#live-economics').open = true;
+  document.querySelector('#live-economics').scrollIntoView({ block: 'nearest' });
+});
 
 for (const [id, key] of [['operational-charge', 'chargeId'], ['operational-work', 'workId'], ['operational-dropoff', 'dropoffId']]) {
   document.querySelector(`#${id}`).addEventListener('change', event => {
@@ -1887,17 +1900,6 @@ document.querySelector('#scene-import').addEventListener('change', async event =
   } catch (error) { editorMessage.textContent = `Импорт отклонён: ${error.message}`; }
   event.target.value = '';
 });
-
-document.querySelectorAll('[data-speed]').forEach(button => button.addEventListener('click', () => {
-  simulation.speedMultiplier = Number(button.dataset.speed);
-  operationalSpeed = simulation.speedMultiplier;
-  syncOperationalPlaybackUi();
-  document.querySelectorAll('[data-speed]').forEach(item => {
-    const selected = item === button;
-    item.classList.toggle('active', selected);
-    item.setAttribute('aria-pressed', String(selected));
-  });
-}));
 
 document.querySelector('#sound-toggle').addEventListener('click', event => {
   const enabled = audioEngine.toggle();

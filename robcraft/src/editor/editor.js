@@ -86,6 +86,11 @@ export class SceneEditorModel {
     const instanceId = crypto.randomUUID();
     const id = `user:${kind}:${instanceId}`;
     const object = { id, instance_id: instanceId, kind, editorId: id, editorKind: kind, type: preset.type || kind, position: [...position], scale: [...preset.scale], yaw: options.yaw || 0, color: [...preset.color], meta: { label: preset.label }, solid: preset.solid !== false };
+    const suggestedRole = {
+      charger: 'CHARGE', charging_dock: 'CHARGE', station: 'WORK', conveyor: 'WORK',
+      nurse_desk: 'WORK', pallet_stack: 'DROPOFF', baggage_cart: 'DROPOFF', hospital_cart: 'DROPOFF'
+    }[kind];
+    if (suggestedRole) object.operational_role = suggestedRole;
     const collider = { position: object.position, scale: object.scale, yaw: object.yaw, editorId: id };
     if (object.solid && !canPlaceSolid(collider, this.scene.solids)) return null;
     this.history.mutate(patch => patch.created.push(object)); this.selectedId = id; this.refresh(); return id;

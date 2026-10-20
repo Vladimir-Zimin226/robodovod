@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#07110f" />
     <title>РобКрафт — симулятор роботизации</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=recovery-v2-r2-final2" />
   </head>
   <body>
     <canvas id="world" tabindex="0" aria-label="Трёхмерный мир РобКрафта"></canvas>
@@ -54,7 +54,6 @@
       <div id="event-toast" class="event-toast hidden"></div>
       <div class="scenario-control"><span>СОБЫТИЯ</span><button type="button" data-event="demand-wave">⚡ ПИК СПРОСА</button><button type="button" data-event="robot-fault">⚠ СБОЙ AMR</button></div>
       <div class="controls-hint">B — строительство · I — каталог · WASD — движение · G — новая сцена</div>
-      <div class="speed-control" role="group" aria-label="Скорость симуляции">СКОРОСТЬ <button type="button" data-speed="1" class="active" aria-pressed="true">×1</button><button type="button" data-speed="2" aria-pressed="false">×2</button><button type="button" data-speed="4" aria-pressed="false">×4</button></div>
       <button id="sound-toggle" class="sound-toggle" type="button">🔊 ЗВУК</button>
       <button id="analytics-toggle" class="analytics-toggle" type="button">◈ АНАЛИТИКА</button>
       <button id="report-toggle" class="report-toggle" type="button">▤ ОТЧЁТ</button>
@@ -63,7 +62,9 @@
         <button id="view-toggle" type="button">2D · вид сверху</button>
         <button id="inventory-toggle" type="button" aria-label="Каталог объектов">i</button>
         <button id="empty-hand" type="button">Пустая рука · 0</button>
+        <button id="craft-play" type="button" aria-pressed="false">▶ Запустить робота</button>
       </div>
+      <button id="craft-economics-summary" class="craft-economics-summary hidden" type="button" aria-label="Открыть экономику сцены">Роботы: 0 · Экономика: нужны вводные</button>
       <canvas id="craft-map" class="craft-map hidden" aria-label="План сцены 2D"></canvas>
       <div id="map-controls" class="map-controls hidden" role="group" aria-label="Управление 2D-планом"><button type="button" id="map-zoom-out" aria-label="Уменьшить план">−</button><span id="map-zoom-label">100%</span><button type="button" id="map-zoom-in" aria-label="Увеличить план">+</button><button type="button" id="map-fit">Весь план</button><span id="map-pan-label">0,0 / 0,0 м</span><small class="map-touch-hint">Два пальца: масштаб и сдвиг</small></div>
       <div id="craft-hotbar" class="craft-hotbar hidden" role="group" aria-label="Панель быстрого доступа"></div>
@@ -113,11 +114,6 @@
         <div id="cad-options" class="wide hidden"><label>Текстовый DXF до 5 МБ <input id="cad-file" type="file" accept=".dxf" /></label><label>Слои стен <input id="cad-wall-layers" value="WALLS" /></label><label>Слои препятствий <input id="cad-obstacle-layers" value="OBSTACLES" /></label><label>Высота стен, м <input id="cad-wall-height" type="number" min="1" max="12" step="0.1" value="3" /></label><label>Метры на единицу DXF (если нет INSUNITS) <input id="cad-unit-meters" type="number" min="0.0001" step="any" placeholder="из файла" /></label><small>Прямые LINE/LWPOLYLINE выбранных слоёв станут редактируемыми стенами и препятствиями в 2D/3D.</small><p id="cad-status" role="status"></p></div>
         <p id="saved-scene-status" class="form-note wide hidden" role="status"></p>
         <details class="launcher-advanced wide"><summary>Дополнительные параметры объекта</summary>
-        <label class="description-field">Описание объекта
-          <textarea id="world-description" rows="4" placeholder="Например: паллетный склад 60 × 45 метров, 6 рядов стеллажей, парк из 5 роботов, заполнение 80%"></textarea>
-          <div class="description-actions"><button id="parse-description" type="button">✦ РАСПОЗНАТЬ ОПИСАНИЕ</button><small>Работает локально, без интернета</small></div>
-        </label>
-        <div id="parse-result" class="parse-result wide hidden"></div>
         <label class="wide">Seed сценария
           <div class="seed-row"><input id="seed" name="seed" value="PRISM-2026" maxlength="40" /><button id="random-seed" type="button" title="Новый seed">↻</button></div>
         </label>
@@ -134,6 +130,6 @@
     </section>
 
     <div id="error" class="error hidden"></div>
-    <script type="module" src="src/main.js"></script>
+    <script type="module" src="src/main.js?v=recovery-v2-r2-final"></script>
   </body>
 </html>
